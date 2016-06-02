@@ -1,0 +1,45 @@
+apply plugin: 'findbugs'
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+apply plugin: "jacoco"
+
+
+tasks.withType(FindBugs) {
+  excludeFilter = file("$rootProject.projectDir/gradle/findbugs/excludeFilter.xml")
+  maxHeapSize = '1024m'
+}
+
+tasks.withType(GroovyCompile) {
+  configure(groovyOptions.forkOptions) {
+    memoryMaximumSize = '1g'
+    jvmArgs = ['-Xms512m', '-Xmx1g']
+  }
+}
+
+checkstyle {
+  configFile = file("$rootProject.projectDir/gradle/checkstyle/checkstyle.xml")
+  sourceSets = [project.sourceSets.main] // disable style checks on tests
+}
+
+pmd {
+  ruleSets = [
+    'java-basic',
+    'java-braces',
+    'java-clone',
+    'java-finalizers',
+    'java-imports'
+  ]
+}
+
+ext {
+  findbugsAnnotateVer = "1.3.2-201002241900"
+  junitVer = "4.11"
+  mockitoVer = "1.9.5"
+}
+
+dependencies {
+
+  compile "com.kenai.nbpwr:edu-umd-cs-findbugs-annotations:${findbugsAnnotateVer}"
+  testCompile "junit:junit:${junitVer}"
+  testCompile "org.mockito:mockito-all:${mockitoVer}"
+}

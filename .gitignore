@@ -1,0 +1,23 @@
+target/
+
+# idea
+*.i??
+.idea/
+out/
+
+# eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# gradle
+.gradle
+build/
+
+# vim swap files
+*.swp
+
+# OS X
+.DS_Store
+

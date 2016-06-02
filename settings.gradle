@@ -1,0 +1,3 @@
+rootProject.name = 'dcos-commons'
+
+include 'acme-scheduler-example'
