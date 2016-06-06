@@ -11,6 +11,9 @@ import java.util.UUID;
  * They are reference by their IDs.  It can be determined whether a particular Task
  * is up to date with a particular Configuration by reference to a Task label
  * indicating its Configuration ID.
+ *
+ * @param <T> The configuration object to be serialized and deserialized in the implementatino
+ *           of this interface
  */
 public interface ConfigStore<T> {
     UUID store(T config) throws ConfigStoreException;
