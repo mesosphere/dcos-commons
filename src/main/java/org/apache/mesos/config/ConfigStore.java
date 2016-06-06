@@ -1,5 +1,6 @@
 package org.apache.mesos.config;
 
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -11,10 +12,11 @@ import java.util.UUID;
  * is up to date with a particular Configuration by reference to a Task label
  * indicating its Configuration ID.
  */
-public interface ConfigStore {
-    UUID store(String config) throws ConfigStoreException;
-    String fetch(UUID id) throws ConfigStoreException;
+public interface ConfigStore<T> {
+    UUID store(T config) throws ConfigStoreException;
+    T fetch(UUID id) throws ConfigStoreException;
     void clear(UUID id) throws ConfigStoreException;
+    Collection<UUID> list() throws ConfigStoreException;
 
     void setTargetConfig(UUID id) throws ConfigStoreException;
     UUID getTargetConfig() throws ConfigStoreException;

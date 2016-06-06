@@ -6,6 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.UUID;
 
 /**
@@ -47,6 +49,21 @@ public class CuratorConfigStoreTest {
     @Test
     public void testClearConfig() throws Exception {
         store.clear(UUID.randomUUID());
+    }
+
+    @Test
+    public void testListConfig() throws Exception {
+        Collection<UUID> ids = new ArrayList<>();
+        ids.add(store.store(testConfig));
+        ids.add(store.store(testConfig));
+        ids.add(store.store(testConfig));
+
+        Assert.assertEquals(3, ids.size());
+        Assert.assertEquals(3, store.list().size());
+
+        for (UUID id : ids) {
+            Assert.assertTrue(store.list().contains(id));
+        }
     }
 
     @Test

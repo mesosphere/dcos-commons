@@ -1,6 +1,8 @@
 package org.apache.mesos.config;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.UUID;
 
 import org.apache.curator.RetryPolicy;
@@ -21,7 +23,7 @@ import org.slf4j.LoggerFactory;
  *         -> Config-ID-1 (contains serialized config)
  *         -> ...
  */
-public class CuratorConfigStore extends CuratorPersister implements ConfigStore {
+public class CuratorConfigStore extends CuratorPersister implements ConfigStore<String> {
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
@@ -66,6 +68,20 @@ public class CuratorConfigStore extends CuratorPersister implements ConfigStore 
             // result in an exception.
             logger.warn("Clearing unset Configuration ID: " + id);
             return;
+        } catch (Exception e) {
+            throw new ConfigStoreException(e);
+        }
+    }
+
+    @Override
+    public Collection<UUID> list() throws ConfigStoreException {
+        try {
+            Collection<UUID> ids = new ArrayList<>();
+            for (String id : getChildren(configurationsPath)) {
+                ids.add(UUID.fromString(id));
+            }
+
+            return ids;
         } catch (Exception e) {
             throw new ConfigStoreException(e);
         }
