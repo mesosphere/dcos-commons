@@ -20,11 +20,11 @@ public interface StateStore {
     Protos.FrameworkID fetchFrameworkId() throws StateStoreException;
     void clearFrameworkId() throws StateStoreException;
 
-    void storeTasks(Collection<Protos.TaskInfo> tasks, Protos.ExecutorID execId) throws StateStoreException;
-    Collection<Protos.TaskInfo> fetchTasks(Protos.ExecutorID execId) throws StateStoreException;
+    void storeTasks(Collection<Protos.TaskInfo> tasks, String execName) throws StateStoreException;
+    Collection<Protos.TaskInfo> fetchTasks(String execName) throws StateStoreException;
 
-    void storeStatus(Protos.TaskStatus status, String taskName, Protos.ExecutorID execId) throws StateStoreException;
-    Protos.TaskStatus fetchStatus(String taskName, Protos.ExecutorID execId) throws StateStoreException;
+    void storeStatus(Protos.TaskStatus status, String taskName, String execName) throws StateStoreException;
+    Protos.TaskStatus fetchStatus(String taskName, String execName) throws StateStoreException;
 
-    void clearExecutor(Protos.ExecutorID execId) throws StateStoreException;
+    void clearExecutor(String execName) throws StateStoreException;
 }

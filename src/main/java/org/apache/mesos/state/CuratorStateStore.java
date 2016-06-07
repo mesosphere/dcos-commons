@@ -87,27 +87,27 @@ public class CuratorStateStore extends CuratorPersister implements StateStore {
     }
 
     @Override
-    public void storeTasks(Collection<Protos.TaskInfo> tasks, Protos.ExecutorID execId) throws StateStoreException {
+    public void storeTasks(Collection<Protos.TaskInfo> tasks, String execName) throws StateStoreException {
         for (Protos.TaskInfo taskInfo : tasks) {
-            storeTask(taskInfo, execId);
+            storeTask(taskInfo, execName);
         }
     }
 
-    private void storeTask(Protos.TaskInfo taskInfo, Protos.ExecutorID execId) {
+    private void storeTask(Protos.TaskInfo taskInfo, String execName) {
         try {
-            store(getTaskInfoPath(taskInfo, execId), taskInfo.toByteArray());
+            store(getTaskInfoPath(taskInfo, execName), taskInfo.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
     }
 
     @Override
-    public Collection<Protos.TaskInfo> fetchTasks(Protos.ExecutorID execId) throws StateStoreException {
+    public Collection<Protos.TaskInfo> fetchTasks(String execName) throws StateStoreException {
         Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
 
         try {
-            for (String taskName : getChildren(getExecutorPath(execId))) {
-                taskInfos.add(fetchTask(taskName, execId));
+            for (String taskName : getChildren(getExecutorPath(execName))) {
+                taskInfos.add(fetchTask(taskName, execName));
             }
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -117,21 +117,21 @@ public class CuratorStateStore extends CuratorPersister implements StateStore {
     }
 
     @Override
-    public void clearExecutor(Protos.ExecutorID execId) throws StateStoreException {
+    public void clearExecutor(String execName) throws StateStoreException {
         try {
-            clear(getExecutorPath(execId));
+            clear(getExecutorPath(execName));
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent ExecutorID should not
             // result in an exception.
-            logger.warn("Clearing unset Executor: " + execId);
+            logger.warn("Clearing unset Executor: " + execName);
             return;
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
     }
 
-    private Protos.TaskInfo fetchTask(String taskName, Protos.ExecutorID execId) throws Exception {
-        byte[] bytes = fetch(getTaskInfoPath(taskName, execId));
+    private Protos.TaskInfo fetchTask(String taskName, String execName) throws Exception {
+        byte[] bytes = fetch(getTaskInfoPath(taskName, execName));
         return Protos.TaskInfo.parseFrom(bytes);
     }
 
@@ -139,26 +139,26 @@ public class CuratorStateStore extends CuratorPersister implements StateStore {
     public void storeStatus(
             Protos.TaskStatus status,
             String taskName,
-            Protos.ExecutorID execId) throws StateStoreException {
+            String execName) throws StateStoreException {
 
         try {
-            store(getTaskStatusPath(taskName, execId), status.toByteArray());
+            store(getTaskStatusPath(taskName, execName), status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
     }
 
     @Override
-    public Protos.TaskStatus fetchStatus(String taskName, Protos.ExecutorID execId) throws StateStoreException {
+    public Protos.TaskStatus fetchStatus(String taskName, String execName) throws StateStoreException {
         try {
-            byte[] bytes = fetch(getTaskStatusPath(taskName, execId));
+            byte[] bytes = fetch(getTaskStatusPath(taskName, execName));
             if (bytes.length > 0) {
                 return Protos.TaskStatus.parseFrom(bytes);
             } else {
                 throw new StateStoreException(
                         String.format(
                                 "Failed to retrieve TaskStatus for TaskName: %s and ExecutorID: %s",
-                                taskName, execId));
+                                taskName, execName));
 
             }
         } catch (Exception e) {
@@ -166,23 +166,23 @@ public class CuratorStateStore extends CuratorPersister implements StateStore {
         }
     }
 
-    private String getExecutorPath(Protos.ExecutorID execId) {
-        return rootPath + "/" + execId.getValue();
+    private String getExecutorPath(String execName) {
+        return rootPath + "/" + execName;
     }
 
-    private String getTaskInfoPath(Protos.TaskInfo taskInfo, Protos.ExecutorID execId) {
-        return getTaskInfoPath(taskInfo.getName(), execId);
+    private String getTaskInfoPath(Protos.TaskInfo taskInfo, String execName) {
+        return getTaskInfoPath(taskInfo.getName(), execName);
     }
 
-    private String getTaskInfoPath(String taskName, Protos.ExecutorID execId) {
-        return getTaskRootPath(taskName, execId) + "/" + TASK_INFO_PATH_NAME;
+    private String getTaskInfoPath(String taskName, String execName) {
+        return getTaskRootPath(taskName, execName) + "/" + TASK_INFO_PATH_NAME;
     }
 
-    private String getTaskStatusPath(String taskName, Protos.ExecutorID execId) {
-        return getTaskRootPath(taskName, execId) + "/" + TASK_STATUS_PATH_NAME;
+    private String getTaskStatusPath(String taskName, String execName) {
+        return getTaskRootPath(taskName, execName) + "/" + TASK_STATUS_PATH_NAME;
     }
 
-    private String getTaskRootPath(String taskName, Protos.ExecutorID execId) {
-        return getExecutorPath(execId) + "/" + taskName;
+    private String getTaskRootPath(String taskName, String execName) {
+        return getExecutorPath(execName) + "/" + taskName;
     }
 }
