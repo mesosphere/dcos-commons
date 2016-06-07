@@ -39,6 +39,12 @@ public class CuratorConfigStoreTest {
         Assert.assertEquals(testConfig, config);
     }
 
+    @Test
+    public void testRepeatedStoreConfig() throws Exception {
+        store.store(testConfig);
+        store.store(testConfig);
+    }
+
     @Test(expected=ConfigStoreException.class)
     public void testStoreClearFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
@@ -71,6 +77,13 @@ public class CuratorConfigStoreTest {
         UUID testId = store.store(testConfig);
         store.setTargetConfig(testId);
         Assert.assertEquals(testId, store.getTargetConfig());
+    }
+
+    @Test
+    public void testRepeatedSetTargetConfig() throws Exception {
+        UUID testId = store.store(testConfig);
+        store.setTargetConfig(testId);
+        store.setTargetConfig(testId);
     }
 
     @Test(expected=ConfigStoreException.class)

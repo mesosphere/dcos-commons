@@ -23,7 +23,7 @@ public class CuratorPersister implements Persister {
     public void store(String path, byte[] bytes) throws Exception {
         try {
             client.create().creatingParentsIfNeeded().forPath(path, bytes);
-        } catch (KeeperException.NoNodeException e) {
+        } catch (KeeperException.NodeExistsException e) {
             client.setData().forPath(path, bytes);
         }
     }

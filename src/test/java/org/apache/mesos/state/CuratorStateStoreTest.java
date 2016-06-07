@@ -77,6 +77,12 @@ public class CuratorStateStoreTest {
     }
 
     @Test
+    public void testRepeatedStoreTask() throws Exception {
+        store.storeTasks(getTestTasks(), getTestExecutorName());
+        store.storeTasks(getTestTasks(), getTestExecutorName());
+    }
+
+    @Test
     public void testStoreClearExecutor() throws Exception {
         store.storeTasks(getTestTasks(), getTestExecutorName());
         store.clearExecutor(getTestExecutorName());
@@ -103,6 +109,12 @@ public class CuratorStateStoreTest {
     @Test(expected=StateStoreException.class)
     public void testFetchEmptyStatus() throws Exception {
         store.fetchStatus(testTaskName, getTestExecutorName());
+    }
+
+    @Test
+    public void testRepeatedStoreStatus() throws Exception {
+        store.storeStatus(getTestTaskStatus(), testTaskName, getTestExecutorName());
+        store.storeStatus(getTestTaskStatus(), testTaskName, getTestExecutorName());
     }
 
     @Test
