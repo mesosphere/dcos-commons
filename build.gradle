@@ -55,7 +55,9 @@ allprojects {
 apply plugin: 'application'
 
 ext {
-  yamlVer = "2.5.4"
+  jacksonGuavaTypeVer = "2.7.4"
+  jacksonJdk8TypeVer = "2.6.3"
+  jacksonYamlFormatVer = "2.5.4"
   commonsCollectionsVer = "3.2.2"
   commonsIoVer = "2.4"
   antlrVer = "4.5.1-1"
@@ -73,7 +75,7 @@ ext {
 }
 
 group = "mesosphere"
-version = "0.2.6-SNAPSHOT"
+version = "0.2.7-SNAPSHOT"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
@@ -105,7 +107,9 @@ publishing {
 }
 
 dependencies {
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${yamlVer}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonGuavaTypeVer}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonJdk8TypeVer}"
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonYamlFormatVer}"
   compile "commons-collections:commons-collections:${commonsCollectionsVer}"
   compile "commons-io:commons-io:${commonsIoVer}"
   compile "org.antlr:antlr4-runtime:${antlrVer}"
