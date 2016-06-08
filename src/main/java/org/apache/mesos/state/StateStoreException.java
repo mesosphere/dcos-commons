@@ -7,6 +7,10 @@ package org.apache.mesos.state;
  */
 public class StateStoreException extends RuntimeException {
 
+  public StateStoreException(Exception e) {
+    super(e);
+  }
+
   public StateStoreException(String message) {
     super(message);
   }
