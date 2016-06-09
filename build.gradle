@@ -70,6 +70,7 @@ ext {
   curatorVer = "2.9.0"
   powerMockVer = "1.6.4"
   dropwizardVer = "0.9.2"
+  zookeeperVer = "3.4.8"
 }
 
 group = "mesosphere"
@@ -114,6 +115,7 @@ dependencies {
   compile "org.apache.curator:curator-recipes:${curatorVer}"
   compile "org.apache.mesos:mesos:${mesosVer}"
   compile "org.apache.commons:commons-lang3:3.4"
+  compile "org.apache.zookeeper:zookeeper:${zookeeperVer}"
   compile "org.slf4j:log4j-over-slf4j:${slf4jVer}"
   compile "org.slf4j:jcl-over-slf4j:${slf4jVer}"
   compile "ch.qos.logback:logback-classic:${logbackVer}"
