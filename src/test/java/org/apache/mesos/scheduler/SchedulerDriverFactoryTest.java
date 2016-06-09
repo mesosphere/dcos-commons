@@ -41,51 +41,112 @@ public class SchedulerDriverFactoryTest {
       .build();
 
   @Test
-  public void testSuccess_NoSecret() throws Exception {
-    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
+  public void testSuccess_NoAuth() throws Exception {
+    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory(false);
     assertNull(factory.create(
         new NoOpScheduler(), FRAMEWORK_WITH_PRINCIPAL, MASTER_URL));
     assertEquals(1, factory.createCalls);
+    assertFalse(factory.lastCallHadCredential);
+    assertFalse(factory.lastCallHadSecret);
+  }
+
+  @Test
+  public void testSuccess_Sidechannel() throws Exception {
+    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory(true);
+    assertNull(factory.create(
+        new NoOpScheduler(), FRAMEWORK_WITH_PRINCIPAL, MASTER_URL));
+    assertEquals(1, factory.createCalls);
+    assertTrue(factory.lastCallHadCredential);
     assertFalse(factory.lastCallHadSecret);
   }
 
   @Test
   public void testSuccess_WithSecret() throws Exception {
-    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
+    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory(false);
     assertNull(factory.create(
         new NoOpScheduler(), FRAMEWORK_WITH_PRINCIPAL, MASTER_URL, SECRET));
     assertEquals(1, factory.createCalls);
+    assertTrue(factory.lastCallHadCredential);
     assertTrue(factory.lastCallHadSecret);
   }
 
+  @Test
+  public void testSuccess_WithSecretAndSidechannel() throws Exception {
+    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory(true);
+    assertNull(factory.create(
+        new NoOpScheduler(), FRAMEWORK_WITH_PRINCIPAL, MASTER_URL, SECRET));
+    assertEquals(1, factory.createCalls);
+    assertTrue(factory.lastCallHadCredential);
+    assertTrue(factory.lastCallHadSecret); // secret takes priority over sidechannel
+  }
+
+  @Test
+  public void testEmptyPrincipal_NoAuth() throws Exception {
+    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory(false);
+    assertNull(factory.create(
+        new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL));
+    assertEquals(1, factory.createCalls);
+    assertFalse(factory.lastCallHadCredential);
+    assertFalse(factory.lastCallHadSecret);
+  }
+
   @Test(expected=IllegalArgumentException.class)
-  public void testEmptyPrincipal_NoSecret() throws Exception {
-    new SchedulerDriverFactory().create(
+  public void testEmptyPrincipal_Sidechannel() throws Exception {
+    new CustomSchedulerDriverFactory(true).create(
         new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL);
   }
 
   @Test(expected=IllegalArgumentException.class)
   public void testEmptyPrincipal_WithSecret() throws Exception {
-    new SchedulerDriverFactory().create(
+    new CustomSchedulerDriverFactory(false).create(
         new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL, SECRET);
   }
 
   @Test(expected=IllegalArgumentException.class)
-  public void testMissingPrincipal_NoSecret() throws Exception {
-    new SchedulerDriverFactory().create(
+  public void testEmptyPrincipal_WithSecretAndSidechannel() throws Exception {
+    new CustomSchedulerDriverFactory(true).create(
+        new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL, SECRET);
+  }
+
+  @Test
+  public void testMissingPrincipal_NoAuth() throws Exception {
+    CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory(false);
+    assertNull(factory.create(
+        new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL));
+    assertEquals(1, factory.createCalls);
+    assertFalse(factory.lastCallHadCredential);
+    assertFalse(factory.lastCallHadSecret);
+  }
+
+  @Test(expected=IllegalArgumentException.class)
+  public void testMissingPrincipal_Sidechannel() throws Exception {
+    new CustomSchedulerDriverFactory(true).create(
         new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL);
   }
 
   @Test(expected=IllegalArgumentException.class)
   public void testMissingPrincipal_WithSecret() throws Exception {
-    new SchedulerDriverFactory().create(
+    new CustomSchedulerDriverFactory(false).create(
+        new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL, SECRET);
+  }
+
+  @Test(expected=IllegalArgumentException.class)
+  public void testMissingPrincipal_WithSecretAndSidechannel() throws Exception {
+    new CustomSchedulerDriverFactory(true).create(
         new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL, SECRET);
   }
 
   private static class CustomSchedulerDriverFactory extends SchedulerDriverFactory {
 
     public int createCalls = 0;
+    public boolean lastCallHadCredential = false;
     public boolean lastCallHadSecret = false;
+
+    private final boolean sideChannelActive;
+
+    private CustomSchedulerDriverFactory(boolean sideChannelActive) {
+      this.sideChannelActive = sideChannelActive;
+    }
 
     /**
      * Avoid calls to the MesosSchedulerDriver constructor, which triggers errors about libmesos not
@@ -98,8 +159,22 @@ public class SchedulerDriverFactoryTest {
         final String masterZkUrl,
         final Credential credential) {
       createCalls++;
-      lastCallHadSecret = credential.hasSecret();
+      if (credential != null) {
+        lastCallHadCredential = true;
+        lastCallHadSecret = credential.hasSecret();
+      } else {
+        lastCallHadCredential = false;
+        lastCallHadSecret = false;
+      }
       return null; // avoid requiring a NoOpSchedulerDriver
+    }
+
+    /**
+     * Avoid checking actual env.
+     */
+    @Override
+    protected boolean isSideChannelActive() {
+      return sideChannelActive;
     }
   }
 
