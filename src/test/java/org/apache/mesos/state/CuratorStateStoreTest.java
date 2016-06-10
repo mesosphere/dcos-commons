@@ -1,6 +1,5 @@
 package org.apache.mesos.state;
 
-
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
