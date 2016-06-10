@@ -1,0 +1,20 @@
+package org.apache.mesos.executor;
+
+import org.apache.mesos.ExecutorDriver;
+import org.apache.mesos.Protos;
+
+/**
+ * {@code ExecutorTaskFactory}'s implementations are responsible for creating {@code ExecutorTask} objects.
+ */
+public interface ExecutorTaskFactory {
+    /**
+     * Creates {@code ExecutorTask} objects that can be launched and managed by {@code CustomExecutor}.
+     *
+     * @param taskType
+     * @param task
+     * @param driver
+     * @return {@code ExecutorType}
+     */
+    ExecutorTask createTask(final String taskType, final Protos.TaskInfo task, final ExecutorDriver driver)
+            throws ExecutorTaskException;
+}

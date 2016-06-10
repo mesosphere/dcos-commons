@@ -1,7 +1,13 @@
 package org.apache.mesos.offer;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import com.google.protobuf.ByteString;
+import org.apache.mesos.ExecutorDriver;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.TaskID;
@@ -102,5 +108,50 @@ public class TaskUtils {
       .build();
 
     return labelBuilder.build();
+  }
+
+  public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
+    Map<String, String> map = new HashMap<>();
+
+    final List<Protos.Environment.Variable> variables = environment.getVariablesList();
+
+    for (Protos.Environment.Variable variable : variables) {
+      map.put(variable.getName(), variable.getValue());
+    }
+
+    return map;
+  }
+
+  public static void sendStatus(ExecutorDriver driver,
+                                Protos.TaskState state,
+                                Protos.TaskID taskID,
+                                Protos.SlaveID slaveID,
+                                Protos.ExecutorID executorID,
+                                String message) {
+    sendStatus(driver, state, taskID, slaveID, executorID, message, null);
+  }
+
+  public static void sendStatus(ExecutorDriver driver,
+                                Protos.TaskState state,
+                                Protos.TaskID taskID,
+                                Protos.SlaveID slaveID,
+                                Protos.ExecutorID executorID,
+                                String message,
+                                byte[] data) {
+    final Protos.TaskStatus.Builder builder = Protos.TaskStatus.newBuilder();
+
+    builder.setState(state);
+    builder.setMessage(message);
+    builder.setTaskId(taskID);
+    builder.setSlaveId(slaveID);
+    builder.setExecutorId(executorID);
+    builder.setSource(Protos.TaskStatus.Source.SOURCE_EXECUTOR);
+
+    if (data != null) {
+      builder.setData(ByteString.copyFrom(data));
+    }
+
+    final Protos.TaskStatus taskStatus = builder.build();
+    driver.sendStatusUpdate(taskStatus);
   }
 }
