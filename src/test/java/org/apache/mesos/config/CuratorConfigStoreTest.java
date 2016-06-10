@@ -1,7 +1,7 @@
 package org.apache.mesos.config;
 
-import com.netflix.curator.test.TestingServer;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
