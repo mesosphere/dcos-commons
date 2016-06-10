@@ -9,6 +9,7 @@ public abstract class ExecutorTask implements Runnable {
     @Override
     public void run() {
         start();
+        checkHealth();
     }
 
     public abstract void start();
