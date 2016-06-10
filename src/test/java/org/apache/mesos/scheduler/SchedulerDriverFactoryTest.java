@@ -156,7 +156,7 @@ public class SchedulerDriverFactoryTest {
     protected MesosSchedulerDriver createInternal(
         final Scheduler scheduler,
         final FrameworkInfo frameworkInfo,
-        final String masterZkUrl,
+        final String masterUrl,
         final Credential credential) {
       createCalls++;
       if (credential != null) {
