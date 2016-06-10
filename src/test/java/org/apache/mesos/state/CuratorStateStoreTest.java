@@ -10,6 +10,7 @@ import org.junit.Assert;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Tests to validate the operation of the CuratorStateStore.
@@ -98,6 +99,28 @@ public class CuratorStateStoreTest {
     @Test
     public void testClearEmptyExecutor() throws Exception {
         store.clearExecutor(getTestExecutorName());
+    }
+
+    @Test
+    public void testFetchEmptyExecutors() throws Exception {
+        Collection<String> execNames = store.fetchExecutorNames();
+        Assert.assertEquals(0, execNames.size());
+    }
+
+    @Test
+    public void testFetchExecutors() throws Exception {
+        String testExecutorNamePrefix = "test-executor";
+        String testExecutorName0 = testExecutorNamePrefix + "-0";
+        String testExecutorName1 = testExecutorNamePrefix + "-1";
+
+        store.storeTasks(getTestTasks(), testExecutorName0);
+        store.storeTasks(getTestTasks(), testExecutorName1);
+        Collection<String> execNames = store.fetchExecutorNames();
+        Assert.assertEquals(2, execNames.size());
+
+        Iterator<String> iter =  execNames.iterator();
+        Assert.assertEquals(testExecutorName1, iter.next());
+        Assert.assertEquals(testExecutorName0, iter.next());
     }
 
     @Test
