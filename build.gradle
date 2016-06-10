@@ -73,7 +73,7 @@ ext {
 }
 
 group = "mesosphere"
-version = "0.3.2-SNAPSHOT"
+version = "0.3.4-SNAPSHOT"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
