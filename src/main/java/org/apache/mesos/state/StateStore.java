@@ -26,7 +26,7 @@ public interface StateStore {
 
 
     /**
-     * Fetches the previously stored FrameworkID
+     * Fetches the previously stored FrameworkID.
      * @return The previously stored FrameworkID
      * @throws StateStoreException Thrown when the FrameworkID cannot be fetched.
      */
@@ -51,7 +51,7 @@ public interface StateStore {
 
 
     /**
-     * Fetches the TaskInfo objects associated with a particular Executor
+     * Fetches the TaskInfo objects associated with a particular Executor.
      * @param execName The name of the Executor associated with some Tasks
      * @return The TaskInfo objects associated with the indicated Executor
      * @throws StateStoreException Thrown when fetching the TaskInfo information fails
@@ -67,7 +67,7 @@ public interface StateStore {
     Collection<String> fetchExecutorNames() throws StateStoreException;
 
     /**
-     * Stores the TaskStatus of a particular Task
+     * Stores the TaskStatus of a particular Task.
      * @param status The status to be stored
      * @param taskName The name of the Task associated with the indicated status
      * @param execName The name of the Executor which the Task is associated with
@@ -85,7 +85,7 @@ public interface StateStore {
     Protos.TaskStatus fetchStatus(String taskName, String execName) throws StateStoreException;
 
     /**
-     * Removes all data associated with a particular Executor including all stored TaskInfos
+     * Removes all data associated with a particular Executor including all stored TaskInfos.
      * and TaskStatuses
      * @param execName The name of the Executor to be cleared
      * @throws StateStoreException Thrown when clearing the indicated Executor's informations fails

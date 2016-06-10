@@ -2,6 +2,8 @@ package org.apache.mesos.offer;
 
 import java.util.*;
 
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
@@ -9,7 +11,10 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
 
+import org.apache.mesos.state.CuratorStateStore;
+import org.apache.mesos.state.StateStore;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ResourceCleanerTest {
@@ -23,20 +28,40 @@ public class ResourceCleanerTest {
   private static final String testFrameworkId = "test-framework-id";
   private static final String testSlaveId = "test-slave-id";
   private static final String testHostname = "test-hostname";
+  private TestingServer testZk;
+  private StateStore store;
+  private Collection<ResourceCleaner> cleaners;
+
+  @Before
+  public void beforeEach() throws Exception {
+    ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
+    testZk = new TestingServer();
+    store = new CuratorStateStore("/test-root-path", testZk.getConnectString(), retryPolicy);
+    cleaners = Arrays.asList(
+            new ResourceCleaner(Collections.emptyList()),
+            new ResourceCleaner(store));
+  }
 
   @Test
-  public void testConstructor() {
-    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList(), Collections.emptyList());
+  public void testResourcesConstructor() {
+    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList());
+    Assert.assertNotNull(cleaner);
+  }
+
+  @Test
+  public void testStateStoreConstructor() {
+    ResourceCleaner cleaner = new ResourceCleaner(store);
     Assert.assertNotNull(cleaner);
   }
 
   @Test
   public void testNoRecommendations() {
-    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList(), Collections.emptyList());
-    List<OfferRecommendation> recommendations = cleaner.evaluate(Collections.emptyList());
+    for (ResourceCleaner cleaner : cleaners) {
+      List<OfferRecommendation> recommendations = cleaner.evaluate(Collections.emptyList());
 
-    Assert.assertNotNull(recommendations);
-    Assert.assertEquals(Collections.emptyList(), recommendations);
+      Assert.assertNotNull(recommendations);
+      Assert.assertEquals(Collections.emptyList(), recommendations);
+    }
   }
 
   @Test
@@ -44,24 +69,14 @@ public class ResourceCleanerTest {
     Resource unexpectedResource = ResourceBuilder.reservedCpus(1.0, testRole, testPrincipal, testResourceId);
     List<Offer> offers = getOffers(unexpectedResource);
 
-    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList(), Collections.emptyList());
-    List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+    for (ResourceCleaner cleaner : cleaners) {
+      List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
-    Assert.assertEquals(1, recommendations.size());
+      Assert.assertEquals(1, recommendations.size());
 
-    Operation op = recommendations.get(0).getOperation();
-    Assert.assertEquals(Operation.Type.UNRESERVE, op.getType());
-  }
-
-  @Test
-  public void testNoRecommendationsWhenResourceIdsUnknown() {
-    Resource unexpectedResource = ResourceBuilder.reservedCpus(1.0, testRole, testPrincipal, testResourceId);
-    List<Offer> offers = getOffers(unexpectedResource);
-
-    ResourceCleaner cleaner = new ResourceCleaner(null, Collections.emptyList());
-    List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-
-    Assert.assertEquals(0, recommendations.size());
+      Operation op = recommendations.get(0).getOperation();
+      Assert.assertEquals(Operation.Type.UNRESERVE, op.getType());
+    }
   }
 
   @Test
@@ -74,51 +89,18 @@ public class ResourceCleanerTest {
         testPersistenceId);
 
     List<Offer> offers = getOffers(unexpectedResource);
-    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList(), Collections.emptyList());
-    List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
-    Assert.assertEquals(2, recommendations.size());
+    for (ResourceCleaner cleaner : cleaners) {
+      List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
-    Operation destroyOp = recommendations.get(0).getOperation();
-    Assert.assertEquals(Operation.Type.DESTROY, destroyOp.getType());
+      Assert.assertEquals(2, recommendations.size());
 
-    Operation unreserveOp = recommendations.get(1).getOperation();
-    Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOp.getType());
-  }
+      Operation destroyOp = recommendations.get(0).getOperation();
+      Assert.assertEquals(Operation.Type.DESTROY, destroyOp.getType());
 
-  @Test
-  public void testNoDestroyWhenPersistenceIdsUnknown() {
-    Resource unexpectedResource = ResourceBuilder.volume(
-        1000.0,
-        testRole,
-        testPrincipal,
-        testContainerPath,
-        testPersistenceId);
-
-    List<Offer> offers = getOffers(unexpectedResource);
-    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList(), null);
-    List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-
-    Assert.assertEquals(1, recommendations.size());
-
-    Operation unreserveOp = recommendations.get(0).getOperation();
-    Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOp.getType());
-  }
-
-  @Test
-  public void testNoOperationsWhenIdsUnknown() {
-    Resource unexpectedResource = ResourceBuilder.volume(
-        1000.0,
-        testRole,
-        testPrincipal,
-        testContainerPath,
-        testPersistenceId);
-
-    List<Offer> offers = getOffers(unexpectedResource);
-    ResourceCleaner cleaner = new ResourceCleaner(null, null);
-    List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-
-    Assert.assertEquals(0, recommendations.size());
+      Operation unreserveOp = recommendations.get(1).getOperation();
+      Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOp.getType());
+    }
   }
 
   private List<Offer> getOffers(Resource resource) {
