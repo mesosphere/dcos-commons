@@ -2,6 +2,7 @@ package org.apache.mesos.state;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
@@ -114,6 +115,17 @@ public class CuratorStateStore extends CuratorPersister implements StateStore {
         }
 
         return taskInfos;
+    }
+
+    @Override
+    public Collection<String> fetchExecutorNames() throws StateStoreException {
+        try {
+            return getChildren(rootPath);
+        } catch (KeeperException.NoNodeException e) {
+            return Collections.emptyList();
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
     }
 
     @Override

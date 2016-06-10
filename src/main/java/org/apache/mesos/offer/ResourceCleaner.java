@@ -7,24 +7,67 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.state.StateStore;
 
 /**
  * The Resource Cleaner provides recommended operations for cleaning up unexpected Reserved resources
  * and persistent volumes.
  */
 public class ResourceCleaner {
-  Collection<String> expectedResourceIds;
-  Collection<String> expectedPersistenceIds;
+  private Collection<String> expectedResourceIds;
+  private Collection<String> expectedPersistenceIds;
 
-  public ResourceCleaner(
-      Collection<String> expectedResourceIds,
-      Collection<String> expectedPersistenceIds) {
+  public ResourceCleaner(Collection<Resource> resources) {
+    initializeIds(resources);
+  }
 
-    this.expectedResourceIds = expectedResourceIds;
-    this.expectedPersistenceIds = expectedPersistenceIds;
+  public ResourceCleaner(StateStore stateStore) {
+    Collection<Resource> resources = new ArrayList<>();
+    for (String execName : stateStore.fetchExecutorNames()) {
+      for (Protos.TaskInfo taskInfo : stateStore.fetchTasks(execName)) {
+        resources.addAll(taskInfo.getResourcesList());
+        if (taskInfo.hasExecutor()) {
+          resources.addAll(taskInfo.getExecutor().getResourcesList());
+        }
+      }
+    }
+
+    initializeIds(resources);
+  }
+
+  private void initializeIds(Collection<Resource> resources) {
+    expectedResourceIds = getExpectedResourceIds(resources);
+    expectedPersistenceIds = getPersistenceIds(resources);
+  }
+
+  private Collection<String> getPersistenceIds(Collection<Resource> resources) {
+    List<String> persistenceIds = new ArrayList<>();
+
+    for (Resource resource : resources) {
+      String persistenceId = ResourceUtils.getPersistenceId(resource);
+      if (persistenceId != null) {
+        persistenceIds.add(persistenceId);
+      }
+    }
+
+    return persistenceIds;
+  }
+
+  private Collection<String> getExpectedResourceIds(Collection<Resource> resources) {
+    List<String> resourceIds = new ArrayList<>();
+
+    for (Resource resource : resources) {
+      String resourceId = ResourceUtils.getResourceId(resource);
+      if (resourceId != null) {
+        resourceIds.add(resourceId);
+      }
+    }
+
+    return resourceIds;
   }
 
   public List<OfferRecommendation> evaluate(List<Offer> offers) {
