@@ -6,5 +6,5 @@ package org.apache.mesos.config;
  * @param <T> The {@code Configuration} type that will be parsed.
  */
 public interface ConfigurationFactory<T extends Configuration> {
-    T parse(byte[] bytes);
+    T parse(byte[] bytes) throws ConfigStoreException;
 }
