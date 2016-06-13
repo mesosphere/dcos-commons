@@ -17,13 +17,16 @@ public class CuratorConfigStoreTest {
     private TestingServer testZk;
     private CuratorConfigStore store;
     private String testRootZkPath = "/test-root-path";
-    private String testConfig = "test-config";
+    private StringConfiguration testConfig;
+    private StringConfigurationFactory configFactory;
     private ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
 
     @Before
     public void beforeEach() throws Exception {
         testZk = new TestingServer();
         store = getTestConfigStore();
+        testConfig = new StringConfiguration("test-config");
+        configFactory = new StringConfigurationFactory();
     }
 
     @Test
@@ -35,7 +38,7 @@ public class CuratorConfigStoreTest {
     @Test
     public void testStoreFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
-        String config = store.fetch(testId);
+        StringConfiguration config = (StringConfiguration) store.fetch(testId, configFactory);
         Assert.assertEquals(testConfig, config);
     }
 
@@ -49,7 +52,7 @@ public class CuratorConfigStoreTest {
     public void testStoreClearFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
         store.clear(testId);
-        store.fetch(testId);
+        store.fetch(testId, configFactory);
     }
 
     @Test
@@ -92,6 +95,6 @@ public class CuratorConfigStoreTest {
     }
 
     public CuratorConfigStore getTestConfigStore() {
-        return new CuratorConfigStore(testRootZkPath, testZk.getConnectString(), retryPolicy);
+        return new CuratorConfigStore<StringConfiguration, StringConfigurationFactory>(testRootZkPath, testZk.getConnectString(), retryPolicy);
     }
 }

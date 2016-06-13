@@ -22,8 +22,13 @@ import org.slf4j.LoggerFactory;
  *         -> Config-ID-0 (contains serialized config)
  *         -> Config-ID-1 (contains serialized config)
  *         -> ...
+ *
+ * @param <T> The {@code Configuration} object to be serialized and deserialized in the implementation
+ *           of this interface
+ * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
  */
-public class CuratorConfigStore extends CuratorPersister implements ConfigStore<String> {
+public class  CuratorConfigStore<T extends Configuration, U extends ConfigurationFactory<T>>
+        extends CuratorPersister implements ConfigStore<T, U> {
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
@@ -38,11 +43,11 @@ public class CuratorConfigStore extends CuratorPersister implements ConfigStore<
     }
 
     @Override
-    public UUID store(String config) throws ConfigStoreException {
+    public UUID store(T config) throws ConfigStoreException {
         UUID id = UUID.randomUUID();
 
         try {
-            store(getConfigPath(id) , config.getBytes(StandardCharsets.UTF_8));
+            store(getConfigPath(id) , config.getBytes());
         } catch (Exception e) {
             throw new ConfigStoreException(e);
         }
@@ -51,9 +56,9 @@ public class CuratorConfigStore extends CuratorPersister implements ConfigStore<
     }
 
     @Override
-    public String fetch(UUID id) throws ConfigStoreException {
+    public T fetch(UUID id, U factory) throws ConfigStoreException {
         try {
-            return new String(fetch(getConfigPath(id)), StandardCharsets.UTF_8);
+            return factory.parse(fetch(getConfigPath(id)));
         } catch (Exception e) {
             throw new ConfigStoreException(e);
         }
