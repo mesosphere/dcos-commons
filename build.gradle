@@ -67,7 +67,7 @@ allprojects {
 apply plugin: 'application'
 
 ext {
-  yamlVer = "2.5.4"
+  jacksonVer = "2.6.3"
   commonsCollectionsVer = "3.2.2"
   commonsIoVer = "2.4"
   antlrVer = "4.5.1-1"
@@ -120,7 +120,8 @@ configurations {
 }
 
 dependencies {
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${yamlVer}"
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
+  compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
   compile "commons-collections:commons-collections:${commonsCollectionsVer}"
   compile "commons-io:commons-io:${commonsIoVer}"
   compile "org.antlr:antlr4-runtime:${antlrVer}"
