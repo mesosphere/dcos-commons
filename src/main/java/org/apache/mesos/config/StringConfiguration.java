@@ -1,5 +1,7 @@
 package org.apache.mesos.config;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * This class implements the Configuration interface for configurations stored as Strings.
  */
@@ -12,13 +14,17 @@ public class StringConfiguration implements Configuration {
 
     @Override
     public byte[] getBytes() {
-        return config.getBytes();
+        return config.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         StringConfiguration that = (StringConfiguration) o;
 

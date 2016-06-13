@@ -22,8 +22,13 @@ import org.slf4j.LoggerFactory;
  *         -> Config-ID-0 (contains serialized config)
  *         -> Config-ID-1 (contains serialized config)
  *         -> ...
+ *
+ * @param <T> The {@code Configuration} object to be serialized and deserialized in the implementation
+ *           of this interface
+ * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
  */
-public class  CuratorConfigStore<T extends Configuration, U extends ConfigurationFactory<T>> extends CuratorPersister implements ConfigStore<T,U> {
+public class  CuratorConfigStore<T extends Configuration, U extends ConfigurationFactory<T>>
+        extends CuratorPersister implements ConfigStore<T, U> {
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 

@@ -12,8 +12,9 @@ import java.util.UUID;
  * is up to date with a particular Configuration by reference to a Task label
  * indicating its Configuration ID.
  *
- * @param <T> The configuration object to be serialized and deserialized in the implementatino
+ * @param <T> The {@code Configuration} object to be serialized and deserialized in the implementation
  *           of this interface
+ * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
  */
 public interface ConfigStore<T extends Configuration, U extends ConfigurationFactory<T>> {
     UUID store(T config) throws ConfigStoreException;
