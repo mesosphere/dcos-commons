@@ -13,7 +13,7 @@ public class StringConfiguration implements Configuration {
     }
 
     @Override
-    public byte[] getBytes() {
+    public byte[] getBytes() throws ConfigStoreException {
         return config.getBytes(StandardCharsets.UTF_8);
     }
 

@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 public class StringConfigurationFactory implements ConfigurationFactory<StringConfiguration> {
 
     @Override
-    public StringConfiguration parse(byte[] bytes) {
+    public StringConfiguration parse(byte[] bytes) throws ConfigStoreException {
         return new StringConfiguration(new String(bytes, StandardCharsets.UTF_8));
     }
 }
