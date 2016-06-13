@@ -4,6 +4,7 @@ target/
 *.i??
 .idea/
 out/
+classes/
 
 # eclipse
 .classpath
