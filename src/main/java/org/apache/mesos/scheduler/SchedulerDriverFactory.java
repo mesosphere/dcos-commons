@@ -23,7 +23,7 @@ public class SchedulerDriverFactory {
    * some form of sidechannel auth. When this environment variable is present, we should always
    * provide a {@link Credential} with (only) the principal set.
    */
-  private static String SIDECHANNEL_AUTH_ENV_NAME = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
+  private static final String SIDECHANNEL_AUTH_ENV_NAME = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
 
   /**
    * Creates and returns a new {@link SchedulerDriver} without a credential secret.
