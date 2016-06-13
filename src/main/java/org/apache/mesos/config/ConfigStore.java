@@ -15,9 +15,9 @@ import java.util.UUID;
  * @param <T> The configuration object to be serialized and deserialized in the implementatino
  *           of this interface
  */
-public interface ConfigStore<T> {
+public interface ConfigStore<T extends Configuration, U extends ConfigurationFactory<T>> {
     UUID store(T config) throws ConfigStoreException;
-    T fetch(UUID id) throws ConfigStoreException;
+    T fetch(UUID id, U factory) throws ConfigStoreException;
     void clear(UUID id) throws ConfigStoreException;
     Collection<UUID> list() throws ConfigStoreException;
 
