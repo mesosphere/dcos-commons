@@ -16,4 +16,9 @@
     <Match>
         <Bug code="SnVI"/>
     </Match>
+
+    <Match>
+        <Class name="org.apache.mesos.executor.ProcessTask" />
+        <Bug pattern="DM_EXIT"/>
+    </Match>
 </FindBugsFilter>
