@@ -124,6 +124,7 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testStoreFetchStatus() throws Exception {
+        store.storeTasks(getTestTasks(), getTestExecutorName());
         store.storeStatus(getTestTaskStatus(), testTaskName, getTestExecutorName());
         Assert.assertEquals(getTestTaskStatus(), store.fetchStatus(testTaskName, getTestExecutorName()));
     }
@@ -135,7 +136,24 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testRepeatedStoreStatus() throws Exception {
+        store.storeTasks(getTestTasks(), getTestExecutorName());
         store.storeStatus(getTestTaskStatus(), testTaskName, getTestExecutorName());
+        store.storeStatus(getTestTaskStatus(), testTaskName, getTestExecutorName());
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testStoreIncorrectStatus() throws Exception {
+        store.storeTasks(getTestTasks(), getTestExecutorName());
+        Protos.TaskStatus badTaskStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue("bad-test-id"))
+                .setState(getTestTaskState())
+                .build();
+
+        store.storeStatus(badTaskStatus, testTaskName, getTestExecutorName());
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testStoreStatusWithoutTaskInfo() throws Exception {
         store.storeStatus(getTestTaskStatus(), testTaskName, getTestExecutorName());
     }
 

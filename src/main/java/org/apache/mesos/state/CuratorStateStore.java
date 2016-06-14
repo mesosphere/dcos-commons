@@ -163,9 +163,26 @@ public class CuratorStateStore extends CuratorPersister implements StateStore {
             String taskName,
             String execName) throws StateStoreException {
 
+        Protos.TaskInfo taskInfo;
         try {
+            taskInfo = fetchTask(taskName, execName);
+        } catch (Exception ex) {
+            throw new StateStoreException(
+                String.format("Failed to retrieve TaskInfo with execName/taskName: '%s/%s' for TaskStatus: '%s'",
+                        execName, taskName, status)
+                    , ex);
+        }
+
+        try {
+            if (!taskInfo.getTaskId().equals(status.getTaskId())) {
+                throw new StateStoreException(
+                    String.format(
+                        "TaskInfo's TaskID '%s' does not match the TaskStatus's TaskID '%s'",
+                        taskInfo.getTaskId(), status.getTaskId()));
+            }
+
             String path = getTaskStatusPath(taskName, execName);
-            logger.info(String.format("Storing status for %s/%s in '%s'", execName, taskName, path));
+            logger.info(String.format("Storing status for '%s/%s' in '%s'", execName, taskName, path));
             store(path, status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(e);
