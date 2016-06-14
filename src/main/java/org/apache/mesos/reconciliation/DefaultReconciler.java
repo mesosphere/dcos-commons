@@ -29,10 +29,6 @@ public class DefaultReconciler implements Reconciler {
     private long backOff = BASE_BACKOFF_MS;
 
 
-    public DefaultReconciler() {
-
-    }
-
     @Override
     public void start(final Collection<Protos.TaskStatus> tasks) {
 
