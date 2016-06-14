@@ -2,12 +2,14 @@ package org.apache.mesos.offer;
 
 import java.util.*;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 
 import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
 
+import org.apache.mesos.protobuf.ValueUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,8 +72,10 @@ public class MesosResourcePoolTest {
     Offer offer = getOffer(offerResource);
     MesosResourcePool pool = new MesosResourcePool(offer);
 
+    Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
     MesosResource resourceToConsume = pool.consume(resReq);
     Assert.assertEquals(offerResource, resourceToConsume.getResource());
+    Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
   }
 
   @Test
@@ -84,6 +88,7 @@ public class MesosResourcePoolTest {
     Assert.assertEquals(1, pool.getReservedPool().size());
     MesosResource resourceToConsume = pool.consume(resReq);
     Assert.assertEquals(resource, resourceToConsume.getResource());
+    Assert.assertEquals(0, pool.getReservedPool().size());
   }
 
   @Test
@@ -94,8 +99,21 @@ public class MesosResourcePoolTest {
     MesosResourcePool pool = new MesosResourcePool(offer);
 
     Assert.assertEquals(1, pool.getUnreservedMergedPool().size());
+    Assert.assertEquals(resource.getScalar().getValue(), pool.getUnreservedMergedPool().get("cpus").getScalar().getValue(), 0.0);
     MesosResource resourceToConsume = pool.consume(resReq);
     Assert.assertEquals(resource, resourceToConsume.getResource());
+    Assert.assertEquals(ValueUtils.getZero(Protos.Value.Type.SCALAR), pool.getUnreservedMergedPool().get("cpus"));
+  }
+
+  @Test
+  public void testConsumeInsufficientUnreservedMergedResource() {
+    Resource desiredUnreservedResource = ResourceBuilder.cpus(2.0);
+    ResourceRequirement resReq = new ResourceRequirement(desiredUnreservedResource);
+    Resource offeredUnreservedResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 1.0);
+    Offer offer = getOffer(offeredUnreservedResource);
+    MesosResourcePool pool = new MesosResourcePool(offer);
+
+    Assert.assertEquals(null, pool.consume(resReq));
   }
 
   @Test

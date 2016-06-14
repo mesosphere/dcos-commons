@@ -25,8 +25,16 @@ public class TaskUtils {
    *
    * For example: "instance-0_aoeu5678" => "instance-0"
    */
-  public static String toTaskName(TaskID taskId) {
+  public static String toTaskName(TaskID taskId) throws TaskException {
     int underScoreIndex = taskId.getValue().lastIndexOf(TASK_NAME_DELIM);
+
+    if (underScoreIndex == -1) {
+      throw new TaskException(
+              String.format(
+                      "TaskID '%s' is malformed.  Expected '%s' to extract TaskName from TaskID",
+                      taskId, TASK_NAME_DELIM));
+    }
+
     return taskId.getValue().substring(0, underScoreIndex);
   }
 

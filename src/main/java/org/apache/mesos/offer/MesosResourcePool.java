@@ -113,23 +113,41 @@ public class MesosResourcePool {
   }
 
   private MesosResource consumeReserved(ResourceRequirement resReq) {
-    return reservedPool.get(resReq.getResourceId());
+    MesosResource mesRes = reservedPool.get(resReq.getResourceId());
+    if (mesRes != null) {
+      reservedPool.remove(resReq.getResourceId());
+    }
+
+    return mesRes;
   }
 
   private MesosResource consumeAtomic(ResourceRequirement resReq) {
     Value desiredValue = resReq.getValue();
     List<MesosResource> atomicResources = unreservedAtomicPool.get(resReq.getName());
+    List<MesosResource> filteredResources = new ArrayList<>();
+    MesosResource sufficientResource = null;
 
     if (atomicResources != null) {
       for (MesosResource mesRes : atomicResources) {
         if (sufficientValue(desiredValue, mesRes.getValue())) {
-          return mesRes;
+          sufficientResource = mesRes;
+        } else {
+          filteredResources.add(mesRes);
         }
       }
     }
 
-    log.warn("No sufficient atomic resources found for resource requirement: " + resReq.getResource());
-    return null;
+    if (filteredResources.size() == 0) {
+      unreservedAtomicPool.remove(resReq.getName());
+    } else {
+      unreservedAtomicPool.put(resReq.getName(), filteredResources);
+    }
+
+    if (sufficientResource == null) {
+      log.warn("No sufficient atomic resources found for resource requirement: " + resReq.getResource());
+    }
+
+    return sufficientResource;
   }
 
   private MesosResource consumeUnreservedMerged(ResourceRequirement resReq) {
@@ -137,6 +155,7 @@ public class MesosResourcePool {
     Value availableValue = unreservedMergedPool.get(resReq.getName()); 
 
     if (sufficientValue(desiredValue, availableValue)) {
+      unreservedMergedPool.put(resReq.getName(), ValueUtils.subtract(availableValue, desiredValue));
       Resource resource = ResourceBuilder.getResource(resReq.getName(), desiredValue);
       return new MesosResource(resource);
     } else {

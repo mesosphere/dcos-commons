@@ -29,6 +29,24 @@ public class OfferEvaluatorTest {
   }
 
   @Test
+  public void testReserveTaskExecutorInsufficient() throws InvalidTaskRequirementException {
+    Resource desiredTaskCpu = ResourceUtils.getDesiredScalar(ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
+    Resource desiredExecutorCpu = desiredTaskCpu;
+    Resource insufficientOfferedResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 1.0);
+
+    OfferRequirement offerReq = new OfferRequirement(
+            Arrays.asList(getTaskInfo(desiredTaskCpu)),
+            getExecutorInfo(desiredExecutorCpu),
+            null,
+            null);
+
+    OfferEvaluator offerEvaluator = new OfferEvaluator(offerReq);
+    List<Offer> offers = getOffers(insufficientOfferedResource);
+    List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offers);
+    Assert.assertEquals(0, recommendations.size());
+  }
+
+  @Test
   public void testReserveCreateLaunchMountVolume() throws InvalidTaskRequirementException {
     Resource desiredResource = ResourceUtils.getDesiredMountVolume(
         ResourceTestUtils.testRole,
