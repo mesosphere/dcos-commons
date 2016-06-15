@@ -47,20 +47,27 @@ public class DefaultInstallStrategy implements PhaseStrategy {
 
     @Override
     public void restart(UUID blockId) {
-        // NOP
-    }
-
-    @Override
-    public void forceComplete(UUID blockId) {
-
         if (blockId == null || phase == null) {
             return;
         }
 
+        setBlockStatus(blockId, Status.Pending);
+    }
+
+    @Override
+    public void forceComplete(UUID blockId) {
+        if (blockId == null || phase == null) {
+            return;
+        }
+
+        setBlockStatus(blockId, Status.Complete);
+    }
+
+    private void setBlockStatus(UUID blockId, Status status) {
         Block block = phase.getBlock(blockId);
 
         if (block != null) {
-            block.setStatus(Status.Complete);
+            block.setStatus(status);
         }
     }
 
