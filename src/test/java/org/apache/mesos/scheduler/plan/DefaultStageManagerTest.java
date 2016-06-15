@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * This class tests the DefaultStageManager
+ * This class tests the DefaultStageManager.
  */
 public class DefaultStageManagerTest {
 
