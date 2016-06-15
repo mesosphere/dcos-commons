@@ -85,7 +85,7 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
 
     // 6. create a list of phases (this example uses the provided reconciliation phase)
     List<Phase> phases = Arrays.asList(
-      new ReconciliationPhase(reconciler, acmeState));  // add more Phases of blocks here!
+      ReconciliationPhase.create(reconciler, acmeState));  // add more Phases of blocks here!
 
     // 7. create a stage
     Stage stage = stageErrors.isEmpty()
