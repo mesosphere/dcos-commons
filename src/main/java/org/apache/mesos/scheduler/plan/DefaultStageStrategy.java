@@ -61,12 +61,6 @@ public class DefaultStageStrategy implements PhaseStrategy {
     }
   }
 
-  public boolean getDecideState(int blockId) {
-    synchronized (this) {
-      return !shouldStart[blockId];
-    }
-  }
-
   @Override
   public Block getCurrentBlock() {
     //TODO(nick) the returned Block is not guaranteed to stay in a consistent state.
