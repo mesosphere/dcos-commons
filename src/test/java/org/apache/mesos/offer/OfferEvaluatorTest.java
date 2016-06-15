@@ -7,7 +7,6 @@ import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
 import org.apache.mesos.protobuf.ExecutorInfoBuilder;
 import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
-import org.apache.mesos.protobuf.TaskInfoBuilder;
 
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.ExecutorInfo;
@@ -35,7 +34,7 @@ public class OfferEvaluatorTest {
     Resource insufficientOfferedResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 1.0);
 
     OfferRequirement offerReq = new OfferRequirement(
-            Arrays.asList(getTaskInfo(desiredTaskCpu)),
+            Arrays.asList(TaskTestUtils.getTaskInfo(desiredTaskCpu)),
             getExecutorInfo(desiredExecutorCpu),
             null,
             null);
@@ -305,7 +304,7 @@ public class OfferEvaluatorTest {
     Resource offeredTaskResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
     Resource offeredExecutorResource = ResourceTestUtils.getOfferedUnreservedScalar("mem", 2.0);
 
-    TaskInfo taskInfo = getTaskInfo(desiredTaskResource);
+    TaskInfo taskInfo = TaskTestUtils.getTaskInfo(desiredTaskResource);
     ExecutorInfo execInfo = getExecutorInfo(desiredExecutorResource);
 
     OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
@@ -380,7 +379,7 @@ public class OfferEvaluatorTest {
     Resource offeredTaskResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
     Resource offeredExecutorResource = ResourceTestUtils.getExpectedScalar("mem", 2.0);
 
-    TaskInfo taskInfo = getTaskInfo(desiredTaskResource);
+    TaskInfo taskInfo = TaskTestUtils.getTaskInfo(desiredTaskResource);
     ExecutorInfo execInfo = getExecutorInfo(desiredExecutorResource);
 
     OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
@@ -567,20 +566,7 @@ public class OfferEvaluatorTest {
   }
 
   private OfferRequirement getOfferRequirement(List<Resource> resources) throws InvalidTaskRequirementException {
-    return new OfferRequirement(Arrays.asList(getTaskInfo(resources)));
-  }
-
-  private TaskInfo getTaskInfo(Resource resource) {
-    return getTaskInfo(Arrays.asList(resource));
-  }
-
-  private TaskInfo getTaskInfo(List<Resource> resources) {
-    TaskInfoBuilder builder = new TaskInfoBuilder(
-        ResourceTestUtils.testTaskId,
-        ResourceTestUtils.testTaskName,
-        ResourceTestUtils.testSlaveId);
-
-    return builder.addAllResources(resources).build();
+    return new OfferRequirement(Arrays.asList(TaskTestUtils.getTaskInfo(resources)));
   }
 
   private ExecutorInfo getExecutorInfo(Resource resource) {
