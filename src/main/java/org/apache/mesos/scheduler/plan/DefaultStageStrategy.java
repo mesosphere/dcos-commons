@@ -101,7 +101,7 @@ public class DefaultStageStrategy implements PhaseStrategy {
   public void restart(UUID blockId) {
     for (Block block : phase.getBlocks()) {
       if (block.getId().equals(blockId)) {
-        block.setStatus(Status.Pending);
+        block.restart();
       }
     }
 
@@ -131,17 +131,15 @@ public class DefaultStageStrategy implements PhaseStrategy {
     for (Block block : phase.getBlocks()) {
       blockIndex++;
 
-      if (!block.getStatus().equals(Status.Complete)) {
-        if (block.getStatus().equals(Status.Pending) &&
-            hasDecisionPoint(block)) {
-
+      if (!block.isComplete()) {
+        if (block.isPending() && hasDecisionPoint(block)) {
           return Status.Waiting;
         }
 
         if (blockIndex > 0) {
           return Status.InProgress;
         } else {
-          return block.getStatus();
+          return Block.getStatus(block);
         }
       }
     }

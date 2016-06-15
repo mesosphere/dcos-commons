@@ -10,13 +10,14 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * This class tests the StrategyStageManager.
+ * This class tests the {@link StrategyStageManager}.
  */
 public class StrategyStageManagerTest {
 
     private Stage stage;
     private PhaseStrategyFactory stratFactory;
     private StrategyStageManager stageManager;
+    private TestBlock firstBlock, secondBlock;
 
     @Mock
     Block mockBlock;
@@ -26,6 +27,8 @@ public class StrategyStageManagerTest {
         stage = getTestStage();
         stratFactory = new StageStrategyFactory();
         stageManager = new StrategyStageManager(stage, stratFactory);
+        firstBlock = new TestBlock();
+        secondBlock = new TestBlock();
         MockitoAnnotations.initMocks(this);
     }
 
@@ -34,9 +37,9 @@ public class StrategyStageManagerTest {
         Assert.assertEquals(Status.Waiting, stageManager.getStatus());
         stageManager.proceed();
         Assert.assertEquals(Status.Pending, stageManager.getStatus());
-        stage.getPhases().get(0).getBlock(0).setStatus(Status.InProgress);
+        firstBlock.setStatus(Status.InProgress);
         Assert.assertEquals(Status.InProgress, stageManager.getStatus());
-        stage.getPhases().get(0).getBlock(0).setStatus(Status.Complete);
+        firstBlock.setStatus(Status.Complete);
         Assert.assertEquals(Status.Waiting, stageManager.getStatus());
     }
 
@@ -45,10 +48,10 @@ public class StrategyStageManagerTest {
                 DefaultPhase.create(
                         UUID.randomUUID(),
                         "phase-0",
-                        Arrays.asList(new TestBlock())),
+                        Arrays.asList(firstBlock)),
                 DefaultPhase.create(
                         UUID.randomUUID(),
                         "phase-1",
-                        Arrays.asList(new TestBlock())));
+                        Arrays.asList(secondBlock)));
     }
 }

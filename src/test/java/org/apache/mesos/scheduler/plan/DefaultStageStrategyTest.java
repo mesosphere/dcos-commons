@@ -8,12 +8,11 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * This class tests the DefaultStageStrategy.
+ * This class tests the {@link DefaultStageStrategy}.
  */
 public class DefaultStageStrategyTest {
     private Phase phase;
     private DefaultStageStrategy strategy;
-
 
     @Before
     public void beforeEach() {
@@ -27,8 +26,8 @@ public class DefaultStageStrategyTest {
 
     @Test
     public void testProceedInterrupt() {
-        Block block0 = phase.getBlock(0);
-        Block block1 = phase.getBlock(1);
+        TestBlock block0 = (TestBlock)phase.getBlock(0);
+        TestBlock block1 = (TestBlock)phase.getBlock(1);
 
         Assert.assertEquals(null, strategy.getCurrentBlock());
         strategy.proceed();
@@ -47,26 +46,26 @@ public class DefaultStageStrategyTest {
 
     @Test
     public void testRestart() {
-        Block block0 = phase.getBlock(0);
-        Assert.assertEquals(Status.Pending, block0.getStatus());
+        TestBlock block0 = (TestBlock)phase.getBlock(0);
+        Assert.assertTrue(block0.isPending());
         block0.setStatus(Status.Complete);
-        Assert.assertEquals(Status.Complete, block0.getStatus());
+        Assert.assertTrue(block0.isComplete());
         strategy.restart(block0.getId());
-        Assert.assertEquals(Status.Pending, block0.getStatus());
+        Assert.assertTrue(block0.isPending());
     }
 
     @Test
     public void testForceComplete() {
         Block block0 = phase.getBlock(0);
-        Assert.assertEquals(Status.Pending, block0.getStatus());
+        Assert.assertTrue(block0.isPending());
         strategy.forceComplete(block0.getId());
-        Assert.assertEquals(Status.Pending, block0.getStatus());
+        Assert.assertTrue(block0.isPending());
     }
 
     @Test
     public void testGetStatus() {
-        Block block0 = phase.getBlock(0);
-        Block block1 = phase.getBlock(1);
+        TestBlock block0 = (TestBlock)phase.getBlock(0);
+        TestBlock block1 = (TestBlock)phase.getBlock(1);
 
         Assert.assertEquals(Status.Waiting, strategy.getStatus());
 
