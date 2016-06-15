@@ -31,12 +31,12 @@ class BlockInfo {
 
     public static BlockInfo forBlock(final Block block,
                                      final StageManager stageManager) {
-        return create(block.getId().toString(),
-                block.getStatus(), block
-                .getName(),
+        return create(
+                block.getId().toString(),
+                block.getStatus(),
+                block.getName(),
                 block.getMessage(),
                 stageManager.hasDecisionPoint(block));
-
     }
 
     public BlockInfo(final String id,
@@ -49,7 +49,6 @@ class BlockInfo {
         this.name = name;
         this.message = message;
         this.hasDecisionPoint = hasDecisionPoint;
-
     }
 
     @JsonProperty("has_decision_point")
