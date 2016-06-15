@@ -13,11 +13,12 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * This class tests the DefaultStageManager.
+ * This class tests the {@link DefaultStageManager}.
  */
 public class DefaultStageManagerTest {
 
     private static String testTaskId = "test-task-id";
+    private TestBlock firstBlock, secondBlock;
     private Stage stage;
     private PhaseStrategyFactory stratFactory;
     private StageManager stageManager;
@@ -27,7 +28,9 @@ public class DefaultStageManagerTest {
 
     @Before
     public void beforeEach() {
-        stage = getTestStage();
+        firstBlock = new TestBlock();
+        secondBlock = new TestBlock();
+        stage = getTestStage(firstBlock, secondBlock);
         stratFactory = new DefaultStrategyFactory();
         stageManager = new DefaultStageManager(stage, stratFactory);
         MockitoAnnotations.initMocks(this);
@@ -38,7 +41,7 @@ public class DefaultStageManagerTest {
         Assert.assertEquals(2, stageManager.getStage().getPhases().size());
         stageManager.setStage(getEmptyStage());
         Assert.assertEquals(0, stageManager.getStage().getPhases().size());
-        stageManager.setStage(getTestStage());
+        stageManager.setStage(getTestStage(firstBlock, secondBlock));
         Assert.assertEquals(2, stageManager.getStage().getPhases().size());
     }
 
@@ -59,9 +62,9 @@ public class DefaultStageManagerTest {
     public void testGetPhaseStatus() {
         Phase firstPhase = stage.getPhases().get(0);
         Assert.assertEquals(Status.Pending, stageManager.getPhaseStatus(firstPhase.getId()));
-        firstPhase.getBlock(0).setStatus(Status.InProgress);
+        firstBlock.setStatus(Status.InProgress);
         Assert.assertEquals(Status.InProgress, stageManager.getPhaseStatus(firstPhase.getId()));
-        firstPhase.getBlock(0).setStatus(Status.Complete);
+        firstBlock.setStatus(Status.Complete);
         Assert.assertEquals(Status.Complete, stageManager.getPhaseStatus(firstPhase.getId()));
     }
 
@@ -75,9 +78,11 @@ public class DefaultStageManagerTest {
     @Test
     public void testGetStatus() {
         Assert.assertEquals(Status.Pending, stageManager.getStatus());
-        stage.getPhases().get(0).getBlock(0).setStatus(Status.Waiting);
-        Assert.assertEquals(Status.Waiting, stageManager.getStatus());
-        stage.getPhases().get(0).getBlock(0).setStatus(Status.InProgress);
+        firstBlock.setStatus(Status.Error);
+        Assert.assertNull(stageManager.getStatus());
+        firstBlock.setStatus(Status.Waiting);
+        Assert.assertNull(stageManager.getStatus()); // error state: Blocks shouldn't be Waiting
+        firstBlock.setStatus(Status.InProgress);
         Assert.assertEquals(Status.InProgress, stageManager.getStatus());
         completePhase(stage.getPhases().get(0));
         Assert.assertEquals(Status.InProgress, stageManager.getStatus());
@@ -111,7 +116,6 @@ public class DefaultStageManagerTest {
     @Test
     public void testRestart() {
         Phase firstPhase = stage.getPhases().get(0);
-        Block firstBlock = firstPhase.getBlock(0);
         Assert.assertTrue(firstBlock.isPending());
         firstBlock.setStatus(Status.Complete);
         Assert.assertTrue(firstBlock.isComplete());
@@ -126,7 +130,6 @@ public class DefaultStageManagerTest {
     @Test
     public void testForceComplete() {
         Phase firstPhase = stage.getPhases().get(0);
-        Block firstBlock = firstPhase.getBlock(0);
         Assert.assertTrue(firstBlock.isPending());
         stageManager.forceComplete(firstPhase.getId(), firstBlock.getId());
         Assert.assertTrue(firstBlock.isComplete());
@@ -170,25 +173,25 @@ public class DefaultStageManagerTest {
         verify(mockBlock, times(1)).update(any());
     }
 
-    private void completePhase(Phase phase) {
+    private static void completePhase(Phase phase) {
         for (Block block : phase.getBlocks()) {
-            block.setStatus(Status.Complete);
+            ((TestBlock)block).setStatus(Status.Complete);
         }
     }
 
-    private Stage getEmptyStage() {
+    private static Stage getEmptyStage() {
         return DefaultStage.fromArgs();
     }
 
-    private Stage getTestStage() {
+    private static Stage getTestStage(Block phase0Block, Block phase1Block) {
         return DefaultStage.fromArgs(
                 DefaultPhase.create(
                         UUID.randomUUID(),
                         "phase-0",
-                        Arrays.asList(new TestBlock())),
+                        Arrays.asList(phase0Block)),
                 DefaultPhase.create(
                         UUID.randomUUID(),
                         "phase-1",
-                        Arrays.asList(new TestBlock())));
+                        Arrays.asList(phase1Block)));
     }
 }
