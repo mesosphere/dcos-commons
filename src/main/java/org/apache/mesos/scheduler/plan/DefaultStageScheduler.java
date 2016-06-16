@@ -21,19 +21,26 @@ public class DefaultStageScheduler implements StageScheduler {
     private static final Logger logger = LoggerFactory
             .getLogger(DefaultStageScheduler.class);
     private final OfferAccepter offerAccepter;
+    private final OfferEvaluator offerEvaluator;
 
     @Inject
     public DefaultStageScheduler(OfferAccepter offerAccepter) {
+        this(offerAccepter, new OfferEvaluator());
+    }
+
+    public DefaultStageScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator) {
         this.offerAccepter = offerAccepter;
+        this.offerEvaluator = offerEvaluator;
     }
 
     @Override
-    public List<Protos.OfferID> resourceOffers(SchedulerDriver driver,
-            List<Protos.Offer> offers, Block block) {
+    public List<Protos.OfferID> resourceOffers(
+            SchedulerDriver driver, List<Protos.Offer> offers, Block block) {
         List<Protos.OfferID> acceptedOffers = new ArrayList<>();
 
-        if (block == null) {
-            logger.warn("No block to process.");
+        if (driver == null || offers == null || block == null) {
+            logger.error("Unexpected null argument encountered: driver='{}' offers='{}' block='{}'",
+                    driver, offers, block);
             return acceptedOffers;
         }
         if (!block.isPending()) {
@@ -51,21 +58,19 @@ public class DefaultStageScheduler implements StageScheduler {
 
         // Block has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
-        List<OfferRecommendation> recommendations = new OfferEvaluator(
-                offerReq).evaluate(offers);
-        if (!recommendations.isEmpty()) {
-            // complain that we're not finding suitable offers. out
-            // of space on the cluster?:
+        offerEvaluator.setOfferRequirement(offerReq);
+        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offers);
+        if (recommendations.isEmpty()) {
+            // complain that we're not finding suitable offers. out of space on the cluster?:
             logger.warn(
-                    "Unable to find any offers which fulfill requirement provided by block: {}: {}",
+                    "Unable to find any offers which fulfill requirement provided by block {}: {}",
                     block.getName(), offerReq);
-        } else {
-            acceptedOffers = offerAccepter.accept(driver,
-                    recommendations);
-            // notify block of offer outcome:
-            block.updateOfferStatus(!acceptedOffers.isEmpty());
+            return acceptedOffers;
         }
 
+        acceptedOffers = offerAccepter.accept(driver, recommendations);
+        // notify block of offer outcome:
+        block.updateOfferStatus(!acceptedOffers.isEmpty());
         return acceptedOffers;
     }
 }

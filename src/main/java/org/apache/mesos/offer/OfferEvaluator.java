@@ -26,7 +26,7 @@ import java.util.*;
 public class OfferEvaluator {
   private static final Log log = LogFactory.getLog(OfferEvaluator.class);
 
-  private OfferRequirement requirement;
+  private OfferRequirement requirement; //TODO(nick) remove state in favor of passing as an evaluate() parameter
 
   public OfferEvaluator() {
     this.requirement = null;
