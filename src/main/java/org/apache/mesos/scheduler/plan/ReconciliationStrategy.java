@@ -36,17 +36,17 @@ public class ReconciliationStrategy implements PhaseStrategy {
 
     @Override
     public void restart(UUID blockId) {
-        getCurrentBlock().setStatus(Status.Pending);
+        getCurrentBlock().restart();
     }
 
     @Override
     public void forceComplete(UUID blockId) {
-        getCurrentBlock().setStatus(Status.Complete);
+        getCurrentBlock().forceComplete();
     }
 
     @Override
     public Status getStatus() {
-        return getCurrentBlock().getStatus();
+        return Block.getStatus(getCurrentBlock());
     }
 
     @Override

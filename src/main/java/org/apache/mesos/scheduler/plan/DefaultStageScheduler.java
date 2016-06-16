@@ -14,47 +14,62 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Default scheduler.
- * Attempts to meet the Offer requirements of the block presented, and perform the appropriate Operations
+ * Default scheduler. See docs in {@link StageScheduler} interface.
  */
 public class DefaultStageScheduler implements StageScheduler {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(DefaultStageScheduler.class);
 
-  private OfferAccepter offerAccepter = null;
+    private final OfferAccepter offerAccepter;
+    private final OfferEvaluator offerEvaluator;
 
-  @Inject
-  public DefaultStageScheduler(OfferAccepter offerAccepter) {
-    this.offerAccepter = offerAccepter;
-  }
-
-  @Override
-  public List<Protos.OfferID> resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers, Block block) {
-    List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-
-    if (block != null) {
-      logger.info("Processing resource offers for block: " + block.getName());
-
-      if (block.isPending()) {
-        OfferRequirement offerReq = block.start();
-        if (offerReq != null) {
-          OfferEvaluator offerEvaluator = new OfferEvaluator(offerReq);
-          List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offers);
-          acceptedOffers = offerAccepter.accept(driver, recommendations);
-
-          if (acceptedOffers.size() > 0) {
-            block.setStatus(Status.InProgress);
-          } else {
-            block.setStatus(Status.Pending);
-          }
-        } else {
-          logger.warn("No OfferRequirement for block: " + block.getName());
-        }
-      }
-    } else {
-      logger.warn("No block to process.");
+    @Inject
+    public DefaultStageScheduler(OfferAccepter offerAccepter) {
+        this(offerAccepter, new OfferEvaluator());
     }
 
-    return acceptedOffers;
-  }
+    public DefaultStageScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator) {
+        this.offerAccepter = offerAccepter;
+        this.offerEvaluator = offerEvaluator;
+    }
+
+    @Override
+    public List<Protos.OfferID> resourceOffers(
+            SchedulerDriver driver, List<Protos.Offer> offers, Block block) {
+        List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+
+        if (driver == null || offers == null || block == null) {
+            logger.error("Unexpected null argument encountered: driver='{}' offers='{}' block='{}'",
+                    driver, offers, block);
+            return acceptedOffers;
+        }
+        if (!block.isPending()) {
+            logger.info("Ignoring resource offers for block: {} status: {}",
+                    block.getName(), Block.getStatus(block));
+            return acceptedOffers;
+        }
+
+        logger.info("Processing resource offers for block: {}", block.getName());
+        OfferRequirement offerReq = block.start();
+        if (offerReq == null) {
+            logger.info("No OfferRequirement for block: {}", block.getName());
+            return acceptedOffers;
+        }
+
+        // Block has returned an OfferRequirement to process. Find offers which match the
+        // requirement and accept them, if any are found:
+        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerReq, offers);
+        if (recommendations.isEmpty()) {
+            // complain that we're not finding suitable offers. out of space on the cluster?:
+            logger.warn(
+                    "Unable to find any offers which fulfill requirement provided by block {}: {}",
+                    block.getName(), offerReq);
+            return acceptedOffers;
+        }
+
+        acceptedOffers = offerAccepter.accept(driver, recommendations);
+        // notify block of offer outcome:
+        block.updateOfferStatus(!acceptedOffers.isEmpty());
+        return acceptedOffers;
+    }
 }

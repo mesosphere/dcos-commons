@@ -33,7 +33,7 @@ class BlockInfo {
                                      final StageManager stageManager) {
         return create(
                 block.getId().toString(),
-                block.getStatus(),
+                Block.getStatus(block),
                 block.getName(),
                 block.getMessage(),
                 stageManager.hasDecisionPoint(block));

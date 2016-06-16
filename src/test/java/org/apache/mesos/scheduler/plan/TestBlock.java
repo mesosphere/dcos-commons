@@ -10,21 +10,22 @@ import java.util.UUID;
  */
 public class TestBlock implements Block {
 
-    private final UUID id;
+    private final UUID id = UUID.randomUUID();
     private Status status = Status.Pending;
 
-    public TestBlock() {
-        this.id = UUID.randomUUID();
-    }
-
-    @Override
-    public Status getStatus() {
-        return status;
-    }
-
-    @Override
-    public void setStatus(Status newStatus) {
+    public TestBlock setStatus(Status newStatus) {
         status = newStatus;
+        return this;
+    }
+
+    @Override
+    public void restart() {
+        setStatus(Status.Pending);
+    }
+
+    @Override
+    public void forceComplete() {
+        setStatus(Status.Complete);
     }
 
     @Override
@@ -44,7 +45,8 @@ public class TestBlock implements Block {
 
     @Override
     public OfferRequirement start() {
-        return null;
+        setStatus(Status.InProgress);
+        return null; // no requirements
     }
 
     @Override
@@ -65,5 +67,12 @@ public class TestBlock implements Block {
     @Override
     public String getName() {
         return "test-block";
+    }
+
+    @Override
+    public void updateOfferStatus(boolean accepted) {
+        if (!accepted) {
+            setStatus(Status.Pending);
+        }
     }
 }

@@ -10,10 +10,11 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * This class tests the StrategyStageManager.
+ * This class tests the {@link StrategyStageManager}.
  */
 public class StrategyStageManagerTest {
 
+    private TestBlock firstBlock, secondBlock;
     private Stage stage;
     private PhaseStrategyFactory stratFactory;
     private StrategyStageManager stageManager;
@@ -23,10 +24,12 @@ public class StrategyStageManagerTest {
 
     @Before
     public void beforeEach() {
-        stage = getTestStage();
+        MockitoAnnotations.initMocks(this);
+        firstBlock = new TestBlock();
+        secondBlock = new TestBlock();
+        stage = getTestStage(firstBlock, secondBlock);
         stratFactory = new StageStrategyFactory();
         stageManager = new StrategyStageManager(stage, stratFactory);
-        MockitoAnnotations.initMocks(this);
     }
 
     @Test
@@ -34,21 +37,21 @@ public class StrategyStageManagerTest {
         Assert.assertEquals(Status.Waiting, stageManager.getStatus());
         stageManager.proceed();
         Assert.assertEquals(Status.Pending, stageManager.getStatus());
-        stage.getPhases().get(0).getBlock(0).setStatus(Status.InProgress);
+        firstBlock.setStatus(Status.InProgress);
         Assert.assertEquals(Status.InProgress, stageManager.getStatus());
-        stage.getPhases().get(0).getBlock(0).setStatus(Status.Complete);
+        firstBlock.setStatus(Status.Complete);
         Assert.assertEquals(Status.Waiting, stageManager.getStatus());
     }
 
-    private Stage getTestStage() {
+    private Stage getTestStage(Block firstBlock, Block secondBlock) {
         return DefaultStage.fromArgs(
                 DefaultPhase.create(
                         UUID.randomUUID(),
                         "phase-0",
-                        Arrays.asList(new TestBlock())),
+                        Arrays.asList(firstBlock)),
                 DefaultPhase.create(
                         UUID.randomUUID(),
                         "phase-1",
-                        Arrays.asList(new TestBlock())));
+                        Arrays.asList(secondBlock)));
     }
 }
