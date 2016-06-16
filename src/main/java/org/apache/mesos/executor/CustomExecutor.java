@@ -57,7 +57,7 @@ public class CustomExecutor implements Executor {
 
         try {
             if (!task.hasData()) {
-                throw new Exception("Task data is not specified. Nothing to do.");
+                throw new ExecutorTaskException("Task data is not specified. Nothing to do.");
             }
 
             final Protos.CommandInfo taskData = Protos.CommandInfo.parseFrom(task.getData());
@@ -65,7 +65,7 @@ public class CustomExecutor implements Executor {
             final Map<String, String> taskEnv = TaskUtils.fromEnvironmentToMap(environment);
 
             if (!taskEnv.containsKey(ExecutorTask.TASK_TYPE)) {
-                throw new Exception("Unable to determine task type: " + taskEnv);
+                throw new ExecutorTaskException("Unable to determine task type: " + taskEnv);
             }
 
             final String taskType = taskEnv.get(ExecutorTask.TASK_TYPE);

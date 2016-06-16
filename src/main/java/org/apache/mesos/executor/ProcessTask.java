@@ -29,12 +29,19 @@ public class ProcessTask extends ExecutorTask {
     private final CompletableFuture<Integer> exit =
             new CompletableFuture<>();
 
+    private boolean exitOnTermination;
+
     // TODO(mohit): Remove this when KillPolicy is available.
     private static final Duration TERMINATE_TIMEOUT = Duration.ofSeconds(10);
 
     public ProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task) {
+        this(executorDriver, task, true);
+    }
+
+    public ProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task, boolean exitOnTermination) {
         this.driver = executorDriver;
         this.task = task;
+        this.exitOnTermination = exitOnTermination;
     }
 
     public void preStart() {
@@ -103,7 +110,9 @@ public class ProcessTask extends ExecutorTask {
                     task.getExecutor().getExecutorId(),
                     exitMessage);
 
-            System.exit(0);
+            if (exitOnTermination) {
+                System.exit(0);
+            }
         } catch (Throwable e) {
             LOGGER.error("Process task failed.", e);
             initialized.complete(false);
@@ -116,7 +125,9 @@ public class ProcessTask extends ExecutorTask {
                     task.getExecutor().getExecutorId(),
                     e.getMessage(),
                     SerializationUtils.serialize(e));
-            System.exit(1);
+            if (exitOnTermination) {
+                System.exit(1);
+            }
         }
     }
 

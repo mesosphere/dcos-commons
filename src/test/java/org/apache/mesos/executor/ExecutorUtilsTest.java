@@ -10,7 +10,7 @@ import java.util.UUID;
 public class ExecutorUtilsTest {
     @Test
     public void testToExecutorId() {
-        String executorName = "dcos-0";
+        final String executorName = "dcos-0";
 
         final Protos.ExecutorID executorID = ExecutorUtils.toExecutorId(executorName);
 
