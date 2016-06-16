@@ -87,7 +87,7 @@ ext {
 }
 
 group = "mesosphere"
-version = "0.3.5-SNAPSHOT"
+version = "0.3.6"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
@@ -116,6 +116,10 @@ publishing {
       }
     }
   }
+}
+
+configurations.all {
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
 dependencies {
