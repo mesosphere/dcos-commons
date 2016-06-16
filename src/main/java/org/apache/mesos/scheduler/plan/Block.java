@@ -6,67 +6,91 @@ import org.apache.mesos.offer.OfferRequirement;
 import java.util.UUID;
 
 /**
- * Defines the interface for a block of a plan.
+ * Defines the interface for a Block of a {@link Phase}. The block is the base unit of a set of
+ * tasks to perform, such as launching a Task, updating a Task, or reconciling Mesos state with
+ * Framework state. A Block may be in one of four states: Pending, InProgress, Complete, or Error.
  */
 public interface Block extends Completable {
 
     /**
-     * Returns the Status of the Block.
-     *
-     * @return
+     * Utility method which maps the provided {@link Block} to its corresponding {@link Status}.
      */
-    Status getStatus();
+    static Status getStatus(Block block) {
+        // these should all be mutually exclusive, ordering doesn't matter.
+        if (block.isPending()) {
+            return Status.Pending;
+        } else if (block.isInProgress()) {
+            return Status.InProgress;
+        } else if (block.isComplete()) {
+            return Status.Complete;
+        }
+        return Status.Error;
+    }
 
     /**
-     * Set the Status of the Block.
-     *
-     * @return
-     */
-    void setStatus(Status newStatus);
-
-    /**
-     * Indicates if the Block has not been started.
-     *
-     * @return
+     * Returns whether the {@link Status} of the Block is {@link Status.Pending}, ie whether the
+     * Scheduler should call {@link start()} for this Block. This must be {@code false} if either
+     * {@link #isComplete()} or {@link #isInProgress()} is {@code true}.
      */
     boolean isPending();
 
     /**
-     * Indicates if the Block is running but not complete.
-     *
-     * @return
+     * Returns whether the {@link Status} of the Block is {@link Status.InProgress}. This must be
+     * {@code false} if either {@link #isComplete()} or {@link #isPending()} is {@code true}.
      */
     boolean isInProgress();
 
     /**
-     * Starts a Block.
-     * Returns the Block's OfferRequirement or null, if it is not yet ready to be launched.
-     * It may require multiple calls before a Block is ready to be launched can provide an
-     * OfferRequirement.
+     * Starts the Block, whose {@link Status} should be {@link Status.Pending}. Returns an
+     * {@link OfferRequirement}, or {@code null} if obtaining/updating resource requirements are not
+     * applicable to the Block. This will continue to be called for as long as {@link isPending()}
+     * returns {@code true}.
      *
-     * @return
+     * @see {@link #isPending()} which is the gate to whether {@code start()} is called
+     * @see {@link #updateOfferStatus(boolean)} which returns the outcome of the
+     *      {@link OfferRequirement}
      */
     OfferRequirement start();
 
     /**
-     * Provides ability for the Stage Manager to provide TaskStatus updates to the Block.
-     *
-     * @param status
+     * Notifies the Block whether the {@link OfferRequirement} previously returned by
+     * {@link #start()} has been successfully accepted/fulfilled. The {@code accepted} param is
+     * {@code false} when no offers matching the requirement previously returned by {@link #clone()
+     * could be found. This is only called if {@link #start()} returned a non-{@code null}
+     * {@link OfferRequirement}.
+     */
+    void updateOfferStatus(boolean accepted);
+
+    /**
+     * Forcefully restarts the block, putting it into a Pending state, waiting to be resumed with
+     * a call to {@link start()}.
+     */
+    void restart();
+
+    /**
+     * Forcefully marks the block as Complete, cancelling any work that hasn't started or that's
+     * currently in progress.
+     */
+    void forceComplete();
+
+    /**
+     * Provides the Block with a recent {@link Protos.TaskStatus} update which was received from
+     * Mesos.
      */
     void update(Protos.TaskStatus status);
 
     /**
-     * @return The unique identifier of the block.
+     * Returns the unique identifier of the block.
      */
     UUID getId();
 
     /**
-     * @return Any message that the block wishes to communicate to the system.
+     * Returns a user-visible message describing the current status of the Block.
      */
     String getMessage();
 
     /**
-     * @return A human readable name for the block.
+     * Returns a user-visible name describing the purpose of the Block.
      */
     String getName();
 }

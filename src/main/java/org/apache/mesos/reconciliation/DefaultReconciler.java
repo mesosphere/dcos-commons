@@ -16,8 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Singleton
 public class DefaultReconciler implements Reconciler {
-    private static final Logger LOGGER = LoggerFactory.getLogger
-            (Reconciler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Reconciler.class);
 
     private static final int MULTIPLIER = 2;
     private static final long BASE_BACKOFF_MS = 4000;
@@ -27,11 +26,6 @@ public class DefaultReconciler implements Reconciler {
     private final Map<String, TaskStatus> unreconciled = new HashMap<>();
     private long lastRequestTime = 0;
     private long backOff = BASE_BACKOFF_MS;
-
-
-    public DefaultReconciler() {
-
-    }
 
     @Override
     public void start(final Collection<Protos.TaskStatus> tasks) {

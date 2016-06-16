@@ -47,20 +47,17 @@ public class DefaultInstallStrategy implements PhaseStrategy {
 
     @Override
     public void restart(UUID blockId) {
-        // NOP
+        Block block = getBlock(blockId);
+        if (block != null) {
+            block.restart();
+        }
     }
 
     @Override
     public void forceComplete(UUID blockId) {
-
-        if (blockId == null || phase == null) {
-            return;
-        }
-
-        Block block = phase.getBlock(blockId);
-
+        Block block = getBlock(blockId);
         if (block != null) {
-            block.setStatus(Status.Complete);
+            block.forceComplete();
         }
     }
 
@@ -74,7 +71,7 @@ public class DefaultInstallStrategy implements PhaseStrategy {
         for (Block block : phase.getBlocks()) {
             blockIndex++;
 
-            if (block.getStatus() != Status.Complete) {
+            if (!block.isComplete()) {
                 if (interrupted.get()) {
                     return Status.Waiting;
                 }
@@ -82,7 +79,7 @@ public class DefaultInstallStrategy implements PhaseStrategy {
                 if (blockIndex > 0) {
                     return Status.InProgress;
                 } else {
-                    return block.getStatus();
+                    return Block.getStatus(block);
                 }
             }
         }
@@ -98,5 +95,12 @@ public class DefaultInstallStrategy implements PhaseStrategy {
     @Override
     public boolean hasDecisionPoint(Block block) {
         return false;
+    }
+
+    private Block getBlock(UUID blockId) {
+        if (blockId == null || phase == null) {
+            return null;
+        }
+        return phase.getBlock(blockId);
     }
 }

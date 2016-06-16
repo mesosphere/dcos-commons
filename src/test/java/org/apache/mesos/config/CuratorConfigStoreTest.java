@@ -15,7 +15,7 @@ import java.util.UUID;
  */
 public class CuratorConfigStoreTest {
     private TestingServer testZk;
-    private CuratorConfigStore store;
+    private CuratorConfigStore<StringConfiguration, StringConfigurationFactory> store;
     private String testRootZkPath = "/test-root-path";
     private StringConfiguration testConfig;
     private StringConfigurationFactory configFactory;
@@ -94,7 +94,8 @@ public class CuratorConfigStoreTest {
         store.getTargetConfig();
     }
 
-    public CuratorConfigStore getTestConfigStore() {
-        return new CuratorConfigStore<StringConfiguration, StringConfigurationFactory>(testRootZkPath, testZk.getConnectString(), retryPolicy);
+    public CuratorConfigStore<StringConfiguration, StringConfigurationFactory> getTestConfigStore() {
+        return new CuratorConfigStore<StringConfiguration, StringConfigurationFactory>(
+            testRootZkPath, testZk.getConnectString(), retryPolicy);
     }
 }

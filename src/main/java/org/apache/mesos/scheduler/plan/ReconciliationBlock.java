@@ -17,68 +17,79 @@ import org.slf4j.LoggerFactory;
  * known tasks and then performs implicit reconciliation.
  */
 public class ReconciliationBlock implements Block {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final Logger logger = LoggerFactory.getLogger(ReconciliationBlock.class);
 
     private final Reconciler reconciler;
     private final TaskStatusProvider taskProvider;
     private final UUID id = UUID.randomUUID();
-    private Status status = Status.Pending;
+    private boolean isPending = true; // reconciler hasn't start()ed yet
 
     /**
      * Factory method.
      * @param reconciler The reconciler to use for reconciliation.
      * @return A new ReconciliationBlock
      */
-    public static final ReconciliationBlock create(Reconciler reconciler, TaskStatusProvider taskProvider){
+    public static final ReconciliationBlock create(
+            Reconciler reconciler, TaskStatusProvider taskProvider) {
         return new ReconciliationBlock(reconciler, taskProvider);
     }
 
-    private ReconciliationBlock(final Reconciler reconciler, final TaskStatusProvider taskProvider){
+    private ReconciliationBlock(
+            final Reconciler reconciler, final TaskStatusProvider taskProvider) {
         this.reconciler = reconciler;
         this.taskProvider = taskProvider;
     }
 
     @Override
-    public synchronized Status getStatus() {
-      if (status == Status.Pending) {
-        return status;
-      }
-
-      setStatus(reconciler.isReconciled() ? Status.Complete : Status.InProgress);
-      return status;
-    }
-
-    @Override
-    public synchronized void setStatus(Status newStatus) {
-      status = newStatus;
-    }
-
-    @Override
     public boolean isPending() {
-      return getStatus() == Status.Pending;
+        return isPending;
     }
 
     @Override
     public boolean isInProgress() {
-      return getStatus() == Status.InProgress;
+        if (isPending()) {
+            return false;
+        }
+        return !reconciler.isReconciled();
     }
 
     @Override
     public boolean isComplete() {
-      return getStatus() == Status.Complete;
+        if (isPending()) {
+            return false;
+        }
+        return reconciler.isReconciled();
     }
 
     @Override
     public OfferRequirement start() {
-      try {
-        reconciler.start(taskProvider.getTaskStatuses());
-        setStatus(Status.InProgress);
-      } catch (Exception ex) {
-        setStatus(Status.Pending);
-        logger.error("Failed to retrieve TaskStatus Set to proceed with reconciliation.");
-      }
+        try {
+            reconciler.start(taskProvider.getTaskStatuses());
+            isPending = false;
+        } catch (Exception ex) {
+            isPending = true; // try again later
+            logger.error("Failed to retrieve TaskStatus Set to proceed with reconciliation.", ex);
+        }
+        return null;
+    }
 
-      return null;
+    @Override
+    public void updateOfferStatus(boolean accepted) {
+        throw new UnsupportedOperationException(
+                "updateOfferStatus() not expected: start() always returns null");
+    }
+
+    @Override
+    public void restart() {
+        // reset state, while silently allowing the reconciler continue any pending work
+        isPending = true;
+    }
+
+    @Override
+    public void forceComplete() {
+        isPending = false;
+        reconciler.forceComplete();
     }
 
     @Override
@@ -97,18 +108,20 @@ public class ReconciliationBlock implements Block {
     }
 
     @Override
-    public String getMessage(){
-        return isComplete() ?
-                "Reconciliation complete" :
-                "Reconciliation in progress unreconciled tasks =  " +
-                        reconciler.remaining();
+    public String getMessage() {
+        if (isPending) {
+            return "Reconciliation pending";
+        } else if (!reconciler.isReconciled()) {
+            return "Reconciliation in progress unreconciled tasks = " + reconciler.remaining();
+        } else {
+            return "Reconciliation complete";
+        }
     }
-
 
     /**
      * @return The reconciler used for reconciliation.
      */
-    public Reconciler getReconciler(){
+    public Reconciler getReconciler() {
         return reconciler;
     }
 }

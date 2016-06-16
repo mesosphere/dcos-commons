@@ -1,8 +1,5 @@
 package org.apache.mesos.offer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -11,52 +8,35 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
-
 import org.apache.mesos.protobuf.ValueUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 /**
- * The OfferEvaluator processes Offers and produces OfferRecommendations.
- * The determination of what OfferRecommendations, if any should be made are made
- * in reference to the OfferRequirement with which it was constructed.  In the
- * case where an OfferRequirement has not been provided no OfferRecommendations
+ * The OfferEvaluator processes {@link Offer}s and produces {@link OfferRecommendation}s.
+ * The determination of what {@link OfferRecommendation}s, if any should be made are made
+ * in reference to the {@link OfferRequirement with which it was constructed.  In the
+ * case where an OfferRequirement has not been provided no {@link OfferRecommendation}s
  * are ever returned.
  */
 public class OfferEvaluator {
-  private static final Log log = LogFactory.getLog(OfferEvaluator.class);
+  private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
 
-  private OfferRequirement requirement;
+  public OfferEvaluator() { }
 
-  public OfferEvaluator() {
-    this.requirement = null;
-  }
-
-  public OfferEvaluator(OfferRequirement requirement) {
-    this.requirement = requirement;
-  }
-
-  public OfferRequirement getOfferRequirement() {
-    return requirement;
-  }
-
-  public void setOfferRequirement(OfferRequirement requirement) {
-    this.requirement = requirement;
-  }
-
-  public List<OfferRecommendation> evaluate(List<Offer> offers) {
-
+  public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers) {
     for (Offer offer : offers) {
-      List<OfferRecommendation> recommendations = evaluate(offer);
+      List<OfferRecommendation> recommendations = evaluate(offerRequirement, offer);
       if (recommendations != null) {
         return recommendations;
       }
     }
-
     return Collections.emptyList();
   }
 
-  public List<OfferRecommendation> evaluate(Offer offer) {
+  public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer) {
     MesosResourcePool pool = new MesosResourcePool(offer);
 
     List<OfferRecommendation> unreserves = new ArrayList<OfferRecommendation>();
@@ -64,7 +44,7 @@ public class OfferEvaluator {
     List<OfferRecommendation> creates = new ArrayList<OfferRecommendation>();
     List<OfferRecommendation> launches = new ArrayList<OfferRecommendation>();
 
-    ExecutorRequirement execReq = requirement.getExecutorRequirement();
+    ExecutorRequirement execReq = offerRequirement.getExecutorRequirement();
     FulfilledRequirement fulfilledExecutorRequirement = null;
     if (execReq != null && execReq.desiresResources()) {
       fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
@@ -81,7 +61,7 @@ public class OfferEvaluator {
       creates.addAll(fulfilledExecutorRequirement.getCreateRecommendations());
     }
 
-    for (TaskRequirement taskReq : requirement.getTaskRequirements()) {
+    for (TaskRequirement taskReq : offerRequirement.getTaskRequirements()) {
       FulfilledRequirement fulfilledTaskRequirement =
         FulfilledRequirement.fulfillRequirement(taskReq.getResourceRequirements(), offer, pool);
 
@@ -142,18 +122,16 @@ public class OfferEvaluator {
       for (ResourceRequirement resReq : resourceRequirements) {
         MesosResource mesRes = pool.consume(resReq);
         if (mesRes == null) {
-          log.warn("Failed to satisfy resource requirement: " + resReq.getResource());
+          logger.warn("Failed to satisfy resource requirement: {}", resReq.getResource());
           return null;
         } else {
-          log.info("Satisfying resource requirement: " +
-              resReq.getResource() +
-              "with resource: " +
-              mesRes.getResource());
+          logger.info("Satisfying resource requirement: {} with resource: {}",
+              resReq.getResource(), mesRes.getResource());
         }
 
         Resource fulfilledResource = getFulfilledResource(resReq, mesRes);
         if (resReq.expectsResource()) {
-          log.info("Expects Resource");
+          logger.info("Expects Resource");
           // Compute any needed resource pool consumption / release operations
           // as well as any additional needed Mesos Operations
           if (expectedValueChanged(resReq, mesRes)) {
@@ -161,7 +139,7 @@ public class OfferEvaluator {
             Value unreserveValue = ValueUtils.subtract(mesRes.getValue(), resReq.getValue());
 
             if (ValueUtils.compare(unreserveValue, ValueUtils.getZero(unreserveValue.getType())) > 0) {
-              log.info("Updates reserved resource with less reservation");
+              logger.info("Updates reserved resource with less reservation");
               Resource unreserveResource = ResourceUtils.getDesiredResource(
                   resReq.getRole(),
                   resReq.getPrincipal(),
@@ -175,7 +153,7 @@ public class OfferEvaluator {
             }
 
             if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
-              log.info("Updates reserved resource with additional reservation");
+              logger.info("Updates reserved resource with additional reservation");
               Resource reserveResource = ResourceUtils.getDesiredResource(
                   resReq.getRole(),
                   resReq.getPrincipal(),
@@ -187,24 +165,24 @@ public class OfferEvaluator {
                 reserveRecommendations.add(new ReserveOfferRecommendation(offer, reserveResource));
                 fulfilledResource = getFulfilledResource(resReq, new MesosResource(resReq.getResource()));
               } else {
-                log.warn("Insufficient resources to increase resource usage.");
+                logger.warn("Insufficient resources to increase resource usage.");
                 return null;
               }
             }
           }
         } else {
           if (resReq.reservesResource()) {
-            log.info("Reserves Resource");
+            logger.info("Reserves Resource");
             reserveRecommendations.add(new ReserveOfferRecommendation(offer, fulfilledResource));
           }
 
           if (resReq.createsVolume()) {
-            log.info("Creates Volume");
+            logger.info("Creates Volume");
             createRecommendations.add(new CreateOfferRecommendation(offer, fulfilledResource));
           }
         }
 
-        log.info("Fulfilled resource: " + fulfilledResource);
+        logger.info("Fulfilled resource: {}", fulfilledResource);
         fulfilledResources.add(fulfilledResource);
       }
 

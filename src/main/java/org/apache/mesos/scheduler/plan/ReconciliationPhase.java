@@ -12,15 +12,14 @@ import java.util.UUID;
  */
 public final class ReconciliationPhase extends DefaultPhase {
 
-    public static ReconciliationPhase create(Reconciler reconciler, TaskStatusProvider taskProvider) {
+    public static ReconciliationPhase create(
+            Reconciler reconciler, TaskStatusProvider taskProvider) {
         return new ReconciliationPhase(reconciler, taskProvider);
     }
 
-    public ReconciliationPhase(Reconciler reconciler, TaskStatusProvider taskProvider) {
+    private ReconciliationPhase(Reconciler reconciler, TaskStatusProvider taskProvider) {
         super(UUID.randomUUID(),
                 "Reconciliation",
                 Arrays.asList(ReconciliationBlock.create(reconciler, taskProvider)));
     }
-
-
 }

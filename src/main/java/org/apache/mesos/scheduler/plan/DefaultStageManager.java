@@ -58,16 +58,18 @@ public class DefaultStageManager implements StageManager {
     return null;
   }
 
-  public Phase getPhase(final UUID phaseId) {
+  protected Phase getPhase(final UUID phaseId) {
     if (phaseId == null) {
       LOGGER.warn("null phaseId");
       return null;
     }
+
     for (Phase phase : stage.getPhases()) {
       if (phaseId.equals(phase.getId())) {
         return phase;
       }
     }
+
     return null;
   }
 
@@ -79,7 +81,7 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public boolean isComplete() {
-    return stage.getErrors().isEmpty() ? getCurrentPhase() == null : false;
+    return stage.isComplete();
   }
 
   @Override
@@ -168,6 +170,8 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public Status getStatus() {
+    // Ordering matters throughout this method.  Modify with care.
+
     if (!stage.getErrors().isEmpty()) {
       return Status.Error;
     }
@@ -180,14 +184,17 @@ public class DefaultStageManager implements StageManager {
     if (anyHaveStatus(Status.Waiting, stage)) {
       LOGGER.info("Atleast one phase have status: " + Status.Waiting);
       return Status.Waiting;
+    } else if (anyHaveStatus(Status.InProgress, stage)) {
+      LOGGER.info("At least one phase have status: " + Status.InProgress);
+      return Status.InProgress;
     } else if (allHaveStatus(Status.Complete, stage)) {
       LOGGER.info("All phases have status: " + Status.Complete);
       return Status.Complete;
     } else if (allHaveStatus(Status.Pending, stage)) {
       LOGGER.info("All phases have status: " + Status.Pending);
       return Status.Pending;
-    } else if (anyHaveStatus(Status.InProgress, stage)) {
-      LOGGER.info("Atleast one phase have status: " + Status.InProgress);
+    } else if (anyHaveStatus(Status.Complete, stage) && anyHaveStatus(Status.Pending, stage)) {
+      LOGGER.info("At least one phase has status '%s' and one has status '%s'", Status.Complete, Status.Pending);
       return Status.InProgress;
     } else {
       LOGGER.error("Unexpected state. Stage: " + stage);

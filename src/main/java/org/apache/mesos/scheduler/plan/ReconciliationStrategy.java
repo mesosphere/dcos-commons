@@ -8,52 +8,51 @@ import java.util.UUID;
  */
 public class ReconciliationStrategy implements PhaseStrategy {
 
-    public static ReconciliationStrategy create(final ReconciliationPhase
-                                                        phase) {
+    public static ReconciliationStrategy create(final ReconciliationPhase phase) {
         return new ReconciliationStrategy(phase);
     }
 
     private final ReconciliationPhase phase;
 
-    public ReconciliationStrategy(final ReconciliationPhase phase) {
+    private ReconciliationStrategy(final ReconciliationPhase phase) {
         this.phase = phase;
     }
 
     @Override
     public Block getCurrentBlock() {
+        // ReconciliationPhases only have a single Block
         return phase.getBlock(0);
     }
 
     @Override
     public void proceed() {
-
+        // no-op: interrupting reconciliation not supported
     }
 
     @Override
     public void interrupt() {
-
+        // no-op: interrupting reconciliation not supported
     }
 
     @Override
     public void restart(UUID blockId) {
-        getCurrentBlock().setStatus(Status.Pending);
+        getCurrentBlock().restart();
     }
 
     @Override
     public void forceComplete(UUID blockId) {
-        getCurrentBlock().setStatus(Status.Complete);
+        getCurrentBlock().forceComplete();
     }
 
     @Override
     public Status getStatus() {
-        return getCurrentBlock().getStatus();
+        return Block.getStatus(getCurrentBlock());
     }
 
     @Override
     public boolean isInterrupted() {
         return false;
     }
-
 
     @Override
     public Phase getPhase() {
@@ -84,8 +83,6 @@ public class ReconciliationStrategy implements PhaseStrategy {
 
     @Override
     public String toString() {
-        return "ReconciliationStrategy{" +
-                "phase=" + phase +
-                '}';
+        return "ReconciliationStrategy{phase=" + phase + '}';
     }
 }

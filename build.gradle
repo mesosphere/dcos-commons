@@ -1,5 +1,9 @@
 // Config shared by the dcos-commons library and the examples:
 
+plugins {
+  id 'com.github.ksoichiro.console.reporter' version '0.4.0'
+}
+
 allprojects {
   apply plugin: 'java'
   apply plugin: 'jacoco'
@@ -7,6 +11,7 @@ allprojects {
   apply plugin: 'eclipse'
   apply plugin: 'idea'
   apply plugin: 'maven-publish'
+  apply plugin: 'com.github.ksoichiro.console.reporter'
 
   apply from: "$rootDir/gradle/quality.gradle"
   apply from: "$rootDir/gradle/spock.gradle"
@@ -41,10 +46,18 @@ allprojects {
     }
   }
 
+  // Print results on the fly
+  test {
+    testLogging {
+      events "passed", "skipped", "failed"
+    }
+  }
+
+  // Include unit test report in 'check'
+  // (jacoco itself depends on 'test')
+  check.dependsOn jacocoTestReport
   jacocoTestReport {
     reports {
-      xml.enabled false
-      csv.enabled false
       html.destination "${buildDir}/jacoco"
     }
   }
@@ -71,7 +84,7 @@ ext {
 }
 
 group = "mesosphere"
-version = "0.3.5-SNAPSHOT"
+version = "0.3.9-SNAPSHOT"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
