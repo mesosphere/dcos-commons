@@ -118,6 +118,10 @@ publishing {
   }
 }
 
+configurations.all {
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
 dependencies {
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${yamlVer}"
   compile "commons-collections:commons-collections:${commonsCollectionsVer}"
