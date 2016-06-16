@@ -86,21 +86,23 @@ public class DefaultStageSchedulerTest {
 
     @Test
     public void testEvaluateNoRecommendations() throws InvalidTaskRequirementException {
-        TestOfferBlock block = (TestOfferBlock)new TestOfferBlock(new OfferRequirement(TASKINFOS))
+        OfferRequirement requirement = new OfferRequirement(TASKINFOS);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
                 .setStatus(Status.Pending);
-        when(mockOfferEvaluator.evaluate(OFFERS)).thenReturn(new ArrayList<>());
+        when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
 
         assertFalse(block.offerStatus.isPresent());
-        verify(mockOfferEvaluator).evaluate(OFFERS);
+        verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
     }
 
     @Test
     public void testEvaluateNoAcceptedOffers() throws InvalidTaskRequirementException {
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(new OfferRequirement(TASKINFOS))
+        OfferRequirement requirement = new OfferRequirement(TASKINFOS);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
                 .setStatus(Status.Pending);
-        when(mockOfferEvaluator.evaluate(OFFERS)).thenReturn(RECOMMENDATIONS);
+        when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
                 .thenReturn(new ArrayList<>());
 
@@ -113,9 +115,10 @@ public class DefaultStageSchedulerTest {
 
     @Test
     public void testEvaluateAcceptedOffers() throws InvalidTaskRequirementException {
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(new OfferRequirement(TASKINFOS))
+        OfferRequirement requirement = new OfferRequirement(TASKINFOS);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
                 .setStatus(Status.Pending);
-        when(mockOfferEvaluator.evaluate(OFFERS)).thenReturn(RECOMMENDATIONS);
+        when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
                 .thenReturn(ACCEPTED_IDS);
 

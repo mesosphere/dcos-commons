@@ -18,8 +18,8 @@ import java.util.List;
  */
 public class DefaultStageScheduler implements StageScheduler {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(DefaultStageScheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultStageScheduler.class);
+
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
 
@@ -58,8 +58,7 @@ public class DefaultStageScheduler implements StageScheduler {
 
         // Block has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
-        offerEvaluator.setOfferRequirement(offerReq);
-        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offers);
+        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerReq, offers);
         if (recommendations.isEmpty()) {
             // complain that we're not finding suitable offers. out of space on the cluster?:
             logger.warn(
