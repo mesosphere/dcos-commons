@@ -165,7 +165,24 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public boolean hasDecisionPoint(final Block block) {
-    return false;
+    UUID phaseId = getPhaseId(block);
+    if (phaseId != null) {
+      return getPhaseStrategy(phaseId, block.getId()).hasDecisionPoint(block);
+    } else {
+      return false;
+    }
+  }
+
+  private UUID getPhaseId(final Block block) {
+    for (Phase phase : stage.getPhases()) {
+      for (Block blk : phase.getBlocks()) {
+        if (block.getId().equals(blk.getId())) {
+          return phase.getId();
+        }
+      }
+    }
+
+    return null;
   }
 
   @Override
