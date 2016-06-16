@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import java.util.Objects;
 
 /**
@@ -30,16 +33,7 @@ public class DropwizardConfiguration extends Configuration {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    DropwizardConfiguration that = (DropwizardConfiguration) o;
-    return Objects.equals(schedulerConfiguration, that.schedulerConfiguration);
+    return EqualsBuilder.reflectionEquals(this, o);
   }
 
   @Override
@@ -49,8 +43,6 @@ public class DropwizardConfiguration extends Configuration {
 
   @Override
   public String toString() {
-    return "DropwizardConfiguration{" +
-      "schedulerConfiguration=" + schedulerConfiguration +
-      '}';
+    return ReflectionToStringBuilder.toString(this);
   }
 }

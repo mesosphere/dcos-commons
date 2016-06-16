@@ -1,8 +1,8 @@
 package org.apache.mesos.scheduler.plan.api;
 
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.StageManager;
@@ -96,11 +96,6 @@ class PhaseInfo {
 
     @Override
     public String toString() {
-        return "PhaseInfo{" +
-                "blocks=" + getBlocks() +
-                ", id='" + getId() + "'" +
-                ", name='" + getName() + "'" +
-                ", status='" + getStatus() + "'" +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

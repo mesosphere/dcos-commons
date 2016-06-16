@@ -3,6 +3,9 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.StageManager;
 import org.apache.mesos.scheduler.plan.Status;
@@ -68,17 +71,7 @@ class CurrentlyActivePhaseInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof CurrentlyActivePhaseInfo)) {
-            return false;
-        }
-        CurrentlyActivePhaseInfo phaseStatusInfo = (CurrentlyActivePhaseInfo) o;
-        return getId() == phaseStatusInfo.getId() &&
-            Objects.equals(getName(), phaseStatusInfo.getName()) &&
-            Objects.equals(getBlockCount(), phaseStatusInfo.getBlockCount()) &&
-            Objects.equals(getStatus(), phaseStatusInfo.getStatus());
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
@@ -88,11 +81,6 @@ class CurrentlyActivePhaseInfo {
 
     @Override
     public String toString() {
-        return "CurrentlyActivePhaseInfo{" +
-                "block_count=" + getBlockCount() +
-                ", id='" + getId() + "'" +
-                ", name='" + getName() + "'" +
-                ", status='" + getStatus() + "'" +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

@@ -2,6 +2,8 @@ package org.apache.mesos.config;
 
 import java.nio.charset.StandardCharsets;
 
+import java.util.Objects;
+
 /**
  * This class implements the Configuration interface for configurations stored as Strings.
  */
@@ -22,18 +24,14 @@ public class StringConfiguration implements Configuration {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof StringConfiguration)) {
             return false;
         }
-
-        StringConfiguration that = (StringConfiguration) o;
-
-        return config != null ? config.equals(that.config) : that.config == null;
-
+        return Objects.equals(config, ((StringConfiguration) o).config);
     }
 
     @Override
     public int hashCode() {
-        return config != null ? config.hashCode() : 0;
+        return Objects.hash(config);
     }
 }

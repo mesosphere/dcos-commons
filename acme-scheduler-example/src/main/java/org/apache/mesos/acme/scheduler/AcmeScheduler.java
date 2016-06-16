@@ -1,8 +1,6 @@
 package org.apache.mesos.acme.scheduler;
 
 import io.dropwizard.setup.Environment;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.MasterInfo;
@@ -29,6 +27,8 @@ import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.ReconciliationPhase;
 import org.apache.mesos.scheduler.plan.Stage;
 import org.apache.mesos.scheduler.plan.StageManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,7 @@ import java.util.Observable;
 /**
  */
 public class AcmeScheduler extends Observable implements Scheduler, Runnable {
-  private final Log log = LogFactory.getLog(getClass());
+  private static final Logger logger = LoggerFactory.getLogger(AcmeScheduler.class);
 
   //private Environment environment;//TODO(nick): fixbugs
   //private AcmeSchedulerConfiguration configuration;//TODO(nick): fixbugs
@@ -144,11 +144,8 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
 
   @Override
   public void statusUpdate(SchedulerDriver driver, TaskStatus status) {
-    log.info(String.format(
-      "Received status update for taskId=%s state=%s message='%s'",
-      status.getTaskId().getValue(),
-      status.getState().toString(),
-      status.getMessage()));
+    logger.info("Received status update for taskId={} state={} message='{}'",
+      status.getTaskId().getValue(), status.getState().toString(), status.getMessage());
 
     setChanged();
     notifyObservers(status);        // notifies blocks and state objects to record
@@ -197,7 +194,7 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
 
   private void declineOffer(SchedulerDriver driver, Offer offer) {
     OfferID offerId = offer.getId();
-    log.info(String.format("Scheduler declining offer: %s", offerId));
+    logger.info("Scheduler declining offer: {}", offerId);
     driver.declineOffer(offerId);
   }
 
