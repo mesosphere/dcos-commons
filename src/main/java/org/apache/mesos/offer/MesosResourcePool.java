@@ -1,15 +1,13 @@
 package org.apache.mesos.offer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
-
 import org.apache.mesos.protobuf.ValueUtils;
 import org.apache.mesos.protobuf.ResourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -17,7 +15,7 @@ import java.util.*;
  * A representation of the pool of resources available in a single Offer.
  **/
 public class MesosResourcePool {
-  private final Log log = LogFactory.getLog(getClass());
+  private static final Logger logger = LoggerFactory.getLogger(MesosResourcePool.class);
 
   private Offer offer;
   private Collection<MesosResource> mesosResources;
@@ -51,20 +49,21 @@ public class MesosResourcePool {
 
   public MesosResource consume(ResourceRequirement resReq) {
     if (resReq.expectsResource()) {
-      log.info("Retrieving reserved resource");
+      logger.info("Retrieving reserved resource");
       return consumeReserved(resReq);
     } else if (resReq.isAtomic()) {
-      log.info("Retrieving atomic resource");
+      logger.info("Retrieving atomic resource");
       return consumeAtomic(resReq);
     } else if (resReq.reservesResource()) {
-      log.info("Retrieving resource for reservation");
+      logger.info("Retrieving resource for reservation");
       return consumeUnreservedMerged(resReq);
     } else if (resReq.consumesUnreservedResource()) {
-      log.info("Retrieving resource for unreserved resource requirement.");
+      logger.info("Retrieving resource for unreserved resource requirement.");
       return consumeUnreservedMerged(resReq);
     }
 
-    log.error("The following resource requirement did not meet any consumption criteria: " + resReq.getResource());
+    logger.error("The following resource requirement did not meet any consumption criteria: {}",
+        resReq.getResource());
     return null;
   }
 
@@ -85,7 +84,7 @@ public class MesosResourcePool {
       currValue = ValueUtils.getZero(mesRes.getType());
     }
 
-    Value updatedValue = ValueUtils.add(currValue, mesRes.getValue()); 
+    Value updatedValue = ValueUtils.add(currValue, mesRes.getValue());
     unreservedMergedPool.put(mesRes.getName(), updatedValue);
   }
 
@@ -144,7 +143,8 @@ public class MesosResourcePool {
     }
 
     if (sufficientResource == null) {
-      log.warn("No sufficient atomic resources found for resource requirement: " + resReq.getResource());
+      logger.warn("No sufficient atomic resources found for resource requirement: {}",
+          resReq.getResource());
     }
 
     return sufficientResource;
@@ -152,7 +152,7 @@ public class MesosResourcePool {
 
   private MesosResource consumeUnreservedMerged(ResourceRequirement resReq) {
     Value desiredValue = resReq.getValue();
-    Value availableValue = unreservedMergedPool.get(resReq.getName()); 
+    Value availableValue = unreservedMergedPool.get(resReq.getName());
 
     if (sufficientValue(desiredValue, availableValue)) {
       unreservedMergedPool.put(resReq.getName(), ValueUtils.subtract(availableValue, desiredValue));
@@ -205,7 +205,7 @@ public class MesosResourcePool {
 
       if (resList == null) {
         resList = new ArrayList<MesosResource>();
-      } 
+      }
 
       resList.add(mesResource);
       pool.put(name, resList);
@@ -223,7 +223,7 @@ public class MesosResourcePool {
 
       if (currValue == null) {
         currValue = ValueUtils.getZero(mesResource.getType());
-      } 
+      }
 
       pool.put(name, ValueUtils.add(currValue, mesResource.getValue()));
     }

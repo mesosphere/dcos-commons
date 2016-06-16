@@ -2,6 +2,9 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.StageManager;
 import org.apache.mesos.scheduler.plan.Status;
@@ -78,19 +81,7 @@ class BlockInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof BlockInfo)) {
-            return false;
-        }
-        BlockInfo blockInfo = (BlockInfo) o;
-        return Objects.equals(getId(), blockInfo.getId()) &&
-                getStatus() == blockInfo.getStatus() &&
-                Objects.equals(getName(), blockInfo.getName()) &&
-                Objects.equals(getMessage(), blockInfo.getMessage()) &&
-                Objects.equals(getHasDecisionPoint(),
-                        blockInfo.getHasDecisionPoint());
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
@@ -101,12 +92,6 @@ class BlockInfo {
 
     @Override
     public String toString() {
-        return "BlockInfo{" +
-                "has_decision_point=" + hasDecisionPoint +
-                ", id='" + id + '\'' +
-                ", status=" + status +
-                ", name='" + name + '\'' +
-                ", message='" + message + '\'' +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

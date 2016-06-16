@@ -3,6 +3,9 @@ package org.apache.mesos.acme.config;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import java.util.Objects;
 
 /**
@@ -107,22 +110,7 @@ public class ServiceConfiguration {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ServiceConfiguration that = (ServiceConfiguration) o;
-    return count == that.count &&
-      Objects.equals(name, that.name) &&
-      Objects.equals(user, that.user) &&
-      Objects.equals(placementStrategy, that.placementStrategy) &&
-      Objects.equals(phaseStrategy, that.phaseStrategy) &&
-      Objects.equals(role, that.role) &&
-      Objects.equals(principal, that.principal);
+    return EqualsBuilder.reflectionEquals(this, o);
   }
 
   @Override
@@ -132,14 +120,6 @@ public class ServiceConfiguration {
 
   @Override
   public String toString() {
-    return "ServiceConfiguration{" +
-      "count=" + count +
-      ", name='" + name + '\'' +
-      ", user='" + user + '\'' +
-      ", placementStrategy='" + placementStrategy + '\'' +
-      ", phaseStrategy='" + phaseStrategy + '\'' +
-      ", role='" + role + '\'' +
-      ", principal='" + principal + '\'' +
-      '}';
+    return ReflectionToStringBuilder.toString(this);
   }
 }

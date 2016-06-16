@@ -2,6 +2,7 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.StageManager;
 import org.apache.mesos.scheduler.plan.Status;
@@ -28,17 +29,13 @@ class StageInfo {
     }
 
     public static StageInfo forStage(final StageManager manager) {
-
-        List<PhaseInfo> info = new ArrayList<>(
-                manager.getStage().getPhases().size());
+        List<PhaseInfo> info = new ArrayList<>(manager.getStage().getPhases().size());
         for (Phase phase : manager.getStage().getPhases()) {
             info.add(PhaseInfo.forPhase(phase, manager));
         }
-
         return create(info,
                 manager.getStage().getErrors(),
                 manager.getStatus());
-
     }
 
     public StageInfo(final List<PhaseInfo> phases,
@@ -85,10 +82,6 @@ class StageInfo {
 
     @Override
     public String toString() {
-        return "StageInfo{" +
-                "phases=" + getPhases() +
-                "errors=" + getErrors() +
-                "status=" + getStatus() +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

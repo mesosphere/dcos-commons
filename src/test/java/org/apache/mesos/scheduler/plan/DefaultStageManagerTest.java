@@ -173,6 +173,17 @@ public class DefaultStageManagerTest {
         verify(mockBlock, times(1)).update(any());
     }
 
+    @Test
+    public void testHasDecisionPoint() {
+        Block firstBlock = stage.getPhases().get(0).getBlock(0);
+
+        StageManager decisionPointManager = new DefaultStageManager(stage, new StageStrategyFactory());
+        Assert.assertTrue(decisionPointManager.hasDecisionPoint(firstBlock));
+
+        decisionPointManager = new DefaultStageManager(stage, new DefaultStrategyFactory());
+        Assert.assertFalse(decisionPointManager.hasDecisionPoint(firstBlock));
+    }
+
     private static void completePhase(Phase phase) {
         for (Block block : phase.getBlocks()) {
             ((TestBlock)block).setStatus(Status.Complete);

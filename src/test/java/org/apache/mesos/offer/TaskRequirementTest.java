@@ -3,9 +3,6 @@ package org.apache.mesos.offer;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.ExecutorInfo;
@@ -17,9 +14,11 @@ import org.apache.mesos.protobuf.ResourceBuilder;
 import org.apache.mesos.protobuf.TaskInfoBuilder;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TaskRequirementTest {
-  private final Log log = LogFactory.getLog(getClass());
+  private static final Logger logger = LoggerFactory.getLogger(TaskRequirementTest.class);
 
   private static final String testTaskName = "test-task-name";
   private static final String testTaskId = "test-task-id";
@@ -68,7 +67,7 @@ public class TaskRequirementTest {
     TaskInfoBuilder builder = new TaskInfoBuilder(testTaskId, testTaskName, testSlaveId);
 
     for (Resource resource : resources) {
-      log.info("Resource: " + resource);
+      logger.info("Resource: {}", resource);
       builder.addResource(resource);
     }
 
