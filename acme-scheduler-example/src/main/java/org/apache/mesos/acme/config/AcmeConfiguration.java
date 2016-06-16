@@ -3,12 +3,14 @@ package org.apache.mesos.acme.config;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import java.util.Objects;
 
 /**
  */
 public class AcmeConfiguration {
-
 
   @JsonProperty("acmeZkUri")
   private String acmeZkUri;
@@ -44,17 +46,7 @@ public class AcmeConfiguration {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    AcmeConfiguration that = (AcmeConfiguration) o;
-    return Objects.equals(acmeZkUri, that.acmeZkUri) &&
-      Objects.equals(zkAddress, that.zkAddress);
+    return EqualsBuilder.reflectionEquals(this, o);
   }
 
   @Override
@@ -64,9 +56,6 @@ public class AcmeConfiguration {
 
   @Override
   public String toString() {
-    return "AcmeConfiguration{" +
-      ", acmeZkUri='" + acmeZkUri + '\'' +
-      ", zkAddress='" + zkAddress + '\'' +
-      '}';
+    return ReflectionToStringBuilder.toString(this);
   }
 }

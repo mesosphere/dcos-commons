@@ -1,5 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -66,14 +69,7 @@ public class ReconciliationStrategy implements PhaseStrategy {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ReconciliationStrategy)) {
-            return false;
-        }
-        ReconciliationStrategy that = (ReconciliationStrategy) o;
-        return Objects.equals(getPhase(), that.getPhase());
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
@@ -83,6 +79,6 @@ public class ReconciliationStrategy implements PhaseStrategy {
 
     @Override
     public String toString() {
-        return "ReconciliationStrategy{phase=" + phase + '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

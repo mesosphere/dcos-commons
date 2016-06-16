@@ -1,12 +1,12 @@
 package org.apache.mesos.offer;
 
 import com.google.inject.Inject;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +21,8 @@ import java.util.Set;
  * and accepts Offers with thos Operations
  */
 public class OfferAccepter {
-  private final Log log = LogFactory.getLog(OfferAccepter.class);
+  private static final Logger logger = LoggerFactory.getLogger(OfferAccepter.class);
+
   private Collection<OperationRecorder> recorders;
 
   public OfferAccepter(OperationRecorder recorder) {
@@ -37,12 +38,9 @@ public class OfferAccepter {
     this.recorders = recorders;
   }
 
-  public List<OfferID> accept(
-    SchedulerDriver driver,
-    List<OfferRecommendation> recommendations) {
-
+  public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
     if (recommendations.size() <= 0) {
-      log.warn("No recommendations, nothing to do");
+      logger.warn("No recommendations, nothing to do");
       return new ArrayList<OfferID>();
     }
 
@@ -55,14 +53,14 @@ public class OfferAccepter {
     try {
       record(recommendations);
     } catch (Exception ex) {
-      log.error("Failed to record Operations so not launching Task", ex);
+      logger.error("Failed to record Operations so not launching Task", ex);
       return new ArrayList<OfferID>();
     }
 
     if (operations.size() > 0) {
       driver.acceptOffers(offerIds, operations, filters);
     } else {
-      log.warn("No Operations to perform.");
+      logger.warn("No Operations to perform.");
     }
 
     return offerIds;
@@ -80,9 +78,9 @@ public class OfferAccepter {
     List<Operation> operations = new ArrayList<Operation>();
 
     for (OfferRecommendation recommendation : recommendations) {
-      if (recommendation instanceof LaunchOfferRecommendation && 
+      if (recommendation instanceof LaunchOfferRecommendation &&
           ((LaunchOfferRecommendation) recommendation).isTransient()) {
-        log.info("Skipping launch of transient Operation: " + recommendation.getOperation());
+        logger.info("Skipping launch of transient Operation: {}", recommendation.getOperation());
       } else {
         operations.add(recommendation.getOperation());
       }
@@ -103,7 +101,7 @@ public class OfferAccepter {
 
   private void logOperations(List<Operation> operations) {
     for (Operation op : operations) {
-      log.info("Performing Operation: " + op);
+      logger.info("Performing Operation: {}", op);
     }
   }
 

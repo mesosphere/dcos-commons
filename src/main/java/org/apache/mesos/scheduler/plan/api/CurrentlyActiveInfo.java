@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.StageManager;
@@ -65,16 +67,7 @@ class CurrentlyActiveInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof CurrentlyActiveInfo)) {
-            return false;
-        }
-        CurrentlyActiveInfo statusInfo = (CurrentlyActiveInfo) o;
-        return Objects.equals(getBlock(), statusInfo.getBlock()) &&
-            Objects.equals(getPhaseStatus(), statusInfo.getPhaseStatus()) &&
-            Objects.equals(getStageStatus(), statusInfo.getStageStatus());
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override
@@ -84,10 +77,6 @@ class CurrentlyActiveInfo {
 
     @Override
     public String toString() {
-        return "CurrentlyActiveInfo" +
-                "block=" + block +
-                ", phaseStatus=" + phaseStatus +
-                ", stageStatus=" + stageStatus +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }
