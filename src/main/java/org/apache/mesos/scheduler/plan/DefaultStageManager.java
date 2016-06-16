@@ -58,7 +58,7 @@ public class DefaultStageManager implements StageManager {
     return null;
   }
 
-  private Phase getPhase(final UUID phaseId) {
+  protected Phase getPhase(final UUID phaseId) {
     if (phaseId == null) {
       LOGGER.warn("null phaseId");
       return null;
