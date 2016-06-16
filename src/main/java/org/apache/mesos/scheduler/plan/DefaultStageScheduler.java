@@ -32,27 +32,29 @@ public class DefaultStageScheduler implements StageScheduler {
   public List<Protos.OfferID> resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers, Block block) {
     List<Protos.OfferID> acceptedOffers = new ArrayList<>();
 
-    if (block != null) {
-      logger.info("Processing resource offers for block: " + block.getName());
+    if (driver == null || offers == null || block == null) {
+      logger.error(String.format("Unexpected null argument encountered: driver='%s' offers='%s' block='%s'",
+              driver, offers, block));
+      return acceptedOffers;
+    }
 
-      if (block.isPending()) {
-        OfferRequirement offerReq = block.start();
-        if (offerReq != null) {
-          OfferEvaluator offerEvaluator = new OfferEvaluator(offerReq);
-          List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offers);
-          acceptedOffers = offerAccepter.accept(driver, recommendations);
+    logger.info("Processing resource offers for block: " + block.getName());
 
-          if (acceptedOffers.size() > 0) {
-            block.setStatus(Status.InProgress);
-          } else {
-            block.setStatus(Status.Pending);
-          }
+    if (block.isPending()) {
+      OfferRequirement offerReq = block.start();
+      if (offerReq != null) {
+        OfferEvaluator offerEvaluator = new OfferEvaluator(offerReq);
+        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offers);
+        acceptedOffers = offerAccepter.accept(driver, recommendations);
+
+        if (acceptedOffers.size() > 0) {
+          block.setStatus(Status.InProgress);
         } else {
-          logger.warn("No OfferRequirement for block: " + block.getName());
+          block.setStatus(Status.Pending);
         }
+      } else {
+        logger.warn("No OfferRequirement for block: " + block.getName());
       }
-    } else {
-      logger.warn("No block to process.");
     }
 
     return acceptedOffers;
