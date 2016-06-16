@@ -13,8 +13,9 @@ public class TestBlock implements Block {
     private final UUID id = UUID.randomUUID();
     private Status status = Status.Pending;
 
-    public void setStatus(Status newStatus) {
+    public TestBlock setStatus(Status newStatus) {
         status = newStatus;
+        return this;
     }
 
     @Override

@@ -14,22 +14,22 @@ import java.util.UUID;
  */
 public class StrategyStageManagerTest {
 
+    private TestBlock firstBlock, secondBlock;
     private Stage stage;
     private PhaseStrategyFactory stratFactory;
     private StrategyStageManager stageManager;
-    private TestBlock firstBlock, secondBlock;
 
     @Mock
     Block mockBlock;
 
     @Before
     public void beforeEach() {
-        stage = getTestStage();
-        stratFactory = new StageStrategyFactory();
-        stageManager = new StrategyStageManager(stage, stratFactory);
+        MockitoAnnotations.initMocks(this);
         firstBlock = new TestBlock();
         secondBlock = new TestBlock();
-        MockitoAnnotations.initMocks(this);
+        stage = getTestStage(firstBlock, secondBlock);
+        stratFactory = new StageStrategyFactory();
+        stageManager = new StrategyStageManager(stage, stratFactory);
     }
 
     @Test
@@ -43,7 +43,7 @@ public class StrategyStageManagerTest {
         Assert.assertEquals(Status.Waiting, stageManager.getStatus());
     }
 
-    private Stage getTestStage() {
+    private Stage getTestStage(Block firstBlock, Block secondBlock) {
         return DefaultStage.fromArgs(
                 DefaultPhase.create(
                         UUID.randomUUID(),
