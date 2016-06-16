@@ -22,6 +22,8 @@ import org.junit.Test;
 
 public class OfferEvaluatorTest {
 
+  private static final OfferEvaluator evaluator = new OfferEvaluator();
+
   @Test
   public void testReserveTaskExecutorInsufficient() throws InvalidTaskRequirementException {
     Resource desiredTaskCpu = ResourceUtils.getDesiredScalar(
@@ -37,7 +39,7 @@ public class OfferEvaluatorTest {
             null);
     List<Offer> offers = getOffers(insufficientOfferedResource);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(offerReq, offers);
+    List<OfferRecommendation> recommendations = evaluator.evaluate(offerReq, offers);
     Assert.assertEquals(0, recommendations.size());
   }
 
@@ -50,7 +52,7 @@ public class OfferEvaluatorTest {
         ResourceTestUtils.testContainerPath);
     Resource offeredResource = ResourceTestUtils.getOfferedUnreservedMountVolume(2000);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
     Assert.assertEquals(3, recommendations.size());
 
@@ -105,20 +107,28 @@ public class OfferEvaluatorTest {
 
   @Test
   public void testFailToCreateVolumeWithWrongResource() throws InvalidTaskRequirementException {
-    Resource desiredResource = ResourceUtils.getDesiredRootVolume(ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, 1000, ResourceTestUtils.testContainerPath);
+    Resource desiredResource = ResourceUtils.getDesiredRootVolume(
+        ResourceTestUtils.testRole,
+        ResourceTestUtils.testPrincipal,
+        1000,
+        ResourceTestUtils.testContainerPath);
     Resource wrongOfferedResource = ResourceTestUtils.getOfferedUnreservedMountVolume(2000);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(wrongOfferedResource));
     Assert.assertEquals(0, recommendations.size());
   }
 
   @Test
   public void testReserveCreateLaunchRootVolume() throws InvalidTaskRequirementException {
-    Resource desiredResource = ResourceUtils.getDesiredRootVolume(ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, 1500, ResourceTestUtils.testContainerPath);
+    Resource desiredResource = ResourceUtils.getDesiredRootVolume(
+        ResourceTestUtils.testRole,
+        ResourceTestUtils.testPrincipal,
+        1500,
+        ResourceTestUtils.testContainerPath);
     Resource offeredResource = ResourceTestUtils.getOfferedUnreservedRootVolume(2000);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
     Assert.assertEquals(3, recommendations.size());
 
@@ -170,10 +180,14 @@ public class OfferEvaluatorTest {
 
   @Test
   public void testFailCreateRootVolume() throws InvalidTaskRequirementException {
-    Resource desiredResource = ResourceUtils.getDesiredRootVolume(ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, 2000, ResourceTestUtils.testContainerPath);
+    Resource desiredResource = ResourceUtils.getDesiredRootVolume(
+        ResourceTestUtils.testRole,
+        ResourceTestUtils.testPrincipal,
+        2000,
+        ResourceTestUtils.testContainerPath);
     Resource offeredResource = ResourceTestUtils.getOfferedUnreservedRootVolume(1000);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
     Assert.assertEquals(0, recommendations.size());
   }
@@ -182,7 +196,7 @@ public class OfferEvaluatorTest {
   public void testExpectedMountVolume() throws InvalidTaskRequirementException {
     Resource expectedResource = ResourceTestUtils.getExpectedMountVolume(1000);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(expectedResource), getOffers(expectedResource));
     Assert.assertEquals(1, recommendations.size());
 
@@ -210,7 +224,7 @@ public class OfferEvaluatorTest {
   public void testExpectedRootVolume() throws InvalidTaskRequirementException {
     Resource expectedResource = ResourceTestUtils.getExpectedRootVolume(1000);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(expectedResource), getOffers(expectedResource));
     Assert.assertEquals(1, recommendations.size());
 
@@ -242,7 +256,7 @@ public class OfferEvaluatorTest {
         1.0);
     Resource offeredResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
     Assert.assertEquals(2, recommendations.size());
 
@@ -295,7 +309,7 @@ public class OfferEvaluatorTest {
     TaskInfo taskInfo = getTaskInfo(desiredTaskResource);
     ExecutorInfo execInfo = getExecutorInfo(desiredExecutorResource);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             new OfferRequirement(Arrays.asList(taskInfo), execInfo),
             getOffers(offeredTaskResource, offeredExecutorResource));
     Assert.assertEquals(3, recommendations.size());
@@ -367,7 +381,7 @@ public class OfferEvaluatorTest {
     TaskInfo taskInfo = getTaskInfo(desiredTaskResource);
     ExecutorInfo execInfo = getExecutorInfo(desiredExecutorResource);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             new OfferRequirement(Arrays.asList(taskInfo), execInfo),
             getOffers(offeredTaskResource, offeredExecutorResource));
     Assert.assertEquals(2, recommendations.size());
@@ -409,7 +423,7 @@ public class OfferEvaluatorTest {
         "cpus",
         1.0);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(desiredResource));
     Assert.assertEquals(1, recommendations.size());
 
@@ -433,7 +447,7 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
     Resource unreservedResource = ResourceBuilder.cpus(1.0);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource, unreservedResource));
     Assert.assertEquals(2, recommendations.size());
 
@@ -472,7 +486,7 @@ public class OfferEvaluatorTest {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0);
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
     Assert.assertEquals(0, recommendations.size());
   }
@@ -482,7 +496,7 @@ public class OfferEvaluatorTest {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0);
 
-    List<OfferRecommendation> recommendations = new OfferEvaluator().evaluate(
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
     Assert.assertEquals(2, recommendations.size());
 
