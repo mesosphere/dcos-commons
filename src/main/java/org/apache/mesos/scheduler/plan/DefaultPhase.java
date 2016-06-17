@@ -16,7 +16,7 @@ import java.util.*;
 public class DefaultPhase implements Phase {
 
     /**
-     * Fluent style builder class for DefaultPhase.
+     * Fluent style builder class for {@link DefaultPhase}.
      */
     public static final class Builder {
 
@@ -92,10 +92,8 @@ public class DefaultPhase implements Phase {
      * @return A new DefaultPhase constructed from id and name and containing
      * blocks.
      */
-    public static DefaultPhase create(UUID id,
-                                      String name,
-                                      Collection<? extends Block> blocks) {
-
+    public static DefaultPhase create(
+            UUID id, String name, Collection<? extends Block> blocks) {
         return new DefaultPhase(id, name, blocks);
     }
 
@@ -103,19 +101,19 @@ public class DefaultPhase implements Phase {
         return new Builder();
     }
 
-
     private final List<Block> blocks;
     private final Map<UUID, Integer> byId;
     private final String name;
     private final UUID id;
 
     /**
-     * Constructs a new DefaultPhase.
+     * Constructs a new {@link DefaultPhase}. Intentionally visible to subclasses.
+     *
      * @param id The unique identifier for the Phase.
      * @param name The name of the Phase.
      * @param blocks The blocks contained in the Phase.
      */
-    public DefaultPhase(
+    protected DefaultPhase(
             final UUID id,
             final String name,
             final Collection<? extends Block> blocks) {
@@ -124,7 +122,6 @@ public class DefaultPhase implements Phase {
         this.blocks = ImmutableList.copyOf(blocks);
         final ImmutableMap.Builder<UUID, Integer> builder =
                 ImmutableMap.builder();
-
         for (int i = 0; i < this.blocks.size(); ++i) {
             builder.put(this.blocks.get(i).getId(), i);
         }

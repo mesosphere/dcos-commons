@@ -2,6 +2,8 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.StageManager;
@@ -38,9 +40,8 @@ class StageInfo {
                 manager.getStatus());
     }
 
-    public StageInfo(final List<PhaseInfo> phases,
-                     final List<String> errors,
-                     final Status status) {
+    private StageInfo(
+            final List<PhaseInfo> phases, final List<String> errors, final Status status) {
         this.phases = phases;
         this.errors = errors;
         this.status = status;
@@ -63,16 +64,7 @@ class StageInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof StageInfo)) {
-            return false;
-        }
-        StageInfo stageInfo = (StageInfo) o;
-        return Objects.equals(getPhases(), stageInfo.getPhases()) &&
-            Objects.equals(getErrors(), stageInfo.getErrors()) &&
-            Objects.equals(getStatus(), stageInfo.getStatus());
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override

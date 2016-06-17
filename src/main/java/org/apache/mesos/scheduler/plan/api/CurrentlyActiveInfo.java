@@ -40,7 +40,7 @@ class CurrentlyActiveInfo {
             CurrentlyActiveStageInfo.forStage(manager));
     }
 
-    public CurrentlyActiveInfo(final BlockInfo block,
+    private CurrentlyActiveInfo(final BlockInfo block,
                      final CurrentlyActivePhaseInfo phaseStatus,
                      final CurrentlyActiveStageInfo stageStatus) {
         this.block = block;

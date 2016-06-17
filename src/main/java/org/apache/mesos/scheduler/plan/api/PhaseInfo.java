@@ -2,6 +2,8 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
@@ -31,9 +33,8 @@ class PhaseInfo {
         return new PhaseInfo(id, name, blocks, status);
     }
 
-    public static PhaseInfo forPhase(final Phase phase,
-                                     final StageManager stageManager) {
-
+    public static PhaseInfo forPhase(
+            final Phase phase, final StageManager stageManager) {
         List<BlockInfo> info = new ArrayList<>(phase.getBlocks().size());
         for (Block block : phase.getBlocks()) {
             info.add(BlockInfo.forBlock(block, stageManager));
@@ -44,10 +45,8 @@ class PhaseInfo {
                 stageManager.getPhaseStatus(phase.getId()));
     }
 
-    public PhaseInfo(final String id,
-                     final String name,
-                     final List<BlockInfo> blocks,
-                     final Status status) {
+    private PhaseInfo(
+            final String id, final String name, final List<BlockInfo> blocks, final Status status) {
         this.id = id;
         this.name = name;
         this.blocks = blocks;
@@ -76,17 +75,7 @@ class PhaseInfo {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof PhaseInfo)) {
-            return false;
-        }
-        PhaseInfo phaseInfo = (PhaseInfo) o;
-        return getId() == phaseInfo.getId() &&
-                Objects.equals(getName(), phaseInfo.getName()) &&
-                Objects.equals(getBlocks(), phaseInfo.getBlocks()) &&
-                Objects.equals(getStatus(), phaseInfo.getStatus());
+        return EqualsBuilder.reflectionEquals(this, o);
     }
 
     @Override

@@ -31,15 +31,15 @@ class CurrentlyActivePhaseInfo {
         return new CurrentlyActivePhaseInfo(id, name, blockCount, status);
     }
 
-    public static CurrentlyActivePhaseInfo forPhase(final Phase phase,
-                                     final StageManager stageManager) {
+    public static CurrentlyActivePhaseInfo forPhase(
+            final Phase phase, final StageManager stageManager) {
         return create(phase.getId().toString(),
                 phase.getName(),
                 phase.getBlocks().size(),
                 stageManager.getPhaseStatus(phase.getId()));
     }
 
-    public CurrentlyActivePhaseInfo(final String id,
+    private CurrentlyActivePhaseInfo(final String id,
                      final String name,
                      final Integer blockCount,
                      final Status status) {

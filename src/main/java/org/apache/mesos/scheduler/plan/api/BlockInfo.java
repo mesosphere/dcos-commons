@@ -42,11 +42,12 @@ class BlockInfo {
                 stageManager.hasDecisionPoint(block));
     }
 
-    public BlockInfo(final String id,
-                     final Status status,
-                     final String name,
-                     final String message,
-                     final boolean hasDecisionPoint) {
+    private BlockInfo(
+            final String id,
+            final Status status,
+            final String name,
+            final String message,
+            final boolean hasDecisionPoint) {
         this.id = id;
         this.status = status;
         this.name = name;

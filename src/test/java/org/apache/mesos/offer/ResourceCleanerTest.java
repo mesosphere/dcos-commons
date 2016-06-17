@@ -1,21 +1,20 @@
 package org.apache.mesos.offer;
 
+import static org.mockito.Mockito.*;
+
 import java.util.*;
 
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.test.TestingServer;
-import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.Protos.Resource;
-
 import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
 
-import org.apache.mesos.state.CuratorStateStore;
 import org.apache.mesos.state.StateStore;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class ResourceCleanerTest {
 
@@ -28,18 +27,50 @@ public class ResourceCleanerTest {
   private static final String testFrameworkId = "test-framework-id";
   private static final String testSlaveId = "test-slave-id";
   private static final String testHostname = "test-hostname";
-  private TestingServer testZk;
-  private StateStore store;
-  private Collection<ResourceCleaner> cleaners;
+
+  private static final Resource RESOURCE_1 =
+          ResourceUtils.getDesiredMountVolume("role-1", "principal-1", 123, "/path1");
+  private static final Resource RESOURCE_2 =
+          ResourceUtils.getDesiredRootVolume("role-2", "principal-2", 234, "/path2");
+
+  private static final TaskInfo TASK_INFO_1 = TaskInfo.newBuilder()
+          .setName("task-name-1")
+          .setTaskId(TaskID.newBuilder().setValue("task-id-1"))
+          .setSlaveId(SlaveID.newBuilder().setValue(testSlaveId))
+          .setExecutor(ExecutorInfo.newBuilder()
+                  .setExecutorId(ExecutorID.newBuilder().setValue("hey"))
+                  .setCommand(CommandInfo.newBuilder().build())
+                  .addResources(RESOURCE_1)
+                  .build())
+          .build();
+  private static final TaskInfo TASK_INFO_2 = TaskInfo.newBuilder()
+          .setName("task-name-2")
+          .setTaskId(TaskID.newBuilder().setValue("task-id-2"))
+          .setSlaveId(SlaveID.newBuilder().setValue(testSlaveId))
+          .addResources(RESOURCE_2)
+          .build();
+
+  @Mock private StateStore mockStateStore;
+  private List<ResourceCleaner> cleaners;
 
   @Before
   public void beforeEach() throws Exception {
-    ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
-    testZk = new TestingServer();
-    store = new CuratorStateStore("/test-root-path", testZk.getConnectString(), retryPolicy);
-    cleaners = Arrays.asList(
-            new ResourceCleaner(Collections.emptyList()),
-            new ResourceCleaner(store));
+    MockitoAnnotations.initMocks(this);
+
+    // cleaners without expected resources
+    when(mockStateStore.fetchExecutorNames()).thenReturn(new ArrayList<>());
+    cleaners = new ArrayList<>();
+    cleaners.add(new ResourceCleaner(Collections.emptyList()));
+    cleaners.add(new ResourceCleaner(mockStateStore));
+
+    // cleaners with expected resources
+    when(mockStateStore.fetchExecutorNames()).thenReturn(Arrays.asList("a", "b"));
+    when(mockStateStore.fetchTasks("a")).thenReturn(Arrays.asList(TASK_INFO_1));
+    when(mockStateStore.fetchTasks("b")).thenReturn(Arrays.asList(TASK_INFO_2));
+    cleaners.add(new ResourceCleaner(Arrays.asList(
+                    TASK_INFO_1.getExecutor().getResources(0),
+                    TASK_INFO_2.getResources(0))));
+    cleaners.add(new ResourceCleaner(mockStateStore));
   }
 
   @Test
@@ -50,7 +81,7 @@ public class ResourceCleanerTest {
 
   @Test
   public void testStateStoreConstructor() {
-    ResourceCleaner cleaner = new ResourceCleaner(store);
+    ResourceCleaner cleaner = new ResourceCleaner(mockStateStore);
     Assert.assertNotNull(cleaner);
   }
 
@@ -66,7 +97,8 @@ public class ResourceCleanerTest {
 
   @Test
   public void testUnreserveRecommendation() {
-    Resource unexpectedResource = ResourceBuilder.reservedCpus(1.0, testRole, testPrincipal, testResourceId);
+    Resource unexpectedResource =
+            ResourceBuilder.reservedCpus(1.0, testRole, testPrincipal, testResourceId);
     List<Offer> offers = getOffers(unexpectedResource);
 
     for (ResourceCleaner cleaner : cleaners) {
