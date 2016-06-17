@@ -228,7 +228,7 @@ public class ResourceCleanerTest {
                 EXPECTED_RESOURCE_2,
                 UNEXPECTED_RESOURCE_3);
 
-        // these cleaners have expected resources populated, they are omitted from the response:
+        // these cleaners have expected resources populated, so they are omitted from the response:
         for (ResourceCleaner cleaner : populatedCleaners) {
             List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
@@ -260,6 +260,18 @@ public class ResourceCleanerTest {
             assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
             assertEquals(UNEXPECTED_RESOURCE_3_ID,
                     ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+        }
+    }
+
+    @Test
+    public void testPopulatedCleanersAllExpected() {
+        List<Offer> offers = getOffers(EXPECTED_RESOURCE_1, EXPECTED_RESOURCE_2);
+
+        // these cleaners have expected resources populated, so they are omitted from the response:
+        for (ResourceCleaner cleaner : populatedCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+            assertEquals("Got: " + recommendations, 0, recommendations.size());
         }
     }
 
