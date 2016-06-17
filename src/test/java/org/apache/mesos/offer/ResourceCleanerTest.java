@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
@@ -10,138 +11,278 @@ import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
 
 import org.apache.mesos.state.StateStore;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 public class ResourceCleanerTest {
 
-  private static final String testRole = "test-role";
-  private static final String testPrincipal = "test-principal";
-  private static final String testResourceId = "test-resource-id";
-  private static final String testContainerPath = "test-container-path";
-  private static final String testPersistenceId = "test-persistence-id";
-  private static final String testOfferId = "test-offer-id";
-  private static final String testFrameworkId = "test-framework-id";
-  private static final String testSlaveId = "test-slave-id";
-  private static final String testHostname = "test-hostname";
+    private static final String ROLE = "test-role";
+    private static final String PRINCIPAL = "test-principal";
+    private static final String EXPECTED_RESOURCE_1_ID = "expected-resource-id";
+    private static final String EXPECTED_RESOURCE_2_ID = "expected-volume-id";
+    private static final String UNEXPECTED_RESOURCE_1_ID = "unexpected-volume-id-1";
+    private static final String UNEXPECTED_RESOURCE_2_ID = "unexpected-resource-id";
+    private static final String UNEXPECTED_RESOURCE_3_ID = "unexpected-volume-id-3";
+    private static final String SLAVE_ID = "test-slave-id";
 
-  private static final Resource RESOURCE_1 =
-          ResourceUtils.getDesiredMountVolume("role-1", "principal-1", 123, "/path1");
-  private static final Resource RESOURCE_2 =
-          ResourceUtils.getDesiredRootVolume("role-2", "principal-2", 234, "/path2");
+    private static final Resource EXPECTED_RESOURCE_1 = ResourceBuilder.reservedPorts(
+            123, 456, ROLE, PRINCIPAL, EXPECTED_RESOURCE_1_ID);
+    private static final Resource EXPECTED_RESOURCE_2 = ResourceBuilder.volume(
+            999.0, ROLE, PRINCIPAL, "expected-path", EXPECTED_RESOURCE_2_ID);
 
-  private static final TaskInfo TASK_INFO_1 = TaskInfo.newBuilder()
-          .setName("task-name-1")
-          .setTaskId(TaskID.newBuilder().setValue("task-id-1"))
-          .setSlaveId(SlaveID.newBuilder().setValue(testSlaveId))
-          .setExecutor(ExecutorInfo.newBuilder()
-                  .setExecutorId(ExecutorID.newBuilder().setValue("hey"))
-                  .setCommand(CommandInfo.newBuilder().build())
-                  .addResources(RESOURCE_1)
-                  .build())
-          .build();
-  private static final TaskInfo TASK_INFO_2 = TaskInfo.newBuilder()
-          .setName("task-name-2")
-          .setTaskId(TaskID.newBuilder().setValue("task-id-2"))
-          .setSlaveId(SlaveID.newBuilder().setValue(testSlaveId))
-          .addResources(RESOURCE_2)
-          .build();
+    private static final Resource UNEXPECTED_RESOURCE_1 = ResourceBuilder.volume(
+            1000.0, ROLE, PRINCIPAL, "unexpected-path-1", UNEXPECTED_RESOURCE_1_ID);
+    private static final Resource UNEXPECTED_RESOURCE_2 = ResourceBuilder.reservedCpus(
+            1.0, ROLE, PRINCIPAL, UNEXPECTED_RESOURCE_2_ID);
+    private static final Resource UNEXPECTED_RESOURCE_3 = ResourceBuilder.volume(
+            1001.0, ROLE, PRINCIPAL, "unexpected-path-3", UNEXPECTED_RESOURCE_3_ID);
 
-  @Mock private StateStore mockStateStore;
-  private List<ResourceCleaner> cleaners;
+    private static final TaskInfo TASK_INFO_1 = TaskInfo.newBuilder()
+            .setName("task-name-1")
+            .setTaskId(TaskID.newBuilder().setValue("task-id-1"))
+            .setSlaveId(SlaveID.newBuilder().setValue(SLAVE_ID))
+            .setExecutor(ExecutorInfo.newBuilder()
+                    .setExecutorId(ExecutorID.newBuilder().setValue("hey"))
+                    .setCommand(CommandInfo.newBuilder().build())
+                    .addResources(EXPECTED_RESOURCE_1)
+                    .build())
+            .build();
+    private static final TaskInfo TASK_INFO_2 = TaskInfo.newBuilder()
+            .setName("task-name-2")
+            .setTaskId(TaskID.newBuilder().setValue("task-id-2"))
+            .setSlaveId(SlaveID.newBuilder().setValue(SLAVE_ID))
+            .addResources(EXPECTED_RESOURCE_2).build();
 
-  @Before
-  public void beforeEach() throws Exception {
-    MockitoAnnotations.initMocks(this);
+    private final List<ResourceCleaner> emptyCleaners = new ArrayList<>();
+    private final List<ResourceCleaner> populatedCleaners = new ArrayList<>();
+    private final List<ResourceCleaner> allCleaners = new ArrayList<>();
 
-    // cleaners without expected resources
-    when(mockStateStore.fetchExecutorNames()).thenReturn(new ArrayList<>());
-    cleaners = new ArrayList<>();
-    cleaners.add(new ResourceCleaner(Collections.emptyList()));
-    cleaners.add(new ResourceCleaner(mockStateStore));
+    public ResourceCleanerTest() {
+        // Validate ResourceCleaner statelessness by only initializing them once
 
-    // cleaners with expected resources
-    when(mockStateStore.fetchExecutorNames()).thenReturn(Arrays.asList("a", "b"));
-    when(mockStateStore.fetchTasks("a")).thenReturn(Arrays.asList(TASK_INFO_1));
-    when(mockStateStore.fetchTasks("b")).thenReturn(Arrays.asList(TASK_INFO_2));
-    cleaners.add(new ResourceCleaner(Arrays.asList(
-                    TASK_INFO_1.getExecutor().getResources(0),
-                    TASK_INFO_2.getResources(0))));
-    cleaners.add(new ResourceCleaner(mockStateStore));
-  }
+        StateStore mockStateStore = mock(StateStore.class);
 
-  @Test
-  public void testResourcesConstructor() {
-    ResourceCleaner cleaner = new ResourceCleaner(Collections.emptyList());
-    Assert.assertNotNull(cleaner);
-  }
+        // cleaners without any expected resources
+        when(mockStateStore.fetchExecutorNames()).thenReturn(new ArrayList<>());
+        emptyCleaners.add(new ResourceCleaner(Collections.emptyList()));
+        emptyCleaners.add(new ResourceCleaner(mockStateStore));
 
-  @Test
-  public void testStateStoreConstructor() {
-    ResourceCleaner cleaner = new ResourceCleaner(mockStateStore);
-    Assert.assertNotNull(cleaner);
-  }
+        // cleaners with expected resources
+        populatedCleaners.add(new ResourceCleaner(Arrays.asList(
+                TASK_INFO_1.getExecutor().getResources(0), TASK_INFO_2.getResources(0))));
+        when(mockStateStore.fetchExecutorNames())
+                .thenReturn(Arrays.asList("a", "b"));
+        when(mockStateStore.fetchTasks("a"))
+                .thenReturn(Arrays.asList(TASK_INFO_1));
+        when(mockStateStore.fetchTasks("b"))
+                .thenReturn(Arrays.asList(TASK_INFO_2));
+        populatedCleaners.add(new ResourceCleaner(mockStateStore));
 
-  @Test
-  public void testNoRecommendations() {
-    for (ResourceCleaner cleaner : cleaners) {
-      List<OfferRecommendation> recommendations = cleaner.evaluate(Collections.emptyList());
-
-      Assert.assertNotNull(recommendations);
-      Assert.assertEquals(Collections.emptyList(), recommendations);
+        allCleaners.addAll(emptyCleaners);
+        allCleaners.addAll(populatedCleaners);
     }
-  }
 
-  @Test
-  public void testUnreserveRecommendation() {
-    Resource unexpectedResource =
-            ResourceBuilder.reservedCpus(1.0, testRole, testPrincipal, testResourceId);
-    List<Offer> offers = getOffers(unexpectedResource);
+    @Test
+    public void testNoOffers() {
+        for (ResourceCleaner cleaner : allCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(Collections.emptyList());
 
-    for (ResourceCleaner cleaner : cleaners) {
-      List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-
-      Assert.assertEquals(1, recommendations.size());
-
-      Operation op = recommendations.get(0).getOperation();
-      Assert.assertEquals(Operation.Type.UNRESERVE, op.getType());
+            assertNotNull(recommendations);
+            assertEquals(Collections.emptyList(), recommendations);
+        }
     }
-  }
 
-  @Test
-  public void testDestroyRecommendation() {
-    Resource unexpectedResource = ResourceBuilder.volume(
-        1000.0,
-        testRole,
-        testPrincipal,
-        testContainerPath,
-        testPersistenceId);
+    @Test
+    public void testUnexpectedVolume() {
+        List<Offer> offers = getOffers(UNEXPECTED_RESOURCE_1);
 
-    List<Offer> offers = getOffers(unexpectedResource);
+        for (ResourceCleaner cleaner : allCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
-    for (ResourceCleaner cleaner : cleaners) {
-      List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+            assertEquals("Got: " + recommendations, 2, recommendations.size());
 
-      Assert.assertEquals(2, recommendations.size());
+            OfferRecommendation rec = recommendations.get(0);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
 
-      Operation destroyOp = recommendations.get(0).getOperation();
-      Assert.assertEquals(Operation.Type.DESTROY, destroyOp.getType());
-
-      Operation unreserveOp = recommendations.get(1).getOperation();
-      Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOp.getType());
+            rec = recommendations.get(1);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+        }
     }
-  }
 
-  private List<Offer> getOffers(Resource resource) {
-    return getOffers(Arrays.asList(resource));
-  }
+    @Test
+    public void testUnexpectedResource() {
+        List<Offer> offers = getOffers(UNEXPECTED_RESOURCE_2);
 
-  private List<Offer> getOffers(List<Resource> resources) {
-    OfferBuilder builder = new OfferBuilder(testOfferId, testFrameworkId, testSlaveId, testHostname);
-    builder.addAllResources(resources);
-    return Arrays.asList(builder.build());
-  }
+        for (ResourceCleaner cleaner : allCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+            assertEquals("Got: " + recommendations, 1, recommendations.size());
+
+            assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
+        }
+    }
+
+    @Test
+    public void testUnexpectedMix() {
+        List<Offer> offers = getOffers(
+                UNEXPECTED_RESOURCE_1, UNEXPECTED_RESOURCE_2, UNEXPECTED_RESOURCE_3);
+
+        for (ResourceCleaner cleaner : allCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+            assertEquals("Got: " + recommendations, 5, recommendations.size());
+
+            // all destroy operations, followed by all unreserve operations
+
+            OfferRecommendation rec = recommendations.get(0);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(1);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_3_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(2);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(3);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_2_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(4);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_3_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+        }
+    }
+
+    @Test
+    public void testEmptyCleanersAllUnexpected() {
+        List<Offer> offers = getOffers(
+                UNEXPECTED_RESOURCE_1,
+                EXPECTED_RESOURCE_1,
+                UNEXPECTED_RESOURCE_2,
+                EXPECTED_RESOURCE_2,
+                UNEXPECTED_RESOURCE_3);
+
+        // these cleaners don't have any expected resources. everything above is "unexpected":
+        for (ResourceCleaner cleaner : emptyCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+            assertEquals("Got: " + recommendations, 8, recommendations.size());
+
+            // all destroy operations, followed by all unreserve operations
+
+            OfferRecommendation rec = recommendations.get(0);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(1);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(EXPECTED_RESOURCE_2_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(2);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_3_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(3);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(4);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(EXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(5);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_2_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(6);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(EXPECTED_RESOURCE_2_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(7);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_3_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+        }
+    }
+
+    @Test
+    public void testPopulatedCleanersSomeExpected() {
+        List<Offer> offers = getOffers(
+                UNEXPECTED_RESOURCE_1,
+                EXPECTED_RESOURCE_1,
+                UNEXPECTED_RESOURCE_2,
+                EXPECTED_RESOURCE_2,
+                UNEXPECTED_RESOURCE_3);
+
+        // these cleaners have expected resources populated, so they are omitted from the response:
+        for (ResourceCleaner cleaner : populatedCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+            assertEquals("Got: " + recommendations, 5, recommendations.size());
+
+            // all destroy operations, followed by all unreserve operations
+
+            OfferRecommendation rec = recommendations.get(0);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(1);
+            assertEquals(Operation.Type.DESTROY, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_3_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(2);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_1_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(3);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_2_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+
+            rec = recommendations.get(4);
+            assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
+            assertEquals(UNEXPECTED_RESOURCE_3_ID,
+                    ResourceUtils.getResourceId(rec.getOffer().getResources(0)));
+        }
+    }
+
+    @Test
+    public void testPopulatedCleanersAllExpected() {
+        List<Offer> offers = getOffers(EXPECTED_RESOURCE_1, EXPECTED_RESOURCE_2);
+
+        // these cleaners have expected resources populated, so they are omitted from the response:
+        for (ResourceCleaner cleaner : populatedCleaners) {
+            List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
+
+            assertEquals("Got: " + recommendations, 0, recommendations.size());
+        }
+    }
+
+    private static List<Offer> getOffers(Resource... resources) {
+        List<Offer> offers = new ArrayList<>();
+        for (Resource resource : resources) {
+            offers.add(new OfferBuilder(
+                    "test-offer-id", "test-framework-id", SLAVE_ID, "test-hostname")
+                    .addResource(resource)
+                    .build());
+        }
+        return offers;
+    }
 }
