@@ -120,8 +120,9 @@ public class ReconciliationBlockTest {
         assertTrue(block.isComplete());
     }
 
-    @Test(expected=UnsupportedOperationException.class)
-    public void testUpdateOfferStatusFalseFails() {
+    @Test
+    public void testUpdateOfferStatusFalseSucceeds() {
+        // Expect no exception to be thrown
         block.updateOfferStatus(false);
     }
 
