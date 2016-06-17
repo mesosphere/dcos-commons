@@ -4,12 +4,19 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 
 /**
- * The OfferRecommendation interface.
- * It encapsulates both the recommended Mesos Operation to be performed
- * and the Offer on which the Operation should be performed.
+ * This interface encapsulates both a recommended Mesos {@link Operation} to be performed and an
+ * {@link Offer} on which the {@link Operation} should be performed.
  */
 public interface OfferRecommendation {
-  Operation getOperation();
+    /**
+     * Returns the operation which should be performed in regards to the specified {@link Offer}
+     * returned by {@link #getOffer()}.
+     */
+    Operation getOperation();
 
-  Offer getOffer();
+    /**
+     * Returns the Offer upon which the {@link Operation} returned by {@link #getOperation()}
+     * should be performed.
+     */
+    Offer getOffer();
 }

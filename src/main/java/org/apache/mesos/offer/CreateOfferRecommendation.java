@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
@@ -8,27 +9,32 @@ import org.apache.mesos.protobuf.OperationBuilder;
 import java.util.Arrays;
 
 /**
- * Create OfferRecommendation.
- * This Recommendation encapsulates a Mesos CREATE Operation
+ * This {@link OfferRecommendation} encapsulates a Mesos {@code CREATE} Operation.
  */
 public class CreateOfferRecommendation implements OfferRecommendation {
-  private OperationBuilder builder;
-  private Offer offer;
-  private Resource resource;
+    private final Offer offer;
+    private final Operation operation;
 
-  public CreateOfferRecommendation(Offer offer, Resource resource) {
-    this.offer = offer;
-    this.resource = resource;
+    public CreateOfferRecommendation(Offer offer, Resource resource) {
+        this.offer = offer;
+        this.operation = new OperationBuilder()
+                .setType(Operation.Type.CREATE)
+                .setCreate(Arrays.asList(resource))
+                .build();
+    }
 
-    builder = new OperationBuilder();
-    builder.setType(Operation.Type.CREATE);
-  }
+    @Override
+    public Operation getOperation() {
+        return operation;
+    }
 
-  public Operation getOperation() {
-    return builder.setCreate(Arrays.asList(resource)).build();
-  }
+    @Override
+    public Offer getOffer() {
+        return offer;
+    }
 
-  public Offer getOffer() {
-    return offer;
-  }
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
 }

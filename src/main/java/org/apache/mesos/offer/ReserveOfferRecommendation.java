@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
@@ -9,44 +10,47 @@ import org.apache.mesos.protobuf.OperationBuilder;
 import java.util.Arrays;
 
 /**
- * ReserveOfferRecommendation.
- * This Recommendation encapsulates a Mesos RESERVE Operation
+ * This {@link OfferRecommendation} encapsulates a Mesos {@code RESERVE} Operation.
  */
 public class ReserveOfferRecommendation implements OfferRecommendation {
-    private OperationBuilder builder;
-    private Offer offer;
-    private Resource resource;
+    private final Offer offer;
+    private final Operation operation;
 
     public ReserveOfferRecommendation(Offer offer, Resource resource) {
-      this.offer = offer;
-      this.resource = resource;
-
-      builder = new OperationBuilder();
-      builder.setType(Operation.Type.RESERVE);
+        this.offer = offer;
+        this.operation = new OperationBuilder()
+                .setType(Operation.Type.RESERVE)
+                .setReserve(Arrays.asList(getReservedResource(resource)))
+                .build();
     }
 
+    @Override
     public Operation getOperation() {
-        builder.setReserve(Arrays.asList(getReservedResource()));
-        return builder.build();
+        return operation;
     }
 
+    @Override
     public Offer getOffer() {
         return offer;
     }
 
-    private Resource getReservedResource() {
-      Resource.Builder resBuilder = Resource.newBuilder(resource);
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
 
-      if (resBuilder.hasDisk() && resBuilder.getDisk().hasSource()) {
-        DiskInfo.Builder diskBuilder = DiskInfo.newBuilder(resBuilder.getDisk());
-        diskBuilder.clearPersistence();
-        diskBuilder.clearVolume();
-        resBuilder.setDisk(diskBuilder.build());
-      } else {
-        resBuilder.clearDisk();
-      }
-
-      resBuilder.clearRevocable();
-      return resBuilder.build();
+    private static Resource getReservedResource(Resource resource) {
+        Resource.Builder resBuilder = Resource.newBuilder(resource);
+        if (resBuilder.hasDisk() && resBuilder.getDisk().hasSource()) {
+            // Copy disk, but without 'persistence' nor 'volume' fields
+            resBuilder.setDisk(DiskInfo.newBuilder(resBuilder.getDisk())
+                    .clearPersistence()
+                    .clearVolume());
+        } else {
+            // If disk lacks 'source', clear it.
+            resBuilder.clearDisk();
+        }
+        resBuilder.clearRevocable();
+        return resBuilder.build();
     }
 }
