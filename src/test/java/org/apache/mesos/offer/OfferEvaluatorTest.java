@@ -103,6 +103,43 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
     Assert.assertEquals(ResourceTestUtils.testMountRoot, launchResource.getDisk().getSource().getMount().getRoot());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, launchResource.getDisk().getPersistence().getPrincipal());
+    Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
+  }
+
+  @Test
+  public void testUpdateMountVolumeSuccess() throws Exception {
+    Resource updatedResource = ResourceTestUtils.getExpectedMountVolume(1500);
+    Resource offeredResource = ResourceTestUtils.getExpectedMountVolume(2000);
+
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            getOfferRequirement(updatedResource), getOffers(offeredResource));
+    Assert.assertEquals(1, recommendations.size());
+
+    Operation launchOperation = recommendations.get(0).getOperation();
+    Resource launchResource =
+            launchOperation
+                    .getLaunch()
+                    .getTaskInfosList()
+                    .get(0)
+                    .getResourcesList()
+                    .get(0);
+
+    Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+    Assert.assertEquals(getFirstLabel(updatedResource).getValue(), getFirstLabel(launchResource).getValue());
+    Assert.assertEquals(updatedResource.getDisk().getPersistence().getId(), launchResource.getDisk().getPersistence().getId());
+    Assert.assertEquals(ResourceTestUtils.testMountRoot, launchResource.getDisk().getSource().getMount().getRoot());
+    Assert.assertEquals(ResourceTestUtils.testPrincipal, launchResource.getDisk().getPersistence().getPrincipal());
+    Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
+  }
+
+  @Test
+  public void testUpdateMountVolumeFailure() throws Exception {
+    Resource updatedResource = ResourceTestUtils.getExpectedMountVolume(2500);
+    Resource offeredResource = ResourceTestUtils.getExpectedMountVolume(2000);
+
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            getOfferRequirement(updatedResource), getOffers(offeredResource));
+    Assert.assertEquals(0, recommendations.size());
   }
 
   @Test
