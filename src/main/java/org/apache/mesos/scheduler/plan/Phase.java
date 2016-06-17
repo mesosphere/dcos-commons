@@ -10,7 +10,7 @@ import java.util.UUID;
  * For example, a Block might represent a cluster task that needs to be updated, while the Phase is
  * a list of all of those cluster tasks.
  * <p>
- * See {@Stage} docs for more background.
+ * See {@link Stage} docs for more background.
  */
 public interface Phase extends Completable {
 
