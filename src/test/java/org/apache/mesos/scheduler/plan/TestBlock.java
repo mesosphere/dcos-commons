@@ -73,6 +73,8 @@ public class TestBlock implements Block {
     public void updateOfferStatus(boolean accepted) {
         if (!accepted) {
             setStatus(Status.Pending);
+        } else {
+            setStatus(Status.InProgress);
         }
     }
 }

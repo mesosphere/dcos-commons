@@ -54,6 +54,7 @@ public class DefaultStageScheduler implements StageScheduler {
         OfferRequirement offerReq = block.start();
         if (offerReq == null) {
             logger.info("No OfferRequirement for block: {}", block.getName());
+            block.updateOfferStatus(false);
             return acceptedOffers;
         }
 
@@ -65,6 +66,7 @@ public class DefaultStageScheduler implements StageScheduler {
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by block {}: {}",
                     block.getName(), offerReq);
+            block.updateOfferStatus(false);
             return acceptedOffers;
         }
 

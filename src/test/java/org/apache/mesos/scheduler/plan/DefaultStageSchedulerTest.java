@@ -76,12 +76,14 @@ public class DefaultStageSchedulerTest {
     public void testNonPendingBlock() {
         TestBlock block = new TestBlock().setStatus(Status.InProgress);
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
+        assertTrue(block.isInProgress());
     }
 
     @Test
     public void testStartNoRequirement() {
         TestBlock block = new TestOfferBlock(null).setStatus(Status.Pending);
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
+        assertTrue(block.isPending());
     }
 
     @Test
@@ -93,8 +95,9 @@ public class DefaultStageSchedulerTest {
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
 
-        assertFalse(block.offerStatus.isPresent());
+        assertTrue(block.offerStatus.isPresent());
         verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
+        assertTrue(block.isPending());
     }
 
     @Test
@@ -111,6 +114,7 @@ public class DefaultStageSchedulerTest {
         assertTrue(block.offerStatus.isPresent());
         assertFalse(block.offerStatus.get());
         verify(mockOfferAccepter).accept(mockSchedulerDriver, RECOMMENDATIONS);
+        assertTrue(block.isPending());
     }
 
     @Test
@@ -126,6 +130,7 @@ public class DefaultStageSchedulerTest {
 
         assertTrue(block.offerStatus.isPresent());
         assertTrue(block.offerStatus.get());
+        assertTrue(block.isInProgress());
     }
 
     private static class TestOfferBlock extends TestBlock {
@@ -145,6 +150,7 @@ public class DefaultStageSchedulerTest {
 
         @Override
         public void updateOfferStatus(boolean accepted) {
+            super.updateOfferStatus(accepted);
             offerStatus = Optional.of(accepted);
         }
     }
