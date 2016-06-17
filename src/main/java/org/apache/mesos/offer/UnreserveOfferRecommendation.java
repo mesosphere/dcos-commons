@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
@@ -8,35 +9,35 @@ import org.apache.mesos.protobuf.OperationBuilder;
 import java.util.Arrays;
 
 /**
- * UnreserveOfferRecommendation.
- * This Recommendation encapsulates a Mesos UNRESERVE Operation
+ * This {@link OfferRecommendation} encapsulates a Mesos {@code UNRESERVE} Operation.
  */
 public class UnreserveOfferRecommendation implements OfferRecommendation {
-    private OperationBuilder builder;
-    private Offer offer;
-    private Resource resource;
+    private final Offer offer;
+    private final Operation operation;
 
     public UnreserveOfferRecommendation(Offer offer, Resource resource) {
-      this.offer = offer;
-      this.resource = resource;
-
-      builder = new OperationBuilder();
-      builder.setType(Operation.Type.UNRESERVE);
+        this.offer = offer;
+        this.operation = new OperationBuilder()
+                .setType(Operation.Type.UNRESERVE)
+                .setUnreserve(Arrays.asList(Resource.newBuilder(resource)
+                        .clearDisk()
+                        .clearRevocable()
+                        .build()))
+                .build();
     }
 
+    @Override
     public Operation getOperation() {
-        builder.setUnreserve(Arrays.asList(getUnreservedResource()));
-        return builder.build();
+        return operation;
     }
 
+    @Override
     public Offer getOffer() {
         return offer;
     }
 
-    private Resource getUnreservedResource() {
-      Resource.Builder resBuilder = Resource.newBuilder(resource);
-      resBuilder.clearDisk();
-      resBuilder.clearRevocable();
-      return resBuilder.build();
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
     }
 }

@@ -58,6 +58,8 @@ public class ResourceBuilder {
     return ResourceBuilder.createRangeResource(name, begin, end, role);
   }
 
+  // TODO(nick): Should these static functions all be moved and/or consolidated into ResourceUtils?
+
   public static Resource getResource(String name, Value value) {
     Resource.Builder builder = Resource.newBuilder();
     Value.Type type = value.getType();
