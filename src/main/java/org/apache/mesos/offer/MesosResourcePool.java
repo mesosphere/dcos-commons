@@ -113,8 +113,17 @@ public class MesosResourcePool {
 
   private MesosResource consumeReserved(ResourceRequirement resReq) {
     MesosResource mesRes = reservedPool.get(resReq.getResourceId());
+
     if (mesRes != null) {
-      reservedPool.remove(resReq.getResourceId());
+      if (mesRes.isAtomic()) {
+        if (sufficientValue(resReq.getValue(), mesRes.getValue())) {
+          reservedPool.remove(resReq.getResourceId());
+        } else {
+          return null;
+        }
+      } else {
+        reservedPool.remove(resReq.getResourceId());
+      }
     }
 
     return mesRes;
