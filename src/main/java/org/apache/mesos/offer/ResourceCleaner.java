@@ -2,173 +2,196 @@ package org.apache.mesos.offer;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * The Resource Cleaner provides recommended operations for cleaning up unexpected Reserved resources
- * and persistent volumes.
+ * The Resource Cleaner provides recommended operations for cleaning up
+ * unexpected Reserved resources and persistent volumes.
  */
 public class ResourceCleaner {
-  private Collection<String> expectedResourceIds;
-  private Collection<String> expectedPersistenceIds;
+    private static final Logger logger = LoggerFactory.getLogger(ResourceCleaner.class);
 
-  public ResourceCleaner(Collection<Resource> resources) {
-    initializeIds(resources);
-  }
+    // Only Persistent Volumes are DESTROYed
+    private final Set<String> expectedPersistentVolumeIds;
+    // Both Persistent Volumes AND Reserved Resources are UNRESERVEd
+    private final Set<String> expectedReservedResourceIds;
 
-  public ResourceCleaner(StateStore stateStore) {
-    Collection<Resource> resources = new ArrayList<>();
-    for (String execName : stateStore.fetchExecutorNames()) {
-      for (Protos.TaskInfo taskInfo : stateStore.fetchTasks(execName)) {
-        resources.addAll(taskInfo.getResourcesList());
-        if (taskInfo.hasExecutor()) {
-          resources.addAll(taskInfo.getExecutor().getResourcesList());
+    /**
+     * Creates a new {@link ResourceCleaner} which retrieves expected resource
+     * information from the provided {@link StateStore}.
+     *
+     * @throws StateStoreException
+     *             if there's a failure when retrieving resource information
+     */
+    public ResourceCleaner(StateStore stateStore) {
+        this(getExpectedResources(stateStore));
+    }
+
+    /**
+     * Creates a new {@link ResourceCleaner} using the provided expected resource information.
+     *
+     * @param expectedResources a list of all expected resources
+     */
+    public ResourceCleaner(Collection<Resource> expectedResources) {
+        this.expectedPersistentVolumeIds = getPersistentVolumeIds(expectedResources);
+        this.expectedReservedResourceIds = getReservedResourceIds(expectedResources);
+    }
+
+    /**
+     * Returns a list of operations which should be performed, given the provided list of Offers
+     * from Mesos. The returned operations MUST be performed in the order in which they are
+     * provided.
+     */
+    public List<OfferRecommendation> evaluate(List<Offer> offers) {
+        // ORDERING IS IMPORTANT:
+        //    The resource lifecycle is RESERVE -> CREATE -> DESTROY -> UNRESERVE
+        // Therefore we *must* put any DESTROY calls before any UNRESERVE calls
+        List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
+
+        // First, find any unexpected persistent volumes which should be DESTROYed
+        int offerResourceCount = 0;
+        for (Offer offer : offers) {
+            offerResourceCount += offer.getResourcesCount();
+            for (Resource toDestroy : selectUnexpectedResources(
+                    expectedPersistentVolumeIds, getPersistentVolumesById(offer))) {
+                recommendations.add(new DestroyOfferRecommendation(offer, toDestroy));
+            }
         }
-      }
-    }
+        int destroyRecommendationCount = recommendations.size();
 
-    initializeIds(resources);
-  }
-
-  private void initializeIds(Collection<Resource> resources) {
-    expectedResourceIds = getExpectedResourceIds(resources);
-    expectedPersistenceIds = getPersistenceIds(resources);
-  }
-
-  private static Collection<String> getPersistenceIds(Collection<Resource> resources) {
-    List<String> persistenceIds = new ArrayList<>();
-
-    for (Resource resource : resources) {
-      String persistenceId = ResourceUtils.getPersistenceId(resource);
-      if (persistenceId != null) {
-        persistenceIds.add(persistenceId);
-      }
-    }
-
-    return persistenceIds;
-  }
-
-  private static Collection<String> getExpectedResourceIds(Collection<Resource> resources) {
-    List<String> resourceIds = new ArrayList<>();
-
-    for (Resource resource : resources) {
-      String resourceId = ResourceUtils.getResourceId(resource);
-      if (resourceId != null) {
-        resourceIds.add(resourceId);
-      }
-    }
-
-    return resourceIds;
-  }
-
-  public List<OfferRecommendation> evaluate(List<Offer> offers) {
-    List<OfferRecommendation> unreserveRecommendations = new ArrayList<OfferRecommendation>();
-    List<OfferRecommendation> destroyRecommendations = new ArrayList<OfferRecommendation>();
-
-    for (Offer offer : offers) {
-      destroyRecommendations.addAll(getDestroyRecommendations(offer, getPersistentVolumes(offer)));
-      unreserveRecommendations.addAll(getUnreserveRecommendations(offer, getReservedResources(offer)));
-    }
-
-    List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
-    recommendations.addAll(destroyRecommendations);
-    recommendations.addAll(unreserveRecommendations);
-
-    return recommendations;
-  }
-
-  private List<OfferRecommendation> getDestroyRecommendations(Offer offer, Map<String, Resource> persistentVolumes) {
-    if (expectedPersistenceIds == null) {
-      return Collections.emptyList();
-    }
-
-    List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
-
-    for (Map.Entry<String, Resource> entry : persistentVolumes.entrySet()) {
-      String persistenceId = entry.getKey();
-      Resource resource = entry.getValue();
-
-      if (!expectedPersistenceIds.contains(persistenceId)) {
-        recommendations.add(new DestroyOfferRecommendation(offer, resource));
-      }
-    }
-
-    return recommendations;
-  }
-
-  private List<OfferRecommendation> getUnreserveRecommendations(Offer offer, Map<String, Resource> reservedResources) {
-    if (expectedResourceIds == null) {
-      return Collections.emptyList();
-    }
-
-    List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
-
-    for (Map.Entry<String, Resource> entry : reservedResources.entrySet()) {
-      String resourceId = entry.getKey();
-      Resource resource = entry.getValue();
-
-      if (!expectedResourceIds.contains(resourceId)) {
-        recommendations.add(new UnreserveOfferRecommendation(offer, resource));
-      }
-    }
-
-    return recommendations;
-  }
-
-  private static Map<String, Resource> getReservedResources(Offer offer) {
-    Map<String, Resource> reservedResources = new HashMap<String, Resource>();
-
-    for (Resource resource : offer.getResourcesList()) {
-      if (resource.hasReservation()) {
-        String resourceId = getResourceId(resource);
-        if (resourceId != null) {
-          reservedResources.put(resourceId, resource);
+        // Then, find any unexpected persistent volumes AND resource reservations which should
+        // (both) be UNRESERVEd
+        for (Offer offer : offers) {
+            for (Resource toUnreserve : selectUnexpectedResources(
+                    expectedReservedResourceIds, getReservedResourcesById(offer))) {
+                recommendations.add(new UnreserveOfferRecommendation(offer, toUnreserve));
+            }
         }
-      }
+
+        logger.info("{} offers with {} resources => {} destroy and {} unreserve operations",
+                offers.size(), offerResourceCount,
+                destroyRecommendationCount,
+                recommendations.size() - destroyRecommendationCount);
+        return recommendations;
     }
 
-    return reservedResources;
-  }
+    /**
+     * Returns a list of resources from {@code resourcesById} whose ids are not present in
+     * {@code expectedIds}.
+     */
+    private static Collection<Resource> selectUnexpectedResources(
+            Set<String> expectedIds, Map<String, Resource> resourcesById) {
+        List<Resource> unexpectedResources = new ArrayList<Resource>();
 
-  private static String getResourceId(Resource resource) {
-    for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-      if (label.getKey().equals(ResourceRequirement.RESOURCE_ID_KEY)) {
-        return label.getValue();
-      }
-    }
-
-    return null;
-  }
-
-  private static Map<String, Resource> getPersistentVolumes(Offer offer) {
-    Map<String, Resource> volumes = new HashMap<String, Resource>();
-
-    for (Resource resource : offer.getResourcesList()) {
-      if (resource.hasDisk()) {
-        String persistenceId = getPersistenceId(resource);
-        if (persistenceId != null) {
-          volumes.put(persistenceId, resource);
+        for (Map.Entry<String, Resource> entry : resourcesById.entrySet()) {
+            if (!expectedIds.contains(entry.getKey())) {
+                unexpectedResources.add(entry.getValue());
+            }
         }
-      }
+
+        return unexpectedResources;
     }
 
-    return volumes;
-  }
+    /**
+     * Returns a list of all expected resources, which are extracted from all {@link TaskInfo}s
+     * produced by the provided {@link StateStore}.
+     */
+    private static Collection<Resource> getExpectedResources(StateStore stateStore)
+            throws StateStoreException {
+        Collection<Resource> resources = new ArrayList<>();
 
-  private static String getPersistenceId(Resource resource) {
-    if (!resource.getDisk().hasPersistence()) {
-      return null;
-    } else {
-      return resource.getDisk().getPersistence().getId();
+        for (String execName : stateStore.fetchExecutorNames()) {
+            for (Protos.TaskInfo taskInfo : stateStore.fetchTasks(execName)) {
+                // get all resources from both the task level and the executor level
+                resources.addAll(taskInfo.getResourcesList());
+                if (taskInfo.hasExecutor()) {
+                    resources.addAll(taskInfo.getExecutor().getResourcesList());
+                }
+            }
+        }
+
+        return resources;
     }
-  }
+
+    /**
+     * Returns the resource ids for all {@code resources} which represent persistent volumes, or
+     * an empty list if no persistent volume resources were found.
+     */
+    private static Set<String> getPersistentVolumeIds(Collection<Resource> resources) {
+        Set<String> persistenceIds = new HashSet<>();
+
+        for (Resource resource : resources) {
+            String persistenceId = ResourceUtils.getPersistenceId(resource);
+            if (persistenceId != null) {
+                persistenceIds.add(persistenceId);
+            }
+        }
+
+        return persistenceIds;
+    }
+
+    /**
+     * Returns the resource ids for all {@code resources} which represent reserved resources, or
+     * an empty list if no reserved resources were found.
+     */
+    private static Set<String> getReservedResourceIds(Collection<Resource> resources) {
+        Set<String> resourceIds = new HashSet<>();
+
+        for (Resource resource : resources) {
+            String resourceId = ResourceUtils.getResourceId(resource);
+            if (resourceId != null) {
+                resourceIds.add(resourceId);
+            }
+        }
+
+        return resourceIds;
+    }
+
+    /**
+     * Returns an ID -> Resource mapping of all disk resources listed in the provided {@link Offer},
+     * or an empty list of no disk resources are found.
+     * @param offer
+     * @return
+     */
+    private static Map<String, Resource> getPersistentVolumesById(Offer offer) {
+        Map<String, Resource> volumes = new HashMap<String, Resource>();
+
+        for (Resource resource : offer.getResourcesList()) {
+            String persistenceId = ResourceUtils.getPersistenceId(resource);
+            if (persistenceId != null) {
+                volumes.put(persistenceId, resource);
+            }
+        }
+
+        return volumes;
+    }
+
+    /**
+     * Returns an ID -> Resource mapping of all reservation resources listed in the provided
+     * {@link Offer}, or an empty list if no reservation resources are found.
+     */
+    private static Map<String, Resource> getReservedResourcesById(Offer offer) {
+        Map<String, Resource> reservedResources = new HashMap<String, Resource>();
+
+        for (Resource resource : offer.getResourcesList()) {
+            String resourceId = ResourceUtils.getResourceId(resource);
+            if (resourceId != null) {
+                reservedResources.put(resourceId, resource);
+            }
+        }
+
+        return reservedResources;
+    }
 }
