@@ -64,11 +64,10 @@ allprojects {
 }
 
 // Config specific to the dcos-commons library:
-
 apply plugin: 'application'
 
 ext {
-  yamlVer = "2.5.4"
+  jacksonVer = "2.6.3"
   commonsCollectionsVer = "3.2.2"
   commonsIoVer = "2.4"
   antlrVer = "4.5.1-1"
@@ -78,16 +77,14 @@ ext {
   gsonVer = "2.3.1"
   mesosVer = "0.28.0"
   slf4jVer = "1.7.10"
-  logbackVer = "1.1.2"
   mockitoVer = "1.9.5"
   curatorVer = "2.9.1"
   powerMockVer = "1.6.4"
   dropwizardVer = "0.9.2"
-  zookeeperVer = "3.4.8"
 }
 
 group = "mesosphere"
-version = "0.3.9-SNAPSHOT"
+version = "0.4.2-SNAPSHOT"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
@@ -118,12 +115,13 @@ publishing {
   }
 }
 
-configurations.all {
-  exclude group: "org.slf4j", module: "slf4j-log4j12"
+configurations {
+  runtime.exclude group: "org.slf4j", module: "slf4j-log4j12"
 }
 
 dependencies {
-  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${yamlVer}"
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
+  compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
   compile "commons-collections:commons-collections:${commonsCollectionsVer}"
   compile "commons-io:commons-io:${commonsIoVer}"
   compile "org.antlr:antlr4-runtime:${antlrVer}"
@@ -132,10 +130,8 @@ dependencies {
   compile "org.apache.curator:curator-recipes:${curatorVer}"
   compile "org.apache.mesos:mesos:${mesosVer}"
   compile "org.apache.commons:commons-lang3:3.4"
-  compile "org.apache.zookeeper:zookeeper:${zookeeperVer}"
   compile "org.slf4j:log4j-over-slf4j:${slf4jVer}"
   compile "org.slf4j:jcl-over-slf4j:${slf4jVer}"
-  compile "ch.qos.logback:logback-classic:${logbackVer}"
   compile "com.google.inject:guice:${guiceVer}"
   compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
   compile "com.google.code.gson:gson:${gsonVer}"
