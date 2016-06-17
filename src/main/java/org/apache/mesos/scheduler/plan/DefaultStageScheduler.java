@@ -43,6 +43,7 @@ public class DefaultStageScheduler implements StageScheduler {
                     driver, offers, block);
             return acceptedOffers;
         }
+
         if (!block.isPending()) {
             logger.info("Ignoring resource offers for block: {} status: {}",
                     block.getName(), Block.getStatus(block));

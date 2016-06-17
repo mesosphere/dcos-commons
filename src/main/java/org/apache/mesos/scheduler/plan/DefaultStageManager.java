@@ -198,12 +198,12 @@ public class DefaultStageManager implements StageManager {
       return Status.Complete;
     }
 
-    if (anyHaveStatus(Status.Waiting, stage)) {
-      LOGGER.info("Atleast one phase have status: " + Status.Waiting);
-      return Status.Waiting;
-    } else if (anyHaveStatus(Status.InProgress, stage)) {
-      LOGGER.info("At least one phase have status: " + Status.InProgress);
+    if (anyHaveStatus(Status.InProgress, stage)) {
+      LOGGER.info("Atleast one phase have status: " + Status.InProgress);
       return Status.InProgress;
+    } else if (anyHaveStatus(Status.Waiting, stage)) {
+      LOGGER.info("At least one phase have status: " + Status.Waiting);
+      return Status.Waiting;
     } else if (allHaveStatus(Status.Complete, stage)) {
       LOGGER.info("All phases have status: " + Status.Complete);
       return Status.Complete;

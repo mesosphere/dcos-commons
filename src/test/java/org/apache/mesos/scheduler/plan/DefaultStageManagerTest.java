@@ -2,6 +2,8 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.protobuf.TaskStatusBuilder;
+import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.reconciliation.TaskStatusProvider;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
@@ -25,6 +27,12 @@ public class DefaultStageManagerTest {
 
     @Mock
     Block mockBlock;
+
+    @Mock
+    Reconciler reconciler;
+
+    @Mock
+    TaskStatusProvider taskProvider;
 
     @Before
     public void beforeEach() {
@@ -88,6 +96,25 @@ public class DefaultStageManagerTest {
         Assert.assertEquals(Status.InProgress, stageManager.getStatus());
         completePhase(stage.getPhases().get(1));
         Assert.assertEquals(Status.Complete, stageManager.getStatus());
+    }
+
+    @Test
+    public void testInProgressStatus() {
+        when(reconciler.isReconciled()).thenReturn(false);
+        ReconciliationPhase reconciliationPhase = ReconciliationPhase.create(reconciler, taskProvider);
+        Stage waitingStage = DefaultStage.fromArgs(
+                reconciliationPhase,
+                DefaultPhase.create(
+                        UUID.randomUUID(),
+                        "phase-1",
+                        Arrays.asList(secondBlock)));
+
+        Block reconciliationBlock = reconciliationPhase.getBlock(0);
+        reconciliationBlock.start();
+        Assert.assertTrue(reconciliationBlock.isInProgress());
+
+        StageManager waitingManager = new DefaultStageManager(waitingStage, new StageStrategyFactory());
+        Assert.assertEquals(Status.InProgress, waitingManager.getStatus());
     }
 
     @Test
