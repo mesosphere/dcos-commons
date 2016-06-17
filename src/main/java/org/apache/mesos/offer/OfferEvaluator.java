@@ -36,7 +36,24 @@ public class OfferEvaluator {
     return Collections.emptyList();
   }
 
+  private boolean offerMeetsPlacementConstraints(OfferRequirement offerReq, Offer offer) {
+    if (offerReq.getAvoidAgents().contains(offer.getSlaveId())) {
+      return false;
+    }
+
+    if (offerReq.getColocateAgents().size() > 0 &&
+        !offerReq.getColocateAgents().contains(offer.getSlaveId())) {
+      return false;
+    }
+
+    return true;
+  }
+
   public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer) {
+    if (!offerMeetsPlacementConstraints(offerRequirement, offer)) {
+      return Collections.emptyList();
+    }
+
     MesosResourcePool pool = new MesosResourcePool(offer);
 
     List<OfferRecommendation> unreserves = new ArrayList<OfferRecommendation>();
