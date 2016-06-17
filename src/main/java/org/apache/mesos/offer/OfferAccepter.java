@@ -74,7 +74,7 @@ public class OfferAccepter {
     }
   }
 
-  private List<Operation> getOperations(List<OfferRecommendation> recommendations) {
+  private static List<Operation> getOperations(List<OfferRecommendation> recommendations) {
     List<Operation> operations = new ArrayList<Operation>();
 
     for (OfferRecommendation recommendation : recommendations) {
@@ -89,7 +89,7 @@ public class OfferAccepter {
     return operations;
   }
 
-  private List<OfferID> getOfferIds(List<OfferRecommendation> recommendations) {
+  private static List<OfferID> getOfferIds(List<OfferRecommendation> recommendations) {
     Set<OfferID> offerIdSet = new HashSet<OfferID>();
 
     for (OfferRecommendation recommendation : recommendations) {
@@ -99,13 +99,13 @@ public class OfferAccepter {
     return new ArrayList<OfferID>(offerIdSet);
   }
 
-  private void logOperations(List<Operation> operations) {
+  private static void logOperations(List<Operation> operations) {
     for (Operation op : operations) {
       logger.info("Performing Operation: {}", op);
     }
   }
 
-  private Filters getFilters() {
+  private static Filters getFilters() {
     return Filters.newBuilder().setRefuseSeconds(1).build();
   }
 }
