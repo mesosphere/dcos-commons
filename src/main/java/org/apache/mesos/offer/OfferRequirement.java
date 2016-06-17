@@ -38,8 +38,17 @@ public class OfferRequirement {
       this.executorRequirement = new ExecutorRequirement(execInfo);
     }
 
-    this.avoidAgents = avoidAgents;
-    this.colocateAgents = colocateAgents;
+    if (avoidAgents == null) {
+      this.avoidAgents = Collections.emptyList();
+    } else {
+      this.avoidAgents = avoidAgents;
+    }
+
+    if (colocateAgents == null) {
+      this.colocateAgents = Collections.emptyList();
+    } else {
+      this.colocateAgents = colocateAgents;
+    }
   }
 
   public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidTaskRequirementException {

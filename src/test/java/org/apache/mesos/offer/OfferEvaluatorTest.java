@@ -1,8 +1,8 @@
 package org.apache.mesos.offer;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
 import org.apache.mesos.protobuf.ExecutorInfoBuilder;
 import org.apache.mesos.protobuf.OfferBuilder;
@@ -530,6 +530,56 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
   }
 
+  @Test
+  public void testAvoidAgents() throws Exception{
+    Resource desiredCpu = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
+    Resource offeredCpu = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
+
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            getOfferRequirement(
+                    desiredCpu,
+                    Arrays.asList(ResourceTestUtils.testSlaveId),
+                    Collections.emptyList()),
+            getOffers(offeredCpu));
+
+    Assert.assertEquals(0, recommendations.size());
+
+    recommendations = evaluator.evaluate(
+            getOfferRequirement(
+                    desiredCpu,
+                    Arrays.asList("some-random-agent"),
+                    Collections.emptyList()),
+            getOffers(offeredCpu));
+
+    Assert.assertEquals(2, recommendations.size());
+  }
+
+  @Test
+  public void testCollocateAgents() throws Exception{
+    Resource desiredCpu = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
+    Resource offeredCpu = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
+
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            getOfferRequirement(
+                    desiredCpu,
+                    Collections.emptyList(),
+                    Arrays.asList("some-random-agent")),
+            getOffers(offeredCpu));
+
+    Assert.assertEquals(0, recommendations.size());
+
+    recommendations = evaluator.evaluate(
+            getOfferRequirement(
+                    desiredCpu,
+                    Collections.emptyList(),
+                    Arrays.asList(ResourceTestUtils.testSlaveId)),
+            getOffers(offeredCpu));
+
+    Assert.assertEquals(2, recommendations.size());
+  }
+
   private static Label getFirstLabel(Resource resource) {
     return resource.getReservation().getLabels().getLabels(0);
   }
@@ -545,7 +595,24 @@ public class OfferEvaluatorTest {
 
   private static OfferRequirement getOfferRequirement(Resource resource)
           throws InvalidTaskRequirementException {
-    return new OfferRequirement(Arrays.asList(getTaskInfo(resource)));
+    return getOfferRequirement(resource, Collections.emptyList(), Collections.emptyList());
+  }
+
+  private static OfferRequirement getOfferRequirement(Resource resource, List<String> avoidAgents, List<String> collocateAgents)
+    throws InvalidTaskRequirementException {
+    return new OfferRequirement(
+            Arrays.asList(getTaskInfo(resource)),
+            null,
+            toSlaveIds(avoidAgents),
+            toSlaveIds(collocateAgents));
+  }
+
+  private static Collection<Protos.SlaveID> toSlaveIds(List<String> ids) {
+    List<Protos.SlaveID> slaveIds = new ArrayList<>();
+    for (String id : ids) {
+      slaveIds.add(Protos.SlaveID.newBuilder().setValue(id).build());
+    }
+    return slaveIds;
   }
 
   private static TaskInfo getTaskInfo(Resource resource) {
