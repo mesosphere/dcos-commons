@@ -34,7 +34,7 @@ class CurrentlyActiveStageInfo {
                 manager.getStatus());
     }
 
-    public CurrentlyActiveStageInfo(final Integer phaseCount,
+    private CurrentlyActiveStageInfo(final Integer phaseCount,
                      final List<String> errors,
                      final Status status) {
         this.phaseCount = phaseCount;

@@ -74,6 +74,8 @@ public class DefaultStageManagerTest {
         Assert.assertEquals(Status.InProgress, stageManager.getPhaseStatus(firstPhase.getId()));
         firstBlock.setStatus(Status.Complete);
         Assert.assertEquals(Status.Complete, stageManager.getPhaseStatus(firstPhase.getId()));
+        // bad id:
+        Assert.assertEquals(Status.Error, stageManager.getPhaseStatus(UUID.randomUUID()));
     }
 
 
@@ -155,6 +157,20 @@ public class DefaultStageManagerTest {
     }
 
     @Test
+    public void testRestartBadIds() {
+        Phase firstPhase = stage.getPhases().get(0);
+        Assert.assertTrue(firstBlock.isPending());
+        firstBlock.setStatus(Status.Complete);
+        Assert.assertTrue(firstBlock.isComplete());
+        stageManager.restart(firstPhase.getId(), UUID.randomUUID()); // bad block
+        Assert.assertTrue(firstBlock.isComplete()); // no change
+        stageManager.restart(UUID.randomUUID(), firstBlock.getId()); // bad phase
+        Assert.assertTrue(firstBlock.isComplete()); // no change
+        stageManager.restart(firstPhase.getId(), firstBlock.getId()); // correct
+        Assert.assertTrue(firstBlock.isPending());
+    }
+
+    @Test
     public void testForceComplete() {
         Phase firstPhase = stage.getPhases().get(0);
         Assert.assertTrue(firstBlock.isPending());
@@ -163,6 +179,18 @@ public class DefaultStageManagerTest {
         firstBlock.setStatus(Status.InProgress);
         Assert.assertTrue(firstBlock.isInProgress());
         stageManager.forceComplete(firstPhase.getId(), firstBlock.getId());
+        Assert.assertTrue(firstBlock.isComplete());
+    }
+
+    @Test
+    public void testForceCompleteBadIds() {
+        Phase firstPhase = stage.getPhases().get(0);
+        Assert.assertTrue(firstBlock.isPending());
+        stageManager.forceComplete(firstPhase.getId(), UUID.randomUUID()); // bad block
+        Assert.assertTrue(firstBlock.isPending()); // no change
+        stageManager.forceComplete(UUID.randomUUID(), firstBlock.getId()); // bad phase
+        Assert.assertTrue(firstBlock.isPending()); // no change
+        stageManager.forceComplete(firstPhase.getId(), firstBlock.getId()); // correct
         Assert.assertTrue(firstBlock.isComplete());
     }
 

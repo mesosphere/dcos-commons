@@ -7,12 +7,11 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Provides the default implementation for plan manager.
+ * Provides the default implementation of a {@link StageManager}.
  * Encapsulates the plan and a strategy for executing that plan.
  */
 public class DefaultStageManager implements StageManager {
-  protected static final Logger LOGGER =
-    LoggerFactory.getLogger(DefaultStageManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStageManager.class);
 
   /**
    * Access to {@code phaseStrategies} MUST be locked/synchronized against
@@ -55,21 +54,6 @@ public class DefaultStageManager implements StageManager {
       }
     }
     LOGGER.debug("All phases are complete.");
-    return null;
-  }
-
-  protected Phase getPhase(final UUID phaseId) {
-    if (phaseId == null) {
-      LOGGER.warn("null phaseId");
-      return null;
-    }
-
-    for (Phase phase : stage.getPhases()) {
-      if (phaseId.equals(phase.getId())) {
-        return phase;
-      }
-    }
-
     return null;
   }
 
@@ -189,7 +173,7 @@ public class DefaultStageManager implements StageManager {
   public Status getStatus() {
     // Ordering matters throughout this method.  Modify with care.
 
-    if (!stage.getErrors().isEmpty()) {
+    if (!getErrors().isEmpty()) {
       return Status.Error;
     }
 
@@ -237,7 +221,6 @@ public class DefaultStageManager implements StageManager {
   public Status getPhaseStatus(final UUID phaseId) {
     PhaseStrategy strategy = getStrategy(getPhase(phaseId));
     return strategy != null ? strategy.getStatus() : Status.Error;
-
   }
 
   @Override
@@ -300,5 +283,24 @@ public class DefaultStageManager implements StageManager {
       }
       return phaseStrategies.get(phase.getId());
     }
+  }
+
+  /**
+   * Returns the {@link Phase} which has the provided {@code phaseId}, or {@code null} if no
+   * matching {@link Phase} was found.
+   */
+  protected Phase getPhase(final UUID phaseId) {
+    if (phaseId == null) {
+      LOGGER.warn("null phaseId");
+      return null;
+    }
+
+    for (Phase phase : stage.getPhases()) {
+      if (phaseId.equals(phase.getId())) {
+        return phase;
+      }
+    }
+
+    return null;
   }
 }

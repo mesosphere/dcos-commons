@@ -136,11 +136,6 @@ public class ReconciliationBlockTest {
         block.update(STATUSES.iterator().next());
     }
 
-    @Test
-    public void testGetReconciler() {
-        assertEquals(mockReconciler, block.getReconciler());
-    }
-
     private static TaskStatus createTaskStatus(String id) {
         TaskStatus.Builder builder = TaskStatus.newBuilder().setState(TaskState.TASK_RUNNING);
         builder.getTaskIdBuilder().setValue(id);

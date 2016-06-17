@@ -44,7 +44,7 @@ public class ResourceCleaner {
     expectedPersistenceIds = getPersistenceIds(resources);
   }
 
-  private Collection<String> getPersistenceIds(Collection<Resource> resources) {
+  private static Collection<String> getPersistenceIds(Collection<Resource> resources) {
     List<String> persistenceIds = new ArrayList<>();
 
     for (Resource resource : resources) {
@@ -57,7 +57,7 @@ public class ResourceCleaner {
     return persistenceIds;
   }
 
-  private Collection<String> getExpectedResourceIds(Collection<Resource> resources) {
+  private static Collection<String> getExpectedResourceIds(Collection<Resource> resources) {
     List<String> resourceIds = new ArrayList<>();
 
     for (Resource resource : resources) {
@@ -124,7 +124,7 @@ public class ResourceCleaner {
     return recommendations;
   }
 
-  private Map<String, Resource> getReservedResources(Offer offer) {
+  private static Map<String, Resource> getReservedResources(Offer offer) {
     Map<String, Resource> reservedResources = new HashMap<String, Resource>();
 
     for (Resource resource : offer.getResourcesList()) {
@@ -139,7 +139,7 @@ public class ResourceCleaner {
     return reservedResources;
   }
 
-  private String getResourceId(Resource resource) {
+  private static String getResourceId(Resource resource) {
     for (Label label : resource.getReservation().getLabels().getLabelsList()) {
       if (label.getKey().equals(ResourceRequirement.RESOURCE_ID_KEY)) {
         return label.getValue();
@@ -149,7 +149,7 @@ public class ResourceCleaner {
     return null;
   }
 
-  private Map<String, Resource> getPersistentVolumes(Offer offer) {
+  private static Map<String, Resource> getPersistentVolumes(Offer offer) {
     Map<String, Resource> volumes = new HashMap<String, Resource>();
 
     for (Resource resource : offer.getResourcesList()) {
@@ -164,7 +164,7 @@ public class ResourceCleaner {
     return volumes;
   }
 
-  private String getPersistenceId(Resource resource) {
+  private static String getPersistenceId(Resource resource) {
     if (!resource.getDisk().hasPersistence()) {
       return null;
     } else {

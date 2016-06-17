@@ -73,7 +73,7 @@ public class CuratorStateStoreTest {
 
     @Test(expected=StateStoreException.class)
     public void testFetchEmptyTask() throws Exception {
-       store.fetchTasks(getTestExecutorName());
+        store.fetchTasks(getTestExecutorName());
     }
 
     @Test

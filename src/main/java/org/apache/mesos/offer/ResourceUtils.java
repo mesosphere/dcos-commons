@@ -80,15 +80,11 @@ public class ResourceUtils {
   public static String getResourceId(Resource resource) {
     if (resource.hasReservation() && resource.getReservation().hasLabels()) {
       for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-        String key = label.getKey();
-        String value = label.getValue();
-
-        if (key.equals(ResourceRequirement.RESOURCE_ID_KEY)) {
-          return value;
+        if (label.getKey().equals(ResourceRequirement.RESOURCE_ID_KEY)) {
+          return label.getValue();
         }
       }
     }
-
     return null;
   }
 
@@ -132,7 +128,6 @@ public class ResourceUtils {
     for (Label label : labels.getLabelsList()) {
       String key = label.getKey();
       String value = label.getValue();
-
       if (!key.equals(ResourceRequirement.RESOURCE_ID_KEY)) {
         labelBuilder.addLabel(key, value);
       }

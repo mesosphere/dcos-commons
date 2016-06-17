@@ -119,11 +119,4 @@ public class ReconciliationBlock implements Block {
             return "Reconciliation complete";
         }
     }
-
-    /**
-     * @return The reconciler used for reconciliation.
-     */
-    public Reconciler getReconciler() {
-        return reconciler;
-    }
 }
