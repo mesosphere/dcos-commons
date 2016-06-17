@@ -199,10 +199,10 @@ public class DefaultStageManager implements StageManager {
     }
 
     if (anyHaveStatus(Status.InProgress, stage)) {
-      LOGGER.info("Atleast one phase have status: " + Status.InProgress);
+      LOGGER.info("At least one phase has status: " + Status.InProgress);
       return Status.InProgress;
     } else if (anyHaveStatus(Status.Waiting, stage)) {
-      LOGGER.info("At least one phase have status: " + Status.Waiting);
+      LOGGER.info("At least one phase has status: " + Status.Waiting);
       return Status.Waiting;
     } else if (allHaveStatus(Status.Complete, stage)) {
       LOGGER.info("All phases have status: " + Status.Complete);
@@ -211,7 +211,7 @@ public class DefaultStageManager implements StageManager {
       LOGGER.info("All phases have status: " + Status.Pending);
       return Status.Pending;
     } else if (anyHaveStatus(Status.Complete, stage) && anyHaveStatus(Status.Pending, stage)) {
-      LOGGER.info("At least one phase has status '%s' and one has status '%s'", Status.Complete, Status.Pending);
+      LOGGER.info("At least one phase has status '{}' and one has status '{}'", Status.Complete, Status.Pending);
       return Status.InProgress;
     } else {
       LOGGER.error("Unexpected state. Stage: " + stage);

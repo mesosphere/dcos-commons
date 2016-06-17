@@ -76,8 +76,10 @@ public class ReconciliationBlock implements Block {
 
     @Override
     public void updateOfferStatus(boolean accepted) {
-        throw new UnsupportedOperationException(
-                "updateOfferStatus() not expected: start() always returns null");
+        if (accepted) {
+            throw new UnsupportedOperationException(
+                    "updateOfferStatus() not expected: start() always returns null");
+        }
     }
 
     @Override
