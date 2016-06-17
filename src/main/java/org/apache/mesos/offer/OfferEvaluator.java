@@ -150,8 +150,10 @@ public class OfferEvaluator {
         if (resReq.expectsResource()) {
           logger.info("Expects Resource");
           // Compute any needed resource pool consumption / release operations
-          // as well as any additional needed Mesos Operations
-          if (expectedValueChanged(resReq, mesRes)) {
+          // as well as any additional needed Mesos Operations.  In the case
+          // where a requirement has changed for an Atomic resource, no Operations
+          // can be performed because the resource is Atomic.
+          if (expectedValueChanged(resReq, mesRes) && !mesRes.isAtomic()) {
             Value reserveValue = ValueUtils.subtract(resReq.getValue(), mesRes.getValue());
             Value unreserveValue = ValueUtils.subtract(mesRes.getValue(), resReq.getValue());
 
