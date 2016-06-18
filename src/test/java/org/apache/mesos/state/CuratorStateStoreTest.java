@@ -143,7 +143,7 @@ public class CuratorStateStoreTest {
     @Test
     public void testStoreFetchStatus() throws Exception {
         store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.storeStatus(getTestTaskStatus(), TASK_NAME, getTestExecutorName());
+        store.storeStatus(getTestTaskStatus(), TASK_NAME);
         assertEquals(getTestTaskStatus(), store.fetchStatus(TASK_NAME, getTestExecutorName()));
     }
 
@@ -155,8 +155,8 @@ public class CuratorStateStoreTest {
     @Test
     public void testRepeatedStoreStatus() throws Exception {
         store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.storeStatus(getTestTaskStatus(), TASK_NAME, getTestExecutorName());
-        store.storeStatus(getTestTaskStatus(), TASK_NAME, getTestExecutorName());
+        store.storeStatus(getTestTaskStatus(), TASK_NAME);
+        store.storeStatus(getTestTaskStatus(), TASK_NAME);
     }
 
     @Test(expected=StateStoreException.class)
@@ -167,12 +167,12 @@ public class CuratorStateStoreTest {
                 .setState(getTestTaskState())
                 .build();
 
-        store.storeStatus(badTaskStatus, TASK_NAME, getTestExecutorName());
+        store.storeStatus(badTaskStatus, TASK_NAME);
     }
 
     @Test(expected=StateStoreException.class)
     public void testStoreStatusWithoutTaskInfo() throws Exception {
-        store.storeStatus(getTestTaskStatus(), TASK_NAME, getTestExecutorName());
+        store.storeStatus(getTestTaskStatus(), TASK_NAME);
     }
 
     @Test
@@ -182,7 +182,7 @@ public class CuratorStateStoreTest {
         assertEquals(1, outTasks.size());
         assertEquals(getTestTask(), outTasks.iterator().next());
 
-        store.storeStatus(getTestTaskStatus(), TASK_NAME, getTestExecutorName());
+        store.storeStatus(getTestTaskStatus(), TASK_NAME);
         assertEquals(getTestTaskStatus(), store.fetchStatus(TASK_NAME, getTestExecutorName()));
     }
 

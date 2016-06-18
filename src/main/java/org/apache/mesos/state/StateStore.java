@@ -82,10 +82,9 @@ public interface StateStore {
      *
      * @param status The status to be stored
      * @param taskName The name of the Task associated with the indicated status
-     * @param execName The name of the Executor which the Task is associated with
      * @throws StateStoreException when storing the TaskStatus fails
      */
-    void storeStatus(Protos.TaskStatus status, String taskName, String execName) throws StateStoreException;
+    void storeStatus(Protos.TaskStatus status, String taskName) throws StateStoreException;
 
 
     /**

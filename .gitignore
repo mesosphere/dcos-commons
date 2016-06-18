@@ -5,6 +5,7 @@ target/
 .idea/
 out/
 classes/
+*.log
 
 # eclipse
 .classpath

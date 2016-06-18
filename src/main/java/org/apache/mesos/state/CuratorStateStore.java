@@ -179,27 +179,25 @@ public class CuratorStateStore implements StateStore {
     @Override
     public void storeStatus(
             Protos.TaskStatus status,
-            String taskName,
-            String execName) throws StateStoreException {
+            String taskName) throws StateStoreException {
 
-        Protos.TaskInfo taskInfo;
-        try {
-            taskInfo = fetchTask(taskName, execName);
-        } catch (Exception ex) {
-            throw new StateStoreException(String.format(
-                    "Failed to retrieve TaskInfo with execName/taskName: '%s/%s' for TaskStatus: '%s'",
-                    execName, taskName, status), ex);
+        Protos.TaskInfo taskInfo = getTaskInfo(status.getTaskId());
+        if (taskInfo == null) {
+            throw new StateStoreException(
+                    String.format("Failed to retrieve TaskInfo for TaskStatus: '%s'", status));
         }
 
-        try {
-            if (!taskInfo.getTaskId().equals(status.getTaskId())) {
-                throw new StateStoreException(String.format(
-                        "TaskInfo's TaskID '%s' does not match the TaskStatus's TaskID '%s'",
-                        taskInfo.getTaskId(), status.getTaskId()));
-            }
+        String execName = getExecutorName(taskInfo);
+        if (execName == null) {
+            throw new StateStoreException(String.format(
+                    "Failed to retrieve the Executor name for TaskInfo: %s",
+                    taskInfo));
+        }
 
-            String path = getTaskStatusPath(taskName, execName);
-            logger.debug("Storing status for '{}/{}' in '{}'", execName, taskName, path);
+        String path = getTaskStatusPath(taskName, execName);
+        logger.debug("Storing status for '{}/{}' in '{}'", execName, taskName, path);
+
+        try {
             curator.store(path, status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -244,5 +242,33 @@ public class CuratorStateStore implements StateStore {
 
     private String getTaskRootPath(String taskName, String execName) {
         return getExecutorPath(execName) + "/" + taskName;
+    }
+
+    private Protos.TaskInfo getTaskInfo(Protos.TaskID taskId) {
+        for (String execName : fetchExecutorNames()) {
+            for (Protos.TaskInfo taskInfo : fetchTasks(execName)) {
+                if (taskInfo.getTaskId().equals(taskId)) {
+                    return taskInfo;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String getExecutorName(Protos.TaskInfo taskInfo) {
+        if (taskInfo.hasExecutor()) {
+            return taskInfo.getExecutor().getName();
+        } else {
+            for (String execName : fetchExecutorNames()) {
+                for (Protos.TaskInfo info : fetchTasks(execName)) {
+                    if (taskInfo.getTaskId().equals(info.getTaskId())) {
+                        return execName;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
