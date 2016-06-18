@@ -176,15 +176,32 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
+    private Protos.TaskInfo getTaskInfo(Protos.TaskID taskId) {
+        for (String execName : fetchExecutorNames()) {
+            for (Protos.TaskInfo taskInfo : fetchTasks(execName)) {
+                if (taskInfo.getTaskId().equals(taskId)) {
+                    return taskInfo;
+                }
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public void storeStatus(
             Protos.TaskStatus status,
-            String taskName,
-            String execName) throws StateStoreException {
+            String taskName) throws StateStoreException {
 
-        Protos.TaskInfo taskInfo;
+        Protos.TaskInfo taskInfo = getTaskInfo(status.getTaskId());
+
+        if (taskInfo == null) {
+            throw new StateStoreException(
+                    String.format("Failed to retrieve TaskInfo for TaskID: '%s/%s' for TaskStatus: '%s'",
+                            execName, taskName, status)
+                    , ex);
+        }
         try {
-            taskInfo = fetchTask(taskName, execName);
         } catch (Exception ex) {
             throw new StateStoreException(String.format(
                     "Failed to retrieve TaskInfo with execName/taskName: '%s/%s' for TaskStatus: '%s'",
