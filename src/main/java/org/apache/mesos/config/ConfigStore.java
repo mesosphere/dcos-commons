@@ -16,9 +16,9 @@ import java.util.UUID;
  *           of this interface
  * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
  */
-public interface ConfigStore<T extends Configuration, U extends ConfigurationFactory<T>> {
+public interface ConfigStore<T extends Configuration> {
     UUID store(T config) throws ConfigStoreException;
-    T fetch(UUID id, U factory) throws ConfigStoreException;
+    T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException;
     void clear(UUID id) throws ConfigStoreException;
     Collection<UUID> list() throws ConfigStoreException;
 

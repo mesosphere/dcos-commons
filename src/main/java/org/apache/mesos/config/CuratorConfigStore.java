@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
  *           of this interface
  * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
  */
-public class CuratorConfigStore<T extends Configuration, U extends ConfigurationFactory<T>>
-        extends CuratorPersister implements ConfigStore<T, U> {
+public class CuratorConfigStore<T extends Configuration>
+        extends CuratorPersister implements ConfigStore<T> {
     private static final Logger logger = LoggerFactory.getLogger(CuratorConfigStore.class);
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
@@ -79,7 +79,7 @@ public class CuratorConfigStore<T extends Configuration, U extends Configuration
     }
 
     @Override
-    public T fetch(UUID id, U factory) throws ConfigStoreException {
+    public T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException {
         try {
             return factory.parse(fetch(getConfigPath(id)));
         } catch (Exception e) {
