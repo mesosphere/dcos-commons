@@ -2,7 +2,6 @@ package org.apache.mesos.state;
 
 import static org.junit.Assert.*;
 
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.junit.Before;
@@ -22,7 +21,6 @@ public class CuratorStateStoreTest {
     private static final String SLAVE_ID = "test-slave-id";
     private static final String EXECUTOR_NAME = "test-executor-name";
     private static final String ROOT_ZK_PATH = "/test-root-path";
-    private static final ExponentialBackoffRetry RETRY_POLICY = new ExponentialBackoffRetry(1000, 3);
 
     private TestingServer testZk;
     private CuratorStateStore store;
@@ -218,7 +216,7 @@ public class CuratorStateStoreTest {
     }
 
     private CuratorStateStore getTestStateStore() {
-        return new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString(), RETRY_POLICY);
+        return new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
     }
 
     public static Protos.TaskState getTestTaskState() {

@@ -1,6 +1,5 @@
 package org.apache.mesos.config;
 
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +18,6 @@ public class CuratorConfigStoreTest {
     private String testRootZkPath = "/test-root-path";
     private StringConfiguration testConfig;
     private StringConfigurationFactory configFactory;
-    private ExponentialBackoffRetry retryPolicy = new ExponentialBackoffRetry(1000, 3);
 
     @Before
     public void beforeEach() throws Exception {
@@ -96,6 +94,6 @@ public class CuratorConfigStoreTest {
 
     public CuratorConfigStore<StringConfiguration, StringConfigurationFactory> getTestConfigStore() {
         return new CuratorConfigStore<StringConfiguration, StringConfigurationFactory>(
-            testRootZkPath, testZk.getConnectString(), retryPolicy);
+            testRootZkPath, testZk.getConnectString());
     }
 }
