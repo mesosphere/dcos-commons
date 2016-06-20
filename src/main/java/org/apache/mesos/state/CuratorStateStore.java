@@ -198,18 +198,6 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    private Protos.TaskInfo getTaskInfo(Protos.TaskID taskId) {
-        for (String execName : fetchExecutorNames()) {
-            for (Protos.TaskInfo taskInfo : fetchTasks(execName)) {
-                if (taskInfo.getTaskId().equals(taskId)) {
-                    return taskInfo;
-                }
-            }
-        }
-
-        return null;
-    }
-
     @Override
     public void storeStatus(
             Protos.TaskStatus status,

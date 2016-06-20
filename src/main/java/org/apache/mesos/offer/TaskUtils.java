@@ -1,9 +1,6 @@
 package org.apache.mesos.offer;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import com.google.protobuf.ByteString;
 import org.apache.mesos.ExecutorDriver;
@@ -13,11 +10,13 @@ import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.config.ConfigStore;
 
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
 public class TaskUtils {
+  private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
   private static final String TASK_NAME_DELIM = "__";
 
   /**
@@ -92,6 +91,61 @@ public class TaskUtils {
     taskBuilder.clearLabels();
     taskBuilder.setLabels(clearedLabels);
     return taskBuilder.build();
+  }
+
+  /**
+   * Sets a {@link Label} indicating the target configuruation for the provided {@link TaskInfo}.
+   * @param taskInfo is the TaskInfo which will have the appropriate configuration {@link Label} set.
+   * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}
+   * @return
+   */
+  public static TaskInfo setTargetConfiguration(TaskInfo taskInfo, UUID targetConfigurationId) {
+    taskInfo = clearTargetConfigurationLabel(taskInfo);
+    Labels labels = Labels.newBuilder(taskInfo.getLabels())
+            .addLabels(
+                    Label.newBuilder()
+                    .setKey(TARGET_CONFIGURATION_KEY)
+                    .setValue(targetConfigurationId.toString())
+                    .build())
+            .build();
+
+    return TaskInfo.newBuilder(taskInfo)
+            .setLabels(labels)
+            .build();
+  }
+
+  /**
+   * Returns the ID referencing a configuration in a {@link ConfigStore} associated with the provided {@link TaskInfo}.
+   * @param taskInfo is the TaskInfo from which the the configuration ID will be extracted.
+   * @return the ID of the target configuration for the provided {@link TaskInfo}
+   * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with an indicated target
+   * configuration
+   */
+  public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
+    for (Label label : taskInfo.getLabels().getLabelsList()) {
+      if (label.getKey().equals(TARGET_CONFIGURATION_KEY)) {
+        return UUID.fromString(label.getValue());
+      }
+    }
+
+    throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
+  }
+
+  private static TaskInfo clearTargetConfigurationLabel(TaskInfo taskInfo) {
+    List<Label> filteredLabels = new ArrayList<>();
+
+    for (Label label : taskInfo.getLabels().getLabelsList()) {
+      if (!label.getKey().equals(TARGET_CONFIGURATION_KEY)) {
+        filteredLabels.add(label);
+      }
+    }
+
+    return TaskInfo.newBuilder(taskInfo)
+            .setLabels(
+                    Labels.newBuilder()
+                    .addAllLabels(filteredLabels)
+                    .build())
+            .build();
   }
 
   private static Labels clearTransient(Labels labels) {
