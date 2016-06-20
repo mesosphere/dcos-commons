@@ -19,14 +19,13 @@ import org.slf4j.LoggerFactory;
  * The ZNode structure in Zookeeper is as follows:
  * rootPath
  *     -> ConfigTarget (contains UUID)
- *     -> Configurations
+ *     -> Configurations/
  *         -> Config-ID-0 (contains serialized config)
  *         -> Config-ID-1 (contains serialized config)
  *         -> ...
  *
- * @param <T> The {@code Configuration} object to be serialized and deserialized in the implementation
- *           of this interface
- * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
+ * @param <T> The {@code Configuration} object to be serialized and deserialized in the
+ *            implementation of this interface
  */
 public class CuratorConfigStore<T extends Configuration>
         extends CuratorPersister implements ConfigStore<T> {
@@ -108,7 +107,6 @@ public class CuratorConfigStore<T extends Configuration>
             for (String id : getChildren(configurationsPath)) {
                 ids.add(UUID.fromString(id));
             }
-
             return ids;
         } catch (Exception e) {
             throw new ConfigStoreException(e);

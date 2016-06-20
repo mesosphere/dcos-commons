@@ -8,13 +8,12 @@ import java.util.UUID;
  * presented to Schedulers.
  *
  * In general a Configuration should describe the desired state of a Framework.
- * They are reference by their IDs.  It can be determined whether a particular Task
+ * They are referenced by their IDs.  It can be determined whether a particular Task
  * is up to date with a particular Configuration by reference to a Task label
  * indicating its Configuration ID.
  *
- * @param <T> The {@code Configuration} object to be serialized and deserialized in the implementation
- *           of this interface
- * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
+ * @param <T> The {@code Configuration} object to be serialized and deserialized in the
+ *            implementation of this interface
  */
 public interface ConfigStore<T extends Configuration> {
     UUID store(T config) throws ConfigStoreException;
