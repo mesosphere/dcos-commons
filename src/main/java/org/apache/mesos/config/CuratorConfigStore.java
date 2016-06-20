@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 
@@ -18,24 +19,45 @@ import org.slf4j.LoggerFactory;
  * The ZNode structure in Zookeeper is as follows:
  * rootPath
  *     -> ConfigTarget (contains UUID)
- *     -> Configurations
+ *     -> Configurations/
  *         -> Config-ID-0 (contains serialized config)
  *         -> Config-ID-1 (contains serialized config)
  *         -> ...
  *
- * @param <T> The {@code Configuration} object to be serialized and deserialized in the implementation
- *           of this interface
- * @param <U> The {@code ConfigurationFactory} object that helps deserialize {@code Configuration} object.
+ * @param <T> The {@code Configuration} object to be serialized and deserialized in the
+ *            implementation of this interface
  */
-public class  CuratorConfigStore<T extends Configuration, U extends ConfigurationFactory<T>>
-        extends CuratorPersister implements ConfigStore<T, U> {
+public class CuratorConfigStore<T extends Configuration>
+        extends CuratorPersister implements ConfigStore<T> {
+    private static final Logger logger = LoggerFactory.getLogger(CuratorConfigStore.class);
+
+    private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
+    private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private String configurationsPath;
-    private String targetPath;
+    private final String configurationsPath;
+    private final String targetPath;
 
+    /**
+     * Creates a new {@link ConfigStore} which uses Curator with a default {@link RetryPolicy}.
+     *
+     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
+     */
+    public CuratorConfigStore(String rootPath, String connectionString) {
+        this(rootPath, connectionString, new ExponentialBackoffRetry(
+                DEFAULT_CURATOR_POLL_DELAY_MS, DEFAULT_CURATOR_MAX_RETRIES));
+    }
+
+    /**
+     * Creates a new {@link ConfigStore} which uses Curator with a custom {@link RetryPolicy}.
+     *
+     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
+     * @param retryPolicy The custom {@link RetryPolicy}
+     */
     public CuratorConfigStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
         super(connectionString, retryPolicy);
         this.targetPath = rootPath + "/" + TARGET_PATH_NAME;
@@ -56,7 +78,7 @@ public class  CuratorConfigStore<T extends Configuration, U extends Configuratio
     }
 
     @Override
-    public T fetch(UUID id, U factory) throws ConfigStoreException {
+    public T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException {
         try {
             return factory.parse(fetch(getConfigPath(id)));
         } catch (Exception e) {
@@ -85,7 +107,6 @@ public class  CuratorConfigStore<T extends Configuration, U extends Configuratio
             for (String id : getChildren(configurationsPath)) {
                 ids.add(UUID.fromString(id));
             }
-
             return ids;
         } catch (Exception e) {
             throw new ConfigStoreException(e);
