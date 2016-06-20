@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
@@ -42,6 +43,9 @@ public class CuratorStateStore implements StateStore {
 
     private static final Logger logger = LoggerFactory.getLogger(CuratorStateStore.class);
 
+    private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
+    private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
@@ -50,6 +54,24 @@ public class CuratorStateStore implements StateStore {
     private final String rootPath;
     private final String fwkIdPath;
 
+    /**
+     * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy}.
+     *
+     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
+     */
+    public CuratorStateStore(String rootPath, String connectionString) {
+        this(rootPath, connectionString, new ExponentialBackoffRetry(
+                DEFAULT_CURATOR_POLL_DELAY_MS, DEFAULT_CURATOR_MAX_RETRIES));
+    }
+
+    /**
+     * Creates a new {@link StateStore} which uses Curator with a custom {@link RetryPolicy}.
+     *
+     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
+     * @param retryPolicy The custom {@link RetryPolicy}
+     */
     public CuratorStateStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
         this.rootPath = rootPath;
