@@ -8,7 +8,6 @@ import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 
-import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
 import org.apache.mesos.protobuf.ExecutorInfoBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
 import org.apache.mesos.protobuf.TaskInfoBuilder;
@@ -19,21 +18,21 @@ import org.junit.Test;
 public class OfferRequirementTest {
 
   @Test
-  public void testConstructor() throws InvalidTaskRequirementException {
+  public void testConstructor() throws InvalidRequirementException {
     Resource resource = ResourceBuilder.cpus(1.0);
     OfferRequirement offerRequirement = getOfferRequirement(resource);
     Assert.assertNotNull(offerRequirement);
   }
 
   @Test
-  public void testNoIds() throws InvalidTaskRequirementException {
+  public void testNoIds() throws InvalidRequirementException {
     Resource resource = ResourceBuilder.cpus(1.0);
     OfferRequirement offerRequirement = getOfferRequirement(resource);
     Assert.assertEquals(0, offerRequirement.getResourceIds().size());
   }
 
   @Test
-  public void testOneResourceId() throws InvalidTaskRequirementException {
+  public void testOneResourceId() throws InvalidRequirementException {
     Resource resource = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testResourceId);
     OfferRequirement offerRequirement = getOfferRequirement(resource);
     Assert.assertEquals(1, offerRequirement.getResourceIds().size());
@@ -41,7 +40,7 @@ public class OfferRequirementTest {
   }
 
   @Test
-  public void testOnePersistenceId() throws InvalidTaskRequirementException {
+  public void testOnePersistenceId() throws InvalidRequirementException {
     Resource resource = ResourceBuilder.volume(1000.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testContainerPath, ResourceTestUtils.testPersistenceId);
     OfferRequirement offerRequirement = getOfferRequirement(resource);
     Assert.assertEquals(1, offerRequirement.getResourceIds().size());
@@ -51,7 +50,7 @@ public class OfferRequirementTest {
   }
 
   @Test
-  public void testOneOfEachId() throws InvalidTaskRequirementException {
+  public void testOneOfEachId() throws InvalidRequirementException {
     Resource cpu = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testResourceId);
     Resource volume = ResourceBuilder.volume(1000.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testContainerPath, ResourceTestUtils.testPersistenceId);
     OfferRequirement offerRequirement = getOfferRequirement(Arrays.asList(cpu, volume));
@@ -63,7 +62,7 @@ public class OfferRequirementTest {
   }
 
   @Test
-  public void testExecutor() throws InvalidTaskRequirementException {
+  public void testExecutor() throws InvalidRequirementException {
     Resource cpu = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testResourceId);
     TaskInfo taskInfo = getTaskInfo(cpu);
     ExecutorInfo execInfo = getExecutorInfo(cpu);
@@ -77,11 +76,11 @@ public class OfferRequirementTest {
     Assert.assertEquals(cpu, executorResource);
   }
 
-  private OfferRequirement getOfferRequirement(Resource resource) throws InvalidTaskRequirementException {
+  private OfferRequirement getOfferRequirement(Resource resource) throws InvalidRequirementException {
     return getOfferRequirement(Arrays.asList(resource));
   }
 
-  private OfferRequirement getOfferRequirement(List<Resource> resources) throws InvalidTaskRequirementException {
+  private OfferRequirement getOfferRequirement(List<Resource> resources) throws InvalidRequirementException {
     return new OfferRequirement(Arrays.asList(getTaskInfo(resources)));
   }
 
@@ -103,7 +102,8 @@ public class OfferRequirementTest {
 
   private ExecutorInfo getExecutorInfo(List<Resource> resources) {
     CommandInfo cmd = CommandInfo.newBuilder().build();
-    ExecutorInfoBuilder builder = new ExecutorInfoBuilder(ResourceTestUtils.testExecutorId, cmd);
+    ExecutorInfoBuilder builder = new ExecutorInfoBuilder(
+        ResourceTestUtils.testExecutorId, ResourceTestUtils.testExecutorName, cmd);
     return builder.addAllResources(resources).build();
   }
 }

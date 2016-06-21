@@ -4,23 +4,33 @@ import static org.junit.Assert.*;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
+import org.apache.mesos.executor.ExecutorUtils;
+import org.apache.mesos.offer.TaskUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Tests to validate the operation of the {@link CuratorStateStore}.
  */
 public class CuratorStateStoreTest {
-    private static final String FRAMEWORK_ID = "test-framework-id";
+    private static final Protos.FrameworkID FRAMEWORK_ID =
+            Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final String TASK_NAME = "test-task-name";
-    private static final String TASK_ID = "test-task-id";
-    private static final String SLAVE_ID = "test-slave-id";
+    private static final Protos.TaskID TASK_ID = TaskUtils.toTaskId(TASK_NAME);
     private static final String EXECUTOR_NAME = "test-executor-name";
     private static final String ROOT_ZK_PATH = "/test-root-path";
+    private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
+    private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
+            .setTaskId(TASK_ID)
+            .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
+            .setState(TASK_STATE)
+            .build();
 
     private TestingServer testZk;
     private CuratorStateStore store;
@@ -28,12 +38,12 @@ public class CuratorStateStoreTest {
     @Before
     public void beforeEach() throws Exception {
         testZk = new TestingServer();
-        store = getTestStateStore();
+        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
     }
 
     @Test
     public void testStoreFetchFrameworkId() throws Exception {
-        Protos.FrameworkID fwkId = getTestFrameworkId();
+        Protos.FrameworkID fwkId = FRAMEWORK_ID;
         store.storeFrameworkId(fwkId);
         assertEquals(fwkId, store.fetchFrameworkId());
     }
@@ -45,14 +55,14 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testStoreClearFrameworkId() throws Exception {
-        Protos.FrameworkID fwkId = getTestFrameworkId();
+        Protos.FrameworkID fwkId = FRAMEWORK_ID;
         store.storeFrameworkId(fwkId);
         store.clearFrameworkId();
     }
 
     @Test(expected=StateStoreException.class)
     public void testStoreClearFetchFrameworkId() throws Exception {
-        store.storeFrameworkId(getTestFrameworkId());
+        store.storeFrameworkId(FRAMEWORK_ID);
         store.clearFrameworkId();
         store.fetchFrameworkId(); // throws
     }
@@ -64,39 +74,93 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testStoreFetchTask() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        Collection<Protos.TaskInfo> outTasks = store.fetchTasks(getTestExecutorName());
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME);
+        store.storeTasks(Arrays.asList(testTask));
+        Collection<Protos.TaskInfo> outTasks = store.fetchTasks(EXECUTOR_NAME);
         assertEquals(1, outTasks.size());
-        assertEquals(getTestTask(), outTasks.iterator().next());
+        assertEquals(testTask, outTasks.iterator().next());
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testFetchEmptyTasks() throws Exception {
+        store.fetchTasks(EXECUTOR_NAME);
+    }
+
+    @Test
+    public void testStoreFetchCustomExecutorTask() throws Exception {
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME);
+        store.storeTasks(Arrays.asList(testTask));
+        Protos.TaskInfo outTask = store.fetchTask(TASK_NAME, EXECUTOR_NAME);
+        assertEquals(testTask, outTask);
+    }
+    @Test
+    public void testStoreFetchCommandExecutorTask() throws Exception {
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME).toBuilder()
+                .clearExecutor()
+                .setCommand(Protos.CommandInfo.newBuilder())
+                .build();
+        store.storeTasks(Arrays.asList(testTask));
+        // uses task name as fallback for executor name:
+        assertEquals(testTask, store.fetchTask(TASK_NAME, TASK_NAME));
+        Collection<String> executors = store.fetchExecutorNames();
+        assertEquals(1, executors.size());
+        assertEquals(TASK_NAME, executors.iterator().next());
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testStoreTaskMissingExecutorName() throws Exception {
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME);
+        testTask = testTask.toBuilder()
+                .setExecutor(testTask.getExecutor().toBuilder().clearName())
+                .build();
+        store.storeTasks(Arrays.asList(testTask));
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testStoreTaskEmptyExecutorName() throws Exception {
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME);
+        testTask = testTask.toBuilder()
+                .setExecutor(testTask.getExecutor().toBuilder().setName(""))
+                .build();
+        store.storeTasks(Arrays.asList(testTask));
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testStoreTaskMissingExecutorAndCommand() throws Exception {
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME).toBuilder()
+                .clearExecutor()
+                .clearCommand()
+                .build();
+        store.storeTasks(Arrays.asList(testTask));
     }
 
     @Test(expected=StateStoreException.class)
     public void testFetchEmptyTask() throws Exception {
-        store.fetchTasks(getTestExecutorName());
+        store.fetchTask(TASK_NAME, EXECUTOR_NAME);
     }
 
     @Test
     public void testRepeatedStoreTask() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.storeTasks(getTestTasks(), getTestExecutorName());
+        store.storeTasks(getTestTasks(EXECUTOR_NAME));
+        store.storeTasks(getTestTasks(EXECUTOR_NAME));
     }
 
     @Test
     public void testStoreClearExecutor() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.clearExecutor(getTestExecutorName());
+        store.storeTasks(getTestTasks(EXECUTOR_NAME));
+        store.clearExecutor(EXECUTOR_NAME);
     }
 
     @Test(expected=StateStoreException.class)
     public void testStoreClearFetchExecutor() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.clearExecutor(getTestExecutorName());
-        store.fetchTasks(getTestExecutorName());
+        store.storeTasks(getTestTasks(EXECUTOR_NAME));
+        store.clearExecutor(EXECUTOR_NAME);
+        store.fetchTasks(EXECUTOR_NAME);
     }
 
     @Test
     public void testClearEmptyExecutor() throws Exception {
-        store.clearExecutor(getTestExecutorName());
+        store.clearExecutor(EXECUTOR_NAME);
     }
 
     @Test
@@ -111,8 +175,8 @@ public class CuratorStateStoreTest {
         String testExecutorName0 = testExecutorNamePrefix + "-0";
         String testExecutorName1 = testExecutorNamePrefix + "-1";
 
-        store.storeTasks(getTestTasks(), testExecutorName0);
-        store.storeTasks(getTestTasks(), testExecutorName1);
+        store.storeTasks(getTestTasks(testExecutorName0));
+        store.storeTasks(getTestTasks(testExecutorName1));
         Collection<String> execNames = store.fetchExecutorNames();
         assertEquals(2, execNames.size());
 
@@ -127,9 +191,9 @@ public class CuratorStateStoreTest {
         String testExecutorName0 = testExecutorNamePrefix + "-0";
         String testExecutorName1 = testExecutorNamePrefix + "-1";
 
-        store.storeFrameworkId(getTestFrameworkId());
-        store.storeTasks(getTestTasks(), testExecutorName0);
-        store.storeTasks(getTestTasks(), testExecutorName1);
+        store.storeFrameworkId(FRAMEWORK_ID);
+        store.storeTasks(getTestTasks(testExecutorName0));
+        store.storeTasks(getTestTasks(testExecutorName1));
         Collection<String> execNames = store.fetchExecutorNames();
         assertEquals(2, execNames.size()); // framework id set above mustn't be included
 
@@ -140,86 +204,113 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testStoreFetchStatus() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.storeStatus(getTestTaskStatus(), TASK_NAME);
-        assertEquals(getTestTaskStatus(), store.fetchStatus(TASK_NAME, getTestExecutorName()));
+        store.storeStatus(TASK_STATUS);
+        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME, EXECUTOR_NAME));
     }
 
     @Test(expected=StateStoreException.class)
     public void testFetchEmptyStatus() throws Exception {
-        store.fetchStatus(TASK_NAME, getTestExecutorName());
+        store.fetchStatus(TASK_NAME, EXECUTOR_NAME);
+    }
+
+    @Test
+    public void testStoreFetchStatuses() throws Exception {
+        store.storeStatus(TASK_STATUS);
+        Collection<Protos.TaskStatus> statuses = store.fetchStatuses(EXECUTOR_NAME);
+        assertEquals(TASK_STATUS, statuses.iterator().next());
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testFetchEmptyStatuses() throws Exception {
+        store.fetchStatuses(EXECUTOR_NAME);
     }
 
     @Test
     public void testRepeatedStoreStatus() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        store.storeStatus(getTestTaskStatus(), TASK_NAME);
-        store.storeStatus(getTestTaskStatus(), TASK_NAME);
+        store.storeStatus(TASK_STATUS);
+
+        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME, EXECUTOR_NAME));
+
+        store.storeStatus(TASK_STATUS);
+
+        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME, EXECUTOR_NAME));
+        Collection<String> execNames = store.fetchExecutorNames();
+        assertEquals(1, execNames.size());
+        Collection<Protos.TaskStatus> statuses = store.fetchStatuses(execNames.iterator().next());
+        assertEquals(1, statuses.size());
+        assertEquals(TASK_STATUS, statuses.iterator().next());
+    }
+
+    @Test
+    public void testMultipleStoreStatus() throws Exception {
+        Protos.TaskStatus taskStatusA = getTestTaskStatus("a");
+        Protos.TaskStatus taskStatusB = getTestTaskStatus("b");
+
+        store.storeStatus(taskStatusA);
+
+        assertEquals(taskStatusA, store.fetchStatus("a", EXECUTOR_NAME));
+
+        store.storeStatus(taskStatusB);
+
+        assertEquals(taskStatusB, store.fetchStatus("b", EXECUTOR_NAME));
+        Collection<String> execNames = store.fetchExecutorNames();
+        assertEquals(1, execNames.size());
+        Collection<Protos.TaskStatus> statuses = store.fetchStatuses(execNames.iterator().next());
+        assertEquals(2, statuses.size());
+        store.clearExecutor(EXECUTOR_NAME);
+        assertEquals(true, store.fetchExecutorNames().isEmpty());
     }
 
     @Test(expected=StateStoreException.class)
-    public void testStoreIncorrectStatus() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        Protos.TaskStatus badTaskStatus = Protos.TaskStatus.newBuilder()
+    public void testStoreStatusBadTaskId() throws Exception {
+        store.storeStatus(TASK_STATUS.toBuilder()
                 .setTaskId(Protos.TaskID.newBuilder().setValue("bad-test-id"))
-                .setState(getTestTaskState())
-                .build();
-
-        store.storeStatus(badTaskStatus, TASK_NAME);
+                .build());
     }
 
     @Test(expected=StateStoreException.class)
-    public void testStoreStatusWithoutTaskInfo() throws Exception {
-        store.storeStatus(getTestTaskStatus(), TASK_NAME);
+    public void testStoreStatusBadExecutorId() throws Exception {
+        store.storeStatus(TASK_STATUS.toBuilder()
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("bad-executor-id"))
+                .build());
     }
 
     @Test
     public void testStoreFetchTaskAndStatus() throws Exception {
-        store.storeTasks(getTestTasks(), getTestExecutorName());
-        Collection<Protos.TaskInfo> outTasks = store.fetchTasks(getTestExecutorName());
+        Protos.TaskInfo testTask = getTestTask(EXECUTOR_NAME);
+        store.storeTasks(Arrays.asList(testTask));
+        Collection<Protos.TaskInfo> outTasks = store.fetchTasks(EXECUTOR_NAME);
         assertEquals(1, outTasks.size());
-        assertEquals(getTestTask(), outTasks.iterator().next());
+        assertEquals(testTask, outTasks.iterator().next());
 
-        store.storeStatus(getTestTaskStatus(), TASK_NAME);
-        assertEquals(getTestTaskStatus(), store.fetchStatus(TASK_NAME, getTestExecutorName()));
+        store.storeStatus(TASK_STATUS);
+        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME, EXECUTOR_NAME));
     }
 
-    private static Protos.FrameworkID getTestFrameworkId() {
-        return Protos.FrameworkID.newBuilder().setValue(FRAMEWORK_ID).build();
+    /**
+     * Note: this regenerates the task_id UUID each time it's called, even if taskName is the same
+     */
+    private static Protos.TaskStatus getTestTaskStatus(String taskName) {
+        return TASK_STATUS.toBuilder().setTaskId(TaskUtils.toTaskId(taskName)).build();
     }
 
-    private static Protos.TaskStatus getTestTaskStatus() {
-        return Protos.TaskStatus.newBuilder()
-                .setTaskId(getTestTaskId())
-                .setState(getTestTaskState())
-                .build();
+    private static Collection<Protos.TaskInfo> getTestTasks(String... executorNames) {
+        List<Protos.TaskInfo> taskInfos = new ArrayList<>();
+        for (String executorName : executorNames) {
+            taskInfos.add(getTestTask(executorName));
+        }
+        return taskInfos;
     }
 
-    private static Protos.TaskID getTestTaskId() {
-        return Protos.TaskID.newBuilder().setValue(TASK_ID).build();
-    }
-
-    private static Collection<Protos.TaskInfo> getTestTasks() {
-        return Arrays.asList(getTestTask());
-    }
-
-    private static Protos.TaskInfo getTestTask() {
+    private static Protos.TaskInfo getTestTask(String executorName) {
         return Protos.TaskInfo.newBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(getTestTaskId())
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(SLAVE_ID))
+                .setTaskId(TASK_ID)
+                .setExecutor(Protos.ExecutorInfo.newBuilder()
+                        .setExecutorId(ExecutorUtils.toExecutorId(executorName))
+                        .setName(executorName)
+                        .setCommand(Protos.CommandInfo.newBuilder())) // ignored
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue("ignored")) // ignored
                 .build();
-    }
-
-    private static String getTestExecutorName() {
-        return EXECUTOR_NAME;
-    }
-
-    private CuratorStateStore getTestStateStore() {
-        return new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
-    }
-
-    public static Protos.TaskState getTestTaskState() {
-        return Protos.TaskState.TASK_STAGING;
     }
 }

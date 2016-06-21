@@ -1,76 +1,71 @@
 package org.apache.mesos.offer;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.junit.Assert.*;
 
 import org.apache.mesos.Protos.CommandInfo;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.SlaveID;
+import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-
-import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
+import org.apache.mesos.protobuf.ExecutorInfoBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
-import org.apache.mesos.protobuf.TaskInfoBuilder;
-
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TaskRequirementTest {
-  private static final Logger logger = LoggerFactory.getLogger(TaskRequirementTest.class);
 
-  private static final String testTaskName = "test-task-name";
-  private static final String testTaskId = "test-task-id";
-  private static final String testSlaveId = "test-slave-id";
-  private static final String testExecutorId = "test-executor-id";
+    private static final TaskInfo VALID_TASKINFO = TaskInfo.newBuilder()
+            .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
+            .setTaskId(TaskID.newBuilder().setValue(ResourceTestUtils.testTaskId))
+            .setName(ResourceTestUtils.testTaskName)
+            .build();
 
-  @Test
-  public void testValidConstructor() throws Exception {
-    Resource resource = ResourceBuilder.cpus(1.0);
-    getTaskRequirement(resource);
-  }
-
-  @Test(expected=InvalidTaskRequirementException.class)
-  public void testInvalidConstructor() throws Exception {
-    Resource resource = ResourceBuilder.cpus(1.0);
-    TaskInfo invalidTaskInfo = getTaskInfo(resource);
-
-    CommandInfo cmdInfo = CommandInfo.newBuilder().build();
-
-    ExecutorInfo execInfo = ExecutorInfo.newBuilder()
-      .setExecutorId(ExecutorID.newBuilder()
-          .setValue(testExecutorId).build())
-      .setCommand(cmdInfo)
-      .build();
-
-    invalidTaskInfo = TaskInfo.newBuilder(invalidTaskInfo)
-      .setExecutor(execInfo)
-      .build();
-
-    new TaskRequirement(invalidTaskInfo);
-  }
-
-  private TaskRequirement getTaskRequirement(Resource resource) throws Exception {
-    return getTaskRequirement(Arrays.asList(resource));
-  }
-
-  private TaskRequirement getTaskRequirement(List<Resource> resources) throws Exception {
-    return new TaskRequirement(getTaskInfo(resources));
-  }
-
-  private TaskInfo getTaskInfo(Resource resource) {
-    return getTaskInfo(Arrays.asList(resource));
-  }
-
-  private TaskInfo getTaskInfo(List<Resource> resources) {
-    TaskInfoBuilder builder = new TaskInfoBuilder(testTaskId, testTaskName, testSlaveId);
-
-    for (Resource resource : resources) {
-      logger.info("Resource: {}", resource);
-      builder.addResource(resource);
+    @Test
+    public void testTaskIdChanges() throws Exception {
+        assertNotEquals(ResourceTestUtils.testTaskId,
+                new TaskRequirement(VALID_TASKINFO).getTaskInfo().getTaskId().getValue());
     }
 
-    return builder.build();
-  }
+    @Test
+    public void testZeroResourcesValid() throws Exception {
+        new TaskRequirement(VALID_TASKINFO);
+    }
+
+    @Test
+    public void testTwoResourcesValid() throws Exception {
+        new TaskRequirement(VALID_TASKINFO.toBuilder()
+                .addResources(ResourceBuilder.cpus(1.0))
+                .addResources(ResourceBuilder.disk(1234.))
+                .build());
+    }
+
+    @Test
+    public void testEmptyTaskIdValid() throws Exception {
+        new TaskRequirement(VALID_TASKINFO.toBuilder()
+                .setTaskId(TaskID.newBuilder().setValue(""))
+                .build());
+    }
+
+    @Test(expected = InvalidRequirementException.class)
+    public void testBadTaskIdFails() throws Exception {
+        new TaskRequirement(VALID_TASKINFO.toBuilder()
+                .setTaskId(TaskID.newBuilder().setValue("foo"))
+                .build());
+    }
+
+    @Test(expected = InvalidRequirementException.class)
+    public void testEmptyNameFails() throws Exception {
+        new TaskRequirement(VALID_TASKINFO.toBuilder().setName("").build());
+    }
+
+    @Test(expected = InvalidRequirementException.class)
+    public void testMismatchNameFails() throws Exception {
+        new TaskRequirement(VALID_TASKINFO.toBuilder().setName("asdf").build());
+    }
+
+    @Test(expected = InvalidRequirementException.class)
+    public void testExecutorInfoPresentFails() throws Exception {
+        new TaskRequirement(VALID_TASKINFO.toBuilder()
+                .setExecutor(new ExecutorInfoBuilder(
+                        "ignored-id", "ignored-name", CommandInfo.newBuilder().build()).build())
+                .build());
+    }
 }

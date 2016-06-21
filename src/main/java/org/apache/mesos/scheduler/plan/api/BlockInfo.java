@@ -4,12 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.StageManager;
 import org.apache.mesos.scheduler.plan.Status;
-
-import java.util.Objects;
 
 /**
  * Immutable JSON serialization object for a Block.
@@ -87,8 +86,7 @@ class BlockInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getStatus(), getName(), getMessage(),
-                getHasDecisionPoint());
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override

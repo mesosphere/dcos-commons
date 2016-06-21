@@ -10,6 +10,27 @@ import java.util.UUID;
 public class ExecutorUtils {
     private static final String EXECUTOR_NAME_DELIM = "__";
 
+    private ExecutorUtils() {
+        // do not instantiate
+    }
+
+    /**
+     * Converts the unique {@link Protos.ExecutorID} into a Framework defined executor name.
+     *
+     * For example: "instance-0_aoeu5678" => "instance-0"
+     */
+    public static String toExecutorName(Protos.ExecutorID executorId) throws ExecutorTaskException {
+      int underScoreIndex = executorId.getValue().lastIndexOf(EXECUTOR_NAME_DELIM);
+
+      if (underScoreIndex == -1) {
+        throw new ExecutorTaskException(String.format(
+                "ExecutorID '%s' is malformed.  Expected '%s' to extract ExecutorName from ExecutorID.  "
+                + "ExecutorIDs should be generated with TaskUtils.toTaskId().", executorId, EXECUTOR_NAME_DELIM));
+      }
+
+      return executorId.getValue().substring(0, underScoreIndex);
+    }
+
     /**
      * Converts the Framework defined Executor name into a unique {@link Protos.ExecutorID}.
      *

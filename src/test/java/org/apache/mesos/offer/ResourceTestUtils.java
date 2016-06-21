@@ -9,7 +9,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source.Mount;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value;
-
+import org.apache.mesos.executor.ExecutorUtils;
 import org.apache.mesos.protobuf.ValueBuilder;
 
 public class ResourceTestUtils {
@@ -21,8 +21,10 @@ public class ResourceTestUtils {
   public static final String testOfferId = "test-offer-id";
   public static final String testFrameworkId = "test-framework-id";
   public static final String testTaskName = "test-task-name";
-  public static final String testTaskId = "test-task-id";
-  public static final String testExecutorId = "test-executor-id";
+  public static final String testTaskId = TaskUtils.toTaskId(testTaskName).getValue();
+  public static final String testExecutorName = "test-executor-name";
+  public static final String testExecutorId =
+      ExecutorUtils.toExecutorId(testExecutorName).getValue();
   public static final String testSlaveId = "test-slave-id";
   public static final String testHostname = "test-hostname";
   public static final String testContainerPath = "test-container-path";

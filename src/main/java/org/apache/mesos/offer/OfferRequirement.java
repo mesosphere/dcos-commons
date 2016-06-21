@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
-
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -30,10 +28,8 @@ public class OfferRequirement {
     ExecutorInfo execInfo,
     Collection<SlaveID> avoidAgents,
     Collection<SlaveID> colocateAgents)
-    throws InvalidTaskRequirementException {
-
+    throws InvalidRequirementException {
     this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-
     if (execInfo != null) {
       this.executorRequirement = new ExecutorRequirement(execInfo);
     }
@@ -51,12 +47,12 @@ public class OfferRequirement {
     }
   }
 
-  public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidTaskRequirementException {
+  public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
     this(taskInfos, null, Collections.emptyList(), Collections.emptyList());
   }
 
   public OfferRequirement(Collection<TaskInfo> taskInfos, ExecutorInfo execInfo)
-    throws InvalidTaskRequirementException {
+      throws InvalidRequirementException {
     this(taskInfos, execInfo, Collections.emptyList(), Collections.emptyList());
   }
 
@@ -104,15 +100,12 @@ public class OfferRequirement {
     return persistenceIds;
   }
 
-  private Collection<TaskRequirement> getTaskRequirementsInternal(Collection<TaskInfo> taskInfos)
-    throws InvalidTaskRequirementException {
-
+  private static Collection<TaskRequirement> getTaskRequirementsInternal(
+      Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
     Collection<TaskRequirement> taskRequirements = new ArrayList<TaskRequirement>();
-
     for (TaskInfo taskInfo : taskInfos) {
       taskRequirements.add(new TaskRequirement(taskInfo));
     }
-
     return taskRequirements;
   }
 }

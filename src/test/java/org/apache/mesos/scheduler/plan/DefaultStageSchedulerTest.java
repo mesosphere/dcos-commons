@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Optional;
 
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.offer.OfferRecommendation;
 import org.apache.mesos.offer.OfferRequirement;
-import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.SlaveID;
-import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class DefaultStageSchedulerTest {
 
     private static final List<TaskInfo> TASKINFOS = Arrays.asList(TaskInfo.newBuilder()
             .setName("hi")
-            .setTaskId(TaskID.newBuilder().setValue("taskid").build())
+            .setTaskId(TaskUtils.toTaskId("hi"))
             .setSlaveId(SlaveID.newBuilder().setValue("slaveid").build())
             .build());
     private static final List<Offer> OFFERS = Arrays.asList(Offer.newBuilder()
@@ -87,7 +87,7 @@ public class DefaultStageSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoRecommendations() throws InvalidTaskRequirementException {
+    public void testEvaluateNoRecommendations() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
                 .setStatus(Status.Pending);
@@ -101,7 +101,7 @@ public class DefaultStageSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoAcceptedOffers() throws InvalidTaskRequirementException {
+    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
                 .setStatus(Status.Pending);
@@ -118,7 +118,7 @@ public class DefaultStageSchedulerTest {
     }
 
     @Test
-    public void testEvaluateAcceptedOffers() throws InvalidTaskRequirementException {
+    public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
                 .setStatus(Status.Pending);
