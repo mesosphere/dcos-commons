@@ -19,6 +19,10 @@ public class TaskUtils {
   private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
   private static final String TASK_NAME_DELIM = "__";
 
+  private TaskUtils() {
+      // do not instantiate
+  }
+
   /**
    * Converts the unique {@link TaskID} into a Framework defined task name.
    *
@@ -28,10 +32,9 @@ public class TaskUtils {
     int underScoreIndex = taskId.getValue().lastIndexOf(TASK_NAME_DELIM);
 
     if (underScoreIndex == -1) {
-      throw new TaskException(
-              String.format(
-                      "TaskID '%s' is malformed.  Expected '%s' to extract TaskName from TaskID",
-                      taskId, TASK_NAME_DELIM));
+      throw new TaskException(String.format(
+              "TaskID '%s' is malformed.  Expected '%s' to extract TaskName from TaskID.  "
+              + "TaskIDs should be generated with TaskUtils.toTaskId().", taskId, TASK_NAME_DELIM));
     }
 
     return taskId.getValue().substring(0, underScoreIndex);

@@ -47,44 +47,81 @@ public interface StateStore {
 
 
     /**
-     * Stores TasksInfo objects representing tasks in the sub-path of the Executor
-     * which launched or will launch the Task.
+     * Stores TaskInfo objects representing tasks in the sub-path of the Executor
+     * which launched or will launch the Task. Each TaskInfo must include the following information:
      *
-     * @param tasks Tasks to be associated persistently with a particular Executor
-     * @param execName The name of the Executor hosting the tasks.
+     * <ul>
+     * <li>TaskInfo.name (required by proto)</li>
+     * <li>TaskInfo.executor.name, or TaskInfo.command should be set to indicate a command executor,
+     * in which case TaskInfo.name is used as the executor name</li>
+     * </ul>
+     *
+     * @param tasks Tasks to be stored, which each meet the above requirements
      * @throws StateStoreException when persisting TaskInfo information fails
      */
-    void storeTasks(Collection<Protos.TaskInfo> tasks, String execName) throws StateStoreException;
+    void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException;
 
 
     /**
-     * Fetches the TaskInfo objects associated with a particular Executor.
+     * Fetches all TaskInfos associated with a particular Executor Name. In the case of command
+     * executors, this returns at most one TaskInfo for the provided task name.
      *
      * @param execName The name of the Executor associated with some Tasks
      * @return The TaskInfo objects associated with the indicated Executor
-     * @throws StateStoreException if no data was found for the requested Executor, or when fetching
+     * @see #fetchExecutorNames() for a list of all executor names
+     * @throws StateStoreException if no data was found for the requested Executor, or if fetching
      *                             the TaskInfo information otherwise fails
      */
     Collection<Protos.TaskInfo> fetchTasks(String execName) throws StateStoreException;
 
 
     /**
-     * Fetches all the Executor names so far stored.
+     * Fetches the TaskInfo of a particular Task.
      *
-     * @return All the Executor names so far stored, or an empty list if none are found
+     * @param taskName The name of the Task
+     * @param execName The name of the Executor associated with the Task. If a command executor is
+     *                 being used, this should be equal to taskName
+     * @return The corresponding TaskInfo object
+     * @throws StateStoreException if no data was found for the requested Task, or if fetching the
+     *                             TaskInfo information otherwise fails
+     */
+    Protos.TaskInfo fetchTask(String taskName, String execName) throws StateStoreException;
+
+
+    /**
+     * Fetches all the Executor names stored so far. In the case of command executors, this returns
+     * the names of the tasks.
+     *
+     * @return All the Executor names stored so far, or an empty list if none are found
      * @throws StateStoreException when fetching the data fails
      */
     Collection<String> fetchExecutorNames() throws StateStoreException;
 
 
     /**
-     * Stores the TaskStatus of a particular Task.
+     * Stores the TaskStatus of a particular Task. It must include the following information:
      *
-     * @param status The status to be stored
-     * @param taskName The name of the Task associated with the indicated status
+     * <ul>
+     * <li>TaskStatus.task_id (required by proto)</li>
+     * <li>TaskStatus.executor_id, or TaskStatus.command should be set to indicate a command
+     * executor, in which case the executor name is extracted from TaskInfo.task_id</li>
+     * </ul>
+     *
+     * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException when storing the TaskStatus fails
      */
-    void storeStatus(Protos.TaskStatus status, String taskName) throws StateStoreException;
+    void storeStatus(Protos.TaskStatus status) throws StateStoreException;
+
+
+    /**
+     * Fetches the TaskStatuses of all Tasks associated with a particular Executor.
+     *
+     * @param execName The name of the Executor associated with some Tasks
+     * @return The TaskStatus objects associated with all tasks for the indicated Executor
+     * @throws StateStoreException if no data was found for the requested Executor, or if fetching
+     *                             the TaskStatus information otherwise fails
+     */
+    Collection<Protos.TaskStatus> fetchStatuses(String execName) throws StateStoreException;
 
 
     /**
@@ -93,7 +130,7 @@ public interface StateStore {
      * @param taskName The name of the Task which should have its status retrieved
      * @param execName The name of the Executor associated with the indicated Task
      * @return The TaskStatus associated with a particular Task
-     * @throws StateStoreException if no data was found for the requested Task, or when fetching the
+     * @throws StateStoreException if no data was found for the requested Task, or if fetching the
      *                             TaskStatus information otherwise fails
      */
     Protos.TaskStatus fetchStatus(String taskName, String execName) throws StateStoreException;

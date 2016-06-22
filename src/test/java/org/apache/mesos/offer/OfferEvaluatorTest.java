@@ -3,7 +3,6 @@ package org.apache.mesos.offer;
 import java.util.*;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.TaskRequirement.InvalidTaskRequirementException;
 import org.apache.mesos.protobuf.ExecutorInfoBuilder;
 import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.ResourceBuilder;
@@ -25,7 +24,7 @@ public class OfferEvaluatorTest {
   private static final OfferEvaluator evaluator = new OfferEvaluator();
 
   @Test
-  public void testReserveTaskExecutorInsufficient() throws InvalidTaskRequirementException {
+  public void testReserveTaskExecutorInsufficient() throws InvalidRequirementException {
     Resource desiredTaskCpu = ResourceUtils.getDesiredScalar(
             ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
     Resource desiredExecutorCpu = desiredTaskCpu;
@@ -44,7 +43,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testReserveCreateLaunchMountVolume() throws InvalidTaskRequirementException {
+  public void testReserveCreateLaunchMountVolume() throws InvalidRequirementException {
     Resource desiredResource = ResourceUtils.getDesiredMountVolume(
         ResourceTestUtils.testRole,
         ResourceTestUtils.testPrincipal,
@@ -143,7 +142,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testFailToCreateVolumeWithWrongResource() throws InvalidTaskRequirementException {
+  public void testFailToCreateVolumeWithWrongResource() throws InvalidRequirementException {
     Resource desiredResource = ResourceUtils.getDesiredRootVolume(
         ResourceTestUtils.testRole,
         ResourceTestUtils.testPrincipal,
@@ -157,7 +156,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testReserveCreateLaunchRootVolume() throws InvalidTaskRequirementException {
+  public void testReserveCreateLaunchRootVolume() throws InvalidRequirementException {
     Resource desiredResource = ResourceUtils.getDesiredRootVolume(
         ResourceTestUtils.testRole,
         ResourceTestUtils.testPrincipal,
@@ -216,7 +215,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testFailCreateRootVolume() throws InvalidTaskRequirementException {
+  public void testFailCreateRootVolume() throws InvalidRequirementException {
     Resource desiredResource = ResourceUtils.getDesiredRootVolume(
         ResourceTestUtils.testRole,
         ResourceTestUtils.testPrincipal,
@@ -230,7 +229,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testExpectedMountVolume() throws InvalidTaskRequirementException {
+  public void testExpectedMountVolume() throws InvalidRequirementException {
     Resource expectedResource = ResourceTestUtils.getExpectedMountVolume(1000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -258,7 +257,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testExpectedRootVolume() throws InvalidTaskRequirementException {
+  public void testExpectedRootVolume() throws InvalidRequirementException {
     Resource expectedResource = ResourceTestUtils.getExpectedRootVolume(1000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -285,7 +284,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testReserveLaunchScalar() throws InvalidTaskRequirementException {
+  public void testReserveLaunchScalar() throws InvalidRequirementException {
     Resource desiredResource = ResourceUtils.getDesiredScalar(
         ResourceTestUtils.testRole,
         ResourceTestUtils.testPrincipal,
@@ -328,7 +327,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testCustomExecutorReserveLaunchScalar() throws InvalidTaskRequirementException {
+  public void testCustomExecutorReserveLaunchScalar() throws InvalidRequirementException {
     Resource desiredTaskResource = ResourceUtils.getDesiredScalar(
         ResourceTestUtils.testRole,
         ResourceTestUtils.testPrincipal,
@@ -404,7 +403,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testReuseCustomExecutorReserveLaunchScalar() throws InvalidTaskRequirementException {
+  public void testReuseCustomExecutorReserveLaunchScalar() throws InvalidRequirementException {
     Resource desiredTaskResource = ResourceUtils.getDesiredScalar(
             ResourceTestUtils.testRole,
             ResourceTestUtils.testPrincipal,
@@ -455,7 +454,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testLaunchExpectedScalar() throws InvalidTaskRequirementException {
+  public void testLaunchExpectedScalar() throws InvalidRequirementException {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar(
         "cpus",
         1.0);
@@ -479,7 +478,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testReserveLaunchExpectedScalar() throws InvalidTaskRequirementException {
+  public void testReserveLaunchExpectedScalar() throws InvalidRequirementException {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0);
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
     Resource unreservedResource = ResourceBuilder.cpus(1.0);
@@ -519,7 +518,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testFailReserveLaunchExpectedScalar() throws InvalidTaskRequirementException {
+  public void testFailReserveLaunchExpectedScalar() throws InvalidRequirementException {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0);
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
 
@@ -529,7 +528,7 @@ public class OfferEvaluatorTest {
   }
 
   @Test
-  public void testUnreserveLaunchExpectedScalar() throws InvalidTaskRequirementException {
+  public void testUnreserveLaunchExpectedScalar() throws InvalidRequirementException {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0);
 
@@ -631,12 +630,13 @@ public class OfferEvaluatorTest {
   }
 
   private static OfferRequirement getOfferRequirement(Resource resource)
-          throws InvalidTaskRequirementException {
+          throws InvalidRequirementException {
     return getOfferRequirement(resource, Collections.emptyList(), Collections.emptyList());
   }
 
-  private static OfferRequirement getOfferRequirement(Resource resource, List<String> avoidAgents, List<String> collocateAgents)
-    throws InvalidTaskRequirementException {
+  private static OfferRequirement getOfferRequirement(
+          Resource resource, List<String> avoidAgents, List<String> collocateAgents)
+                  throws InvalidRequirementException {
     return new OfferRequirement(
             Arrays.asList(getTaskInfo(resource)),
             null,
@@ -662,7 +662,8 @@ public class OfferEvaluatorTest {
 
   private static ExecutorInfo getExecutorInfo(Resource resource) {
     CommandInfo cmd = CommandInfo.newBuilder().build();
-    ExecutorInfoBuilder builder = new ExecutorInfoBuilder(ResourceTestUtils.testExecutorId, cmd);
+    ExecutorInfoBuilder builder = new ExecutorInfoBuilder(
+        ResourceTestUtils.testExecutorId, ResourceTestUtils.testExecutorName, cmd);
     return builder.addResource(resource).build();
   }
 }

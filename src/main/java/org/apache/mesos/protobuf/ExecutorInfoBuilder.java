@@ -17,14 +17,10 @@ public class ExecutorInfoBuilder {
 
   private Protos.ExecutorInfo.Builder builder = Protos.ExecutorInfo.newBuilder();
 
-  public ExecutorInfoBuilder(String executorId, Protos.CommandInfo cmdInfo) {
-    setExecutorId(executorId);
-    builder.setCommand(cmdInfo);
-  }
-
   public ExecutorInfoBuilder(String executorId, String name, Protos.CommandInfo cmdInfo) {
-    this(executorId, cmdInfo);
+    setExecutorId(executorId);
     setName(name);
+    builder.setCommand(cmdInfo);
   }
 
   public ExecutorInfoBuilder setExecutorId(String executorId) {

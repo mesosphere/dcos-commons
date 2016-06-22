@@ -2,29 +2,33 @@ package org.apache.mesos.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.SlaveID;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.protobuf.EnvironmentBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ProcessTaskTest {
+    private static final String EXECUTOR_NAME = "TEST_EXECUTOR";
+    private static final String TASK_NAME = "TEST_TASK";
+
     @Test
     public void testSimple() throws Exception {
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
-                .setName("TEST_EXECUTOR")
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setName(EXECUTOR_NAME)
+                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("ls")).build();
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName("TEST")
-                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setName(TASK_NAME)
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setData(Protos.CommandInfo
                         .newBuilder()
@@ -73,14 +77,14 @@ public class ProcessTaskTest {
 
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
-                .setName("TEST_EXECUTOR")
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setName(EXECUTOR_NAME)
+                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("ls")).build();
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName("TEST")
-                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setName(TASK_NAME)
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setData(Protos.CommandInfo
                         .newBuilder()
