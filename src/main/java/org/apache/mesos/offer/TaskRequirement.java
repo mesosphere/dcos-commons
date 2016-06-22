@@ -13,7 +13,11 @@ public class TaskRequirement {
     private final Collection<ResourceRequirement> resourceRequirements;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
-        this.taskInfo = validateTaskInfo(unverifiedTaskInfo);
+        validateTaskInfo(unverifiedTaskInfo);
+        // TaskID is always overwritten with a new UUID, even if already present:
+        this.taskInfo = TaskInfo.newBuilder(unverifiedTaskInfo)
+                .setTaskId(TaskUtils.toTaskId(unverifiedTaskInfo.getName()))
+                .build();
         this.resourceRequirements =
                 RequirementUtils.getResourceRequirements(this.taskInfo.getResourcesList());
     }
@@ -42,7 +46,7 @@ public class TaskRequirement {
      * @return a validated TaskInfo
      * @throws InvalidRequirementException if the TaskInfo is malformed
      */
-    private static TaskInfo validateTaskInfo(TaskInfo taskInfo)
+    private static void validateTaskInfo(TaskInfo taskInfo)
             throws InvalidRequirementException {
         if (!taskInfo.hasName() || StringUtils.isEmpty(taskInfo.getName())) {
             throw new InvalidRequirementException(String.format(
@@ -73,9 +77,5 @@ public class TaskRequirement {
                     "TaskInfo must not contain ExecutorInfo. "
                     + "Use ExecutorRequirement for any Executor requirements: %s", taskInfo));
         }
-        // TaskID is always overwritten with a new UUID, even if already present:
-        return TaskInfo.newBuilder(taskInfo)
-                .setTaskId(TaskUtils.toTaskId(taskInfo.getName()))
-                .build();
     }
 }

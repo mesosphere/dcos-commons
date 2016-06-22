@@ -17,7 +17,11 @@ public class ExecutorRequirement {
 
     public ExecutorRequirement(ExecutorInfo unverifiedExecutorInfo)
             throws InvalidRequirementException {
-        this.executorInfo = validateExecutorInfo(unverifiedExecutorInfo);
+        validateExecutorInfo(unverifiedExecutorInfo);
+        // ExecutorID is always overwritten with a new UUID, even if already present:
+        this.executorInfo = ExecutorInfo.newBuilder(unverifiedExecutorInfo)
+                .setExecutorId(ExecutorUtils.toExecutorId(unverifiedExecutorInfo.getName()))
+                .build();
         this.resourceRequirements =
                 RequirementUtils.getResourceRequirements(this.executorInfo.getResourcesList());
     }
@@ -55,7 +59,7 @@ public class ExecutorRequirement {
      * @return a validated ExecutorInfo
      * @throws InvalidRequirementException if the ExecutorInfo is malformed
      */
-    private static ExecutorInfo validateExecutorInfo(ExecutorInfo executorInfo)
+    private static void validateExecutorInfo(ExecutorInfo executorInfo)
             throws InvalidRequirementException {
         if (!executorInfo.hasName() || StringUtils.isEmpty(executorInfo.getName())) {
             throw new InvalidRequirementException(String.format(
@@ -82,9 +86,5 @@ public class ExecutorRequirement {
                         + "ExecutorUtils.toExecutorId(): %s", executorInfo));
             }
         }
-        // ExecutorID is always overwritten with a new UUID, even if already present:
-        return ExecutorInfo.newBuilder(executorInfo)
-                .setExecutorId(ExecutorUtils.toExecutorId(executorInfo.getName()))
-                .build();
     }
 }
