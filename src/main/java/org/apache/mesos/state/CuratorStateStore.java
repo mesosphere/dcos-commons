@@ -25,23 +25,24 @@ import org.slf4j.LoggerFactory;
  * <code>
  * rootPath/
  *     -> "FrameworkID"
- *     -> ExecutorName-0/
- *         -> TaskName-0/
- *             -> "TaskInfo"
- *             -> "TaskStatus"
- *         -> TaskName-1/
- *             -> "TaskInfo"
- *             -> "TaskStatus"
- *         -> ...
- *    -> ExecutorName-1/
- *         -> TaskName-0/
- *             -> "TaskInfo"
- *             -> "TaskStatus"
- *         -> TaskName-1/
- *             -> "TaskInfo"
- *             -> "TaskStatus"
- *         -> ...
- *    -> ...
+ *     -> "Tasks"
+ *         -> ExecutorName-0/
+ *             -> TaskName-0/
+ *                 -> "TaskInfo"
+ *                 -> "TaskStatus"
+ *             -> TaskName-1/
+ *                 -> "TaskInfo"
+ *                 -> "TaskStatus"
+ *             -> ...
+ *        -> ExecutorName-1/
+ *             -> TaskName-0/
+ *                 -> "TaskInfo"
+ *                 -> "TaskStatus"
+ *             -> TaskName-1/
+ *                 -> "TaskInfo"
+ *                 -> "TaskStatus"
+ *             -> ...
+ *        -> ...
  * </code>
  *
  * Note that for frameworks which don't use custom executors, the same structure is used, except
@@ -57,9 +58,10 @@ public class CuratorStateStore implements StateStore {
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
+    private static final String TASKS_ROOT_NAME = "Tasks";
 
     private final CuratorPersister curator;
-    private final PathMapper pathMapper;
+    private final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
 
     /**
@@ -82,7 +84,7 @@ public class CuratorStateStore implements StateStore {
      */
     public CuratorStateStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
-        this.pathMapper = new PathMapper(rootPath);
+        this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = rootPath + "/" + FWK_ID_PATH_NAME;
     }
 
@@ -135,7 +137,7 @@ public class CuratorStateStore implements StateStore {
     @Override
     public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
         for (Protos.TaskInfo taskInfo : tasks) {
-            String path = pathMapper.getTaskInfoPath(taskInfo.getName(), getExecutorName(taskInfo));
+            String path = taskPathMapper.getTaskInfoPath(taskInfo.getName(), getExecutorName(taskInfo));
             logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), path);
             try {
                 curator.store(path, taskInfo.toByteArray());
@@ -152,7 +154,7 @@ public class CuratorStateStore implements StateStore {
         Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
 
         try {
-            for (String taskName : curator.getChildren(pathMapper.getExecutorPath(execName))) {
+            for (String taskName : curator.getChildren(taskPathMapper.getExecutorPath(execName))) {
                 taskInfos.add(fetchTask(taskName, execName));
             }
         } catch (Exception e) {
@@ -165,7 +167,7 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public Protos.TaskInfo fetchTask(String taskName, String execName) throws StateStoreException {
-        String path = pathMapper.getTaskInfoPath(taskName, execName);
+        String path = taskPathMapper.getTaskInfoPath(taskName, execName);
         logger.debug("Fetching TaskInfo {}/{} from '{}'", execName, taskName, path);
         try {
             byte[] bytes = curator.fetch(path);
@@ -180,14 +182,12 @@ public class CuratorStateStore implements StateStore {
     @Override
     public Collection<String> fetchExecutorNames() throws StateStoreException {
         try {
-            String path = pathMapper.getFrameworkRootPath();
+            String path = taskPathMapper.getTasksRootPath();
             logger.debug("Fetching Executors from '{}'", path);
             // Be careful to exclude the Framework ID node, which is also a child of the root:
             Collection<String> executorNames = new ArrayList<>();
             for (String childNode : curator.getChildren(path)) {
-                if (!childNode.equals(FWK_ID_PATH_NAME)) {
-                    executorNames.add(childNode);
-                }
+                executorNames.add(childNode);
             }
             return executorNames;
         } catch (KeeperException.NoNodeException e) {
@@ -202,7 +202,7 @@ public class CuratorStateStore implements StateStore {
     @Override
     public void clearExecutor(String execName) throws StateStoreException {
         try {
-            String path = pathMapper.getExecutorPath(execName);
+            String path = taskPathMapper.getExecutorPath(execName);
             logger.debug("Clearing Executor at '{}'", path);
             curator.clear(path);
         } catch (KeeperException.NoNodeException e) {
@@ -235,7 +235,7 @@ public class CuratorStateStore implements StateStore {
                     status, e));
         }
 
-        String path = pathMapper.getTaskStatusPath(taskName, execName);
+        String path = taskPathMapper.getTaskStatusPath(taskName, execName);
         logger.debug("Storing status for '{}/{}' in '{}'", execName, taskName, path);
 
         try {
@@ -251,7 +251,7 @@ public class CuratorStateStore implements StateStore {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
 
         try {
-            for (String taskName : curator.getChildren(pathMapper.getExecutorPath(execName))) {
+            for (String taskName : curator.getChildren(taskPathMapper.getExecutorPath(execName))) {
                 taskStatuses.add(fetchStatus(taskName, execName));
             }
         } catch (Exception e) {
@@ -266,7 +266,7 @@ public class CuratorStateStore implements StateStore {
     public Protos.TaskStatus fetchStatus(String taskName, String execName)
             throws StateStoreException {
         try {
-            String path = pathMapper.getTaskStatusPath(taskName, execName);
+            String path = taskPathMapper.getTaskStatusPath(taskName, execName);
             logger.debug("Fetching status for {}/{} in '{}'", execName, taskName, path);
             byte[] bytes = curator.fetch(path);
             if (bytes.length > 0) {
@@ -284,11 +284,11 @@ public class CuratorStateStore implements StateStore {
 
     // Internals
 
-    private static class PathMapper {
-        private final String rootPath;
+    private static class TaskPathMapper {
+        private final String tasksRootPath;
 
-        private PathMapper(String rootPath) {
-            this.rootPath = rootPath;
+        private TaskPathMapper(String rootPath) {
+            this.tasksRootPath = rootPath + "/" + TASKS_ROOT_NAME;
         }
 
         private String getTaskInfoPath(String taskName, String execName) {
@@ -304,11 +304,11 @@ public class CuratorStateStore implements StateStore {
         }
 
         private String getExecutorPath(String execName) {
-            return getFrameworkRootPath() + "/" + execName;
+            return getTasksRootPath() + "/" + execName;
         }
 
-        private String getFrameworkRootPath() {
-            return rootPath;
+        private String getTasksRootPath() {
+            return tasksRootPath;
         }
     }
 
