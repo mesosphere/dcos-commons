@@ -25,7 +25,7 @@ public class ExecutorUtils {
       if (underScoreIndex == -1) {
         throw new ExecutorTaskException(String.format(
                 "ExecutorID '%s' is malformed.  Expected '%s' to extract ExecutorName from ExecutorID.  "
-                + "ExecutorIDs should be generated with TaskUtils.toTaskId().", executorId, EXECUTOR_NAME_DELIM));
+                + "ExecutorIDs should be generated with ExecutorUtils.toExecutorId().", executorId, EXECUTOR_NAME_DELIM));
       }
 
       return executorId.getValue().substring(0, underScoreIndex);
