@@ -26,7 +26,7 @@ public class OfferAccepter {
   private Collection<OperationRecorder> recorders;
 
   public OfferAccepter(OperationRecorder recorder) {
-    this.recorders = Arrays.asList(recorder);
+    this(Arrays.asList(recorder));
   }
 
   public OfferAccepter(List<OperationRecorder> recorders) {

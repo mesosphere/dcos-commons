@@ -22,12 +22,11 @@ public class CuratorStateStoreTest {
     private static final Protos.FrameworkID FRAMEWORK_ID =
             Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final String TASK_NAME = "test-task-name";
-    private static final Protos.TaskID TASK_ID = TaskUtils.toTaskId(TASK_NAME);
     private static final String EXECUTOR_NAME = "test-executor-name";
     private static final String ROOT_ZK_PATH = "/test-root-path";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(TASK_ID)
+            .setTaskId(TaskUtils.toTaskId(TASK_NAME))
             .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
             .setState(TASK_STATE)
             .build();
@@ -261,10 +260,75 @@ public class CuratorStateStoreTest {
         assertEquals(true, store.fetchExecutorNames().isEmpty());
     }
 
+    @Test
+    public void testStoreStatusReusesExecutorId() throws Exception {
+        store.storeStatus(TASK_STATUS);
+        store.storeStatus(TASK_STATUS.toBuilder()
+                .clearExecutorId()
+                .build());
+        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME, EXECUTOR_NAME));
+    }
+
+    @Test
+    public void testStoreStatusOnlyMatchesExactTask() throws Exception {
+        // write initial versions with executor id present:
+
+        // original:
+        store.storeStatus(TASK_STATUS); // uses EXECUTOR_ID
+        // different executor name, same task name:
+        Protos.ExecutorID otherExecutorId = ExecutorUtils.toExecutorId("other-executor");
+        Protos.TaskStatus otherExecutorStatus = TASK_STATUS.toBuilder()
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME)) // same name, different UUID
+                .setExecutorId(otherExecutorId)
+                .build();
+        store.storeStatus(otherExecutorStatus);
+        // same executor name, different task name:
+        Protos.TaskID otherTaskId = TaskUtils.toTaskId("other-task");
+        Protos.TaskStatus otherTaskStatus = TASK_STATUS.toBuilder()
+                .setTaskId(otherTaskId)
+                .build();
+        store.storeStatus(otherTaskStatus);
+
+        // write versions of each with executor id removed:
+        store.storeStatus(TASK_STATUS.toBuilder().clearExecutorId().build());
+        store.storeStatus(otherExecutorStatus.toBuilder().clearExecutorId().build());
+        store.storeStatus(otherTaskStatus.toBuilder().clearExecutorId().build());
+
+        // returned values line up:
+        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME, EXECUTOR_NAME));
+        assertEquals(otherExecutorStatus, store.fetchStatus(TASK_NAME, "other-executor"));
+        assertEquals(otherTaskStatus, store.fetchStatus("other-task", EXECUTOR_NAME));
+    }
+
+    // exact taskid match is required
+    @Test(expected=StateStoreException.class)
+    public void testStoreStatusExecutorIdFailsOnUUIDChange() throws Exception {
+        store.storeStatus(TASK_STATUS);
+        store.storeStatus(TASK_STATUS.toBuilder()
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME)) // new UUID should trigger mismatch
+                .clearExecutorId()
+                .build());
+    }
+
+    // taskid is required and cannot be unset, so lets try the next best thing
+    @Test(expected=StateStoreException.class)
+    public void testStoreStatusEmptyTaskId() throws Exception {
+        store.storeStatus(TASK_STATUS.toBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(""))
+                .build());
+    }
+
     @Test(expected=StateStoreException.class)
     public void testStoreStatusBadTaskId() throws Exception {
         store.storeStatus(TASK_STATUS.toBuilder()
                 .setTaskId(Protos.TaskID.newBuilder().setValue("bad-test-id"))
+                .build());
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testStoreStatusMissingExecutorId() throws Exception {
+        store.storeStatus(TASK_STATUS.toBuilder()
+                .clearExecutorId()
                 .build());
     }
 
@@ -305,7 +369,7 @@ public class CuratorStateStoreTest {
     private static Protos.TaskInfo getTestTask(String executorName) {
         return Protos.TaskInfo.newBuilder()
                 .setName(TASK_NAME)
-                .setTaskId(TASK_ID)
+                .setTaskId(TASK_STATUS.getTaskId())
                 .setExecutor(Protos.ExecutorInfo.newBuilder()
                         .setExecutorId(ExecutorUtils.toExecutorId(executorName))
                         .setName(executorName)

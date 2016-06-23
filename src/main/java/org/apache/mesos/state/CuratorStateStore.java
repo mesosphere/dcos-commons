@@ -223,16 +223,45 @@ public class CuratorStateStore implements StateStore {
             taskName = TaskUtils.toTaskName(status.getTaskId());
         } catch (TaskException e) {
             throw new StateStoreException(String.format(
-                    "Failed to parse the Task Name from TaskStatus.task_id: '%s' %s", status, e));
+                    "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
         }
 
-        String execName;
-        try {
-            execName = ExecutorUtils.toExecutorName(status.getExecutorId());
-        } catch (ExecutorTaskException e) {
-            throw new StateStoreException(String.format(
-                    "Failed to parse the Executor Name from TaskStatus.executor_id: '%s' %s",
-                    status, e));
+        String execName = null;
+        if (status.hasExecutorId()) {
+            try {
+                execName = ExecutorUtils.toExecutorName(status.getExecutorId());
+            } catch (ExecutorTaskException e) {
+                throw new StateStoreException(String.format(
+                        "Failed to parse the Executor Name from TaskStatus.executor_id: '%s'",
+                        status), e);
+            }
+        } else {
+            // WORKAROUND: Mesos doesn't provide TaskStatus.executor_id on task updates.
+            // Get around this by finding the executor_id inside of a pre-existing status.
+            Protos.TaskStatus oldStatus = fetchMatchingStatus(status.getTaskId(), taskName);
+            if (oldStatus == null) {
+                throw new StateStoreException(String.format(
+                        "TaskStatus.executor_id was not provided, and an existing TaskStatus " +
+                        "containing this information couldn't be found. TaskStatus.executor_id " +
+                        "is required for the first status update: '%s'", status));
+            }
+            if (!oldStatus.hasExecutorId()) {
+                // Shouldn't happen. Didn't we validate this data before writing it?
+                throw new StateStoreException(String.format(
+                        "Retrieved TaskStatus lacks executor_id. Unable to proceed with status update: "
+                        + "retrievedStatus '%s', newStatus '%s'", oldStatus, status));
+            }
+            // Ensure the TaskStatus we actually store contains the full correct ExecutorID
+            status = Protos.TaskStatus.newBuilder(status)
+                    .setExecutorId(oldStatus.getExecutorId())
+                    .build();
+            try {
+                execName = ExecutorUtils.toExecutorName(oldStatus.getExecutorId());
+            } catch (ExecutorTaskException e) {
+                // Shouldn't happen. Didn't we validate this data before writing it?
+                throw new StateStoreException(String.format(
+                        "Unable to recover Executor Name from previously stored TaskStatus"), e);
+            }
         }
 
         String path = taskPathMapper.getTaskStatusPath(taskName, execName);
@@ -310,6 +339,46 @@ public class CuratorStateStore implements StateStore {
         private String getTasksRootPath() {
             return tasksRootPath;
         }
+    }
+
+    /**
+     * Searches for a TaskStatus which matches the provided {@link Protos.TaskID} and derived
+     * {@coode taskName}. Returns {@code null} if the data
+     * @param taskId
+     * @param taskName
+     * @return
+     * @throws StateStoreException
+     */
+    private Protos.TaskStatus fetchMatchingStatus(Protos.TaskID taskId, String taskName)
+            throws StateStoreException {
+        Collection<String> searchExecNames = fetchExecutorNames();
+        logger.info("Provided TaskStatus lacks an executor_id field. "
+                + "Searching {} executor nodes for TaskID '{}'...",
+                searchExecNames.size(), taskId.getValue());
+        for (String searchExecName : searchExecNames) {
+            try {
+                // Just try fetching exactly the task we're looking for:
+                Protos.TaskStatus foundStatus = fetchStatus(taskName, searchExecName);
+
+                // We really do want an EXACT match for the task, so verify matching task id.
+                if (foundStatus.getTaskId().equals(taskId)) {
+                    logger.info("MATCH for wanted TaskID '{}': task '{}' => executor '{}'",
+                            taskId,
+                            foundStatus.getTaskId().getValue(),
+                            foundStatus.getExecutorId().getValue());
+                    return foundStatus;
+                }
+                logger.info("Found TaskStatus for task named '{}' under executor '{}', "
+                        + "but the TaskIDs don't match: wanted '{}', found '{}'",
+                        taskName, searchExecName,
+                        taskId.getValue(), foundStatus.getTaskId().getValue());
+            } catch (StateStoreException e) {
+                // no matching task name in this executor node. this is normal. keep searching.
+                logger.info("No matching TaskStatus found for task '{}' under executor '{}'",
+                        taskName, searchExecName);
+            }
+        }
+        return null;
     }
 
     /**

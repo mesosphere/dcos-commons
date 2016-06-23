@@ -3,6 +3,7 @@ package org.apache.mesos.offer;
 import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.executor.ExecutorTaskException;
 import org.apache.mesos.executor.ExecutorUtils;
@@ -86,5 +87,10 @@ public class ExecutorRequirement {
                         + "ExecutorUtils.toExecutorId(): %s", executorInfo));
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }

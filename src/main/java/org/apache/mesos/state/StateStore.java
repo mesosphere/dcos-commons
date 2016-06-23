@@ -103,8 +103,7 @@ public interface StateStore {
      *
      * <ul>
      * <li>TaskStatus.task_id (required by proto)</li>
-     * <li>TaskStatus.executor_id, or TaskStatus.command should be set to indicate a command
-     * executor, in which case the executor name is extracted from TaskInfo.task_id</li>
+     * <li>TaskStatus.executor_id on the initial status update, optional thereafter</li>
      * </ul>
      *
      * @param status The status to be stored, which meets the above requirements

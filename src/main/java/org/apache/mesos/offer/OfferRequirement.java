@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -107,5 +108,10 @@ public class OfferRequirement {
       taskRequirements.add(new TaskRequirement(taskInfo));
     }
     return taskRequirements;
+  }
+
+  @Override
+  public String toString() {
+      return ToStringBuilder.reflectionToString(this);
   }
 }
