@@ -69,7 +69,7 @@ public class ExecutorRequirement {
         if (executorInfo.hasExecutorId()
                 && !StringUtils.isEmpty(executorInfo.getExecutorId().getValue())) {
             // Executor ID may be included if this is replacing an existing task. In that case, we
-            // still perform a sanity check to ensure that the original Task ID was formatted
+            // still perform a sanity check to ensure that the original Executor ID was formatted
             // correctly. We must allow Executor ID to be present but empty because it is a required
             // proto field.
             String executorName;
@@ -83,7 +83,7 @@ public class ExecutorRequirement {
             }
             if (!executorName.equals(executorInfo.getName())) {
                 throw new InvalidRequirementException(String.format(
-                        "When non-empty, ExecInfo.id must align with ExecInfo.name. Use "
+                        "When non-empty, ExecutorInfo.id must align with ExecutorInfo.name. Use "
                         + "ExecutorUtils.toExecutorId(): %s", executorInfo));
             }
         }

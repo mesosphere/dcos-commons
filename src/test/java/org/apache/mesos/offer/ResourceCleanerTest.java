@@ -62,19 +62,15 @@ public class ResourceCleanerTest {
         StateStore mockStateStore = mock(StateStore.class);
 
         // cleaners without any expected resources
-        when(mockStateStore.fetchExecutorNames()).thenReturn(new ArrayList<>());
+        when(mockStateStore.fetchTasks()).thenReturn(new ArrayList<>());
         emptyCleaners.add(new ResourceCleaner(Collections.emptyList()));
         emptyCleaners.add(new ResourceCleaner(mockStateStore));
 
         // cleaners with expected resources
         populatedCleaners.add(new ResourceCleaner(Arrays.asList(
                 TASK_INFO_1.getExecutor().getResources(0), TASK_INFO_2.getResources(0))));
-        when(mockStateStore.fetchExecutorNames())
-                .thenReturn(Arrays.asList("a", "b"));
-        when(mockStateStore.fetchTasks("a"))
-                .thenReturn(Arrays.asList(TASK_INFO_1));
-        when(mockStateStore.fetchTasks("b"))
-                .thenReturn(Arrays.asList(TASK_INFO_2));
+        when(mockStateStore.fetchTasks())
+                .thenReturn(Arrays.asList(TASK_INFO_1, TASK_INFO_2));
         populatedCleaners.add(new ResourceCleaner(mockStateStore));
 
         allCleaners.addAll(emptyCleaners);

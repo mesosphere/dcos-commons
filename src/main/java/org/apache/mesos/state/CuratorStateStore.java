@@ -4,12 +4,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
-import org.apache.mesos.executor.ExecutorTaskException;
-import org.apache.mesos.executor.ExecutorUtils;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.storage.CuratorPersister;
@@ -24,25 +21,17 @@ import org.slf4j.LoggerFactory;
  * The ZNode structure in Zookeeper is as follows:
  * <code>
  * rootPath/
- *     -> "FrameworkID"
- *     -> "Tasks"
- *         -> ExecutorName-0/
- *             -> TaskName-0/
- *                 -> "TaskInfo"
- *                 -> "TaskStatus"
- *             -> TaskName-1/
- *                 -> "TaskInfo"
- *                 -> "TaskStatus"
- *             -> ...
- *        -> ExecutorName-1/
- *             -> TaskName-0/
- *                 -> "TaskInfo"
- *                 -> "TaskStatus"
- *             -> TaskName-1/
- *                 -> "TaskInfo"
- *                 -> "TaskStatus"
- *             -> ...
- *        -> ...
+ *     -> FrameworkID
+ *     -> Tasks/
+ *         -> [TaskName-0]/
+ *             -> TaskInfo
+ *             -> TaskStatus
+ *         -> [TaskName-1]/
+ *             -> TaskInfo
+ *         -> [TaskName-2]/
+ *             -> TaskInfo
+ *             -> TaskStatus
+ *         -> ...
  * </code>
  *
  * Note that for frameworks which don't use custom executors, the same structure is used, except
@@ -102,6 +91,20 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
+    public void clearFrameworkId() throws StateStoreException {
+        try {
+            logger.debug("Clearing FrameworkID at '{}'", fwkIdPath);
+            curator.clear(fwkIdPath);
+        } catch (KeeperException.NoNodeException e) {
+            // Clearing a non-existent FrameworkID should not result in an exception from us.
+            logger.warn("Cleared unset FrameworkID, continuing silently", e);
+            return;
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    @Override
     public Protos.FrameworkID fetchFrameworkId() throws StateStoreException {
         try {
             logger.debug("Fetching FrameworkID from '{}'", fwkIdPath);
@@ -118,26 +121,12 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    @Override
-    public void clearFrameworkId() throws StateStoreException {
-        try {
-            logger.debug("Clearing FrameworkID at '{}'", fwkIdPath);
-            curator.clear(fwkIdPath);
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent FrameworkID should not result in an exception from us.
-            logger.warn("Cleared unset FrameworkID, continuing silently", e);
-            return;
-        } catch (Exception e) {
-            throw new StateStoreException(e);
-        }
-    }
-
-    // TaskInfo
+    // Write Tasks
 
     @Override
     public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
         for (Protos.TaskInfo taskInfo : tasks) {
-            String path = taskPathMapper.getTaskInfoPath(taskInfo.getName(), getExecutorName(taskInfo));
+            String path = taskPathMapper.getTaskInfoPath(taskInfo.getName());
             logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), path);
             try {
                 curator.store(path, taskInfo.toByteArray());
@@ -150,73 +139,6 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Collection<Protos.TaskInfo> fetchTasks(String execName) throws StateStoreException {
-        Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
-
-        try {
-            for (String taskName : curator.getChildren(taskPathMapper.getExecutorPath(execName))) {
-                taskInfos.add(fetchTask(taskName, execName));
-            }
-        } catch (Exception e) {
-            // Requested executor not found, or other storage failure
-            throw new StateStoreException(e);
-        }
-
-        return taskInfos;
-    }
-
-    @Override
-    public Protos.TaskInfo fetchTask(String taskName, String execName) throws StateStoreException {
-        String path = taskPathMapper.getTaskInfoPath(taskName, execName);
-        logger.debug("Fetching TaskInfo {}/{} from '{}'", execName, taskName, path);
-        try {
-            byte[] bytes = curator.fetch(path);
-            return Protos.TaskInfo.parseFrom(bytes);
-        } catch (Exception e) {
-            throw new StateStoreException(e);
-        }
-    }
-
-    // Executor
-
-    @Override
-    public Collection<String> fetchExecutorNames() throws StateStoreException {
-        try {
-            String path = taskPathMapper.getTasksRootPath();
-            logger.debug("Fetching Executors from '{}'", path);
-            // Be careful to exclude the Framework ID node, which is also a child of the root:
-            Collection<String> executorNames = new ArrayList<>();
-            for (String childNode : curator.getChildren(path)) {
-                executorNames.add(childNode);
-            }
-            return executorNames;
-        } catch (KeeperException.NoNodeException e) {
-            // Root path doesn't exist yet. Treat as an empty list of executors. This scenario is
-            // expected to commonly occur when the Framework is being run for the first time.
-            return Collections.emptyList();
-        } catch (Exception e) {
-            throw new StateStoreException(e);
-        }
-    }
-
-    @Override
-    public void clearExecutor(String execName) throws StateStoreException {
-        try {
-            String path = taskPathMapper.getExecutorPath(execName);
-            logger.debug("Clearing Executor at '{}'", path);
-            curator.clear(path);
-        } catch (KeeperException.NoNodeException e) {
-            // Clearing a non-existent ExecutorID should not result in an exception from us.
-            logger.warn("Cleared unset Executor, continuing silently: {}", execName, e);
-            return;
-        } catch (Exception e) {
-            throw new StateStoreException(e);
-        }
-    }
-
-    // TaskStatus
-
-    @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
         String taskName;
         try {
@@ -226,46 +148,8 @@ public class CuratorStateStore implements StateStore {
                     "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
         }
 
-        String execName = null;
-        if (status.hasExecutorId()) {
-            try {
-                execName = ExecutorUtils.toExecutorName(status.getExecutorId());
-            } catch (ExecutorTaskException e) {
-                throw new StateStoreException(String.format(
-                        "Failed to parse the Executor Name from TaskStatus.executor_id: '%s'",
-                        status), e);
-            }
-        } else {
-            // WORKAROUND: Mesos doesn't provide TaskStatus.executor_id on task updates.
-            // Get around this by finding the executor_id inside of a pre-existing status.
-            Protos.TaskStatus oldStatus = fetchMatchingStatus(status.getTaskId(), taskName);
-            if (oldStatus == null) {
-                throw new StateStoreException(String.format(
-                        "TaskStatus.executor_id was not provided, and an existing TaskStatus " +
-                        "containing this information couldn't be found. TaskStatus.executor_id " +
-                        "is required for the first status update: '%s'", status));
-            }
-            if (!oldStatus.hasExecutorId()) {
-                // Shouldn't happen. Didn't we validate this data before writing it?
-                throw new StateStoreException(String.format(
-                        "Retrieved TaskStatus lacks executor_id. Unable to proceed with status update: "
-                        + "retrievedStatus '%s', newStatus '%s'", oldStatus, status));
-            }
-            // Ensure the TaskStatus we actually store contains the full correct ExecutorID
-            status = Protos.TaskStatus.newBuilder(status)
-                    .setExecutorId(oldStatus.getExecutorId())
-                    .build();
-            try {
-                execName = ExecutorUtils.toExecutorName(oldStatus.getExecutorId());
-            } catch (ExecutorTaskException e) {
-                // Shouldn't happen. Didn't we validate this data before writing it?
-                throw new StateStoreException(String.format(
-                        "Unable to recover Executor Name from previously stored TaskStatus"), e);
-            }
-        }
-
-        String path = taskPathMapper.getTaskStatusPath(taskName, execName);
-        logger.debug("Storing status for '{}/{}' in '{}'", execName, taskName, path);
+        String path = taskPathMapper.getTaskStatusPath(taskName);
+        logger.debug("Storing status for '{}' in '{}'", taskName, path);
 
         try {
             curator.store(path, status.toByteArray());
@@ -275,36 +159,106 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Collection<Protos.TaskStatus> fetchStatuses(String execName)
-            throws StateStoreException {
-        Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
-
+    public void clearTask(String taskName) throws StateStoreException {
+        String path = taskPathMapper.getTaskPath(taskName);
+        logger.debug("Clearing Task at '{}'", path);
         try {
-            for (String taskName : curator.getChildren(taskPathMapper.getExecutorPath(execName))) {
-                taskStatuses.add(fetchStatus(taskName, execName));
-            }
+            curator.clear(path);
+        } catch (KeeperException.NoNodeException e) {
+            // Clearing a non-existent Task should not result in an exception from us.
+            logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
+            return;
         } catch (Exception e) {
-            // Requested executor not found, or other storage failure
             throw new StateStoreException(e);
         }
+    }
 
+    // Read Tasks
+
+    @Override
+    public Collection<String> fetchTaskNames() throws StateStoreException {
+        String path = taskPathMapper.getTasksRootPath();
+        logger.debug("Fetching task names from '{}'", path);
+        try {
+            Collection<String> taskNames = new ArrayList<>();
+            for (String childNode : curator.getChildren(path)) {
+                taskNames.add(childNode);
+            }
+            return taskNames;
+        } catch (KeeperException.NoNodeException e) {
+            // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
+            // expected to commonly occur when the Framework is being run for the first time.
+            return Collections.emptyList();
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    @Override
+    public Collection<Protos.TaskInfo> fetchTasks() throws StateStoreException {
+        Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
+        for (String taskName : fetchTaskNames()) {
+            try {
+                byte[] bytes = curator.fetch(taskPathMapper.getTaskInfoPath(taskName));
+                taskInfos.add(Protos.TaskInfo.parseFrom(bytes));
+            } catch (KeeperException.NoNodeException e) {
+                // The task node exists, but it doesn't contain a TaskInfo node. This may occur if
+                // the only contents are a TaskStatus.
+                continue;
+            } catch (Exception e) {
+                throw new StateStoreException(e);
+            }
+        }
+        return taskInfos;
+    }
+
+    @Override
+    public Protos.TaskInfo fetchTask(String taskName) throws StateStoreException {
+        String path = taskPathMapper.getTaskInfoPath(taskName);
+        logger.debug("Fetching TaskInfo {} from '{}'", taskName, path);
+        try {
+            byte[] bytes = curator.fetch(path);
+            if (bytes.length > 0) {
+                return Protos.TaskInfo.parseFrom(bytes);
+            } else {
+                throw new StateStoreException(String.format(
+                        "Failed to retrieve TaskInfo for TaskName: %s", taskName));
+            }
+        } catch (Exception e) {
+            // Not found, or other error
+            throw new StateStoreException(e);
+        }
+    }
+
+    @Override
+    public Collection<Protos.TaskStatus> fetchStatuses() throws StateStoreException {
+        Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
+        for (String taskName : fetchTaskNames()) {
+            try {
+                byte[] bytes = curator.fetch(taskPathMapper.getTaskStatusPath(taskName));
+                taskStatuses.add(Protos.TaskStatus.parseFrom(bytes));
+            } catch (KeeperException.NoNodeException e) {
+                // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
+                // the only contents are a TaskInfo.
+                continue;
+            } catch (Exception e) {
+                throw new StateStoreException(e);
+            }
+        }
         return taskStatuses;
     }
 
     @Override
-    public Protos.TaskStatus fetchStatus(String taskName, String execName)
-            throws StateStoreException {
+    public Protos.TaskStatus fetchStatus(String taskName) throws StateStoreException {
+        String path = taskPathMapper.getTaskStatusPath(taskName);
+        logger.debug("Fetching status for '{}' in '{}'", taskName, path);
         try {
-            String path = taskPathMapper.getTaskStatusPath(taskName, execName);
-            logger.debug("Fetching status for {}/{} in '{}'", execName, taskName, path);
             byte[] bytes = curator.fetch(path);
             if (bytes.length > 0) {
                 return Protos.TaskStatus.parseFrom(bytes);
             } else {
                 throw new StateStoreException(String.format(
-                        "Failed to retrieve TaskStatus for TaskName: %s and ExecutorID: %s",
-                        taskName, execName));
-
+                        "Failed to retrieve TaskStatus for TaskName: %s", taskName));
             }
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -320,94 +274,20 @@ public class CuratorStateStore implements StateStore {
             this.tasksRootPath = rootPath + "/" + TASKS_ROOT_NAME;
         }
 
-        private String getTaskInfoPath(String taskName, String execName) {
-            return getTaskPath(taskName, execName) + "/" + TASK_INFO_PATH_NAME;
+        private String getTaskInfoPath(String taskName) {
+            return getTaskPath(taskName) + "/" + TASK_INFO_PATH_NAME;
         }
 
-        private String getTaskStatusPath(String taskName, String execName) {
-            return getTaskPath(taskName, execName) + "/" + TASK_STATUS_PATH_NAME;
+        private String getTaskStatusPath(String taskName) {
+            return getTaskPath(taskName) + "/" + TASK_STATUS_PATH_NAME;
         }
 
-        private String getTaskPath(String taskName, String execName) {
-            return getExecutorPath(execName) + "/" + taskName;
-        }
-
-        private String getExecutorPath(String execName) {
-            return getTasksRootPath() + "/" + execName;
+        private String getTaskPath(String taskName) {
+            return getTasksRootPath() + "/" + taskName;
         }
 
         private String getTasksRootPath() {
             return tasksRootPath;
-        }
-    }
-
-    /**
-     * Searches for a TaskStatus which matches the provided {@link Protos.TaskID} and derived
-     * {@coode taskName}. Returns {@code null} if the data
-     * @param taskId
-     * @param taskName
-     * @return
-     * @throws StateStoreException
-     */
-    private Protos.TaskStatus fetchMatchingStatus(Protos.TaskID taskId, String taskName)
-            throws StateStoreException {
-        Collection<String> searchExecNames = fetchExecutorNames();
-        logger.info("Provided TaskStatus lacks an executor_id field. "
-                + "Searching {} executor nodes for TaskID '{}'...",
-                searchExecNames.size(), taskId.getValue());
-        for (String searchExecName : searchExecNames) {
-            try {
-                // Just try fetching exactly the task we're looking for:
-                Protos.TaskStatus foundStatus = fetchStatus(taskName, searchExecName);
-
-                // We really do want an EXACT match for the task, so verify matching task id.
-                if (foundStatus.getTaskId().equals(taskId)) {
-                    logger.info("MATCH for wanted TaskID '{}': task '{}' => executor '{}'",
-                            taskId,
-                            foundStatus.getTaskId().getValue(),
-                            foundStatus.getExecutorId().getValue());
-                    return foundStatus;
-                }
-                logger.info("Found TaskStatus for task named '{}' under executor '{}', "
-                        + "but the TaskIDs don't match: wanted '{}', found '{}'",
-                        taskName, searchExecName,
-                        taskId.getValue(), foundStatus.getTaskId().getValue());
-            } catch (StateStoreException e) {
-                // no matching task name in this executor node. this is normal. keep searching.
-                logger.info("No matching TaskStatus found for task '{}' under executor '{}'",
-                        taskName, searchExecName);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Fallback logic for correctly extracting the Executor Name from a {@link TaskInfo}. This may
-     * be moved up into StateStore as a package-private function if it's useful to other
-     * implementations.
-     *
-     * <ol>
-     * <li>TaskInfo for custom executor: Uses TaskInfo.executor.name</li>
-     * <li>TaskInfo for command executor: Uses TaskInfo.name as a fallback</li>
-     * </ol>
-     */
-    private static String getExecutorName(Protos.TaskInfo taskInfo) throws StateStoreException {
-        if (taskInfo.hasExecutor()) {
-            // custom executor: use executor name
-            if (!taskInfo.getExecutor().hasName()
-                    || StringUtils.isEmpty(taskInfo.getExecutor().getName())) {
-                throw new StateStoreException(String.format(
-                        "TaskInfo.executor.name must be populated when TaskInfo.executor is present: %s",
-                        taskInfo));
-            }
-            return taskInfo.getExecutor().getName();
-        } else if (taskInfo.hasCommand()) {
-            // command executor: use task name as executor name
-            return taskInfo.getName();
-        } else {
-            throw new StateStoreException(String.format(
-                    "Either TaskInfo.executor.name or TaskInfo.command must be provided: %s",
-                    taskInfo));
         }
     }
 }

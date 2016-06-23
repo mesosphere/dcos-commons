@@ -112,13 +112,11 @@ public class ResourceCleaner {
             throws StateStoreException {
         Collection<Resource> resources = new ArrayList<>();
 
-        for (String execName : stateStore.fetchExecutorNames()) {
-            for (Protos.TaskInfo taskInfo : stateStore.fetchTasks(execName)) {
-                // get all resources from both the task level and the executor level
-                resources.addAll(taskInfo.getResourcesList());
-                if (taskInfo.hasExecutor()) {
-                    resources.addAll(taskInfo.getExecutor().getResourcesList());
-                }
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            // get all resources from both the task level and the executor level
+            resources.addAll(taskInfo.getResourcesList());
+            if (taskInfo.hasExecutor()) {
+                resources.addAll(taskInfo.getExecutor().getResourcesList());
             }
         }
 
