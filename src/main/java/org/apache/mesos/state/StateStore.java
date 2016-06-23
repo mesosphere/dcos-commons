@@ -59,27 +59,24 @@ public interface StateStore {
 
 
     /**
-     * Stores TaskInfo objects representing tasks in the sub-path of the Executor
-     * which launched or will launch the Task. Each TaskInfo must include the following information:
-     *
-     * <ul>
-     * <li>TaskInfo.name (required by proto)</li>
-     * <li>TaskInfo.executor.name, or TaskInfo.command should be set to indicate a command executor,
-     * in which case TaskInfo.name is used as the executor name</li>
-     * </ul>
+     * Stores TaskInfo objects representing tasks which are desired by the framework. This must be
+     * called before {@link #storeStatus(TaskStatus)} for any given task id.
      *
      * @param tasks Tasks to be stored, which each meet the above requirements
-     * @throws StateStoreException when persisting TaskInfo information fails
+     * @throws StateStoreException when persisting TaskInfo information fails, or if its TaskId is
+     * malformed
      */
     void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException;
 
 
     /**
-     * Stores the TaskStatus of a particular Task. It must include a valid TaskStatus.task_id value,
-     * as produced by {@link TaskUtils#toTaskId(String)}.
+     * Stores the TaskStatus of a particular Task. The {@link TaskInfo} for this exact task MUST
+     * have already been written via {@link #storeTasks(Collection)} beforehand. The TaskId must be
+     * well-formatted as produced by {@link TaskUtils#toTaskId(String)}.
      *
-     * @param status The status to be stored, which meets the above requirement
-     * @throws StateStoreException if storing the TaskStatus fails
+     * @param status The status to be stored, which meets the above requirements
+     * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed,
+     * or if its matching TaskInfo wasn't stored first
      */
     void storeStatus(Protos.TaskStatus status) throws StateStoreException;
 
@@ -89,7 +86,7 @@ public interface StateStore {
      * TaskStatus.
      *
      * @param taskName The name of the task to be cleared
-     * @throws StateStoreException when clearing the indicated Executor's informations fails
+     * @throws StateStoreException when clearing the indicated Task's informations fails
      */
     void clearTask(String taskName) throws StateStoreException;
 
@@ -98,10 +95,10 @@ public interface StateStore {
 
 
     /**
-     * Fetches all the Task names listed in the underlying storage. Note that these may lack either
-     * TaskInfo or TaskStatus (but not both).
+     * Fetches all the Task names listed in the underlying storage. Note that these should always
+     * have a TaskInfo, but may lack TaskStatus.
      *
-     * @return All the Executor names stored so far, or an empty list if none are found
+     * @return All the Task names stored so far, or an empty list if none are found
      * @throws StateStoreException when fetching the data fails
      */
     Collection<String> fetchTaskNames() throws StateStoreException;
@@ -109,7 +106,8 @@ public interface StateStore {
 
     /**
      * Fetches and returns all {@link TaskInfo}s from the underlying storage, or an empty list if
-     * none are found.
+     * none are found. This list should be a superset of the list returned by
+     * {@link #fetchStatuses()}.
      *
      * @return All TaskInfos
      * @throws StateStoreException if fetching
@@ -130,17 +128,19 @@ public interface StateStore {
 
 
     /**
-     * Fetches all {@link TaskStatus}es from the underlying storage.
+     * Fetches all {@link TaskStatus}es from the underlying storage, or an empty list if none are
+     * found. Note that this list may have fewer entries than {@link #fetchTasks()} if some tasks
+     * are lacking statuses.
      *
-     * @return The TaskStatus objects associated with all tasks for the indicated Executor
-     * @throws StateStoreException if no data was found for the requested Executor, or if fetching
-     *                             the TaskStatus information otherwise fails
+     * @return The TaskStatus objects associated with all tasks
+     * @throws StateStoreException if fetching the TaskStatus information fails
      */
     Collection<Protos.TaskStatus> fetchStatuses() throws StateStoreException;
 
 
     /**
      * Fetches the TaskStatus for a particular Task, or an error if no matching status is found.
+     * A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
      *
      * @param taskName The name of the Task which should have its status retrieved
      * @return The TaskStatus associated with a particular Task

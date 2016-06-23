@@ -148,6 +148,26 @@ public class CuratorStateStore implements StateStore {
                     "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
         }
 
+        // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
+        // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
+        // occasionally get these for stale tasks that have since been changed (with new UUIDs).
+        Protos.TaskInfo taskInfo;
+        try {
+            taskInfo = fetchTask(taskName);
+        } catch (Exception e) {
+            throw new StateStoreException(String.format(
+                    "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s. " +
+                    "Call storeTasks() before calling storeStatus()", taskName), e);
+        }
+        if (!taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
+            throw new StateStoreException(String.format(
+                    "Task ID '%s' of updated status doesn't match Task ID '%s' of current TaskInfo."
+                    + " Task IDs must exactly match before status may be updated."
+                    + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
+                    status.getTaskId().getValue(), taskInfo.getTaskId().getValue(),
+                    status, taskInfo));
+        }
+
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Storing status for '{}' in '{}'", taskName, path);
 
@@ -201,11 +221,8 @@ public class CuratorStateStore implements StateStore {
             try {
                 byte[] bytes = curator.fetch(taskPathMapper.getTaskInfoPath(taskName));
                 taskInfos.add(Protos.TaskInfo.parseFrom(bytes));
-            } catch (KeeperException.NoNodeException e) {
-                // The task node exists, but it doesn't contain a TaskInfo node. This may occur if
-                // the only contents are a TaskStatus.
-                continue;
             } catch (Exception e) {
+                // Throw even for NoNodeException: We should always have a TaskInfo for every entry
                 throw new StateStoreException(e);
             }
         }
