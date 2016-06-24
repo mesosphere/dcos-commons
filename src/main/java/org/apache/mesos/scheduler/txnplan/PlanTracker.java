@@ -119,8 +119,8 @@ public class PlanTracker {
                         }
                         listeners.stream().forEach(l -> l.planEnded(plan, status, false));
                     } catch (Throwable e) {
-                        listeners.stream().forEach(l -> l.planEnded(plan, status, false));
                         crash(e);
+                        listeners.stream().forEach(l -> l.planEnded(plan, status, false));
                     }
                 }
             }).start();

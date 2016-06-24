@@ -33,7 +33,7 @@ public class PlanTest {
      */
     public void testPlanExecutorSerializer() throws InterruptedException {
         List<String> log = Collections.synchronizedList(new ArrayList<>());
-        PlanExecutor executor = new PlanExecutor(null, new MockOperationDriverFactory());
+        PlanExecutor executor = new PlanExecutor(null, new MockOperationDriverFactory(), new InProcZKPlanStorageDriver());
 
         Plan plan1 = new Plan();
         Step one = plan1.step(new LogOp(log, "one", 100, "A"));
@@ -75,7 +75,7 @@ public class PlanTest {
      */
     public void testPlanExecutorConcurrent() throws InterruptedException {
         List<String> log = Collections.synchronizedList(new ArrayList<>());
-        PlanExecutor executor = new PlanExecutor(null, new MockOperationDriverFactory());
+        PlanExecutor executor = new PlanExecutor(null, new MockOperationDriverFactory(), new InProcZKPlanStorageDriver());
 
         Plan plan1 = new Plan();
         Step one = plan1.step(new LogOp(log, "one", 100, "A"));

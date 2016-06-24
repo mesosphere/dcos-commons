@@ -39,7 +39,7 @@ public class KillTaskOp implements Operation {
                     + "which doesn't exist, aborting");
         }
         Task task = registry.getTask(name);
-        while (!TaskUtils.isTerminated(task.getTaskStatus())) {
+        while (!TaskUtils.isTerminated(task.getLatestTaskStatus())) {
             registry.getSchedulerDriver().killTask(id);
             task.wait();
         }

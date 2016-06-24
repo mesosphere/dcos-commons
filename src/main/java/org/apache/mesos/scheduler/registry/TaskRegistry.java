@@ -41,9 +41,11 @@ public class TaskRegistry {
     private final Map<String, Task> tasks;
     private final OfferAccepter accepter;
     private volatile SchedulerDriver driver = null;
+    private RegistryStorageDriver storageDriver;
 
-    public TaskRegistry(OfferAccepter accepter) {
+    public TaskRegistry(OfferAccepter accepter, RegistryStorageDriver storageDriver) {
         this.accepter = accepter;
+        this.storageDriver = storageDriver;
         this.tasks = new HashMap<>();
         //TODO this should block until reconciliation is complete
     }
@@ -58,8 +60,10 @@ public class TaskRegistry {
         if (tasks.containsKey(name)) {
             throw new RuntimeException("Cannot create task; already exists: " + name);
         }
-        tasks.put(name, Task.createTask(name, requirement));
-        return tasks.get(name).getTaskInfo().getTaskId();
+        Task task = Task.createTask(name, requirement);
+        tasks.put(name, task);
+        storageDriver.storeTask(task);
+        return task.getTaskInfo().getTaskId();
     }
 
     /**
@@ -75,6 +79,7 @@ public class TaskRegistry {
             throw new RuntimeException("Cannot destroy task; does not exist: " + name);
         }
         tasks.remove(name);
+        storageDriver.deleteTask(name);
     }
 
     /**
@@ -93,11 +98,13 @@ public class TaskRegistry {
         if (!tasks.containsKey(name)) {
             throw new RuntimeException("Cannot replace task; doesn't exist: " + name);
         }
-        if (!TaskUtil.isTerminalState(tasks.get(name).getTaskStatus().getState())) {
+        if (!TaskUtil.isTerminalState(tasks.get(name).getLatestTaskStatus().getState())) {
             logger.warn("replacing non-terminal task!");
         }
-        tasks.put(name, Task.createTask(name, requirement));
-        return tasks.get(name).getTaskInfo().getTaskId();
+        Task task = Task.createTask(name, requirement);
+        tasks.put(name, task);
+        storageDriver.storeTask(task);
+        return task.getTaskInfo().getTaskId();
     }
 
     public synchronized Task getTask(String name) {
@@ -207,8 +214,12 @@ public class TaskRegistry {
                 .findFirst();
         if (maybeTask.isPresent()) {
             Task task = maybeTask.get();
+            //We're actually updating the status in the wrong order
+            //It's possible for another thread to get lucky and read the new
+            //status before we've persisted it
+            //TODO ^^^ this is a bug, but pretty minor, IMO
             task.updateStatus(status);
-            //TODO persist the status change fact
+            storageDriver.storeTask(task);
             task.notifyAll();
         } else {
             logger.warn("Heard from unregistered task " + msgId + " so we're killing it.");

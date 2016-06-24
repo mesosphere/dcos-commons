@@ -24,23 +24,25 @@ public class PlanExecutor {
     private TaskRegistry registry;
     private OperationDriverFactory driverFactory;
     private PlanListener internalListener;
+    private PlanStorageDriver storageDriver;
 
-    public PlanExecutor(TaskRegistry registry, OperationDriverFactory driverFactory) {
+    public PlanExecutor(TaskRegistry registry, OperationDriverFactory driverFactory, PlanStorageDriver storageDriver) {
         this.planQueue = new HashMap<>();
         this.planIndex = new HashMap<>();
         this.runningPlans = new HashSet<>();
         this.executorService = Executors.newCachedThreadPool();
         this.driverFactory = driverFactory;
+        this.storageDriver = storageDriver;
         this.registry = registry;
         this.internalListener = new PlanListener() {
             @Override
             public void stepBegan(Plan plan, PlanStatus status, Step step) {
-
+                storageDriver.saveStatusForPlan(status);
             }
 
             @Override
             public void stepEnded(Plan plan, PlanStatus status, Step step) {
-
+                storageDriver.saveStatusForPlan(status);
             }
 
             @Override
@@ -50,13 +52,20 @@ public class PlanExecutor {
 
             @Override
             public void planEnded(Plan plan, PlanStatus status, boolean succeeded) {
+                storageDriver.saveStatusForPlan(status);
                 doScheduling();
             }
         };
+        //TODO load data from storageDriver
+        //First, load the scheduler state
+        //Then, load the plans
+        //Then, add any plans not being scheduled currently
+        //lastly, resume any plans that should be picked up
     }
 
     public void submitPlan(Plan plan, Collection<PlanListener> listeners){
         plan.freeze();
+        storageDriver.savePlan(plan);
         synchronized (this) {
             UUID id = plan.getUuid();
             List<PlanListener> allListeners = new ArrayList<>(listeners.size() + 1);
@@ -77,11 +86,17 @@ public class PlanExecutor {
     private synchronized Collection<PlanTracker> getReadyPlans() {
         //First, we remove completed plans from the queue
         //TODO remove plans from planIndex too
+        Set<UUID> finishedPlans = new HashSet<>();
         for (String name : planQueue.keySet()) {
             Queue<UUID> q = planQueue.get(name);
             while (!q.isEmpty() && planIndex.get(q.peek()).getStatus().isComplete()) {
+                finishedPlans.add(q.peek());
                 q.remove();
             }
+        }
+        for (UUID id : finishedPlans) {
+            planIndex.remove(id);
+            runningPlans.remove(id);
         }
         Set<PlanTracker> readyPlans = new HashSet<>();
         //Then, we look for plans
@@ -111,8 +126,11 @@ public class PlanExecutor {
     private synchronized void doScheduling() {
         Collection<PlanTracker> trackers = getReadyPlans();
         for (PlanTracker tracker : trackers) {
-            tracker.resumeExecution();
             runningPlans.add(tracker.getPlan().getUuid());
+        }
+        storageDriver.saveSchedulerState(planQueue, runningPlans);
+        for (PlanTracker tracker : trackers) {
+            tracker.resumeExecution();
         }
     }
 

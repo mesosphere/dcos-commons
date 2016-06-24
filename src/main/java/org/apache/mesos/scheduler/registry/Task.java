@@ -4,17 +4,20 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskRequirement;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * A task is an almost immutable object, which contains the TaskInfo, TaskStatus, name,
- * and how to launch it. The TaskStatus is mutable, but the status itself is immutable,
- * and the field is volatile, to ensure consistent updates. A given Task will never reset
- * its status "backwards"--instead, a new Task will be created if the goal is to restart.
+ * A task is a monotonic object, which contains the TaskInfo, TaskStatus, name,
+ * and how to launch it. Everything except for the status is immutable; the
+ * status is actually monotonic, in that we always append new statuses, so that
+ * it's possible to review earlier statuses as well.
  */
 public class Task {
     private final Protos.TaskInfo taskInfo;
-    private volatile Protos.TaskStatus taskStatus = null;
+    //all accesses to taskStatuses should be synchronized on it
+    private final List<Protos.TaskStatus> taskStatuses;
     private final OfferRequirement requirement;
     private final String name;
 
@@ -31,6 +34,7 @@ public class Task {
         this.name = name;
         this.requirement = requirement;
         this.taskInfo = info;
+        this.taskStatuses = new ArrayList<>();
     }
 
     public Protos.TaskInfo getTaskInfo() {
@@ -38,22 +42,30 @@ public class Task {
     }
 
     public void launch() {
-        taskStatus = Protos.TaskStatus.newBuilder()
-                .setTaskId(taskInfo.getTaskId())
-                .setState(Protos.TaskState.TASK_STAGING)
-                .build();
+        synchronized (taskStatuses) {
+            taskStatuses.add(Protos.TaskStatus.newBuilder()
+                    .setTaskId(taskInfo.getTaskId())
+                    .setState(Protos.TaskState.TASK_STAGING)
+                    .build());
+        }
     }
 
     public void updateStatus(Protos.TaskStatus newStatus) {
-        this.taskStatus = newStatus;
+        synchronized (taskStatuses) {
+            taskStatuses.add(newStatus);
+        }
     }
 
     public boolean hasStatus() {
-        return taskStatus != null;
+        synchronized (taskStatuses) {
+            return taskStatuses.isEmpty();
+        }
     }
 
-    public Protos.TaskStatus getTaskStatus() {
-        return taskStatus;
+    public List<Protos.TaskStatus> getTaskStatuses() {
+        synchronized (taskStatuses) {
+            return new ArrayList<>(taskStatuses);
+        }
     }
 
     public OfferRequirement getRequirement() {
@@ -64,10 +76,20 @@ public class Task {
         return name;
     }
 
+    public Protos.TaskStatus getLatestTaskStatus() {
+        synchronized (taskStatuses) {
+            if (!hasStatus()) {
+                return null;
+            } else {
+                return taskStatuses.get(taskStatuses.size() - 1);
+            }
+        }
+    }
+
     //TODO should this have a timeout version?
     public void waitForStatus(Predicate<Protos.TaskStatus> pred)
             throws InterruptedException {
-        while (!pred.test(this.taskStatus)) {
+        while (!pred.test(getLatestTaskStatus())) {
             this.wait();
         }
     }

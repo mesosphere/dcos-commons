@@ -46,7 +46,7 @@ public class CreateTaskOp implements Operation{
             try {
                 TaskID id = TaskID.parseFrom(data);
                 Task task = registry.getTask(name);
-                while (!TaskUtils.isTerminated(task.getTaskStatus())) {
+                while (!TaskUtils.isTerminated(task.getLatestTaskStatus())) {
                     registry.getSchedulerDriver().killTask(id);
                     task.wait();
                 }
