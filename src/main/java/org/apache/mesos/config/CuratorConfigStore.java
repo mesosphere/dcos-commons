@@ -60,6 +60,9 @@ public class CuratorConfigStore<T extends Configuration>
      */
     public CuratorConfigStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
         super(connectionString, retryPolicy);
+        if (!rootPath.startsWith("/")) {
+            throw new IllegalArgumentException("rootPath must start with '/': " + rootPath);
+        }
         this.targetPath = rootPath + "/" + TARGET_PATH_NAME;
         this.configurationsPath = rootPath + "/" + CONFIGURATIONS_PATH_NAME;
     }
