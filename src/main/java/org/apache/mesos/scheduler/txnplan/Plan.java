@@ -1,13 +1,5 @@
 package org.apache.mesos.scheduler.txnplan;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.KryoSerializable;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-import com.esotericsoftware.kryo.serializers.MapSerializer;
-import com.esotericsoftware.kryo.serializers.MapSerializer.BindMap;
-import de.javakaffee.kryoserializers.UUIDSerializer;
-
 import java.util.*;
 
 /**
@@ -75,7 +67,7 @@ public class Plan {
     public Set<String> getAffectedTaskNames() {
         Set<String> names = new HashSet<String>();
         for (Step step : steps.values()) {
-            names.addAll(step.getOperation().lockedExecutors());
+            names.addAll(step.getOperation().lockedTasks());
         }
         return names;
         //TODO another direction would be to build the actual thread-based task scheduler w/ mutex functionality

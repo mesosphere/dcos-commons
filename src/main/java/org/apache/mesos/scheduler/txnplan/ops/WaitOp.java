@@ -40,7 +40,7 @@ public abstract class WaitOp implements Operation {
     }
 
     @Override
-    public Collection<String> lockedExecutors() {
+    public Collection<String> lockedTasks() {
         return Collections.EMPTY_LIST;
     }
 }

@@ -50,5 +50,5 @@ public interface Operation {
      * occur.
      * @return Collection of names of executors which must be exclusively locked for this operation
      */
-    Collection<String> lockedExecutors();
+    Collection<String> lockedTasks();
 }

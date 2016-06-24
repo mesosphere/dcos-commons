@@ -153,7 +153,7 @@ public class PlanTest {
         }
 
         @Override
-        public Collection<String> lockedExecutors() {
+        public Collection<String> lockedTasks() {
             return Collections.EMPTY_LIST;
         }
     }

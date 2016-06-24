@@ -60,7 +60,7 @@ public class CreateTaskOp implements Operation{
     }
 
     @Override
-    public Collection<String> lockedExecutors() {
+    public Collection<String> lockedTasks() {
         return Collections.singletonList(name);
     }
 

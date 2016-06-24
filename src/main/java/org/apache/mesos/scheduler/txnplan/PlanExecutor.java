@@ -115,6 +115,10 @@ public class PlanExecutor {
         }
     }
 
+    public void submitPlan(Plan plan) {
+        submitPlan(plan, Collections.EMPTY_LIST);
+    }
+
     public void submitPlan(Plan plan, Collection<PlanListener> listeners){
         fresh.lazySet(false);
         plan.freeze();
