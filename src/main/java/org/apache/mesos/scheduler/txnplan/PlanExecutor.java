@@ -1,10 +1,12 @@
 package org.apache.mesos.scheduler.txnplan;
 
 import org.apache.mesos.scheduler.registry.TaskRegistry;
+import org.apache.zookeeper.KeeperException;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This implements the logic of storing the plan's UUID on submission,
@@ -16,8 +18,8 @@ import java.util.concurrent.Executors;
  */
 public class PlanExecutor {
     // Access to planQueue and planIndex should be synchronized on "this"
-    private HashMap<String, Queue<UUID>> planQueue;
-    private HashMap<UUID, PlanTracker> planIndex;
+    private Map<String, Queue<UUID>> planQueue;
+    private Map<UUID, PlanTracker> planIndex;
     private Set<UUID> runningPlans;
 
     private ExecutorService executorService;
@@ -25,15 +27,18 @@ public class PlanExecutor {
     private OperationDriverFactory driverFactory;
     private PlanListener internalListener;
     private PlanStorageDriver storageDriver;
+    private AtomicBoolean fresh;
 
-    public PlanExecutor(TaskRegistry registry, OperationDriverFactory driverFactory, PlanStorageDriver storageDriver) {
+    public PlanExecutor(TaskRegistry registry, OperationDriverFactory driverFactory, PlanStorageDriver storageDriverArg) {
         this.planQueue = new HashMap<>();
         this.planIndex = new HashMap<>();
         this.runningPlans = new HashSet<>();
         this.executorService = Executors.newCachedThreadPool();
         this.driverFactory = driverFactory;
-        this.storageDriver = storageDriver;
+        // the argument is named differently so that the PlanListener belowe uses the member variable
+        this.storageDriver = storageDriverArg;
         this.registry = registry;
+        this.fresh = new AtomicBoolean(true);
         this.internalListener = new PlanListener() {
             @Override
             public void stepBegan(Plan plan, PlanStatus status, Step step) {
@@ -56,14 +61,62 @@ public class PlanExecutor {
                 doScheduling();
             }
         };
-        //TODO load data from storageDriver
+    }
+
+    public void reloadFromStorage() {
         //First, load the scheduler state
         //Then, load the plans
         //Then, add any plans not being scheduled currently
         //lastly, resume any plans that should be picked up
+        if (!fresh.compareAndSet(true, false)) {
+            throw new RuntimeException("Cannot reload state from storage after you do stuff");
+        }
+        SchedulerState state = storageDriver.loadSchedulerState();
+        this.planQueue = state.getPlanQueue();
+        this.runningPlans = state.getRunningPlans();
+        Map<UUID, Plan> plans = storageDriver.loadPlans();
+        Map<UUID, PlanStatus> statuses = new HashMap<>();
+        for (UUID id : state.getRunningPlans()) {
+            PlanStatus status = storageDriver.tryLoadPlanStatus(id);
+            if (status != null) {
+                statuses.put(id, status);
+            }
+        }
+        Set<UUID> plansInQueue = new HashSet<>();
+        state.getPlanQueue().values().stream()
+                .flatMap(q -> q.stream())
+                .forEach(id -> plansInQueue.add(id));
+        Collection<PlanListener> defaultListeners = Arrays.asList(internalListener);
+        for (Plan plan : plans.values()) {
+            UUID id = plan.getUuid();
+            PlanTracker tracker;
+            if (statuses.containsKey(id)) {
+                tracker = new PlanTracker(plan, statuses.get(id), executorService, driverFactory, registry, defaultListeners);
+            } else {
+                tracker = new PlanTracker(plan, executorService, driverFactory, registry, defaultListeners);
+            }
+            planIndex.put(id, tracker);
+            if (!plansInQueue.contains(id)) {
+                addPlanToQueue(plan);
+            }
+        }
+        for (UUID id : runningPlans) {
+            planIndex.get(id).resumeExecution();
+        }
+        doScheduling();
+    }
+
+    private void addPlanToQueue(Plan plan) {
+        for (String name : plan.getAffectedTaskNames()) {
+            if (!planQueue.containsKey(name)) {
+                planQueue.put(name, new ArrayDeque<>());
+            }
+            planQueue.get(name).add(plan.getUuid());
+        }
     }
 
     public void submitPlan(Plan plan, Collection<PlanListener> listeners){
+        fresh.lazySet(false);
         plan.freeze();
         storageDriver.savePlan(plan);
         synchronized (this) {
@@ -73,12 +126,7 @@ public class PlanExecutor {
             allListeners.add(internalListener);
             PlanTracker tracker = new PlanTracker(plan, executorService, driverFactory, registry, allListeners);
             planIndex.put(id, tracker);
-            for (String name : plan.getAffectedTaskNames()) {
-                if (!planQueue.containsKey(name)) {
-                    planQueue.put(name, new ArrayDeque<>());
-                }
-                planQueue.get(name).add(id);
-            }
+            addPlanToQueue(plan);
         }
         doScheduling();
     }

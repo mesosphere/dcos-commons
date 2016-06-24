@@ -100,4 +100,8 @@ class PlanStatus {
     public boolean isComplete() {
         return (pending.isEmpty() && running.isEmpty()) || crashed || (rollingBack && completed.isEmpty());
     }
+
+    public UUID getPlanUUID() {
+        return planUUID;
+    }
 }

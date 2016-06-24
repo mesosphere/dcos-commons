@@ -30,11 +30,15 @@ public class PlanTracker {
     private Collection<PlanListener> listeners;
 
     public PlanTracker(Plan plan, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners) {
+        this(plan, new PlanStatus(plan.getUuid(), plan.getSteps().keySet()), service, driverFactory, registry, listeners);
+    }
+
+    public PlanTracker(Plan plan, PlanStatus status, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners) {
         this.service = service;
         this.driverFactory = driverFactory;
         this.registry = registry;
         this.plan = plan;
-        status = new PlanStatus(plan.getUuid(), plan.getSteps().keySet());
+        this.status = status;
         this.beganRollback = new AtomicBoolean(false);
         this.listeners = listeners;
     }
