@@ -6,9 +6,12 @@ import java.util.UUID;
  * Created by dgrnbrg on 6/20/16.
  */
 public class Step {
-    private final Operation operation;
-    private final UUID uuid;
-    private final Plan plan;
+    private Operation operation;
+    private UUID uuid;
+    private Plan plan;
+
+    private Step() {
+    }
 
     public Step(Operation operation, Plan plan) {
         this.operation = operation;

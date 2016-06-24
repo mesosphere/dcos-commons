@@ -17,6 +17,10 @@ class PlanStatus {
     private boolean rollingBack;
     private boolean crashed;
 
+    /**
+     * This creates a PlanStatus that's ready to recieve deserialized member data from
+     * Kryo. Never use this yourself.
+     */
     public PlanStatus() {
         pending = new HashSet<>();
         running = new HashSet<>();
@@ -26,10 +30,16 @@ class PlanStatus {
         crashed = false;
     }
 
-    public PlanStatus(UUID uuid, Collection<UUID> pending) {
+    /**
+     * This creates a new PlanStatus for a Plan that hasn't been launched.
+     * Given that a plan is immutable, you can make multiple statuses from a single plan.
+     * This will violate other invariants, so please don't call this constructor.
+     * @param plan
+     */
+    public PlanStatus(Plan plan) {
         this();
-        this.planUUID = uuid;
-        this.pending.addAll(pending);
+        this.planUUID = plan.getUuid();
+        this.pending.addAll(plan.getSteps().keySet());
     }
 
     public Collection<UUID> getPending() {

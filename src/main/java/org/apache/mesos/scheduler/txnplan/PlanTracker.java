@@ -30,7 +30,7 @@ public class PlanTracker {
     private Collection<PlanListener> listeners;
 
     public PlanTracker(Plan plan, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners) {
-        this(plan, new PlanStatus(plan.getUuid(), plan.getSteps().keySet()), service, driverFactory, registry, listeners);
+        this(plan, new PlanStatus(plan), service, driverFactory, registry, listeners);
     }
 
     public PlanTracker(Plan plan, PlanStatus status, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners) {
@@ -59,13 +59,17 @@ public class PlanTracker {
     public synchronized void resumeExecution() {
         logger.info("Resuming execution of plan " + plan.getUuid());
         listeners.stream().forEach(l -> l.planStarted(plan, status));
-        Collection<Step> initialSteps = new HashSet<>();
+        Collection<StepRunner> initialSteps = new HashSet<>();
         for (UUID id : status.getRunning()) {
-            initialSteps.add(plan.getSteps().get(id));
+            StepRunner runner = new StepRunner(plan.getSteps().get(id));
+            runner.setWasRunningPreviously();
+            initialSteps.add(runner);
         }
-        initialSteps.addAll(getReadySteps());
-        for (Step step : initialSteps) {
-            service.submit(new StepRunner(step));
+        getReadySteps().stream()
+                .map(s -> new StepRunner(s))
+                .forEach(r -> initialSteps.add(r));
+        for (StepRunner runner : initialSteps) {
+            service.submit(runner);
         }
         if (initialSteps.isEmpty()) {
             listeners.stream().forEach(l -> l.planEnded(plan, status, true));
@@ -150,16 +154,24 @@ public class PlanTracker {
 
     public class StepRunner implements Runnable {
         private Step step;
+        private boolean wasRunningPreviously;
 
         public StepRunner(Step step) {
             this.step = step;
+            wasRunningPreviously = false;
+        }
+
+        public void setWasRunningPreviously() {
+            wasRunningPreviously = true;
         }
 
         public void run() {
             Operation op = step.getOperation();
             OperationDriver driver = driverFactory.makeDriver(step);
             try {
-                startStep(step.getUuid());
+                if (!wasRunningPreviously) {
+                    startStep(step.getUuid());
+                }
                 listeners.stream().forEach(l -> l.stepBegan(plan, status, step));
                 op.doAction(registry, driver);
                 finishStep(step.getUuid());

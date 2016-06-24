@@ -3,13 +3,12 @@ package org.apache.mesos.scheduler.txnplan;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Output;
-import de.javakaffee.kryoserializers.DateSerializer;
-import de.javakaffee.kryoserializers.URISerializer;
-import de.javakaffee.kryoserializers.UUIDSerializer;
+import de.javakaffee.kryoserializers.*;
 import de.javakaffee.kryoserializers.protobuf.ProtobufSerializer;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -21,6 +20,7 @@ import java.util.UUID;
 public class SerializationUtil {
     public static final ThreadLocal<Kryo> kryos = new ThreadLocal<Kryo>() {
         protected Kryo initialValue() {
+            Class arrayAsListClazz = Arrays.asList("").getClass();
             Kryo kryo = new Kryo() {
                 @Override
                 public Serializer<?> getDefaultSerializer(Class clazz) {
@@ -36,9 +36,13 @@ public class SerializationUtil {
                     if (URI.class.isAssignableFrom(clazz)) {
                         return new URISerializer();
                     }
+                    if (arrayAsListClazz.isAssignableFrom(clazz)) {
+                        return new ArraysAsListSerializer();
+                    }
                     return super.getDefaultSerializer(clazz);
                 }
             };
+            UnmodifiableCollectionsSerializer.registerSerializers(kryo);
             return kryo;
         };
     };

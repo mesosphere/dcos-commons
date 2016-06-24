@@ -70,8 +70,8 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
     public void saveSchedulerState(Map<String, Queue<UUID>> planQueue, Set<UUID> runningPlans) {
         try {
             Output output = new Output(4096);
-            SerializationUtil.kryos.get().writeObject(output, planQueue);
-            SerializationUtil.kryos.get().writeObject(output, runningPlans);
+            SerializationUtil.kryos.get().writeClassAndObject(output, planQueue);
+            SerializationUtil.kryos.get().writeClassAndObject(output, runningPlans);
             byte[] data = output.toBytes();
             storeData("/scheduler_state", data);
         } catch (Throwable t) {
@@ -83,8 +83,8 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
     public SchedulerState loadSchedulerState() {
         try {
             Input input = new Input(curator.getData().forPath("/scheduler_state"));
-            Map<String, Queue<UUID>> planQueue = SerializationUtil.kryos.get().readObject(input, Map.class);
-            Set<UUID> runningPlans = SerializationUtil.kryos.get().readObject(input, Set.class);
+            Map<String, Queue<UUID>> planQueue = (Map) SerializationUtil.kryos.get().readClassAndObject(input);
+            Set<UUID> runningPlans = (Set) SerializationUtil.kryos.get().readClassAndObject(input);
             return new SchedulerState(planQueue, runningPlans);
         } catch (Throwable t) {
             throw new RuntimeException("Failed to load scheduler state", t);
@@ -96,7 +96,7 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
         try {
             Map<UUID, Plan> plans = new HashMap<>();
             for (String child : curator.getChildren().forPath("/plans")) {
-                Input input = new Input(curator.getData().forPath("/scheduler_state/" + child));
+                Input input = new Input(curator.getData().forPath("/plans/" + child));
                 Plan plan = SerializationUtil.kryos.get().readObject(input, Plan.class);
                 plans.put(plan.getUuid(), plan);
             }
