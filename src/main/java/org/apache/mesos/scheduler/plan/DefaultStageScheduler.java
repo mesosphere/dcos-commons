@@ -38,9 +38,14 @@ public class DefaultStageScheduler implements StageScheduler {
             SchedulerDriver driver, List<Protos.Offer> offers, Block block) {
         List<Protos.OfferID> acceptedOffers = new ArrayList<>();
 
-        if (driver == null || offers == null || block == null) {
-            logger.error("Unexpected null argument encountered: driver='{}' offers='{}' block='{}'",
-                    driver, offers, block);
+        if (driver == null || offers == null) {
+            logger.error("Unexpected null argument encountered: driver='{}' offers='{}'",
+                    driver, offers);
+            return acceptedOffers;
+        }
+
+        if (block == null) {
+            logger.info("Ignoring resource offers for null block.");
             return acceptedOffers;
         }
 
