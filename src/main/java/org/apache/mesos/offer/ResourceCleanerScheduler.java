@@ -24,6 +24,9 @@ public class ResourceCleanerScheduler {
 
   public List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers) {
     final List<OfferRecommendation> recommendations = resourceCleaner.evaluate(offers);
+
+    // Recommendations should be grouped by agent, as Mesos enforces processing of acceptOffers Operations
+    // that belong to a single agent.
     final Map<Protos.SlaveID, List<OfferRecommendation>> recommendationsGroupedByAgents =
             groupRecommendationsByAgent(recommendations);
 
@@ -35,6 +38,11 @@ public class ResourceCleanerScheduler {
     return processedOffers;
   }
 
+  /**
+   * Groups recommendations by agent.
+   *
+   * Visibility is protected to enable testing.
+   */
   protected Map<Protos.SlaveID, List<OfferRecommendation>> groupRecommendationsByAgent(
           List<OfferRecommendation> recommendations) {
     final Map<Protos.SlaveID, List<OfferRecommendation>> recommendationsGroupedByAgents = new HashMap<>();
