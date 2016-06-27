@@ -34,9 +34,12 @@ public class CreateTaskOp implements Operation{
 
     @Override
     public void doAction(TaskRegistry registry, OperationDriver driver) throws Exception {
+        driver.info("Creating new task: " + name);
         TaskID newID = registry.createTask(name, offerRequirement);
         driver.save(newID);
+        driver.info("Waiting for the task named " + name + " with id " + newID + " to start");
         registry.getTask(name).waitForStatus(s -> s.getState().equals(TaskState.TASK_RUNNING));
+        driver.info("Task " + name + "started successfully");
     }
 
     @Override

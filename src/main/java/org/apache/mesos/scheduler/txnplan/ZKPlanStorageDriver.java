@@ -45,7 +45,7 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
     @Override
     public void saveStatusForPlan(PlanStatus status) {
         try {
-            Output output = new Output(4096);
+            Output output = new Output(10*4096);
             SerializationUtil.kryos.get().writeObject(output, status);
             byte[] data = output.toBytes();
             storeData("/statuses/" + status.getPlanUUID().toString(), data);
@@ -57,7 +57,8 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
     @Override
     public void savePlan(Plan plan) {
         try {
-            Output output = new Output(4096);
+            //TODO understand whether we can get away with a smaller buffer, or how to size this...
+            Output output = new Output(10*4096);
             SerializationUtil.kryos.get().writeObject(output, plan);
             byte[] data = output.toBytes();
             storeData("/plans/" + plan.getUuid().toString(), data);
@@ -69,7 +70,7 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
     @Override
     public void saveSchedulerState(Map<String, Queue<UUID>> planQueue, Set<UUID> runningPlans) {
         try {
-            Output output = new Output(4096);
+            Output output = new Output(10*4096);
             SerializationUtil.kryos.get().writeClassAndObject(output, planQueue);
             SerializationUtil.kryos.get().writeClassAndObject(output, runningPlans);
             byte[] data = output.toBytes();

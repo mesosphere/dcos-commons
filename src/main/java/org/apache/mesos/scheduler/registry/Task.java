@@ -3,6 +3,8 @@ package org.apache.mesos.scheduler.registry;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskRequirement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.function.Predicate;
  * it's possible to review earlier statuses as well.
  */
 public class Task {
+    private static final Logger logger = LoggerFactory.getLogger(Task.class);
     private final Protos.TaskInfo taskInfo;
     //all accesses to taskStatuses should be synchronized on it
     private final List<Protos.TaskStatus> taskStatuses;
@@ -58,7 +61,7 @@ public class Task {
 
     public boolean hasStatus() {
         synchronized (taskStatuses) {
-            return taskStatuses.isEmpty();
+            return !taskStatuses.isEmpty();
         }
     }
 
@@ -89,8 +92,12 @@ public class Task {
     //TODO should this have a timeout version?
     public void waitForStatus(Predicate<Protos.TaskStatus> pred)
             throws InterruptedException {
-        while (!pred.test(getLatestTaskStatus())) {
-            this.wait();
+        while (!hasStatus() || !pred.test(getLatestTaskStatus())) {
+            logger.info("Waiting for status for " + name);
+            synchronized (this) {
+                this.wait();
+            }
+            logger.info("Got a new status: " + getLatestTaskStatus());
         }
     }
 }

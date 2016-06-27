@@ -175,11 +175,13 @@ public class TaskRegistry {
     }
 
     public synchronized void handleOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+        //logger.info("Got offers: " + offers);
         this.driver = driver;
         List<Task> pendingTasks = tasks.values()
                 .stream()
                 .filter(t -> !t.hasStatus())
                 .collect(Collectors.toList());
+        logger.info("Attempting to launch " + pendingTasks.size() + " new tasks");
         //TODO all code under this line could run on another thread
         OfferEvaluator evaluator = new OfferEvaluator();
         List<OfferRecommendation> recommendations = new ArrayList<>();
@@ -193,20 +195,25 @@ public class TaskRegistry {
                 }
             }
             if (matched != null) {
+                logger.info("Found a match--launching a task named " + matched.getName());
                 // Found a recommendation
                 pendingTasks.remove(matched);
                 matched.launch();
                 //TODO persist the launching fact
-                matched.notifyAll();
+                synchronized (matched) {
+                    matched.notifyAll();
+                }
+                accepter.accept(driver, recommendations);
             } else {
                 driver.declineOffer(offer.getId());
             }
         }
         //TODO resource cleaner logic should go here
-        accepter.accept(driver, recommendations);
+        logger.info("accepted any offer recs; end of handleOffers");
     }
 
     public synchronized void handleStatusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
+        logger.info("Got a task status: " + status);
         this.driver = driver;
         Protos.TaskID msgId = status.getTaskId();
         Optional<Task> maybeTask = tasks.values().stream()
@@ -220,7 +227,9 @@ public class TaskRegistry {
             //TODO ^^^ this is a bug, but pretty minor, IMO
             task.updateStatus(status);
             storageDriver.storeTask(task);
-            task.notifyAll();
+            synchronized (task) {
+                task.notifyAll();
+            }
         } else {
             logger.warn("Heard from unregistered task " + msgId + " so we're killing it.");
             driver.killTask(msgId);
