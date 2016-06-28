@@ -47,6 +47,10 @@ public class TaskRegistry {
         this.accepter = accepter;
         this.storageDriver = storageDriver;
         this.tasks = new HashMap<>();
+        //TODO if loadAllTasks returns an empty set, maybe we should throw or something
+        for (Task task : storageDriver.loadAllTasks()) {
+            tasks.put(task.getName(), task);
+        }
         //TODO this should block until reconciliation is complete
     }
 
