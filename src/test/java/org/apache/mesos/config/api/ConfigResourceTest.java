@@ -59,7 +59,7 @@ public class ConfigResourceTest {
         when(mockConfigStore.fetch(ID1, FACTORY)).thenReturn(CONFIG1);
         Response response = resource.getConfiguration(ID1.toString());
         assertEquals(200, response.getStatus());
-        assertEquals(CONFIG1.toUserString(), (String) response.getEntity());
+        assertEquals(CONFIG1.toJsonString(), (String) response.getEntity());
     }
 
     @Test
@@ -98,7 +98,7 @@ public class ConfigResourceTest {
         when(mockConfigStore.fetch(ID2, FACTORY)).thenReturn(CONFIG1);
         Response response = resource.getTarget();
         assertEquals(200, response.getStatus());
-        assertEquals(CONFIG1.toUserString(), (String) response.getEntity());
+        assertEquals(CONFIG1.toJsonString(), (String) response.getEntity());
     }
 
     @Test

@@ -32,8 +32,8 @@ public class StringConfiguration implements Configuration {
     }
 
     @Override
-    public String toUserString() {
-        return config;
+    public String toJsonString() {
+        return String.format("{ \"string\": \"%s\" }", config.replace("\"", "\\\""));
     }
 
     @Override

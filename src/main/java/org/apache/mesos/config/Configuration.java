@@ -10,8 +10,8 @@ public interface Configuration {
     byte[] getBytes() throws ConfigStoreException;
 
     /**
-     * Returns a string representation of this Configuration which is suitable for displaying to the
+     * Returns a JSON representation of this Configuration which is suitable for displaying to the
      * user.
      */
-    String toUserString();
+    String toJsonString() throws Exception;
 }

@@ -110,7 +110,7 @@ public class ConfigResource<T extends Configuration> {
      */
     private Response fetchConfig(UUID id) throws Exception {
         // return the content provided by the config verbatim, treat as plaintext
-        return Response.ok(configStore.fetch(id, configFactory).toUserString(),
-                MediaType.TEXT_PLAIN).build();
+        return Response.ok(configStore.fetch(id, configFactory).toJsonString(),
+                MediaType.APPLICATION_JSON).build();
     }
 }

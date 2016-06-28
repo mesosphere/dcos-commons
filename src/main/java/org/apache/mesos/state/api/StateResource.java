@@ -1,5 +1,7 @@
 package org.apache.mesos.state.api;
 
+import java.util.Arrays;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -10,6 +12,8 @@ import org.apache.mesos.state.StateStore;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.googlecode.protobuf.format.JsonFormat;
 
 /**
  * A read-only API for accessing task and frameworkId state from persistent storage.
@@ -32,8 +36,9 @@ public class StateResource {
     @GET
     public Response getFrameworkId() {
         try {
-            return Response.ok(stateStore.fetchFrameworkId().getValue(),
-                    MediaType.TEXT_PLAIN).build();
+            JSONArray idArray = new JSONArray(
+                    Arrays.asList(stateStore.fetchFrameworkId().getValue()));
+            return Response.ok(idArray.toString(), MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
             logger.error("Failed to fetch target configuration", ex);
             return Response.serverError().build();
@@ -64,8 +69,8 @@ public class StateResource {
     public Response getTaskInfo(@PathParam("taskName") String taskName) {
         try {
             logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
-            return Response.ok(stateStore.fetchTask(taskName).toString(), MediaType.TEXT_PLAIN)
-                    .build();
+            return Response.ok(new JsonFormat().printToString(stateStore.fetchTask(taskName)),
+                    MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format(
@@ -84,8 +89,8 @@ public class StateResource {
     public Response getTaskStatus(@PathParam("taskName") String taskName) {
         try {
             logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
-            return Response.ok(stateStore.fetchStatus(taskName).toString(), MediaType.TEXT_PLAIN)
-                    .build();
+            return Response.ok(new JsonFormat().printToString(stateStore.fetchStatus(taskName)),
+                    MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format(

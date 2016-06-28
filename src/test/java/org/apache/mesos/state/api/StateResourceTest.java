@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.googlecode.protobuf.format.JsonFormat;
+
 import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.core.Response;
@@ -39,7 +41,9 @@ public class StateResourceTest {
         when(mockStateStore.fetchFrameworkId()).thenReturn(id);
         Response response = resource.getFrameworkId();
         assertEquals(200, response.getStatus());
-        assertEquals(id.getValue(), (String) response.getEntity());
+        JSONArray json = new JSONArray((String) response.getEntity());
+        assertEquals(1, json.length());
+        assertEquals(id.getValue(), json.get(0));
     }
 
     @Test
@@ -80,7 +84,7 @@ public class StateResourceTest {
         when(mockStateStore.fetchTask(taskName)).thenReturn(taskInfo);
         Response response = resource.getTaskInfo(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(taskInfo.toString(), (String) response.getEntity());
+        assertEquals(new JsonFormat().printToString(taskInfo), (String) response.getEntity());
     }
 
     @Test
@@ -102,7 +106,7 @@ public class StateResourceTest {
         when(mockStateStore.fetchStatus(taskName)).thenReturn(taskStatus);
         Response response = resource.getTaskStatus(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(taskStatus.toString(), (String) response.getEntity());
+        assertEquals(new JsonFormat().printToString(taskStatus), (String) response.getEntity());
     }
 
     @Test
