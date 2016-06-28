@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Generic process task, that can be spawned using {@code CustomExecutor}.
  */
-public class ProcessTask extends ExecutorTask {
+public class ProcessTask implements ExecutorTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessTask.class);
 
     private ExecutorDriver driver;
@@ -45,17 +45,17 @@ public class ProcessTask extends ExecutorTask {
     }
 
     public void preStart() {
-
+        // NOOP
     }
 
     @Override
-    public void start() {
+    public void run() {
         try {
             preStart();
 
             final Protos.CommandInfo taskData = Protos.CommandInfo.parseFrom(task.getData());
             final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(taskData.getEnvironment());
-            final String taskType = envMap.get(ExecutorTask.TASK_TYPE);
+            final String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
             final String command = taskData.getValue();
 
             ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", command)
@@ -129,11 +129,6 @@ public class ProcessTask extends ExecutorTask {
                 System.exit(1);
             }
         }
-    }
-
-    @Override
-    public boolean checkHealth() {
-        return false;
     }
 
     @Override

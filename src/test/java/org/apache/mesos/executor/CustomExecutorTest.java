@@ -4,19 +4,27 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.protobuf.EnvironmentBuilder;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.mockito.Mockito;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.mockito.Mockito.times;
+
 public class CustomExecutorTest {
+    @Rule
+    public final ExpectedSystemExit exit = ExpectedSystemExit.none();
+
     @Test
     public void testSimple() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        final CustomExecutor customExecutor = new CustomExecutor(executorService, testExecutorTaskFactory);
+        final CustomExecutor customExecutor = getTestExecutor();
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName("TEST_EXECUTOR")
@@ -37,7 +45,7 @@ public class CustomExecutorTest {
                         .setValue("date")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(ExecutorTask.TASK_TYPE, "TEST")))
+                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -48,9 +56,7 @@ public class CustomExecutorTest {
 
     @Test
     public void testSimpleKill() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        final CustomExecutor customExecutor = new CustomExecutor(executorService, testExecutorTaskFactory);
+        final CustomExecutor customExecutor = getTestExecutor();
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName("TEST_EXECUTOR")
@@ -71,7 +77,7 @@ public class CustomExecutorTest {
                         .setValue("date")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(ExecutorTask.TASK_TYPE, "TEST")))
+                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -84,9 +90,7 @@ public class CustomExecutorTest {
 
     @Test
     public void testRegisterAndReRegister() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        final CustomExecutor customExecutor = new CustomExecutor(executorService, testExecutorTaskFactory);
+        final CustomExecutor customExecutor = getTestExecutor();
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
 
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
@@ -120,9 +124,8 @@ public class CustomExecutorTest {
 
     @Test
     public void testSimpleShutdown() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        final CustomExecutor customExecutor = new CustomExecutor(executorService, testExecutorTaskFactory);
+        final CustomExecutor customExecutor = getTestExecutor();
+
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
                 .setName("TEST_EXECUTOR")
@@ -143,7 +146,7 @@ public class CustomExecutorTest {
                         .setValue("date")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(ExecutorTask.TASK_TYPE, "TEST")))
+                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -156,9 +159,7 @@ public class CustomExecutorTest {
 
     @Test
     public void testNoTaskData() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        final CustomExecutor customExecutor = new CustomExecutor(executorService, testExecutorTaskFactory);
+        final CustomExecutor customExecutor = getTestExecutor();
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
 
 
@@ -185,9 +186,7 @@ public class CustomExecutorTest {
 
     @Test
     public void testNoTaskType() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        final CustomExecutor customExecutor = new CustomExecutor(executorService, testExecutorTaskFactory);
+        final CustomExecutor customExecutor = getTestExecutor();
 
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
@@ -218,4 +217,158 @@ public class CustomExecutorTest {
         Mockito.verify(mockExecutorDriver).sendStatusUpdate(Mockito.any());
     }
 
+    @Test
+    public void testRegistrationTasksLaunch() {
+        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
+        final Protos.TaskStatus taskStatus = getTestTaskStatus();
+
+        final List<TimedExecutorTask> onRegisteredTasks = Arrays.asList(
+                new TestTimedExecutorTask(
+                        Duration.ofMillis(100),
+                        Duration.ofMinutes(1),
+                        Protos.TaskStatus.newBuilder()
+                        .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
+                        .setState(Protos.TaskState.TASK_FINISHED)
+                        .build(),
+                        mockExecutorDriver));
+
+        final CustomExecutor customExecutor = getTestExecutor(
+                onRegisteredTasks,
+                null);
+
+        customExecutor.registered(mockExecutorDriver, getTestExecutorInfo(), null, null);
+        Mockito.verify(mockExecutorDriver, times(1)).sendStatusUpdate(taskStatus);
+    }
+
+    @Test
+    public void testReregistrationTasksLaunch() {
+        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
+        final Protos.TaskStatus taskStatus = getTestTaskStatus();
+
+        final List<TimedExecutorTask> onRegisteredTasks = Arrays.asList(
+                new TestTimedExecutorTask(
+                        Duration.ofMillis(100),
+                        Duration.ofMinutes(1),
+                        Protos.TaskStatus.newBuilder()
+                                .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
+                                .setState(Protos.TaskState.TASK_FINISHED)
+                                .build(),
+                        mockExecutorDriver));
+
+        final CustomExecutor customExecutor = getTestExecutor(
+                null,
+                onRegisteredTasks);
+
+        customExecutor.registered(mockExecutorDriver, getTestExecutorInfo(), null, null);
+        customExecutor.reregistered(mockExecutorDriver, null);
+        Mockito.verify(mockExecutorDriver, times(1)).sendStatusUpdate(taskStatus);
+    }
+
+    @Test
+    public void testAllRegistrationTasksLaunch() {
+        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
+        final Protos.TaskStatus taskStatus = getTestTaskStatus();
+
+        final List<TimedExecutorTask> onAllRegisteredTasks = Arrays.asList(
+                new TestTimedExecutorTask(
+                        Duration.ofMillis(100),
+                        Duration.ofMinutes(1),
+                        Protos.TaskStatus.newBuilder()
+                                .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
+                                .setState(Protos.TaskState.TASK_FINISHED)
+                                .build(),
+                        mockExecutorDriver));
+
+        final CustomExecutor customExecutor = getTestExecutor(
+                onAllRegisteredTasks,
+                onAllRegisteredTasks);
+
+        customExecutor.registered(mockExecutorDriver, getTestExecutorInfo(), null, null);
+        customExecutor.reregistered(mockExecutorDriver, null);
+        Mockito.verify(mockExecutorDriver, times(2)).sendStatusUpdate(taskStatus);
+    }
+
+    @Test
+    public void testRegistrationTasksTimeout() {
+        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
+
+        final List<TimedExecutorTask> onRegisteredTasks = Arrays.asList(
+                new TestTimedExecutorTask(
+                        Duration.ofSeconds(10),
+                        Duration.ZERO,
+                        Protos.TaskStatus.newBuilder()
+                                .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
+                                .setState(Protos.TaskState.TASK_FINISHED)
+                                .build(),
+                        mockExecutorDriver));
+
+        final CustomExecutor customExecutor = getTestExecutor(
+                onRegisteredTasks,
+                null);
+
+        exit.expectSystemExitWithStatus(ExecutorErrorCode.ON_REGISTERED_TASK_FAILURE.ordinal());
+        customExecutor.registered(mockExecutorDriver, getTestExecutorInfo(), null, null);
+    }
+
+    @Test
+    public void testReregistrationTasksTimeout() {
+        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
+
+        final List<TimedExecutorTask> onReregisteredTasks = Arrays.asList(
+                new TestTimedExecutorTask(
+                        Duration.ofSeconds(10),
+                        Duration.ZERO,
+                        Protos.TaskStatus.newBuilder()
+                                .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
+                                .setState(Protos.TaskState.TASK_FINISHED)
+                                .build(),
+                        mockExecutorDriver));
+
+        final CustomExecutor customExecutor = getTestExecutor(
+                null,
+                onReregisteredTasks);
+
+        customExecutor.registered(mockExecutorDriver, getTestExecutorInfo(), null, null);
+        exit.expectSystemExitWithStatus(ExecutorErrorCode.ON_REREGISTERED_TASK_FAILURE.ordinal());
+        customExecutor.reregistered(mockExecutorDriver, null);
+    }
+
+    private CustomExecutor getTestExecutor() {
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
+        return new CustomExecutor(executorService, testExecutorTaskFactory);
+    }
+
+    private CustomExecutor getTestExecutor(
+            List<TimedExecutorTask> onRegisteredTasks,
+            List<TimedExecutorTask> onReregisteredTasks) {
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
+
+        return new CustomExecutor(
+                executorService,
+                testExecutorTaskFactory,
+                onRegisteredTasks,
+                onReregisteredTasks);
+    }
+
+    private Protos.ExecutorInfo getTestExecutorInfo() {
+        return Protos.ExecutorInfo
+                .newBuilder()
+                .setName("TEST_EXECUTOR")
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setCommand(Protos.CommandInfo.newBuilder().setValue("ls"))
+                .build();
+    }
+
+    private Protos.TaskStatus getTestTaskStatus(String taskId) {
+        return Protos.TaskStatus.newBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(taskId))
+                .setState(Protos.TaskState.TASK_FINISHED)
+                .build();
+    }
+
+    private Protos.TaskStatus getTestTaskStatus() {
+        return getTestTaskStatus("test-task-id");
+    }
 }

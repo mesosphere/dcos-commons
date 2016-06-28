@@ -7,10 +7,12 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * An {@code Executor} implementation that supports execution of long-running tasks and supporting short-lived tasks.
@@ -25,10 +27,32 @@ public class CustomExecutor implements Executor {
     private Protos.ExecutorInfo executorInfo;
     private Protos.FrameworkInfo frameworkInfo;
     private volatile Protos.SlaveInfo slaveInfo;
+    private List<TimedExecutorTask> onRegisteredTasks;
+    private List<TimedExecutorTask> onReregisteredTasks;
 
     public CustomExecutor(final ExecutorService executorService, ExecutorTaskFactory executorTaskFactory) {
+        this(executorService, executorTaskFactory, null, null);
+    }
+
+    public CustomExecutor(
+            final ExecutorService executorService,
+            ExecutorTaskFactory executorTaskFactory,
+            List<TimedExecutorTask> onRegisteredTasks,
+            List<TimedExecutorTask> onReregisteredTasks) {
         this.executorService = executorService;
         this.executorTaskFactory = executorTaskFactory;
+
+        if (onRegisteredTasks == null) {
+            this.onRegisteredTasks = Collections.emptyList();
+        } else {
+            this.onRegisteredTasks = onRegisteredTasks;
+        }
+
+        if (onReregisteredTasks == null) {
+            this.onReregisteredTasks = Collections.emptyList();
+        } else {
+            this.onReregisteredTasks = onReregisteredTasks;
+        }
     }
 
     @Override
@@ -38,12 +62,26 @@ public class CustomExecutor implements Executor {
         this.slaveInfo = slaveInfo;
         this.executorInfo = executorInfo;
         this.frameworkInfo = frameworkInfo;
+
+        try {
+            processExecutorTasksSynchronously(onRegisteredTasks);
+        } catch (ExecutionException|InterruptedException|TimeoutException e) {
+            LOGGER.error("Tasks to be run upon registration failed. Exiting with exception: ", e);
+            System.exit(ExecutorErrorCode.ON_REGISTERED_TASK_FAILURE.ordinal());
+        }
     }
 
     @Override
     public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
         LOGGER.info("Re-registered executor: {}", executorInfo.getExecutorId());
         this.slaveInfo = slaveInfo;
+
+        try {
+            processExecutorTasksSynchronously(onReregisteredTasks);
+        } catch (ExecutionException|InterruptedException|TimeoutException e) {
+            LOGGER.error("Tasks to be run upon re-registration failed. Exiting with exception: ", e);
+            System.exit(ExecutorErrorCode.ON_REREGISTERED_TASK_FAILURE.ordinal());
+        }
     }
 
     @Override
@@ -64,11 +102,11 @@ public class CustomExecutor implements Executor {
             final Protos.Environment environment = taskData.getEnvironment();
             final Map<String, String> taskEnv = TaskUtils.fromEnvironmentToMap(environment);
 
-            if (!taskEnv.containsKey(ExecutorTask.TASK_TYPE)) {
+            if (!taskEnv.containsKey(DcosTaskConstants.TASK_TYPE)) {
                 throw new ExecutorTaskException("Unable to determine task type: " + taskEnv);
             }
 
-            final String taskType = taskEnv.get(ExecutorTask.TASK_TYPE);
+            final String taskType = taskEnv.get(DcosTaskConstants.TASK_TYPE);
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(taskType, task, driver);
             executorService.submit(taskToExecute);
             launchedTasks.put(task.getTaskId(), taskToExecute);
@@ -166,5 +204,11 @@ public class CustomExecutor implements Executor {
 
     public void setExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
+    }
+
+    private void processExecutorTasksSynchronously(List<TimedExecutorTask> tasks) throws ExecutionException, InterruptedException, TimeoutException {
+        for (TimedExecutorTask task : tasks) {
+            executorService.submit(task).get(task.getTimeout().getSeconds(), TimeUnit.SECONDS);
+        }
     }
 }

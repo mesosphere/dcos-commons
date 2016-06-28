@@ -35,7 +35,7 @@ public class ProcessTaskTest {
                         .setValue("sleep 5")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(ExecutorTask.TASK_TYPE, "TEST")))
+                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -91,7 +91,7 @@ public class ProcessTaskTest {
                         .setValue("sleep 5")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(ExecutorTask.TASK_TYPE, "TEST")))
+                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
