@@ -1,5 +1,8 @@
 package org.apache.mesos.scheduler.txnplan;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.scheduler.registry.TaskRegistry;
 import org.apache.mesos.scheduler.txnplan.ops.UnconditionalOp;
@@ -19,10 +22,20 @@ import static org.testng.AssertJUnit.assertFalse;
  */
 public class PlanExecutorTest {
     private TestingServer zkServer;
+    private CuratorFramework curator;
 
     public PlanExecutorTest() throws Exception {
         zkServer = new TestingServer(true);
         logMap = new HashMap<>();
+        try {
+            curator = CuratorFrameworkFactory.builder()
+                    .connectString(zkServer.getConnectString())
+                    .retryPolicy(new BoundedExponentialBackoffRetry(100, 120000, 10))
+                    .build();
+            curator.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -32,7 +45,7 @@ public class PlanExecutorTest {
     public void testPlanExecutorSerializer() throws InterruptedException {
         List<String> log = Collections.synchronizedList(new ArrayList<>());
         PlanExecutor executor = new PlanExecutor(null, new MockOperationDriverFactory(),
-                new ZKPlanStorageDriver(zkServer.getConnectString(), UUID.randomUUID().toString()));
+                new ZKPlanStorageDriver(curator.usingNamespace(UUID.randomUUID().toString())));
 
         Plan plan1 = new Plan();
         Step one = plan1.step(new LogOp(log, "one", 100, "A"));
@@ -75,7 +88,7 @@ public class PlanExecutorTest {
     public void testPlanExecutorConcurrent() throws InterruptedException {
         List<String> log = Collections.synchronizedList(new ArrayList<>());
         PlanExecutor executor = new PlanExecutor(null, new MockOperationDriverFactory(),
-                new ZKPlanStorageDriver(zkServer.getConnectString(), UUID.randomUUID().toString()));
+                new ZKPlanStorageDriver(curator.usingNamespace(UUID.randomUUID().toString())));
 
         Plan plan1 = new Plan();
         Step one = plan1.step(new LogOp(log, "one", 100, "A"));
@@ -149,7 +162,7 @@ public class PlanExecutorTest {
         queueForA.add(plan1.getUuid());
         planQueue.put("A", queueForA);
 
-        PlanStorageDriver storageDriver = new ZKPlanStorageDriver(zkServer.getConnectString(), UUID.randomUUID().toString());
+        PlanStorageDriver storageDriver = new ZKPlanStorageDriver(curator.usingNamespace(UUID.randomUUID().toString()));
         storageDriver.savePlan(plan1);
         storageDriver.savePlan(plan2);
         storageDriver.saveStatusForPlan(plan1status);

@@ -3,11 +3,8 @@ package org.apache.mesos.scheduler.txnplan;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.zookeeper.KeeperException;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -18,20 +15,10 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
 
     /**
      * Creates an implementation of PlanStorageDriver
-     * @param connectString the string to connect to zookeeper with
-     * @param rootNamespace the root namespace to store the plan information. This enables multiple plans on one ZK
+     * @param curator
      */
-    public ZKPlanStorageDriver(String connectString, String rootNamespace) {
-        try {
-            curator = CuratorFrameworkFactory.builder()
-                    .connectString(connectString)
-                    .retryPolicy(new BoundedExponentialBackoffRetry(100, 120000, 10))
-                    .namespace(rootNamespace)
-                    .build();
-            curator.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public ZKPlanStorageDriver(CuratorFramework curator) {
+        this.curator = curator;
     }
 
     private void storeData(String path, byte[] data) throws Exception {

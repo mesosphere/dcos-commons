@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * a status (can change over time, but only user code can change it to an earlier status), and
  * offerrequirements (used to launch the task, but required to only have a single task).
  *
- * Tasks will start out with null Status & TaskInfo--this is a signal they need to be launched.
+ * Tasks will start out with null Status--this is a signal they need to be launched.
  * Once a task is launched, it'll be in the STAGING state. Subsequent task updates
  * will be routed to the appropriate task, so that queries will return the latest state.
  * We'll automatically kill tasks that don't have their TaskID listed.
