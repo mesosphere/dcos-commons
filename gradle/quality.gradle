@@ -32,14 +32,11 @@ pmd {
 }
 
 ext {
-  findbugsAnnotateVer = "1.3.2-201002241900"
   junitVer = "4.11"
   mockitoVer = "1.9.5"
 }
 
 dependencies {
-
-  compile "com.kenai.nbpwr:edu-umd-cs-findbugs-annotations:${findbugsAnnotateVer}"
   testCompile "junit:junit:${junitVer}"
   testCompile "org.mockito:mockito-all:${mockitoVer}"
 }

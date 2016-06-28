@@ -111,7 +111,7 @@ public class ProcessTask implements ExecutorTask {
                     exitMessage);
 
             if (exitOnTermination) {
-                System.exit(0);
+                System.exit(ExecutorErrorCode.EXIT_ON_TERMINATION_SUCCESS.ordinal());
             }
         } catch (Throwable e) {
             LOGGER.error("Process task failed.", e);
@@ -126,7 +126,7 @@ public class ProcessTask implements ExecutorTask {
                     e.getMessage(),
                     SerializationUtils.serialize(e));
             if (exitOnTermination) {
-                System.exit(1);
+                System.exit(ExecutorErrorCode.EXIT_ON_TERMINATION_FAILURE.ordinal());
             }
         }
     }

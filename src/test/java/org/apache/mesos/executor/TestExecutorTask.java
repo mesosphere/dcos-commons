@@ -14,7 +14,10 @@ public class TestExecutorTask implements ExecutorTask {
     private Protos.TaskStatus taskStatus;
     private ExecutorDriver driver;
 
-    public TestExecutorTask(Duration sleepDuration, Protos.TaskStatus taskStatus, ExecutorDriver driver) {
+    public TestExecutorTask(
+            Duration sleepDuration,
+            Protos.TaskStatus taskStatus,
+            ExecutorDriver driver) {
         this.sleepDuration = sleepDuration;
         this.taskStatus = taskStatus;
         this.driver = driver;

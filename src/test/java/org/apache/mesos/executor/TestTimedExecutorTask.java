@@ -6,7 +6,7 @@ import org.apache.mesos.Protos;
 import java.time.Duration;
 
 /**
- * Created by gabriel on 6/27/16.
+ * This class is a Test implementation fo the TimedExecutorTask interface.
  */
 public class TestTimedExecutorTask implements TimedExecutorTask {
     private TestExecutorTask testExecutorTask;

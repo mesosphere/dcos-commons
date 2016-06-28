@@ -67,20 +67,22 @@ allprojects {
 apply plugin: 'application'
 
 ext {
-  jacksonVer = "2.6.3"
+  antlrVer = "4.5.1-1"
   commonsCollectionsVer = "3.2.2"
   commonsIoVer = "2.4"
-  antlrVer = "4.5.1-1"
-  restServiceVer = "2.0.1"
-  guiceVer = "3.0"
-  junitVer = "4.11"
-  gsonVer = "2.3.1"
-  mesosVer = "0.28.0"
-  slf4jVer = "1.7.10"
-  mockitoVer = "1.9.5"
   curatorVer = "2.9.1"
-  powerMockVer = "1.6.4"
   dropwizardVer = "0.9.2"
+  findbugsAnnotateVer = "1.3.2-201002241900"
+  gsonVer = "2.3.1"
+  guiceVer = "3.0"
+  jacksonVer = "2.6.3"
+  junitVer = "4.11"
+  mesosVer = "0.28.0"
+  mockitoVer = "1.9.5"
+  powerMockVer = "1.6.4"
+  restServiceVer = "2.0.1"
+  slf4jVer = "1.7.10"
+  systemRulesVer = "1.16.0"
 }
 
 group = "mesosphere"
@@ -122,6 +124,7 @@ configurations {
 dependencies {
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
   compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
+  compile "com.kenai.nbpwr:edu-umd-cs-findbugs-annotations:${findbugsAnnotateVer}"
   compile "commons-collections:commons-collections:${commonsCollectionsVer}"
   compile "commons-io:commons-io:${commonsIoVer}"
   compile "org.antlr:antlr4-runtime:${antlrVer}"
@@ -135,11 +138,11 @@ dependencies {
   compile "com.google.inject:guice:${guiceVer}"
   compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
   compile "com.google.code.gson:gson:${gsonVer}"
+  testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
   testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
   testCompile "org.mockito:mockito-all:${mockitoVer}"
   testCompile "org.powermock:powermock-mockito-release-full:${powerMockVer}"
   testCompile "org.apache.curator:curator-test:${curatorVer}"
-  testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
 }
 
 distributions {

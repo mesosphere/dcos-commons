@@ -5,12 +5,16 @@ package org.apache.mesos.executor;
  */
 public class DcosTaskConstants {
     public static final String TASK_TYPE = "TASK_TYPE";
+    public static final String ON_REGISTERED_TASK = "ON_REGISTERED_TASK";
+    public static final String ON_REREGISTERED_TASK = "ON_REREGISTERED_TASK";
 
 }
 
 // Error Codes
 enum ExecutorErrorCode {
-    EXIT_ON_TERMINATINON,
+    EXIT_ON_TERMINATION_SUCCESS,
+    EXIT_ON_TERMINATION_FAILURE,
     ON_REGISTERED_TASK_FAILURE,
     ON_REREGISTERED_TASK_FAILURE
 }
+

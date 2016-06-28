@@ -7,7 +7,6 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -27,32 +26,12 @@ public class CustomExecutor implements Executor {
     private Protos.ExecutorInfo executorInfo;
     private Protos.FrameworkInfo frameworkInfo;
     private volatile Protos.SlaveInfo slaveInfo;
-    private List<TimedExecutorTask> onRegisteredTasks;
-    private List<TimedExecutorTask> onReregisteredTasks;
-
-    public CustomExecutor(final ExecutorService executorService, ExecutorTaskFactory executorTaskFactory) {
-        this(executorService, executorTaskFactory, null, null);
-    }
 
     public CustomExecutor(
             final ExecutorService executorService,
-            ExecutorTaskFactory executorTaskFactory,
-            List<TimedExecutorTask> onRegisteredTasks,
-            List<TimedExecutorTask> onReregisteredTasks) {
+            ExecutorTaskFactory executorTaskFactory) {
         this.executorService = executorService;
         this.executorTaskFactory = executorTaskFactory;
-
-        if (onRegisteredTasks == null) {
-            this.onRegisteredTasks = Collections.emptyList();
-        } else {
-            this.onRegisteredTasks = onRegisteredTasks;
-        }
-
-        if (onReregisteredTasks == null) {
-            this.onReregisteredTasks = Collections.emptyList();
-        } else {
-            this.onReregisteredTasks = onReregisteredTasks;
-        }
     }
 
     @Override
@@ -64,10 +43,14 @@ public class CustomExecutor implements Executor {
         this.frameworkInfo = frameworkInfo;
 
         try {
+            List<TimedExecutorTask> onRegisteredTasks = executorTaskFactory.createTimedTasks(
+                    DcosTaskConstants.ON_REGISTERED_TASK,
+                    executorInfo,
+                    driver);
             processExecutorTasksSynchronously(onRegisteredTasks);
-        } catch (ExecutionException|InterruptedException|TimeoutException e) {
+        } catch (ExecutorTaskException | ExecutionException | InterruptedException | TimeoutException e) {
             LOGGER.error("Tasks to be run upon registration failed. Exiting with exception: ", e);
-            System.exit(ExecutorErrorCode.ON_REGISTERED_TASK_FAILURE.ordinal());
+            hardExit(ExecutorErrorCode.ON_REGISTERED_TASK_FAILURE);
         }
     }
 
@@ -77,10 +60,14 @@ public class CustomExecutor implements Executor {
         this.slaveInfo = slaveInfo;
 
         try {
+            List<TimedExecutorTask> onReregisteredTasks = executorTaskFactory.createTimedTasks(
+                    DcosTaskConstants.ON_REREGISTERED_TASK,
+                    executorInfo,
+                    driver);
             processExecutorTasksSynchronously(onReregisteredTasks);
-        } catch (ExecutionException|InterruptedException|TimeoutException e) {
+        } catch (ExecutorTaskException | ExecutionException | InterruptedException | TimeoutException e) {
             LOGGER.error("Tasks to be run upon re-registration failed. Exiting with exception: ", e);
-            System.exit(ExecutorErrorCode.ON_REREGISTERED_TASK_FAILURE.ordinal());
+            hardExit(ExecutorErrorCode.ON_REREGISTERED_TASK_FAILURE);
         }
     }
 
@@ -206,9 +193,15 @@ public class CustomExecutor implements Executor {
         this.executorService = executorService;
     }
 
-    private void processExecutorTasksSynchronously(List<TimedExecutorTask> tasks) throws ExecutionException, InterruptedException, TimeoutException {
+    private void processExecutorTasksSynchronously(List<TimedExecutorTask> tasks)
+            throws ExecutionException, InterruptedException, TimeoutException {
         for (TimedExecutorTask task : tasks) {
             executorService.submit(task).get(task.getTimeout().getSeconds(), TimeUnit.SECONDS);
         }
+    }
+
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("DM_EXIT")
+    private void hardExit(ExecutorErrorCode errorCode) {
+        System.exit(errorCode.ordinal());
     }
 }
