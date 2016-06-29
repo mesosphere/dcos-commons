@@ -32,7 +32,7 @@ public class OfferRequirement {
     throws InvalidRequirementException {
     this.taskRequirements = getTaskRequirementsInternal(taskInfos);
     if (execInfo != null) {
-      this.executorRequirement = new ExecutorRequirement(execInfo);
+      this.executorRequirement = ExecutorRequirement.create(execInfo);
     }
 
     if (avoidAgents == null) {

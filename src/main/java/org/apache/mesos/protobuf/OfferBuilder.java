@@ -44,6 +44,14 @@ public class OfferBuilder {
     return this;
   }
 
+  public OfferBuilder addExecutorIds(List<String> executorIds) {
+    for (String executorId : executorIds) {
+      builder.addExecutorIds(Protos.ExecutorID.newBuilder().setValue(executorId));
+    }
+
+    return this;
+  }
+
   public OfferBuilder addResource(Protos.Resource resource) {
     builder.addResources(resource);
     return this;
