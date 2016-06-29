@@ -663,7 +663,7 @@ public class OfferEvaluatorTest {
   private static ExecutorInfo getExecutorInfo(Resource resource) {
     CommandInfo cmd = CommandInfo.newBuilder().build();
     ExecutorInfoBuilder builder = new ExecutorInfoBuilder(
-        ResourceTestUtils.testExecutorId, ResourceTestUtils.testExecutorName, cmd);
+        "", ResourceTestUtils.testExecutorName, cmd);
     return builder.addResource(resource).build();
   }
 }

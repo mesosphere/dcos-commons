@@ -16,13 +16,48 @@ public class ExecutorRequirement {
     private ExecutorInfo executorInfo;
     private Collection<ResourceRequirement> resourceRequirements;
 
-    public ExecutorRequirement(ExecutorInfo unverifiedExecutorInfo)
+    /**
+     * This method generates one of two possible Executor requirements.  In the first case, if an empty Executor name is
+     * presented in the ExecutorInfo an ExecutorRequirement representing a need for a new Executor is returned.  In the
+     * second case, if an ExecutorInfo with a valid name is presented a requirement indicating use of an already running
+     * Executor is generated.
+     * @param executorInfo is the ExecutorInfo indicate what requirement should be generated.
+     * @return an ExecutorRequirement to be used to evaluate Offers by the OfferEvaluator
+     * @throws InvalidRequirementException when a malformed ExecutorInfo is presented indicating an invalid
+     * ExecutorRequirement.
+     */
+    public static ExecutorRequirement create(ExecutorInfo executorInfo)
+        throws InvalidRequirementException {
+        if (executorInfo.getExecutorId().getValue().isEmpty()) {
+            return createExecutorRequirement(executorInfo);
+        } else {
+            return getExistingExecutorRequirement(executorInfo);
+        }
+    }
+
+    private static ExecutorRequirement createExecutorRequirement(ExecutorInfo executorInfo)
+            throws InvalidRequirementException{
+        return new ExecutorRequirement(
+                ExecutorInfo.newBuilder(executorInfo)
+                        .setExecutorId(ExecutorUtils.toExecutorId(executorInfo.getName()))
+                        .build());
+    }
+
+    private static ExecutorRequirement getExistingExecutorRequirement(ExecutorInfo executorInfo)
+        throws InvalidRequirementException {
+        ExecutorRequirement executorRequirement = new ExecutorRequirement(executorInfo);
+
+        if (executorRequirement.desiresResources()) {
+            throw new InvalidRequirementException("When using an existing Executor, no new resources may be required.");
+        } else {
+            return executorRequirement;
+        }
+    }
+
+    private ExecutorRequirement(ExecutorInfo executorInfo)
             throws InvalidRequirementException {
-        validateExecutorInfo(unverifiedExecutorInfo);
-        // ExecutorID is always overwritten with a new UUID, even if already present:
-        this.executorInfo = ExecutorInfo.newBuilder(unverifiedExecutorInfo)
-                .setExecutorId(ExecutorUtils.toExecutorId(unverifiedExecutorInfo.getName()))
-                .build();
+        validateExecutorInfo(executorInfo);
+        this.executorInfo = executorInfo;
         this.resourceRequirements =
                 RequirementUtils.getResourceRequirements(this.executorInfo.getResourcesList());
     }
