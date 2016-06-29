@@ -66,31 +66,31 @@ public class PlanTest {
 
     @Test
     /**
-     * Tests whether an exception in the action triggers a rollback
+     * Tests whether an exception in the action triggers a unravel
      */
     public void testRollback() {
         List<String> log = Collections.synchronizedList(new ArrayList<>());
         Plan plan = new Plan();
         Step one = plan.step(new RollbackOp(log, "one", false));
         Step two = plan.step(new RollbackOp(log, "two", true));
-        //This sidecar should not have had a chance to log before the rollback
+        //This sidecar should not have had a chance to log before the unravel
         Step sidecar = plan.step(new LogOp(log, "sidecar", 200));
         two.requires(one);
         plan.freeze();
         launchPlanAndWait(plan, 500);
-        assertEquals(Arrays.asList("one", "two", "rollback two", "rollback one"), log);
+        assertEquals(Arrays.asList("one", "two", "unravel two", "unravel one"), log);
     }
 
     @Test
     /**
-     * Tests whether an exception in the action triggers a rollback
+     * Tests whether an exception in the action triggers a unravel
      */
     public void testAbort() {
         List<String> log = Collections.synchronizedList(new ArrayList<>());
         Plan plan = new Plan();
         Step one = plan.step(new RollbackOp(log, "one", false));
         Step two = plan.step(new RollbackOp(log, "from orbit", true));
-        //This sidecar should not have had a chance to log before the rollback
+        //This sidecar should not have had a chance to log before the unravel
         Step sidecar = plan.step(new LogOp(log, "sidecar", 500));
         two.requires(one);
         plan.freeze();
@@ -145,11 +145,11 @@ public class PlanTest {
         }
 
         @Override
-        public void rollback(TaskRegistry registry, OperationDriver driver) throws Exception {
+        public void unravel(TaskRegistry registry, OperationDriver driver) throws Exception {
             if (id.equals("from orbit")) {
                 throw new RuntimeException("blasted");
             }
-            log.add("rollback " + id);
+            log.add("unravel " + id);
         }
 
         @Override

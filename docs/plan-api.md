@@ -19,7 +19,7 @@ this allows developers to not need to worry as much about these complex Mesos co
 
 ### `Operation`
 
-The fundamental active unit is the `Operation`, an interface with three methods: `doAction`, `rollback`, and `lockedTasks`.
+The fundamental active unit is the `Operation`, an interface with three methods: `doAction`, `unravel`, and `lockedTasks`.
 We'll explain what each does in turn, after explaining the basics of the operation.
 
 #### Serializability
@@ -29,7 +29,7 @@ When writing an operation, we'll serialize it with an enriched instance of `Kryo
 You need to make sure that your operation only holds references to small amounts of data that is serializable--that means no sockets, no threads, and no Input/OutputStreams!
 Instead, if you need those sorts of resources, I recommend one of several approaches:
 
-If you need a socket, instead store the port/ip the socket connects to in the member variables, and create, use, and destroy the socket entirely within the `doAction`/`rollback` context.
+If you need a socket, instead store the port/ip the socket connects to in the member variables, and create, use, and destroy the socket entirely within the `doAction`/`unravel` context.
 
 If you need a thread, you may actually need something like a thread pool or other shared, pooled resource.
 In this case, make a static pool somewhere that your operation can access.
@@ -49,12 +49,12 @@ And now, on to the show: what the three methods are for:
 If you want to interact with containers, you can do so through the TaskRegistry that you'll be passed.
 That registry is capable of creating, destroying, querying, and waiting for specific container statuses.
 
-`rollback` is a convenience function for your SREs--if you hate them, just throw a `RuntimeException` in this method.
-When any operation's `doAction` throws an exception, that plan begins to rollback--concurrently running operations are interrupted, and then we begin the rollback process.
-As long as no `rollback` of any operation that had completed or was running at the time throws an exception, the scheduler will invoke `rollback` in an inverse, serial order for all the operations that had a chance to run.
+`unravel` is a convenience function for your SREs--if you hate them, just throw a `RuntimeException` in this method.
+When any operation's `doAction` throws an exception, that plan begins to unravel--concurrently running operations are interrupted, and then we begin the unravel process.
+As long as no `unravel` of any operation that had completed or was running at the time throws an exception, the scheduler will invoke `unravel` in an inverse, serial order for all the operations that had a chance to run.
 This gives each operation a chance to clean up resources or state it may have allocated.
 For example, if a plan is attempting to create a new application and associated elastic load balancer, it's nice when you can delete that ELB rather than continuing to pay for it, just because an unrelated issue failed.
-Conceptually, `rollback` reflects the idea that many failures are things we expect and understand--we may not care to magically route around a failure, but it's easy to leave the system in a better state than aborting halfway through maintenance.
+Conceptually, `unravel` reflects the idea that many failures are things we expect and understand--we may not care to magically route around a failure, but it's easy to leave the system in a better state than aborting halfway through maintenance.
 
 `lockedTasks` is the final necessary function--this function returns a collection of names of Tasks that this operation will muck around with.
 This enables us to have many plans run concurrently if they're doing unrelated things: adding `node3`, `node4`, and `node5`, while a different plan is upgrading `node1` and `node2`.
@@ -63,7 +63,7 @@ Conceptually, tasks should always be in a "good, consistent" state except when t
 
 #### What about `OperationDriver`?
 
-You might've noticed that `doAction` and `rollback` are given an `OperationDriver` as well as a `TaskRegistry`.
+You might've noticed that `doAction` and `unravel` are given an `OperationDriver` as well as a `TaskRegistry`.
 We know the `TaskRegistry` is the thread-safe portal into Mesos containers.
 The driver is a simple API for operation authors to add checkpointing and logging (and maybe other common functionality in the future) to their operation.
 The driver is scoped to the specific operation, to avoid unnecssary boilerplate.
@@ -126,7 +126,7 @@ configureWorkers.requires(launchWorker3);
 planExecutor.submitPlan(myPlan);
 ```
 
-Once `submitPlan` returns, the plan's already been transactionally stored in the backend, and it should run to completion (or rollback).
+Once `submitPlan` returns, the plan's already been transactionally stored in the backend, and it should run to completion (or unravel).
 
 The `PlanExecutor` has a few other bits of functionality.
 By default, it starts in a fresh state, with no plans or data.

@@ -22,7 +22,7 @@ public abstract class UnconditionalOp implements Operation {
     }
 
     @Override
-    public void rollback(TaskRegistry registry, OperationDriver driver) {
+    public void unravel(TaskRegistry registry, OperationDriver driver) {
         driver.info("Rolling back unconditional operation; this is a no-op");
     }
 

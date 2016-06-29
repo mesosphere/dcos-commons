@@ -43,7 +43,7 @@ public class CreateTaskOp implements Operation{
     }
 
     @Override
-    public void rollback(TaskRegistry registry, OperationDriver driver) throws Exception {
+    public void unravel(TaskRegistry registry, OperationDriver driver) throws Exception {
         byte[] data = (byte[]) driver.load();
         if (data != null) {
             try {

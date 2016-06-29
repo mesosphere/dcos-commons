@@ -17,7 +17,7 @@ import java.util.Collection;
  * Each operation is given a flexible {@code OperationDriver},
  * which can save and load arbitrary binary data on behalf of
  * the operation. This is useful for internal record keeping,
- * to simplify the implementation of {@code rollback} (in case
+ * to simplify the implementation of {@code unravel} (in case
  * your {@code Operation} has multiple steps), or to simplify
  * the implementation of {@code doAction}, so that you can pick
  * up where you left off after a crash.
@@ -36,11 +36,11 @@ public interface Operation {
     /**
      * This method does the inverse of this operation's action.
      * For example, if this operation creates a task and reserves
-     * resources for it, rollback should terminate that task and
+     * resources for it, unravel should terminate that task and
      * release the resources.
      * @param driver
      */
-    void rollback(TaskRegistry registry, OperationDriver driver) throws Exception;
+    void unravel(TaskRegistry registry, OperationDriver driver) throws Exception;
 
 
     /**

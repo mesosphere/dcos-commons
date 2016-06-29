@@ -47,7 +47,7 @@ public class KillTaskOp implements Operation {
     }
 
     @Override
-    public void rollback(TaskRegistry registry, OperationDriver driver) {
+    public void unravel(TaskRegistry registry, OperationDriver driver) {
         throw new RuntimeException("Cannot roll back a kill operation!");
     }
 

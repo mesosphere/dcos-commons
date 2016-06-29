@@ -120,7 +120,7 @@ public class PlanTracker {
                     try {
                         for (Step step : toUndo) {
                             logger.info("Undoing step " + step.getUuid() + ": " + step.getOperation().getClass());
-                            step.getOperation().rollback(registry, driverFactory.makeDriver(step));
+                            step.getOperation().unravel(registry, driverFactory.makeDriver(step));
                             synchronized (status) {
                                 status = status.rolledBackStep(step.getUuid());
                             }
@@ -133,12 +133,12 @@ public class PlanTracker {
                 }
             }).start();
         } else if (!(e instanceof InterruptedException)){
-            logger.info("Another error encountered, but rollback has already begun", e);
+            logger.info("Another error encountered, but unravel has already begun", e);
         }
     }
 
     private synchronized void crash(Throwable e) {
-        logger.error("Encountered error during rollback, aborting abruptly", e);
+        logger.error("Encountered error during unravel, aborting abruptly", e);
         synchronized (status) {
             status = status.crash();
         }

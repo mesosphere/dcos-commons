@@ -35,7 +35,7 @@ public abstract class WaitOp implements Operation {
     }
 
     @Override
-    public void rollback(TaskRegistry registry, OperationDriver driver) throws Exception {
+    public void unravel(TaskRegistry registry, OperationDriver driver) throws Exception {
 
     }
 
