@@ -110,13 +110,24 @@ public class OfferEvaluator {
       unreserves.addAll(fulfilledTaskRequirement.getUnreserveRecommendations());
       reserves.addAll(fulfilledTaskRequirement.getReserveRecommendations());
       creates.addAll(fulfilledTaskRequirement.getCreateRecommendations());
+
+      ExecutorInfo execInfo = null;
+      if (execReq != null) {
+        execInfo = execReq.getExecutorInfo();
+        if (execInfo.getExecutorId().getValue().isEmpty()) {
+          execInfo = ExecutorInfo.newBuilder(execInfo)
+                  .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
+                  .build();
+        }
+      }
+
       launches.add(
         new LaunchOfferRecommendation(
           offer,
           getFulfilledTaskInfo(
             taskReq,
             fulfilledTaskRequirement,
-            execReq,
+            execInfo,
             fulfilledExecutorRequirement)));
     }
 
@@ -315,7 +326,7 @@ public class OfferEvaluator {
   private TaskInfo getFulfilledTaskInfo(
       TaskRequirement taskReq,
       FulfilledRequirement fulfilledTaskRequirement,
-      ExecutorRequirement execReq,
+      ExecutorInfo execInfo,
       FulfilledRequirement fulfilledExecutorRequirement) {
 
     TaskInfo taskInfo = taskReq.getTaskInfo();
@@ -325,15 +336,10 @@ public class OfferEvaluator {
       .clearResources()
       .addAllResources(fulfilledTaskResources);
 
-    if (execReq != null) {
-      ExecutorInfo execInfo = execReq.getExecutorInfo();
+    if (execInfo != null) {
       ExecutorInfo.Builder execBuilder =
               ExecutorInfo.newBuilder(execInfo)
                       .clearResources();
-
-      if (execInfo.getExecutorId().getValue().isEmpty()) {
-        execBuilder.setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()));
-      }
 
       if (fulfilledExecutorRequirement != null) {
         List<Resource> fulfilledExecutorResources = fulfilledExecutorRequirement.getFulfilledResources();

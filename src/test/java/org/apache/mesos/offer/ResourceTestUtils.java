@@ -1,6 +1,5 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
