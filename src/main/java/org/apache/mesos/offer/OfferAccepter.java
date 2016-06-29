@@ -39,6 +39,10 @@ public class OfferAccepter {
   }
 
   public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
+    return accept(driver, recommendations, getFilters());
+  }
+
+  public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations, Filters filters) {
     if (recommendations.size() <= 0) {
       logger.warn("No recommendations, nothing to do");
       return new ArrayList<OfferID>();
@@ -46,7 +50,6 @@ public class OfferAccepter {
 
     List<OfferID> offerIds = getOfferIds(recommendations);
     List<Operation> operations = getOperations(recommendations);
-    Filters filters = getFilters();
 
     logOperations(operations);
 
