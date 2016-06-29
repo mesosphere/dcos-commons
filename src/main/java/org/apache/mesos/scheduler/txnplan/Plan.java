@@ -39,6 +39,29 @@ public class Plan {
         prereqsByStep = Collections.unmodifiableMap(prereqsByStep);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Plan plan = (Plan) o;
+
+        if (hasBeenSubmitted != plan.hasBeenSubmitted) return false;
+        if (!prereqsByStep.equals(plan.prereqsByStep)) return false;
+        if (!steps.equals(plan.steps)) return false;
+        return uuid.equals(plan.uuid);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (hasBeenSubmitted ? 1 : 0);
+        result = 31 * result + prereqsByStep.hashCode();
+        result = 31 * result + steps.hashCode();
+        result = 31 * result + uuid.hashCode();
+        return result;
+    }
+
     private void ensureMutationSafe() {
         if (hasBeenSubmitted) {
             throw new RuntimeException("Plan has already been submitted!");

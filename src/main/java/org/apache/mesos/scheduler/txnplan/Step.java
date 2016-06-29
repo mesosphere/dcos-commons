@@ -10,6 +10,27 @@ public class Step {
     private UUID uuid;
     private Plan plan;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Step step = (Step) o;
+
+        if (!operation.equals(step.operation)) return false;
+        if (!uuid.equals(step.uuid)) return false;
+        return plan.equals(step.plan);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = operation.hashCode();
+        result = 31 * result + uuid.hashCode();
+        result = 31 * result + plan.hashCode();
+        return result;
+    }
+
     private Step() {
     }
 

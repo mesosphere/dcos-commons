@@ -2,16 +2,15 @@ package org.apache.mesos.scheduler.registry;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.offer.OfferAccepter;
-import org.apache.mesos.offer.OfferEvaluator;
-import org.apache.mesos.offer.OfferRecommendation;
-import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.protobuf.TaskUtil;
 import org.apache.mesos.scheduler.txnplan.PlanTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -42,16 +41,158 @@ public class TaskRegistry {
     private final OfferAccepter accepter;
     private volatile SchedulerDriver driver = null;
     private RegistryStorageDriver storageDriver;
+    private AtomicReference<Thread> reconcileThread;
+    private AtomicBoolean beenReconciled;
 
     public TaskRegistry(OfferAccepter accepter, RegistryStorageDriver storageDriver) {
         this.accepter = accepter;
         this.storageDriver = storageDriver;
         this.tasks = new HashMap<>();
+        this.reconcileThread = new AtomicReference<>();
+        this.beenReconciled = new AtomicBoolean(false);
         //TODO if loadAllTasks returns an empty set, maybe we should throw or something
         for (Task task : storageDriver.loadAllTasks()) {
             tasks.put(task.getName(), task);
         }
-        //TODO this should block until reconciliation is complete
+        startPeriodicImplicitReconciler();
+    }
+
+    private void startPeriodicImplicitReconciler() {
+        Thread periodicReconciler = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(6 * 60 * 60 * 1000);
+                        if (driver != null) {
+                            driver.reconcileTasks(Collections.EMPTY_LIST);
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Implicit periodic reconciler interrupted", e);
+                    }
+                }
+            }
+        });
+        periodicReconciler.setName("periodic implicit reconciler");
+        periodicReconciler.setDaemon(true);
+        periodicReconciler.start();
+    }
+
+    /**
+     * Like {@link TaskRegistry#reconcileAsync}, but blocking.
+     * @see TaskRegistry#reconcileAsync()
+     */
+    public void reconcile() {
+        Thread reconciler = reconcileAsync();
+        if (reconciler != null) {
+            try {
+                reconciler.join();
+            } catch (InterruptedException e) {
+                logger.error("Wait for reconciler interrupted", e);
+            }
+        }
+    }
+
+    /**
+     * Attempts to begin a reconciliation process. If it results
+     * in starting reconciliation, it kicks off the Thread which is
+     * managing the process and returns it
+     * If another thread is already reconciling, it returns that thread
+     * @return The reconciling thread, or null if it already finished
+     */
+    public Thread reconcileAsync() {
+        Thread reconcileThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                boolean retry = false;
+                try {
+                    reconcileImpl();
+                } catch (Throwable t) {
+                    logger.error("Encountered fatal error during reconciliation, relaunching", t);
+                    retry = true;
+                } finally {
+                    TaskRegistry.this.reconcileThread.set(null);
+                }
+                if (retry) {
+                    reconcileAsync();
+                }
+            }
+        });
+        reconcileThread.setDaemon(true);
+        reconcileThread.setName("Reconciliation thread");
+        if (this.reconcileThread.compareAndSet(null, reconcileThread)) {
+            reconcileThread.start();
+            return reconcileThread;
+        } else {
+            //someone else will reconcile
+            return this.reconcileThread.get();
+        }
+    }
+
+    private void reconcileImpl() {
+        // Directions from the Mesos docs: http://mesos.apache.org/documentation/latest/reconciliation/
+        // (Instead of real time, we use the fact that the statuses in of a Task are monotonic)
+        // 1. let start = now()
+        // 2. let remaining = { T in tasks | T is non-terminal }
+        // 3. Perform reconciliation: reconcile(remaining)
+        // 4. Wait for status updates to arrive (use truncated exponential backoff). For each update, note the time of arrival.
+        // 5. let remaining = { T in remaining | T.last_update_arrival() < start }
+        // 6. If remaining is non-empty, go to 3.
+        long sleepTime = 1000;
+        // this is 2.
+        List<Task> remaining = getAllTasks().stream()
+                .filter(t -> !TaskUtils.isTerminated(t.getLatestTaskStatus()))
+                .collect(Collectors.toList());
+        // this is 1. (must happen after 2. so that we can rely on the monotonicity of `remaining`
+        Map<String, Integer> prevEpochStatusCounts = new HashMap<>();
+        for (Task task : remaining) {
+            prevEpochStatusCounts.put(task.getName(), task.getTaskStatuses().size());
+        }
+        // this is 6. (the code's written for a do/while, but we'll skip reconcilation if unneeded)
+        while (!remaining.isEmpty()) {
+            if (driver == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    // this sleep is just to avoid busy-spinning
+                }
+                continue;
+            }
+            // this is 3.
+            driver.reconcileTasks(remaining.stream()
+                    .map(Task::getLatestTaskStatus)
+                    .collect(Collectors.toList()));
+            if (sleepTime < 5*60*1000) {
+                logger.info("Performing reconciliation, timeout is " + sleepTime);
+            } else {
+                logger.warn("Performing reconciliation, timeout has grown to over 5 minutes: " + sleepTime);
+            }
+            try {
+                // this is 4.
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                logger.warn("Sleep for reconcile ended early", e);
+            }
+            // this is 5.
+            List<Task> nextRemaining = remaining.stream()
+                    .filter(t -> t.getTaskStatuses().size() > prevEpochStatusCounts.get(t.getName()))
+                    .collect(Collectors.toList());
+            int numReconciled = remaining.size() - nextRemaining.size();
+            logger.info("Reconciled " + numReconciled + ", " + nextRemaining.size() + " are left");
+            remaining = nextRemaining;
+            //TODO this is the step for an exponential dist, but we should use truncated exponential dist
+            // We randomize the sleep time by 10% to avoid accidentally overwhelming the master
+            sleepTime += sleepTime * (0.9 + Math.random() * 0.2);
+        }
+        logger.info("Reconciliation finished");
+        beenReconciled.set(true);
+    }
+
+    /**
+     * Call this each time we reregister to reset the reconcilation flag
+     */
+    public void didReregistration() {
+        beenReconciled.set(false);
     }
 
     /**
@@ -181,6 +322,13 @@ public class TaskRegistry {
     public synchronized void handleOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
         //logger.info("Got offers: " + offers);
         this.driver = driver;
+
+        if (!beenReconciled.get()) {
+            logger.info("Haven't reconciled yet, so we'll decline offers for now");
+            offers.stream().map(Protos.Offer::getId).forEach(driver::declineOffer);
+            return;
+        }
+
         List<Task> pendingTasks = tasks.values()
                 .stream()
                 .filter(t -> !t.hasStatus())

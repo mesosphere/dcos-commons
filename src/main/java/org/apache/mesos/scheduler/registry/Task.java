@@ -15,6 +15,10 @@ import java.util.function.Predicate;
  * and how to launch it. Everything except for the status is immutable; the
  * status is actually monotonic, in that we always append new statuses, so that
  * it's possible to review earlier statuses as well.
+ *
+ * TODO the implicit periodic reconciler means that we'll grow and grow this task without limit
+ * one day this will OOM
+ * we need to have a way to garbage collect duplicate reconciliation-originated statuses
  */
 public class Task {
     private static final Logger logger = LoggerFactory.getLogger(Task.class);
@@ -46,10 +50,11 @@ public class Task {
 
     public void launch() {
         synchronized (taskStatuses) {
-            taskStatuses.add(Protos.TaskStatus.newBuilder()
+            Protos.TaskStatus staging = Protos.TaskStatus.newBuilder()
                     .setTaskId(taskInfo.getTaskId())
                     .setState(Protos.TaskState.TASK_STAGING)
-                    .build());
+                    .build();
+            taskStatuses.add(staging);
         }
     }
 
@@ -99,5 +104,28 @@ public class Task {
             }
             logger.info("Got a new status: " + getLatestTaskStatus());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Task task = (Task) o;
+
+        if (!taskInfo.equals(task.taskInfo)) return false;
+        if (!taskStatuses.equals(task.taskStatuses)) return false;
+        if (!requirement.equals(task.requirement)) return false;
+        return name.equals(task.name);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = taskInfo.hashCode();
+        result = 31 * result + taskStatuses.hashCode();
+        result = 31 * result + requirement.hashCode();
+        result = 31 * result + name.hashCode();
+        return result;
     }
 }

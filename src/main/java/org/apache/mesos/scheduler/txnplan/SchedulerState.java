@@ -11,6 +11,25 @@ import java.util.UUID;
  * Created by dgrnbrg on 6/24/16.
  */
 public final class SchedulerState {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SchedulerState that = (SchedulerState) o;
+
+        if (!planQueue.equals(that.planQueue)) return false;
+        return runningPlans.equals(that.runningPlans);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = planQueue.hashCode();
+        result = 31 * result + runningPlans.hashCode();
+        return result;
+    }
+
     private final Map<String, Queue<UUID>> planQueue;
     private final Set<UUID> runningPlans;
 

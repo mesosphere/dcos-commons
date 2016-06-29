@@ -17,6 +17,35 @@ class PlanStatus {
     private boolean rollingBack;
     private boolean crashed;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PlanStatus that = (PlanStatus) o;
+
+        if (rollingBack != that.rollingBack) return false;
+        if (crashed != that.crashed) return false;
+        if (!pending.equals(that.pending)) return false;
+        if (!running.equals(that.running)) return false;
+        if (!completed.equals(that.completed)) return false;
+        if (!rolledBack.equals(that.rolledBack)) return false;
+        return planUUID.equals(that.planUUID);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = pending.hashCode();
+        result = 31 * result + running.hashCode();
+        result = 31 * result + completed.hashCode();
+        result = 31 * result + rolledBack.hashCode();
+        result = 31 * result + planUUID.hashCode();
+        result = 31 * result + (rollingBack ? 1 : 0);
+        result = 31 * result + (crashed ? 1 : 0);
+        return result;
+    }
+
     /**
      * This creates a PlanStatus that's ready to recieve deserialized member data from
      * Kryo. Never use this yourself.
