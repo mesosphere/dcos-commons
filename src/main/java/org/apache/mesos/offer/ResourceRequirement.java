@@ -19,6 +19,8 @@ public class ResourceRequirement {
   private MesosResource mesosResource;
   private DiskInfo diskInfo;
 
+  private ResourceRequirement() {}
+
   public ResourceRequirement(Resource resource) {
     this.mesosResource = new MesosResource(resource);
     this.diskInfo = getDiskInfo();

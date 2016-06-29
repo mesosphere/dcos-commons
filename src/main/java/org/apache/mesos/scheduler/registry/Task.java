@@ -22,11 +22,11 @@ import java.util.function.Predicate;
  */
 public class Task {
     private static final Logger logger = LoggerFactory.getLogger(Task.class);
-    private final Protos.TaskInfo taskInfo;
+    private Protos.TaskInfo taskInfo;
     //all accesses to taskStatuses should be synchronized on it
-    private final List<Protos.TaskStatus> taskStatuses;
-    private final OfferRequirement requirement;
-    private final String name;
+    private List<Protos.TaskStatus> taskStatuses;
+    private OfferRequirement requirement;
+    private String name;
 
     protected static Task createTask(String name, OfferRequirement requirement) {
         if (requirement.getTaskRequirements().size() != 1) {
@@ -36,6 +36,11 @@ public class Task {
         Protos.TaskInfo info = requirement.getTaskRequirements().iterator().next().getTaskInfo();
         return new Task(name, info, requirement);
     }
+
+    /**
+     * For kryo
+     */
+    private Task() {}
 
     private Task(String name, Protos.TaskInfo info, OfferRequirement requirement) {
         this.name = name;

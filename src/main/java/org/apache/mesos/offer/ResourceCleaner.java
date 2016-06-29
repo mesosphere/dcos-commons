@@ -28,7 +28,13 @@ public class ResourceCleaner {
     // Both Persistent Volumes AND Reserved Resources are UNRESERVEd
     private final Set<String> expectedReservedResourceIds;
 
+    public ResourceCleaner(Set<String> expectedPersistentVolumeIds, Set<String> expectedReservedResourceIds) {
+        this.expectedPersistentVolumeIds = expectedPersistentVolumeIds;
+        this.expectedReservedResourceIds = expectedReservedResourceIds;
+    }
+
     /**
+
      * Creates a new {@link ResourceCleaner} which retrieves expected resource
      * information from the provided {@link StateStore}.
      *

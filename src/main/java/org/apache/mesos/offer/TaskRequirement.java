@@ -9,8 +9,10 @@ import org.apache.mesos.Protos.TaskInfo;
  * A TaskRequirement encapsulates the needed resources a Task must have.
  */
 public class TaskRequirement {
-    private final TaskInfo taskInfo;
-    private final Collection<ResourceRequirement> resourceRequirements;
+    private TaskInfo taskInfo;
+    private Collection<ResourceRequirement> resourceRequirements;
+
+    private TaskRequirement() {}
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
         validateTaskInfo(unverifiedTaskInfo);

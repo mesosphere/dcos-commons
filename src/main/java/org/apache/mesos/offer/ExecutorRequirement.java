@@ -16,6 +16,8 @@ public class ExecutorRequirement {
     private ExecutorInfo executorInfo;
     private Collection<ResourceRequirement> resourceRequirements;
 
+    private ExecutorRequirement() {}
+
     public ExecutorRequirement(ExecutorInfo unverifiedExecutorInfo)
             throws InvalidRequirementException {
         validateExecutorInfo(unverifiedExecutorInfo);

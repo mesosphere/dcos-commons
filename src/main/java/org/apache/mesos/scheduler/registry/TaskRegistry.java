@@ -141,7 +141,7 @@ public class TaskRegistry {
         long sleepTime = 1000;
         // this is 2.
         List<Task> remaining = getAllTasks().stream()
-                .filter(t -> !TaskUtils.isTerminated(t.getLatestTaskStatus()))
+                .filter(t -> t.hasStatus() && !TaskUtils.isTerminated(t.getLatestTaskStatus()))
                 .collect(Collectors.toList());
         // this is 1. (must happen after 2. so that we can rely on the monotonicity of `remaining`
         Map<String, Integer> prevEpochStatusCounts = new HashMap<>();
@@ -337,6 +337,7 @@ public class TaskRegistry {
         //TODO all code under this line could run on another thread
         OfferEvaluator evaluator = new OfferEvaluator();
         List<OfferRecommendation> recommendations = new ArrayList<>();
+        List<Protos.Offer> uneededOffers = new ArrayList<>();
         for (Protos.Offer offer : offers) {
             Task matched = null;
             for (Task task : pendingTasks) {
@@ -357,10 +358,27 @@ public class TaskRegistry {
                 }
                 accepter.accept(driver, recommendations);
             } else {
-                driver.declineOffer(offer.getId());
+                uneededOffers.add(offer);
             }
         }
-        //TODO resource cleaner logic should go here
+        Set<String> expectedResourceIDs = new HashSet<>();
+        Set<String> expectedVolumeIDs = new HashSet<>();
+        for (Task task : getAllTasks()) {
+            OfferRequirement req = task.getRequirement();
+            expectedResourceIDs.addAll(req.getResourceIds());
+            expectedVolumeIDs.addAll(req.getPersistenceIds());
+        }
+        ResourceCleaner cleaner = new ResourceCleaner(expectedVolumeIDs, expectedResourceIDs);
+        int totalRecs = 0;
+        for (Protos.Offer offer : uneededOffers) {
+            List<OfferRecommendation> cleanerRecs = cleaner.evaluate(Collections.singletonList(offer));
+            totalRecs += cleanerRecs.size();
+            accepter.accept(driver, cleanerRecs);
+        }
+        logger.info("Cleaner made " + totalRecs + " recommendations");
+        for (Protos.Offer o : uneededOffers) {
+            driver.declineOffer(o.getId());
+        }
         logger.info("accepted any offer recs; end of handleOffers");
     }
 

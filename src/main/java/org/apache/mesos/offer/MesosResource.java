@@ -16,6 +16,8 @@ public class MesosResource {
   private Resource resource;
   private String resourceId;
 
+  private MesosResource() {}
+
   public MesosResource(Resource resource) {
     this.resource = resource;
     this.resourceId = getResourceIdInternal();

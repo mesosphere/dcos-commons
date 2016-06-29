@@ -24,6 +24,8 @@ public class OfferRequirement {
   private Collection<TaskRequirement> taskRequirements;
   private ExecutorRequirement executorRequirement;
 
+  private OfferRequirement() {}
+
   public OfferRequirement(
     Collection<TaskInfo> taskInfos,
     ExecutorInfo execInfo,
