@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
@@ -16,7 +17,6 @@ public class ResourceTestUtils {
   public static final String testMountRoot = "test-mount-root";
   public static final String testRole = "test-role";
   public static final String testPrincipal = "test-principal";
-  public static final String testResourceId = "test-resource-id";
   public static final String testPersistenceId = "test-persistence-id";
   public static final String testOfferId = "test-offer-id";
   public static final String testFrameworkId = "test-framework-id";
@@ -38,12 +38,12 @@ public class ResourceTestUtils {
     return resBuilder.build();
   }
 
-  public static Resource getExpectedMountVolume(double diskSize) {
+  public static Resource getExpectedMountVolume(double diskSize, String resourceId) {
     Value diskValue = new ValueBuilder(Value.Type.SCALAR).setScalar(diskSize).build();
     Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getRawResource("disk", diskValue));
     resBuilder.setRole(testRole);
     resBuilder.setDisk(getExpectedMountVolumeDiskInfo());
-    resBuilder.setReservation(getExpectedReservationInfo());
+    resBuilder.setReservation(getExpectedReservationInfo(resourceId));
 
     return resBuilder.build();
   }
@@ -55,12 +55,12 @@ public class ResourceTestUtils {
     return resBuilder.build();
   }
 
-  public static Resource getExpectedRootVolume(double diskSize) {
+  public static Resource getExpectedRootVolume(double diskSize, String resourceId) {
     Value diskValue = new ValueBuilder(Value.Type.SCALAR).setScalar(diskSize).build();
     Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getRawResource("disk", diskValue));
     resBuilder.setRole(testRole);
     resBuilder.setDisk(getExpectedRootVolumeDiskInfo());
-    resBuilder.setReservation(getExpectedReservationInfo());
+    resBuilder.setReservation(getExpectedReservationInfo(resourceId));
 
     return resBuilder.build();
   }
@@ -73,11 +73,11 @@ public class ResourceTestUtils {
     return resBuilder.build();
   }
 
-  public static Resource getExpectedScalar(String name, double value) {
+  public static Resource getExpectedScalar(String name, double value, String resourceId) {
     Value val = new ValueBuilder(Value.Type.SCALAR).setScalar(value).build();
     Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getRawResource(name, val));
     resBuilder.setRole(testRole);
-    resBuilder.setReservation(getExpectedReservationInfo());
+    resBuilder.setReservation(getExpectedReservationInfo(resourceId));
 
     return resBuilder.build();
   }
@@ -111,13 +111,13 @@ public class ResourceTestUtils {
       .build();
   }
 
-  private static ReservationInfo getExpectedReservationInfo() {
+  private static ReservationInfo getExpectedReservationInfo(String resourceId) {
     return ReservationInfo.newBuilder()
       .setPrincipal(testPrincipal)
       .setLabels(Labels.newBuilder()
           .addLabels(Label.newBuilder()
             .setKey(ResourceRequirement.RESOURCE_ID_KEY)
-            .setValue(testResourceId)
+            .setValue(resourceId)
             .build())
           .build())
       .build();

@@ -17,7 +17,7 @@ public class ExecutorRequirement {
     private Collection<ResourceRequirement> resourceRequirements;
 
     /**
-     * This method generates one of two possible Executor requirements.  In the first case, if an empty Executor name is
+     * This method generates one of two possible Executor requirements.  In the first case, if an empty ExecutorID is
      * presented in the ExecutorInfo an ExecutorRequirement representing a need for a new Executor is returned.  In the
      * second case, if an ExecutorInfo with a valid name is presented a requirement indicating use of an already running
      * Executor is generated.

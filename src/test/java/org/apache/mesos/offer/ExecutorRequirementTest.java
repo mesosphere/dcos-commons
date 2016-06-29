@@ -9,6 +9,8 @@ import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.protobuf.ResourceBuilder;
 import org.junit.Test;
 
+import java.util.UUID;
+
 public class ExecutorRequirementTest {
 
     private static final ExecutorInfo VALID_EXECINFO = ExecutorInfo.newBuilder()
@@ -37,7 +39,7 @@ public class ExecutorRequirementTest {
 
     @Test
     public void testCreateExistingExecutorRequirement() throws Exception {
-        Protos.Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0);
+        Protos.Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, UUID.randomUUID().toString());
         ExecutorInfo validExecInfo = ExecutorInfo.newBuilder(VALID_EXECINFO)
                 .addResources(expectedCpu)
                 .build();

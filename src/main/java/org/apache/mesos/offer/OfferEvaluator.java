@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -8,6 +9,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
+import org.apache.mesos.executor.ExecutorUtils;
 import org.apache.mesos.protobuf.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,16 @@ public class OfferEvaluator {
     return true;
   }
 
+  private boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
+    for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
+      if (execId.equals(executorID)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer) {
     if (!offerMeetsPlacementConstraints(offerRequirement, offer)) {
       return Collections.emptyList();
@@ -63,19 +75,28 @@ public class OfferEvaluator {
 
     ExecutorRequirement execReq = offerRequirement.getExecutorRequirement();
     FulfilledRequirement fulfilledExecutorRequirement = null;
-    if (execReq != null && execReq.desiresResources()) {
-      fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
-          execReq.getResourceRequirements(),
-          offer,
-          pool);
+    if (execReq != null) {
+      if (execReq.desiresResources()) {
+        fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
+                execReq.getResourceRequirements(),
+                offer,
+                pool);
 
-      if (fulfilledExecutorRequirement == null) {
-        return Collections.emptyList();
+        if (fulfilledExecutorRequirement == null) {
+          return Collections.emptyList();
+        }
+
+        unreserves.addAll(fulfilledExecutorRequirement.getUnreserveRecommendations());
+        reserves.addAll(fulfilledExecutorRequirement.getReserveRecommendations());
+        creates.addAll(fulfilledExecutorRequirement.getCreateRecommendations());
+      } else {
+        Protos.ExecutorID expectedExecutorId = execReq.getExecutorInfo().getExecutorId();
+        if (!hasExpectedExecutorId(offer, expectedExecutorId)) {
+          logger.info("Offer: '{}' does not contain the needed ExecutorID: '{}'",
+                  offer.getId().getValue(), expectedExecutorId);
+          return Collections.emptyList();
+        }
       }
-
-      unreserves.addAll(fulfilledExecutorRequirement.getUnreserveRecommendations());
-      reserves.addAll(fulfilledExecutorRequirement.getReserveRecommendations());
-      creates.addAll(fulfilledExecutorRequirement.getCreateRecommendations());
     }
 
     for (TaskRequirement taskReq : offerRequirement.getTaskRequirements()) {
@@ -309,6 +330,10 @@ public class OfferEvaluator {
       ExecutorInfo.Builder execBuilder =
               ExecutorInfo.newBuilder(execInfo)
                       .clearResources();
+
+      if (execInfo.getExecutorId().getValue().isEmpty()) {
+        execBuilder.setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()));
+      }
 
       if (fulfilledExecutorRequirement != null) {
         List<Resource> fulfilledExecutorResources = fulfilledExecutorRequirement.getFulfilledResources();

@@ -2,6 +2,7 @@ package org.apache.mesos.offer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.ExecutorInfo;
@@ -33,10 +34,11 @@ public class OfferRequirementTest {
 
   @Test
   public void testOneResourceId() throws InvalidRequirementException {
-    Resource resource = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testResourceId);
+    String testResourceId = UUID.randomUUID().toString();
+    Resource resource = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, testResourceId);
     OfferRequirement offerRequirement = getOfferRequirement(resource);
     Assert.assertEquals(1, offerRequirement.getResourceIds().size());
-    Assert.assertEquals(ResourceTestUtils.testResourceId, offerRequirement.getResourceIds().iterator().next());
+    Assert.assertEquals(testResourceId, offerRequirement.getResourceIds().iterator().next());
   }
 
   @Test
@@ -44,26 +46,27 @@ public class OfferRequirementTest {
     Resource resource = ResourceBuilder.volume(1000.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testContainerPath, ResourceTestUtils.testPersistenceId);
     OfferRequirement offerRequirement = getOfferRequirement(resource);
     Assert.assertEquals(1, offerRequirement.getResourceIds().size());
-    Assert.assertTrue(ResourceTestUtils.testResourceId, offerRequirement.getResourceIds().contains(ResourceTestUtils.testPersistenceId));
+    Assert.assertTrue(offerRequirement.getResourceIds().contains(ResourceTestUtils.testPersistenceId));
     Assert.assertEquals(1, offerRequirement.getPersistenceIds().size());
     Assert.assertEquals(ResourceTestUtils.testPersistenceId, offerRequirement.getPersistenceIds().iterator().next());
   }
 
   @Test
   public void testOneOfEachId() throws InvalidRequirementException {
-    Resource cpu = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testResourceId);
+    String testResourceId = UUID.randomUUID().toString();
+    Resource cpu = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, testResourceId);
     Resource volume = ResourceBuilder.volume(1000.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testContainerPath, ResourceTestUtils.testPersistenceId);
     OfferRequirement offerRequirement = getOfferRequirement(Arrays.asList(cpu, volume));
     Assert.assertEquals(2, offerRequirement.getResourceIds().size());
-    Assert.assertTrue(ResourceTestUtils.testResourceId, offerRequirement.getResourceIds().contains(ResourceTestUtils.testResourceId));
-    Assert.assertTrue(ResourceTestUtils.testPersistenceId, offerRequirement.getResourceIds().contains(ResourceTestUtils.testResourceId));
+    Assert.assertTrue(testResourceId, offerRequirement.getResourceIds().contains(testResourceId));
+    Assert.assertTrue(ResourceTestUtils.testPersistenceId, offerRequirement.getResourceIds().contains(testResourceId));
     Assert.assertEquals(1, offerRequirement.getPersistenceIds().size());
     Assert.assertEquals(ResourceTestUtils.testPersistenceId, offerRequirement.getPersistenceIds().iterator().next());
   }
 
   @Test
   public void testExecutor() throws InvalidRequirementException {
-    Resource cpu = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, ResourceTestUtils.testResourceId);
+    Resource cpu = ResourceBuilder.reservedCpus(1.0, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, UUID.randomUUID().toString());
     TaskInfo taskInfo = getTaskInfo(cpu);
     ExecutorInfo execInfo = getExecutorInfo(cpu);
     OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
