@@ -17,14 +17,14 @@ public class CuratorConfigStoreTest {
     private CuratorConfigStore<StringConfiguration> store;
     private String testRootZkPath = "/test-root-path";
     private StringConfiguration testConfig;
-    private StringConfigurationFactory configFactory;
+    private StringConfiguration.Factory configFactory;
 
     @Before
     public void beforeEach() throws Exception {
         testZk = new TestingServer();
         store = getTestConfigStore();
         testConfig = new StringConfiguration("test-config");
-        configFactory = new StringConfigurationFactory();
+        configFactory = new StringConfiguration.Factory();
     }
 
     @Test

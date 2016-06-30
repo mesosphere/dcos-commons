@@ -20,15 +20,14 @@ import org.slf4j.LoggerFactory;
  * rootPath
  *     -> ConfigTarget (contains UUID)
  *     -> Configurations/
- *         -> Config-ID-0 (contains serialized config)
- *         -> Config-ID-1 (contains serialized config)
+ *         -> [Config-ID-0] (contains serialized config)
+ *         -> [Config-ID-1] (contains serialized config)
  *         -> ...
  *
  * @param <T> The {@code Configuration} object to be serialized and deserialized in the
  *            implementation of this interface
  */
-public class CuratorConfigStore<T extends Configuration>
-        extends CuratorPersister implements ConfigStore<T> {
+public class CuratorConfigStore<T extends Configuration> implements ConfigStore<T> {
     private static final Logger logger = LoggerFactory.getLogger(CuratorConfigStore.class);
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
@@ -37,6 +36,7 @@ public class CuratorConfigStore<T extends Configuration>
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
+    private final CuratorPersister curator;
     private final String configurationsPath;
     private final String targetPath;
 
@@ -59,10 +59,10 @@ public class CuratorConfigStore<T extends Configuration>
      * @param retryPolicy The custom {@link RetryPolicy}
      */
     public CuratorConfigStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
-        super(connectionString, retryPolicy);
         if (!rootPath.startsWith("/")) {
             throw new IllegalArgumentException("rootPath must start with '/': " + rootPath);
         }
+        this.curator = new CuratorPersister(connectionString, retryPolicy);
         this.targetPath = rootPath + "/" + TARGET_PATH_NAME;
         this.configurationsPath = rootPath + "/" + CONFIGURATIONS_PATH_NAME;
     }
@@ -70,11 +70,13 @@ public class CuratorConfigStore<T extends Configuration>
     @Override
     public UUID store(T config) throws ConfigStoreException {
         UUID id = UUID.randomUUID();
-
+        String path = getConfigPath(id);
         try {
-            store(getConfigPath(id) , config.getBytes());
+            curator.store(path, config.getBytes());
         } catch (Exception e) {
-            throw new ConfigStoreException(e);
+            throw new ConfigStoreException(String.format(
+                    "Failed to serialize or store configuration to path '%s': %s",
+                    path, config), e);
         }
 
         return id;
@@ -82,24 +84,30 @@ public class CuratorConfigStore<T extends Configuration>
 
     @Override
     public T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException {
+        String path = getConfigPath(id);
         try {
-            return factory.parse(fetch(getConfigPath(id)));
+            return factory.parse(curator.fetch(path));
         } catch (Exception e) {
-            throw new ConfigStoreException(e);
+            throw new ConfigStoreException(String.format(
+                    "Failed to retrieve or deserialize configuration '%s' from path '%s'",
+                    id, path), e);
         }
     }
 
     @Override
     public void clear(UUID id) throws ConfigStoreException {
+        String path = getConfigPath(id);
         try {
-            clear(getConfigPath(id));
+            curator.clear(path);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Configuration should not
             // result in an exception.
-            logger.warn("Clearing unset Configuration ID: " + id);
+            logger.warn("Requested configuration '{}' to be deleted does not exist at path '{}'",
+                    id, path);
             return;
         } catch (Exception e) {
-            throw new ConfigStoreException(e);
+            throw new ConfigStoreException(String.format(
+                    "Failed to delete configuration '%s' at path '%s'", id, path), e);
         }
     }
 
@@ -107,30 +115,41 @@ public class CuratorConfigStore<T extends Configuration>
     public Collection<UUID> list() throws ConfigStoreException {
         try {
             Collection<UUID> ids = new ArrayList<>();
-            for (String id : getChildren(configurationsPath)) {
+            for (String id : curator.getChildren(configurationsPath)) {
                 ids.add(UUID.fromString(id));
             }
             return ids;
+        } catch (KeeperException.NoNodeException e) {
+            // Clearing a non-existent Configuration should not
+            // result in an exception.
+            logger.warn("Configuration list at path '{}' does not exist: returning empty list",
+                    configurationsPath);
+            return new ArrayList<>();
         } catch (Exception e) {
-            throw new ConfigStoreException(e);
+            throw new ConfigStoreException(String.format(
+                    "Failed to retrieve list of configurations from '%s'", configurationsPath), e);
         }
     }
 
     @Override
     public void setTargetConfig(UUID id) throws ConfigStoreException {
         try {
-            store(targetPath, id.toString().getBytes(StandardCharsets.UTF_8));
+            curator.store(targetPath, id.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
-            throw new ConfigStoreException(e);
+            throw new ConfigStoreException(String.format(
+                    "Failed to assign current target configuration to '%s' at path '%s'",
+                    id, targetPath), e);
         }
     }
 
     @Override
     public UUID getTargetConfig() throws ConfigStoreException {
         try {
-            return UUID.fromString(new String(fetch(targetPath), StandardCharsets.UTF_8));
+            return UUID.fromString(new String(curator.fetch(targetPath), StandardCharsets.UTF_8));
         } catch (Exception e) {
-            throw new ConfigStoreException(e);
+            throw new ConfigStoreException(String.format(
+                    "Failed to retrieve current target configuration from path '%s'",
+                    targetPath), e);
         }
     }
 
