@@ -692,6 +692,46 @@ public class OfferEvaluatorTest {
     Assert.assertNotEquals("", launchedTaskInfo.getExecutor().getExecutorId().getValue());
   }
 
+  @Test
+  public void testLaunchMultipleTasksPerExecutor() throws Exception {
+    Resource desiredTask0Cpu = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            1.0);
+    Resource desiredTask1Cpu = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            2.0);
+    Resource desiredExecutorCpu = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            3.0);
+    Resource offeredResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 6.0);
+
+    TaskInfo taskInfo0 = getTaskInfo(desiredTask0Cpu);
+    TaskInfo taskInfo1 = getTaskInfo(desiredTask1Cpu);
+    ExecutorInfo execInfo = getExecutorInfo(desiredExecutorCpu, false);
+    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo0, taskInfo1), execInfo);
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            offerRequirement,
+            getOffers(null, Arrays.asList(offeredResource)));
+
+    Assert.assertEquals(5, recommendations.size());
+    Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
+    Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+    Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
+    Operation launchOp0 = recommendations.get(3).getOperation();
+    Assert.assertEquals(Operation.Type.LAUNCH, launchOp0.getType());
+    Operation launchOp1 = recommendations.get(4).getOperation();
+    Assert.assertEquals(Operation.Type.LAUNCH, launchOp1.getType());
+    Protos.ExecutorID launch0ExecutorId = launchOp0.getLaunch().getTaskInfos(0).getExecutor().getExecutorId();
+    Protos.ExecutorID launch1ExecutorId = launchOp1.getLaunch().getTaskInfos(0).getExecutor().getExecutorId();
+    Assert.assertEquals(launch0ExecutorId, launch1ExecutorId);
+  }
+
   private static Label getFirstLabel(Resource resource) {
     return resource.getReservation().getLabels().getLabels(0);
   }

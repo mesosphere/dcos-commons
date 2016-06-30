@@ -99,6 +99,16 @@ public class OfferEvaluator {
       }
     }
 
+    ExecutorInfo execInfo = null;
+    if (execReq != null) {
+      execInfo = execReq.getExecutorInfo();
+      if (execInfo.getExecutorId().getValue().isEmpty()) {
+        execInfo = ExecutorInfo.newBuilder(execInfo)
+                .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
+                .build();
+      }
+    }
+
     for (TaskRequirement taskReq : offerRequirement.getTaskRequirements()) {
       FulfilledRequirement fulfilledTaskRequirement =
         FulfilledRequirement.fulfillRequirement(taskReq.getResourceRequirements(), offer, pool);
@@ -110,16 +120,6 @@ public class OfferEvaluator {
       unreserves.addAll(fulfilledTaskRequirement.getUnreserveRecommendations());
       reserves.addAll(fulfilledTaskRequirement.getReserveRecommendations());
       creates.addAll(fulfilledTaskRequirement.getCreateRecommendations());
-
-      ExecutorInfo execInfo = null;
-      if (execReq != null) {
-        execInfo = execReq.getExecutorInfo();
-        if (execInfo.getExecutorId().getValue().isEmpty()) {
-          execInfo = ExecutorInfo.newBuilder(execInfo)
-                  .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
-                  .build();
-        }
-      }
 
       launches.add(
         new LaunchOfferRecommendation(
