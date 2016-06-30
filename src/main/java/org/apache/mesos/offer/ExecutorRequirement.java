@@ -37,10 +37,7 @@ public class ExecutorRequirement {
 
     private static ExecutorRequirement createExecutorRequirement(ExecutorInfo executorInfo)
             throws InvalidRequirementException{
-        return new ExecutorRequirement(
-                ExecutorInfo.newBuilder(executorInfo)
-                        .setExecutorId(ExecutorUtils.toExecutorId(executorInfo.getName()))
-                        .build());
+        return new ExecutorRequirement(executorInfo);
     }
 
     private static ExecutorRequirement getExistingExecutorRequirement(ExecutorInfo executorInfo)
