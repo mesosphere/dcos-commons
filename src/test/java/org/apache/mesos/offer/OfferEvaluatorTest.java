@@ -669,18 +669,57 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
   }
 
+  @Test
+  public void testRelaunchTaskWithCustomExecutor() throws Exception {
+    String taskResourceId = UUID.randomUUID().toString();
+    String executorResourceId = UUID.randomUUID().toString();
+    Resource expectedTaskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, taskResourceId);
+    Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 256, executorResourceId);
+
+    TaskInfo taskInfo = getTaskInfo(expectedTaskCpu);
+    ExecutorInfo execInfo = getExecutorInfo(expectedExecutorMem, false);
+
+    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
+
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            offerRequirement,
+            getOffers(null, Arrays.asList(expectedTaskCpu, expectedExecutorMem)));
+
+    Assert.assertEquals(1, recommendations.size());
+    Operation launchOperation = recommendations.get(0).getOperation();
+    Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+    TaskInfo launchedTaskInfo = launchOperation.getLaunch().getTaskInfosList().get(0);
+    Assert.assertNotEquals("", launchedTaskInfo.getExecutor().getExecutorId().getValue());
+  }
+
   private static Label getFirstLabel(Resource resource) {
     return resource.getReservation().getLabels().getLabels(0);
   }
 
+  private static List<Offer> getOffers(Resource resource) {
+    return getOffers(Arrays.asList(resource));
+  }
+
+  private static List<Offer> getOffers(List<Resource> resources) {
+    return getOffers(ResourceTestUtils.testExecutorId, resources);
+  }
+
   private static List<Offer> getOffers(Resource... resources) {
+    return getOffers(Arrays.asList(resources));
+  }
+
+  private static List<Offer> getOffers(String executorId, List<Resource> resources) {
     OfferBuilder builder = new OfferBuilder(
         ResourceTestUtils.testOfferId,
         ResourceTestUtils.testFrameworkId,
         ResourceTestUtils.testSlaveId,
         ResourceTestUtils.testHostname);
-    builder.addExecutorIds(Arrays.asList(ResourceTestUtils.testExecutorId));
-    return Arrays.asList(builder.addAllResources(Arrays.asList(resources)).build());
+
+    if (executorId != null) {
+      builder.addExecutorIds(Arrays.asList(executorId));
+    }
+
+    return Arrays.asList(builder.addAllResources(resources).build());
   }
 
   private static OfferRequirement getOfferRequirement(Resource resource)

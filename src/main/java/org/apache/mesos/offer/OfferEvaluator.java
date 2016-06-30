@@ -76,7 +76,7 @@ public class OfferEvaluator {
     ExecutorRequirement execReq = offerRequirement.getExecutorRequirement();
     FulfilledRequirement fulfilledExecutorRequirement = null;
     if (execReq != null) {
-      if (execReq.desiresResources()) {
+      if (execReq.desiresResources() || execReq.getExecutorInfo().getExecutorId().getValue().isEmpty()) {
         fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
                 execReq.getResourceRequirements(),
                 offer,
