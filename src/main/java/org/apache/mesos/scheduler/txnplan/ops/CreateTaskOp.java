@@ -18,18 +18,20 @@ import static org.apache.mesos.Protos.*;
  * Created by dgrnbrg on 6/20/16.
  */
 public class CreateTaskOp implements Operation{
-    private final String name;
-    //TODO need to store in serializable format
-    private final OfferRequirement offerRequirement;
+    private String name;
+    private OfferRequirement offerRequirement;
+    private boolean cleanupOnRollback;
 
     private CreateTaskOp() {
         name = null;
         offerRequirement = null;
+        cleanupOnRollback = false;
     }
 
-    private CreateTaskOp(String name, OfferRequirement offerRequirement) {
+    private CreateTaskOp(String name, OfferRequirement offerRequirement, boolean cleanupOnRollback) {
         this.name = name;
         this.offerRequirement = offerRequirement;
+        this.cleanupOnRollback = cleanupOnRollback;
     }
 
     @Override
@@ -44,22 +46,24 @@ public class CreateTaskOp implements Operation{
 
     @Override
     public void unravel(TaskRegistry registry, OperationDriver driver) throws Exception {
-        byte[] data = (byte[]) driver.load();
-        if (data != null) {
-            try {
-                TaskID id = TaskID.parseFrom(data);
-                Task task = registry.getTask(name);
-                while (!TaskUtils.isTerminated(task.getLatestTaskStatus())) {
-                    registry.getSchedulerDriver().killTask(id);
-                    task.wait();
+        if (cleanupOnRollback) {
+            byte[] data = (byte[]) driver.load();
+            if (data != null) {
+                try {
+                    TaskID id = TaskID.parseFrom(data);
+                    Task task = registry.getTask(name);
+                    while (!TaskUtils.isTerminated(task.getLatestTaskStatus())) {
+                        registry.getSchedulerDriver().killTask(id);
+                        task.wait();
+                    }
+                } catch (InvalidProtocolBufferException e) {
+                    driver.error("Couldn't parse TaskID from CreateTaskOp("
+                            + name
+                            + ") state...skipping");
                 }
-            } catch (InvalidProtocolBufferException e) {
-                driver.error("Couldn't parse TaskID from CreateTaskOp("
-                        + name
-                        + ") state...skipping");
             }
+            registry.destroyTask(name);
         }
-        registry.destroyTask(name);
     }
 
     @Override
@@ -67,7 +71,15 @@ public class CreateTaskOp implements Operation{
         return Collections.singletonList(name);
     }
 
-    public static CreateTaskOp make(String name, OfferRequirement requirement) {
-        return new CreateTaskOp(name, requirement);
+    /**
+     * Factory method to create an operation which launches a task as described below.
+     *
+     * @param name The name of the task
+     * @param requirement The specification of the container in which to launch the task
+     * @param cleanupOnRollback During a plan failure, if true, deallocates the container to clean up. If false, it will never be deallocated.
+     * @return The operation to create the task
+     */
+    public static CreateTaskOp make(String name, OfferRequirement requirement, boolean cleanupOnRollback) {
+        return new CreateTaskOp(name, requirement, cleanupOnRollback);
     }
 }

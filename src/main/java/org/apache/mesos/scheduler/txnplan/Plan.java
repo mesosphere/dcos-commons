@@ -34,6 +34,7 @@ public class Plan {
 
     public void freeze() {
         ensureMutationSafe();
+        // TODO run a cycle detector here
         hasBeenSubmitted = true;
         steps = Collections.unmodifiableMap(steps);
         prereqsByStep = Collections.unmodifiableMap(prereqsByStep);
