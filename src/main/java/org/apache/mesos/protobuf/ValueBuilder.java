@@ -3,6 +3,8 @@ package org.apache.mesos.protobuf;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Type;
 
+import java.util.List;
+
 /**
  * Builder for Value Protobufs.
  */
@@ -26,6 +28,13 @@ public class ValueBuilder {
 
   public ValueBuilder setRanges(Value.Ranges ranges) {
     builder.setRanges(ranges);
+    return this;
+  }
+
+  public ValueBuilder setRanges(List<Value.Range> ranges) {
+    builder.setRanges(Value.Ranges.newBuilder()
+            .addAllRange(ranges)
+            .build());
     return this;
   }
 

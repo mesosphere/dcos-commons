@@ -123,6 +123,14 @@ public class ResourceUtils {
     return getDesiredResource(role, principal, name, new ValueBuilder(Value.Type.SCALAR).setScalar(value).build());
   }
 
+  public static Resource getUnreservedRanges(String name, List<Range> ranges) {
+    Value val = new ValueBuilder(Value.Type.RANGES).setRanges(ranges).build();
+    Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getRawResource(name, val));
+    resBuilder.setRole("*");
+
+    return resBuilder.build();
+  }
+
   public static Resource getDesiredRanges(String role, String principal, String name, List<Range> ranges) {
     return getDesiredResource(
         role,
@@ -134,6 +142,20 @@ public class ResourceUtils {
           .addAllRange(ranges)
           .build())
         .build());
+  }
+
+  public static Resource getExpectedRanges(
+          String name,
+          List<Range> ranges,
+          String resourceId,
+          String role,
+          String principal) {
+    Value val = new ValueBuilder(Value.Type.RANGES).setRanges(ranges).build();
+    Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getRawResource(name, val));
+    resBuilder.setRole(role);
+    resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
+
+    return resBuilder.build();
   }
 
   public static Resource setValue(Resource resource, Value value) {
