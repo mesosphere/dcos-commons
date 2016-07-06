@@ -30,7 +30,7 @@ public class OfferEvaluatorTest {
             ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
     Resource desiredExecutorCpu = desiredTaskCpu;
     Resource insufficientOfferedResource =
-            ResourceTestUtils.getOfferedUnreservedScalar("cpus", 1.0);
+            ResourceUtils.getUnreservedScalar("cpus", 1.0);
 
     OfferRequirement offerReq = new OfferRequirement(
             Arrays.asList(getTaskInfo(desiredTaskCpu)),
@@ -165,7 +165,7 @@ public class OfferEvaluatorTest {
         ResourceTestUtils.testPrincipal,
         1500,
         ResourceTestUtils.testContainerPath);
-    Resource offeredResource = ResourceTestUtils.getOfferedUnreservedRootVolume(2000);
+    Resource offeredResource = ResourceUtils.getUnreservedRootVolume(2000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
@@ -224,7 +224,7 @@ public class OfferEvaluatorTest {
         ResourceTestUtils.testPrincipal,
         2000,
         ResourceTestUtils.testContainerPath);
-    Resource offeredResource = ResourceTestUtils.getOfferedUnreservedRootVolume(1000);
+    Resource offeredResource = ResourceUtils.getUnreservedRootVolume(1000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
@@ -295,7 +295,7 @@ public class OfferEvaluatorTest {
         ResourceTestUtils.testPrincipal,
         "cpus",
         1.0);
-    Resource offeredResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
+    Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource), getOffers(offeredResource));
@@ -344,8 +344,8 @@ public class OfferEvaluatorTest {
         "mem",
         2.0);
 
-    Resource offeredTaskResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
-    Resource offeredExecutorResource = ResourceTestUtils.getOfferedUnreservedScalar("mem", 2.0);
+    Resource offeredTaskResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+    Resource offeredExecutorResource = ResourceUtils.getUnreservedScalar("mem", 2.0);
 
     TaskInfo taskInfo = getTaskInfo(desiredTaskResource);
     ExecutorInfo execInfo = getExecutorInfo(desiredExecutorResource);
@@ -415,7 +415,7 @@ public class OfferEvaluatorTest {
             ResourceTestUtils.testPrincipal,
             "cpus",
             1.0);
-    Resource offeredTaskResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
+    Resource offeredTaskResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
     Resource desiredExecutorResource = ResourceTestUtils.getExpectedScalar("mem", 2.0, resourceId);
     Resource offeredExecutorResource = desiredExecutorResource;
@@ -579,7 +579,7 @@ public class OfferEvaluatorTest {
   public void testAvoidAgents() throws Exception{
     Resource desiredCpu = ResourceUtils.getDesiredScalar(
             ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
-    Resource offeredCpu = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
+    Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(
@@ -604,7 +604,7 @@ public class OfferEvaluatorTest {
   public void testCollocateAgents() throws Exception{
     Resource desiredCpu = ResourceUtils.getDesiredScalar(
             ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal, "cpus", 1.0);
-    Resource offeredCpu = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 2.0);
+    Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(
@@ -709,7 +709,7 @@ public class OfferEvaluatorTest {
             ResourceTestUtils.testPrincipal,
             "cpus",
             3.0);
-    Resource offeredResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 6.0);
+    Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 6.0);
 
     TaskInfo taskInfo0 = getTaskInfo(desiredTask0Cpu);
     TaskInfo taskInfo1 = getTaskInfo(desiredTask1Cpu);

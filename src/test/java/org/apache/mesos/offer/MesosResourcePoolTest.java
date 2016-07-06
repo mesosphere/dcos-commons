@@ -109,7 +109,7 @@ public class MesosResourcePoolTest {
   public void testConsumeInsufficientUnreservedMergedResource() {
     Resource desiredUnreservedResource = ResourceBuilder.cpus(2.0);
     ResourceRequirement resReq = new ResourceRequirement(desiredUnreservedResource);
-    Resource offeredUnreservedResource = ResourceTestUtils.getOfferedUnreservedScalar("cpus", 1.0);
+    Resource offeredUnreservedResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
     Offer offer = getOffer(offeredUnreservedResource);
     MesosResourcePool pool = new MesosResourcePool(offer);
 
