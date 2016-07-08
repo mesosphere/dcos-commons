@@ -1,7 +1,5 @@
 package org.apache.mesos.state;
 
-import static org.junit.Assert.*;
-
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -9,11 +7,11 @@ import org.apache.mesos.offer.TaskUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to validate the operation of the {@link CuratorStateStore}.
@@ -28,6 +26,9 @@ public class CuratorStateStoreTest {
             .setTaskId(TaskUtils.toTaskId(TASK_NAME))
             .setState(TASK_STATE)
             .build();
+    public static final String PROPERTY_VALUE = "DC/OS";
+    public static final String GOOD_PROPERTY_KEY = "hey";
+    public static final String BAD_PROPERTY_KEY = "hey/hi";
 
     private TestingServer testZk;
     private CuratorStateStore store;
@@ -402,6 +403,26 @@ public class CuratorStateStoreTest {
         assertTrue(store.fetchTaskNames().isEmpty());
         assertTrue(store.fetchTasks().isEmpty());
         assertTrue(store.fetchStatuses().isEmpty());
+    }
+
+    @Test
+    public void testProperties() {
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+        final byte[] bytes = store.fetchProperty(GOOD_PROPERTY_KEY);
+        assertEquals(PROPERTY_VALUE, new String(bytes, StandardCharsets.UTF_8));
+        final Collection<String> keys = store.listPropertyKeys();
+        assertTrue(keys.size() == 1);
+        assertEquals(keys.iterator().next(), GOOD_PROPERTY_KEY);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testPropertiesSlashStore() {
+        store.storeProperty(BAD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testPropertiesSlashFetch() {
+        store.fetchProperty(BAD_PROPERTY_KEY);
     }
 
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {

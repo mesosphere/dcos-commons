@@ -1,9 +1,6 @@
 package org.apache.mesos.state;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
@@ -11,9 +8,12 @@ import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * CuratorStateStore is an implementation of {@link StateStore} which persists data in Zookeeper.
@@ -47,16 +47,18 @@ public class CuratorStateStore implements StateStore {
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
+    private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
     private final CuratorPersister curator;
     private final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
+    private final String propertiesPath;
 
     /**
      * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy}.
      *
-     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param rootPath         The path to store data in, eg "/FrameworkName"
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorStateStore(String rootPath, String connectionString) {
@@ -67,14 +69,15 @@ public class CuratorStateStore implements StateStore {
     /**
      * Creates a new {@link StateStore} which uses Curator with a custom {@link RetryPolicy}.
      *
-     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param rootPath         The path to store data in, eg "/FrameworkName"
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
-     * @param retryPolicy The custom {@link RetryPolicy}
+     * @param retryPolicy      The custom {@link RetryPolicy}
      */
     public CuratorStateStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = rootPath + "/" + FWK_ID_PATH_NAME;
+        this.propertiesPath = rootPath + "/" + PROPERTIES_PATH_NAME;
     }
 
     // Framework ID
@@ -157,13 +160,13 @@ public class CuratorStateStore implements StateStore {
         } catch (Exception e) {
             throw new StateStoreException(String.format(
                     "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s. " +
-                    "Call storeTasks() before calling storeStatus()", taskName), e);
+                            "Call storeTasks() before calling storeStatus()", taskName), e);
         }
         if (!taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
             throw new StateStoreException(String.format(
                     "Task ID '%s' of updated status doesn't match Task ID '%s' of current TaskInfo."
-                    + " Task IDs must exactly match before status may be updated."
-                    + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
+                            + " Task IDs must exactly match before status may be updated."
+                            + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
                     status.getTaskId().getValue(), taskInfo.getTaskId().getValue(),
                     status, taskInfo));
         }
@@ -282,6 +285,39 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
+    @Override
+    public void storeProperty(final String key, final byte[] value) throws StateStoreException {
+        validateKey(key);
+        try {
+            final String path = this.propertiesPath + "/" + key;
+            logger.debug("Storing property key: {} into path: {}", key, path);
+            curator.store(path, value);
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    @Override
+    public byte[] fetchProperty(final String key) throws StateStoreException {
+        validateKey(key);
+        try {
+            final String path = this.propertiesPath + "/" + key;
+            logger.debug("Fetching property key: {} from path: {}", key, path);
+            return curator.fetch(path);
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    @Override
+    public Collection<String> listPropertyKeys() throws StateStoreException {
+        try {
+            return curator.getChildren(this.propertiesPath);
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
     // Internals
 
     private static class TaskPathMapper {
@@ -305,6 +341,15 @@ public class CuratorStateStore implements StateStore {
 
         private String getTasksRootPath() {
             return tasksRootPath;
+        }
+    }
+
+    private void validateKey(String key) {
+        if (StringUtils.isBlank(key)) {
+            throw new StateStoreException("Key cannot be blank or null");
+        }
+        if (key.contains("/")) {
+            throw new StateStoreException("Key cannot contain '/'");
         }
     }
 }
