@@ -1,9 +1,5 @@
 package org.apache.mesos.state;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -12,9 +8,12 @@ import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * CuratorStateStore is an implementation of {@link StateStore} which persists data in Zookeeper.
@@ -298,15 +297,6 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    private void validateKey(String key) {
-        if (StringUtils.isBlank(key)) {
-            throw new StateStoreException("Key cannot be blank or null");
-        }
-        if (key.contains("/")) {
-            throw new StateStoreException("Key cannot contain '/'");
-        }
-    }
-
     @Override
     public byte[] fetchProperty(final String key) throws StateStoreException {
         validateKey(key);
@@ -321,14 +311,11 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public Collection<String> listPropertyKeys() throws StateStoreException {
-        Collection<String> keys = new ArrayList<>();
         try {
-            final Collection<String> children = curator.getChildren(this.propertiesPath);
-            keys.addAll(children);
+            return curator.getChildren(this.propertiesPath);
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
-        return keys;
     }
 
     // Internals
@@ -354,6 +341,15 @@ public class CuratorStateStore implements StateStore {
 
         private String getTasksRootPath() {
             return tasksRootPath;
+        }
+    }
+
+    private void validateKey(String key) {
+        if (StringUtils.isBlank(key)) {
+            throw new StateStoreException("Key cannot be blank or null");
+        }
+        if (key.contains("/")) {
+            throw new StateStoreException("Key cannot contain '/'");
         }
     }
 }

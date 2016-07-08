@@ -155,7 +155,7 @@ public interface StateStore {
     /**
      * Stores an arbitrary key/value pair.
      *
-     * @param key The key should be a String, and should not contain forward slash ('/')
+     * @param key The key should be a String, and should not contain a forward slash ('/').
      * @param value The value should be a byte array.
      */
     void storeProperty(String key, byte[] value);
@@ -163,7 +163,7 @@ public interface StateStore {
     /**
      * Fetches the value byte array, stored against the Property 'key'.
      *
-     * @param key The key should be a String, and should not contain forward slash ('/')
+     * @param key The key should be a String, and should not contain a forward slash ('/').
      */
     byte[] fetchProperty(String key);
 

@@ -26,6 +26,9 @@ public class CuratorStateStoreTest {
             .setTaskId(TaskUtils.toTaskId(TASK_NAME))
             .setState(TASK_STATE)
             .build();
+    public static final String PROPERTY_VALUE = "DC/OS";
+    public static final String GOOD_PROPERTY_KEY = "hey";
+    public static final String BAD_PROPERTY_KEY = "hey/hi";
 
     private TestingServer testZk;
     private CuratorStateStore store;
@@ -404,22 +407,22 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testProperties() {
-        store.storeProperty("hey", "DC/OS".getBytes(StandardCharsets.UTF_8));
-        final byte[] bytes = store.fetchProperty("hey");
-        assertEquals("DC/OS", new String(bytes, StandardCharsets.UTF_8));
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+        final byte[] bytes = store.fetchProperty(GOOD_PROPERTY_KEY);
+        assertEquals(PROPERTY_VALUE, new String(bytes, StandardCharsets.UTF_8));
         final Collection<String> keys = store.listPropertyKeys();
         assertTrue(keys.size() == 1);
-        assertEquals(keys.iterator().next(), "hey");
+        assertEquals(keys.iterator().next(), GOOD_PROPERTY_KEY);
     }
 
     @Test(expected = StateStoreException.class)
     public void testPropertiesSlashStore() {
-        store.storeProperty("hey/hi", "DC/OS".getBytes(StandardCharsets.UTF_8));
+        store.storeProperty(BAD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
     }
 
     @Test(expected = StateStoreException.class)
     public void testPropertiesSlashFetch() {
-        store.fetchProperty("hey/hi");
+        store.fetchProperty(BAD_PROPERTY_KEY);
     }
 
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {
