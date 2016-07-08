@@ -148,4 +148,27 @@ public interface StateStore {
      *                             TaskStatus information otherwise fails
      */
     Protos.TaskStatus fetchStatus(String taskName) throws StateStoreException;
+
+
+    // Property storage
+
+    /**
+     * Stores an arbitrary key/value pair.
+     *
+     * @param key The key should be a String, and should not contain forward slash ('/')
+     * @param value The value should be a byte array.
+     */
+    void storeProperty(String key, byte[] value);
+
+    /**
+     * Fetches the value byte array, stored against the Property 'key'.
+     *
+     * @param key The key should be a String, and should not contain forward slash ('/')
+     */
+    byte[] fetchProperty(String key);
+
+    /**
+     * Fetches the list of Property keys.
+     */
+    Collection<String> listPropertyKeys();
 }
