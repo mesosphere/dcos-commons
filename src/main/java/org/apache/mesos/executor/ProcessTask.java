@@ -7,7 +7,6 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -58,9 +57,7 @@ public class ProcessTask implements ExecutorTask {
             final String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
             final String command = taskData.getValue();
 
-            ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", command)
-                    .redirectOutput(Paths.get(taskType + ".stdout.log").toFile())
-                    .redirectError(Paths.get(taskType + ".stderr.log").toFile());
+            ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", command);
             builder.environment().putAll(envMap);
 
             LOGGER.info("Executing command: {}", builder.command());
