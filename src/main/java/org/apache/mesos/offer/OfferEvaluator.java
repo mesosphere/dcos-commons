@@ -31,7 +31,7 @@ public class OfferEvaluator {
   public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers) {
     for (Offer offer : offers) {
       List<OfferRecommendation> recommendations = evaluate(offerRequirement, offer);
-      if (recommendations != null) {
+      if (recommendations != null && !recommendations.isEmpty()) {
         return recommendations;
       }
     }

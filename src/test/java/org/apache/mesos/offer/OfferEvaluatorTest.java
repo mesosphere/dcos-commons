@@ -37,7 +37,7 @@ public class OfferEvaluatorTest {
             getExecutorInfo(desiredExecutorCpu),
             null,
             null);
-    List<Offer> offers = getOffers(insufficientOfferedResource);
+    List<Offer> offers = Arrays.asList(getOffer(insufficientOfferedResource));
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(offerReq, offers);
     Assert.assertEquals(0, recommendations.size());
@@ -53,7 +53,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceTestUtils.getOfferedUnreservedMountVolume(2000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(offeredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(3, recommendations.size());
 
     // Validate RESERVE Operation
@@ -113,7 +114,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceTestUtils.getExpectedMountVolume(2000, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(updatedResource), getOffers(offeredResource));
+            getOfferRequirement(updatedResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(1, recommendations.size());
 
     Operation launchOperation = recommendations.get(0).getOperation();
@@ -140,7 +142,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceTestUtils.getExpectedMountVolume(2000, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(updatedResource), getOffers(offeredResource));
+            getOfferRequirement(updatedResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(0, recommendations.size());
   }
 
@@ -154,7 +157,8 @@ public class OfferEvaluatorTest {
     Resource wrongOfferedResource = ResourceTestUtils.getOfferedUnreservedMountVolume(2000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(wrongOfferedResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(wrongOfferedResource)));
     Assert.assertEquals(0, recommendations.size());
   }
 
@@ -168,7 +172,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceUtils.getUnreservedRootVolume(2000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(offeredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(3, recommendations.size());
 
     // Validate RESERVE Operation
@@ -227,7 +232,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceUtils.getUnreservedRootVolume(1000);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(offeredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(0, recommendations.size());
   }
 
@@ -237,7 +243,8 @@ public class OfferEvaluatorTest {
     Resource expectedResource = ResourceTestUtils.getExpectedMountVolume(1000, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(expectedResource), getOffers(expectedResource));
+            getOfferRequirement(expectedResource),
+            Arrays.asList(getOffer(expectedResource)));
     Assert.assertEquals(1, recommendations.size());
 
     Operation launchOperation = recommendations.get(0).getOperation();
@@ -266,7 +273,8 @@ public class OfferEvaluatorTest {
     Resource expectedResource = ResourceTestUtils.getExpectedRootVolume(1000, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(expectedResource), getOffers(expectedResource));
+            getOfferRequirement(expectedResource),
+            Arrays.asList(getOffer(expectedResource)));
     Assert.assertEquals(1, recommendations.size());
 
     Operation launchOperation = recommendations.get(0).getOperation();
@@ -298,7 +306,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(offeredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(2, recommendations.size());
 
     // Validate RESERVE Operation
@@ -352,7 +361,7 @@ public class OfferEvaluatorTest {
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             new OfferRequirement(Arrays.asList(taskInfo), execInfo),
-            getOffers(offeredTaskResource, offeredExecutorResource));
+            Arrays.asList(getOffer(offeredTaskResource, offeredExecutorResource)));
     Assert.assertEquals(3, recommendations.size());
 
     // Validate Executor RESERVE Operation
@@ -425,7 +434,7 @@ public class OfferEvaluatorTest {
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             new OfferRequirement(Arrays.asList(taskInfo), execInfo),
-            getOffers(offeredTaskResource, offeredExecutorResource));
+            Arrays.asList(getOffer(offeredTaskResource, offeredExecutorResource)));
     Assert.assertEquals(2, recommendations.size());
 
     // Validate Task RESERVE Operation
@@ -465,7 +474,8 @@ public class OfferEvaluatorTest {
     Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(desiredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(desiredResource)));
     Assert.assertEquals(1, recommendations.size());
 
     // Validate LAUNCH Operation
@@ -491,7 +501,7 @@ public class OfferEvaluatorTest {
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             getOfferRequirement(desiredResource),
-            getOffers(offeredResource, unreservedResource));
+            Arrays.asList(getOffer(offeredResource, unreservedResource)));
     Assert.assertEquals(2, recommendations.size());
 
     // Validate RESERVE Operation
@@ -531,7 +541,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(offeredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(0, recommendations.size());
   }
 
@@ -542,7 +553,8 @@ public class OfferEvaluatorTest {
     Resource offeredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0, resourceId);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            getOfferRequirement(desiredResource), getOffers(offeredResource));
+            getOfferRequirement(desiredResource),
+            Arrays.asList(getOffer(offeredResource)));
     Assert.assertEquals(2, recommendations.size());
 
     // Validate UNRESERVE Operation
@@ -586,7 +598,7 @@ public class OfferEvaluatorTest {
                     desiredCpu,
                     Arrays.asList(ResourceTestUtils.testSlaveId),
                     Collections.emptyList()),
-            getOffers(offeredCpu));
+            Arrays.asList(getOffer(offeredCpu)));
 
     Assert.assertEquals(0, recommendations.size());
 
@@ -595,7 +607,7 @@ public class OfferEvaluatorTest {
                     desiredCpu,
                     Arrays.asList("some-random-agent"),
                     Collections.emptyList()),
-            getOffers(offeredCpu));
+            Arrays.asList(getOffer(offeredCpu)));
 
     Assert.assertEquals(2, recommendations.size());
   }
@@ -611,7 +623,7 @@ public class OfferEvaluatorTest {
                     desiredCpu,
                     Collections.emptyList(),
                     Arrays.asList("some-random-agent")),
-            getOffers(offeredCpu));
+            Arrays.asList(getOffer(offeredCpu)));
 
     Assert.assertEquals(0, recommendations.size());
 
@@ -620,7 +632,7 @@ public class OfferEvaluatorTest {
                     desiredCpu,
                     Collections.emptyList(),
                     Arrays.asList(ResourceTestUtils.testSlaveId)),
-            getOffers(offeredCpu));
+            Arrays.asList(getOffer(offeredCpu)));
 
     Assert.assertEquals(2, recommendations.size());
   }
@@ -643,7 +655,7 @@ public class OfferEvaluatorTest {
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
-            getOffers(expectedTaskCpu, expectedExecutorMem));
+            Arrays.asList(getOffer(expectedTaskCpu, expectedExecutorMem)));
 
     Assert.assertEquals(0, recommendations.size());
   }
@@ -662,7 +674,7 @@ public class OfferEvaluatorTest {
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
-            getOffers(expectedTaskCpu, expectedExecutorMem));
+            Arrays.asList(getOffer(expectedTaskCpu, expectedExecutorMem)));
 
     Assert.assertEquals(1, recommendations.size());
     Operation launchOperation = recommendations.get(0).getOperation();
@@ -683,7 +695,7 @@ public class OfferEvaluatorTest {
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
-            getOffers(null, Arrays.asList(expectedTaskCpu, expectedExecutorMem)));
+            Arrays.asList(getOffer(null, Arrays.asList(expectedTaskCpu, expectedExecutorMem))));
 
     Assert.assertEquals(1, recommendations.size());
     Operation launchOperation = recommendations.get(0).getOperation();
@@ -717,7 +729,7 @@ public class OfferEvaluatorTest {
     OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo0, taskInfo1), execInfo);
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
-            getOffers(null, Arrays.asList(offeredResource)));
+            Arrays.asList(getOffer(null, Arrays.asList(offeredResource))));
 
     Assert.assertEquals(5, recommendations.size());
     Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
@@ -732,23 +744,50 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(launch0ExecutorId, launch1ExecutorId);
   }
 
+  @Test
+  public void testLaunchNotOnFirstOffer() throws InvalidRequirementException {
+    Resource desiredResource = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            1.0);
+
+    Resource insufficientOffer = ResourceUtils.getUnreservedScalar("mem", 2.0);
+    Resource sufficientOffer = ResourceUtils.getUnreservedScalar("cpus", 2.0);
+
+    List<OfferRecommendation> recommendations = evaluator.evaluate(
+            getOfferRequirement(desiredResource),
+            Arrays.asList(
+                    getOffer(insufficientOffer),
+                    getOffer(sufficientOffer)));
+    Assert.assertEquals(2, recommendations.size());
+
+    // Validate RESERVE Operation
+    Operation reserveOperation = recommendations.get(0).getOperation();
+    Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+
+    // Validate LAUNCH Operation
+    Operation launchOperation = recommendations.get(1).getOperation();
+    Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+  }
+
   private static Label getFirstLabel(Resource resource) {
     return resource.getReservation().getLabels().getLabels(0);
   }
 
-  private static List<Offer> getOffers(Resource resource) {
-    return getOffers(Arrays.asList(resource));
+  private static Offer getOffer(Resource resource) {
+    return getOffer(Arrays.asList(resource));
   }
 
-  private static List<Offer> getOffers(List<Resource> resources) {
-    return getOffers(ResourceTestUtils.testExecutorId, resources);
+  private static Offer getOffer(List<Resource> resources) {
+    return getOffer(ResourceTestUtils.testExecutorId, resources);
   }
 
-  private static List<Offer> getOffers(Resource... resources) {
-    return getOffers(Arrays.asList(resources));
+  private static Offer getOffer(Resource... resources) {
+    return getOffer(Arrays.asList(resources));
   }
 
-  private static List<Offer> getOffers(String executorId, List<Resource> resources) {
+  private static Offer getOffer(String executorId, List<Resource> resources) {
     OfferBuilder builder = new OfferBuilder(
         ResourceTestUtils.testOfferId,
         ResourceTestUtils.testFrameworkId,
@@ -759,7 +798,7 @@ public class OfferEvaluatorTest {
       builder.addExecutorIds(Arrays.asList(executorId));
     }
 
-    return Arrays.asList(builder.addAllResources(resources).build());
+    return builder.addAllResources(resources).build();
   }
 
   private static OfferRequirement getOfferRequirement(Resource resource)
