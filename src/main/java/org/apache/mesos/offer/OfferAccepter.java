@@ -1,6 +1,8 @@
 package org.apache.mesos.offer;
 
 import com.google.inject.Inject;
+import com.google.protobuf.TextFormat;
+
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
@@ -83,7 +85,8 @@ public class OfferAccepter {
     for (OfferRecommendation recommendation : recommendations) {
       if (recommendation instanceof LaunchOfferRecommendation &&
           ((LaunchOfferRecommendation) recommendation).isTransient()) {
-        logger.info("Skipping launch of transient Operation: {}", recommendation.getOperation());
+        logger.info("Skipping launch of transient Operation: {}",
+            TextFormat.shortDebugString(recommendation.getOperation()));
       } else {
         operations.add(recommendation.getOperation());
       }
@@ -104,7 +107,7 @@ public class OfferAccepter {
 
   private static void logOperations(List<Operation> operations) {
     for (Operation op : operations) {
-      logger.info("Performing Operation: {}", op);
+      logger.info("Performing Operation: {}", TextFormat.shortDebugString(op));
     }
   }
 

@@ -14,6 +14,8 @@ import org.apache.mesos.protobuf.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.TextFormat;
+
 import java.util.*;
 
 /**
@@ -93,7 +95,7 @@ public class OfferEvaluator {
         Protos.ExecutorID expectedExecutorId = execReq.getExecutorInfo().getExecutorId();
         if (!hasExpectedExecutorId(offer, expectedExecutorId)) {
           logger.info("Offer: '{}' does not contain the needed ExecutorID: '{}'",
-                  offer.getId().getValue(), expectedExecutorId);
+                  offer.getId().getValue(), expectedExecutorId.getValue());
           return Collections.emptyList();
         }
       }
@@ -171,11 +173,13 @@ public class OfferEvaluator {
       for (ResourceRequirement resReq : resourceRequirements) {
         MesosResource mesRes = pool.consume(resReq);
         if (mesRes == null) {
-          logger.warn("Failed to satisfy resource requirement: {}", resReq.getResource());
+          logger.warn("Failed to satisfy resource requirement: {}",
+              TextFormat.shortDebugString(resReq.getResource()));
           return null;
         } else {
-          logger.info("Satisfying resource requirement: {} with resource: {}",
-              resReq.getResource(), mesRes.getResource());
+          logger.info("Satisfying resource requirement: {}\nwith resource: {}",
+              TextFormat.shortDebugString(resReq.getResource()),
+              TextFormat.shortDebugString(mesRes.getResource()));
         }
 
         Resource fulfilledResource = getFulfilledResource(resReq, mesRes);
@@ -233,7 +237,7 @@ public class OfferEvaluator {
           }
         }
 
-        logger.info("Fulfilled resource: {}", fulfilledResource);
+        logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
         fulfilledResources.add(fulfilledResource);
       }
 
