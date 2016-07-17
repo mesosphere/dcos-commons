@@ -4,6 +4,8 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.TextFormat;
+
 import java.util.*;
 
 /**
@@ -47,10 +49,11 @@ public class DefaultStageManager implements StageManager {
   public Phase getCurrentPhase() {
     for (Phase phase : stage.getPhases()) {
       if (!phase.isComplete()) {
-        LOGGER.debug("Phase {} is NOT complete.", phase.getId());
+        LOGGER.debug("Phase {} ({}) is NOT complete. This is the current phase.",
+                phase.getName(), phase.getId());
         return phase;
       } else {
-        LOGGER.debug("Phase {} is complete.", phase.getId());
+        LOGGER.debug("Phase {} ({}) is complete.", phase.getName(), phase.getId());
       }
     }
     LOGGER.debug("All phases are complete.");
@@ -74,8 +77,7 @@ public class DefaultStageManager implements StageManager {
     final PhaseStrategy currPhase = getCurrentPhaseStrategy();
     if (currPhase != null) {
       currPhase.proceed();
-      LOGGER.info("Proceeding with current phase: phase = {}",
-        currPhase);
+      LOGGER.info("Proceeding with current phase: phase = {}", currPhase);
     } else {
       LOGGER.info("No phase to proceed");
     }
@@ -100,35 +102,29 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public void restart(final UUID phaseId, final UUID blockId) {
-    LOGGER.info(
-      "Restarting phase : phaseId = {}, blockId = {}",
-      phaseId, blockId);
+    LOGGER.info("Restarting phase : phaseId = {}, blockId = {}", phaseId, blockId);
     PhaseStrategy strategy = getPhaseStrategy(phaseId, blockId);
     if (strategy == null) {
       return;
     }
     strategy.restart(blockId);
-    LOGGER.info("Restarted phase : phaseId = {}, blockId = {}", phaseId,
-      blockId);
+    LOGGER.info("Restarted phase : phaseId = {}, blockId = {}", phaseId, blockId);
   }
 
   @Override
   public void forceComplete(final UUID phaseId, final UUID blockId) {
-    LOGGER.info(
-      "Forcing completion : phaseId = {}, blockId = {}",
-      phaseId, blockId);
+    LOGGER.info("Forcing completion : phaseId = {}, blockId = {}", phaseId, blockId);
     PhaseStrategy strategy = getPhaseStrategy(phaseId, blockId);
     if (strategy == null) {
       return;
     }
     strategy.forceComplete(blockId);
-    LOGGER.info("Forced completion : phaseId = {}, blockId = {}", phaseId,
-      blockId);
+    LOGGER.info("Forced completion : phaseId = {}, blockId = {}", phaseId, blockId);
   }
 
   @Override
   public void update(final Protos.TaskStatus status) {
-    LOGGER.info("Received status update : status = {}", status);
+    LOGGER.info("Received status update : status = {}", TextFormat.shortDebugString(status));
 
     final PhaseStrategy currentPhaseStrategy = getCurrentPhaseStrategy();
     if (currentPhaseStrategy != null) {
@@ -173,34 +169,34 @@ public class DefaultStageManager implements StageManager {
   public Status getStatus() {
     // Ordering matters throughout this method.  Modify with care.
 
+    Status result;
     if (!getErrors().isEmpty()) {
-      return Status.Error;
-    }
-
-    if (stage.getPhases().isEmpty()) {
-      LOGGER.warn("Stage doesn't have any phases");
-      return Status.Complete;
-    }
-
-    if (anyHaveStatus(Status.InProgress, stage)) {
-      LOGGER.info("At least one phase has status: " + Status.InProgress);
-      return Status.InProgress;
+      result = Status.Error;
+      LOGGER.warn("(status={}) Stage contains errors", result);
+    } else if (stage.getPhases().isEmpty()) {
+      result = Status.Complete;
+      LOGGER.warn("(status={}) Stage doesn't have any phases", result);
+    } else if (anyHaveStatus(Status.InProgress, stage)) {
+      result = Status.InProgress;
+      LOGGER.info("(status={}) At least one phase has status: {}", result, Status.InProgress);
     } else if (anyHaveStatus(Status.Waiting, stage)) {
-      LOGGER.info("At least one phase has status: " + Status.Waiting);
-      return Status.Waiting;
+      result = Status.Waiting;
+      LOGGER.info("(status={}) At least one phase has status: {}", result, Status.Waiting);
     } else if (allHaveStatus(Status.Complete, stage)) {
-      LOGGER.info("All phases have status: " + Status.Complete);
-      return Status.Complete;
+      result = Status.Complete;
+      LOGGER.info("(status={}) All phases have status: {}", result, Status.Complete);
     } else if (allHaveStatus(Status.Pending, stage)) {
-      LOGGER.info("All phases have status: " + Status.Pending);
-      return Status.Pending;
+      result = Status.Pending;
+      LOGGER.info("(status={}) All phases have status: {}", result, Status.Pending);
     } else if (anyHaveStatus(Status.Complete, stage) && anyHaveStatus(Status.Pending, stage)) {
-      LOGGER.info("At least one phase has status '{}' and one has status '{}'", Status.Complete, Status.Pending);
-      return Status.InProgress;
+      result = Status.InProgress;
+      LOGGER.info("(status={}) At least one phase has status '{}' and one has status '{}'",
+              result, Status.Complete, Status.Pending);
     } else {
-      LOGGER.error("Unexpected state. Stage: " + stage);
-      return null;
+      result = null;
+      LOGGER.error("(status={}) Unexpected state. Stage: {}", result, stage);
     }
+    return result;
   }
 
   public boolean allHaveStatus(Status status, Stage stage) {

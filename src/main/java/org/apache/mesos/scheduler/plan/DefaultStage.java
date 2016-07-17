@@ -12,7 +12,6 @@ import java.util.List;
 public class DefaultStage implements Stage {
 
     private final List<? extends Phase> phases;
-
     private final List<String> errors;
 
     /**
@@ -53,6 +52,7 @@ public class DefaultStage implements Stage {
     /**
      * @return The contained list of {@link Phase}s.
      */
+    @Override
     public List<? extends Phase> getPhases() {
         return phases;
     }
@@ -65,21 +65,13 @@ public class DefaultStage implements Stage {
     /**
      * @return True if all {@link Block}s in all {@link Phase}s are complete.
      */
+    @Override
     public boolean isComplete() {
         for (Phase phase : getPhases()) {
-            for (Block block : phase.getBlocks()) {
-                if (!block.isComplete()) {
-                    return false;
-                }
+            if (!phase.isComplete()) {
+                return false;
             }
         }
         return true;
-    }
-
-    /**
-     * @return True if the phase contains errors.
-     */
-    public boolean hasErrors(){
-        return !errors.isEmpty();
     }
 }
