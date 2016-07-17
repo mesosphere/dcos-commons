@@ -58,6 +58,7 @@ public class ProcessTask implements ExecutorTask {
             final String command = taskData.getValue();
 
             ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", command);
+            builder.inheritIO();
             builder.environment().putAll(envMap);
 
             LOGGER.info("Executing command: {}", builder.command());
