@@ -9,6 +9,8 @@ import org.apache.mesos.protobuf.ResourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.TextFormat;
+
 import java.util.*;
 
 /**
@@ -63,7 +65,7 @@ public class MesosResourcePool {
     }
 
     logger.error("The following resource requirement did not meet any consumption criteria: {}",
-        resReq.getResource());
+        TextFormat.shortDebugString(resReq.getResource()));
     return null;
   }
 
@@ -153,7 +155,7 @@ public class MesosResourcePool {
 
     if (sufficientResource == null) {
       logger.warn("No sufficient atomic resources found for resource requirement: {}",
-          resReq.getResource());
+          TextFormat.shortDebugString(resReq.getResource()));
     }
 
     return sufficientResource;
