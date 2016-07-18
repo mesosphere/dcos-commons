@@ -171,4 +171,12 @@ public interface StateStore {
      * Fetches the list of Property keys.
      */
     Collection<String> listPropertyKeys();
+
+    /**
+     * Clears a given property from the StateStore.
+     *
+     * @param key The key that needs to be removed.
+     * @throws StateStoreException
+     */
+    void clearProperty(final String key) throws StateStoreException;
 }
