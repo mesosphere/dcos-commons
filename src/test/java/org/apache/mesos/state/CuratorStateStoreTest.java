@@ -413,9 +413,24 @@ public class CuratorStateStoreTest {
         final Collection<String> keys = store.listPropertyKeys();
         assertTrue(keys.size() == 1);
         assertEquals(keys.iterator().next(), GOOD_PROPERTY_KEY);
+    }
+
+    @Test
+    public void testClearPropertiesGood() {
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+        assertTrue(store.listPropertyKeys().size() == 1);
         store.clearProperty(GOOD_PROPERTY_KEY);
-        final Collection<String> newKeys = store.listPropertyKeys();
-        assertTrue(newKeys.size() == 0);
+        assertTrue(store.listPropertyKeys().size() == 0);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testClearPropertiesNonExistent() {
+        store.clearProperty(GOOD_PROPERTY_KEY + "a");
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testClearPropertiesEmpty() {
+        store.clearProperty("");
     }
 
     @Test(expected = StateStoreException.class)
