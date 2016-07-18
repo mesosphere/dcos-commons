@@ -17,12 +17,19 @@ public class Plan {
     private transient Thread startThread;
     // For persistent identity
     private UUID uuid;
+    // To identify to the framework
+    private String name;
 
-    public Plan() {
+    protected Plan() {
         this.steps = new HashMap<>();
         this.prereqsByStep = new HashMap<>();
         this.startThread = Thread.currentThread();
         this.uuid = UUID.randomUUID();
+    }
+
+    public Plan(String name) {
+        this();
+        this.name = name;
     }
 
     public Step step(Operation operation) {
@@ -111,5 +118,9 @@ public class Plan {
 
     public UUID getUuid() {
         return uuid;
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -3,7 +3,7 @@ package org.apache.mesos.scheduler.txnplan;
 import java.util.*;
 
 /**
- * Created by dgrnbrg on 6/23/16.
+ * TODO: this needs APIs to delete plans
  */
 public interface PlanStorageDriver {
     void saveStatusForPlan(PlanStatus status);
@@ -11,6 +11,8 @@ public interface PlanStorageDriver {
     void savePlan(Plan plan);
 
     void saveSchedulerState(Map<String, Queue<UUID>> planQueue, Set<UUID> runningPlans);
+
+    void deletePlan(UUID planUuid);
 
     SchedulerState loadSchedulerState();
 

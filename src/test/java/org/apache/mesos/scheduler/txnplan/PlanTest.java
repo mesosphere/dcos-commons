@@ -18,7 +18,13 @@ public class PlanTest {
 
     private void launchPlanAndWait(Plan plan, long ms) {
         ExecutorService service = Executors.newCachedThreadPool();
-        PlanTracker tracker = new PlanTracker(plan, service, new MockOperationDriverFactory(), null, Collections.EMPTY_LIST);
+        PlanTracker tracker = new PlanTracker.Builder()
+                .setPlan(plan)
+                .setService(service)
+                .setDriverFactory(new MockOperationDriverFactory())
+                .setRegistry(null)
+                .setListeners(Collections.EMPTY_LIST)
+                .createPlanTracker();
         tracker.resumeExecution();
         try {
             Thread.sleep(500);

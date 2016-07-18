@@ -68,6 +68,15 @@ public class ZKPlanStorageDriver implements PlanStorageDriver {
     }
 
     @Override
+    public void deletePlan(UUID planUuid) {
+        try {
+            curator.delete().guaranteed().forPath("/plans/" + planUuid);
+        } catch (Throwable t) {
+            throw new RuntimeException("Failed to delete unreferenced plan " + planUuid, t);
+        }
+    }
+
+    @Override
     public SchedulerState loadSchedulerState() {
         try {
             Input input = new Input(curator.getData().forPath("/scheduler_state"));

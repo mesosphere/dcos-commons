@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
  * It's highly likely that PlanListener is buggy!!!
  *
  * TODO needs a "kill()" function to terminate early
+ * TODO probably actually needs to be 2--hard and soft kills
  * Created by dgrnbrg on 6/21/16.
  */
 public class PlanTracker {
@@ -26,21 +28,21 @@ public class PlanTracker {
     private OperationDriverFactory driverFactory;
     private ExecutorService service;
     private TaskRegistry registry;
-    private AtomicBoolean beganRollback;
+    // There can be only one rollbackThread, so we don't double-rollback
+    private AtomicReference<Thread> rollbackThread;
     private Collection<PlanListener> listeners;
 
-    public PlanTracker(Plan plan, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners) {
-        this(plan, new PlanStatus(plan), service, driverFactory, registry, listeners);
-    }
+    private PlanExecutor planExecutor = null;
 
-    public PlanTracker(Plan plan, PlanStatus status, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners) {
+    private PlanTracker(Plan plan, PlanStatus status, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners, PlanExecutor planExecutor) {
         this.service = service;
         this.driverFactory = driverFactory;
         this.registry = registry;
         this.plan = plan;
         this.status = status;
-        this.beganRollback = new AtomicBoolean(false);
+        this.rollbackThread = new AtomicReference<>(null);
         this.listeners = listeners;
+        this.planExecutor = planExecutor;
     }
 
     private Collection<Step> getReadySteps() {
@@ -56,6 +58,13 @@ public class PlanTracker {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Method to begin the execution of the tracker plan.
+     * This method may cause the plan to start from the beginning, or to
+     * pick up from its last checkpointed state.
+     * Usually, this method will be called by the {@link PlanExecutor};
+     * this should only be called directly for unit testing.
+     */
     public synchronized void resumeExecution() {
         logger.info("Resuming execution of plan " + plan.getUuid());
         listeners.stream().forEach(l -> l.planStarted(plan, status));
@@ -99,39 +108,45 @@ public class PlanTracker {
         }
     }
 
-    protected synchronized void rollback(Throwable e) {
-        if (beganRollback.compareAndSet(false, true)) {
+    protected synchronized void unravelPlan(Throwable e) {
+        final List<Step> toUndo = new ArrayList<>();
+        Map<UUID, Step> steps = plan.getSteps();
+        for (UUID id : status.getRunning()) {
+            toUndo.add(steps.get(id));
+        }
+        // Add completed steps in reverse order of completion
+        for (int i = status.getCompleted().size() - 1; i >= 0; i--) {
+            toUndo.add(steps.get(status.getCompleted().get(i)));
+        }
+        Thread rollback = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    for (Step step : toUndo) {
+                        if (Thread.currentThread().isInterrupted()) {
+                            throw new InterruptedException("Rollback thread was interrupted");
+                        }
+                        logger.info("Undoing step " + step.getUuid() + ": " + step.getOperation().getClass());
+                        step.getOperation().unravel(registry, driverFactory.makeDriver(step));
+                        synchronized (status) {
+                            status = status.rolledBackStep(step.getUuid());
+                        }
+                    }
+                    listeners.stream().forEach(l -> l.planEnded(plan, status, false));
+                } catch (Throwable e) {
+                    crash(e);
+                    listeners.stream().forEach(l -> l.planEnded(plan, status, false));
+                }
+            }
+        });
+        if (rollbackThread.compareAndSet(null, rollback)) {
             logger.error("Encountered error, rolling back plan", e);
             synchronized (status) {
                 status = status.rollback();
             }
+            // This sends interrupts to all currently running steps
             service.shutdownNow();
-            final List<Step> toUndo = new ArrayList<>();
-            Map<UUID, Step> steps = plan.getSteps();
-            for (UUID id : status.getRunning()) {
-                toUndo.add(steps.get(id));
-            }
-            for (int i = status.getCompleted().size() - 1; i >= 0; i--) {
-                toUndo.add(steps.get(status.getCompleted().get(i)));
-            }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        for (Step step : toUndo) {
-                            logger.info("Undoing step " + step.getUuid() + ": " + step.getOperation().getClass());
-                            step.getOperation().unravel(registry, driverFactory.makeDriver(step));
-                            synchronized (status) {
-                                status = status.rolledBackStep(step.getUuid());
-                            }
-                        }
-                        listeners.stream().forEach(l -> l.planEnded(plan, status, false));
-                    } catch (Throwable e) {
-                        crash(e);
-                        listeners.stream().forEach(l -> l.planEnded(plan, status, false));
-                    }
-                }
-            }).start();
+            rollback.start();
         } else if (!(e instanceof InterruptedException)){
             logger.info("Another error encountered, but unravel has already begun", e);
         }
@@ -150,6 +165,30 @@ public class PlanTracker {
 
     public PlanStatus getStatus() {
         return status;
+    }
+
+    /**
+     * This method causes the given plan to immediately abort.
+     * This could potentially leave the system in an indeterminate state.
+     * Repeatedly calling this will escalate the means by which the plan is terminated,
+     * so it's recommended to only call this once.
+     */
+    public void abortPlan() {
+        if (planExecutor != null) {
+            //delete self from the executor
+        }
+        synchronized (this) {
+            // we're already done
+            if (status.isComplete()) {
+                return;
+            }
+        }
+        Thread rollback = rollbackThread.get();
+        if (rollback != null) {
+            rollback.interrupt();
+        } else {
+            unravelPlan(new RuntimeException("Aborting plan due to framework choice"));
+        }
     }
 
     public class StepRunner implements Runnable {
@@ -178,9 +217,61 @@ public class PlanTracker {
                 listeners.stream().forEach(l -> l.stepEnded(plan, status, step));
                 checkDone();
             } catch (Throwable e) {
-                rollback(e);
+                unravelPlan(e);
                 listeners.stream().forEach(l -> l.stepEnded(plan, status, step));
             }
+        }
+    }
+
+    public static class Builder {
+        private Plan plan;
+        private ExecutorService service;
+        private OperationDriverFactory driverFactory;
+        private TaskRegistry registry;
+        private Collection<PlanListener> listeners = Collections.EMPTY_LIST;
+        private PlanStatus status = null;
+        private PlanExecutor planExecutor = null;
+
+        public Builder setPlan(Plan plan) {
+            this.plan = plan;
+            return this;
+        }
+
+        public Builder setService(ExecutorService service) {
+            this.service = service;
+            return this;
+        }
+
+        public Builder setDriverFactory(OperationDriverFactory driverFactory) {
+            this.driverFactory = driverFactory;
+            return this;
+        }
+
+        public Builder setRegistry(TaskRegistry registry) {
+            this.registry = registry;
+            return this;
+        }
+
+        public Builder setListeners(Collection<PlanListener> listeners) {
+            this.listeners = listeners;
+            return this;
+        }
+
+        public Builder setStatus(PlanStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder setPlanExecutor(PlanExecutor planExecutor) {
+            this.planExecutor = planExecutor;
+            return this;
+        }
+
+        public PlanTracker createPlanTracker() {
+            if (status == null) {
+                status = new PlanStatus(plan);
+            }
+            return new PlanTracker(plan, status, service, driverFactory, registry, listeners, planExecutor);
         }
     }
 }

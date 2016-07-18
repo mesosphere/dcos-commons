@@ -161,6 +161,9 @@ public class PlanExecutorTest {
         Queue<UUID> queueForA = new ArrayDeque<>();
         queueForA.add(plan1.getUuid());
         planQueue.put("A", queueForA);
+        Queue<UUID> queueForB = new ArrayDeque<>();
+        queueForB.add(plan2.getUuid());
+        planQueue.put("B", queueForB);
 
         PlanStorageDriver storageDriver = new ZKPlanStorageDriver(curator.usingNamespace(UUID.randomUUID().toString()));
         storageDriver.savePlan(plan1);

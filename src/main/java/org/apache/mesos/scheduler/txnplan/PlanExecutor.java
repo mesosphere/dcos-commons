@@ -1,12 +1,12 @@
 package org.apache.mesos.scheduler.txnplan;
 
 import org.apache.mesos.scheduler.registry.TaskRegistry;
-import org.apache.zookeeper.KeeperException;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * This implements the logic of storing the plan's UUID on submission,
@@ -27,6 +27,8 @@ public class PlanExecutor {
     private OperationDriverFactory driverFactory;
     private PlanListener internalListener;
     private PlanStorageDriver storageDriver;
+    // This is only true until this object is interacted with via submission or reload
+    // This ensures an erroneous call to reload cannot accidentally clobber the state
     private AtomicBoolean fresh;
 
     public PlanExecutor(TaskRegistry registry, OperationDriverFactory driverFactory, PlanStorageDriver storageDriverArg) {
@@ -63,9 +65,14 @@ public class PlanExecutor {
         };
     }
 
-    public void reloadFromStorage() {
+    /**
+     * This function reloads the executor's state from storage.
+     * As a side-effect, it garbage-collects olds plans as well.
+     */
+    public synchronized void reloadFromStorage() {
         //First, load the scheduler state
         //Then, load the plans
+        //Now, we find any unreferenced plans and delete them from storage & in-memory
         //Then, add any plans not being scheduled currently
         //lastly, resume any plans that should be picked up
         if (!fresh.compareAndSet(true, false)) {
@@ -86,16 +93,26 @@ public class PlanExecutor {
         state.getPlanQueue().values().stream()
                 .flatMap(q -> q.stream())
                 .forEach(id -> plansInQueue.add(id));
+        List<UUID> unreferencedPlanIds = plans.keySet().stream()
+                .filter(id -> !plansInQueue.contains(id))
+                .collect(Collectors.toList());
+        unreferencedPlanIds.stream().forEach(plans::remove);
+        unreferencedPlanIds.stream().forEach(storageDriver::deletePlan);
         Collection<PlanListener> defaultListeners = Arrays.asList(internalListener);
+        //By this loop, unreferenced plans should be GCed, or else we could double-execute by mistake
         for (Plan plan : plans.values()) {
             UUID id = plan.getUuid();
-            PlanTracker tracker;
+            PlanTracker.Builder builder = new PlanTracker.Builder();
+            builder.setPlan(plan)
+                    .setService(executorService)
+                    .setDriverFactory(driverFactory)
+                    .setRegistry(registry)
+                    .setPlanExecutor(this)
+                    .setListeners(defaultListeners);
             if (statuses.containsKey(id)) {
-                tracker = new PlanTracker(plan, statuses.get(id), executorService, driverFactory, registry, defaultListeners);
-            } else {
-                tracker = new PlanTracker(plan, executorService, driverFactory, registry, defaultListeners);
+                builder.setStatus(statuses.get(id));
             }
-            planIndex.put(id, tracker);
+            planIndex.put(id, builder.createPlanTracker());
             if (!plansInQueue.contains(id)) {
                 addPlanToQueue(plan);
             }
@@ -120,6 +137,9 @@ public class PlanExecutor {
     }
 
     public void submitPlan(Plan plan, Collection<PlanListener> listeners){
+        if (plan.getAffectedTaskNames().isEmpty()) {
+            throw new RuntimeException("Every plan must interact with something. Try using a random dummy interfence if you need.");
+        }
         fresh.lazySet(false);
         plan.freeze();
         storageDriver.savePlan(plan);
@@ -128,16 +148,43 @@ public class PlanExecutor {
             List<PlanListener> allListeners = new ArrayList<>(listeners.size() + 1);
             allListeners.addAll(listeners);
             allListeners.add(internalListener);
-            PlanTracker tracker = new PlanTracker(plan, executorService, driverFactory, registry, allListeners);
+            PlanTracker tracker = new PlanTracker.Builder()
+                    .setPlan(plan)
+                    .setService(executorService)
+                    .setDriverFactory(driverFactory)
+                    .setRegistry(registry)
+                    .setListeners(allListeners)
+                    .setPlanExecutor(this)
+                    .createPlanTracker();
             planIndex.put(id, tracker);
             addPlanToQueue(plan);
         }
+        // doScheduling saves the new state as a side effect
         doScheduling();
+    }
+
+    /**
+     * Internal method used by {@link PlanTracker} to remove itself from the plane executor
+     * @param planId the plan to remove
+     */
+    protected synchronized void removePlan(UUID planId) {
+        planIndex.remove(planId);
+        planQueue.values().stream().forEach(q -> q.remove(planId));
+        storageDriver.saveSchedulerState(planQueue, runningPlans);
+    }
+
+    /**
+     * Enumerates all the pending and running plans
+     * @return Collection of all not yet completed plans in the tracker
+     */
+    public Collection<PlanTracker> getAllPlans() {
+        List<PlanTracker> trackers = new ArrayList<>(planIndex.size());
+        trackers.addAll(planIndex.values());
+        return trackers;
     }
 
     private synchronized Collection<PlanTracker> getReadyPlans() {
         //First, we remove completed plans from the queue
-        //TODO remove plans from planIndex too
         Set<UUID> finishedPlans = new HashSet<>();
         for (String name : planQueue.keySet()) {
             Queue<UUID> q = planQueue.get(name);
