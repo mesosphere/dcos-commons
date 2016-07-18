@@ -318,6 +318,18 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
+    @Override
+    public void clearProperty(final String key) throws StateStoreException {
+        validateKey(key);
+        try {
+            final String path = this.propertiesPath + "/" + key;
+            logger.debug("Removing property key: {} from path: {}", key, path);
+            curator.clear(path);
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
     // Internals
 
     private static class TaskPathMapper {
