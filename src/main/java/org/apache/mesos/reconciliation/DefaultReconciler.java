@@ -6,6 +6,7 @@ import com.google.inject.Singleton;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,9 @@ public class DefaultReconciler implements Reconciler {
         // append provided tasks to current state
         synchronized (unreconciled) {
             for (TaskStatus status : tasks) {
-                unreconciled.put(status.getTaskId().getValue(), status);
+                if (!TaskUtils.isTerminated(status)) {
+                    unreconciled.put(status.getTaskId().getValue(), status);
+                }
             }
             // even if the scheduler thinks no tasks are launched, we should still always perform
             // implicit reconciliation:
