@@ -5,16 +5,16 @@ import java.util.Collection;
 /**
  * Reports all the validation errors for a given {@code Configuration}.
  */
-public class ConfigValidationException extends Exception {
-    private final Collection<ConfigValidationError> validationErrors;
+public class ConfigurationValidationException extends Exception {
+    private final Collection<ConfigurationValidationError> validationErrors;
 
-    public ConfigValidationException(Collection<ConfigValidationError> validationErrors) {
+    public ConfigurationValidationException(Collection<ConfigurationValidationError> validationErrors) {
         super(String.format("%d validation errors: %s",
                 validationErrors.size(), validationErrors));
         this.validationErrors = validationErrors;
     }
 
-    public Collection<ConfigValidationError> getValidationErrors() {
+    public Collection<ConfigurationValidationError> getValidationErrors() {
         return validationErrors;
     }
 }
