@@ -43,13 +43,15 @@ public class TaskRegistry {
     private RegistryStorageDriver storageDriver;
     private AtomicReference<Thread> reconcileThread;
     private AtomicBoolean beenReconciled;
+    private TaskRegistryLaunchRecorder recorder;
 
-    public TaskRegistry(OfferAccepter accepter, RegistryStorageDriver storageDriver) {
-        this.accepter = accepter;
+    public TaskRegistry(RegistryStorageDriver storageDriver) {
         this.storageDriver = storageDriver;
         this.tasks = new HashMap<>();
         this.reconcileThread = new AtomicReference<>();
         this.beenReconciled = new AtomicBoolean(false);
+        this.recorder = new TaskRegistryLaunchRecorder();
+        this.accepter = new OfferAccepter(recorder);
         //TODO if loadAllTasks returns an empty set, maybe we should throw or something
         for (Task task : storageDriver.loadAllTasks()) {
             tasks.put(task.getName(), task);
@@ -208,7 +210,7 @@ public class TaskRegistry {
         Task task = Task.createTask(name, requirement);
         tasks.put(name, task);
         storageDriver.storeTask(task);
-        return task.getTaskInfo().getTaskId();
+        return task.getRealizedTaskInfo().getTaskId();
     }
 
     /**
@@ -249,7 +251,7 @@ public class TaskRegistry {
         Task task = Task.createTask(name, requirement);
         tasks.put(name, task);
         storageDriver.storeTask(task);
-        return task.getTaskInfo().getTaskId();
+        return task.getRealizedTaskInfo().getTaskId();
     }
 
     public synchronized Task getTask(String name) {
@@ -287,7 +289,11 @@ public class TaskRegistry {
         Map<String, Task> index = new HashMap<>();
         for (Task task : allTasks) {
             index.put(task.getName(), task);
-            Protos.ExecutorInfo info = task.getTaskInfo().getExecutor();
+            Protos.TaskInfo taskInfo = task.getRealizedTaskInfo();
+            if (taskInfo == null) {
+                continue;
+            }
+            Protos.ExecutorInfo info = taskInfo.getExecutor();
             if (info == null) {
                 continue;
             }
@@ -302,7 +308,11 @@ public class TaskRegistry {
         Set<String> output = new HashSet<>();
         for (String name : taskNames) {
             Task task = index.get(name);
-            Protos.ExecutorInfo info = task.getTaskInfo().getExecutor();
+            Protos.TaskInfo taskInfo = task.getRealizedTaskInfo();
+            if (taskInfo == null) {
+                continue;
+            }
+            Protos.ExecutorInfo info = taskInfo.getExecutor();
             output.addAll(sharedExecutors.get(info));
         }
         return output;
@@ -351,12 +361,12 @@ public class TaskRegistry {
                 logger.info("Found a match--launching a task named " + matched.getName());
                 // Found a recommendation
                 pendingTasks.remove(matched);
-                matched.launch();
-                //TODO persist the launching fact
+                storageDriver.storeTask(matched);
                 synchronized (matched) {
                     matched.notifyAll();
                 }
                 accepter.accept(driver, recommendations);
+                matched.launch(recorder.getLatestInfo());
             } else {
                 uneededOffers.add(offer);
             }
@@ -387,7 +397,7 @@ public class TaskRegistry {
         this.driver = driver;
         Protos.TaskID msgId = status.getTaskId();
         Optional<Task> maybeTask = tasks.values().stream()
-                .filter(t -> t.getTaskInfo().getTaskId().equals(msgId))
+                .filter(t -> t.getRealizedTaskInfo().getTaskId().equals(msgId))
                 .findFirst();
         if (maybeTask.isPresent()) {
             Task task = maybeTask.get();

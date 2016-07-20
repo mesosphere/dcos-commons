@@ -41,7 +41,7 @@ public class CreateTaskOp implements Operation{
         driver.save(newID);
         driver.info("Waiting for the task named " + name + " with id " + newID + " to start");
         registry.getTask(name).waitForStatus(s -> s.getState().equals(TaskState.TASK_RUNNING));
-        driver.info("Task " + name + "started successfully");
+        driver.info("Task " + name + " started successfully");
     }
 
     @Override

@@ -33,7 +33,8 @@ public class KillTaskOp implements Operation {
         if (!registry.getAllTasks().stream()
                 .anyMatch(t ->
                         t.getName().equals(name)
-                                && t.getTaskInfo().getTaskId().equals(id))) {
+                                && t.getRealizedTaskInfo() != null
+                                && t.getRealizedTaskInfo().getTaskId().equals(id))) {
             throw new RuntimeException("Attempted to kill task "
                     + name
                     + "which doesn't exist, aborting");
@@ -57,6 +58,6 @@ public class KillTaskOp implements Operation {
     }
 
     public static KillTaskOp make(Task task) {
-        return new KillTaskOp(task.getTaskInfo().getTaskId(), task.getName());
+        return new KillTaskOp(task.getRealizedTaskInfo().getTaskId(), task.getName());
     }
 }

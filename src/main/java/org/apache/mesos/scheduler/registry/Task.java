@@ -22,7 +22,7 @@ import java.util.function.Predicate;
  */
 public class Task {
     private static final Logger logger = LoggerFactory.getLogger(Task.class);
-    private Protos.TaskInfo taskInfo;
+    private volatile Protos.TaskInfo realizedTaskInfo;
     //all accesses to taskStatuses should be synchronized on it
     private List<Protos.TaskStatus> taskStatuses;
     private OfferRequirement requirement;
@@ -33,8 +33,7 @@ public class Task {
             throw new RuntimeException("Must be exactly one task requirement!");
         }
         TaskRequirement taskReq = requirement.getTaskRequirements().iterator().next();
-        Protos.TaskInfo info = requirement.getTaskRequirements().iterator().next().getTaskInfo();
-        return new Task(name, info, requirement);
+        return new Task(name, requirement);
     }
 
     /**
@@ -42,21 +41,28 @@ public class Task {
      */
     private Task() {}
 
-    private Task(String name, Protos.TaskInfo info, OfferRequirement requirement) {
+    private Task(String name, OfferRequirement requirement) {
         this.name = name;
         this.requirement = requirement;
-        this.taskInfo = info;
+        this.realizedTaskInfo = null;
         this.taskStatuses = new ArrayList<>();
     }
 
-    public Protos.TaskInfo getTaskInfo() {
-        return taskInfo;
+    /**
+     * Gets the {@link org.apache.mesos.Protos.TaskInfo} that actually launched this task.
+     * This will include important IDs, like the which agent this is running on,
+     * what volume ID was allocated, and so on.
+     * @return The info, or null if the task hasn't launched yet
+     */
+    public Protos.TaskInfo getRealizedTaskInfo() {
+        return realizedTaskInfo;
     }
 
-    public void launch() {
+    public void launch(Protos.TaskInfo realizedTaskInfo) {
+        this.realizedTaskInfo = realizedTaskInfo;
         synchronized (taskStatuses) {
             Protos.TaskStatus staging = Protos.TaskStatus.newBuilder()
-                    .setTaskId(taskInfo.getTaskId())
+                    .setTaskId(realizedTaskInfo.getTaskId())
                     .setState(Protos.TaskState.TASK_STAGING)
                     .build();
             taskStatuses.add(staging);
@@ -118,7 +124,7 @@ public class Task {
 
         Task task = (Task) o;
 
-        if (!taskInfo.equals(task.taskInfo)) return false;
+        if (!realizedTaskInfo.equals(task.realizedTaskInfo)) return false;
         if (!taskStatuses.equals(task.taskStatuses)) return false;
         if (!requirement.equals(task.requirement)) return false;
         return name.equals(task.name);
@@ -127,7 +133,7 @@ public class Task {
 
     @Override
     public int hashCode() {
-        int result = taskInfo.hashCode();
+        int result = realizedTaskInfo.hashCode();
         result = 31 * result + taskStatuses.hashCode();
         result = 31 * result + requirement.hashCode();
         result = 31 * result + name.hashCode();
