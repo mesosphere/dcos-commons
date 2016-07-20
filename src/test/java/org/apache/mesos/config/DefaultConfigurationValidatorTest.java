@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 public class DefaultConfigurationValidatorTest {
     public static class TestConfig implements Configuration {
@@ -31,7 +30,7 @@ public class DefaultConfigurationValidatorTest {
         }
     }
 
-    ConfigurationValidation test = ((oldConfig, newConfig) -> {
+    ConfigurationValidation test = (oldConfig, newConfig) -> {
         final TestConfig oConfig = (TestConfig) oldConfig;
         final TestConfig nConfig = (TestConfig) newConfig;
 
@@ -40,7 +39,7 @@ public class DefaultConfigurationValidatorTest {
         }
 
         return Collections.emptyList();
-    });
+    };
 
     @Test
     public void testZeroValidations() {
