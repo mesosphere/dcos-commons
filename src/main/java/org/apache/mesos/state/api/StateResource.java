@@ -24,9 +24,28 @@ public class StateResource {
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
 
     private final StateStore stateStore;
+    private final PropertyDeserializer propertyDeserializer;
 
+    /**
+     * Creates a new StateResource which cannot deserialize Properties.
+     *
+     * @param stateStore the source of data to be returned to users
+     */
     public StateResource(StateStore stateStore) {
         this.stateStore = stateStore;
+        this.propertyDeserializer = null;
+    }
+
+    /**
+     * Creates a new StateResource which can deserialize Properties.
+     *
+     * @param stateStore the source of data to be returned to users
+     * @param propertyDeserializer a deserializer which can turn any property in the provided
+     *                             {@code stateStore} to valid JSON
+     */
+    public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
+        this.stateStore = stateStore;
+        this.propertyDeserializer = propertyDeserializer;
     }
 
     /**
@@ -95,6 +114,47 @@ public class StateResource {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format(
                     "Failed to fetch requested TaskStatus for task '%s'", taskName), ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Produces a listing of the names of all stored tasks.
+     */
+    @Path("/properties")
+    @GET
+    public Response getPropertyKeys() {
+        try {
+            JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
+            return Response.ok(keyArray.toString(), MediaType.APPLICATION_JSON).build();
+        } catch (Exception ex) {
+            logger.error("Failed to fetch list of property keys", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
+     * exist or the data couldn't be read.
+     */
+    @Path("/properties/{key}")
+    @GET
+    public Response getProperty(@PathParam("key") String key) {
+        try {
+            if (propertyDeserializer == null) {
+                logger.warn("Cannot deserialize requested Property '{}': " +
+                        "No deserializer was provided to StateResource constructor", key);
+                return Response.noContent().build();
+            } else {
+                logger.info("Attempting to fetch Property for key '{}'", key);
+                byte[] value = stateStore.fetchProperty(key);
+                return Response.ok(propertyDeserializer.toJsonString(key, value),
+                        MediaType.APPLICATION_JSON).build();
+            }
+        } catch (Exception ex) {
+            // Warning instead of Error: Subject to user input
+            logger.warn(String.format(
+                    "Failed to fetch requested Property for key '%s'", key), ex);
             return Response.serverError().build();
         }
     }

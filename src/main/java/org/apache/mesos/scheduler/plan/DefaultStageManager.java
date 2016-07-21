@@ -124,22 +124,21 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public void update(final Protos.TaskStatus status) {
-    LOGGER.info("Received status update : status = {}", TextFormat.shortDebugString(status));
-
+    LOGGER.debug("Received status update : status = {}", TextFormat.shortDebugString(status));
     final PhaseStrategy currentPhaseStrategy = getCurrentPhaseStrategy();
     if (currentPhaseStrategy != null) {
       final Phase currentPhase = currentPhaseStrategy.getPhase();
       if (currentPhase != null) {
         final List<? extends Block> blocks = currentPhase.getBlocks();
         for (Block block : blocks) {
-          LOGGER.info("Updating block '{}' with status", block.getName());
+          LOGGER.debug("Updating block '{}' with status", block.getName());
           block.update(status);
         }
       } else {
-        LOGGER.info("currentPhase is null. No blocks to receive status");
+        LOGGER.debug("currentPhase is null. No blocks to receive status");
       }
     } else {
-      LOGGER.info("currentPhaseStrategy is null. No blocks to receive status");
+      LOGGER.debug("currentPhaseStrategy is null. No blocks to receive status");
     }
   }
 
