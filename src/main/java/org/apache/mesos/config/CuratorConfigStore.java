@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.mesos.state.CuratorSchemaVersionStore;
+import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 
@@ -28,7 +30,14 @@ import org.slf4j.LoggerFactory;
  *            implementation of this interface
  */
 public class CuratorConfigStore<T extends Configuration> implements ConfigStore<T> {
+
     private static final Logger logger = LoggerFactory.getLogger(CuratorConfigStore.class);
+
+    /**
+     * @see CuratorSchemaVersionStore#CURRENT_SCHEMA_VERSION
+     */
+    private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
+    private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
@@ -63,6 +72,16 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
             throw new IllegalArgumentException("rootPath must start with '/': " + rootPath);
         }
         this.curator = new CuratorPersister(connectionString, retryPolicy);
+
+        // Check version up-front:
+        SchemaVersionStore versionStore = new CuratorSchemaVersionStore(curator, rootPath);
+        int currentVersion = versionStore.fetch();
+        if (!SchemaVersionStore.isSupported(
+                currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
+            throw new IllegalStateException(String.format(
+                    "Storage schema version %d is not supported by this software", currentVersion));
+        }
+
         this.targetPath = rootPath + "/" + TARGET_PATH_NAME;
         this.configurationsPath = rootPath + "/" + CONFIGURATIONS_PATH_NAME;
     }

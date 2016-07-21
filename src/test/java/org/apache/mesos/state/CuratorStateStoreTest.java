@@ -32,7 +32,7 @@ public class CuratorStateStoreTest {
     public static final String SLASH_PROPERTY_KEY = "hey/hi";
 
     private TestingServer testZk;
-    private CuratorStateStore store;
+    private StateStore store;
 
     @Before
     public void beforeEach() throws Exception {

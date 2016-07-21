@@ -13,16 +13,18 @@ import java.util.UUID;
  * Tests to validate the operation of the CuratorConfigStore
  */
 public class CuratorConfigStoreTest {
+    private static final String ROOT_ZK_PATH = "/test-root-path";
+
     private TestingServer testZk;
-    private CuratorConfigStore<StringConfiguration> store;
-    private String testRootZkPath = "/test-root-path";
+    private ConfigStore<StringConfiguration> store;
     private StringConfiguration testConfig;
     private StringConfiguration.Factory configFactory;
 
     @Before
     public void beforeEach() throws Exception {
         testZk = new TestingServer();
-        store = getTestConfigStore();
+        store = new CuratorConfigStore<StringConfiguration>(
+                ROOT_ZK_PATH, testZk.getConnectString());
         testConfig = new StringConfiguration("test-config");
         configFactory = new StringConfiguration.Factory();
     }
@@ -90,10 +92,5 @@ public class CuratorConfigStoreTest {
     @Test(expected=ConfigStoreException.class)
     public void testGetEmptyTargetConfig() throws Exception {
         store.getTargetConfig();
-    }
-
-    public CuratorConfigStore<StringConfiguration> getTestConfigStore() {
-        return new CuratorConfigStore<StringConfiguration>(
-            testRootZkPath, testZk.getConnectString());
     }
 }
