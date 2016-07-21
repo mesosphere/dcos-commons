@@ -407,12 +407,7 @@ public class CuratorStateStoreTest {
     }
 
     @Test
-    public void testPropertiesListEmpty() {
-        assertTrue(store.fetchPropertyKeys().isEmpty());
-    }
-
-    @Test
-    public void testPropertiesStoreFetch() {
+    public void testPropertiesStoreFetchListClear() {
         store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
 
         final byte[] bytes = store.fetchProperty(GOOD_PROPERTY_KEY);
@@ -421,50 +416,55 @@ public class CuratorStateStoreTest {
         final Collection<String> keys = store.fetchPropertyKeys();
         assertEquals(1, keys.size());
         assertEquals(GOOD_PROPERTY_KEY, keys.iterator().next());
-    }
 
-    @Test(expected = StateStoreException.class)
-    public void testPropertiesWhitespaceStore() {
-        store.storeProperty(
-                WHITESPACE_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void testPropertiesWhitespaceFetch() {
-        store.fetchProperty(WHITESPACE_PROPERTY_KEY);
-    }
-
-    @Test
-    public void testClearPropertiesGood() {
-        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
-        assertEquals(1, store.fetchPropertyKeys().size());
         store.clearProperty(GOOD_PROPERTY_KEY);
         assertTrue(store.fetchPropertyKeys().isEmpty());
     }
 
     @Test
-    public void testClearPropertiesNonExistent() {
-        store.clearProperty(GOOD_PROPERTY_KEY + "a");
+    public void testPropertiesListEmpty() {
+        assertTrue(store.fetchPropertyKeys().isEmpty());
+    }
+
+    @Test
+    public void testPropertiesClearEmpty() {
+        store.clearProperty(GOOD_PROPERTY_KEY);
     }
 
     @Test(expected = StateStoreException.class)
-    public void testClearPropertiesEmpty() {
+    public void testPropertiesStoreWhitespace() {
+        store.storeProperty(
+                WHITESPACE_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testPropertiesFetchWhitespace() {
+        store.fetchProperty(WHITESPACE_PROPERTY_KEY);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testPropertiesClearWhitespace() {
         store.clearProperty(WHITESPACE_PROPERTY_KEY);
     }
 
     @Test(expected = StateStoreException.class)
-    public void testClearPropertiesSlash() {
-        store.clearProperty(SLASH_PROPERTY_KEY);
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void testPropertiesSlashStore() {
+    public void testPropertiesStoreSlash() {
         store.storeProperty(SLASH_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
     }
 
     @Test(expected = StateStoreException.class)
-    public void testPropertiesSlashFetch() {
+    public void testPropertiesFetchSlash() {
         store.fetchProperty(SLASH_PROPERTY_KEY);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testPropertiesClearSlash() {
+        store.clearProperty(SLASH_PROPERTY_KEY);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void testPropertiesStoreNullValue() {
+        store.storeProperty(GOOD_PROPERTY_KEY, null);
     }
 
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {

@@ -27,20 +27,21 @@ public class StateResource {
     private final PropertyDeserializer propertyDeserializer;
 
     /**
-     * Creates a new StateResource which cannot deserialize Properties.
+     * Creates a new StateResource which cannot deserialize Properties. Callers will receive a
+     * "204 NO_CONTENT" HTTP response when attempting to view the content of a property.
      *
-     * @param stateStore the source of data to be returned to users
+     * @param stateStore the source of data to be returned to callers
      */
     public StateResource(StateStore stateStore) {
-        this.stateStore = stateStore;
-        this.propertyDeserializer = null;
+        this(stateStore, null /*propertyDeserializer*/);
     }
 
     /**
-     * Creates a new StateResource which can deserialize Properties.
+     * Creates a new StateResource which can deserialize Properties. Callers will be able to view
+     * the content of individual Properties.
      *
-     * @param stateStore the source of data to be returned to users
-     * @param propertyDeserializer a deserializer which can turn any property in the provided
+     * @param stateStore the source of data to be returned to callers
+     * @param propertyDeserializer a deserializer which can turn any Property in the provided
      *                             {@code stateStore} to valid JSON
      */
     public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
@@ -144,7 +145,7 @@ public class StateResource {
             if (propertyDeserializer == null) {
                 logger.warn("Cannot deserialize requested Property '{}': " +
                         "No deserializer was provided to StateResource constructor", key);
-                return Response.noContent().build();
+                return Response.noContent().build(); // 204 NO_CONTENT
             } else {
                 logger.info("Attempting to fetch Property for key '{}'", key);
                 byte[] value = stateStore.fetchProperty(key);

@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class StateStoreUtils {
 
+    private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
+
     private StateStoreUtils() {
         // do not instantiate
     }
@@ -53,10 +55,13 @@ public class StateStoreUtils {
      * @see StateStore#storeProperty(String, byte[])
      */
     public static void validateValue(byte[] value) throws StateStoreException {
-        final int maxLength = 1024 * 1024;
-        if (value.length > maxLength) {
+        if (value == null) {
+            throw new StateStoreException("Property value must not be null.");
+        }
+        if (value.length > MAX_VALUE_LENGTH_BYTES) {
             throw new StateStoreException(String.format(
-                    "Value length %d exceeds limit of %d bytes.", value.length, maxLength));
+                    "Property value length %d exceeds limit of %d bytes.",
+                    value.length, MAX_VALUE_LENGTH_BYTES));
         }
     }
 }
