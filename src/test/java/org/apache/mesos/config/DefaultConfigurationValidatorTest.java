@@ -35,7 +35,7 @@ public class DefaultConfigurationValidatorTest {
         final TestConfig nConfig = (TestConfig) newConfig;
 
         if (oConfig.getA() != nConfig.getA()) {
-            return Arrays.asList(new ConfigurationValidationError("a", "not equal"));
+            return Arrays.asList(new ConfigurationValidationError("a", "" + nConfig.getA(), "not equal"));
         }
 
         return Collections.emptyList();

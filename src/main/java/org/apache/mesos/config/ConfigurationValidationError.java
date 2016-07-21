@@ -5,15 +5,21 @@ package org.apache.mesos.config;
  */
 public class ConfigurationValidationError {
     private final String configurationField;
+    private final String configurationValue;
     private final String message;
 
-    public ConfigurationValidationError(String configField, String message) {
+    public ConfigurationValidationError(String configField, String configValue, String message) {
         this.configurationField = configField;
+        this.configurationValue = configValue;
         this.message = message;
     }
 
     public String getConfigurationField() {
         return configurationField;
+    }
+
+    public String getConfigurationValue() {
+        return configurationValue;
     }
 
     public String getMessage() {
@@ -22,6 +28,7 @@ public class ConfigurationValidationError {
 
     @Override
     public String toString() {
-        return String.format("Validation error. Field: '%s'; Message: '%s'", configurationField, message);
+        return String.format("Validation error. Field: '%s'; Value: '%s'; Message: '%s'",
+                configurationField, configurationValue, message);
     }
 }
