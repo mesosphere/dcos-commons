@@ -46,7 +46,7 @@ public class DefaultConfigurationValidatorTest {
         final TestConfig oldConfig = new TestConfig(1);
         final TestConfig newConfig = new TestConfig(2);
 
-        final DefaultConfigurationValidator configurationValidator = new DefaultConfigurationValidator(Collections.emptyList());
+        final DefaultConfigurationValidator configurationValidator = new DefaultConfigurationValidator();
         final Collection<ConfigurationValidationError> validate = configurationValidator.validate(oldConfig, newConfig);
 
         Assert.assertNotNull(validate);

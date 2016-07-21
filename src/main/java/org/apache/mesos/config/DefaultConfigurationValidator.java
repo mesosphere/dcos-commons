@@ -1,6 +1,7 @@
 package org.apache.mesos.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -10,6 +11,10 @@ import java.util.List;
  */
 public class DefaultConfigurationValidator {
     private final Collection<ConfigurationValidation> validations = new ArrayList<>();
+
+    public DefaultConfigurationValidator(final ConfigurationValidation... validations) {
+        this(Arrays.asList(validations));
+    }
 
     public DefaultConfigurationValidator(final Collection<ConfigurationValidation> validations) {
         if (validations != null && !validations.isEmpty()) {

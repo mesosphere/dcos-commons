@@ -13,7 +13,7 @@ public interface ConfigurationValidation {
      *
      * @param oldConfig Currently persisted Configuration.
      * @param newConfig Proposed new Configuration
-     * @return List of errors
+     * @return List of errors, or an empty list if validation passed
      */
     List<ConfigurationValidationError> validate(Configuration oldConfig, Configuration newConfig);
 }
