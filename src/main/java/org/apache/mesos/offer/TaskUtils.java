@@ -59,15 +59,16 @@ public class TaskUtils {
     case TASK_FINISHED:
     case TASK_FAILED:
     case TASK_KILLED:
-    case TASK_LOST:
     case TASK_ERROR:
       return true;
+    case TASK_LOST:
     case TASK_KILLING:
     case TASK_RUNNING:
     case TASK_STAGING:
     case TASK_STARTING:
       break;
     }
+
     return false;
   }
 

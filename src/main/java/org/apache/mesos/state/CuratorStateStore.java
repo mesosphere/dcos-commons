@@ -1,6 +1,5 @@
 package org.apache.mesos.state;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
@@ -287,7 +286,8 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeProperty(final String key, final byte[] value) throws StateStoreException {
-        validateKey(key);
+        StateStoreUtils.validateKey(key);
+        StateStoreUtils.validateValue(value);
         try {
             final String path = this.propertiesPath + "/" + key;
             logger.debug("Storing property key: {} into path: {}", key, path);
@@ -299,7 +299,7 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public byte[] fetchProperty(final String key) throws StateStoreException {
-        validateKey(key);
+        StateStoreUtils.validateKey(key);
         try {
             final String path = this.propertiesPath + "/" + key;
             logger.debug("Fetching property key: {} from path: {}", key, path);
@@ -310,9 +310,13 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Collection<String> listPropertyKeys() throws StateStoreException {
+    public Collection<String> fetchPropertyKeys() throws StateStoreException {
         try {
             return curator.getChildren(this.propertiesPath);
+        } catch (KeeperException.NoNodeException e) {
+            // Root path doesn't exist yet. Treat as an empty list of properties. This scenario is
+            // expected to commonly occur when the Framework is being run for the first time.
+            return Collections.emptyList();
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
@@ -320,11 +324,15 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void clearProperty(final String key) throws StateStoreException {
-        validateKey(key);
+        StateStoreUtils.validateKey(key);
         try {
             final String path = this.propertiesPath + "/" + key;
             logger.debug("Removing property key: {} from path: {}", key, path);
             curator.clear(path);
+        } catch (KeeperException.NoNodeException e) {
+            // Clearing a non-existent Property should not result in an exception from us.
+            logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
+            return;
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
@@ -353,15 +361,6 @@ public class CuratorStateStore implements StateStore {
 
         private String getTasksRootPath() {
             return tasksRootPath;
-        }
-    }
-
-    private void validateKey(String key) {
-        if (StringUtils.isBlank(key)) {
-            throw new StateStoreException("Key cannot be blank or null");
-        }
-        if (key.contains("/")) {
-            throw new StateStoreException("Key cannot contain '/'");
         }
     }
 }

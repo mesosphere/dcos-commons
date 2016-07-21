@@ -13,8 +13,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -262,17 +260,5 @@ public class CustomExecutorTest {
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("ls"))
                 .build();
-    }
-
-    private List<TimedExecutorTask> getTestRegistrationTasks() {
-        return Arrays.asList(
-                new TestTimedExecutorTask(
-                        Duration.ofSeconds(10),
-                        Duration.ZERO,
-                        Protos.TaskStatus.newBuilder()
-                                .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
-                                .setState(Protos.TaskState.TASK_FINISHED)
-                                .build(),
-                        mockExecutorDriver));
     }
 }
