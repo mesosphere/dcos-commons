@@ -289,7 +289,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   @Override
   public Protos.Status launchTasks(Collection<Protos.OfferID> offerIds,
                                    Collection<Protos.TaskInfo> tasks) {
-    return launchTasks(offerIds, tasks, null);
+    return launchTasks(offerIds, tasks, Protos.Filters.getDefaultInstance());
   }
 
   @Override
@@ -302,7 +302,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   @Override
   public Protos.Status launchTasks(Protos.OfferID offerId,
                                    Collection<Protos.TaskInfo> tasks) {
-    return launchTasks(offerId, tasks, null);
+    return launchTasks(offerId, tasks, Protos.Filters.getDefaultInstance());
   }
 
   @Override
