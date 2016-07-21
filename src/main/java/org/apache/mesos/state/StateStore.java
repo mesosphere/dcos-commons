@@ -110,14 +110,13 @@ public interface StateStore {
      * {@link #fetchStatuses()}.
      *
      * @return All TaskInfos
-     * @throws StateStoreException if fetching
-     *                             the TaskInfo information otherwise fails
+     * @throws StateStoreException if fetching the TaskInfo information otherwise fails
      */
     Collection<Protos.TaskInfo> fetchTasks() throws StateStoreException;
 
 
     /**
-     * Fetches the TaskInfo for a particular Task, or an error if no matching task is found.
+     * Fetches the TaskInfo for a particular Task, or throws an error if no matching task is found.
      *
      * @param taskName The name of the Task
      * @return The corresponding TaskInfo object
@@ -139,44 +138,56 @@ public interface StateStore {
 
 
     /**
-     * Fetches the TaskStatus for a particular Task, or an error if no matching status is found.
-     * A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
+     * Fetches the TaskStatus for a particular Task, or throws an error if no matching status is
+     * found. A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
      *
      * @param taskName The name of the Task which should have its status retrieved
      * @return The TaskStatus associated with a particular Task
-     * @throws StateStoreException if no data was found for the requested Task, or if fetching the
+     * @throws StateStoreException if no data was found for the requested name, or if fetching the
      *                             TaskStatus information otherwise fails
      */
     Protos.TaskStatus fetchStatus(String taskName) throws StateStoreException;
 
 
-    // Property storage
+    // Read/Write Properties
+
 
     /**
      * Stores an arbitrary key/value pair.
      *
-     * @param key The key should be a String, and should not contain a forward slash ('/').
-     * @param value The value should be a byte array.
+     * @param key must be a non-blank String without any forward slashes ('/')
+     * @param value The value should be a byte array no larger than 1MB (1024 * 1024 bytes)
+     * @throw StateStoreException if the key or value fail validation, or if storing the data
+     *                            otherwise fails
+     * @see StateStoreUtils#validateKey(String)
+     * @see StateStoreUtils#validateValue(String)
      */
-    void storeProperty(String key, byte[] value);
+    void storeProperty(String key, byte[] value) throws StateStoreException;
 
     /**
-     * Fetches the value byte array, stored against the Property 'key'.
+     * Fetches the value byte array, stored against the Property {@code key}, or throws an error if
+     * no matching {@code key} is found.
      *
-     * @param key The key should be a String, and should not contain a forward slash ('/').
+     * @param key must be a non-blank String without any forward slashes ('/')
+     * @throw StateStoreException if no data was found for the requested key, or if fetching the
+     *                            data otherwise fails
+     * @see StateStoreUtils#validateKey(String)
      */
-    byte[] fetchProperty(String key);
+    byte[] fetchProperty(String key) throws StateStoreException;
 
     /**
-     * Fetches the list of Property keys.
-     */
-    Collection<String> listPropertyKeys();
-
-    /**
-     * Clears a given property from the StateStore.
+     * Fetches the list of Property keys, or an empty list if none are found.
      *
-     * @param key The key that needs to be removed.
-     * @throws StateStoreException
+     * @throws StateStoreException if fetching the list otherwise fails
+     */
+    Collection<String> fetchPropertyKeys() throws StateStoreException;
+
+    /**
+     * Clears a given property from the StateStore, or does nothing if no such property exists.
+     *
+     * @param key must be a non-blank String without any forward slashes ('/')
+     * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
+
 }
