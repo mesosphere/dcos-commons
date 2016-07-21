@@ -57,6 +57,11 @@ allprojects {
   // (jacoco itself depends on 'test')
   check.dependsOn jacocoTestReport
   jacocoTestReport {
+    afterEvaluate {
+      classDirectories = files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: 'org/apache/mesos/testing/**')
+      })
+    }
     reports {
       html.destination "${buildDir}/jacoco"
     }
