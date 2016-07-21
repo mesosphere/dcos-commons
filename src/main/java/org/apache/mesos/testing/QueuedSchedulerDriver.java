@@ -20,7 +20,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Test class for schedulers
+ * Test class for schedulers.
  */
 public class QueuedSchedulerDriver implements SchedulerDriver {
   private static final Logger LOGGER = LoggerFactory.getLogger(QueuedSchedulerDriver.class);
@@ -90,6 +90,9 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
     }
   }
 
+  /**
+   * Test offer operations.
+   */
   public static final class OfferOperations {
 
     private final Collection<Protos.OfferID> offers;
@@ -118,8 +121,13 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof OfferOperations)) return false;
+      if (this == o) {
+        return true;
+      }
+
+      if (!(o instanceof OfferOperations)) {
+        return false;
+      }
       OfferOperations that = (OfferOperations) o;
       return Objects.equals(getOffers(), that.getOffers()) &&
         Objects.equals(getOperations(), that.getOperations());
@@ -151,7 +159,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
     }
   }
 
-  public static long DEFAULT_TIMEOUT_MS = 60 * 1000;
+  public static final long DEFAULT_TIMEOUT_MS = 60 * 1000;
   private volatile SynchronizedStatus status = new SynchronizedStatus();
   private final BlockingQueue<OfferOperations> operations =
     new LinkedBlockingDeque<>();
@@ -281,7 +289,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   @Override
   public Protos.Status launchTasks(Collection<Protos.OfferID> offerIds,
                                    Collection<Protos.TaskInfo> tasks) {
-    return launchTasks(offerIds, tasks);
+    return launchTasks(offerIds, tasks, null);
   }
 
   @Override
@@ -294,7 +302,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   @Override
   public Protos.Status launchTasks(Protos.OfferID offerId,
                                    Collection<Protos.TaskInfo> tasks) {
-    return launchTasks(offerId, tasks);
+    return launchTasks(offerId, tasks, null);
   }
 
   @Override
@@ -353,11 +361,11 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   }
 
   public Optional<OfferOperations> getAccepted(long timeout) {
-    while(true) {
+    while (true) {
       try {
         return Optional.ofNullable(
           operations.poll(timeout, TimeUnit.MILLISECONDS));
-      } catch(InterruptedException ex){
+      } catch (InterruptedException ex){
 
       }
     }
