@@ -1,9 +1,15 @@
-package org.apache.mesos.config;
+package org.apache.mesos.curator;
 
+import static org.junit.Assert.*;
+
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.StringConfiguration;
+import org.apache.mesos.storage.CuratorPersister;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,14 +38,25 @@ public class CuratorConfigStoreTest {
     @Test
     public void testStoreConfig() throws Exception {
         UUID testId = store.store(testConfig);
-        Assert.assertTrue(testId != null);
+        assertTrue(testId != null);
+    }
+
+    @Test
+    public void testRootPathMapping() throws Exception {
+        UUID id = store.store(testConfig);
+        store.setTargetConfig(id);
+        CuratorPersister curator = new CuratorPersister(
+                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/ConfigTarget").length);
+        assertNotEquals(0, curator.fetch(
+                "/dcos-service-test-root-path/Configurations/" + id.toString()).length);
     }
 
     @Test
     public void testStoreFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
         StringConfiguration config = (StringConfiguration) store.fetch(testId, configFactory);
-        Assert.assertEquals(testConfig, config);
+        assertEquals(testConfig, config);
     }
 
     @Test
@@ -67,11 +84,11 @@ public class CuratorConfigStoreTest {
         ids.add(store.store(testConfig));
         ids.add(store.store(testConfig));
 
-        Assert.assertEquals(3, ids.size());
-        Assert.assertEquals(3, store.list().size());
+        assertEquals(3, ids.size());
+        assertEquals(3, store.list().size());
 
         for (UUID id : ids) {
-            Assert.assertTrue(store.list().contains(id));
+            assertTrue(store.list().contains(id));
         }
     }
 
@@ -79,7 +96,7 @@ public class CuratorConfigStoreTest {
     public void testStoreSetTargetConfigGetTargetConfig() throws Exception {
         UUID testId = store.store(testConfig);
         store.setTargetConfig(testId);
-        Assert.assertEquals(testId, store.getTargetConfig());
+        assertEquals(testId, store.getTargetConfig());
     }
 
     @Test

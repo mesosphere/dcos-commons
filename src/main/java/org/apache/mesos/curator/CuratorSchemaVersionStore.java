@@ -1,8 +1,7 @@
-package org.apache.mesos.state;
+package org.apache.mesos.curator;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-
+import org.apache.mesos.state.SchemaVersionStore;
+import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 public class CuratorSchemaVersionStore implements SchemaVersionStore {
 
     private static final Logger logger = LoggerFactory.getLogger(CuratorSchemaVersionStore.class);
-    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
      * Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that
@@ -43,7 +41,8 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
 
     public CuratorSchemaVersionStore(CuratorPersister curator, String rootPath) {
         this.curator = curator;
-        this.schemaVersionPath = rootPath + '/' + SCHEMA_VERSION_NAME;
+        this.schemaVersionPath = CuratorUtils.join(
+                CuratorUtils.toServiceRootPath(rootPath), SCHEMA_VERSION_NAME);
     }
 
     public int fetch() throws StateStoreException {
@@ -54,7 +53,7 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
                 throw new StateStoreException(String.format(
                         "Invalid data when fetching schema version in '%s'", schemaVersionPath));
             }
-            String rawString = new String(bytes, CHARSET);
+            String rawString = CuratorUtils.deserialize(bytes);
             logger.debug("Schema version retrieved from '{}': {}", schemaVersionPath, rawString);
             try {
                 return Integer.parseInt(rawString);
@@ -80,7 +79,7 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
             String versionStr = String.valueOf(version);
             logger.debug("Storing schema version: '{}' into path: {}",
                     versionStr, schemaVersionPath);
-            curator.store(schemaVersionPath, versionStr.getBytes(CHARSET));
+            curator.store(schemaVersionPath, CuratorUtils.serialize(versionStr));
         } catch (Exception e) {
             throw new StateStoreException(String.format(
                     "Storage error when storing schema version %d", version), e);

@@ -1,4 +1,4 @@
-package org.apache.mesos.state;
+package org.apache.mesos.curator;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
+import org.apache.mesos.state.SchemaVersionStore;
+import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -18,8 +20,9 @@ import org.mockito.MockitoAnnotations;
 public class CuratorSchemaVersionStoreTest {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final String ROOT_ZK_PATH = "/test-root-path";
+    private static final String PREFIXED_ROOT_ZK_PATH = "/dcos-service-test-root-path";
     // This value must never change. If you're changing it, you're wrong:
-    private static final String NODE_PATH = ROOT_ZK_PATH + "/SchemaVersion";
+    private static final String NODE_PATH = PREFIXED_ROOT_ZK_PATH + "/SchemaVersion";
 
     private TestingServer testZk;
     private CuratorPersister curator;
@@ -37,6 +40,14 @@ public class CuratorSchemaVersionStoreTest {
         store = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
         store2 = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
         storeWithMock = new CuratorSchemaVersionStore(mockCurator, ROOT_ZK_PATH);
+    }
+
+    @Test
+    public void testRootPathMapping() throws Exception {
+        store.fetch();
+        CuratorPersister curator = new CuratorPersister(
+                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
     }
 
     @Test
