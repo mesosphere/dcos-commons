@@ -17,10 +17,8 @@ import static junit.framework.TestCase.assertTrue;
 public class PlanTest {
 
     private void launchPlanAndWait(Plan plan, long ms) {
-        ExecutorService service = Executors.newCachedThreadPool();
         PlanTracker tracker = new PlanTracker.Builder()
                 .setPlan(plan)
-                .setService(service)
                 .setDriverFactory(new MockOperationDriverFactory())
                 .setRegistry(null)
                 .setListeners(Collections.EMPTY_LIST)

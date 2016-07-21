@@ -86,7 +86,8 @@ public class ResourceCleaner {
             }
         }
 
-        logger.info("{} offers with {} resources => {} destroy and {} unreserve operations",
+
+        logger.debug("{} offers with {} resources => {} destroy and {} unreserve operations",
                 offers.size(), offerResourceCount,
                 destroyRecommendationCount,
                 recommendations.size() - destroyRecommendationCount);

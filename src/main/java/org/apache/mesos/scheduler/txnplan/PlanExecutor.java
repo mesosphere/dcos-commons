@@ -3,8 +3,6 @@ package org.apache.mesos.scheduler.txnplan;
 import org.apache.mesos.scheduler.registry.TaskRegistry;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -22,7 +20,6 @@ public class PlanExecutor {
     private Map<UUID, PlanTracker> planIndex;
     private Set<UUID> runningPlans;
 
-    private ExecutorService executorService;
     private TaskRegistry registry;
     private OperationDriverFactory driverFactory;
     private PlanListener internalListener;
@@ -35,7 +32,6 @@ public class PlanExecutor {
         this.planQueue = new HashMap<>();
         this.planIndex = new HashMap<>();
         this.runningPlans = new HashSet<>();
-        this.executorService = Executors.newCachedThreadPool();
         this.driverFactory = driverFactory;
         // the argument is named differently so that the PlanListener belowe uses the member variable
         this.storageDriver = storageDriverArg;
@@ -104,7 +100,6 @@ public class PlanExecutor {
             UUID id = plan.getUuid();
             PlanTracker.Builder builder = new PlanTracker.Builder();
             builder.setPlan(plan)
-                    .setService(executorService)
                     .setDriverFactory(driverFactory)
                     .setRegistry(registry)
                     .setPlanExecutor(this)
@@ -150,7 +145,6 @@ public class PlanExecutor {
             allListeners.add(internalListener);
             PlanTracker tracker = new PlanTracker.Builder()
                     .setPlan(plan)
-                    .setService(executorService)
                     .setDriverFactory(driverFactory)
                     .setRegistry(registry)
                     .setListeners(allListeners)

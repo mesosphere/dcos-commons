@@ -210,7 +210,7 @@ public class TaskRegistry {
         Task task = Task.createTask(name, requirement);
         tasks.put(name, task);
         storageDriver.storeTask(task);
-        return task.getRealizedTaskInfo().getTaskId();
+        return task.getTaskID();
     }
 
     /**
@@ -245,13 +245,15 @@ public class TaskRegistry {
         if (!tasks.containsKey(name)) {
             throw new RuntimeException("Cannot replace task; doesn't exist: " + name);
         }
-        if (!TaskUtil.isTerminalState(tasks.get(name).getLatestTaskStatus().getState())) {
+        Task oldTask = tasks.get(name);
+        if (!oldTask.hasStatus() || !TaskUtil.isTerminalState(oldTask.getLatestTaskStatus().getState())) {
             logger.warn("replacing non-terminal task!");
         }
         Task task = Task.createTask(name, requirement);
         tasks.put(name, task);
         storageDriver.storeTask(task);
-        return task.getRealizedTaskInfo().getTaskId();
+        logger.info("Doing task replacement, new ID is " + task.getTaskID());
+        return task.getTaskID();
     }
 
     public synchronized Task getTask(String name) {
@@ -343,7 +345,9 @@ public class TaskRegistry {
                 .stream()
                 .filter(t -> !t.hasStatus())
                 .collect(Collectors.toList());
-        logger.info("Attempting to launch " + pendingTasks.size() + " new tasks");
+        if (!pendingTasks.isEmpty()) {
+            logger.info("Attempting to launch " + pendingTasks.size() + " new tasks");
+        }
         //TODO all code under this line could run on another thread
         OfferEvaluator evaluator = new OfferEvaluator();
         List<OfferRecommendation> recommendations = new ArrayList<>();
@@ -383,13 +387,15 @@ public class TaskRegistry {
         for (Protos.Offer offer : uneededOffers) {
             List<OfferRecommendation> cleanerRecs = cleaner.evaluate(Collections.singletonList(offer));
             totalRecs += cleanerRecs.size();
-            accepter.accept(driver, cleanerRecs);
+            if (!cleanerRecs.isEmpty()) {
+                accepter.accept(driver, cleanerRecs);
+            }
         }
-        logger.info("Cleaner made " + totalRecs + " recommendations");
+        logger.debug("Cleaner made " + totalRecs + " recommendations");
         for (Protos.Offer o : uneededOffers) {
             driver.declineOffer(o.getId());
         }
-        logger.info("accepted any offer recs; end of handleOffers");
+        logger.debug("accepted any offer recs; end of handleOffers");
     }
 
     public synchronized void handleStatusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {

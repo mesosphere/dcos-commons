@@ -22,7 +22,8 @@ import java.util.function.Predicate;
  */
 public class Task {
     private static final Logger logger = LoggerFactory.getLogger(Task.class);
-    private volatile Protos.TaskInfo realizedTaskInfo;
+    private Protos.TaskInfo realizedTaskInfo;
+    private Protos.TaskID taskID;
     //all accesses to taskStatuses should be synchronized on it
     private List<Protos.TaskStatus> taskStatuses;
     private OfferRequirement requirement;
@@ -45,6 +46,7 @@ public class Task {
         this.name = name;
         this.requirement = requirement;
         this.realizedTaskInfo = null;
+        this.taskID = requirement.getTaskRequirements().iterator().next().getTaskInfo().getTaskId();
         this.taskStatuses = new ArrayList<>();
     }
 
@@ -138,5 +140,9 @@ public class Task {
         result = 31 * result + requirement.hashCode();
         result = 31 * result + name.hashCode();
         return result;
+    }
+
+    public Protos.TaskID getTaskID() {
+        return taskID;
     }
 }

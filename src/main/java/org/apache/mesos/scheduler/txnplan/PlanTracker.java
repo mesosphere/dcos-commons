@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -34,8 +35,8 @@ public class PlanTracker {
 
     private PlanExecutor planExecutor = null;
 
-    private PlanTracker(Plan plan, PlanStatus status, ExecutorService service, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners, PlanExecutor planExecutor) {
-        this.service = service;
+    private PlanTracker(Plan plan, PlanStatus status, OperationDriverFactory driverFactory, TaskRegistry registry, Collection<PlanListener> listeners, PlanExecutor planExecutor) {
+        this.service = Executors.newCachedThreadPool();
         this.driverFactory = driverFactory;
         this.registry = registry;
         this.plan = plan;
@@ -237,11 +238,6 @@ public class PlanTracker {
             return this;
         }
 
-        public Builder setService(ExecutorService service) {
-            this.service = service;
-            return this;
-        }
-
         public Builder setDriverFactory(OperationDriverFactory driverFactory) {
             this.driverFactory = driverFactory;
             return this;
@@ -271,7 +267,7 @@ public class PlanTracker {
             if (status == null) {
                 status = new PlanStatus(plan);
             }
-            return new PlanTracker(plan, status, service, driverFactory, registry, listeners, planExecutor);
+            return new PlanTracker(plan, status, driverFactory, registry, listeners, planExecutor);
         }
     }
 }
