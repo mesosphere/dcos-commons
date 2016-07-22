@@ -1,12 +1,16 @@
-package org.apache.mesos.config;
+package org.apache.mesos.curator;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.Configuration;
+import org.apache.mesos.config.ConfigurationFactory;
+import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 
@@ -28,10 +32,14 @@ import org.slf4j.LoggerFactory;
  *            implementation of this interface
  */
 public class CuratorConfigStore<T extends Configuration> implements ConfigStore<T> {
+
     private static final Logger logger = LoggerFactory.getLogger(CuratorConfigStore.class);
 
-    private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
-    private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+    /**
+     * @see CuratorSchemaVersionStore#CURRENT_SCHEMA_VERSION
+     */
+    private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
+    private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
 
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
@@ -41,30 +49,51 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     private final String targetPath;
 
     /**
+     * Creates a new {@link ConfigStore} which uses Curator with a default {@link RetryPolicy} and
+     * connection string.
+     *
+     * @param frameworkName The name of the framework
+     */
+    public CuratorConfigStore(String frameworkName) {
+        this(frameworkName, CuratorUtils.DEFAULT_CONNECTION_STRING);
+    }
+
+    /**
      * Creates a new {@link ConfigStore} which uses Curator with a default {@link RetryPolicy}.
      *
-     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param frameworkName The name of the framework
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
-    public CuratorConfigStore(String rootPath, String connectionString) {
-        this(rootPath, connectionString, new ExponentialBackoffRetry(
-                DEFAULT_CURATOR_POLL_DELAY_MS, DEFAULT_CURATOR_MAX_RETRIES));
+    public CuratorConfigStore(String frameworkName, String connectionString) {
+        this(frameworkName, connectionString, new ExponentialBackoffRetry(
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
+                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
     }
 
     /**
      * Creates a new {@link ConfigStore} which uses Curator with a custom {@link RetryPolicy}.
      *
-     * @param rootPath The path to store data in, eg "/FrameworkName"
+     * @param frameworkName The name of the framework
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      * @param retryPolicy The custom {@link RetryPolicy}
      */
-    public CuratorConfigStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
-        if (!rootPath.startsWith("/")) {
-            throw new IllegalArgumentException("rootPath must start with '/': " + rootPath);
-        }
+    public CuratorConfigStore(
+            String frameworkName, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
-        this.targetPath = rootPath + "/" + TARGET_PATH_NAME;
-        this.configurationsPath = rootPath + "/" + CONFIGURATIONS_PATH_NAME;
+        String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
+
+        // Check version up-front:
+        int currentVersion = new CuratorSchemaVersionStore(curator, rootPath).fetch();
+        if (!SchemaVersionStore.isSupported(
+                currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
+            throw new IllegalStateException(String.format(
+                    "Storage schema version %d is not supported by this software " +
+                            "(support: min=%d, max=%d)",
+                    currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
+        }
+
+        this.targetPath = CuratorUtils.join(rootPath, TARGET_PATH_NAME);
+        this.configurationsPath = CuratorUtils.join(rootPath, CONFIGURATIONS_PATH_NAME);
     }
 
     @Override
@@ -134,7 +163,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     @Override
     public void setTargetConfig(UUID id) throws ConfigStoreException {
         try {
-            curator.store(targetPath, id.toString().getBytes(StandardCharsets.UTF_8));
+            curator.store(targetPath, CuratorUtils.serialize(id));
         } catch (Exception e) {
             throw new ConfigStoreException(String.format(
                     "Failed to assign current target configuration to '%s' at path '%s'",
@@ -145,7 +174,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     @Override
     public UUID getTargetConfig() throws ConfigStoreException {
         try {
-            return UUID.fromString(new String(curator.fetch(targetPath), StandardCharsets.UTF_8));
+            return UUID.fromString(CuratorUtils.deserialize(curator.fetch(targetPath)));
         } catch (Exception e) {
             throw new ConfigStoreException(String.format(
                     "Failed to retrieve current target configuration from path '%s'",
@@ -154,6 +183,6 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     }
 
     private String getConfigPath(UUID id) {
-        return configurationsPath + "/" + id.toString();
+        return CuratorUtils.join(configurationsPath, id.toString());
     }
 }

@@ -1,17 +1,20 @@
-package org.apache.mesos.state;
+package org.apache.mesos.curator;
 
+import static org.junit.Assert.*;
+
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreException;
+import org.apache.mesos.storage.CuratorPersister;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to validate the operation of the {@link CuratorStateStore}.
@@ -32,7 +35,7 @@ public class CuratorStateStoreTest {
     public static final String SLASH_PROPERTY_KEY = "hey/hi";
 
     private TestingServer testZk;
-    private CuratorStateStore store;
+    private StateStore store;
 
     @Before
     public void beforeEach() throws Exception {
@@ -42,9 +45,16 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testStoreFetchFrameworkId() throws Exception {
-        Protos.FrameworkID fwkId = FRAMEWORK_ID;
-        store.storeFrameworkId(fwkId);
-        assertEquals(fwkId, store.fetchFrameworkId());
+        store.storeFrameworkId(FRAMEWORK_ID);
+        assertEquals(FRAMEWORK_ID, store.fetchFrameworkId());
+    }
+
+    @Test
+    public void testRootPathMapping() throws Exception {
+        store.storeFrameworkId(FRAMEWORK_ID);
+        CuratorPersister curator = new CuratorPersister(
+                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/FrameworkID").length);
     }
 
     @Test(expected=StateStoreException.class)
@@ -54,8 +64,7 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testStoreClearFrameworkId() throws Exception {
-        Protos.FrameworkID fwkId = FRAMEWORK_ID;
-        store.storeFrameworkId(fwkId);
+        store.storeFrameworkId(FRAMEWORK_ID);
         store.clearFrameworkId();
     }
 

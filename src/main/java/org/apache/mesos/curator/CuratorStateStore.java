@@ -1,10 +1,14 @@
-package org.apache.mesos.state;
+package org.apache.mesos.curator;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.state.SchemaVersionStore;
+import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreException;
+import org.apache.mesos.state.StateStoreUtils;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -40,8 +44,11 @@ public class CuratorStateStore implements StateStore {
 
     private static final Logger logger = LoggerFactory.getLogger(CuratorStateStore.class);
 
-    private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
-    private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+    /**
+     * @see CuratorSchemaVersionStore#CURRENT_SCHEMA_VERSION
+     */
+    private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
+    private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
 
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
@@ -55,28 +62,52 @@ public class CuratorStateStore implements StateStore {
     private final String propertiesPath;
 
     /**
+     * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy} and
+     * connection string.
+     *
+     * @param frameworkName    The name of the framework
+     */
+    public CuratorStateStore(String frameworkName) {
+        this(frameworkName, CuratorUtils.DEFAULT_CONNECTION_STRING);
+    }
+
+    /**
      * Creates a new {@link StateStore} which uses Curator with a default {@link RetryPolicy}.
      *
-     * @param rootPath         The path to store data in, eg "/FrameworkName"
+     * @param frameworkName    The name of the framework
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
-    public CuratorStateStore(String rootPath, String connectionString) {
-        this(rootPath, connectionString, new ExponentialBackoffRetry(
-                DEFAULT_CURATOR_POLL_DELAY_MS, DEFAULT_CURATOR_MAX_RETRIES));
+    public CuratorStateStore(String frameworkName, String connectionString) {
+        this(frameworkName, connectionString, new ExponentialBackoffRetry(
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
+                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
     }
 
     /**
      * Creates a new {@link StateStore} which uses Curator with a custom {@link RetryPolicy}.
      *
-     * @param rootPath         The path to store data in, eg "/FrameworkName"
+     * @param frameworkName    The name of the framework
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      * @param retryPolicy      The custom {@link RetryPolicy}
      */
-    public CuratorStateStore(String rootPath, String connectionString, RetryPolicy retryPolicy) {
+    public CuratorStateStore(
+            String frameworkName, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
+        final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
+
+        // Check version up-front:
+        int currentVersion = new CuratorSchemaVersionStore(curator, rootPath).fetch();
+        if (!SchemaVersionStore.isSupported(
+                currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
+            throw new IllegalStateException(String.format(
+                    "Storage schema version %d is not supported by this software " +
+                            "(support: min=%d, max=%d)",
+                    currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
+        }
+
         this.taskPathMapper = new TaskPathMapper(rootPath);
-        this.fwkIdPath = rootPath + "/" + FWK_ID_PATH_NAME;
-        this.propertiesPath = rootPath + "/" + PROPERTIES_PATH_NAME;
+        this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
+        this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
     }
 
     // Framework ID
@@ -289,7 +320,7 @@ public class CuratorStateStore implements StateStore {
         StateStoreUtils.validateKey(key);
         StateStoreUtils.validateValue(value);
         try {
-            final String path = this.propertiesPath + "/" + key;
+            final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Storing property key: {} into path: {}", key, path);
             curator.store(path, value);
         } catch (Exception e) {
@@ -301,7 +332,7 @@ public class CuratorStateStore implements StateStore {
     public byte[] fetchProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = this.propertiesPath + "/" + key;
+            final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
             return curator.fetch(path);
         } catch (Exception e) {
@@ -326,7 +357,7 @@ public class CuratorStateStore implements StateStore {
     public void clearProperty(final String key) throws StateStoreException {
         StateStoreUtils.validateKey(key);
         try {
-            final String path = this.propertiesPath + "/" + key;
+            final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
             curator.clear(path);
         } catch (KeeperException.NoNodeException e) {
@@ -344,19 +375,19 @@ public class CuratorStateStore implements StateStore {
         private final String tasksRootPath;
 
         private TaskPathMapper(String rootPath) {
-            this.tasksRootPath = rootPath + "/" + TASKS_ROOT_NAME;
+            this.tasksRootPath = CuratorUtils.join(rootPath, TASKS_ROOT_NAME);
         }
 
         private String getTaskInfoPath(String taskName) {
-            return getTaskPath(taskName) + "/" + TASK_INFO_PATH_NAME;
+            return CuratorUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
         }
 
         private String getTaskStatusPath(String taskName) {
-            return getTaskPath(taskName) + "/" + TASK_STATUS_PATH_NAME;
+            return CuratorUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
         }
 
         private String getTaskPath(String taskName) {
-            return getTasksRootPath() + "/" + taskName;
+            return CuratorUtils.join(getTasksRootPath(), taskName);
         }
 
         private String getTasksRootPath() {
