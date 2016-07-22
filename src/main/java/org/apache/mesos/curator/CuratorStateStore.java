@@ -96,12 +96,13 @@ public class CuratorStateStore implements StateStore {
         final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
 
         // Check version up-front:
-        SchemaVersionStore versionStore = new CuratorSchemaVersionStore(curator, rootPath);
-        int currentVersion = versionStore.fetch();
+        int currentVersion = new CuratorSchemaVersionStore(curator, rootPath).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
-                    "Storage schema version %d is not supported by this software", currentVersion));
+                    "Storage schema version %d is not supported by this software " +
+                            "(support: min=%d, max=%d)",
+                    currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
         this.taskPathMapper = new TaskPathMapper(rootPath);
