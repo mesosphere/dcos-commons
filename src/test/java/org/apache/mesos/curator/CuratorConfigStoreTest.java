@@ -31,6 +31,12 @@ public class CuratorConfigStoreTest {
         testZk = new TestingServer();
         store = new CuratorConfigStore<StringConfiguration>(
                 ROOT_ZK_PATH, testZk.getConnectString());
+
+        // Check that schema version was created in the correct location:
+        CuratorPersister curator = new CuratorPersister(
+                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
+
         testConfig = new StringConfiguration("test-config");
         configFactory = new StringConfiguration.Factory();
     }

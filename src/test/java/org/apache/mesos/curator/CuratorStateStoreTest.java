@@ -41,6 +41,10 @@ public class CuratorStateStoreTest {
     public void beforeEach() throws Exception {
         testZk = new TestingServer();
         store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        // Check that schema version was created in the correct location:
+        CuratorPersister curator = new CuratorPersister(
+                testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
     }
 
     @Test
