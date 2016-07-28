@@ -39,10 +39,14 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
     private final CuratorPersister curator;
     private final String schemaVersionPath;
 
-    public CuratorSchemaVersionStore(CuratorPersister curator, String rootPath) {
+    /**
+     * Creates a new version store against the provided Framework Name, as would be provided to
+     * {@link CuratorConfigStore} or {@link CuratorStateStore}.
+     */
+    CuratorSchemaVersionStore(CuratorPersister curator, String frameworkName) {
         this.curator = curator;
         this.schemaVersionPath = CuratorUtils.join(
-                CuratorUtils.toServiceRootPath(rootPath), SCHEMA_VERSION_NAME);
+                CuratorUtils.toServiceRootPath(frameworkName), SCHEMA_VERSION_NAME);
     }
 
     public int fetch() throws StateStoreException {

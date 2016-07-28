@@ -80,10 +80,9 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     public CuratorConfigStore(
             String frameworkName, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
-        String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
 
         // Check version up-front:
-        int currentVersion = new CuratorSchemaVersionStore(curator, rootPath).fetch();
+        int currentVersion = new CuratorSchemaVersionStore(curator, frameworkName).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
@@ -92,6 +91,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
+        final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
         this.targetPath = CuratorUtils.join(rootPath, TARGET_PATH_NAME);
         this.configurationsPath = CuratorUtils.join(rootPath, CONFIGURATIONS_PATH_NAME);
     }

@@ -93,10 +93,9 @@ public class CuratorStateStore implements StateStore {
     public CuratorStateStore(
             String frameworkName, String connectionString, RetryPolicy retryPolicy) {
         this.curator = new CuratorPersister(connectionString, retryPolicy);
-        final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
 
         // Check version up-front:
-        int currentVersion = new CuratorSchemaVersionStore(curator, rootPath).fetch();
+        int currentVersion = new CuratorSchemaVersionStore(curator, frameworkName).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
@@ -105,6 +104,7 @@ public class CuratorStateStore implements StateStore {
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
+        final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
