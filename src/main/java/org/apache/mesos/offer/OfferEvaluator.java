@@ -70,10 +70,10 @@ public class OfferEvaluator {
 
     MesosResourcePool pool = new MesosResourcePool(offer);
 
-    List<OfferRecommendation> unreserves = new ArrayList<OfferRecommendation>();
-    List<OfferRecommendation> reserves = new ArrayList<OfferRecommendation>();
-    List<OfferRecommendation> creates = new ArrayList<OfferRecommendation>();
-    List<OfferRecommendation> launches = new ArrayList<OfferRecommendation>();
+    List<OfferRecommendation> unreserves = new ArrayList<>();
+    List<OfferRecommendation> reserves = new ArrayList<>();
+    List<OfferRecommendation> creates = new ArrayList<>();
+    List<OfferRecommendation> launches = new ArrayList<>();
 
     ExecutorRequirement execReq = offerRequirement.getExecutorRequirement();
     FulfilledRequirement fulfilledExecutorRequirement = null;
