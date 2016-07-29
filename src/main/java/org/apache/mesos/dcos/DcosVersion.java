@@ -22,13 +22,13 @@ import org.json.JSONObject;
  *     }
  */
 public class DcosVersion {
-    public static final String BOOTSTRAP_ID_KEY = "bootstrap-id";
-    public static final String DCOS_IMAGE_COMMIT = "dcos-image-commit";
-    public static final String VERSION_KEY = "version";
+    private static final String BOOTSTRAP_ID_KEY = "bootstrap-id";
+    private static final String DCOS_IMAGE_COMMIT = "dcos-image-commit";
+    private static final String VERSION_KEY = "version";
 
-    private String bootstrapId;
-    private String dcosImageCommit;
-    private String version;
+    private final String bootstrapId;
+    private final String dcosImageCommit;
+    private final String version;
 
     DcosVersion(String bootstrapId, String dcosImageCommit, String version) {
         this.bootstrapId = bootstrapId;
