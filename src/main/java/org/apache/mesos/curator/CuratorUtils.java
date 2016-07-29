@@ -1,5 +1,7 @@
 package org.apache.mesos.curator;
 
+import org.apache.mesos.dcos.DcosConstants;
+
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -7,15 +9,6 @@ import java.nio.charset.StandardCharsets;
  * A set of common utilites for managing Curator/Zookeeper paths and data.
  */
 class CuratorUtils {
-
-    /**
-     * This must never change, as it affects the path to the SchemaVersion object for a given
-     * framework name.
-     *
-     * @see CuratorSchemaVersionStore
-     */
-    private static final String ROOT_PATH_PREFIX = "/dcos-service-";
-
     /**
      * This must never change, as it affects the serialization of the SchemaVersion node.
      *
@@ -25,7 +18,6 @@ class CuratorUtils {
 
     private static final String PATH_DELIM = "/";
 
-    static final String DEFAULT_CONNECTION_STRING = "master.mesos:2181";
     static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
 
@@ -36,10 +28,10 @@ class CuratorUtils {
     static String toServiceRootPath(String frameworkName) {
         if (frameworkName.startsWith("/")) {
             // "/dcos-service-" + "/foo"
-            return ROOT_PATH_PREFIX + frameworkName.substring(1);
+            return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName.substring(1);
         } else {
             // "/dcos-service-" + "foo"
-            return ROOT_PATH_PREFIX + frameworkName;
+            return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName;
         }
     }
 

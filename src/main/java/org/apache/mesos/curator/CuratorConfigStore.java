@@ -10,6 +10,7 @@ import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.Configuration;
 import org.apache.mesos.config.ConfigurationFactory;
+import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
@@ -55,7 +56,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      * @param frameworkName The name of the framework
      */
     public CuratorConfigStore(String frameworkName) {
-        this(frameworkName, CuratorUtils.DEFAULT_CONNECTION_STRING);
+        this(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**

@@ -3,6 +3,7 @@ package org.apache.mesos.curator;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
+import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.SchemaVersionStore;
@@ -68,7 +69,7 @@ public class CuratorStateStore implements StateStore {
      * @param frameworkName    The name of the framework
      */
     public CuratorStateStore(String frameworkName) {
-        this(frameworkName, CuratorUtils.DEFAULT_CONNECTION_STRING);
+        this(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**
