@@ -13,10 +13,10 @@ import java.util.Optional;
  * Instances of this class represent DC/OS clusters.
  */
 public class DcosCluster {
-    public static final String INTERNAL_DCOS_URL = "http://master.mesos";
+    private static final String INTERNAL_DCOS_URL = "http://master.mesos";
     private static final String DCOS_VERSION_PATH = "/dcos-metadata/dcos-version.json";
 
-    private URI dcosUri;
+    private final URI dcosUri;
     private Optional<DcosVersion> dcosVersion = Optional.empty();
 
     DcosCluster(URI dcosUri) {
