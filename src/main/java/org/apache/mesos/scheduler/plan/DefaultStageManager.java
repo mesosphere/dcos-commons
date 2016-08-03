@@ -38,6 +38,11 @@ public class DefaultStageManager implements StageManager {
   }
 
   @Override
+  public List<? extends Phase> getPhases() {
+    return stage.getPhases();
+  }
+
+  @Override
   public Stage getStage() {
     return stage;
   }

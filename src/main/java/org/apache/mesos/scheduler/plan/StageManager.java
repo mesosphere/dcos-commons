@@ -15,6 +15,8 @@ public interface StageManager extends Observer {
 
     void setStage(Stage stage);
 
+    List<? extends Phase> getPhases();
+
     Phase getCurrentPhase();
 
     Block getCurrentBlock();
