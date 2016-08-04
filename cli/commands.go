@@ -65,11 +65,11 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 	// Overrides of data that we fetch from DC/OS CLI:
 
 	// Support using "DCOS_AUTH_TOKEN" or "AUTH_TOKEN" when available
-	app.Flag("custom-auth-token", "Custom auth token to use when querying service (env: DCOS_AUTH_TOKEN)").OverrideDefaultFromEnvar("DCOS_AUTH_TOKEN").StringVar(&dcosAuthToken)
+	app.Flag("custom-auth-token", "Custom auth token to use when querying service").OverrideDefaultFromEnvar("DCOS_AUTH_TOKEN").PlaceHolder("DCOS_AUTH_TOKEN").StringVar(&dcosAuthToken)
 	// Support using "DCOS_URI" or "DCOS_URL" when available
-	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service (env: DCOS_URI, DCOS_URL)").OverrideDefaultFromEnvar("DCOS_URI").OverrideDefaultFromEnvar("DCOS_URL").StringVar(&dcosUrl)
+	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service").OverrideDefaultFromEnvar("DCOS_URI").OverrideDefaultFromEnvar("DCOS_URL").PlaceHolder("DCOS_URI/DCOS_URL").StringVar(&dcosUrl)
 	// Support using "DCOS_CA_PATH" or "DCOS_CERT_PATH" when available
-	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service (env: DCOS_CA_PATH, DCOS_CERT_PATH)").OverrideDefaultFromEnvar("DCOS_CA_PATH").OverrideDefaultFromEnvar("DCOS_CERT_PATH").StringVar(&tlsCACertPath)
+	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").OverrideDefaultFromEnvar("DCOS_CA_PATH").OverrideDefaultFromEnvar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&tlsCACertPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
 	overrideServiceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))

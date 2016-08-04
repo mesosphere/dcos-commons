@@ -14,8 +14,8 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	handleExampleSection(app)
 	cli.HandleCommonArgs(app, "example", "Example DC/OS CLI Module")
+	handleExampleSection(app)
 
 	// Omit modname:
 	kingpin.MustParse(app.Parse(cli.GetArguments()))
