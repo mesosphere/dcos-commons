@@ -49,27 +49,31 @@ func HandleCommonArgs(app *kingpin.Application, defaultServiceName string, short
 // Standard Arguments
 
 func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
-	// -h (in addition to --help): standard help
-	app.HelpFlag.Short('h')
-	// -v/--verbose: show extra info about requests being made
+	app.HelpFlag.Short('h') // in addition to default '--help'
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&Verbose)
 
-	// --custom_auth_token <token> : use provided auth token instead of dcos CLI token
-	app.Flag("custom-auth-token", "Custom auth token to use when querying service").OverrideDefaultFromEnvar("DCOS_AUTH_TOKEN").OverrideDefaultFromEnvar("AUTH_TOKEN").StringVar(&dcosAuthToken)
-	// --custom-dcos-url <url> : use provided cluster url instead of dcos CLI url
-	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service").OverrideDefaultFromEnvar("DCOS_URI").OverrideDefaultFromEnvar("DCOS_URL").StringVar(&dcosUrl)
-
-	// --info : command to print description (fulfills interface that's expected by DC/OS CLI)
+	// This fulfills an interface that's expected by the main DC/OS CLI:
+	// Prints a description of the module.
 	app.Flag("info", "Show short description.").PreAction(func(*kingpin.ParseContext) error {
 		fmt.Fprintf(os.Stdout, "%s\n", shortDescription)
 		os.Exit(0)
 		return nil
 	}).Bool()
 
-	// --name <name> : use provided framework name (default to <modulename>.service_name, if available)
-	overrideServiceName, err := RunDCOSCLICommand(
-		"config", "show", fmt.Sprintf("%s.service_name", os.Args[1]))
-	if err == nil {
+	app.Flag("force-insecure", "Allow unverified TLS certificates when querying service").BoolVar(&tlsAllowUnverified)
+
+	// Overrides of data that we fetch from DC/OS CLI:
+
+	// Support using "DCOS_AUTH_TOKEN" or "AUTH_TOKEN" when available
+	app.Flag("custom-auth-token", "Custom auth token to use when querying service (env: DCOS_AUTH_TOKEN)").OverrideDefaultFromEnvar("DCOS_AUTH_TOKEN").StringVar(&dcosAuthToken)
+	// Support using "DCOS_URI" or "DCOS_URL" when available
+	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service (env: DCOS_URI, DCOS_URL)").OverrideDefaultFromEnvar("DCOS_URI").OverrideDefaultFromEnvar("DCOS_URL").StringVar(&dcosUrl)
+	// Support using "DCOS_CA_PATH" or "DCOS_CERT_PATH" when available
+	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service (env: DCOS_CA_PATH, DCOS_CERT_PATH)").OverrideDefaultFromEnvar("DCOS_CA_PATH").OverrideDefaultFromEnvar("DCOS_CERT_PATH").StringVar(&tlsCACertPath)
+
+	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
+	overrideServiceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
+	if len(overrideServiceName) == 0 {
 		defaultServiceName = overrideServiceName
 	}
 	app.Flag("name", "Name of the service instance to query").Default(defaultServiceName).StringVar(&serviceName)
@@ -173,10 +177,9 @@ func (cmd *PlanHandler) runRestart(c *kingpin.ParseContext) error {
 }
 func (cmd *PlanHandler) runShow(c *kingpin.ParseContext) error {
 	// custom behavior: ignore 503 error
-	response := HTTPQuery(CreateHTTPRequest("GET", "v1/plan"), false)
-	if response.StatusCode != 503 &&
-		(response.StatusCode < 200 || response.StatusCode >= 300) {
-		return errors.New(fmt.Sprintf("Got HTTP status: %s", response.Status))
+	response := HTTPQuery(CreateHTTPRequest("GET", "v1/plan"))
+	if response.StatusCode != 503 {
+		CheckHTTPResponse(response)
 	}
 	PrintJSON(response)
 	return nil
