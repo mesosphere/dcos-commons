@@ -9,11 +9,14 @@ import (
 
 // TODO(nick): Consider breaking this config retrieval out into a separate independent library?
 
-func RunDCOSCLICommand(arg ...string) (string, error) {
+func RunCLICommand(arg ...string) (string, error) {
+	if Verbose {
+		log.Printf("Running DC/OS CLI command: dcos %s", strings.Join(arg, " "))
+	}
 	outBytes, err := exec.Command("dcos", arg...).CombinedOutput()
 	if err != nil {
 		if Verbose {
-			log.Printf("PATH: %s", os.Getenv("PATH"))
+			log.Printf("CLI command returned error, PATH is: %s", os.Getenv("PATH"))
 		}
 		return string(outBytes), err
 	}
@@ -21,8 +24,8 @@ func RunDCOSCLICommand(arg ...string) (string, error) {
 	return strings.TrimSpace(string(outBytes)), nil
 }
 
-func GetCheckedDCOSCLIConfigValue(name string, description string, errorInstruction string) string {
-	output, err := RunDCOSCLICommand("config", "show", name)
+func RequiredCLIConfigValue(name string, description string, errorInstruction string) string {
+	output, err := RunCLICommand("config", "show", name)
 	if err != nil {
 		log.Printf("Unable to retrieve configuration value %s (%s) from CLI. %s:",
 			name, description, errorInstruction)
@@ -32,6 +35,15 @@ func GetCheckedDCOSCLIConfigValue(name string, description string, errorInstruct
 	if len(output) == 0 {
 		log.Fatalf("CLI configuration value %s (%s) is missing/unset. %s",
 			name, description, errorInstruction)
+	}
+	return output
+}
+
+func OptionalCLIConfigValue(name string) string {
+	output, err := RunCLICommand("config", "show", name)
+	if err != nil {
+		// CLI returns an error code when value isn't known
+		return ""
 	}
 	return output
 }
