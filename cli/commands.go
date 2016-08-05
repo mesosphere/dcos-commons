@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
+	"strings"
 )
 
 var (
@@ -41,9 +42,13 @@ func NewApp(version string, author string, longDescription string) (*kingpin.App
 
 // Add all of the below arguments and commands
 
-func HandleCommonArgs(app *kingpin.Application, defaultServiceName string, shortDescription string) {
+func HandleCommonArgs(
+	app *kingpin.Application,
+	defaultServiceName string,
+	shortDescription string,
+	connectionTypes []string) {
 	HandleCommonFlags(app, defaultServiceName, shortDescription)
-	HandleCommonSections(app)
+	HandleCommonSections(app, connectionTypes)
 }
 
 // Standard Arguments
@@ -81,9 +86,9 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 
 // All sections
 
-func HandleCommonSections(app *kingpin.Application) {
+func HandleCommonSections(app *kingpin.Application, connectionTypes []string) {
 	HandleConfigSection(app)
-	HandleConnectionSection(app)
+	HandleConnectionSection(app, connectionTypes)
 	HandlePlanSection(app)
 	HandleStateSection(app)
 }
@@ -143,11 +148,13 @@ func (cmd *ConnectionHandler) RunConnection(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func HandleConnectionSection(app *kingpin.Application) {
+func HandleConnectionSection(app *kingpin.Application, connectionTypes []string) {
 	// connection [type]
 	cmd := &ConnectionHandler{}
-	connection := app.Command("connection", "View connection information").Action(cmd.RunConnection)
-	connection.Arg("type", "Type of connection information to retrieve").StringVar(&cmd.TypeName)
+	connection := app.Command("connection", fmt.Sprintf("View connection information (custom types: %s)", strings.Join(connectionTypes, ", "))).Action(cmd.RunConnection)
+	if len(connectionTypes) != 0 {
+		connection.Arg("type", fmt.Sprintf("Custom type of the connection data to display (%s)", strings.Join(connectionTypes, ", "))).StringVar(&cmd.TypeName)
+	}
 }
 
 // Plan section

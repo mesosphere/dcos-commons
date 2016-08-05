@@ -14,7 +14,7 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	cli.HandleCommonArgs(app, "example", "Example DC/OS CLI Module")
+	cli.HandleCommonArgs(app, "example", "Example DC/OS CLI Module", []string{"foo", "bar"})
 	handleExampleSection(app)
 
 	// Omit modname:
