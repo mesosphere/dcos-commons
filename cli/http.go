@@ -24,6 +24,9 @@ var (
 func HTTPGet(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("GET", urlPath)))
 }
+func HTTPGetQuery(urlPath, urlQuery string) *http.Response {
+	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("GET", urlPath, urlQuery)))
+}
 func HTTPGetData(urlPath, payload, contentType string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("GET", urlPath, payload, contentType)))
 }
@@ -33,6 +36,9 @@ func HTTPGetJSON(urlPath, jsonPayload string) *http.Response {
 
 func HTTPDelete(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("DELETE", urlPath)))
+}
+func HTTPDeleteQuery(urlPath, urlQuery string) *http.Response {
+	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("DELETE", urlPath, urlQuery)))
 }
 func HTTPDeleteData(urlPath, payload, contentType string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("DELETE", urlPath, payload, contentType)))
@@ -44,6 +50,9 @@ func HTTPDeleteJSON(urlPath, jsonPayload string) *http.Response {
 func HTTPPost(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("POST", urlPath)))
 }
+func HTTPPostQuery(urlPath, urlQuery string) *http.Response {
+	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("POST", urlPath, urlQuery)))
+}
 func HTTPPostData(urlPath, payload, contentType string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("POST", urlPath, payload, contentType)))
 }
@@ -53,6 +62,9 @@ func HTTPPostJSON(urlPath, jsonPayload string) *http.Response {
 
 func HTTPPut(urlPath string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPRequest("PUT", urlPath)))
+}
+func HTTPPutQuery(urlPath, urlQuery string) *http.Response {
+	return CheckHTTPResponse(HTTPQuery(CreateHTTPQueryRequest("PUT", urlPath, urlQuery)))
 }
 func HTTPPutData(urlPath, payload, contentType string) *http.Response {
 	return CheckHTTPResponse(HTTPQuery(CreateHTTPDataRequest("PUT", urlPath, payload, contentType)))
@@ -145,11 +157,19 @@ func CreateHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
 	return CreateHTTPDataRequest(method, urlPath, jsonPayload, "application/json")
 }
 
-func CreateHTTPRequest(method, urlPath string) *http.Request {
-	return CreateHTTPDataRequest(method, urlPath, "", "")
+func CreateHTTPDataRequest(method, urlPath, jsonPayload, contentType string) *http.Request {
+	return CreateHTTPRawRequest(method, urlPath, "", jsonPayload, contentType)
 }
 
-func CreateHTTPDataRequest(method, urlPath, payload, contentType string) *http.Request {
+func CreateHTTPQueryRequest(method, urlPath, urlQuery string) *http.Request {
+	return CreateHTTPRawRequest(method, urlPath, urlQuery, "", "")
+}
+
+func CreateHTTPRequest(method, urlPath string) *http.Request {
+	return CreateHTTPRawRequest(method, urlPath, "", "", "")
+}
+
+func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
 	// get data from CLI, if overrides were not provided by user:
 	if len(dcosUrl) == 0 {
 		dcosUrl = RequiredCLIConfigValue(
@@ -168,6 +188,7 @@ func CreateHTTPDataRequest(method, urlPath, payload, contentType string) *http.R
 			"Run 'dcos auth login' to log in to the cluster.")
 	}
 	parsedUrl.Path = path.Join("service", serviceName, urlPath)
+	parsedUrl.RawQuery = urlQuery
 	if Verbose {
 		log.Printf("HTTP Query: %s %s", method, parsedUrl)
 		if len(payload) != 0 {
