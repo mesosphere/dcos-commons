@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
+	"strings"
 )
 
 var (
@@ -41,9 +42,13 @@ func NewApp(version string, author string, longDescription string) (*kingpin.App
 
 // Add all of the below arguments and commands
 
-func HandleCommonArgs(app *kingpin.Application, defaultServiceName string, shortDescription string) {
+func HandleCommonArgs(
+	app *kingpin.Application,
+	defaultServiceName string,
+	shortDescription string,
+	connectionTypes []string) {
 	HandleCommonFlags(app, defaultServiceName, shortDescription)
-	HandleCommonSections(app)
+	HandleCommonSections(app, connectionTypes)
 }
 
 // Standard Arguments
@@ -65,15 +70,15 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 	// Overrides of data that we fetch from DC/OS CLI:
 
 	// Support using "DCOS_AUTH_TOKEN" or "AUTH_TOKEN" when available
-	app.Flag("custom-auth-token", "Custom auth token to use when querying service (env: DCOS_AUTH_TOKEN)").OverrideDefaultFromEnvar("DCOS_AUTH_TOKEN").StringVar(&dcosAuthToken)
+	app.Flag("custom-auth-token", "Custom auth token to use when querying service").OverrideDefaultFromEnvar("DCOS_AUTH_TOKEN").PlaceHolder("DCOS_AUTH_TOKEN").StringVar(&dcosAuthToken)
 	// Support using "DCOS_URI" or "DCOS_URL" when available
-	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service (env: DCOS_URI, DCOS_URL)").OverrideDefaultFromEnvar("DCOS_URI").OverrideDefaultFromEnvar("DCOS_URL").StringVar(&dcosUrl)
+	app.Flag("custom-dcos-url", "Custom cluster URL to use when querying service").OverrideDefaultFromEnvar("DCOS_URI").OverrideDefaultFromEnvar("DCOS_URL").PlaceHolder("DCOS_URI/DCOS_URL").StringVar(&dcosUrl)
 	// Support using "DCOS_CA_PATH" or "DCOS_CERT_PATH" when available
-	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service (env: DCOS_CA_PATH, DCOS_CERT_PATH)").OverrideDefaultFromEnvar("DCOS_CA_PATH").OverrideDefaultFromEnvar("DCOS_CERT_PATH").StringVar(&tlsCACertPath)
+	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").OverrideDefaultFromEnvar("DCOS_CA_PATH").OverrideDefaultFromEnvar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&tlsCACertPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
 	overrideServiceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
-	if len(overrideServiceName) == 0 {
+	if len(overrideServiceName) != 0 {
 		defaultServiceName = overrideServiceName
 	}
 	app.Flag("name", "Name of the service instance to query").Default(defaultServiceName).StringVar(&serviceName)
@@ -81,9 +86,9 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 
 // All sections
 
-func HandleCommonSections(app *kingpin.Application) {
+func HandleCommonSections(app *kingpin.Application, connectionTypes []string) {
 	HandleConfigSection(app)
-	HandleConnectionSection(app)
+	HandleConnectionSection(app, connectionTypes)
 	HandlePlanSection(app)
 	HandleStateSection(app)
 }
@@ -91,22 +96,22 @@ func HandleCommonSections(app *kingpin.Application) {
 // Config section
 
 type ConfigHandler struct {
-	showId string
+	ShowId string
 }
 
-func (cmd *ConfigHandler) runList(c *kingpin.ParseContext) error {
+func (cmd *ConfigHandler) RunList(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/configurations"))
 	return nil
 }
-func (cmd *ConfigHandler) runShow(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/configurations/%s", cmd.showId)))
+func (cmd *ConfigHandler) RunShow(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPGet(fmt.Sprintf("v1/configurations/%s", cmd.ShowId)))
 	return nil
 }
-func (cmd *ConfigHandler) runTarget(c *kingpin.ParseContext) error {
+func (cmd *ConfigHandler) RunTarget(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/configurations/target"))
 	return nil
 }
-func (cmd *ConfigHandler) runTargetId(c *kingpin.ParseContext) error {
+func (cmd *ConfigHandler) RunTargetId(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/configurations/targetId"))
 	return nil
 }
@@ -116,38 +121,40 @@ func HandleConfigSection(app *kingpin.Application) {
 	cmd := &ConfigHandler{}
 	config := app.Command("config", "View persisted configurations")
 
-	config.Command("list", "List IDs of all available configurations").Action(cmd.runList)
+	config.Command("list", "List IDs of all available configurations").Action(cmd.RunList)
 
-	show := config.Command("show", "Display a specified configuration").Action(cmd.runShow)
-	show.Arg("config_id", "ID of the configuration to display").Required().StringVar(&cmd.showId)
+	show := config.Command("show", "Display a specified configuration").Action(cmd.RunShow)
+	show.Arg("config_id", "ID of the configuration to display").Required().StringVar(&cmd.ShowId)
 
-	config.Command("target", "Display the target configuration").Action(cmd.runTarget)
+	config.Command("target", "Display the target configuration").Action(cmd.RunTarget)
 
-	config.Command("target_id", "List ID of the target configuration").Action(cmd.runTargetId)
+	config.Command("target_id", "List ID of the target configuration").Action(cmd.RunTargetId)
 }
 
 // Connection section
 
 type ConnectionHandler struct {
-	typeName string
+	TypeName string
 }
 
-func (cmd *ConnectionHandler) runConnection(c *kingpin.ParseContext) error {
-	if len(cmd.typeName) == 0 {
+func (cmd *ConnectionHandler) RunConnection(c *kingpin.ParseContext) error {
+	if len(cmd.TypeName) == 0 {
 		// Root endpoint: Always produce JSON
 		PrintJSON(HTTPGet("v1/connection"))
 	} else {
 		// Any custom type endpoints: May be any format, so just print the raw text
-		PrintText(HTTPGet(fmt.Sprintf("v1/connection/%s", cmd.typeName)))
+		PrintText(HTTPGet(fmt.Sprintf("v1/connection/%s", cmd.TypeName)))
 	}
 	return nil
 }
 
-func HandleConnectionSection(app *kingpin.Application) {
+func HandleConnectionSection(app *kingpin.Application, connectionTypes []string) {
 	// connection [type]
 	cmd := &ConnectionHandler{}
-	connection := app.Command("connection", "View connection information").Action(cmd.runConnection)
-	connection.Arg("type", "Type of connection information to retrieve").StringVar(&cmd.typeName)
+	connection := app.Command("connection", fmt.Sprintf("View connection information (custom types: %s)", strings.Join(connectionTypes, ", "))).Action(cmd.RunConnection)
+	if len(connectionTypes) != 0 {
+		connection.Arg("type", fmt.Sprintf("Custom type of the connection data to display (%s)", strings.Join(connectionTypes, ", "))).StringVar(&cmd.TypeName)
+	}
 }
 
 // Plan section
@@ -155,27 +162,27 @@ func HandleConnectionSection(app *kingpin.Application) {
 type PlanHandler struct {
 }
 
-func (cmd *PlanHandler) runActive(c *kingpin.ParseContext) error {
+func (cmd *PlanHandler) RunActive(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/plan/status"))
 	return nil
 }
-func (cmd *PlanHandler) runContinue(c *kingpin.ParseContext) error {
+func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/plan/continue"))
 	return nil
 }
-func (cmd *PlanHandler) runForce(c *kingpin.ParseContext) error {
+func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/plan/forceComplete"))
 	return nil
 }
-func (cmd *PlanHandler) runInterrupt(c *kingpin.ParseContext) error {
+func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/plan/interrupt"))
 	return nil
 }
-func (cmd *PlanHandler) runRestart(c *kingpin.ParseContext) error {
+func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/plan/restart"))
 	return nil
 }
-func (cmd *PlanHandler) runShow(c *kingpin.ParseContext) error {
+func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
 	// custom behavior: ignore 503 error
 	response := HTTPQuery(CreateHTTPRequest("GET", "v1/plan"))
 	if response.StatusCode != 503 {
@@ -190,12 +197,12 @@ func HandlePlanSection(app *kingpin.Application) {
 	cmd := &PlanHandler{}
 	plan := app.Command("plan", "Query service plans")
 
-	plan.Command("active", "Display the active operation chain, if any").Action(cmd.runActive)
-	plan.Command("continue", "Continue a currently Waiting operation").Action(cmd.runContinue)
-	plan.Command("force", "Force the current operation to complete").Action(cmd.runForce)
-	plan.Command("interrupt", "Interrupt the current InProgress operation").Action(cmd.runInterrupt)
-	plan.Command("restart", "Restart the current operation").Action(cmd.runRestart)
-	plan.Command("show", "Display the full plan").Action(cmd.runShow)
+	plan.Command("active", "Display the active operation chain, if any").Action(cmd.RunActive)
+	plan.Command("continue", "Continue a currently Waiting operation").Action(cmd.RunContinue)
+	plan.Command("force", "Force the current operation to complete").Action(cmd.RunForce)
+	plan.Command("interrupt", "Interrupt the current InProgress operation").Action(cmd.RunInterrupt)
+	plan.Command("restart", "Restart the current operation").Action(cmd.RunRestart)
+	plan.Command("show", "Display the full plan").Action(cmd.RunShow)
 }
 
 // State section
@@ -204,19 +211,19 @@ type StateHandler struct {
 	TaskName string
 }
 
-func (cmd *StateHandler) runFrameworkId(c *kingpin.ParseContext) error {
+func (cmd *StateHandler) RunFrameworkId(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/state/frameworkId"))
 	return nil
 }
-func (cmd *StateHandler) runStatus(c *kingpin.ParseContext) error {
+func (cmd *StateHandler) RunStatus(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet(fmt.Sprintf("v1/state/tasks/status/%s", cmd.TaskName)))
 	return nil
 }
-func (cmd *StateHandler) runTask(c *kingpin.ParseContext) error {
+func (cmd *StateHandler) RunTask(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet(fmt.Sprintf("v1/state/tasks/info/%s", cmd.TaskName)))
 	return nil
 }
-func (cmd *StateHandler) runTasks(c *kingpin.ParseContext) error {
+func (cmd *StateHandler) RunTasks(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/state/tasks"))
 	return nil
 }
@@ -226,13 +233,13 @@ func HandleStateSection(app *kingpin.Application) {
 	cmd := &StateHandler{}
 	state := app.Command("state", "View persisted state")
 
-	state.Command("framework_id", "Display the mesos framework ID").Action(cmd.runFrameworkId)
+	state.Command("framework_id", "Display the mesos framework ID").Action(cmd.RunFrameworkId)
 
-	status := state.Command("status", "Display the TaskStatus for a task name").Action(cmd.runStatus)
+	status := state.Command("status", "Display the TaskStatus for a task name").Action(cmd.RunStatus)
 	status.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
 
-	task := state.Command("task", "Display the TaskInfo for a task name").Action(cmd.runTask)
+	task := state.Command("task", "Display the TaskInfo for a task name").Action(cmd.RunTask)
 	task.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
 
-	state.Command("tasks", "List names of all persisted tasks").Action(cmd.runTasks)
+	state.Command("tasks", "List names of all persisted tasks").Action(cmd.RunTasks)
 }

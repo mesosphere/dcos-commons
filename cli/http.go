@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 )
 
 var (
@@ -61,10 +62,28 @@ func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
 }
 
 func HTTPQuery(request *http.Request) *http.Response {
-	tlsConfig := &tls.Config{InsecureSkipVerify: tlsAllowUnverified}
-	if len(tlsCACertPath) == 0 {
-		tlsCACertPath = OptionalCLIConfigValue("core.ca_certificate") // TODO update to match actual name once known
+	// get CA settings from CLI (local flags override CLI):
+	cliVerifySetting := OptionalCLIConfigValue("core.ssl_verify")
+	if strings.EqualFold(cliVerifySetting, "false") {
+		// 'false': disable cert validation
+		tlsAllowUnverified = true
+	} else if strings.EqualFold(cliVerifySetting, "true") {
+		// 'true': require validation against default CAs
+		// (leave tlsAllowUnverified alone: already defaults to false)
+	} else if len(cliVerifySetting) != 0 {
+		// '<other string>': path to local/custom cert file
+		if len(tlsCACertPath) == 0 {
+			tlsCACertPath = cliVerifySetting
+		}
+	} else {
+		// this shouldn't happen: 'auth login' requires a non-empty setting.
+		// play it safe and leave cert verification enabled by default.
 	}
+
+	// allow unverified certs if user manually set the flag, or if it's configured that way in CLI:
+	tlsConfig := &tls.Config{InsecureSkipVerify: tlsAllowUnverified}
+
+	// import custom cert if user manually set the flag, or if it's configured in CLI:
 	if len(tlsCACertPath) != 0 {
 		// include custom CA cert as verified
 		cert, err := ioutil.ReadFile(tlsCACertPath)
@@ -75,6 +94,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 		certPool.AppendCertsFromPEM(cert)
 		tlsConfig.RootCAs = certPool
 	}
+
 	client := &http.Client{Transport: &http.Transport{TLSClientConfig: tlsConfig}}
 	var err interface{}
 	response, err := client.Do(request)
@@ -88,8 +108,8 @@ func HTTPQuery(request *http.Request) *http.Response {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
 			log.Printf("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			log.Printf("- Is someone spoofing your cluster?")
-			log.Printf("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ca_certificate'.") // TODO update to match actual name once known
+			log.Printf("- Is someone intercepting the connection to steal your credentials?")
+			log.Printf("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
 			log.Fatalf("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
 		default:
 			log.Printf("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
