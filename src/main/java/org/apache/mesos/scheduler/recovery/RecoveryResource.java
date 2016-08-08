@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler.repair;
+package org.apache.mesos.scheduler.recovery;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,23 +10,23 @@ import javax.ws.rs.core.MediaType;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Simple endpoint to expose repair state information.
+ * Simple endpoint to expose recovery state information.
  * <p>
  * Renders the stopped tasks and failed tasks as JSON, so that the operator can understand the status of the system.
  */
-@Path("/v1/repair")
-public class RepairResource {
-    private static final Log log = LogFactory.getLog(RepairResource.class);
+@Path("/v1/recovery")
+public class RecoveryResource {
+    private static final Log log = LogFactory.getLog(RecoveryResource.class);
 
-    private final AtomicReference<RepairStatus> repairStatus;
+    private final AtomicReference<RecoveryStatus> repairStatus;
 
-    public RepairResource(AtomicReference<RepairStatus> repairStatus) {
+    public RecoveryResource(AtomicReference<RecoveryStatus> repairStatus) {
         this.repairStatus = repairStatus;
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public RepairStatus repair() {
+    public RecoveryStatus repair() {
         try {
             return repairStatus.get();
         } catch (Exception ex) {

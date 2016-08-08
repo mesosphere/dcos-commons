@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents the repair configuration in JSON.
+ * Represents the recovery configuration in JSON.
  */
-public class RepairConfiguration {
+public class RecoveryConfiguration {
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -16,7 +16,7 @@ public class RepairConfiguration {
             return false;
         }
 
-        RepairConfiguration that = (RepairConfiguration) o;
+        RecoveryConfiguration that = (RecoveryConfiguration) o;
 
         if (gracePeriodMins != that.gracePeriodMins) {
             return false;
@@ -43,10 +43,10 @@ public class RepairConfiguration {
     @JsonProperty("enable_replacement")
     private boolean enableReplacement;
 
-    public  RepairConfiguration() {}
+    public RecoveryConfiguration() {}
 
     @JsonCreator
-    public RepairConfiguration(
+    public RecoveryConfiguration(
             @JsonProperty("repair_in_place_grace_period_mins") int gracePeriodMins,
             @JsonProperty("min_delay_between_repairs_secs") int repairDelaySecs,
             @JsonProperty("enableReplacement") boolean enableReplacement) {
@@ -84,7 +84,7 @@ public class RepairConfiguration {
 
     @Override
     public String toString() {
-        return "RepairConfiguration{" +
+        return "RecoveryConfiguration{" +
                 "gracePeriodMins=" + gracePeriodMins +
                 ", repairDelaySecs=" + repairDelaySecs +
                 ", enableReplacement=" + enableReplacement +

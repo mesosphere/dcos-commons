@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler.repair.constrain;
+package org.apache.mesos.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.offer.OfferRequirement;

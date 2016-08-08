@@ -8,7 +8,7 @@ import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Volume;
-import org.apache.mesos.offer.ResourceRequirement;
+import org.apache.mesos.offer.MesosResource;
 
 import java.util.List;
 
@@ -263,7 +263,7 @@ public class ResourceBuilder {
       .setReservation(ReservationInfo.newBuilder()
           .setPrincipal(principal)
           .setLabels(new LabelBuilder()
-            .addLabel(ResourceRequirement.RESOURCE_ID_KEY, resourceId).build()))
+            .addLabel(MesosResource.RESOURCE_ID_KEY, resourceId).build()))
       .build();
   }
 }
