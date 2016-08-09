@@ -68,7 +68,7 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
 
     // 3. the state object will update task status updates
     // this is an important part of the stage life-cycle. This is where task status are updated in the store.
-    // it also is used to determine what needs repair.
+    // it also is used to determine what needs recovery.
     addObserver(acmeState);
 
     // 4. you need an offer acceptor created with objects that respond to the acceptance of an offer.
@@ -78,7 +78,7 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
         new PersistentOperationRecorder(acmeState)));
 
     // 5. create an OfferRequirementProvider which is a set of functions that
-    // all return an OfferRequirement. (for create, update and repair situations)
+    // all return an OfferRequirement. (for create, update and recovery situations)
     // created by acme and follows the OfferRequirement Pattern:
     /*AcmeOfferRequirementProvider offerRequirementProvider =
       new SandboxOfferRequirementProvider(acmeState);*///TODO(nick): fixbugs

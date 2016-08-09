@@ -70,7 +70,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testMountRoot, reserveResource.getDisk().getSource().getMount().getRoot());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
     // Validate CREATE Operation
@@ -188,7 +188,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
     // Validate CREATE Operation
@@ -263,7 +263,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(ResourceTestUtils.testPersistenceId, launchResource.getDisk().getPersistence().getId());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, launchResource.getDisk().getPersistence().getPrincipal());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, launchResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
     Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
   }
 
@@ -292,7 +292,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(ResourceTestUtils.testPersistenceId, launchResource.getDisk().getPersistence().getId());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, launchResource.getDisk().getPersistence().getPrincipal());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, launchResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
     Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
   }
 
@@ -322,7 +322,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
     Assert.assertFalse(reserveResource.hasDisk());
 
@@ -378,7 +378,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
     String executorResourceId = getFirstLabel(reserveResource).getValue();
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(36, executorResourceId.length());
     Assert.assertFalse(reserveResource.hasDisk());
 
@@ -395,7 +395,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
     Assert.assertFalse(reserveResource.hasDisk());
 
@@ -450,7 +450,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
     Assert.assertFalse(reserveResource.hasDisk());
 
@@ -516,7 +516,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
     Assert.assertEquals(ResourceTestUtils.testRole, reserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, reserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
     Assert.assertEquals(resourceId, getFirstLabel(reserveResource).getValue());
 
     // Validate LAUNCH Operation
@@ -569,7 +569,7 @@ public class OfferEvaluatorTest {
     Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
     Assert.assertEquals(ResourceTestUtils.testRole, unreserveResource.getRole());
     Assert.assertEquals(ResourceTestUtils.testPrincipal, unreserveResource.getReservation().getPrincipal());
-    Assert.assertEquals(ResourceRequirement.RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
+    Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
     Assert.assertEquals(resourceId, getFirstLabel(unreserveResource).getValue());
 
     // Validate LAUNCH Operation

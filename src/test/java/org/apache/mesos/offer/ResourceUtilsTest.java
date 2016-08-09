@@ -77,6 +77,77 @@ public class ResourceUtilsTest {
     Assert.assertEquals(expectedResourceId, ResourceUtils.getResourceId(resource));
   }
 
+  @Test
+  public void testClearTaskInfoResourceIds() {
+    Resource resource = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            1.0);
+    resource = ResourceUtils.setResourceId(resource, ResourceTestUtils.testResourceId);
+
+    Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+            .setName(ResourceTestUtils.testTaskName)
+            .setTaskId(Protos.TaskID.newBuilder().setValue(ResourceTestUtils.testTaskId))
+            .setSlaveId(Protos.SlaveID.newBuilder().setValue(ResourceTestUtils.testSlaveId))
+            .addResources(resource)
+            .build();
+    Assert.assertEquals(ResourceTestUtils.testResourceId, ResourceUtils.getResourceId(taskInfo.getResources(0)));
+
+    taskInfo = ResourceUtils.clearResourceIds(taskInfo);
+    Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getResources(0)));
+  }
+
+  @Test
+  public void testClearExecutorInfoResourceIds() {
+    Resource resource = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            1.0);
+    resource = ResourceUtils.setResourceId(resource, ResourceTestUtils.testResourceId);
+
+    Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
+            .setExecutorId(Protos.ExecutorID.newBuilder().setValue(ResourceTestUtils.testExecutorId))
+            .setCommand(Protos.CommandInfo.newBuilder().build())
+            .addResources(resource)
+            .build();
+    Assert.assertEquals(ResourceTestUtils.testResourceId, ResourceUtils.getResourceId(executorInfo.getResources(0)));
+
+    executorInfo = ResourceUtils.clearResourceIds(executorInfo);
+    Assert.assertNull(ResourceUtils.getResourceId(executorInfo.getResources(0)));
+  }
+
+  @Test
+  public void testClearTaskInfoAndExecutorInfoResourceIds() {
+    Resource resource = ResourceUtils.getDesiredScalar(
+            ResourceTestUtils.testRole,
+            ResourceTestUtils.testPrincipal,
+            "cpus",
+            1.0);
+    resource = ResourceUtils.setResourceId(resource, ResourceTestUtils.testResourceId);
+
+    Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
+            .setExecutorId(Protos.ExecutorID.newBuilder().setValue(ResourceTestUtils.testExecutorId))
+            .setCommand(Protos.CommandInfo.newBuilder().build())
+            .addResources(resource)
+            .build();
+    Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+            .setName(ResourceTestUtils.testTaskName)
+            .setTaskId(Protos.TaskID.newBuilder().setValue(ResourceTestUtils.testTaskId))
+            .setSlaveId(Protos.SlaveID.newBuilder().setValue(ResourceTestUtils.testSlaveId))
+            .addResources(resource)
+            .setExecutor(executorInfo)
+            .build();
+
+    Assert.assertEquals(ResourceTestUtils.testResourceId, ResourceUtils.getResourceId(taskInfo.getResources(0)));
+    Assert.assertEquals(ResourceTestUtils.testResourceId, ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
+
+    taskInfo = ResourceUtils.clearResourceIds(taskInfo);
+    Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getResources(0)));
+    Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
+  }
+
   private void validateRanges(List<Protos.Value.Range> expectedRanges, List<Protos.Value.Range> actualRanges) {
     Assert.assertEquals(expectedRanges.size(), actualRanges.size());
 
