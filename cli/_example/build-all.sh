@@ -48,9 +48,7 @@ SUFFIX="-darwin"
 CGO_ENABLED=0 GOOS=darwin GOARCH=386 go build \
     && mv -vf "${ORIG_EXE_NAME}" "${EXE_NAME}${SUFFIX}"
 if [ $? -ne 0 ]; then exit 1; fi
-case "$OSTYPE" in
-    darwin*) strip "${EXE_NAME}${SUFFIX}"
-esac
+# don't ever strip the darwin binary: results in a broken/segfaulty build
 print_file_and_shasum "${EXE_NAME}${SUFFIX}"
 
 # linux (static build):
