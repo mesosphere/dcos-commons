@@ -2,9 +2,7 @@ package org.apache.mesos.protobuf;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-
 import org.apache.mesos.Protos.FrameworkInfo;
-
 
 /**
  * Utility class for evolving v0 protos to vX.

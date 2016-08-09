@@ -6,6 +6,9 @@ import org.apache.mesos.v1.scheduler.Protos;
 
 import java.util.Collection;
 
+/**
+ * Adaptor class.
+ */
 public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
     private Mesos mesos;
 
@@ -59,22 +62,28 @@ public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds, Collection<org.apache.mesos.Protos.TaskInfo> tasks, org.apache.mesos.Protos.Filters filters) {
+    public org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
+                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks,
+                                                      org.apache.mesos.Protos.Filters filters) {
         return null;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds, Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
+    public org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
+                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
         return null;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId, Collection<org.apache.mesos.Protos.TaskInfo> tasks, org.apache.mesos.Protos.Filters filters) {
+    public org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
+                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks,
+                                                      org.apache.mesos.Protos.Filters filters) {
         return null;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId, Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
+    public org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
+                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
         return null;
     }
 
@@ -84,12 +93,15 @@ public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
     }
 
     @Override
-    public org.apache.mesos.Protos.Status acceptOffers(Collection<org.apache.mesos.Protos.OfferID> offerIds, Collection<org.apache.mesos.Protos.Offer.Operation> operations, org.apache.mesos.Protos.Filters filters) {
+    public org.apache.mesos.Protos.Status acceptOffers(Collection<org.apache.mesos.Protos.OfferID> offerIds,
+                                                       Collection<org.apache.mesos.Protos.Offer.Operation> operations,
+                                                       org.apache.mesos.Protos.Filters filters) {
         return null;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId, org.apache.mesos.Protos.Filters filters) {
+    public org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId,
+                                                       org.apache.mesos.Protos.Filters filters) {
         return null;
     }
 
@@ -114,7 +126,9 @@ public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
     }
 
     @Override
-    public org.apache.mesos.Protos.Status sendFrameworkMessage(org.apache.mesos.Protos.ExecutorID executorId, org.apache.mesos.Protos.SlaveID slaveId, byte[] data) {
+    public org.apache.mesos.Protos.Status sendFrameworkMessage(org.apache.mesos.Protos.ExecutorID executorId,
+                                                               org.apache.mesos.Protos.SlaveID slaveId,
+                                                               byte[] data) {
         return null;
     }
 
