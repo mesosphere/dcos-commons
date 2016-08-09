@@ -30,8 +30,24 @@ public class CapabilitiesTest {
     }
 
     @Test
-    public void testHasNamedVipsSucceeds() throws URISyntaxException, IOException {
+    public void testHasNamedVipsSucceeds_1_8() throws URISyntaxException, IOException {
         mockDcosCluster =  MockDcosCluster.create("1.8.0");
+        dcosCluster = mockDcosCluster.getDcosCluster();
+        Capabilities capabilities = new Capabilities(dcosCluster);
+        Assert.assertTrue(capabilities.supportsNamedVips());
+    }
+
+    @Test
+    public void testHasNamedVipsSucceeds_1_9() throws URISyntaxException, IOException {
+        mockDcosCluster =  MockDcosCluster.create("1.9.0");
+        dcosCluster = mockDcosCluster.getDcosCluster();
+        Capabilities capabilities = new Capabilities(dcosCluster);
+        Assert.assertTrue(capabilities.supportsNamedVips());
+    }
+
+    @Test
+    public void testHasNamedVipsSucceeds_2_0() throws URISyntaxException, IOException {
+        mockDcosCluster =  MockDcosCluster.create("2.0.0");
         dcosCluster = mockDcosCluster.getDcosCluster();
         Capabilities capabilities = new Capabilities(dcosCluster);
         Assert.assertTrue(capabilities.supportsNamedVips());

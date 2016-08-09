@@ -14,6 +14,23 @@ public class Capabilities {
     }
 
     public boolean supportsNamedVips() throws IOException, URISyntaxException {
-        return dcosCluster.getDcosVersion().getVersion().startsWith("1.8");
+        // Named Vips are supported by DC/OS 1.8 upwards.
+        String[] version = dcosCluster.getDcosVersion().getVersion().split("\\.");
+
+        if (version.length < 2) {
+            // incorrect version string. Todo(joerg84): Consider throwing an exception here.
+            return false;
+        }
+
+        try {
+            if (Integer.parseInt(version[0]) >= 2 || Integer.parseInt(version[1]) >= 8) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (NumberFormatException ex) {
+            // incorrect version string. Todo(joerg84): Consider throwing an exception here.
+            return false;
+        }
     }
 }
