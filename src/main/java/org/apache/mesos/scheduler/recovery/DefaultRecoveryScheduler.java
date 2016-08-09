@@ -79,6 +79,10 @@ public class DefaultRecoveryScheduler {
 
         Optional<OfferRequirement> offerReq = Optional.empty();
         if (candidateRepairs.size() > 0) {
+            // Choose a random Task to recover.  No priority is given to transient failures over permanent failures
+            // or vice versa.  This avoids a single failure or type of failure which is being resistant to recovery from
+            // blocking the recovery of other Tasks which may be able to a make progress.
+            // TODO: (gabrielhartmann) Allow for pluggable recovery candidate selection strategies.
             offerReq = Optional.of(candidateRepairs.get(new Random().nextInt(candidateRepairs.size())));
         }
 

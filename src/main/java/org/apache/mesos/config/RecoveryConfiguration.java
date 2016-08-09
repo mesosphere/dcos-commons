@@ -49,7 +49,7 @@ public class RecoveryConfiguration {
     public RecoveryConfiguration(
             @JsonProperty("repair_in_place_grace_period_mins") int gracePeriodMins,
             @JsonProperty("min_delay_between_repairs_secs") int repairDelaySecs,
-            @JsonProperty("enableReplacement") boolean enableReplacement) {
+            @JsonProperty("enable_replacement") boolean enableReplacement) {
         this.gracePeriodMins = gracePeriodMins;
         this.repairDelaySecs = repairDelaySecs;
         this.enableReplacement = enableReplacement;
