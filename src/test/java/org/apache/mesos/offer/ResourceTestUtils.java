@@ -15,6 +15,7 @@ public class ResourceTestUtils {
   public static final String testRole = "test-role";
   public static final String testSlaveId = "test-slave-id";
   public static final String testTaskName = "test-task-name";
+  public static final String testResourceId = "test-resource-id";
 
   public static final String testExecutorId =
           ExecutorUtils.toExecutorId(testExecutorName).getValue();

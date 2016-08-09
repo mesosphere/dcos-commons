@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler.repair.monitor;
+package org.apache.mesos.scheduler.recovery.monitor;
 
 import org.apache.mesos.Protos.TaskInfo;
 
