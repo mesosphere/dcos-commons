@@ -3,6 +3,7 @@ package org.apache.mesos.offer;
 import com.google.inject.Inject;
 import com.google.protobuf.TextFormat;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
@@ -45,7 +46,7 @@ public class OfferAccepter {
   }
 
   public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations, Filters filters) {
-    if (recommendations.size() <= 0) {
+    if (CollectionUtils.isEmpty(recommendations)) {
       logger.warn("No recommendations, nothing to do");
       return new ArrayList<OfferID>();
     }
@@ -62,7 +63,7 @@ public class OfferAccepter {
       return new ArrayList<OfferID>();
     }
 
-    if (operations.size() > 0) {
+    if (CollectionUtils.isNotEmpty(operations)) {
       driver.acceptOffers(offerIds, operations, filters);
     } else {
       logger.warn("No Operations to perform.");
