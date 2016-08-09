@@ -192,6 +192,32 @@ public class DefaultReconcilerTest {
         verifyZeroInteractions(mockDriver);
     }
 
+    @Test
+    public void testTaskLostToTaskRunningTransition() {
+        reconciler.start(Arrays.asList(TASK_STATUS_2));
+
+        assertFalse(reconciler.isReconciled());
+        assertEquals(1, reconciler.remaining().size());
+
+        reconciler.reconcile(mockDriver);
+
+        final Protos.TaskStatus updatedTaskStatus = Protos.TaskStatus.newBuilder(TASK_STATUS_2)
+                .setState(Protos.TaskState.TASK_RUNNING)
+                .build();
+
+        reconciler.update(updatedTaskStatus);
+        reconciler.reconcile(mockDriver);
+
+        assertTrue(reconciler.isReconciled());
+        assertEquals(0, reconciler.remaining().size());
+        verify(mockDriver, times(2)).reconcileTasks(taskStatusCaptor.capture());
+
+        List<Collection<Protos.TaskStatus>> allCalls = taskStatusCaptor.getAllValues();
+        assertEquals(2, allCalls.size());
+        assertEquals(1, allCalls.get(0).size());
+        assertEquals(0, allCalls.get(1).size());
+    }
+
     private static Collection<Protos.TaskStatus> getTaskStatuses() {
         return Arrays.asList(TASK_STATUS_1, TASK_STATUS_2);
     }
