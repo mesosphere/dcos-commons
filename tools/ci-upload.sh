@@ -14,13 +14,15 @@
 #
 
 # Paths:
-BUILD_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DCOS_TESTS_ROOT="${BUILD_SCRIPT_DIR}/.."
-CUSTOM_UNIVERSES_PATH="${DCOS_TESTS_ROOT}/docker-context/custom-universes.txt"
+TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # AWS settings:
-AWS_UPLOAD_REGION="us-west-2"
-S3_BASE_PATH="infinity-artifacts/autodelete7d"
+if [ -z "$AWS_UPLOAD_REGION" ]; then
+    AWS_UPLOAD_REGION="us-west-2"
+fi
+if [ -z "$S3_BASE_PATH" ]; then
+    S3_BASE_PATH="infinity-artifacts/autodelete7d"
+fi
 
 syntax() {
     echo "Syntax: $0 <package-name> <template-package-dir> [upload-file1] [upload-file2] [upload-file3] ..."
@@ -39,7 +41,7 @@ UPLOAD_FILES=$@
 
 # automatically falls back to printing if we're not in CI:
 notify_github() {
-    run_cmd ${BUILD_SCRIPT_DIR}/github_update.py $1 "upload:$PACKAGE_NAME" $2
+    run_cmd ${TOOLS_DIR}/github_update.py $1 "upload:$PACKAGE_NAME" $2
 }
 
 if [ -n "$JENKINS_HOME" ]; then
@@ -76,7 +78,7 @@ echo "### Creating stub universe.."
 STUB_UNIVERSE_SCRIPT="universe_builder.py"
 echo "### $STUB_UNIVERSE_SCRIPT START"
 TEMP_STDOUT=$(mktemp)
-run_cmd python ${BUILD_SCRIPT_DIR}/${STUB_UNIVERSE_SCRIPT} "$PACKAGE_NAME" "stub-universe" "$PACKAGE_SRC_DIR" "$S3_PATH_URL" $UPLOAD_FILES >> $TEMP_STDOUT
+run_cmd python ${TOOLS_DIR}/${STUB_UNIVERSE_SCRIPT} "$PACKAGE_NAME" "stub-universe" "$PACKAGE_SRC_DIR" "$S3_PATH_URL" $UPLOAD_FILES >> $TEMP_STDOUT
 RET=$?
 cat $TEMP_STDOUT
 echo "### $STUB_UNIVERSE_SCRIPT END"
@@ -114,7 +116,9 @@ echo "Uploaded custom universe:"
 echo "$UNIVERSE_ZIP_URL"
 echo "#####"
 # custom-universes.txt (used by dcos-tests):
-echo "stub $UNIVERSE_ZIP_URL" > $CUSTOM_UNIVERSES_PATH
+if [ -n "$CUSTOM_UNIVERSES_PATH"]; then
+    echo "stub $UNIVERSE_ZIP_URL" > $CUSTOM_UNIVERSES_PATH
+fi
 # stub-universe.properties (used by CI):
 if [ -n "$PROPERTIES_FILE" ]; then
     # http://path/to/randtok/stub-universe.zip
