@@ -29,19 +29,27 @@ public class DefaultReconciler implements Reconciler {
     private final AtomicBoolean isImplicitReconciliationTriggered = new AtomicBoolean(false);
     // NOTE: Access to 'unreconciled' must be protected by a lock against 'unreconciled'.
     private final Map<String, TaskStatus> unreconciled = new HashMap<>();
+    private TaskStatusProvider statuses;
 
     private long lastRequestTimeMs;
     private long backOffMs;
 
-    public DefaultReconciler() {
+    public DefaultReconciler(TaskStatusProvider statuses) {
+        this.statuses = statuses;
         resetTimerValues();
     }
 
     @Override
-    public void start(final Collection<Protos.TaskStatus> tasks) {
-        // append provided tasks to current state
+    public void start() {
+        Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
+        try {
+            taskStatuses.addAll(statuses.getTaskStatuses());
+        } catch (Exception e) {
+            throw new RuntimeException("error: bad");
+        }
+
         synchronized (unreconciled) {
-            for (TaskStatus status : tasks) {
+            for (TaskStatus status : taskStatuses) {
                 if (!TaskUtils.isTerminated(status)) {
                     unreconciled.put(status.getTaskId().getValue(), status);
                 }
@@ -50,7 +58,7 @@ public class DefaultReconciler implements Reconciler {
             // implicit reconciliation:
             isImplicitReconciliationTriggered.set(false);
             LOGGER.info("Added {} unreconciled tasks to reconciler: {} tasks to reconcile",
-                    tasks.size(), unreconciled.size());
+                    taskStatuses.size(), unreconciled.size());
         }
     }
 

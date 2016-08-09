@@ -60,11 +60,11 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
     // this would store errors discovered in config validation step (which is missing from this example.
     List<String> stageErrors = new ArrayList<>();
 
-    // 1.  create a reconciler
-    reconciler = new DefaultReconciler();  // from dcos-commons
-
-    // 2.  the system depends on storing task info into a store. we use zk.
+    // 1.  the system depends on storing task info into a store. we use zk.
     acmeState = new AcmeStateServiceFactory().getStateService();
+
+    // 2.  create a reconciler
+    reconciler = new DefaultReconciler(acmeState);  // from dcos-commons
 
     // 3. the state object will update task status updates
     // this is an important part of the stage life-cycle. This is where task status are updated in the store.
@@ -84,8 +84,7 @@ public class AcmeScheduler extends Observable implements Scheduler, Runnable {
       new SandboxOfferRequirementProvider(acmeState);*///TODO(nick): fixbugs
 
     // 6. create a list of phases (this example uses the provided reconciliation phase)
-    List<Phase> phases = Arrays.asList(
-      ReconciliationPhase.create(reconciler, acmeState));  // add more Phases of blocks here!
+    List<Phase> phases = Arrays.asList(ReconciliationPhase.create(reconciler));  // add more Phases of blocks here!
 
     // 7. create a stage
     Stage stage = stageErrors.isEmpty()
