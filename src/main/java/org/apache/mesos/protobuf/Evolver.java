@@ -3,6 +3,7 @@ package org.apache.mesos.protobuf;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import org.apache.mesos.Protos.FrameworkInfo;
+import org.apache.mesos.scheduler.Protos.Call;
 
 /**
  * Utility class for evolving v0 protos to vX.
@@ -23,5 +24,9 @@ public class Evolver {
 
     public static org.apache.mesos.v1.Protos.FrameworkInfo evolve(FrameworkInfo frameworkInfo) {
         return evolve(frameworkInfo, org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder());
+    }
+
+    public static org.apache.mesos.v1.scheduler.Protos.Call evolve(Call call) {
+        return evolve(call, org.apache.mesos.v1.scheduler.Protos.Call.newBuilder());
     }
 }

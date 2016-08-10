@@ -31,7 +31,9 @@ public class V1SchedulerImpl implements Scheduler {
 
     @Override
     public void received(Mesos mesos, Protos.Event event) {
-        final SchedulerDriverAdaptorMesos schedulerDriver = new SchedulerDriverAdaptorMesos(mesos);
+        // TODO(anand): Fix the FrameworkInfo argument.
+        final SchedulerDriverAdaptorMesos schedulerDriver = new SchedulerDriverAdaptorMesos(mesos, null);
+
         LOGGER.info("Received event: {}", event);
         switch (event.getType()) {
             case SUBSCRIBED: {
