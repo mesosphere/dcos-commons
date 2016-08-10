@@ -28,32 +28,7 @@ public class Devolver {
         return devolve(frameworkInfo, org.apache.mesos.Protos.FrameworkInfo.newBuilder());
     }
 
-    public static List<org.apache.mesos.Protos.Offer> devolve(
-            org.apache.mesos.v1.scheduler.Protos.Event.Offers offers) {
-        List<org.apache.mesos.Protos.Offer> offerList = new ArrayList<>(offers.getOffersCount());
-        for (Protos.Offer offer : offers.getOffersList()) {
-            offerList.add(Devolver.devolve(offer));
-        }
-        return offerList;
-    }
-
-    public static org.apache.mesos.Protos.Offer devolve(Protos.Offer offer) {
-        return devolve(offer, org.apache.mesos.Protos.Offer.newBuilder());
-    }
-
-    public static org.apache.mesos.Protos.OfferID devolve(Protos.OfferID offerId) {
-        return devolve(offerId, org.apache.mesos.Protos.OfferID.newBuilder());
-    }
-
-    public static org.apache.mesos.Protos.TaskStatus devolve(Protos.TaskStatus taskStatus) {
-        return devolve(taskStatus, org.apache.mesos.Protos.TaskStatus.newBuilder());
-    }
-
-    public static org.apache.mesos.Protos.SlaveID devolve(Protos.AgentID agentID) {
-        return devolve(agentID, org.apache.mesos.Protos.SlaveID.newBuilder());
-    }
-
-    public static org.apache.mesos.Protos.ExecutorID devolve(Protos.ExecutorID executorID) {
-        return devolve(executorID, org.apache.mesos.Protos.ExecutorID.newBuilder());
+    public static org.apache.mesos.scheduler.Protos.Event devolve(org.apache.mesos.v1.scheduler.Protos.Event event) {
+        return devolve(event, org.apache.mesos.scheduler.Protos.Event.newBuilder());
     }
 }

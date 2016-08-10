@@ -30,14 +30,17 @@ public class V1SchedulerImpl implements Scheduler {
     }
 
     @Override
-    public void received(Mesos mesos, Protos.Event event) {
+    public void received(Mesos mesos, Protos.Event _event) {
         // TODO(anand): Fix the FrameworkInfo argument.
         final SchedulerDriverAdaptorMesos schedulerDriver = new SchedulerDriverAdaptorMesos(mesos, null);
 
+        org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(_event);
+
         LOGGER.info("Received event: {}", event);
+
         switch (event.getType()) {
             case SUBSCRIBED: {
-                org.apache.mesos.v1.Protos.FrameworkID frameworkId = event.getSubscribed().getFrameworkId();
+                org.apache.mesos.Protos.FrameworkID frameworkId = event.getSubscribed().getFrameworkId();
                 // Trigger reconcile
                 // Change state to SUBSCRIBED
 
@@ -46,48 +49,45 @@ public class V1SchedulerImpl implements Scheduler {
             }
 
             case OFFERS: {
-                wrappedScheduler.resourceOffers(schedulerDriver, Devolver.devolve(event.getOffers()));
+                wrappedScheduler.resourceOffers(schedulerDriver, event.getOffers().getOffersList());
                 break;
             }
 
             case RESCIND: {
-                wrappedScheduler.offerRescinded(schedulerDriver, Devolver.devolve(event.getRescind().getOfferId()));
+                wrappedScheduler.offerRescinded(schedulerDriver, event.getRescind().getOfferId());
                 break;
             }
 
             case UPDATE: {
-                wrappedScheduler.statusUpdate(schedulerDriver, Devolver.devolve(event.getUpdate().getStatus()));
+                wrappedScheduler.statusUpdate(schedulerDriver, event.getUpdate().getStatus());
                 break;
             }
 
             case MESSAGE: {
-                final Protos.Event.Message message = event.getMessage();
                 wrappedScheduler.frameworkMessage(
                         schedulerDriver,
-                        Devolver.devolve(message.getExecutorId()),
-                        Devolver.devolve(message.getAgentId()),
-                        message.getData().toByteArray());
+                        event.getMessage().getExecutorId(),
+                        event.getMessage().getSlaveId(),
+                        event.getMessage().getData().toByteArray());
                 break;
             }
 
             case FAILURE: {
-                final Protos.Event.Failure failure = event.getFailure();
-                if (failure.hasAgentId() && failure.hasExecutorId()) {
+                final org.apache.mesos.scheduler.Protos.Event.Failure failure = event.getFailure();
+                if (failure.hasSlaveId() && failure.hasExecutorId()) {
                     wrappedScheduler.executorLost(
                             schedulerDriver,
-                            Devolver.devolve(failure.getExecutorId()),
-                            Devolver.devolve(failure.getAgentId()),
+                            failure.getExecutorId(),
+                            failure.getSlaveId(),
                             failure.getStatus());
                 } else {
-                    wrappedScheduler.slaveLost(
-                            schedulerDriver,
-                            Devolver.devolve(failure.getAgentId()));
+                    wrappedScheduler.slaveLost(schedulerDriver, failure.getSlaveId());
                 }
                 break;
             }
 
             case ERROR: {
-                final Protos.Event.Error error = event.getError();
+                final org.apache.mesos.scheduler.Protos.Event.Error error = event.getError();
                 wrappedScheduler.error(schedulerDriver, error.getMessage());
                 break;
             }
