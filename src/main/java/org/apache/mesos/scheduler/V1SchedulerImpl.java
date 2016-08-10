@@ -32,7 +32,7 @@ public class V1SchedulerImpl implements Scheduler {
     @Override
     public void received(Mesos mesos, Protos.Event _event) {
         // TODO(anand): Fix the FrameworkInfo argument.
-        final SchedulerDriverAdaptorMesos schedulerDriver = new SchedulerDriverAdaptorMesos(mesos, null);
+        final MesosToSchedulerDriverAdapter schedulerDriver = new MesosToSchedulerDriverAdapter(mesos, null);
 
         org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(_event);
 
