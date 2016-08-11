@@ -7,6 +7,8 @@ import org.apache.mesos.v1.scheduler.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * V1 HTTP Scheduler Impl.
  */
@@ -14,6 +16,8 @@ public class V1SchedulerImpl implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(V1SchedulerImpl.class);
 
     private org.apache.mesos.Scheduler wrappedScheduler;
+    private AtomicBoolean registered = new AtomicBoolean();
+    private org.apache.mesos.Protos.FrameworkID frameworkId;
 
     public V1SchedulerImpl(org.apache.mesos.Scheduler wrappedScheduler) {
         this.wrappedScheduler = wrappedScheduler;
@@ -32,15 +36,21 @@ public class V1SchedulerImpl implements Scheduler {
     @Override
     public void received(Mesos mesos, Protos.Event _event) {
         // TODO(anand): Fix the FrameworkInfo argument.
-        final MesosToSchedulerDriverAdapter schedulerDriver = new MesosToSchedulerDriverAdapter(mesos, null);
-
+        final MesosToSchedulerDriverAdapter schedulerDriver = new MesosToSchedulerDriverAdapter(mesos, frameworkId);
         org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(_event);
-
         LOGGER.info("Received event: {}", event);
 
         switch (event.getType()) {
             case SUBSCRIBED: {
-                org.apache.mesos.Protos.FrameworkID frameworkId = event.getSubscribed().getFrameworkId();
+                this.frameworkId = event.getSubscribed().getFrameworkId();
+                schedulerDriver.setFrameworkId(frameworkId);
+                if (!registered.get()) {
+                    registered.set(true);
+                    wrappedScheduler.registered(schedulerDriver, frameworkId, null /* MasterInfo */);
+                } else {
+                    // Invoke re-registered
+                    wrappedScheduler.reregistered(schedulerDriver, null /* MasterInfo */);
+                }
                 // Trigger reconcile
                 // Change state to SUBSCRIBED
 
@@ -107,5 +117,9 @@ public class V1SchedulerImpl implements Scheduler {
                 break;
             }
         }
+    }
+
+    public org.apache.mesos.Scheduler getWrappedScheduler() {
+        return wrappedScheduler;
     }
 }
