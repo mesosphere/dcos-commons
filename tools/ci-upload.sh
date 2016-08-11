@@ -116,7 +116,7 @@ echo "Uploaded custom universe:"
 echo "$UNIVERSE_ZIP_URL"
 echo "#####"
 # custom-universes.txt (used by dcos-tests):
-if [ -n "$CUSTOM_UNIVERSES_PATH"]; then
+if [ -n "$CUSTOM_UNIVERSES_PATH" ]; then
     echo "stub $UNIVERSE_ZIP_URL" > $CUSTOM_UNIVERSES_PATH
 fi
 # stub-universe.properties (used by CI):
