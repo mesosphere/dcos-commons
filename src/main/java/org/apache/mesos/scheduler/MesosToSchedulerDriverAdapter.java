@@ -10,6 +10,8 @@ import org.apache.mesos.v1.scheduler.JNIMesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Scheduler;
 import org.apache.mesos.v1.scheduler.V0Mesos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +21,8 @@ import java.util.List;
  * Adaptor class.
  */
 public class MesosToSchedulerDriverAdapter implements SchedulerDriver, Mesos {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MesosToSchedulerDriverAdapter.class);
+
     private Mesos mesos;
     private Scheduler scheduler;
     private org.apache.mesos.Protos.FrameworkInfo frameworkInfo;
@@ -68,6 +72,8 @@ public class MesosToSchedulerDriverAdapter implements SchedulerDriver, Mesos {
         if (mesosApi == null) {
             mesosApi = "V0";
         }
+
+        LOGGER.info("Using Mesos API version: {}", mesosApi);
 
         if (mesosApi.equals("V0")){
             if (credential == null) {
