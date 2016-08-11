@@ -28,6 +28,10 @@ public class Devolver {
         return devolve(frameworkInfo, org.apache.mesos.Protos.FrameworkInfo.newBuilder());
     }
 
+    public static org.apache.mesos.Protos.FrameworkID devolve(Protos.FrameworkID frameworkId) {
+        return devolve(frameworkId, org.apache.mesos.Protos.FrameworkID.newBuilder());
+    }
+
     public static org.apache.mesos.scheduler.Protos.Event devolve(org.apache.mesos.v1.scheduler.Protos.Event event) {
         return devolve(event, org.apache.mesos.scheduler.Protos.Event.newBuilder());
     }

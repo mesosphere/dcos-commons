@@ -64,7 +64,10 @@ public class SchedulerDriverFactory {
     return createInternal(scheduler, frameworkInfo, masterUrl, credential);
   }
 
-  public Credential getCredential(Scheduler scheduler, FrameworkInfo frameworkInfo, String masterUrl, byte[] credentialSecret) {
+  public Credential getCredential(
+          Scheduler scheduler,
+          FrameworkInfo frameworkInfo, String masterUrl,
+          byte[] credentialSecret) {
     Credential credential;
     if (credentialSecret != null && credentialSecret.length > 0) {
       // User has manually provided a Secret. Provide a Credential with Principal + Secret.
