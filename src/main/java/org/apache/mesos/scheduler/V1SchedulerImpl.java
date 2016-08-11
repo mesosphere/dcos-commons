@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler;
 
 import org.apache.mesos.protobuf.Devolver;
+import org.apache.mesos.protobuf.Evolver;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
 import org.apache.mesos.v1.scheduler.Scheduler;
@@ -18,14 +19,24 @@ public class V1SchedulerImpl implements Scheduler {
     private org.apache.mesos.Scheduler wrappedScheduler;
     private AtomicBoolean registered = new AtomicBoolean();
     private org.apache.mesos.Protos.FrameworkID frameworkId;
+    private org.apache.mesos.Protos.FrameworkInfo frameworkInfo;
 
-    public V1SchedulerImpl(org.apache.mesos.Scheduler wrappedScheduler) {
+    public V1SchedulerImpl(org.apache.mesos.Scheduler wrappedScheduler,
+                           org.apache.mesos.Protos.FrameworkInfo frameworkInfo) {
         this.wrappedScheduler = wrappedScheduler;
+        this.frameworkInfo = frameworkInfo;
     }
 
     @Override
     public void connected(Mesos mesos) {
         LOGGER.info("Connected!");
+        Protos.Call.Builder callBuilder = Protos.Call.newBuilder()
+                .setType(Protos.Call.Type.SUBSCRIBE)
+                .setSubscribe(Protos.Call.Subscribe.newBuilder()
+                        .setFrameworkInfo(Evolver.evolve(frameworkInfo))
+                        .build());
+
+        mesos.send(callBuilder.build());
     }
 
     @Override
@@ -69,7 +80,21 @@ public class V1SchedulerImpl implements Scheduler {
             }
 
             case UPDATE: {
-                wrappedScheduler.statusUpdate(schedulerDriver, event.getUpdate().getStatus());
+                final org.apache.mesos.v1.Protos.TaskStatus v1Status = _event.getUpdate().getStatus();
+                final org.apache.mesos.v1.Protos.AgentID agentId = v1Status.getAgentId();
+                final org.apache.mesos.v1.Protos.TaskID taskId = v1Status.getTaskId();
+                final org.apache.mesos.Protos.TaskStatus status = event.getUpdate().getStatus();
+                wrappedScheduler.statusUpdate(schedulerDriver, status);
+                mesos.send(Protos.Call.newBuilder()
+                        .setType(Protos.Call.Type.ACKNOWLEDGE)
+                        .setFrameworkId(Evolver.evolve(frameworkId))
+                        .setAcknowledge(Protos.Call.Acknowledge.newBuilder()
+                                .setAgentId(agentId)
+                                .setTaskId(taskId)
+                                .setUuid(status.getUuid())
+                                .build())
+                        .build());
+
                 break;
             }
 
