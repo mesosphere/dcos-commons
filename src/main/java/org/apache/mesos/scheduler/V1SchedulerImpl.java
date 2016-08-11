@@ -8,6 +8,8 @@ import org.apache.mesos.v1.scheduler.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -16,10 +18,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class V1SchedulerImpl implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(V1SchedulerImpl.class);
 
+    // Exponential back-off between consecutive subscribe calls.
+    private static final int MULTIPLIER = 2;
+    private static final long SEED_BACKOFF_MS = 2000;
+    private static final long MAX_BACKOFF_MS = 30000;
+
     private org.apache.mesos.Scheduler wrappedScheduler;
     private AtomicBoolean registered = new AtomicBoolean();
     private org.apache.mesos.Protos.FrameworkID frameworkId;
     private org.apache.mesos.Protos.FrameworkInfo frameworkInfo;
+
+    private Timer subscriberTimer;
+    private long backOffMs;
 
     public V1SchedulerImpl(org.apache.mesos.Scheduler wrappedScheduler,
                            org.apache.mesos.Protos.FrameworkInfo frameworkInfo) {
@@ -30,20 +40,62 @@ public class V1SchedulerImpl implements Scheduler {
     @Override
     public void connected(Mesos mesos) {
         LOGGER.info("Connected!");
-        Protos.Call.Builder callBuilder = Protos.Call.newBuilder()
-                .setType(Protos.Call.Type.SUBSCRIBE)
-                .setSubscribe(Protos.Call.Subscribe.newBuilder()
-                        .setFrameworkInfo(Evolver.evolve(frameworkInfo))
-                        .build());
-        if (frameworkInfo.hasId()) {
-            callBuilder.setFrameworkId(Evolver.evolve(frameworkInfo.getId()));
+        performReliableSubscription(mesos);
+    }
+
+    public class SubscriberTask extends TimerTask {
+        private Mesos mesos;
+
+        public SubscriberTask(Mesos mesos) {
+            this.mesos = mesos;
         }
-        mesos.send(callBuilder.build());
+
+        @Override
+        public void run() {
+            LOGGER.info("Sending SUBSCRIBE call");
+            Protos.Call.Builder callBuilder = Protos.Call.newBuilder()
+                    .setType(Protos.Call.Type.SUBSCRIBE)
+                    .setSubscribe(Protos.Call.Subscribe.newBuilder()
+                            .setFrameworkInfo(Evolver.evolve(frameworkInfo))
+                            .build());
+            if (frameworkInfo.hasId()) {
+                callBuilder.setFrameworkId(Evolver.evolve(frameworkInfo.getId()));
+            }
+            mesos.send(callBuilder.build());
+            long nextBackoff = MULTIPLIER * backOffMs;
+            backOffMs = Math.min(nextBackoff > 0 ? nextBackoff : 0, MAX_BACKOFF_MS);
+            LOGGER.info("Backing off for: {}ms", backOffMs);
+            subscriberTimer.schedule(new SubscriberTask(mesos), backOffMs);
+        }
+    }
+
+    private void performReliableSubscription(Mesos mesos) {
+        // If timer is not running, initialize it.
+        if (subscriberTimer == null) {
+            initSubscriber();
+            subscriberTimer.schedule(new SubscriberTask(mesos), backOffMs);
+        }
+    }
+
+    private void initSubscriber() {
+        LOGGER.info("Initializing reliable subscriber...");
+        backOffMs = SEED_BACKOFF_MS;
+        subscriberTimer = new Timer();
+    }
+
+    private void cancelSubscriber() {
+        LOGGER.info("Cancelling subscriber...");
+        if (subscriberTimer != null) {
+            subscriberTimer.cancel();
+            subscriberTimer.purge();
+        }
+        subscriberTimer = null;
     }
 
     @Override
     public void disconnected(Mesos mesos) {
         LOGGER.info("Disconnected!");
+        cancelSubscriber();
     }
 
     @Override
@@ -64,8 +116,8 @@ public class V1SchedulerImpl implements Scheduler {
                     // Invoke re-registered
                     wrappedScheduler.reregistered(schedulerDriver, null /* MasterInfo */);
                 }
-                // Trigger reconcile
-                // Change state to SUBSCRIBED
+
+                cancelSubscriber();
 
                 LOGGER.info("Subscribed with ID " + frameworkId);
                 break;
