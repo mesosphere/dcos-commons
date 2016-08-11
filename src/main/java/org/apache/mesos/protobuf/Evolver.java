@@ -27,6 +27,10 @@ public class Evolver {
         return evolve(frameworkInfo, org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder());
     }
 
+    public static org.apache.mesos.v1.Protos.FrameworkID evolve(Protos.FrameworkID frameworkID) {
+        return evolve(frameworkID, org.apache.mesos.v1.Protos.FrameworkID.newBuilder());
+    }
+
     public static org.apache.mesos.v1.Protos.Credential evolve(Protos.Credential credential) {
         return evolve(credential, org.apache.mesos.v1.Protos.Credential.newBuilder());
     }
