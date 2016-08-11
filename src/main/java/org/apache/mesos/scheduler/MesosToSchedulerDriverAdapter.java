@@ -1,15 +1,15 @@
 package org.apache.mesos.scheduler;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.protobuf.ByteString;
-
+import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.protobuf.Evolver;
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.scheduler.Protos.Call;
+import org.apache.mesos.v1.scheduler.JNIMesos;
 import org.apache.mesos.v1.scheduler.Mesos;
-
+import org.apache.mesos.v1.scheduler.Scheduler;
+import org.apache.mesos.v1.scheduler.V0Mesos;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,13 +18,37 @@ import java.util.List;
 /**
  * Adaptor class.
  */
-public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
+public class MesosToSchedulerDriverAdapter implements SchedulerDriver, Mesos {
     private Mesos mesos;
-    private FrameworkID frameworkId;
+    private Scheduler scheduler;
+    private org.apache.mesos.Protos.FrameworkInfo frameworkInfo;
+    private String master;
+    private org.apache.mesos.Protos.Credential credential;
+    private org.apache.mesos.Protos.FrameworkID frameworkId;
 
-    public SchedulerDriverAdaptorMesos(Mesos mesos, FrameworkID frameworkId) {
+    public MesosToSchedulerDriverAdapter(Mesos mesos, org.apache.mesos.Protos.FrameworkID frameworkID) {
         this.mesos = mesos;
-        this.frameworkId = frameworkId;
+        this.frameworkId = frameworkID;
+    }
+
+    public MesosToSchedulerDriverAdapter(
+            Scheduler scheduler,
+            org.apache.mesos.Protos.FrameworkInfo frameworkInfo,
+            String master) {
+        this.scheduler = scheduler;
+        this.frameworkInfo = frameworkInfo;
+        this.master = master;
+    }
+
+    public MesosToSchedulerDriverAdapter(
+            Scheduler scheduler,
+            org.apache.mesos.Protos.FrameworkInfo frameworkInfo,
+            String master,
+            org.apache.mesos.Protos.Credential credential) {
+        this.scheduler = scheduler;
+        this.frameworkInfo = frameworkInfo;
+        this.master = master;
+        this.credential = credential;
     }
 
     @Override
@@ -39,37 +63,55 @@ public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
 
     @Override
     public org.apache.mesos.Protos.Status start() {
-        // TODO(anand): Initialize Mesos here.
-        return null;
+        // TODO(mohit): Prevent more than 1x start() invocation
+        String mesosApi = System.getenv("MESOS_API");
+        if (mesosApi == null) {
+            mesosApi = "V0";
+        }
+
+        if (mesosApi.equals("V0")){
+            if (credential == null) {
+                this.mesos = new V0Mesos(scheduler, Evolver.evolve(frameworkInfo), master);
+            } else {
+                this.mesos = new V0Mesos(scheduler, Evolver.evolve(frameworkInfo), master, Evolver.evolve(credential));
+            }
+        } else if (mesosApi.equals("V1")) {
+            if (credential == null) {
+                this.mesos = new JNIMesos(scheduler, master);
+            } else {
+                this.mesos = new JNIMesos(scheduler, master, Evolver.evolve(credential));
+            }
+        } else {
+            throw new IllegalArgumentException("Unsupported API version: " + mesosApi);
+        }
+
+        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
     }
 
     @Override
     public org.apache.mesos.Protos.Status stop(boolean failover) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public org.apache.mesos.Protos.Status stop() {
         // TODO(anand): Fix the return?
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public org.apache.mesos.Protos.Status abort() {
-        // TODO(anand): Fix the return?
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public org.apache.mesos.Protos.Status join() {
-        // TODO(anand): Fix the return?
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public org.apache.mesos.Protos.Status run() {
-        // TODO(anand): Fix the return?
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -291,5 +333,10 @@ public class SchedulerDriverAdaptorMesos implements SchedulerDriver, Mesos {
                 .build()));
 
         return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+    }
+
+    @JsonProperty("frameworkId")
+    public void setFrameworkId(org.apache.mesos.Protos.FrameworkID frameworkId) {
+        this.frameworkId = frameworkId;
     }
 }
