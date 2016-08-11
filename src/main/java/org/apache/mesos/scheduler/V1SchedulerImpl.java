@@ -35,7 +35,9 @@ public class V1SchedulerImpl implements Scheduler {
                 .setSubscribe(Protos.Call.Subscribe.newBuilder()
                         .setFrameworkInfo(Evolver.evolve(frameworkInfo))
                         .build());
-
+        if (frameworkInfo.hasId()) {
+            callBuilder.setFrameworkId(Evolver.evolve(frameworkInfo.getId()));
+        }
         mesos.send(callBuilder.build());
     }
 
