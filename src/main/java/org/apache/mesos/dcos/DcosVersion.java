@@ -25,6 +25,7 @@ public class DcosVersion {
     private static final String BOOTSTRAP_ID_KEY = "bootstrap-id";
     private static final String DCOS_IMAGE_COMMIT = "dcos-image-commit";
     private static final String VERSION_KEY = "version";
+    private static final String DEV_VERSION_SUFFIX = "-dev";
 
     private final String bootstrapId;
     private final String dcosImageCommit;
@@ -52,5 +53,27 @@ public class DcosVersion {
 
     public String getVersion() {
         return version;
+    }
+
+    public int getVersionFirstElement() throws NumberFormatException {
+        return Integer.parseInt(getVersionElement(version, 0));
+    }
+
+    public int getVersionSecondElement() throws NumberFormatException {
+        String secondElem = getVersionElement(version, 1);
+        // Trim "-dev" suffix if present:
+        if (secondElem.endsWith(DEV_VERSION_SUFFIX)) {
+            secondElem = secondElem.substring(0, secondElem.length() - DEV_VERSION_SUFFIX.length());
+        }
+        return Integer.parseInt(secondElem);
+    }
+
+    private static String getVersionElement(String version, int index) {
+        String[] elements = version.split("\\.");
+        if (elements.length <= index) {
+            throw new NumberFormatException(String.format(
+                    "Expected at least %d dot-delimited element(s): %s", index, version));
+        }
+        return elements[index];
     }
 }

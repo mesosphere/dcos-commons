@@ -14,7 +14,7 @@ import java.net.URISyntaxException;
 public class DcosClusterTest {
     private MockDcosCluster mockDcosCluster;
     private DcosCluster dcosCluster;
-    private static final String TEST_VERSION = "test-version";
+    private static final String TEST_VERSION = "1.8-dev";
 
     @Before
     public void beforeEach() throws URISyntaxException {
@@ -34,6 +34,8 @@ public class DcosClusterTest {
         Assert.assertEquals(MockDcosCluster.TEST_BOOTSTRAP_ID, dcosVersion.getBootstrapId());
         Assert.assertEquals(MockDcosCluster.TEST_DCOS_IMAGE_COMMIT, dcosVersion.getDcosImageCommit());
         Assert.assertEquals(TEST_VERSION, dcosVersion.getVersion());
+        Assert.assertEquals(1, dcosVersion.getVersionFirstElement());
+        Assert.assertEquals(8, dcosVersion.getVersionSecondElement());
     }
 
     @Test
