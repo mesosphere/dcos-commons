@@ -22,6 +22,36 @@ import org.json.JSONObject;
  *     }
  */
 public class DcosVersion {
+
+    /**
+     * A broken-down representation of a version string's elements.
+     */
+    public static class Elements {
+        private final String version;
+
+        private Elements(String version) {
+            this.version = version;
+        }
+
+        public int getFirstElement() throws NumberFormatException {
+            return Integer.parseInt(getVersionElement(version, 0));
+        }
+
+        public int getSecondElement() throws NumberFormatException {
+            String secondElem = getVersionElement(version, 1);
+            // Trim "-dev" suffix if present:
+            if (secondElem.endsWith(DEV_VERSION_SUFFIX)) {
+                secondElem = secondElem.substring(0, secondElem.length() - DEV_VERSION_SUFFIX.length());
+            }
+            return Integer.parseInt(secondElem);
+        }
+
+        @Override
+        public String toString() {
+            return version;
+        }
+    }
+
     private static final String BOOTSTRAP_ID_KEY = "bootstrap-id";
     private static final String DCOS_IMAGE_COMMIT = "dcos-image-commit";
     private static final String VERSION_KEY = "version";
@@ -55,17 +85,8 @@ public class DcosVersion {
         return version;
     }
 
-    public int getVersionFirstElement() throws NumberFormatException {
-        return Integer.parseInt(getVersionElement(version, 0));
-    }
-
-    public int getVersionSecondElement() throws NumberFormatException {
-        String secondElem = getVersionElement(version, 1);
-        // Trim "-dev" suffix if present:
-        if (secondElem.endsWith(DEV_VERSION_SUFFIX)) {
-            secondElem = secondElem.substring(0, secondElem.length() - DEV_VERSION_SUFFIX.length());
-        }
-        return Integer.parseInt(secondElem);
+    public Elements getElements() {
+        return new Elements(version);
     }
 
     private static String getVersionElement(String version, int index) {

@@ -19,13 +19,13 @@ public class Capabilities {
     }
 
     public boolean supportsNamedVips() throws IOException, URISyntaxException {
-        DcosVersion dcosVersion = dcosCluster.getDcosVersion();
+        DcosVersion.Elements versionElements = dcosCluster.getDcosVersion().getElements();
         try {
             // Named Vips are supported by DC/OS 1.8 upwards.
-            if (dcosVersion.getVersionFirstElement() == 1) {
-                return dcosVersion.getVersionSecondElement() >= 8;
+            if (versionElements.getFirstElement() == 1) {
+                return versionElements.getSecondElement() >= 8;
             }
-            return dcosVersion.getVersionFirstElement() > 1;
+            return versionElements.getFirstElement() > 1;
         } catch (NumberFormatException ex) {
             // incorrect version string. Todo(joerg84): Consider throwing an exception here.
             LOGGER.warn("Unable to parse version string for Named Vip", ex);
