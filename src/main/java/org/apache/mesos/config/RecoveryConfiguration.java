@@ -21,7 +21,7 @@ public class RecoveryConfiguration {
         if (gracePeriodMins != that.gracePeriodMins) {
             return false;
         }
-        if (repairDelaySecs != that.repairDelaySecs) {
+        if (recoverDelaySecs != that.recoverDelaySecs) {
             return false;
         }
         return enableReplacement == that.enableReplacement;
@@ -31,15 +31,15 @@ public class RecoveryConfiguration {
     @Override
     public int hashCode() {
         int result = gracePeriodMins;
-        result = 31 * result + repairDelaySecs;
+        result = 31 * result + recoverDelaySecs;
         result = 31 * result + (enableReplacement ? 1 : 0);
         return result;
     }
 
-    @JsonProperty("repair_in_place_grace_period_mins")
+    @JsonProperty("recover_in_place_grace_period_mins")
     private int gracePeriodMins;
-    @JsonProperty("min_delay_between_repairs_secs")
-    private int repairDelaySecs;
+    @JsonProperty("min_delay_between_recoveries_secs")
+    private int recoverDelaySecs;
     @JsonProperty("enable_replacement")
     private boolean enableReplacement;
 
@@ -47,11 +47,11 @@ public class RecoveryConfiguration {
 
     @JsonCreator
     public RecoveryConfiguration(
-            @JsonProperty("repair_in_place_grace_period_mins") int gracePeriodMins,
-            @JsonProperty("min_delay_between_repairs_secs") int repairDelaySecs,
+            @JsonProperty("recover_in_place_grace_period_mins") int gracePeriodMins,
+            @JsonProperty("min_delay_between_recoveries_secs") int recoverDelaySecs,
             @JsonProperty("enable_replacement") boolean enableReplacement) {
         this.gracePeriodMins = gracePeriodMins;
-        this.repairDelaySecs = repairDelaySecs;
+        this.recoverDelaySecs = recoverDelaySecs;
         this.enableReplacement = enableReplacement;
     }
 
@@ -65,19 +65,19 @@ public class RecoveryConfiguration {
     }
 
     public int getRepairDelaySecs() {
-        return repairDelaySecs;
+        return recoverDelaySecs;
     }
 
-    @JsonProperty("min_delay_between_repairs_secs")
-    public void setRepairDelaySecs(int repairDelaySecs) {
-        this.repairDelaySecs = repairDelaySecs;
+    @JsonProperty("min_delay_between_recoveries_secs")
+    public void setRepairDelaySecs(int recoverDelaySecs) {
+        this.recoverDelaySecs = recoverDelaySecs;
     }
 
     public int getGracePeriodMins() {
         return gracePeriodMins;
     }
 
-    @JsonProperty("repair_in_place_grace_period_mins")
+    @JsonProperty("recover_in_place_grace_period_mins")
     public void setGracePeriodMins(int gracePeriodMins) {
         this.gracePeriodMins = gracePeriodMins;
     }
@@ -86,7 +86,7 @@ public class RecoveryConfiguration {
     public String toString() {
         return "RecoveryConfiguration{" +
                 "gracePeriodMins=" + gracePeriodMins +
-                ", repairDelaySecs=" + repairDelaySecs +
+                ", recoverDelaySecs=" + recoverDelaySecs +
                 ", enableReplacement=" + enableReplacement +
                 '}';
     }
