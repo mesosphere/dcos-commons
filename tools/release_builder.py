@@ -144,8 +144,8 @@ class UniverseReleaseBuilder(object):
         ret = os.system('aws s3 ls --recursive {}'.format(self.__release_artifact_s3_dir))
         if ret == 0:
             raise Exception('Release artifact destination already exists. ' +
-                            'Refusing to continue until destination has been manually removed: ' +
-                            'aws s3 rm --dryrun --recursive {}'.format(self.__release_artifact_s3_dir))
+                            'Refusing to continue until destination has been manually removed:\n' +
+                            'Do this: aws s3 rm --dryrun --recursive {}'.format(self.__release_artifact_s3_dir))
         elif ret > 256:
             raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
         print('Destination {} doesnt exist, proceeding...'.format(self.__release_artifact_s3_dir))
