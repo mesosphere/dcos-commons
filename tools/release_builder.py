@@ -29,7 +29,7 @@ class UniverseReleaseBuilder(object):
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
-                            'Expected filename of form 'stub-universe-[pkgname].zip'')
+                            'Expected filename of form \'stub-universe-[pkgname].zip\'')
         self.__pkg_name = name_match.group(1)
         self.__pkg_version = package_version
         self.__stub_universe_url = stub_universe_url
@@ -147,7 +147,7 @@ class UniverseReleaseBuilder(object):
                             'Refusing to continue until destination has been manually removed: ' +
                             'aws s3 rm --dryrun --recursive {}'.format(self.__release_artifact_s3_dir))
         elif ret > 256:
-            raise Exception('Failed to check artifact destination presence (code {}). Exiting early.'.format(ret))
+            raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
         print('Destination {} doesnt exist, proceeding...'.format(self.__release_artifact_s3_dir))
 
         for i in range(len(original_artifact_urls)):
