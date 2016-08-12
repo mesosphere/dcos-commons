@@ -177,7 +177,7 @@ class UniverseReleaseBuilder(object):
 
 
     def __create_universe_branch(self, scratchdir, pkgdir):
-        branch = 'release_{}_{}_{}'.format(
+        branch = 'automated/release_{}_{}_{}'.format(
             self.__pkg_name, self.__pkg_version, base64.b64encode(os.urandom(4)).decode('utf-8').rstrip('='))
         # check out the repo, create a new branch:
         cmds = [
