@@ -4,9 +4,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import org.apache.mesos.v1.Protos;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Utility class for devolving vX protos to v0.
  */
