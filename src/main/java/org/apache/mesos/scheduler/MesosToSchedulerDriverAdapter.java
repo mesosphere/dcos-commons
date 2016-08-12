@@ -66,6 +66,9 @@ public class MesosToSchedulerDriverAdapter implements
         performReliableSubscription(mesos);
     }
 
+    /**
+     * Task that performs Subscription.
+     */
     public class SubscriberTask extends TimerTask {
         private Mesos mesos;
 
@@ -122,15 +125,15 @@ public class MesosToSchedulerDriverAdapter implements
     }
 
     @Override
-    public void received(Mesos mesos, Protos.Event _event) {
-        org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(_event);
+    public void received(Mesos mesos, Protos.Event v1Event) {
+        org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(v1Event);
         LOGGER.info("Received event: {}", event);
 
         switch (event.getType()) {
             case SUBSCRIBED: {
                 cancelSubscriber();
                 frameworkInfo = org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder(frameworkInfo)
-                        .setId(_event.getSubscribed().getFrameworkId())
+                        .setId(v1Event.getSubscribed().getFrameworkId())
                         .build();
 
                 if (!registered) {
@@ -166,7 +169,7 @@ public class MesosToSchedulerDriverAdapter implements
                 break;
 
             case UPDATE: {
-                final org.apache.mesos.v1.Protos.TaskStatus v1Status = _event.getUpdate().getStatus();
+                final org.apache.mesos.v1.Protos.TaskStatus v1Status = v1Event.getUpdate().getStatus();
 
                 wrappedScheduler.statusUpdate(this, event.getUpdate().getStatus());
 
