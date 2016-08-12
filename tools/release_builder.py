@@ -22,11 +22,15 @@ except ImportError:
 
 class UniverseReleaseBuilder(object):
 
-    def __init__(self, package_name, package_version, stub_universe_url,
+    def __init__(self, package_version, stub_universe_url,
                  min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.7'),
                  upload_dryrun = False,
                  push_dryrun = False):
-        self.__pkg_name = package_name
+        name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
+        if not name_match:
+            raise Exception('Unable to extract package name from stub universe URL. ' +
+                            'Expected filename of form 'stub-universe-[pkgname].zip'')
+        self.__pkg_name = name_match.group(1)
         self.__pkg_version = package_version
         self.__stub_universe_url = stub_universe_url
         self.__min_dcos_release_version = min_dcos_release_version
@@ -139,7 +143,9 @@ class UniverseReleaseBuilder(object):
         # manually delete the destination directory first.
         ret = os.system('aws s3 ls --recursive {}'.format(self.__release_artifact_s3_dir))
         if ret == 0:
-            raise Exception('Release artifact destination already exists. Refusing to continue until destination has been manually removed: aws s3 rm --dryrun --recursive {}'.format(self.__release_artifact_s3_dir))
+            raise Exception('Release artifact destination already exists. ' +
+                            'Refusing to continue until destination has been manually removed: ' +
+                            'aws s3 rm --dryrun --recursive {}'.format(self.__release_artifact_s3_dir))
         elif ret > 256:
             raise Exception('Failed to check artifact destination presence (code {}). Exiting early.'.format(ret))
         print('Destination {} doesnt exist, proceeding...'.format(self.__release_artifact_s3_dir))
@@ -297,8 +303,8 @@ class UniverseReleaseBuilder(object):
 
 
 def print_help(argv):
-    print('Syntax: {} <package-name> <package-version> <stub-universe-url>'.format(argv[0]))
-    print('  Example: $ $0 kafka 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip'.format(argv[0]))
+    print('Syntax: {} <package-version> <stub-universe-url>'.format(argv[0]))
+    print('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip'.format(argv[0]))
     print('Required credentials in env:')
     print('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
     print('- Github (Personal Access Token): GITHUB_TOKEN')
@@ -308,22 +314,19 @@ def print_help(argv):
 
 
 def main(argv):
-    if len(argv) < 4:
+    if len(argv) < 3:
         print_help(argv)
         return 1
-    # the package name:
-    package_name = argv[1]
     # the package version:
-    package_version = argv[2]
+    package_version = argv[1]
     # url where the stub universe is located:
-    stub_universe_url = argv[3].rstrip('/')
+    stub_universe_url = argv[2].rstrip('/')
     print('''###
-Package:      {} (release version: {})
-Universe URL: {}
-###'''.format(package_name, package_version, stub_universe_url))
+Universe URL:    {}
+Release Version: {}
+###'''.format(package_version, stub_universe_url))
 
-    builder = UniverseReleaseBuilder(
-        package_name, package_version, stub_universe_url)
+    builder = UniverseReleaseBuilder(package_version, stub_universe_url)
     response = builder.release_zip()
     if response.status < 200 or response.status >= 300:
         print('Got {} response to PR creation request:'.format(response.status))
@@ -332,7 +335,7 @@ Universe URL: {}
         print('You will need to manually create the PR against the branch that was pushed above.')
         return -1
     print('---')
-    print('Created pull request for {} {}:'.format(package_name, package_version))
+    print('Created pull request for version {} (PTAL):'.format(package_version))
     # print the PR location as the last line of stdout (may be used upstream):
     print(json.loads(response.read())['html_url'])
     return 0
