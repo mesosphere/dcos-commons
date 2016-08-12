@@ -190,6 +190,8 @@ class UniverseReleaseBuilder(object):
             'cd {}'.format(scratchdir),
             'git clone --depth 1 --branch version-3.x git@github.com:mesosphere/universe',
             'cd universe',
+            'git config --local user.email jenkins@mesosphere.com',
+            'git config --local user.name release_builder.py',
             'git checkout -b {}'.format(branch)]
         ret = os.system(' && '.join(cmds))
         if not ret == 0:
