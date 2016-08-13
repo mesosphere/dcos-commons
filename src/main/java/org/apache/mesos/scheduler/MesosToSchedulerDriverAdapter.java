@@ -239,28 +239,29 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public org.apache.mesos.Protos.Status start() {
-        // TODO(mohit): Prevent more than 1x start() invocation.
-        String mesosApi = System.getenv("MESOS_API_VERSION");
-        if (mesosApi == null) {
-            mesosApi = "V0";
+        // TODO(mohit): Prevent more than 1x `start()` invocation. Also, ensure that this method is threadsafe!
+
+        String version = System.getenv("MESOS_API_VERSION");
+        if (version == null) {
+            version = "V0";
         }
 
-        LOGGER.info("Using Mesos API version: {}", mesosApi);
+        LOGGER.info("Using Mesos API version: {}", version);
 
-        if (mesosApi.equals("V0")){
+        if (version.equals("V0")){
             if (credential == null) {
                 this.mesos = new V0Mesos(this, frameworkInfo, master);
             } else {
                 this.mesos = new V0Mesos(this, frameworkInfo, master, credential);
             }
-        } else if (mesosApi.equals("V1")) {
+        } else if (version.equals("V1")) {
             if (credential == null) {
                 this.mesos = new JNIMesos(this, master);
             } else {
                 this.mesos = new JNIMesos(this, master, credential);
             }
         } else {
-            throw new IllegalArgumentException("Unsupported API version: " + mesosApi);
+            throw new IllegalArgumentException("Unsupported API version: " + version);
         }
 
         return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
@@ -287,7 +288,10 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public org.apache.mesos.Protos.Status abort() {
-        this.mesos = null;
+        synchronized (this) {
+            // This should ensure that the underlying native implementation is eventually GC'ed.
+            this.mesos = null;
+        }
 
         return org.apache.mesos.Protos.Status.DRIVER_ABORTED;
     }
