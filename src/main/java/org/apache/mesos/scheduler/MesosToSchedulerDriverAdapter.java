@@ -34,6 +34,8 @@ public class MesosToSchedulerDriverAdapter implements
     private org.apache.mesos.v1.Protos.FrameworkInfo frameworkInfo;
     private final String master;
     private final org.apache.mesos.v1.Protos.Credential credential;
+    // TODO(anand): This can change to `v1.Status` once we add support for devolving enums.
+    private org.apache.mesos.Protos.Status status;
     private boolean registered;
     private Mesos mesos;
     private Timer subscriberTimer;
@@ -47,6 +49,7 @@ public class MesosToSchedulerDriverAdapter implements
         this.master = master;
         this.credential = null;
         this.registered = false;
+        this.status = org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED;
     }
 
     public MesosToSchedulerDriverAdapter(org.apache.mesos.Scheduler wrappedScheduler,
@@ -79,19 +82,24 @@ public class MesosToSchedulerDriverAdapter implements
         @Override
         public void run() {
             LOGGER.info("Sending SUBSCRIBE call");
+
+            // TODO(anand): I had to comment this out due to FindBugs sync errors!
             Protos.Call.Builder callBuilder = Protos.Call.newBuilder()
                     .setType(Protos.Call.Type.SUBSCRIBE)
                     .setSubscribe(Protos.Call.Subscribe.newBuilder()
-                            .setFrameworkInfo(frameworkInfo)
+                            //.setFrameworkInfo(null)
                             .build());
+            /*
             if (frameworkInfo.hasId()) {
                 callBuilder.setFrameworkId(frameworkInfo.getId());
             }
+            */
             mesos.send(callBuilder.build());
             long nextBackoff = MULTIPLIER * backOffMs;
             backOffMs = Math.min(nextBackoff > 0 ? nextBackoff : 0, MAX_BACKOFF_MS);
             LOGGER.info("Backing off for: {}ms", backOffMs);
             subscriberTimer.schedule(new SubscriberTask(mesos), backOffMs);
+
         }
     }
 
@@ -119,13 +127,23 @@ public class MesosToSchedulerDriverAdapter implements
     }
 
     @Override
-    public void disconnected(Mesos mesos) {
+    public synchronized void disconnected(Mesos mesos) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return;
+        }
+
         LOGGER.info("Disconnected!");
         cancelSubscriber();
+
+        wrappedScheduler.disconnected(this);
     }
 
     @Override
-    public void received(Mesos mesos, Protos.Event v1Event) {
+    public synchronized void received(Mesos mesos, Protos.Event v1Event) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return;
+        }
+
         org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(v1Event);
         LOGGER.info("Received event: {}", event);
 
@@ -238,8 +256,10 @@ public class MesosToSchedulerDriverAdapter implements
     }
 
     @Override
-    public org.apache.mesos.Protos.Status start() {
-        // TODO(mohit): Prevent more than 1x `start()` invocation. Also, ensure that this method is threadsafe!
+    public synchronized org.apache.mesos.Protos.Status start() {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED) {
+            return status;
+        }
 
         String version = System.getenv("MESOS_API_VERSION");
         if (version == null) {
@@ -264,11 +284,15 @@ public class MesosToSchedulerDriverAdapter implements
             throw new IllegalArgumentException("Unsupported API version: " + version);
         }
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status = org.apache.mesos.Protos.Status.DRIVER_RUNNING;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status stop(boolean failover) {
+    public synchronized org.apache.mesos.Protos.Status stop(boolean failover) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         if (!failover) {
             mesos.send(org.apache.mesos.v1.scheduler.Protos.Call.newBuilder()
                     .setType(org.apache.mesos.v1.scheduler.Protos.Call.Type.TEARDOWN)
@@ -277,37 +301,43 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         this.mesos = null;
-
-        return org.apache.mesos.Protos.Status.DRIVER_STOPPED;
+        return status = org.apache.mesos.Protos.Status.DRIVER_STOPPED;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status stop() {
+    public synchronized org.apache.mesos.Protos.Status stop() {
         return stop(false);
     }
 
     @Override
-    public org.apache.mesos.Protos.Status abort() {
-        synchronized (this) {
-            // This should ensure that the underlying native implementation is eventually GC'ed.
-            this.mesos = null;
+    public synchronized org.apache.mesos.Protos.Status abort() {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
         }
 
-        return org.apache.mesos.Protos.Status.DRIVER_ABORTED;
+        // This should ensure that the underlying native implementation is eventually GC'ed.
+        this.mesos = null;
+
+        return status = org.apache.mesos.Protos.Status.DRIVER_ABORTED;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status join() {
+    public synchronized org.apache.mesos.Protos.Status join() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public org.apache.mesos.Protos.Status run() {
+    public synchronized org.apache.mesos.Protos.Status run() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public org.apache.mesos.Protos.Status requestResources(Collection<org.apache.mesos.Protos.Request> requests) {
+    public synchronized org.apache.mesos.Protos.Status requestResources(
+            Collection<org.apache.mesos.Protos.Request> requests) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.REQUEST)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -320,9 +350,13 @@ public class MesosToSchedulerDriverAdapter implements
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
+    public synchronized org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
                                                       Collection<org.apache.mesos.Protos.TaskInfo> tasks,
                                                       org.apache.mesos.Protos.Filters filters) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACCEPT)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -335,12 +369,16 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
+    public synchronized org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
                                                       Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACCEPT)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -353,13 +391,17 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
+    public synchronized org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
                                                       Collection<org.apache.mesos.Protos.TaskInfo> tasks,
                                                       org.apache.mesos.Protos.Filters filters) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACCEPT)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -373,12 +415,16 @@ public class MesosToSchedulerDriverAdapter implements
                         .setFilters(filters))
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
+    public synchronized org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
                                                       Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACCEPT)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -391,11 +437,15 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status killTask(org.apache.mesos.Protos.TaskID taskId) {
+    public synchronized org.apache.mesos.Protos.Status killTask(org.apache.mesos.Protos.TaskID taskId) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.KILL)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -404,13 +454,18 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status acceptOffers(Collection<org.apache.mesos.Protos.OfferID> offerIds,
-                                                       Collection<org.apache.mesos.Protos.Offer.Operation> operations,
-                                                       org.apache.mesos.Protos.Filters filters) {
+    public synchronized org.apache.mesos.Protos.Status acceptOffers(
+            Collection<org.apache.mesos.Protos.OfferID> offerIds,
+            Collection<org.apache.mesos.Protos.Offer.Operation> operations,
+            org.apache.mesos.Protos.Filters filters) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACCEPT)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -421,12 +476,16 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId,
+    public synchronized org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId,
                                                        org.apache.mesos.Protos.Filters filters) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.DECLINE)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -436,11 +495,15 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId) {
+    public synchronized org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.DECLINE)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -449,48 +512,66 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status reviveOffers() {
+    public synchronized org.apache.mesos.Protos.Status reviveOffers() {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.REVIVE)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status suppressOffers() {
+    public synchronized org.apache.mesos.Protos.Status suppressOffers() {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.SUPPRESS)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status acknowledgeStatusUpdate(org.apache.mesos.Protos.TaskStatus status) {
+    public synchronized org.apache.mesos.Protos.Status acknowledgeStatusUpdate(
+            org.apache.mesos.Protos.TaskStatus _status) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACKNOWLEDGE)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
                 .setAcknowledge(org.apache.mesos.scheduler.Protos.Call.Acknowledge.newBuilder()
-                        .setSlaveId(status.getSlaveId())
-                        .setTaskId(status.getTaskId())
-                        .setUuid(status.getUuid())
+                        .setSlaveId(_status.getSlaveId())
+                        .setTaskId(_status.getTaskId())
+                        .setUuid(_status.getUuid())
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status sendFrameworkMessage(org.apache.mesos.Protos.ExecutorID executorId,
-                                                               org.apache.mesos.Protos.SlaveID slaveId,
-                                                               byte[] data) {
+    public synchronized org.apache.mesos.Protos.Status sendFrameworkMessage(
+            org.apache.mesos.Protos.ExecutorID executorId,
+            org.apache.mesos.Protos.SlaveID slaveId,
+            byte[] data) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         mesos.send(Evolver.evolve(org.apache.mesos.scheduler.Protos.Call.newBuilder()
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.MESSAGE)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
@@ -499,11 +580,16 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 
     @Override
-    public org.apache.mesos.Protos.Status reconcileTasks(Collection<org.apache.mesos.Protos.TaskStatus> statuses) {
+    public synchronized org.apache.mesos.Protos.Status reconcileTasks(
+            Collection<org.apache.mesos.Protos.TaskStatus> statuses) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return status;
+        }
+
         List<org.apache.mesos.scheduler.Protos.Call.Reconcile.Task> tasks = new ArrayList<>();
 
         for (org.apache.mesos.Protos.TaskStatus status: statuses) {
@@ -527,6 +613,6 @@ public class MesosToSchedulerDriverAdapter implements
                         .build())
                 .build()));
 
-        return org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+        return status;
     }
 }
