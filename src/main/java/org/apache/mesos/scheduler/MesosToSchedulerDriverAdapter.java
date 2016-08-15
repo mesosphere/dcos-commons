@@ -1,23 +1,26 @@
 package org.apache.mesos.scheduler;
 
 import com.google.protobuf.ByteString;
+
 import org.apache.mesos.protobuf.Devolver;
 import org.apache.mesos.protobuf.Evolver;
 import org.apache.mesos.v1.scheduler.JNIMesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 /**
- * This is an adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver` + `Scheduler`
- * interface. It intercepts:
+ * This is a threadafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
+ * + `Scheduler` interface. It intercepts:
  * - The v1 scheduler callbacks and converts them into appropriate v0 scheduler callbacks.
  * - The various `driver.xx()` calls, creates a `Call` message and then invokes `send()` on the v1
  *   `Mesos` interface.
+ *
  */
 public class MesosToSchedulerDriverAdapter implements
             org.apache.mesos.v1.scheduler.Scheduler,
@@ -61,6 +64,7 @@ public class MesosToSchedulerDriverAdapter implements
         this.master = master;
         this.credential = Evolver.evolve(credential);
         this.registered = false;
+        this.status = org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED;
     }
 
     @Override
@@ -191,7 +195,7 @@ public class MesosToSchedulerDriverAdapter implements
 
                 wrappedScheduler.statusUpdate(this, event.getUpdate().getStatus());
 
-                // Send ack only when UUID is set.
+                // Send ACK only when UUID is set.
                 if (v1Status.hasUuid()) {
                     final org.apache.mesos.v1.Protos.AgentID agentId = v1Status.getAgentId();
                     final org.apache.mesos.v1.Protos.TaskID taskId = v1Status.getTaskId();
@@ -233,8 +237,7 @@ public class MesosToSchedulerDriverAdapter implements
             }
 
             case ERROR: {
-                final org.apache.mesos.scheduler.Protos.Event.Error error = event.getError();
-                wrappedScheduler.error(this, error.getMessage());
+                wrappedScheduler.error(this, event.getError().getMessage());
                 break;
             }
 
@@ -261,6 +264,15 @@ public class MesosToSchedulerDriverAdapter implements
             return status;
         }
 
+        this.mesos = startInternal();
+
+        return status = org.apache.mesos.Protos.Status.DRIVER_RUNNING;
+    }
+
+    /**
+     * Broken out into a separate function to allow testing with custom `Mesos` implementations.
+     */
+    protected Mesos startInternal() {
         String version = System.getenv("MESOS_API_VERSION");
         if (version == null) {
             version = "V0";
@@ -270,21 +282,19 @@ public class MesosToSchedulerDriverAdapter implements
 
         if (version.equals("V0")){
             if (credential == null) {
-                this.mesos = new V0Mesos(this, frameworkInfo, master);
+                return new V0Mesos(this, frameworkInfo, master);
             } else {
-                this.mesos = new V0Mesos(this, frameworkInfo, master, credential);
+                return new V0Mesos(this, frameworkInfo, master, credential);
             }
         } else if (version.equals("V1")) {
             if (credential == null) {
-                this.mesos = new JNIMesos(this, master);
+                return new JNIMesos(this, master);
             } else {
-                this.mesos = new JNIMesos(this, master, credential);
+                return new JNIMesos(this, master, credential);
             }
         } else {
             throw new IllegalArgumentException("Unsupported API version: " + version);
         }
-
-        return status = org.apache.mesos.Protos.Status.DRIVER_RUNNING;
     }
 
     @Override
@@ -300,6 +310,7 @@ public class MesosToSchedulerDriverAdapter implements
                     .build());
         }
 
+        // This should ensure that the underlying native implementation is eventually GC'ed.
         this.mesos = null;
         return status = org.apache.mesos.Protos.Status.DRIVER_STOPPED;
     }
