@@ -11,7 +11,6 @@ import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.offer.OfferRecommendation;
-import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
@@ -30,7 +29,7 @@ public class DefaultRecoveryScheduler {
     private final StateStore stateStore;
     private final OfferAccepter offerAccepter;
     private final TaskFailureListener failureListener;
-    private final RecoveryOfferRequirementProvider offerReqProvider;
+    private final RecoveryRequirementProvider offerReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
     private final AtomicReference<RecoveryStatus> repairStatusRef;
@@ -38,7 +37,7 @@ public class DefaultRecoveryScheduler {
     public DefaultRecoveryScheduler(
             StateStore stateStore,
             TaskFailureListener failureListener,
-            RecoveryOfferRequirementProvider offerReqProvider,
+            RecoveryRequirementProvider offerReqProvider,
             OfferAccepter offerAccepter,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
@@ -74,22 +73,23 @@ public class DefaultRecoveryScheduler {
         List<TaskInfo> stopped = repairStatusRef.get().getStopped();
         List<TaskInfo> failed = repairStatusRef.get().getFailed();
 
-        List<OfferRequirement> candidateRepairs = offerReqProvider.getTransientRecoveryOfferRequirements(stopped);
-        candidateRepairs.addAll(offerReqProvider.getPermanentRecoveryOfferRequirements(failed));
+        List<RecoveryRequirement> recoveryCandidates = offerReqProvider.getTransientRecoveryOfferRequirements(stopped);
+        recoveryCandidates.addAll(offerReqProvider.getPermanentRecoveryOfferRequirements(failed));
 
-        Optional<OfferRequirement> offerReq = Optional.empty();
-        if (candidateRepairs.size() > 0) {
+        Optional<RecoveryRequirement> recoveryRequirement = Optional.empty();
+        if (recoveryCandidates.size() > 0) {
             // Choose a random Task to recover.  No priority is given to transient failures over permanent failures
             // or vice versa.  This avoids a single failure or type of failure which is being resistant to recovery from
             // blocking the recovery of other Tasks which may be able to a make progress.
             // TODO: (gabrielhartmann) Allow for pluggable recovery candidate selection strategies.
-            offerReq = Optional.of(candidateRepairs.get(new Random().nextInt(candidateRepairs.size())));
+            recoveryRequirement = Optional.of(recoveryCandidates.get(new Random().nextInt(recoveryCandidates.size())));
         }
 
-        if (offerReq.isPresent() && launchConstrainer.canLaunch(offerReq.get())) {
+        if (recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get())) {
             log.info("Preparing to launch task");
             OfferEvaluator offerEvaluator = new OfferEvaluator();
-            List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerReq.get(), offers);
+            List<OfferRecommendation> recommendations =
+                    offerEvaluator.evaluate(recoveryRequirement.get().getOfferRequirement(), offers);
             List<Operation> launchOperations = recommendations.stream()
                     .map(OfferRecommendation::getOperation)
                     .filter(Operation::hasLaunch)
@@ -98,7 +98,7 @@ public class DefaultRecoveryScheduler {
             acceptedOffers = offerAccepter.accept(driver, recommendations);
             if (launchOperations.size() == 1) {
                 // We could've launched nothing if the offer didn't fit
-                launchConstrainer.launchHappened(launchOperations.get(0));
+                launchConstrainer.launchHappened(launchOperations.get(0), recoveryRequirement.get().getRecoveryType());
             }
         }
 

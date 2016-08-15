@@ -26,7 +26,7 @@ public interface Stage extends Completable {
 
     /**
      * Returns a list of user-visible descriptive error messages which have been encountered while
-     * progressing through this Stage. A non-empty response implies that the Stage is in an Error
+     * progressing through this Stage. A non-empty response implies that the Stage is in an ERROR
      * state.
      */
     List<String> getErrors();

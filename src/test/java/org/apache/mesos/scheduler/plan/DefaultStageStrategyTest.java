@@ -35,12 +35,12 @@ public class DefaultStageStrategyTest {
         strategy.interrupt();
         Assert.assertEquals(block0, strategy.getCurrentBlock());
 
-        block0.setStatus(Status.Complete);
+        block0.setStatus(Status.COMPLETE);
         Assert.assertEquals(null, strategy.getCurrentBlock());
         strategy.proceed();
         Assert.assertEquals(block1, strategy.getCurrentBlock());
 
-        block1.setStatus(Status.Complete);
+        block1.setStatus(Status.COMPLETE);
         Assert.assertEquals(block1, strategy.getCurrentBlock());
     }
 
@@ -48,7 +48,7 @@ public class DefaultStageStrategyTest {
     public void testRestart() {
         TestBlock block0 = (TestBlock)phase.getBlock(0);
         Assert.assertTrue(block0.isPending());
-        block0.setStatus(Status.Complete);
+        block0.setStatus(Status.COMPLETE);
         Assert.assertTrue(block0.isComplete());
         strategy.restart(block0.getId());
         Assert.assertTrue(block0.isPending());
@@ -67,20 +67,20 @@ public class DefaultStageStrategyTest {
         TestBlock block0 = (TestBlock)phase.getBlock(0);
         TestBlock block1 = (TestBlock)phase.getBlock(1);
 
-        Assert.assertEquals(Status.Waiting, strategy.getStatus());
+        Assert.assertEquals(Status.WAITING, strategy.getStatus());
 
         strategy.proceed();
-        Assert.assertEquals(Status.Pending, strategy.getStatus());
-        block0.setStatus(Status.InProgress);
-        Assert.assertEquals(Status.InProgress, strategy.getStatus());
-        block0.setStatus(Status.Complete);
-        Assert.assertEquals(Status.Waiting, strategy.getStatus());
+        Assert.assertEquals(Status.PENDING, strategy.getStatus());
+        block0.setStatus(Status.IN_PROGRESS);
+        Assert.assertEquals(Status.IN_PROGRESS, strategy.getStatus());
+        block0.setStatus(Status.COMPLETE);
+        Assert.assertEquals(Status.WAITING, strategy.getStatus());
 
         strategy.proceed();
-        Assert.assertEquals(Status.InProgress, strategy.getStatus());
-        block1.setStatus(Status.InProgress);
-        Assert.assertEquals(Status.InProgress, strategy.getStatus());
-        block1.setStatus(Status.Complete);
-        Assert.assertEquals(Status.Complete, strategy.getStatus());
+        Assert.assertEquals(Status.IN_PROGRESS, strategy.getStatus());
+        block1.setStatus(Status.IN_PROGRESS);
+        Assert.assertEquals(Status.IN_PROGRESS, strategy.getStatus());
+        block1.setStatus(Status.COMPLETE);
+        Assert.assertEquals(Status.COMPLETE, strategy.getStatus());
     }
 }

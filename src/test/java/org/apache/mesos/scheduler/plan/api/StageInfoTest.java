@@ -55,7 +55,7 @@ public class StageInfoTest {
 
         UUID block1Id = UUID.randomUUID();
         when(mockBlock1.getId()).thenReturn(block1Id);
-        // no explicit status response: produce Status.Error
+        // no explicit status response: produce Status.ERROR
         String block1Name = "block-1";
         when(mockBlock1.getName()).thenReturn(block1Name);
         String block1Message = "hey";
@@ -68,7 +68,7 @@ public class StageInfoTest {
         when(mockPhase0.getId()).thenReturn(phase0Id);
         String phase0Name = "phase-0";
         when(mockPhase0.getName()).thenReturn(phase0Name);
-        Status phase0Status = Status.Pending;
+        Status phase0Status = Status.PENDING;
         when(mockStageManager.getPhaseStatus(phase0Id)).thenReturn(phase0Status);
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
         when(mockPhase0.getBlocks()).thenAnswer(new Answer<List<? extends Block>>() {
@@ -83,7 +83,7 @@ public class StageInfoTest {
         when(mockPhase1.getId()).thenReturn(phase1Id);
         String phase1Name = "phase-1";
         when(mockPhase1.getName()).thenReturn(phase1Name);
-        Status phase1Status = Status.Complete;
+        Status phase1Status = Status.COMPLETE;
         when(mockStageManager.getPhaseStatus(phase1Id)).thenReturn(phase1Status);
         when(mockPhase1.getBlocks()).thenReturn(new ArrayList<>());
 
@@ -101,14 +101,14 @@ public class StageInfoTest {
         when(mockStage.getErrors()).thenReturn(stageErrors);
 
         when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.Waiting);
+        when(mockStageManager.getStatus()).thenReturn(Status.WAITING);
 
 
         StageInfo stageInfo = StageInfo.forStage(mockStageManager);
 
 
         assertEquals(stageErrors, stageInfo.getErrors());
-        assertEquals(Status.Waiting, stageInfo.getStatus());
+        assertEquals(Status.WAITING, stageInfo.getStatus());
 
         // phase 0 + 2 blocks
         PhaseInfo phaseInfo = stageInfo.getPhases().get(0);
@@ -122,14 +122,14 @@ public class StageInfoTest {
         assertEquals(block0Id.toString(), blockInfo.getId());
         assertEquals(block0Message, blockInfo.getMessage());
         assertEquals(block0Name, blockInfo.getName());
-        assertEquals(Status.Pending, blockInfo.getStatus());
+        assertEquals(Status.PENDING, blockInfo.getStatus());
 
         blockInfo = phaseInfo.getBlocks().get(1);
         assertEquals(true, blockInfo.getHasDecisionPoint());
         assertEquals(block1Id.toString(), blockInfo.getId());
         assertEquals(block1Message, blockInfo.getMessage());
         assertEquals(block1Name, blockInfo.getName());
-        assertEquals(Status.Error, blockInfo.getStatus());
+        assertEquals(Status.ERROR, blockInfo.getStatus());
 
         // phase 1 + 0 blocks
         phaseInfo = stageInfo.getPhases().get(1);
