@@ -24,7 +24,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * This is a threadafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
+ * This is a threadsafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
  * + `Scheduler` interface. It intercepts:
  * - The v1 scheduler callbacks and converts them into appropriate v0 scheduler callbacks.
  * - The various `driver.xx()` calls, creates a `Call` message and then invokes `send()` on the v1
