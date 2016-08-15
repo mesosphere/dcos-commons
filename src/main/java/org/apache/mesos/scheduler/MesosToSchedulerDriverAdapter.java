@@ -12,7 +12,17 @@ import org.apache.mesos.v1.scheduler.V0Mesos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.OptionalLong;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is a threadafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
@@ -27,6 +37,13 @@ public class MesosToSchedulerDriverAdapter implements
             org.apache.mesos.SchedulerDriver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MesosToSchedulerDriverAdapter.class);
+
+    // State of the `Mesos` interface.
+    private enum State {
+        DISCONNECTED,
+        CONNECTED,
+        SUBSCRIBED
+    }
 
     // Exponential back-off between consecutive subscribe calls.
     private static final int MULTIPLIER = 2;
@@ -43,6 +60,11 @@ public class MesosToSchedulerDriverAdapter implements
     private Mesos mesos;
     private Timer subscriberTimer;
     private long backOffMs;
+    private State state;
+    private Timer heartbeatTimer;
+    private Instant lastHeartbeat;
+    private OptionalLong heartbeatTimeout;
+
 
     public MesosToSchedulerDriverAdapter(org.apache.mesos.Scheduler wrappedScheduler,
                                          org.apache.mesos.Protos.FrameworkInfo frameworkInfo,
@@ -53,6 +75,9 @@ public class MesosToSchedulerDriverAdapter implements
         this.credential = null;
         this.registered = false;
         this.status = org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED;
+        this.state = State.DISCONNECTED;
+        this.heartbeatTimer = null;
+        this.heartbeatTimeout = null;
     }
 
     public MesosToSchedulerDriverAdapter(org.apache.mesos.Scheduler wrappedScheduler,
@@ -65,11 +90,16 @@ public class MesosToSchedulerDriverAdapter implements
         this.credential = Evolver.evolve(credential);
         this.registered = false;
         this.status = org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED;
+        this.state = State.DISCONNECTED;
+        this.heartbeatTimer = null;
+        this.heartbeatTimeout = null;
     }
 
     @Override
-    public void connected(Mesos mesos) {
+    public synchronized void connected(Mesos mesos) {
         LOGGER.info("Connected!");
+        state = State.CONNECTED;
+
         performReliableSubscription(mesos);
     }
 
@@ -121,6 +151,7 @@ public class MesosToSchedulerDriverAdapter implements
         subscriberTimer = new Timer();
     }
 
+
     private void cancelSubscriber() {
         LOGGER.info("Cancelling subscriber...");
         if (subscriberTimer != null) {
@@ -137,7 +168,11 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         LOGGER.info("Disconnected!");
+
+        state = State.DISCONNECTED;
+
         cancelSubscriber();
+        cancelHeartbeatTimer();
 
         wrappedScheduler.disconnected(this);
     }
@@ -149,11 +184,14 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(v1Event);
-        LOGGER.info("Received event: {}", event);
+        LOGGER.info("Received event of type: {}", event.getType());
 
         switch (event.getType()) {
             case SUBSCRIBED: {
                 cancelSubscriber();
+
+                state = State.SUBSCRIBED;
+
                 frameworkInfo = org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder(frameworkInfo)
                         .setId(v1Event.getSubscribed().getFrameworkId())
                         .build();
@@ -168,7 +206,7 @@ public class MesosToSchedulerDriverAdapter implements
                     wrappedScheduler.reregistered(this, null /* MasterInfo */);
                 }
 
-                // TODO(mohit): Change state to SUBSCRIBED
+                initHeartbeatTimer(event.getSubscribed().getHeartbeatIntervalSeconds());
 
                 LOGGER.info("Subscribed with ID " + frameworkInfo.getId());
                 break;
@@ -242,7 +280,7 @@ public class MesosToSchedulerDriverAdapter implements
             }
 
             case HEARTBEAT: {
-                // TODO(Mohit): Add handler for acting on lack of heartbeats.
+                lastHeartbeat = Instant.now();
                 break;
             }
 
@@ -294,6 +332,52 @@ public class MesosToSchedulerDriverAdapter implements
             }
         } else {
             throw new IllegalArgumentException("Unsupported API version: " + version);
+        }
+    }
+
+    private void initHeartbeatTimer(double heartbeatInterval) {
+        heartbeatTimeout = OptionalLong.of(5 * (long) heartbeatInterval);
+        lastHeartbeat = Instant.now();
+
+        heartbeatTimer = createHeartbeatTimerInternal();
+        heartbeatTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                heartbeat(mesos);
+            }
+        }, heartbeatTimeout.getAsLong(), heartbeatTimeout.getAsLong());
+    }
+
+    /**
+     * Broken out into a separate function to allow speeding up the `Timer` callbacks.
+     */
+    protected Timer createHeartbeatTimerInternal() {
+        return new Timer();
+    }
+
+    private synchronized void cancelHeartbeatTimer() {
+        LOGGER.info("Cancelling heartbeat timer upon disconnection");
+
+        // Cancel previous heartbeat timer if one exists.
+        if (heartbeatTimer != null) {
+            heartbeatTimer.cancel();
+            heartbeatTimer.purge();
+        }
+
+        heartbeatTimer = null;
+    }
+
+    private synchronized void heartbeat(final Mesos mesos) {
+        // Don't bother checking for heartbeats if we are not subscribed.
+        if (state == State.DISCONNECTED || state == State.CONNECTED) {
+            return;
+        }
+
+        Duration elapsed = Duration.between(lastHeartbeat, Instant.now());
+
+        // Force reconnection if we have not received heartbeats.
+        if (elapsed.getSeconds() >= heartbeatTimeout.getAsLong()) {
+            mesos.reconnect();
         }
     }
 
