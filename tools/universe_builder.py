@@ -100,29 +100,67 @@ class UniversePackageBuilder(object):
         return hasher.hexdigest()
 
 
+    def __get_file_template_mapping(self, filepath):
+        '''Returns a template mapping (dict) for the following cases:
+        - Default params like '{{package-version}}' and '{{artifact-dir}}'
+        - SHA256 params like '{{sha256:artifact.zip}}' (requires user-provided paths to artifact files)
+        - Custom environment params like 'TEMPLATE_SOME_PARAM' which maps to '{{some-param}}'
+        '''
+        # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
+        template_mapping = {
+            'package-version': self.__pkg_version,
+            'artifact-dir': self.__upload_dir_url}
+
+        # look for any 'sha256:filename' template params, and get shas for those.
+        # this avoids calculating shas unless they're requested by the template.
+        orig_content = open(filepath, 'r').read()
+        for shafilename in re.findall('{{sha256:(.+)}}', orig_content):
+            # somefile.txt => sha256:somefile.txt
+            shafilepath = self.__artifact_files[shafilename]
+            if not shafilepath:
+                raise Exception(
+                    'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(filename) +
+                    'Please provide the full path to this artifact (had {})'.format(self.__artifact_files))
+            template_mapping['sha256:{}'.format(shafilename)] = self.__calculate_sha256(shafilepath)
+
+        # import any custom TEMPLATE_SOME_PARAM environment variables:
+        for env_key, env_val in os.environ.items():
+            if env_key.startswith('TEMPLATE_'):
+                # 'TEMPLATE_SOME_KEY' => 'some-key'
+                template_mapping[env_key[9:].lower().replace('_','-')] = env_val
+
+        return template_mapping
+
+
     def __apply_templating_file(self, filepath):
+        # basic checks to avoid files that we shouldn't edit:
         if not '.json' in os.path.basename(filepath):
-            # just in case, avoid processing eg a huge binary file
+            print('')
             print('Ignoring non-json file: {}'.format(filepath))
             return
+        if os.stat(filepath).st_size > (1024 * 1024):
+            print('')
+            print('Ignoring file larger than 1MB: {}'.format(filepath))
+            return
+
+        template_mapping = self.__get_file_template_mapping(filepath)
         orig_content = open(filepath, 'r').read()
-        # version:
-        new_content = orig_content.replace('{{package-version}}', self.__pkg_version)
-        # artifact dir:
-        new_content = new_content.replace('{{artifact-dir}}', self.__upload_dir_url)
-        # sha256 (relies on artifact paths being passed via cmdline args):
-        shafilenames = re.findall('{{sha256:(.+)}}', new_content)
-        for filename in shafilenames:
-            path = self.__artifact_files.get(filename, '')
-            if not path:
-                raise Exception('Unable to find path for artifact file named "{}" (for sha256). All artifacts must be passed as arguments.'.format(filename))
-            # use % replacement since "".format() is confused by the extra {/}'s:
-            new_content = new_content.replace('{{sha256:%s}}' % filename, self.__calculate_sha256(path))
+        new_content = orig_content
+        for template_key, template_val in template_mapping.items():
+            new_content = new_content.replace('{{%s}}' % template_key, template_val)
         if orig_content == new_content:
-            print('No templating detected in {}'.format(filepath))
-        else:
-            print('Applied templating changes to {}:'.format(filepath))
-            print('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
+            print('')
+            print('No templating detected in {}, leaving file as-is'.format(filepath))
+            return
+        print('')
+        print('Applied templating changes to {}:'.format(filepath))
+        print('Template params used:')
+        template_keys = template_mapping.keys()
+        template_keys.sort()
+        for key in template_keys:
+            print('  {{%s}} => %s' % (key, template_mapping[key]))
+        print('Resulting diff:')
+        print('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
         rewrite = open(filepath, 'w')
         rewrite.write(new_content)
         rewrite.flush()
@@ -171,6 +209,7 @@ class UniversePackageBuilder(object):
 def print_help(argv):
     print('Syntax: {} <package-name> <package-version> <template-package-dir> <artifact-base-path> [artifact files ...]'.format(argv[0]))
     print('  Example: $ $0 kafka 1.2.3-4.5.6 /path/to/template/jsons/ https://example.com/path/to/kafka-artifacts /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    print('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
 def main(argv):
