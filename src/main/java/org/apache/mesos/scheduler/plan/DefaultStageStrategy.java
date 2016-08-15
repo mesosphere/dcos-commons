@@ -72,7 +72,7 @@ public class DefaultStageStrategy implements PhaseStrategy {
         logger.info(String.format("Returning block '%s' at position: %d", block.getName(), currPos));
         return block;
       } else {
-        // Waiting for input, don't continue to next block
+        // WAITING for input, don't continue to next block
         return null;
       }
     }
@@ -122,7 +122,7 @@ public class DefaultStageStrategy implements PhaseStrategy {
 
   @Override
   public boolean isInterrupted() {
-    return getStatus() == Status.Waiting;
+    return getStatus() == Status.WAITING;
   }
 
   @Override
@@ -133,18 +133,18 @@ public class DefaultStageStrategy implements PhaseStrategy {
 
       if (!block.isComplete()) {
         if (block.isPending() && hasDecisionPoint(block)) {
-          return Status.Waiting;
+          return Status.WAITING;
         }
 
         if (blockIndex > 0) {
-          return Status.InProgress;
+          return Status.IN_PROGRESS;
         } else {
           return Block.getStatus(block);
         }
       }
     }
 
-    return Status.Complete;
+    return Status.COMPLETE;
   }
 
   @Override

@@ -69,35 +69,35 @@ public class DefaultStageManagerTest {
     @Test
     public void testGetPhaseStatus() {
         Phase firstPhase = stage.getPhases().get(0);
-        Assert.assertEquals(Status.Pending, stageManager.getPhaseStatus(firstPhase.getId()));
-        firstBlock.setStatus(Status.InProgress);
-        Assert.assertEquals(Status.InProgress, stageManager.getPhaseStatus(firstPhase.getId()));
-        firstBlock.setStatus(Status.Complete);
-        Assert.assertEquals(Status.Complete, stageManager.getPhaseStatus(firstPhase.getId()));
+        Assert.assertEquals(Status.PENDING, stageManager.getPhaseStatus(firstPhase.getId()));
+        firstBlock.setStatus(Status.IN_PROGRESS);
+        Assert.assertEquals(Status.IN_PROGRESS, stageManager.getPhaseStatus(firstPhase.getId()));
+        firstBlock.setStatus(Status.COMPLETE);
+        Assert.assertEquals(Status.COMPLETE, stageManager.getPhaseStatus(firstPhase.getId()));
         // bad id:
-        Assert.assertEquals(Status.Error, stageManager.getPhaseStatus(UUID.randomUUID()));
+        Assert.assertEquals(Status.ERROR, stageManager.getPhaseStatus(UUID.randomUUID()));
     }
 
 
     @Test
     public void testEmptyStageStatus() {
         StageManager emptyManager = new DefaultStageManager(getEmptyStage(), stratFactory);
-        Assert.assertEquals(Status.Complete, emptyManager.getStatus());
+        Assert.assertEquals(Status.COMPLETE, emptyManager.getStatus());
     }
 
     @Test
     public void testGetStatus() {
-        Assert.assertEquals(Status.Pending, stageManager.getStatus());
-        firstBlock.setStatus(Status.Error);
+        Assert.assertEquals(Status.PENDING, stageManager.getStatus());
+        firstBlock.setStatus(Status.ERROR);
         Assert.assertNull(stageManager.getStatus());
-        firstBlock.setStatus(Status.Waiting);
-        Assert.assertNull(stageManager.getStatus()); // error state: Blocks shouldn't be Waiting
-        firstBlock.setStatus(Status.InProgress);
-        Assert.assertEquals(Status.InProgress, stageManager.getStatus());
+        firstBlock.setStatus(Status.WAITING);
+        Assert.assertNull(stageManager.getStatus()); // error state: Blocks shouldn't be WAITING
+        firstBlock.setStatus(Status.IN_PROGRESS);
+        Assert.assertEquals(Status.IN_PROGRESS, stageManager.getStatus());
         completePhase(stage.getPhases().get(0));
-        Assert.assertEquals(Status.InProgress, stageManager.getStatus());
+        Assert.assertEquals(Status.IN_PROGRESS, stageManager.getStatus());
         completePhase(stage.getPhases().get(1));
-        Assert.assertEquals(Status.Complete, stageManager.getStatus());
+        Assert.assertEquals(Status.COMPLETE, stageManager.getStatus());
     }
 
     @Test
@@ -116,7 +116,7 @@ public class DefaultStageManagerTest {
         Assert.assertTrue(reconciliationBlock.isInProgress());
 
         StageManager waitingManager = new DefaultStageManager(waitingStage, new StageStrategyFactory());
-        Assert.assertEquals(Status.InProgress, waitingManager.getStatus());
+        Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getStatus());
     }
 
     @Test
@@ -146,11 +146,11 @@ public class DefaultStageManagerTest {
     public void testRestart() {
         Phase firstPhase = stage.getPhases().get(0);
         Assert.assertTrue(firstBlock.isPending());
-        firstBlock.setStatus(Status.Complete);
+        firstBlock.setStatus(Status.COMPLETE);
         Assert.assertTrue(firstBlock.isComplete());
         stageManager.restart(firstPhase.getId(), firstBlock.getId());
         Assert.assertTrue(firstBlock.isPending());
-        firstBlock.setStatus(Status.InProgress);
+        firstBlock.setStatus(Status.IN_PROGRESS);
         Assert.assertTrue(firstBlock.isInProgress());
         stageManager.restart(firstPhase.getId(), firstBlock.getId());
         Assert.assertTrue(firstBlock.isPending());
@@ -160,7 +160,7 @@ public class DefaultStageManagerTest {
     public void testRestartBadIds() {
         Phase firstPhase = stage.getPhases().get(0);
         Assert.assertTrue(firstBlock.isPending());
-        firstBlock.setStatus(Status.Complete);
+        firstBlock.setStatus(Status.COMPLETE);
         Assert.assertTrue(firstBlock.isComplete());
         stageManager.restart(firstPhase.getId(), UUID.randomUUID()); // bad block
         Assert.assertTrue(firstBlock.isComplete()); // no change
@@ -176,7 +176,7 @@ public class DefaultStageManagerTest {
         Assert.assertTrue(firstBlock.isPending());
         stageManager.forceComplete(firstPhase.getId(), firstBlock.getId());
         Assert.assertTrue(firstBlock.isComplete());
-        firstBlock.setStatus(Status.InProgress);
+        firstBlock.setStatus(Status.IN_PROGRESS);
         Assert.assertTrue(firstBlock.isInProgress());
         stageManager.forceComplete(firstPhase.getId(), firstBlock.getId());
         Assert.assertTrue(firstBlock.isComplete());
@@ -241,7 +241,7 @@ public class DefaultStageManagerTest {
 
     private static void completePhase(Phase phase) {
         for (Block block : phase.getBlocks()) {
-            ((TestBlock)block).setStatus(Status.Complete);
+            ((TestBlock)block).setStatus(Status.COMPLETE);
         }
     }
 

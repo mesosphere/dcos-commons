@@ -33,7 +33,7 @@ public class StageResourceTest {
         when(mockStageManager.getCurrentBlock()).thenReturn(null);
         when(mockStageManager.getCurrentPhase()).thenReturn(null);
         when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.Complete);
+        when(mockStageManager.getStatus()).thenReturn(Status.COMPLETE);
         when(mockStage.getPhases()).thenReturn(new ArrayList<>());
         when(mockStage.getErrors()).thenReturn(new ArrayList<>());
 
@@ -42,7 +42,7 @@ public class StageResourceTest {
         assertNull(activeInfo.getBlock());
         assertNull(activeInfo.getPhaseStatus());
         CurrentlyActiveStageInfo stageInfo = activeInfo.getStageStatus();
-        assertEquals(Status.Complete, stageInfo.getStatus());
+        assertEquals(Status.COMPLETE, stageInfo.getStatus());
         assertEquals(Integer.valueOf(0), stageInfo.getPhaseCount());
         assertTrue(stageInfo.getErrors().isEmpty());
     }
@@ -54,7 +54,7 @@ public class StageResourceTest {
         when(mockStageManager.getStage()).thenReturn(mockStage);
         when(mockStage.getPhases()).thenReturn(new ArrayList<>());
         when(mockStage.getErrors()).thenReturn(new ArrayList<>());
-        when(mockStageManager.getStatus()).thenReturn(Status.Pending);
+        when(mockStageManager.getStatus()).thenReturn(Status.PENDING);
 
         Response response = resource.getFullInfo();
 
@@ -69,7 +69,7 @@ public class StageResourceTest {
         when(mockStageManager.getStage()).thenReturn(mockStage);
         when(mockStage.getPhases()).thenReturn(new ArrayList<>());
         when(mockStage.getErrors()).thenReturn(new ArrayList<>());
-        when(mockStageManager.getStatus()).thenReturn(Status.Pending);
+        when(mockStageManager.getStatus()).thenReturn(Status.PENDING);
 
         Response response = resource.getFullInfo();
 

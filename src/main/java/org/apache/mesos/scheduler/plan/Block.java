@@ -8,7 +8,7 @@ import java.util.UUID;
 /**
  * Defines the interface for a Block of a {@link Phase}. The block is the base unit of a set of
  * tasks to perform, such as launching a Task, updating a Task, or reconciling Mesos state with
- * Framework state. A Block may be in one of four states: Pending, InProgress, Complete, or Error.
+ * Framework state. A Block may be in one of four states: PENDING, IN_PROGRESS, COMPLETE, or ERROR.
  * <p>
  * See {@Stage} docs for more background.
  */
@@ -20,13 +20,13 @@ public interface Block extends Completable {
     static Status getStatus(Block block) {
         // these should all be mutually exclusive, ordering doesn't matter.
         if (block.isPending()) {
-            return Status.Pending;
+            return Status.PENDING;
         } else if (block.isInProgress()) {
-            return Status.InProgress;
+            return Status.IN_PROGRESS;
         } else if (block.isComplete()) {
-            return Status.Complete;
+            return Status.COMPLETE;
         }
-        return Status.Error;
+        return Status.ERROR;
     }
 
     /**
@@ -64,13 +64,13 @@ public interface Block extends Completable {
     void updateOfferStatus(boolean accepted);
 
     /**
-     * Forcefully restarts the block, putting it into a Pending state, waiting to be resumed with
+     * Forcefully restarts the block, putting it into a PENDING state, waiting to be resumed with
      * a call to {@link start()}.
      */
     void restart();
 
     /**
-     * Forcefully marks the block as Complete, cancelling any work that hasn't started or that's
+     * Forcefully marks the block as COMPLETE, cancelling any work that hasn't started or that's
      * currently in progress.
      */
     void forceComplete();

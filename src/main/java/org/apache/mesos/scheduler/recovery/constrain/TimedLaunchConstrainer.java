@@ -1,8 +1,10 @@
 package org.apache.mesos.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.scheduler.recovery.RecoveryRequirement;
+import org.apache.mesos.scheduler.recovery.RecoveryRequirementUtils;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -10,29 +12,39 @@ import java.util.concurrent.atomic.AtomicLong;
  * rate-limiting purposes.
  */
 public class TimedLaunchConstrainer implements LaunchConstrainer {
-    private AtomicLong lastLaunch;
-    private long minDelaySeconds;
+    private AtomicLong lastPermanentRecoveryLaunchMs;
+    private Duration minDelay;
 
     /**
-     * Create a new constrainer with the given required minimum delay between recovery operations.
+     * Create a new constrainer with the given required minimum delay between permanent (destructive) recovery
+     * operations.
      *
-     * @param minDelaySeconds Minimum number of seconds between each launch
+     * @param minimumDelay Minimum delay between each destructive launch
      */
-    public TimedLaunchConstrainer(long minDelaySeconds) {
-        this.minDelaySeconds = minDelaySeconds;
-        this.lastLaunch = new AtomicLong(0);
+    public TimedLaunchConstrainer(Duration minimumDelay) {
+        this.minDelay = minimumDelay;
+        this.lastPermanentRecoveryLaunchMs = new AtomicLong(0);
     }
 
     @Override
-    public void launchHappened(Operation launchOperation) {
-        if (!canLaunch(null)) {
-            throw new RuntimeException("It hasn't been long enough since the last launch");
+    public void launchHappened(Operation launchOperation, RecoveryRequirement.RecoveryType recoveryType) {
+        if (RecoveryRequirementUtils.isPermanent(recoveryType)) {
+            lastPermanentRecoveryLaunchMs.compareAndSet(
+                    lastPermanentRecoveryLaunchMs.get(),
+                    System.currentTimeMillis());
         }
-        lastLaunch.compareAndSet(lastLaunch.get(), System.currentTimeMillis());
     }
 
     @Override
-    public boolean canLaunch(OfferRequirement offerRequirement) {
-        return (lastLaunch.get() + minDelaySeconds * 1000) < System.currentTimeMillis();
+    public boolean canLaunch(RecoveryRequirement recoveryRequirement) {
+        if (RecoveryRequirementUtils.isPermanent(recoveryRequirement)) {
+            return (lastPermanentRecoveryLaunchMs.get() + minDelay.toMillis()) < getCurrentTimeMs();
+        } else {
+            return true;
+        }
+    }
+
+    protected long getCurrentTimeMs() {
+        return System.currentTimeMillis();
     }
 }

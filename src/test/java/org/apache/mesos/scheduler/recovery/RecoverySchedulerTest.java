@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler;
+package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -13,10 +13,6 @@ import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.protobuf.OfferBuilder;
 import org.apache.mesos.protobuf.TaskInfoBuilder;
 import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.recovery.RecoveryOfferRequirementProvider;
-import org.apache.mesos.scheduler.recovery.DefaultRecoveryScheduler;
-import org.apache.mesos.scheduler.recovery.RecoveryStatus;
-import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
 import org.apache.mesos.state.StateStore;
@@ -42,10 +38,10 @@ import static org.mockito.Mockito.*;
  * When a stopped task launches, it no longer shows up as stopped - When a failed task launches, it no longer shows up
  * as failed
  */
-public class RepairSchedulerTest {
+public class RecoverySchedulerTest {
     private DefaultRecoveryScheduler repairScheduler;
     private TaskFailureListener taskFailureListener;
-    private RecoveryOfferRequirementProvider recoveryOfferRequirementProvider;
+    private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
     private StateStore stateStore;
     private SchedulerDriver schedulerDriver;
@@ -68,10 +64,6 @@ public class RepairSchedulerTest {
         return ResourceUtils.getDesiredScalar("test", "test", name, value);
     }
 
-    public static Resource makeExpectedScalar(String name, double value) {
-        return ResourceUtils.getExpectedScalar(name, value, UUID.randomUUID().toString(), "test", "test");
-    }
-
     private List<Offer> getOffers(double cpus, double mem) {
         OfferBuilder builder = new OfferBuilder(
                 ResourceTestUtils.testOfferId,
@@ -83,6 +75,11 @@ public class RepairSchedulerTest {
         return Arrays.asList(builder.build());
     }
 
+    private RecoveryRequirement getRecoveryRequirement(OfferRequirement offerRequirement) {
+        return new DefaultRecoveryRequirement(
+                offerRequirement,
+                RecoveryRequirement.RecoveryType.NONE);
+    }
 
     @Before
     public void setupTest() {
@@ -91,13 +88,13 @@ public class RepairSchedulerTest {
         repairStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
         taskFailureListener = mock(TaskFailureListener.class);
         offerAccepter = mock(OfferAccepter.class);
-        recoveryOfferRequirementProvider = mock(RecoveryOfferRequirementProvider.class);
+        recoveryRequirementProvider = mock(RecoveryRequirementProvider.class);
         stateStore = mock(StateStore.class);
         repairScheduler = spy(
                 new DefaultRecoveryScheduler(
                         stateStore,
                         taskFailureListener,
-                        recoveryOfferRequirementProvider,
+                        recoveryRequirementProvider,
                         offerAccepter,
                         launchConstrainer,
                         failureMonitor,
@@ -108,7 +105,7 @@ public class RepairSchedulerTest {
     @After
     public void teardownTest() {
         taskFailureListener = null;
-        recoveryOfferRequirementProvider = null;
+        recoveryRequirementProvider = null;
         offerAccepter = null;
     }
 
@@ -118,9 +115,10 @@ public class RepairSchedulerTest {
         Resource cpus = makeDesiredScalar("cpus", 1.0);
         Resource mem = makeDesiredScalar("mem", 1.0);
         List<TaskInfo> infos = Collections.singletonList(makeTaskInfo(cpus, mem));
-        OfferRequirement req = new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
+                new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
-        when(recoveryOfferRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(req));
+        when(recoveryRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         launchConstrainer.setCanLaunch(false);
 
         List<Protos.OfferID> acceptedOffers = repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), null);
@@ -145,9 +143,9 @@ public class RepairSchedulerTest {
         Resource mem = makeDesiredScalar("mem", 1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(makeTaskInfo(cpus, mem));
-        OfferRequirement req = new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
-        when(recoveryOfferRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(req));
+        when(recoveryRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
 
@@ -159,7 +157,7 @@ public class RepairSchedulerTest {
 
         // Verify we ran launching code
         verify(offerAccepter, times(1)).accept(any(), any());
-        verify(launchConstrainer, times(1)).launchHappened(any());
+        verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
     }
 
     @Test
@@ -187,10 +185,10 @@ public class RepairSchedulerTest {
         Resource mem = makeDesiredScalar("mem", 1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(makeTaskInfo(cpus, mem));
-        OfferRequirement req = new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
         launchConstrainer.setCanLaunch(true);
 
-        when(recoveryOfferRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(req));
+        when(recoveryRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
 
@@ -230,10 +228,10 @@ public class RepairSchedulerTest {
         Resource mem = makeDesiredScalar("mem", 1.0);
         List<TaskInfo> infos = Collections.singletonList(makeTaskInfo(cpus, mem));
         List<Offer> offers = getOffers(1.0, 1.0);
-        OfferRequirement req = new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
 
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
-        when(recoveryOfferRequirementProvider.getPermanentRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(req));
+        when(recoveryRequirementProvider.getPermanentRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(true);
@@ -245,7 +243,7 @@ public class RepairSchedulerTest {
         ArgumentCaptor<List> operationCaptor = ArgumentCaptor.forClass(List.class);
         verify(offerAccepter, times(1)).accept(any(), operationCaptor.capture());
         assertEquals(3, operationCaptor.getValue().size());
-        verify(launchConstrainer, times(1)).launchHappened(any());
+        verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
 
         // Verify the appropriate task was checked for failure.
         verify(taskFailureListener, times(2)).taskFailed(TaskID.newBuilder().setValue(ResourceTestUtils.testTaskId).build());
@@ -265,12 +263,12 @@ public class RepairSchedulerTest {
         Resource cpus = makeDesiredScalar("cpus", desiredCpu);
         Resource mem = makeDesiredScalar("mem", desiredMem);
         List<TaskInfo> infos = Collections.singletonList(makeTaskInfo(cpus, mem));
-        OfferRequirement req = new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
 
         List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
 
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
-        when(recoveryOfferRequirementProvider.getPermanentRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(req));
+        when(recoveryRequirementProvider.getPermanentRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(true);
 
@@ -286,6 +284,6 @@ public class RepairSchedulerTest {
 
         // Verify we didn't launch the task
         verify(offerAccepter, times(1)).accept(any(), eq(Collections.EMPTY_LIST));
-        verify(launchConstrainer, never()).launchHappened(any());
+        verify(launchConstrainer, never()).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
     }
 }

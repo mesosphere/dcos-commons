@@ -32,7 +32,7 @@ public interface PhaseStrategy {
     void restart(UUID blockId);
 
     /**
-     * Force the block to a status of Complete.
+     * Force the block to a status of COMPLETE.
      * @param blockId The unique id of the block to be completed.
      */
     void forceComplete(UUID blockId);
