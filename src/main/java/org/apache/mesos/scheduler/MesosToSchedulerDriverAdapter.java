@@ -64,7 +64,6 @@ public class MesosToSchedulerDriverAdapter implements
     private Instant lastHeartbeat;
     private OptionalLong heartbeatTimeout;
 
-
     public MesosToSchedulerDriverAdapter(org.apache.mesos.Scheduler wrappedScheduler,
                                          org.apache.mesos.Protos.FrameworkInfo frameworkInfo,
                                          String master) {
@@ -714,8 +713,13 @@ public class MesosToSchedulerDriverAdapter implements
         if (elapsed.getSeconds() >= heartbeatTimeout.getAsLong()) {
             LOGGER.info("Forcing reconnection with the master due to not receiving heartbeat events for "
                 + elapsed.getSeconds() + " seconds");
+
             mesos.reconnect();
+
+            // Cancel the heartbeat timer now to prevent further reconnects. It is possible that we got partitioned
+            // away from the master and are not able to reconnect. If we don't cancel the timer, we would trigger
+            // reconnection again.
+            cancelHeartbeatTimer();
         }
     }
-
 }
