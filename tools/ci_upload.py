@@ -25,8 +25,9 @@ class CIUploader(object):
         dir_name = '{}-{}'.format(
             time.strftime("%Y%m%d-%H%M%S"),
             ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
-        self.__s3_directory = '/'.join([s3_base_path, self.__pkg_name, dir_name])
-        self.__http_directory = 'https://s3-{}.amazonaws.com/{}'.format(self.__aws_region, self.__s3_directory)
+        s3_path = '/'.join([s3_base_path, self.__pkg_name, dir_name])
+        self.__s3_directory = 's3://{}'.format(s3_path)
+        self.__http_directory = 'https://s3-{}.amazonaws.com/{}'.format(self.__aws_region, s3_path)
 
         self.__github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
 
@@ -49,7 +50,7 @@ class CIUploader(object):
 
     def __upload_artifact(self, filepath):
         filename = os.path.basename(filepath)
-        cmd = 'aws s3 --region={} cp --acl public-read {} s3://{}/{}'.format(
+        cmd = 'aws s3 --region={} cp --acl public-read {} {}/{}'.format(
             self.__aws_region, filepath, self.__s3_directory, filename)
         print(cmd)
         ret = os.system(cmd)
@@ -57,7 +58,7 @@ class CIUploader(object):
             err = 'Failed to upload {} to S3'.format(filename)
             self.__github_updater.update('error', err)
             raise Exception(err)
-        return '/'.join([self.__http_directory, filename])
+        return '{}/{}'.format(self.__http_directory, filename)
 
 
     def __spam_universe_url(self, universe_url):
@@ -65,7 +66,7 @@ class CIUploader(object):
             # write jenkins properties file:
             properties_file = open(os.path.join(os.environ['WORKSPACE'], 'stub-universe.properties'), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
-            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(universe_s3_dir))
+            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self.__s3_directory))
             properties_file.flush()
             properties_file.close()
         custom_universes_path = os.environ.get('CUSTOM_UNIVERSES_PATH', '')
