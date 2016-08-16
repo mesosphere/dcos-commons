@@ -4,7 +4,6 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.protobuf.Devolver;
 import org.apache.mesos.protobuf.Evolver;
-
 import org.apache.mesos.v1.scheduler.JNIMesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
@@ -41,14 +40,6 @@ public class MesosToSchedulerDriverAdapter implements
     private static final int MULTIPLIER = 2;
     private static final int SEED_BACKOFF_MS = 2000;
     private static final int MAX_BACKOFF_MS = 30000;
-
-    private ExponentialBackOff backoff = new ExponentialBackOff.Builder()
-            .setMaxElapsedTimeMillis(Integer.MAX_VALUE /* Try forever */)
-            .setMaxIntervalMillis(MAX_BACKOFF_MS)
-            .setMultiplier(MULTIPLIER)
-            .setRandomizationFactor(0.5)
-            .setInitialIntervalMillis(SEED_BACKOFF_MS)
-            .build();
 
     private org.apache.mesos.Scheduler wrappedScheduler;
     private org.apache.mesos.v1.Protos.FrameworkInfo frameworkInfo;
@@ -131,7 +122,14 @@ public class MesosToSchedulerDriverAdapter implements
         if (subscriberTimer == null) {
             initSubscriber();
             synchronized (subscriberTimer) {
-                subscriberTimer.schedule(new SubscriberTask(), SEED_BACKOFF_MS);
+                ExponentialBackOff backOff = new ExponentialBackOff.Builder()
+                        .setMaxElapsedTimeMillis(Integer.MAX_VALUE /* Try forever */)
+                        .setMaxIntervalMillis(MAX_BACKOFF_MS)
+                        .setMultiplier(MULTIPLIER)
+                        .setRandomizationFactor(0.5)
+                        .setInitialIntervalMillis(SEED_BACKOFF_MS)
+                        .build();
+                subscriberTimer.schedule(new SubscriberTask(backOff), SEED_BACKOFF_MS);
             }
         }
     }
@@ -678,7 +676,6 @@ public class MesosToSchedulerDriverAdapter implements
     private void initSubscriber() {
         LOGGER.info("Initializing reliable subscriber...");
         subscriberTimer = createTimerInternal();
-        backoff.reset();
     }
 
 
@@ -719,14 +716,23 @@ public class MesosToSchedulerDriverAdapter implements
      * Sends subscription call, and rescehdules next subscription attempt.
      */
     public class SubscriberTask extends TimerTask {
+        ExponentialBackOff backOff;
+
+        public SubscriberTask(ExponentialBackOff backOff) {
+            this.backOff = backOff;
+        }
+
         @Override
         public void run() {
             try {
                 subscribe();
-                long nextBackoffMs = backoff.nextBackOffMillis();
+                long nextBackoffMs;
+                nextBackoffMs = backOff.nextBackOffMillis();
+
                 LOGGER.info("Backing off for: {}", nextBackoffMs);
+
                 synchronized (subscriberTimer) {
-                    subscriberTimer.schedule(new SubscriberTask(), nextBackoffMs);
+                    subscriberTimer.schedule(new SubscriberTask(backOff), nextBackoffMs);
                 }
             } catch (IOException e) {
                 LOGGER.error(e.getMessage(), e);
