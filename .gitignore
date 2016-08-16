@@ -1,4 +1,5 @@
 target/
+*.pyc
 
 # idea
 *.i??

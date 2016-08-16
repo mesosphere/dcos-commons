@@ -1,5 +1,15 @@
 #!/bin/bash
 
+#############
+#############
+#############
+#############
+# THIS FILE IS DEPRECATED, USE CI_UPLOAD.PY INSTEAD
+#############
+#############
+#############
+#############
+
 #
 # This script creates the packages needed to run dcos-tests against a build with ci-test.sh, and
 # updates docker-context/custom-universes.txt to point to those packages.

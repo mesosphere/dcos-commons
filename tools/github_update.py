@@ -17,11 +17,8 @@ except ImportError:
 
 class GithubStatusUpdater(object):
 
-    def __init__(self, state, context_label, message, details_url=''):
-        self.__state = state
+    def __init__(self, context_label):
         self.__context_label = context_label
-        self.__message = message
-        self.__details_url = details_url
 
 
     def __get_dotgit_path(self):
@@ -86,9 +83,8 @@ class GithubStatusUpdater(object):
         return re_match.group(1)
 
 
-    def __get_details_link_url(self):
+    def __get_details_link_url(self, details_url):
         '''returns the url to be included as the details link in the status'''
-        details_url = self.__details_url # custom URL via parameter
         if not details_url:
             details_url = os.environ.get('GITHUB_COMMIT_STATUS_URL', '') # custom URL via env
         if not details_url:
@@ -114,7 +110,7 @@ class GithubStatusUpdater(object):
         return encoded_tok.decode('utf-8').rstrip('\n')
 
 
-    def request_info(self, auth_token):
+    def __build_request(self, state, message, details_url = ''):
         '''returns everything needed for the HTTP request, except the auth token'''
         return {
             'method': 'POST',
@@ -124,27 +120,53 @@ class GithubStatusUpdater(object):
             'headers': {
                 'User-Agent': 'github_update.py',
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic {}'.format(auth_token)},
+                'Authorization': 'Basic HIDDENTOKEN'}, # replaced within update_query
             'payload': {
-                'state': self.__state,
                 'context': self.__context_label,
-                'description': self.__message,
-                'target_url': self.__get_details_link_url()
+                'state': state,
+                'description': message,
+                'target_url': self.__get_details_link_url(details_url)
             }
         }
 
 
-    def update(self):
-        '''sends an update to github. returns the resulting HTTPResponse.'''
-        request = self.request_info(self.__get_auth_token())
+    def __send_request(self, request, debug = False):
+        '''sends the provided request which was created by __build_request()'''
+        request_headers_with_auth = request['headers'].copy()
+        request_headers_with_auth['Authorization'] = 'Basic {}'.format(self.__get_auth_token())
         conn = HTTPSConnection('api.github.com')
-        #conn.set_debuglevel(999)
+        if debug:
+            conn.set_debuglevel(999)
         conn.request(
             request['method'],
             request['path'],
             body = json.dumps(request['payload']).encode('utf-8'),
-            headers = request['headers'])
+            headers = request_headers_with_auth)
         return conn.getresponse()
+
+
+    def update(self, state, message, details_url = ''):
+        '''sends an update to github.
+        returns True on success or False otherwise.
+        state should be one of 'pending', 'success', 'error', or 'failure'.'''
+        if not 'JENKINS_HOME' in os.environ:
+            # not running in CI. just print the provided status
+            print('[STATUS] {} {}: {}'.format(self.__context_label, state, message))
+            if details_url:
+                print('[STATUS] URL: {}'.format(details_url))
+            return True
+
+        request = self.__build_request(state, message, details_url)
+        response = self.__send_request(request)
+        if response.status < 200 or response.status >= 300:
+            print('Got {} response to update request:'.format(response.status))
+            print('Request:')
+            pprint.pprint(request)
+            print('Response:')
+            pprint.pprint(response.read())
+            return False
+        print('Updated GitHub PR with status: {}'.format(request['path']))
+        return True
 
 
 def print_help(argv):
@@ -164,22 +186,10 @@ def main(argv):
         return 1
     context_label = argv[2]
     message = ' '.join(argv[3:])
-    if not 'JENKINS_HOME' in os.environ:
-        # print status to log
-        print('[STATUS] {} {}: {}'.format(context_label, state, message))
+    if GithubStatusUpdater(context_label).update(state, message):
         return 0
-    # in CI: actually update status (otherwise just print below)
-    updater = GithubStatusUpdater(state, context_label, message)
-    response = updater.update()
-    request_info = updater.request_info('<base64_token>')
-    if response.status < 200 or response.status >= 300:
-        print('Got {} response to update request:'.format(response.status))
-        print('Request:')
-        pprint.pprint(request_info)
-        print('Response:')
-        pprint.pprint(response.read())
+    else:
         return 1
-    print('Updated GitHub PR with status: {}'.format(request_info['path']))
 
 
 if __name__ == '__main__':

@@ -116,11 +116,11 @@ class UniversePackageBuilder(object):
         orig_content = open(filepath, 'r').read()
         for shafilename in re.findall('{{sha256:(.+)}}', orig_content):
             # somefile.txt => sha256:somefile.txt
-            shafilepath = self.__artifact_files[shafilename]
+            shafilepath = self.__artifact_files.get(shafilename, '')
             if not shafilepath:
                 raise Exception(
-                    'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(filename) +
-                    'Please provide the full path to this artifact (had {})'.format(self.__artifact_files))
+                    'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(shafilename) +
+                    'Please provide the full path to this artifact (known artifacts: {})'.format(self.__artifact_files))
             template_mapping['sha256:{}'.format(shafilename)] = self.__calculate_sha256(shafilepath)
 
         # import any custom TEMPLATE_SOME_PARAM environment variables:
@@ -208,7 +208,7 @@ class UniversePackageBuilder(object):
 
 def print_help(argv):
     print('Syntax: {} <package-name> <package-version> <template-package-dir> <artifact-base-path> [artifact files ...]'.format(argv[0]))
-    print('  Example: $ $0 kafka 1.2.3-4.5.6 /path/to/template/jsons/ https://example.com/path/to/kafka-artifacts /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    print('  Example: $ {} kafka 1.2.3-4.5.6 /path/to/template/jsons/ https://example.com/path/to/kafka-artifacts /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
     print('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
@@ -239,7 +239,7 @@ Artifacts:       {}
     if not package_path:
         return -1
     print('---')
-    print('Built Stub Universe package:')
+    print('Built stub universe package:')
     # print the package location as the last line of stdout (used by ci-upload.sh):
     print(package_path)
     return 0
