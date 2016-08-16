@@ -6,7 +6,7 @@ import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.StringConfiguration;
 import org.apache.mesos.storage.CuratorPersister;
-import org.apache.mesos.testutils.CuratorTestUtils;
+import org.apache.mesos.testing.CuratorTestUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
