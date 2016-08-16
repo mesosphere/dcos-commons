@@ -93,7 +93,7 @@ public class MesosToSchedulerDriverAdapter implements
         performReliableSubscription();
     }
 
-    private synchronized void subscribe() {
+    private synchronized void subscribe(ExponentialBackOff backOff) throws IOException {
         if (state == State.SUBSCRIBED || state == State.DISCONNECTED) {
             LOGGER.debug("Cancelling subscriber. As we are in state: {}", state);
             cancelSubscriber();
@@ -111,6 +111,15 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         mesos.send(callBuilder.build());
+
+        scheduleNextSubscription(backOff);
+    }
+
+    private synchronized void scheduleNextSubscription(ExponentialBackOff backOff) throws IOException {
+        long nextBackoffMs;
+        nextBackoffMs = backOff.nextBackOffMillis();
+        LOGGER.info("Backing off for: {}", nextBackoffMs);
+        subscriberTimer.schedule(new SubscriberTask(backOff), nextBackoffMs);
     }
 
     /**
@@ -162,8 +171,6 @@ public class MesosToSchedulerDriverAdapter implements
 
         switch (event.getType()) {
             case SUBSCRIBED: {
-                cancelSubscriber();
-
                 state = State.SUBSCRIBED;
 
                 frameworkInfo = org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder(frameworkInfo)
@@ -681,12 +688,10 @@ public class MesosToSchedulerDriverAdapter implements
 
     private void cancelSubscriber() {
         LOGGER.info("Cancelling subscriber...");
-        if (subscriberTimer != null) {
-            synchronized (subscriberTimer) {
-                subscriberTimer.cancel();
-                subscriberTimer.purge();
-                subscriberTimer = null;
-            }
+        synchronized (subscriberTimer) {
+            subscriberTimer.cancel();
+            subscriberTimer.purge();
+            subscriberTimer = null;
         }
     }
 
@@ -725,15 +730,7 @@ public class MesosToSchedulerDriverAdapter implements
         @Override
         public void run() {
             try {
-                subscribe();
-                long nextBackoffMs;
-                nextBackoffMs = backOff.nextBackOffMillis();
-
-                LOGGER.info("Backing off for: {}", nextBackoffMs);
-
-                synchronized (subscriberTimer) {
-                    subscriberTimer.schedule(new SubscriberTask(backOff), nextBackoffMs);
-                }
+                subscribe(backOff);
             } catch (IOException e) {
                 LOGGER.error(e.getMessage(), e);
             }

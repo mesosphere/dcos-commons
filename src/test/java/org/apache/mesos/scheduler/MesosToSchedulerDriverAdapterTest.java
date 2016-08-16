@@ -50,6 +50,7 @@ public class MesosToSchedulerDriverAdapterTest {
         CustomMesosToSchedulerDriverAdapter driver = new CustomMesosToSchedulerDriverAdapter(scheduler, mesos);
         assertEquals(org.apache.mesos.Protos.Status.DRIVER_RUNNING, driver.start());
 
+        driver.connected(mesos);
         driver.disconnected(mesos);
 
         verify(scheduler, times(1)).disconnected(driver);
