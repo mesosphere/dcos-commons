@@ -19,15 +19,15 @@ class CIUploader(object):
         self.__pkg_version = package_version
         self.__input_dir_path = input_dir_path
 
-        self.__aws_region = os.environ.get('AWS_UPLOAD_REGION', 'us-west-2')
-        # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
-        s3_base_path = os.environ.get('S3_BASE_PATH', 'infinity-artifacts/autodelete7d')
+        self.__aws_region = os.environ.get('AWS_UPLOAD_REGION', '')
+        s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')
+        s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
         dir_name = '{}-{}'.format(
             time.strftime("%Y%m%d-%H%M%S"),
             ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
-        s3_path = '/'.join([s3_base_path, self.__pkg_name, dir_name])
-        self.__s3_directory = 's3://{}'.format(s3_path)
-        self.__http_directory = 'https://s3-{}.amazonaws.com/{}'.format(self.__aws_region, s3_path)
+        # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
+        self.__s3_directory = 's3://{}/{}/{}/{}'.format(s3_bucket, s3_dir_path, self.__pkg_name, dir_name)
+        self.__http_directory = 'https://{}.s3.amazonaws.com/{}/{}/{}'.format(s3_bucket, s3_dir_path, self.__pkg_name, dir_name)
 
         self.__github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
 
@@ -50,8 +50,12 @@ class CIUploader(object):
 
     def __upload_artifact(self, filepath):
         filename = os.path.basename(filepath)
-        cmd = 'aws s3 --region={} cp --acl public-read {} {}/{}'.format(
-            self.__aws_region, filepath, self.__s3_directory, filename)
+        if self.__aws_region:
+            cmd = 'aws s3 --region={} cp --acl public-read {} {}/{}'.format(
+                self.__aws_region, filepath, self.__s3_directory, filename)
+        else:
+            cmd = 'aws s3 cp --acl public-read {} {}/{}'.format(
+                filepath, self.__s3_directory, filename)
         print(cmd)
         ret = os.system(cmd)
         if not ret == 0:

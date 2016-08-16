@@ -7,7 +7,7 @@ REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
 # Upload current tools (with '.commit' file containing the current SHA) to DEV S3.
-# This can be downloaded via: https://s3-us-west-2.amazonaws.com/infinity-artifacts/dcos-commons-tools.tgz
+# This can be downloaded via: https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz
 
 if [ -n "${TOOLS_AWS_SECRET_ACCESS_KEY}" ]; then
     AWS_SECRET_ACCESS_KEY=${TOOLS_AWS_SECRET_ACCESS_KEY}
