@@ -192,7 +192,7 @@ public class MesosToSchedulerDriverAdapterTest {
             return null;
         }).when(heartbeatTimer).schedule(any(TimerTask.class), anyLong(), anyLong());
 
-        // Set the heartbeat interval to 0. This should result in `reconnect()` being invoked instantly.
+        // Set the heartbeat interval to 0. This should result in `reconnect()` being invoked immediately.
         driver.received(mesos, org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
                 .setSubscribed(org.apache.mesos.v1.scheduler.Protos.Event.Subscribed.newBuilder()
                         .setFrameworkId(org.apache.mesos.v1.Protos.FrameworkID.newBuilder()

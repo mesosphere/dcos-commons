@@ -4,6 +4,7 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.protobuf.Devolver;
 import org.apache.mesos.protobuf.Evolver;
+
 import org.apache.mesos.v1.scheduler.JNIMesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
@@ -17,7 +18,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * This is a threadafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
+ * This is a threadsafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
  * + `Scheduler` interface. It intercepts:
  * - The v1 scheduler callbacks and converts them into appropriate v0 scheduler callbacks.
  * - The various `driver.xx()` calls, creates a `Call` message and then invokes `send()` on the v1
@@ -55,19 +56,16 @@ public class MesosToSchedulerDriverAdapter implements
     private Instant lastHeartbeat;
     private OptionalLong heartbeatTimeout;
 
-
     public MesosToSchedulerDriverAdapter(org.apache.mesos.Scheduler wrappedScheduler,
                                          org.apache.mesos.Protos.FrameworkInfo frameworkInfo,
                                          String master) {
         this.wrappedScheduler = wrappedScheduler;
         this.frameworkInfo = Evolver.evolve(frameworkInfo);
-        this.master = master;
         this.credential = null;
+        this.master = master;
         this.registered = false;
         this.status = org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED;
         this.state = State.DISCONNECTED;
-        this.heartbeatTimer = null;
-        this.heartbeatTimeout = null;
     }
 
     public MesosToSchedulerDriverAdapter(org.apache.mesos.Scheduler wrappedScheduler,
@@ -81,13 +79,16 @@ public class MesosToSchedulerDriverAdapter implements
         this.registered = false;
         this.status = org.apache.mesos.Protos.Status.DRIVER_NOT_STARTED;
         this.state = State.DISCONNECTED;
-        this.heartbeatTimer = null;
-        this.heartbeatTimeout = null;
     }
 
     @Override
     public synchronized void connected(Mesos mesos) {
+        if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
+            return;
+        }
+
         LOGGER.info("Connected!");
+
         state = State.CONNECTED;
 
         performReliableSubscription();
@@ -112,8 +113,6 @@ public class MesosToSchedulerDriverAdapter implements
 
         mesos.send(callBuilder.build());
     }
-
-
 
     /**
      * Task that performs Subscription.
@@ -148,21 +147,6 @@ public class MesosToSchedulerDriverAdapter implements
         }
     }
 
-    private void initSubscriber() {
-        LOGGER.info("Initializing reliable subscriber...");
-        subscriberTimer = createTimerInternal();
-    }
-
-
-    private void cancelSubscriber() {
-        LOGGER.info("Cancelling subscriber...");
-        if (subscriberTimer != null) {
-            subscriberTimer.cancel();
-            subscriberTimer.purge();
-        }
-        subscriberTimer = null;
-    }
-
     @Override
     public synchronized void disconnected(Mesos mesos) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
@@ -186,6 +170,7 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         org.apache.mesos.scheduler.Protos.Event event = Devolver.devolve(v1Event);
+
         LOGGER.info("Received event of type: {}", event.getType());
 
         switch (event.getType()) {
@@ -367,20 +352,6 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         heartbeatTimer = null;
-    }
-
-    private synchronized void heartbeat(final Mesos mesos) {
-        // Don't bother checking for heartbeats if we are not subscribed.
-        if (state == State.DISCONNECTED || state == State.CONNECTED) {
-            return;
-        }
-
-        Duration elapsed = Duration.between(lastHeartbeat, Instant.now());
-
-        // Force reconnection if we have not received heartbeats.
-        if (elapsed.getSeconds() >= heartbeatTimeout.getAsLong()) {
-            mesos.reconnect();
-        }
     }
 
     @Override
@@ -711,5 +682,42 @@ public class MesosToSchedulerDriverAdapter implements
                 .build()));
 
         return status;
+    }
+
+    private void initSubscriber() {
+        LOGGER.info("Initializing reliable subscriber...");
+        subscriberTimer = createTimerInternal();
+    }
+
+
+    private void cancelSubscriber() {
+        LOGGER.info("Cancelling subscriber...");
+        if (subscriberTimer != null) {
+            subscriberTimer.cancel();
+            subscriberTimer.purge();
+        }
+        subscriberTimer = null;
+    }
+
+    private synchronized void heartbeat(final Mesos mesos) {
+        // Don't bother checking for heartbeats if we are not subscribed.
+        if (state == State.DISCONNECTED || state == State.CONNECTED) {
+            return;
+        }
+
+        Duration elapsed = Duration.between(lastHeartbeat, Instant.now());
+
+        // Force reconnection if we have not received heartbeats.
+        if (elapsed.getSeconds() >= heartbeatTimeout.getAsLong()) {
+            LOGGER.info("Forcing reconnection with the master due to not receiving heartbeat events for "
+                + elapsed.getSeconds() + " seconds");
+
+            mesos.reconnect();
+
+            // Cancel the heartbeat timer now to prevent further reconnects. It is possible that we got partitioned
+            // away from the master and are not able to reconnect. If we don't cancel the timer, we would trigger
+            // reconnection again.
+            cancelHeartbeatTimer();
+        }
     }
 }
