@@ -149,11 +149,12 @@ class GithubStatusUpdater(object):
         '''sends an update to github.
         returns True on success or False otherwise.
         state should be one of 'pending', 'success', 'error', or 'failure'.'''
+        print('[STATUS] {} {}: {}'.format(self.__context_label, state, message))
+        if details_url:
+            print('[STATUS] URL: {}'.format(details_url))
+
         if not 'JENKINS_HOME' in os.environ:
-            # not running in CI. just print the provided status
-            print('[STATUS] {} {}: {}'.format(self.__context_label, state, message))
-            if details_url:
-                print('[STATUS] URL: {}'.format(details_url))
+            # not running in CI. skip actually sending anything to GitHub
             return True
 
         request = self.__build_request(state, message, details_url)
