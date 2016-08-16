@@ -18,7 +18,7 @@ public class RecoveryConfiguration {
 
         RecoveryConfiguration that = (RecoveryConfiguration) o;
 
-        if (gracePeriodMins != that.gracePeriodMins) {
+        if (gracePeriodSecs != that.gracePeriodSecs) {
             return false;
         }
         if (recoverDelaySecs != that.recoverDelaySecs) {
@@ -30,14 +30,14 @@ public class RecoveryConfiguration {
 
     @Override
     public int hashCode() {
-        int result = gracePeriodMins;
+        int result = gracePeriodSecs;
         result = 31 * result + recoverDelaySecs;
         result = 31 * result + (enableReplacement ? 1 : 0);
         return result;
     }
 
-    @JsonProperty("recover_in_place_grace_period_mins")
-    private int gracePeriodMins;
+    @JsonProperty("recover_in_place_grace_period_secs")
+    private int gracePeriodSecs;
     @JsonProperty("min_delay_between_recoveries_secs")
     private int recoverDelaySecs;
     @JsonProperty("enable_replacement")
@@ -47,10 +47,10 @@ public class RecoveryConfiguration {
 
     @JsonCreator
     public RecoveryConfiguration(
-            @JsonProperty("recover_in_place_grace_period_mins") int gracePeriodMins,
+            @JsonProperty("recover_in_place_grace_period_secs") int gracePeriodSecs,
             @JsonProperty("min_delay_between_recoveries_secs") int recoverDelaySecs,
             @JsonProperty("enable_replacement") boolean enableReplacement) {
-        this.gracePeriodMins = gracePeriodMins;
+        this.gracePeriodSecs = gracePeriodSecs;
         this.recoverDelaySecs = recoverDelaySecs;
         this.enableReplacement = enableReplacement;
     }
@@ -73,19 +73,19 @@ public class RecoveryConfiguration {
         this.recoverDelaySecs = recoverDelaySecs;
     }
 
-    public int getGracePeriodMins() {
-        return gracePeriodMins;
+    public int getGracePeriodSecs() {
+        return gracePeriodSecs;
     }
 
-    @JsonProperty("recover_in_place_grace_period_mins")
-    public void setGracePeriodMins(int gracePeriodMins) {
-        this.gracePeriodMins = gracePeriodMins;
+    @JsonProperty("recover_in_place_grace_period_secs")
+    public void setGracePeriodSecs(int gracePeriodSecs) {
+        this.gracePeriodSecs = gracePeriodSecs;
     }
 
     @Override
     public String toString() {
         return "RecoveryConfiguration{" +
-                "gracePeriodMins=" + gracePeriodMins +
+                "gracePeriodSecs=" + gracePeriodSecs +
                 ", recoverDelaySecs=" + recoverDelaySecs +
                 ", enableReplacement=" + enableReplacement +
                 '}';
