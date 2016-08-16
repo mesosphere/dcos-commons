@@ -1,19 +1,21 @@
 package org.apache.mesos.curator;
 
-import static org.junit.Assert.*;
-
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.StringConfiguration;
 import org.apache.mesos.storage.CuratorPersister;
+import org.apache.mesos.testutils.CuratorTestUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests to validate the operation of the CuratorConfigStore
@@ -21,14 +23,19 @@ import java.util.UUID;
 public class CuratorConfigStoreTest {
     private static final String ROOT_ZK_PATH = "/test-root-path";
 
-    private TestingServer testZk;
+    private static TestingServer testZk;
     private ConfigStore<StringConfiguration> store;
     private StringConfiguration testConfig;
     private StringConfiguration.Factory configFactory;
 
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testZk = new TestingServer();
+    }
+
     @Before
     public void beforeEach() throws Exception {
-        testZk = new TestingServer();
+        CuratorTestUtils.clear(testZk);
         store = new CuratorConfigStore<StringConfiguration>(
                 ROOT_ZK_PATH, testZk.getConnectString());
 

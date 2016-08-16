@@ -12,34 +12,59 @@ import java.util.Collection;
  * provides for persistence and retrieval of data from Zookeeper.
  */
 public class CuratorPersister implements Persister {
-    private CuratorFramework client;
+    private final String connectionString;
+    private final RetryPolicy retryPolicy;
 
     public CuratorPersister(String connectionString, RetryPolicy retryPolicy) {
-        this.client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
-        this.client.start();
+        this.connectionString = connectionString;
+        this.retryPolicy = retryPolicy;
     }
 
     @Override
     public void store(String path, byte[] bytes) throws Exception {
+        CuratorFramework client = startClient();
         try {
             client.create().creatingParentsIfNeeded().forPath(path, bytes);
         } catch (KeeperException.NodeExistsException e) {
             client.setData().forPath(path, bytes);
+        } finally {
+            client.close();
         }
     }
 
     @Override
     public byte[] fetch(String path) throws Exception {
-        return client.getData().forPath(path);
+        CuratorFramework client = startClient();
+        try {
+            return client.getData().forPath(path);
+        } finally {
+            client.close();
+        }
     }
 
     @Override
     public void clear(String path) throws Exception {
-        client.delete().deletingChildrenIfNeeded().forPath(path);
+        CuratorFramework client = startClient();
+        try {
+            client.delete().deletingChildrenIfNeeded().forPath(path);
+        } finally {
+            client.close();
+        }
     }
 
     @Override
     public Collection<String> getChildren(String path) throws Exception {
-        return client.getChildren().forPath(path);
+        CuratorFramework client = startClient();
+        try {
+            return client.getChildren().forPath(path);
+        } finally {
+            client.close();
+        }
+    }
+
+    private CuratorFramework startClient() {
+        CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
+        client.start();
+        return client;
     }
 }
