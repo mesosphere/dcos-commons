@@ -341,6 +341,8 @@ public class MesosToSchedulerDriverAdapter implements
         }
 
         heartbeatTimer = null;
+        heartbeatTimeout = null;
+        lastHeartbeat = null;
     }
 
     @Override
