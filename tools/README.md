@@ -74,6 +74,8 @@ Takes a Universe 2.x-format package built by `universe_builder.py`, copies its a
 
 The only needed parameters are a stub universe (built by `universe_builder.py`) and a version string to be used for the released package (eg `1.2.3-4.5.6`). This tool only interacts with build artifacts and does not have any dependency on the originating repository.
 
+Note that this utility is careful to avoid overwriting existing artifacts in production (ie if the provided version is already taken). If artifacts are already detected in the production destination, the program will exit and provide the necessary `aws` command to manually delete the data.
+
 ### Usage
 
 ```
