@@ -1,40 +1,31 @@
 package org.apache.mesos.scheduler;
 
+import com.google.api.client.util.ExponentialBackOff;
 import com.google.protobuf.ByteString;
-
 import org.apache.mesos.protobuf.Devolver;
 import org.apache.mesos.protobuf.Evolver;
 import org.apache.mesos.v1.scheduler.JNIMesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.OptionalLong;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 /**
  * This is a threadafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
  * + `Scheduler` interface. It intercepts:
  * - The v1 scheduler callbacks and converts them into appropriate v0 scheduler callbacks.
  * - The various `driver.xx()` calls, creates a `Call` message and then invokes `send()` on the v1
- *   `Mesos` interface.
- *
+ * `Mesos` interface.
  */
 public class MesosToSchedulerDriverAdapter implements
-            org.apache.mesos.v1.scheduler.Scheduler,
-            org.apache.mesos.SchedulerDriver {
+        org.apache.mesos.v1.scheduler.Scheduler,
+        org.apache.mesos.SchedulerDriver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MesosToSchedulerDriverAdapter.class);
 
@@ -47,8 +38,8 @@ public class MesosToSchedulerDriverAdapter implements
 
     // Exponential back-off between consecutive subscribe calls.
     private static final int MULTIPLIER = 2;
-    private static final long SEED_BACKOFF_MS = 2000;
-    private static final long MAX_BACKOFF_MS = 30000;
+    private static final int SEED_BACKOFF_MS = 2000;
+    private static final int MAX_BACKOFF_MS = 30000;
 
     private org.apache.mesos.Scheduler wrappedScheduler;
     private org.apache.mesos.v1.Protos.FrameworkInfo frameworkInfo;
@@ -59,7 +50,6 @@ public class MesosToSchedulerDriverAdapter implements
     private boolean registered;
     private Mesos mesos;
     private Timer subscriberTimer;
-    private long backOffMs;
     private State state;
     private Timer heartbeatTimer;
     private Instant lastHeartbeat;
@@ -100,55 +90,67 @@ public class MesosToSchedulerDriverAdapter implements
         LOGGER.info("Connected!");
         state = State.CONNECTED;
 
-        performReliableSubscription(mesos);
+        performReliableSubscription();
     }
+
+    private synchronized void subscribe() {
+        if (state == State.SUBSCRIBED || state == State.DISCONNECTED) {
+            LOGGER.debug("Cancelling subscriber. As we are in state: {}", state);
+            cancelSubscriber();
+            return;
+        }
+        LOGGER.info("Sending SUBSCRIBE call");
+
+        final Protos.Call.Builder callBuilder = Protos.Call.newBuilder()
+                .setType(Protos.Call.Type.SUBSCRIBE)
+                .setSubscribe(Protos.Call.Subscribe.newBuilder()
+                        .setFrameworkInfo(frameworkInfo)
+                        .build());
+        if (frameworkInfo.hasId()) {
+            callBuilder.setFrameworkId(frameworkInfo.getId());
+        }
+
+        mesos.send(callBuilder.build());
+    }
+
+
 
     /**
      * Task that performs Subscription.
      */
-    public class SubscriberTask extends TimerTask {
-        private Mesos mesos;
-
-        public SubscriberTask(Mesos mesos) {
-            this.mesos = mesos;
-        }
-
-        @Override
-        public void run() {
-            LOGGER.info("Sending SUBSCRIBE call");
-
-            // TODO(anand): I had to comment this out due to FindBugs sync errors!
-            Protos.Call.Builder callBuilder = Protos.Call.newBuilder()
-                    .setType(Protos.Call.Type.SUBSCRIBE)
-                    .setSubscribe(Protos.Call.Subscribe.newBuilder()
-                            //.setFrameworkInfo(null)
-                            .build());
-            /*
-            if (frameworkInfo.hasId()) {
-                callBuilder.setFrameworkId(frameworkInfo.getId());
-            }
-            */
-            mesos.send(callBuilder.build());
-            long nextBackoff = MULTIPLIER * backOffMs;
-            backOffMs = Math.min(nextBackoff > 0 ? nextBackoff : 0, MAX_BACKOFF_MS);
-            LOGGER.info("Backing off for: {}ms", backOffMs);
-            subscriberTimer.schedule(new SubscriberTask(mesos), backOffMs);
-
-        }
-    }
-
-    private void performReliableSubscription(Mesos mesos) {
+    private synchronized void performReliableSubscription() {
         // If timer is not running, initialize it.
         if (subscriberTimer == null) {
             initSubscriber();
-            subscriberTimer.schedule(new SubscriberTask(mesos), backOffMs);
+            subscriberTimer.schedule(new TimerTask() {
+                private long nextBackoffMs;
+
+                private final ExponentialBackOff backoff = new ExponentialBackOff.Builder()
+                        .setMaxElapsedTimeMillis(Integer.MAX_VALUE /* Try forever */)
+                        .setMaxIntervalMillis(MAX_BACKOFF_MS)
+                        .setMultiplier(MULTIPLIER)
+                        .setRandomizationFactor(0.5)
+                        .setInitialIntervalMillis(SEED_BACKOFF_MS)
+                        .build();
+
+                @Override
+                public void run() {
+                    try {
+                        subscribe();
+                        nextBackoffMs = backoff.nextBackOffMillis();
+                        LOGGER.info("Backing off for: {}", nextBackoffMs);
+                        subscriberTimer.schedule(this, nextBackoffMs);
+                    } catch (IOException e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
+                }
+            }, SEED_BACKOFF_MS);
         }
     }
 
     private void initSubscriber() {
         LOGGER.info("Initializing reliable subscriber...");
-        backOffMs = SEED_BACKOFF_MS;
-        subscriberTimer = new Timer();
+        subscriberTimer = createTimerInternal();
     }
 
 
@@ -318,7 +320,7 @@ public class MesosToSchedulerDriverAdapter implements
 
         LOGGER.info("Using Mesos API version: {}", version);
 
-        if (version.equals("V0")){
+        if (version.equals("V0")) {
             if (credential == null) {
                 return new V0Mesos(this, frameworkInfo, master);
             } else {
@@ -339,7 +341,7 @@ public class MesosToSchedulerDriverAdapter implements
         heartbeatTimeout = OptionalLong.of(5 * (long) heartbeatInterval);
         lastHeartbeat = Instant.now();
 
-        heartbeatTimer = createHeartbeatTimerInternal();
+        heartbeatTimer = createTimerInternal();
         heartbeatTimer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -351,7 +353,7 @@ public class MesosToSchedulerDriverAdapter implements
     /**
      * Broken out into a separate function to allow speeding up the `Timer` callbacks.
      */
-    protected Timer createHeartbeatTimerInternal() {
+    protected Timer createTimerInternal() {
         return new Timer();
     }
 
@@ -446,8 +448,8 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public synchronized org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
-                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks,
-                                                      org.apache.mesos.Protos.Filters filters) {
+                                                                   Collection<org.apache.mesos.Protos.TaskInfo> tasks,
+                                                                   org.apache.mesos.Protos.Filters filters) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
             return status;
         }
@@ -469,7 +471,7 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public synchronized org.apache.mesos.Protos.Status launchTasks(Collection<org.apache.mesos.Protos.OfferID> offerIds,
-                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
+                                                                   Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
             return status;
         }
@@ -491,8 +493,8 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public synchronized org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
-                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks,
-                                                      org.apache.mesos.Protos.Filters filters) {
+                                                                   Collection<org.apache.mesos.Protos.TaskInfo> tasks,
+                                                                   org.apache.mesos.Protos.Filters filters) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
             return status;
         }
@@ -515,7 +517,7 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public synchronized org.apache.mesos.Protos.Status launchTasks(org.apache.mesos.Protos.OfferID offerId,
-                                                      Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
+                                                                   Collection<org.apache.mesos.Protos.TaskInfo> tasks) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
             return status;
         }
@@ -576,7 +578,7 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public synchronized org.apache.mesos.Protos.Status declineOffer(org.apache.mesos.Protos.OfferID offerId,
-                                                       org.apache.mesos.Protos.Filters filters) {
+                                                                    org.apache.mesos.Protos.Filters filters) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
             return status;
         }
@@ -640,7 +642,7 @@ public class MesosToSchedulerDriverAdapter implements
 
     @Override
     public synchronized org.apache.mesos.Protos.Status acknowledgeStatusUpdate(
-            org.apache.mesos.Protos.TaskStatus _status) {
+            org.apache.mesos.Protos.TaskStatus statusToAck) {
         if (status != org.apache.mesos.Protos.Status.DRIVER_RUNNING) {
             return status;
         }
@@ -649,9 +651,9 @@ public class MesosToSchedulerDriverAdapter implements
                 .setType(org.apache.mesos.scheduler.Protos.Call.Type.ACKNOWLEDGE)
                 .setFrameworkId(Devolver.devolve(frameworkInfo.getId()))
                 .setAcknowledge(org.apache.mesos.scheduler.Protos.Call.Acknowledge.newBuilder()
-                        .setSlaveId(_status.getSlaveId())
-                        .setTaskId(_status.getTaskId())
-                        .setUuid(_status.getUuid())
+                        .setSlaveId(statusToAck.getSlaveId())
+                        .setTaskId(statusToAck.getTaskId())
+                        .setUuid(statusToAck.getUuid())
                         .build())
                 .build()));
 
@@ -687,7 +689,7 @@ public class MesosToSchedulerDriverAdapter implements
 
         List<org.apache.mesos.scheduler.Protos.Call.Reconcile.Task> tasks = new ArrayList<>();
 
-        for (org.apache.mesos.Protos.TaskStatus status: statuses) {
+        for (org.apache.mesos.Protos.TaskStatus status : statuses) {
             org.apache.mesos.scheduler.Protos.Call.Reconcile.Task.Builder builder =
                     org.apache.mesos.scheduler.Protos.Call.Reconcile.Task.newBuilder();
 

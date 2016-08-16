@@ -152,6 +152,7 @@ dependencies {
   compile "org.json:json:${jsonVer}"
   compile "com.google.inject:guice:${guiceVer}"
   compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
+  compile "com.google.http-client:google-http-client:1.20.0"
   testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
   testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
   testCompile "org.mockito:mockito-all:${mockitoVer}"
