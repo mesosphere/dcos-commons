@@ -1,21 +1,24 @@
 package org.apache.mesos.curator;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.storage.CuratorPersister;
+import org.apache.mesos.testutils.CuratorTestUtils;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 public class CuratorSchemaVersionStoreTest {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -24,17 +27,22 @@ public class CuratorSchemaVersionStoreTest {
     // This value must never change. If you're changing it, you're wrong:
     private static final String NODE_PATH = PREFIXED_ROOT_ZK_PATH + "/SchemaVersion";
 
-    private TestingServer testZk;
+    private static TestingServer testZk;
     private CuratorPersister curator;
     @Mock CuratorPersister mockCurator;
     private SchemaVersionStore store;
     private SchemaVersionStore store2;
     private SchemaVersionStore storeWithMock;
 
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testZk = new TestingServer();
+    }
+
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        testZk = new TestingServer();
+        CuratorTestUtils.clear(testZk);
         curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
         store = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
