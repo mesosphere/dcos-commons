@@ -1,4 +1,4 @@
-package org.apache.mesos.testutils;
+package org.apache.mesos.testing;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;

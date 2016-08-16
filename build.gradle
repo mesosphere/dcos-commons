@@ -141,6 +141,9 @@ dependencies {
   compile "javax.ws.rs:javax.ws.rs-api:${restServiceVer}"
   compile "org.apache.curator:curator-framework:${curatorVer}"
   compile "org.apache.curator:curator-recipes:${curatorVer}"
+  compile "org.apache.curator:curator-test:${curatorVer}"
+  compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
+  compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
   compile "org.apache.mesos:mesos:${mesosVer}"
   compile "org.apache.commons:commons-lang3:3.4"
   compile "org.slf4j:log4j-over-slf4j:${slf4jVer}"
@@ -153,11 +156,8 @@ dependencies {
   testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
   testCompile "org.mockito:mockito-all:${mockitoVer}"
   testCompile "org.powermock:powermock-mockito-release-full:${powerMockVer}"
-  testCompile "org.apache.curator:curator-test:${curatorVer}"
   testCompile "org.mock-server:mockserver-netty:${mockServerVer}"
   testCompile "org.springframework.integration:spring-integration-http:${springVer}"
-  compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
-  compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
 }
 
 distributions {
