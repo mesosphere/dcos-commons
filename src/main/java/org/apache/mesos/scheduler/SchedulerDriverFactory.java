@@ -106,9 +106,9 @@ public class SchedulerDriverFactory {
       final String masterUrl,
       final Credential credential) {
     if (credential == null) {
-      return new MesosSchedulerDriver(scheduler, frameworkInfo, masterUrl);
+      return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl);
     } else {
-      return new MesosSchedulerDriver(scheduler, frameworkInfo, masterUrl, credential);
+      return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, credential);
     }
   }
 
