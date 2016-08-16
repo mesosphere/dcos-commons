@@ -11,7 +11,7 @@ import java.util.UUID;
 public class TestBlock implements Block {
 
     private final UUID id = UUID.randomUUID();
-    private Status status = Status.Pending;
+    private Status status = Status.PENDING;
 
     public TestBlock setStatus(Status newStatus) {
         status = newStatus;
@@ -20,32 +20,32 @@ public class TestBlock implements Block {
 
     @Override
     public void restart() {
-        setStatus(Status.Pending);
+        setStatus(Status.PENDING);
     }
 
     @Override
     public void forceComplete() {
-        setStatus(Status.Complete);
+        setStatus(Status.COMPLETE);
     }
 
     @Override
     public boolean isPending() {
-        return status.equals(Status.Pending);
+        return status.equals(Status.PENDING);
     }
 
     @Override
     public boolean isInProgress() {
-        return status.equals(Status.InProgress);
+        return status.equals(Status.IN_PROGRESS);
     }
 
     @Override
     public boolean isComplete() {
-        return status.equals(Status.Complete);
+        return status.equals(Status.COMPLETE);
     }
 
     @Override
     public OfferRequirement start() {
-        setStatus(Status.InProgress);
+        setStatus(Status.IN_PROGRESS);
         return null; // no requirements
     }
 
@@ -72,9 +72,9 @@ public class TestBlock implements Block {
     @Override
     public void updateOfferStatus(boolean accepted) {
         if (!accepted) {
-            setStatus(Status.Pending);
+            setStatus(Status.PENDING);
         } else {
-            setStatus(Status.InProgress);
+            setStatus(Status.IN_PROGRESS);
         }
     }
 }

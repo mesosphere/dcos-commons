@@ -1,7 +1,9 @@
 package org.apache.mesos.offer;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
@@ -9,6 +11,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
+import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
@@ -171,7 +174,7 @@ public class ResourceUtils {
   public static String getResourceId(Resource resource) {
     if (resource.hasReservation() && resource.getReservation().hasLabels()) {
       for (Label label : resource.getReservation().getLabels().getLabelsList()) {
-        if (label.getKey().equals(ResourceRequirement.RESOURCE_ID_KEY)) {
+        if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
           return label.getValue();
         }
       }
@@ -185,6 +188,60 @@ public class ResourceUtils {
     }
 
     return null;
+  }
+
+  public static TaskInfo clearResourceIds(TaskInfo taskInfo) {
+    List<Resource> clearedTaskResources = clearResourceIds(taskInfo.getResourcesList());
+    TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder(taskInfo)
+            .clearResources()
+            .addAllResources(clearedTaskResources);
+
+    if (taskInfo.hasExecutor()) {
+      taskInfoBuilder.setExecutor(clearResourceIds(taskInfo.getExecutor()));
+    }
+
+    return taskInfoBuilder.build();
+  }
+
+  public static ExecutorInfo clearResourceIds(ExecutorInfo executorInfo) {
+    List<Resource> clearedResources = clearResourceIds(executorInfo.getResourcesList());
+    return ExecutorInfo.newBuilder(executorInfo)
+            .clearResources()
+            .addAllResources(clearedResources)
+            .build();
+  }
+
+  private static List<Resource> clearResourceIds(List<Resource> resources) {
+    List<Resource> clearedResources = new ArrayList<>();
+
+    for (Resource resource : resources) {
+      clearedResources.add(clearResourceId(resource));
+    }
+
+    return clearedResources;
+  }
+
+  private static Resource clearResourceId(Resource resource) {
+    if (resource.hasReservation()) {
+      List<Label> labels = resource.getReservation().getLabels().getLabelsList();
+
+      Resource.Builder resourceBuilder = Resource.newBuilder(resource);
+      Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
+              .newBuilder(resource.getReservation());
+
+      Labels.Builder labelsBuilder = Labels.newBuilder();
+      for (Label label : labels) {
+        if (!label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
+          labelsBuilder.addLabels(label);
+        }
+      }
+
+      reservationBuilder.setLabels(labelsBuilder.build());
+      resourceBuilder.setReservation(reservationBuilder.build());
+      return resourceBuilder.build();
+    } else {
+      return resource;
+    }
   }
 
   private static Resource setResource(Resource.Builder resBuilder, String name, Value value) {
@@ -219,12 +276,12 @@ public class ResourceUtils {
     for (Label label : labels.getLabelsList()) {
       String key = label.getKey();
       String value = label.getValue();
-      if (!key.equals(ResourceRequirement.RESOURCE_ID_KEY)) {
+      if (!key.equals(MesosResource.RESOURCE_ID_KEY)) {
         labelBuilder.addLabel(key, value);
       }
     }
 
-    labelBuilder.addLabel(ResourceRequirement.RESOURCE_ID_KEY, resourceId);
+    labelBuilder.addLabel(MesosResource.RESOURCE_ID_KEY, resourceId);
 
     return labelBuilder.build();
   }
@@ -245,7 +302,7 @@ public class ResourceUtils {
             .setPrincipal(principal)
             .setLabels(Labels.newBuilder()
                     .addLabels(Label.newBuilder()
-                            .setKey(ResourceRequirement.RESOURCE_ID_KEY)
+                            .setKey(MesosResource.RESOURCE_ID_KEY)
                             .setValue(resourceId)
                             .build())
                     .build())
@@ -256,7 +313,7 @@ public class ResourceUtils {
     return Labels.newBuilder()
       .addLabels(
           Label.newBuilder()
-          .setKey(ResourceRequirement.RESOURCE_ID_KEY)
+          .setKey(MesosResource.RESOURCE_ID_KEY)
           .setValue(resourceId)
           .build())
       .build();

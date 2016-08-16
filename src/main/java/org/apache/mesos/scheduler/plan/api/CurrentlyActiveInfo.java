@@ -48,13 +48,13 @@ class CurrentlyActiveInfo {
         this.stageStatus = stageStatus;
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL) // omit field when null/Complete
+    @JsonInclude(JsonInclude.Include.NON_NULL) // omit field when null/COMPLETE
     @JsonProperty("block")
     public BlockInfo getBlock() {
       return block;
     }
 
-    @JsonInclude(JsonInclude.Include.NON_NULL) // omit field when null/Complete
+    @JsonInclude(JsonInclude.Include.NON_NULL) // omit field when null/COMPLETE
     @JsonProperty("phase")
     public CurrentlyActivePhaseInfo getPhaseStatus() {
       return phaseStatus;

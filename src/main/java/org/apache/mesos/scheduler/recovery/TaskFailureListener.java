@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler.repair;
+package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos.TaskID;
 

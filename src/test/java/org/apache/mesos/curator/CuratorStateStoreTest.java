@@ -1,7 +1,5 @@
 package org.apache.mesos.curator;
 
-import static org.junit.Assert.*;
-
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -10,11 +8,15 @@ import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.storage.CuratorPersister;
+import org.apache.mesos.testing.CuratorTestUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests to validate the operation of the {@link CuratorStateStore}.
@@ -34,12 +36,17 @@ public class CuratorStateStoreTest {
     public static final String WHITESPACE_PROPERTY_KEY = "            ";
     public static final String SLASH_PROPERTY_KEY = "hey/hi";
 
-    private TestingServer testZk;
+    private static TestingServer testZk;
     private StateStore store;
+
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testZk = new TestingServer();
+    }
 
     @Before
     public void beforeEach() throws Exception {
-        testZk = new TestingServer();
+        CuratorTestUtils.clear(testZk);
         store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
         // Check that schema version was created in the correct location:
         CuratorPersister curator = new CuratorPersister(

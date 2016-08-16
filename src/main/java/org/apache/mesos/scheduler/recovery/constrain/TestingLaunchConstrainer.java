@@ -1,7 +1,7 @@
-package org.apache.mesos.scheduler.repair.constrain;
+package org.apache.mesos.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.scheduler.recovery.RecoveryRequirement;
 
 /**
  * {@link LaunchConstrainer} that makes it easy to enable/disable launches for testing.
@@ -20,12 +20,12 @@ public class TestingLaunchConstrainer implements LaunchConstrainer {
     }
 
     @Override
-    public void launchHappened(Operation launchOperation) {
+    public void launchHappened(Operation launchOperation, RecoveryRequirement.RecoveryType recoveryType) {
         // Does nothing when the launch happens
     }
 
     @Override
-    public boolean canLaunch(OfferRequirement offerRequirement) {
+    public boolean canLaunch(RecoveryRequirement recoveryRequirement) {
         return this.canLaunch;
     }
 }

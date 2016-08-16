@@ -1,7 +1,7 @@
-package org.apache.mesos.scheduler.repair.constrain;
+package org.apache.mesos.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.scheduler.recovery.RecoveryRequirement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,16 +24,16 @@ public class AllLaunchConstrainer implements LaunchConstrainer {
     }
 
     @Override
-    public void launchHappened(Operation launchOperation) {
+    public void launchHappened(Operation launchOperation, RecoveryRequirement.RecoveryType recoveryType) {
         for (LaunchConstrainer constrainer : constrainers) {
-            constrainer.launchHappened(launchOperation);
+            constrainer.launchHappened(launchOperation, recoveryType);
         }
     }
 
     @Override
-    public boolean canLaunch(OfferRequirement offerRequirement) {
+    public boolean canLaunch(RecoveryRequirement recoveryRequirement) {
         for (LaunchConstrainer constrainer : constrainers) {
-            if (!constrainer.canLaunch(offerRequirement)) {
+            if (!constrainer.canLaunch(recoveryRequirement)) {
                 return false;
             }
         }

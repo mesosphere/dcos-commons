@@ -47,7 +47,7 @@ public class CurrentlyActiveInfoTest {
         when(mockStage.getErrors()).thenReturn(stageErrors);
 
         when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.Waiting);
+        when(mockStageManager.getStatus()).thenReturn(Status.WAITING);
 
         CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockStageManager);
 
@@ -55,7 +55,7 @@ public class CurrentlyActiveInfoTest {
         assertNull(activeInfo.getPhaseStatus());
         assertEquals(stageErrors, activeInfo.getStageStatus().getErrors());
         assertEquals(Integer.valueOf(2), activeInfo.getStageStatus().getPhaseCount());
-        assertEquals(Status.Waiting, activeInfo.getStageStatus().getStatus());
+        assertEquals(Status.WAITING, activeInfo.getStageStatus().getStatus());
     }
 
     /**
@@ -83,7 +83,7 @@ public class CurrentlyActiveInfoTest {
         when(mockPhase0.getId()).thenReturn(phase0Id);
         String phase0Name = "phase-0";
         when(mockPhase0.getName()).thenReturn(phase0Name);
-        Status phase0Status = Status.Pending;
+        Status phase0Status = Status.PENDING;
         when(mockStageManager.getPhaseStatus(phase0Id)).thenReturn(phase0Status);
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
         when(mockPhase0.getBlocks()).thenAnswer(new Answer<List<? extends Block>>() {
@@ -110,7 +110,7 @@ public class CurrentlyActiveInfoTest {
         when(mockStageManager.getCurrentBlock()).thenReturn(mockBlock0);
         when(mockStageManager.getCurrentPhase()).thenReturn(mockPhase0);
         when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.Waiting);
+        when(mockStageManager.getStatus()).thenReturn(Status.WAITING);
 
 
         CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockStageManager);
@@ -121,7 +121,7 @@ public class CurrentlyActiveInfoTest {
         assertEquals(block0Id.toString(), blockInfo.getId());
         assertEquals(block0Message, blockInfo.getMessage());
         assertEquals(block0Name, blockInfo.getName());
-        assertEquals(Status.Pending, blockInfo.getStatus());
+        assertEquals(Status.PENDING, blockInfo.getStatus());
 
         CurrentlyActivePhaseInfo phaseInfo = activeInfo.getPhaseStatus();
         assertEquals(phase0Id.toString(), phaseInfo.getId());
@@ -132,7 +132,7 @@ public class CurrentlyActiveInfoTest {
         CurrentlyActiveStageInfo stageInfo = activeInfo.getStageStatus();
         assertEquals(stageErrors, stageInfo.getErrors());
         assertEquals(Integer.valueOf(2), stageInfo.getPhaseCount());
-        assertEquals(Status.Waiting, stageInfo.getStatus());
+        assertEquals(Status.WAITING, stageInfo.getStatus());
 
         // exercise equals/hashCode while we're at it:
         assertTrue(activeInfo.equals(activeInfo));

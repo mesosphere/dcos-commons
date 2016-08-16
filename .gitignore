@@ -1,5 +1,5 @@
 target/
-dcos-tests/
+*.pyc
 
 # idea
 *.i??

@@ -14,8 +14,6 @@ import org.apache.mesos.Protos.Value;
  * or an already determined value.
  */
 public class ResourceRequirement {
-  public static final String RESOURCE_ID_KEY = "resource_id";
-
   private MesosResource mesosResource;
   private DiskInfo diskInfo;
 

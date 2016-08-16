@@ -1,10 +1,11 @@
-package org.apache.mesos.scheduler.repair;
+package org.apache.mesos.scheduler.recovery;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import org.apache.mesos.Protos.TaskInfo;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents the collection of nodes in the stopped and failed pools.
@@ -14,31 +15,42 @@ import java.util.List;
  * <p>
  * Stopped nodes are ones we believe are completely gone, and must be restarted elsewhere.
  */
-public class RepairStatus {
-    private final List<String> stopped;
-    private final List<String> failed;
+public class RecoveryStatus {
+    private final List<TaskInfo> stopped;
+    private final List<TaskInfo> failed;
 
-    @JsonCreator
-    public RepairStatus(
-            @JsonProperty("stopped") List<String> stopped,
-            @JsonProperty("failed") List<String> failed) {
+    public RecoveryStatus(
+            List<TaskInfo> stopped,
+            List<TaskInfo> failed) {
         this.stopped = stopped;
         this.failed = failed;
     }
 
-    @JsonProperty
-    public List<String> getStopped() {
+    public List<TaskInfo> getStopped() {
         return stopped;
     }
 
-    @JsonProperty
-    public List<String> getFailed() {
+    public List<TaskInfo> getFailed() {
         return failed;
+    }
+
+    @JsonProperty("stopped")
+    public List<String> getStoppedNames() {
+        return getStopped().stream()
+                .map(TaskInfo::getName)
+                .collect(Collectors.toList());
+    }
+
+    @JsonProperty("failed")
+    public List<String> getFailedNames() {
+        return getFailed().stream()
+                .map(TaskInfo::getName)
+                .collect(Collectors.toList());
     }
 
     @Override
     public String toString() {
-        return "RepairStatus{" +
+        return "RecoveryStatus{" +
                 "stopped=" + stopped +
                 ", failed=" + failed +
                 '}';
@@ -52,7 +64,7 @@ public class RepairStatus {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        RepairStatus that = (RepairStatus) o;
+        RecoveryStatus that = (RecoveryStatus) o;
         return Objects.equal(stopped, that.stopped) &&
                 Objects.equal(failed, that.failed);
     }

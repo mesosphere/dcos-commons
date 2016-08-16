@@ -74,14 +74,14 @@ public class DefaultStageSchedulerTest {
 
     @Test
     public void testNonPendingBlock() {
-        TestBlock block = new TestBlock().setStatus(Status.InProgress);
+        TestBlock block = new TestBlock().setStatus(Status.IN_PROGRESS);
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
         assertTrue(block.isInProgress());
     }
 
     @Test
     public void testStartNoRequirement() {
-        TestBlock block = new TestOfferBlock(null).setStatus(Status.Pending);
+        TestBlock block = new TestOfferBlock(null).setStatus(Status.PENDING);
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
         assertTrue(block.isPending());
     }
@@ -90,7 +90,7 @@ public class DefaultStageSchedulerTest {
     public void testEvaluateNoRecommendations() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.Pending);
+                .setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
@@ -104,7 +104,7 @@ public class DefaultStageSchedulerTest {
     public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.Pending);
+                .setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
                 .thenReturn(new ArrayList<>());
@@ -121,7 +121,7 @@ public class DefaultStageSchedulerTest {
     public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.Pending);
+                .setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
                 .thenReturn(ACCEPTED_IDS);

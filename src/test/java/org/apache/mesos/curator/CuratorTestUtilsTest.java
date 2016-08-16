@@ -1,15 +1,15 @@
 package org.apache.mesos.curator;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.UUID;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link CuratorUtils}
  */
-public class CuratorUtilsTest {
+public class CuratorTestUtilsTest {
 
     @Test
     public void testServiceRootPath() {

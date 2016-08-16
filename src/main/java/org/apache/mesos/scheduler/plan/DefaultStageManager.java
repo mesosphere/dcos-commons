@@ -97,7 +97,7 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public boolean isInterrupted() {
-    return getStatus() == Status.Waiting;
+    return getStatus() == Status.WAITING;
   }
 
   @Override
@@ -170,27 +170,27 @@ public class DefaultStageManager implements StageManager {
 
     Status result;
     if (!getErrors().isEmpty()) {
-      result = Status.Error;
+      result = Status.ERROR;
       LOGGER.warn("(status={}) Stage contains errors", result);
     } else if (stage.getPhases().isEmpty()) {
-      result = Status.Complete;
+      result = Status.COMPLETE;
       LOGGER.warn("(status={}) Stage doesn't have any phases", result);
-    } else if (anyHaveStatus(Status.InProgress, stage)) {
-      result = Status.InProgress;
-      LOGGER.info("(status={}) At least one phase has status: {}", result, Status.InProgress);
-    } else if (anyHaveStatus(Status.Waiting, stage)) {
-      result = Status.Waiting;
-      LOGGER.info("(status={}) At least one phase has status: {}", result, Status.Waiting);
-    } else if (allHaveStatus(Status.Complete, stage)) {
-      result = Status.Complete;
-      LOGGER.info("(status={}) All phases have status: {}", result, Status.Complete);
-    } else if (allHaveStatus(Status.Pending, stage)) {
-      result = Status.Pending;
-      LOGGER.info("(status={}) All phases have status: {}", result, Status.Pending);
-    } else if (anyHaveStatus(Status.Complete, stage) && anyHaveStatus(Status.Pending, stage)) {
-      result = Status.InProgress;
+    } else if (anyHaveStatus(Status.IN_PROGRESS, stage)) {
+      result = Status.IN_PROGRESS;
+      LOGGER.info("(status={}) At least one phase has status: {}", result, Status.IN_PROGRESS);
+    } else if (anyHaveStatus(Status.WAITING, stage)) {
+      result = Status.WAITING;
+      LOGGER.info("(status={}) At least one phase has status: {}", result, Status.WAITING);
+    } else if (allHaveStatus(Status.COMPLETE, stage)) {
+      result = Status.COMPLETE;
+      LOGGER.info("(status={}) All phases have status: {}", result, Status.COMPLETE);
+    } else if (allHaveStatus(Status.PENDING, stage)) {
+      result = Status.PENDING;
+      LOGGER.info("(status={}) All phases have status: {}", result, Status.PENDING);
+    } else if (anyHaveStatus(Status.COMPLETE, stage) && anyHaveStatus(Status.PENDING, stage)) {
+      result = Status.IN_PROGRESS;
       LOGGER.info("(status={}) At least one phase has status '{}' and one has status '{}'",
-              result, Status.Complete, Status.Pending);
+              result, Status.COMPLETE, Status.PENDING);
     } else {
       result = null;
       LOGGER.error("(status={}) Unexpected state. Stage: {}", result, stage);
@@ -215,7 +215,7 @@ public class DefaultStageManager implements StageManager {
   @Override
   public Status getPhaseStatus(final UUID phaseId) {
     PhaseStrategy strategy = getStrategy(getPhase(phaseId));
-    return strategy != null ? strategy.getStatus() : Status.Error;
+    return strategy != null ? strategy.getStatus() : Status.ERROR;
   }
 
   @Override

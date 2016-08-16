@@ -42,7 +42,7 @@ public class DefaultInstallStrategy implements PhaseStrategy {
 
     @Override
     public boolean isInterrupted() {
-        return getStatus() == Status.Waiting;
+        return getStatus() == Status.WAITING;
     }
 
     @Override
@@ -64,7 +64,7 @@ public class DefaultInstallStrategy implements PhaseStrategy {
     @Override
     public Status getStatus() {
         if (phase == null || phase.getBlocks().isEmpty()) {
-            return Status.Complete;
+            return Status.COMPLETE;
         }
 
         int blockIndex = -1;
@@ -73,18 +73,18 @@ public class DefaultInstallStrategy implements PhaseStrategy {
 
             if (!block.isComplete()) {
                 if (interrupted.get()) {
-                    return Status.Waiting;
+                    return Status.WAITING;
                 }
 
                 if (blockIndex > 0) {
-                    return Status.InProgress;
+                    return Status.IN_PROGRESS;
                 } else {
                     return Block.getStatus(block);
                 }
             }
         }
 
-        return Status.Complete;
+        return Status.COMPLETE;
     }
 
     @Override
