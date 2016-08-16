@@ -5,10 +5,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
-
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * Implements a {@link FailureMonitor} with a time-based policy.
@@ -25,17 +24,18 @@ public class TimedFailureMonitor implements FailureMonitor {
     private static final Log log = LogFactory.getLog(TimedFailureMonitor.class);
     // This map stores the time when we first noticed the failure
     private final HashMap<TaskID, Date> firstFailureDetected;
-    private final long minutesUntilFailed;
+    private final Duration durationUntilFailed;
 
     /**
      * Creates a new {@link FailureMonitor} that waits for at least a specified duration before deciding that the task
      * has failed.
      *
-     * @param minutesUntilFailed The number of minutes that a task could
+     * @param durationUntilFailed The minimum amount of time which must pass before a stopped Task can be considered
+     *                            failed.
      */
-    public TimedFailureMonitor(long minutesUntilFailed) {
+    public TimedFailureMonitor(Duration durationUntilFailed) {
         this.firstFailureDetected = new HashMap<>();
-        this.minutesUntilFailed = minutesUntilFailed;
+        this.durationUntilFailed = durationUntilFailed;
     }
 
     /**
@@ -57,7 +57,8 @@ public class TimedFailureMonitor implements FailureMonitor {
             }
             taskLaunchedTime = firstFailureDetected.get(terminatedTask.getTaskId());
         }
-        Date taskExpiredTime = new Date(taskLaunchedTime.getTime() + MINUTES.toMillis(minutesUntilFailed));
+
+        Date taskExpiredTime = new Date(taskLaunchedTime.getTime() + durationUntilFailed.toMillis());
         Date now = new Date();
         log.info("Looking at " + terminatedTask.getName() + " launchHappened at " + taskLaunchedTime + ", expires at "
                 + taskExpiredTime + " which is " + now.after(taskExpiredTime));

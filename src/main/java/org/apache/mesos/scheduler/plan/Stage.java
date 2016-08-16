@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Defines the interface for one or more {@link Phase}s, along with any errors encountered while
  * processing those Phases. The Stage is a representation of any work that is currently being
- * performed, divided into steps represented by one or more {@link Phases}, and each step divided
+ * performed, divided into steps represented by one or more {@link Phase}, and each step divided
  * into one or more {@link Block}s. This structure is a logical abstraction of a multi-phase process
  * for performing upgrades or maintenance on a service.
  * <p>
