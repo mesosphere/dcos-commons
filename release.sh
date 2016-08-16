@@ -9,6 +9,6 @@ cd $REPO_ROOT_DIR
 ./build.sh
 ./gradlew publish
 
-zip -r tools.zip tools/*.py \
-    && aws s3 cp --acl public-read ./tools.zip s3://downloads.mesosphere.io/dcos-commons/tools.zip \
-    && rm tools.zip
+tar czvf tools.tgz tools/*.py \
+    && aws s3 cp --acl public-read ./tools.tgz s3://downloads.mesosphere.io/dcos-commons/tools.tgz \
+    && rm tools.tgz
