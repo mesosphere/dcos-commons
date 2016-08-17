@@ -50,7 +50,12 @@ In addition to these default template parameters, the caller may also provide en
 ### Usage
 
 ```
-./universe_builder.py <package-name> <package-version> <template-package-dir> <artifact-dir> [artifact files ...]
+./universe_builder.py \
+    <package-name> \
+    <package-version> \
+    <template-package-dir> \
+    <artifact-dir> \
+    [artifact files ...]
 ```
 
 Example:
@@ -61,7 +66,9 @@ Example:
     1.2.3-4.5.6 \
     dcos-kafka-service/universe/ \
     https://example.com/path/to/kafka-artifacts \
-    dcos-kafka-service/build/scheduler.zip dcos-kafka-service/build/executor.zip dcos-kafka-service/build/cli.zip
+    dcos-kafka-service/build/scheduler.zip \
+    dcos-kafka-service/build/executor.zip \
+    dcos-kafka-service/build/cli.zip
 ```
 
 ### Environment variables
@@ -79,13 +86,19 @@ Note that this utility is careful to avoid overwriting existing artifacts in pro
 ### Usage
 
 ```
-./release_builder.py <package-version> <stub-universe-url>
+./release_builder.py \
+    <package-version> \
+    <stub-universe-url> \
+    [commit message]
 ```
 
-### Environment variables
+Example:
 
 ```
-./release_builder.py 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip
+./release_builder.py \
+    1.2.3-4.5.6 \
+    https://example.com/path/to/stub-universe-kafka.zip \
+    This is a test release
 ```
 
 ## github_update.py
