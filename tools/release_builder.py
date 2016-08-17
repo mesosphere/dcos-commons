@@ -23,6 +23,7 @@ except ImportError:
 class UniverseReleaseBuilder(object):
 
     def __init__(self, package_version, stub_universe_url,
+                 commit_desc = '',
                  min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.7'),
                  upload_dryrun = False,
                  push_dryrun = False):
@@ -32,6 +33,7 @@ class UniverseReleaseBuilder(object):
                             'Expected filename of form \'stub-universe-[pkgname].zip\'')
         self.__pkg_name = name_match.group(1)
         self.__pkg_version = package_version
+        self.__commit_desc = commit_desc
         self.__stub_universe_url = stub_universe_url
         self.__min_dcos_release_version = min_dcos_release_version
 
@@ -244,6 +246,8 @@ class UniverseReleaseBuilder(object):
             '{} files added: [{}]\n'.format(len(addedfiles), ', '.join(addedfiles)),
             '{} files removed: [{}]\n'.format(len(removedfiles), ', '.join(removedfiles)),
             '{} files changed:\n\n'.format(len(filediffs))]
+        if self.__commit_desc:
+            resultlines.insert(0, 'Description:\n{}\n\n'.format(self.__commit_desc))
         # surround diff description with quotes to ensure formatting is preserved:
         resultlines.append('```\n')
         filediff_names = filediffs.keys()
@@ -305,7 +309,7 @@ class UniverseReleaseBuilder(object):
 
 
 def print_help(argv):
-    print('Syntax: {} <package-version> <stub-universe-url>'.format(argv[0]))
+    print('Syntax: {} <package-version> <stub-universe-url> [commit message]'.format(argv[0]))
     print('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip'.format(argv[0]))
     print('Required credentials in env:')
     print('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
@@ -323,12 +327,18 @@ def main(argv):
     package_version = argv[1]
     # url where the stub universe is located:
     stub_universe_url = argv[2].rstrip('/')
+    # commit comment, if any:
+    commit_desc = ' '.join(argv[3:])
+    if commit_desc:
+        comment_info = '\nCommit Message:  {}'.format(commit_desc)
+    else:
+        comment_info = ''
     print('''###
-Universe URL:    {}
 Release Version: {}
-###'''.format(package_version, stub_universe_url))
+Universe URL:    {}{}
+###'''.format(package_version, stub_universe_url, comment_info))
 
-    builder = UniverseReleaseBuilder(package_version, stub_universe_url)
+    builder = UniverseReleaseBuilder(package_version, stub_universe_url, commit_desc)
     response = builder.release_zip()
     if response.status < 200 or response.status >= 300:
         print('Got {} response to PR creation request:'.format(response.status))
