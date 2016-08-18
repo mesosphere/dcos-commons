@@ -25,13 +25,17 @@ class UniverseReleaseBuilder(object):
     def __init__(self, package_version, stub_universe_url,
                  commit_desc = '',
                  min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.7'),
-                 upload_dryrun = False,
-                 push_dryrun = False):
+                 http_release_server = os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
+                 s3_release_bucket = os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
+                 release_dir_path = os.environ.get('RELEASE_DIR_PATH', '')): # default set below
+        self.__dry_run = os.environ.get('DRY_RUN', '')
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
         if not name_match:
             raise Exception('Unable to extract package name from stub universe URL. ' +
                             'Expected filename of form \'stub-universe-[pkgname].zip\'')
         self.__pkg_name = name_match.group(1)
+        if not release_dir_path:
+            release_dir_path = self.__pkg_name + '/assets'
         self.__pkg_version = package_version
         self.__commit_desc = commit_desc
         self.__stub_universe_url = stub_universe_url
@@ -39,17 +43,10 @@ class UniverseReleaseBuilder(object):
 
         self.__pr_title = 'Release {} {} (automated commit)\n\n'.format(
             self.__pkg_name, self.__pkg_version)
-        self.__release_artifact_http_dir = 'https://downloads.mesosphere.com/{}/assets/{}'.format(
-            self.__pkg_name, self.__pkg_version)
-        self.__release_artifact_s3_dir = 's3://downloads.mesosphere.io/{}/assets/{}'.format(
-            self.__pkg_name, self.__pkg_version)
-
-        if upload_dryrun:
-            self.__upload_dryrun_flags = '--dryrun '
-        else:
-            self.__upload_dryrun_flags = ''
-
-        self.__push_dryrun = push_dryrun
+        self.__release_artifact_http_dir = '{}/{}/{}'.format(
+            http_release_server, release_dir_path, self.__pkg_version)
+        self.__release_artifact_s3_dir = 's3://{}/{}/{}'.format(
+            s3_release_bucket, release_dir_path, self.__pkg_version)
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
@@ -61,6 +58,14 @@ class UniverseReleaseBuilder(object):
             raise Exception('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required: '
                             + 'Credentials to prod AWS for uploading release artifacts')
 
+
+    def __run_cmd(self, cmd, dry_run_return = 0):
+        if self.__dry_run:
+            print('[DRY RUN] {}'.format(cmd))
+            return dry_run_return
+        else:
+            print(cmd)
+            return os.system(cmd)
 
     def __download_unpack_stub_universe(self, scratchdir):
         local_zip_path = os.path.join(scratchdir, self.__stub_universe_url.split('/')[-1])
@@ -110,13 +115,19 @@ class UniverseReleaseBuilder(object):
     def __update_package_get_artifact_source_urls(self, pkgdir):
         # replace package.json:version (smart replace)
         path = os.path.join(pkgdir, 'package.json')
-        print('[1/2] Setting package version to {} in {}'.format(self.__pkg_version, path))
+        packagingVersion = '3.0'
+        if self.__min_dcos_release_version == '0':
+            minDcosReleaseVersion = None
+        else:
+            minDcosReleaseVersion = self.__min_dcos_release_version
+        print('[1/2] Setting version={}, packagingVersion={}, minDcosReleaseVersion={} in {}'.format(
+            self.__pkg_version, packagingVersion, minDcosReleaseVersion, path))
         orig_content = open(path, 'r').read()
         content_json = json.loads(orig_content)
         content_json['version'] = self.__pkg_version
-        content_json['packagingVersion'] = '3.0'
-        if self.__min_dcos_release_version:
-            content_json['minDcosReleaseVersion'] = self.__min_dcos_release_version
+        content_json['packagingVersion'] = packagingVersion
+        if minDcosReleaseVersion:
+            content_json['minDcosReleaseVersion'] = minDcosReleaseVersion
         # dumps() adds trailing space, fix that:
         new_content_lines = json.dumps(content_json, indent=2, sort_keys=True).split('\n')
         new_content = '\n'.join([line.rstrip() for line in new_content_lines]) + '\n'
@@ -143,7 +154,8 @@ class UniverseReleaseBuilder(object):
         # before we do anything else, verify that the upload directory doesn't already exist, to
         # avoid automatically stomping on a previous release. if you *want* to do this, you must
         # manually delete the destination directory first.
-        ret = os.system('aws s3 ls --recursive {}'.format(self.__release_artifact_s3_dir))
+        cmd = 'aws s3 ls --recursive {}'.format(self.__release_artifact_s3_dir)
+        ret = self.__run_cmd(cmd, 1)
         if ret == 0:
             raise Exception('Release artifact destination already exists. ' +
                             'Refusing to continue until destination has been manually removed:\n' +
@@ -164,19 +176,24 @@ class UniverseReleaseBuilder(object):
             # copy directly from src bucket to dest bucket via 'aws s3 cp'? problem: different credentials
 
             # download the artifact (dev s3, via http)
-            print('{} Downloading {} to {}'.format(progress, src_url, local_path))
-            if self.__upload_dryrun_flags:
+            if self.__dry_run:
                 # create stub file to make 'aws s3 cp --dryrun' happy:
+                print('[DRY RUN] {} Downloading {} to {}'.format(progress, src_url, local_path))
                 stub = open(local_path, 'w')
                 stub.write('stub')
                 stub.flush()
                 stub.close()
+                print('[DRY RUN] {} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
+                ret = os.system('aws s3 cp --dryrun --acl public-read {} {}'.format(
+                    local_path, dest_s3_url))
             else:
+                # download the artifact (http url referenced in package)
+                print('{} Downloading {} to {}'.format(progress, src_url, local_path))
                 urllib.URLopener().retrieve(src_url, local_path)
-            # re-upload the artifact (prod s3, via awscli)
-            print('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
-            ret = os.system('aws s3 cp {}--acl public-read {} {}'.format(
-                self.__upload_dryrun_flags, local_path, dest_s3_url))
+                # re-upload the artifact (prod s3, via awscli)
+                print('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
+                ret = os.system('aws s3 cp --acl public-read {} {}'.format(
+                    local_path, dest_s3_url))
             if not ret == 0:
                 raise Exception(
                     'Failed to upload {} to {}. '.format(local_path, dest_s3_url) +
@@ -187,19 +204,18 @@ class UniverseReleaseBuilder(object):
     def __create_universe_branch(self, scratchdir, pkgdir):
         branch = 'automated/release_{}_{}_{}'.format(
             self.__pkg_name, self.__pkg_version, base64.b64encode(os.urandom(4)).decode('utf-8').rstrip('='))
-        # check out the repo, create a new branch:
-        cmds = [
+        # check out the repo, create a new local branch:
+        ret = os.system(' && '.join([
             'cd {}'.format(scratchdir),
             'git clone --depth 1 --branch version-3.x git@github.com:mesosphere/universe',
             'cd universe',
             'git config --local user.email jenkins@mesosphere.com',
             'git config --local user.name release_builder.py',
-            'git checkout -b {}'.format(branch)]
-        ret = os.system(' && '.join(cmds))
+            'git checkout -b {}'.format(branch)]))
         if not ret == 0:
             raise Exception(
                 'Failed to create local Universe git branch {}. '.format(branch) +
-                'Note that release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self.__release_artifact_s3_dir))
+                'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self.__release_artifact_s3_dir))
         universe_repo = os.path.join(scratchdir, 'universe')
         repo_pkg_base = os.path.join(
             universe_repo,
@@ -262,24 +278,25 @@ class UniverseReleaseBuilder(object):
         commitmsg_file.flush()
         commitmsg_file.close()
         # commit the change and push the branch:
-        cmds = [
-            'cd {}'.format(os.path.join(scratchdir, 'universe')),
-            'git add .',
-            'git commit -F {}'.format(commitmsg_path)]
-        if not self.__push_dryrun:
+        cmds = ['cd {}'.format(os.path.join(scratchdir, 'universe')),
+                'git add .',
+                'git commit -F {}'.format(commitmsg_path)]
+        if self.__dry_run:
+            cmds.append('git show -q HEAD')
+        else:
             cmds.append('git push origin {}'.format(branch))
         ret = os.system(' && '.join(cmds))
         if not ret == 0:
             raise Exception(
                 'Failed to push git branch {} to Universe. '.format(branch) +
-                'Note that release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self.__release_artifact_s3_dir))
+                'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self.__release_artifact_s3_dir))
         return (branch, commitmsg_path)
 
 
     def __create_universe_pr(self, branch, commitmsg_path):
-        if self.__push_dryrun:
-            print('[dry run] Skipping creation of PR against branch {}'.format(branch))
-            sys.exit(0)
+        if self.__dry_run:
+            print('[DRY RUN] Skipping creation of PR against branch {}'.format(branch))
+            return None
         headers = {
             'User-Agent': 'release_builder.py',
             'Content-Type': 'application/json',
@@ -340,6 +357,9 @@ Universe URL:    {}{}
 
     builder = UniverseReleaseBuilder(package_version, stub_universe_url, commit_desc)
     response = builder.release_zip()
+    if not response:
+        print('[DRY RUN] The pull request URL would appear here.')
+        return 0
     if response.status < 200 or response.status >= 300:
         print('Got {} response to PR creation request:'.format(response.status))
         print('Response:')
