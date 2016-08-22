@@ -4,19 +4,130 @@
 
 Common tools which automate the process of uploading, testing, and releasing DC/OS Services.
 
-- **ci_upload.py**: Given a universe template and a set of build artifacts, creates a 'stub universe' package and uploads it along with the artifacts to a dev S3 bucket (ideally a directory with expiration configured to 7d or so).
-- **ci_release.py**: Given an uploaded stub universe URL and a version string, transfers the artifacts to a Release S3 bucket and creates a PR against [Universe](https://github.com/mesosphere/universe/).
-- **github_update.py**: Update a GitHub PR status with the progress of a build. Used by the above scripts, and may be used in your own build tools to provide a nicer CI experience in PRs.
+- **ci_upload.py**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package and uploads it along with the provided artifacts to a dev S3 bucket (ideally a directory with expiration configured to 7d or so).
+- **ci_release.py**: Given an uploaded stub universe URL and a version string, transfers the artifacts to a more permanent 'release' S3 bucket and creates a PR against [Universe](https://github.com/mesosphere/universe/).
+- **github_update.py**: Update a GitHub PR status with the progress of a build. Used by the above scripts, and may be used in your own build scripts to provide a nicer CI experience in PRs.
 
 These utilities are designed to be used both in automated CI flows, as well as locally on developer workstations.
 
-To retrieve the latest version of these tools in automated environments, get a copy of the latest .zip release like so:
+## Quick Start
+
+In order to use these tools, there are a few ingredients to be added to your service repository:
+
+- Package template with placeholders
+- Build script and artifacts
+- Release script
+
+### Package template with placeholders
+
+The package template is the only particularly formal requirement, while the rest is fairly ad-hoc.
+
+There should be a directory in the project repository containing the `.json` files that you want to be put in the Universe. The directory would look something like this:
+
+```
+project-repo/universe/
+  command.json
+  config.json
+  marathon.json.mustache
+  package.json
+  resource.json
+```
+
+It's recommended that you include this directory within the project repository alongside the service code, so that you are able to easily make any packaging changes in concert with code changes in the same commit. For example, adding a new user-facing configuration setting to the packaging while also adding the code which supports that setting.
+
+Once you have populated the package template directory, you should update it to include the following placeholders:
+- Artifact url placeholders
+- Version label placeholder
+- Binary CLI module SHA placeholders
+- Custom placeholders (if any)
+
+#### Artifact url placeholders
+
+Any URLs to build artifacts, typically within `command.json` and/or `resource.json`, should be of the form `{{artifact-dir}}/artifact.ext`.
+
+For example, instead of `http://example.com/artifacts/1.1/scheduler.zip`, you should just have `{{artifact-dir}}/scheduler.zip`. There should be no other directories specified in the path, just the placeholder followed by the filename. The `{{artifact-dir}}` placeholder will be dynamically updated to point to an upload location.
+
+Note that this only applies to the files that you expect to be built, uploaded, and included in every release of your service. External resources that aren't included in the main build, such as icons, JVM packages, or external libraries should instead be uploaded to a fixed location, and their paths in the packaging should point to that location without any templating.
+
+For some examples of this, take a look at `resource.json` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/universe/resource.json) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/universe/resource.json).
+
+#### Version label placeholder
+
+Any version labels should be replaced with a `{{package-version}}` placeholder. This may involve any documentation strings that mention the version, but in particular you should change the `version` value within your `package.json` to `{{package-version}}`:
+
+Before:
+```
+  "version": "1.5.0",
+```
+
+After:
+```
+  "version": "{{package-version}}",
+```
+
+For some examples of this, take a look at `package.json` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/universe/package.json) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/universe/package.json).
+
+#### Binary CLI module SHA placeholders
+
+If you are providing binary CLI modules with your service, the tooling supports automatically populating the package template with any required `sha256sum` values.
+
+The expected placeholder format is `{{sha256:yourfile.ext}}`, where `yourfile.ext` is one of the files which was passed to `ci_upload.py`. Multiple files of the same name are not supported, as they all get uploaded to the same directory anyway. For example:
+
+Before:
+```
+  "x86-64":{
+    "contentHash":[ { "algo":"sha256", "value":"6b6f79f0c5e055a19db188989f9bbf40b834e620914edc98b358fe1438caac42" } ],
+    "kind":"executable",
+    "url":"{{artifact-dir}}/dcos-kafka-linux"
+  }
+```
+
+After:
+```
+  "x86-64":{
+    "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-kafka-linux}}" } ],
+    "kind":"executable",
+    "url":"{{artifact-dir}}/dcos-kafka-linux"
+  }
+```
+
+For some examples of this, take a look at `resource.json` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/universe/resource.json) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/universe/resource.json).
+
+#### Custom placeholders
+
+You may include custom placeholders of the form `{{custom-placeholder}}` anywhere in your template. This can be useful for e.g. passing the path to a per-build docker tag, a randomly generated key, or anything else that you expect to change on a per-build basis.
+
+These parameters can then be filled in by passing a `TEMPLATE_CUSTOM_PLACEHOLDER` environment variable with the desired value when calling `ci_upload.py`. You can learn more about this feature in the documentation for `ci_upload.py`, below.
+
+### Build script and artifacts
+
+Ideally you should have some script in your project repository which defines how the project is built. This script would do any work to build the artifacts, then call `ci_upload.py` with the paths to those artifacts provided so that they're uploaded along with the stub universe. This script can be then be instantiated by any CI that you might have.
+
+We specifically recommend including this script in the project repository alongside your code. This will allow adding/modifying/removing artifacts from your build on a per-commit basis in lockstep with code changes, whereas a single external script would cause synchronization issues between branches which may each have different artifacts.
+
+For some examples of instantiation, take a look at `build.sh` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/build.sh) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/build.sh).
+
+#### Downloading the latest tools
+
+Within your script, it could make sense to just grab the latest .tgz release of these tools like so:
 
 ```
 rm -rf dcos-commons-tools/ && \
     curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
 ./dcos-commons-tools/universe_builder.py
 ```
+
+This .tgz is automatically updated when there's a change to `master`.
+
+### Release script
+
+This is a fairly minimal detail, but it can't hurt to have some automation around the call to `release_builder.py`. For example, you could create a Jenkins parameterized build which calls this script. The parameters would include:
+
+- Version label (required)
+- Stub universe url (required)
+- Release comment(s) (optional)
+
+## Tools
 
 What follows is a more detailed description of what each utility does and how it can be used:
 
@@ -59,7 +170,7 @@ $ dcos package install kafka
 [... normal usage from here ...]
 ```
 
-For other examples of usage, take a look at the `build.sh` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/build.sh) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/build.sh).
+For other examples of usage, take a look at `build.sh` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/build.sh) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/build.sh).
 
 ### Environment variables
 
