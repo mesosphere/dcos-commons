@@ -15,6 +15,7 @@ import universe_builder
 class CIUploader(object):
 
     def __init__(self, package_name, input_dir_path, artifact_paths, package_version = 'stub-universe'):
+        self.__dry_run = os.environ.get('DRY_RUN', '')
         self.__pkg_name = package_name
         self.__pkg_version = package_version
         self.__input_dir_path = input_dir_path
@@ -56,8 +57,12 @@ class CIUploader(object):
         else:
             cmd = 'aws s3 cp --acl public-read {} {}/{}'.format(
                 filepath, self.__s3_directory, filename)
-        print(cmd)
-        ret = os.system(cmd)
+        if self.__dry_run:
+            print('[DRY RUN] {}'.format(cmd))
+            ret = 0
+        else:
+            print(cmd)
+            ret = os.system(cmd)
         if not ret == 0:
             err = 'Failed to upload {} to S3'.format(filename)
             self.__github_updater.update('error', err)

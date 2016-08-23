@@ -7,18 +7,20 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.*;
 
 /**
  * An {@code Executor} implementation that supports execution of long-running tasks and supporting short-lived tasks.
  */
 public class CustomExecutor implements Executor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-            CustomExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomExecutor.class);
+    private static final int HEALTH_CHECK_THREAD_POOL_SIZE = 10;
+    private static final ScheduledExecutorService scheduledExecutorService =
+            Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
 
     private Map<Protos.TaskID, ExecutorTask> launchedTasks = new HashMap<>();
     private ExecutorService executorService;
@@ -96,6 +98,7 @@ public class CustomExecutor implements Executor {
             final String taskType = taskEnv.get(DcosTaskConstants.TASK_TYPE);
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(taskType, task, driver);
             executorService.submit(taskToExecute);
+            scheduleHealthCheck(task, taskToExecute);
             launchedTasks.put(task.getTaskId(), taskToExecute);
         } catch (Throwable t) {
             LOGGER.error("Error launching task = {}. Reason: {}", task, t);
@@ -108,6 +111,42 @@ public class CustomExecutor implements Executor {
                     task.getExecutor().getExecutorId(),
                     String.format("Exception launching task %s",
                             t.getMessage()));
+        }
+    }
+
+    private void scheduleHealthCheck(Protos.TaskInfo taskInfo, ExecutorTask executorTask) {
+        if (!taskInfo.hasHealthCheck()) {
+            LOGGER.info("No health check for task: " + taskInfo.getName());
+            return;
+        }
+
+        try {
+            HealthCheckMonitor healthCheckMonitor =
+                    new HealthCheckMonitor(
+                            HealthCheckHandler.create(
+                                    taskInfo,
+                                    scheduledExecutorService,
+                                    new HealthCheckStats(taskInfo.getName())),
+                            executorTask);
+            LOGGER.info("Submitting health check monitor.");
+            Future<Optional<HealthCheckStats>> futureOptionalHealthCheckStats =
+                    executorService.submit(healthCheckMonitor);
+
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Optional<HealthCheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
+                        if (optionalHealthCheckStats.isPresent()) {
+                            LOGGER.error("Health check exited with statistics: " + optionalHealthCheckStats.get());
+                        }
+                    } catch (InterruptedException | ExecutionException e) {
+                        LOGGER.error("Failed to get health check stats with exception: ", e);
+                    }
+                }
+            });
+        } catch (HealthCheckHandler.HealthCheckValidationException ex) {
+            LOGGER.error("Task did not generate a health check with exception: ", ex);
         }
     }
 
