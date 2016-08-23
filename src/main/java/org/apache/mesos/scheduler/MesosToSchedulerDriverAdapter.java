@@ -49,7 +49,7 @@ public class MesosToSchedulerDriverAdapter implements
     private org.apache.mesos.Protos.Status status;
     private boolean registered;
     private Mesos mesos;
-    private Timer subscriberTimer;
+    private volatile Timer subscriberTimer;
     private State state;
     private Timer heartbeatTimer;
     private Instant lastHeartbeat;
@@ -125,21 +125,19 @@ public class MesosToSchedulerDriverAdapter implements
     /**
      * Task that performs Subscription.
      */
-    private void performReliableSubscription() {
+    private synchronized void performReliableSubscription() {
         // If timer is not running, initialize it.
-
         if (subscriberTimer == null) {
-            initSubscriber();
-            synchronized (subscriberTimer) {
-                ExponentialBackOff backOff = new ExponentialBackOff.Builder()
-                        .setMaxElapsedTimeMillis(Integer.MAX_VALUE /* Try forever */)
-                        .setMaxIntervalMillis(MAX_BACKOFF_MS)
-                        .setMultiplier(MULTIPLIER)
-                        .setRandomizationFactor(0.5)
-                        .setInitialIntervalMillis(SEED_BACKOFF_MS)
-                        .build();
-                subscriberTimer.schedule(new SubscriberTask(backOff), SEED_BACKOFF_MS);
-            }
+            LOGGER.info("Initializing reliable subscriber...");
+            subscriberTimer = createTimerInternal();
+            ExponentialBackOff backOff = new ExponentialBackOff.Builder()
+                    .setMaxElapsedTimeMillis(Integer.MAX_VALUE /* Try forever */)
+                    .setMaxIntervalMillis(MAX_BACKOFF_MS)
+                    .setMultiplier(MULTIPLIER)
+                    .setRandomizationFactor(0.5)
+                    .setInitialIntervalMillis(SEED_BACKOFF_MS)
+                    .build();
+            subscriberTimer.schedule(new SubscriberTask(backOff), SEED_BACKOFF_MS);
         }
     }
 
@@ -679,12 +677,6 @@ public class MesosToSchedulerDriverAdapter implements
 
         return status;
     }
-
-    private void initSubscriber() {
-        LOGGER.info("Initializing reliable subscriber...");
-        subscriberTimer = createTimerInternal();
-    }
-
 
     private void cancelSubscriber() {
         LOGGER.info("Cancelling subscriber...");
