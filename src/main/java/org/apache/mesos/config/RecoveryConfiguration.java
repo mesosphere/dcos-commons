@@ -1,6 +1,7 @@
 package org.apache.mesos.config;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -55,6 +56,7 @@ public class RecoveryConfiguration {
         this.enableReplacement = enableReplacement;
     }
 
+    @JsonIgnore
     public boolean isReplacementEnabled() {
         return enableReplacement;
     }

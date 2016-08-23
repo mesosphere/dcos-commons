@@ -17,8 +17,7 @@ import java.util.concurrent.*;
  * An {@code Executor} implementation that supports execution of long-running tasks and supporting short-lived tasks.
  */
 public class CustomExecutor implements Executor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(
-            CustomExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomExecutor.class);
     private static final int HEALTH_CHECK_THREAD_POOL_SIZE = 10;
     private static final ScheduledExecutorService scheduledExecutorService =
             Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
@@ -99,7 +98,7 @@ public class CustomExecutor implements Executor {
             final String taskType = taskEnv.get(DcosTaskConstants.TASK_TYPE);
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(taskType, task, driver);
             executorService.submit(taskToExecute);
-            executeHealthCheck(task, taskToExecute);
+            scheduleHealthCheck(task, taskToExecute);
             launchedTasks.put(task.getTaskId(), taskToExecute);
         } catch (Throwable t) {
             LOGGER.error("Error launching task = {}. Reason: {}", task, t);
@@ -115,7 +114,7 @@ public class CustomExecutor implements Executor {
         }
     }
 
-    private void executeHealthCheck(Protos.TaskInfo taskInfo, ExecutorTask executorTask) {
+    private void scheduleHealthCheck(Protos.TaskInfo taskInfo, ExecutorTask executorTask) {
         if (!taskInfo.hasHealthCheck()) {
             LOGGER.info("No health check for task: " + taskInfo.getName());
             return;
@@ -137,12 +136,9 @@ public class CustomExecutor implements Executor {
                 @Override
                 public void run() {
                     try {
-                        Optional<HealthCheckStats> optionalHealthCheckStats =
-                                futureOptionalHealthCheckStats.get();
+                        Optional<HealthCheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
                         if (optionalHealthCheckStats.isPresent()) {
                             LOGGER.error("Health check exited with statistics: " + optionalHealthCheckStats.get());
-                        } else {
-                            LOGGER.error("Health check exited without statistics.");
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         LOGGER.error("Failed to get health check stats with exception: ", e);

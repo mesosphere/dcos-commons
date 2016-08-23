@@ -31,10 +31,13 @@ public class HealthCheckMonitor implements Callable<Optional<HealthCheckStats>> 
             healthCheck.get();
         } catch (Throwable t) {
             logger.error("Waiting for failed health check failed with exception: ", t);
+
             if (t.getCause() instanceof HealthCheckHandler.HealthCheckRuntimeException) {
                 HealthCheckHandler.HealthCheckRuntimeException healthCheckRuntimeException =
                         (HealthCheckHandler.HealthCheckRuntimeException) t.getCause();
                 healthCheckStats = Optional.of(healthCheckRuntimeException.getHealthCheckStats());
+            } else {
+                logger.error("Health check exited without statistics");
             }
         }
 

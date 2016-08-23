@@ -63,6 +63,19 @@ public class HealthCheckHandler {
                 TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Custom Executors are responsible for implementing HealthChecks.  This Custom Executor implements a subset of
+     * all possible Health Checks describable by a HealthCheckInfo object.
+     * <p>
+     * They must be command HealthChecks as HTTP is not recommended by Mesos yet and is unneeded from a completeness
+     * perspective.  `curl -f` normally is sufficient.  Since all HealthChecks as currently implemented by this Custom
+     * Executor are excuted as sub-processes we further require that the HealthCheck specifies that it is a "shell"
+     * command to avoid unexpected behavior.
+     *
+     * @param taskInfo The Task which wishes to have a HealthCheck executed against it.
+     * @throws HealthCheckValidationException is thrown when a HealthCheck does not adhere to the HealthChecks supported
+     * by this Custom Executor.
+     */
     private void validateTask(Protos.TaskInfo taskInfo) throws HealthCheckValidationException {
         // Validate TaskInfo
         if (!taskInfo.hasHealthCheck()) {

@@ -133,6 +133,9 @@ configurations {
 }
 
 dependencies {
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonVer}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVer}"
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
   compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
   compile "com.kenai.nbpwr:edu-umd-cs-findbugs-annotations:${findbugsAnnotateVer}"
