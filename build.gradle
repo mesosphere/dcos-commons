@@ -81,7 +81,7 @@ ext {
   guiceVer = "3.0"
   jacksonVer = "2.6.3"
   junitVer = "4.11"
-  mesosVer = "0.28.0"
+  mesosVer = "1.0.0"
   slf4jVer = "1.7.10"
   jsonVer = "20160212"
   protobufFormatVer = "1.4"
@@ -93,10 +93,11 @@ ext {
   mockServerVer = "3.10.4"
   springVer = "4.3.1.RELEASE"
   httpClientVer = "4.5.2"
+  awaitilityVer = "2.0.0"
 }
 
 group = "mesosphere"
-version = "0.4.34-SNAPSHOT"
+version = "0.4.35-SNAPSHOT"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
@@ -132,6 +133,9 @@ configurations {
 }
 
 dependencies {
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonVer}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVer}"
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
   compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
   compile "com.kenai.nbpwr:edu-umd-cs-findbugs-annotations:${findbugsAnnotateVer}"
@@ -158,6 +162,7 @@ dependencies {
   testCompile "org.powermock:powermock-mockito-release-full:${powerMockVer}"
   testCompile "org.mock-server:mockserver-netty:${mockServerVer}"
   testCompile "org.springframework.integration:spring-integration-http:${springVer}"
+  testCompile "org.awaitility:awaitility:${awaitilityVer}"
 }
 
 distributions {
