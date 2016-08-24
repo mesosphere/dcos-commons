@@ -1,9 +1,7 @@
 package org.apache.mesos.scheduler;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.mesos.MesosSchedulerDriver;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.*;
 import org.apache.mesos.Protos.Credential;
 import org.apache.mesos.Protos.FrameworkInfo;
 import org.slf4j.Logger;
@@ -62,6 +60,15 @@ public class SchedulerDriverFactory {
       final String masterUrl,
       final byte[] credentialSecret) {
     Credential credential;
+    credential = getCredential(scheduler, frameworkInfo, masterUrl, credentialSecret);
+    return createInternal(scheduler, frameworkInfo, masterUrl, credential);
+  }
+
+  public Credential getCredential(
+          Scheduler scheduler,
+          FrameworkInfo frameworkInfo, String masterUrl,
+          byte[] credentialSecret) {
+    Credential credential;
     if (credentialSecret != null && credentialSecret.length > 0) {
       // User has manually provided a Secret. Provide a Credential with Principal + Secret.
       // (note: we intentionally avoid logging the content of the credential secret, just in case)
@@ -87,7 +94,7 @@ public class SchedulerDriverFactory {
           scheduler, frameworkInfo, masterUrl);
       credential = null;
     }
-    return createInternal(scheduler, frameworkInfo, masterUrl, credential);
+    return credential;
   }
 
   /**
@@ -99,9 +106,9 @@ public class SchedulerDriverFactory {
       final String masterUrl,
       final Credential credential) {
     if (credential == null) {
-      return new MesosSchedulerDriver(scheduler, frameworkInfo, masterUrl);
+      return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl);
     } else {
-      return new MesosSchedulerDriver(scheduler, frameworkInfo, masterUrl, credential);
+      return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, credential);
     }
   }
 
