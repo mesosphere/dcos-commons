@@ -10,4 +10,5 @@ public interface Persister {
     byte[] fetch(String path) throws Exception;
     void clear(String path) throws Exception;
     Collection<String> getChildren(String path) throws Exception;
+    void close();
 }
