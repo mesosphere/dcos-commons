@@ -22,6 +22,20 @@ allprojects {
   repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+      url "s3://downloads.mesosphere.io/maven/"
+      credentials(AwsCredentials) {
+        accessKey System.env['AWS_ACCESS_KEY_ID']
+        secretKey System.env['AWS_SECRET_ACCESS_KEY']
+      }
+    }
+    maven {
+      url "s3://downloads.mesosphere.io/maven-snapshot/"
+      credentials(AwsCredentials) {
+        accessKey System.env['AWS_ACCESS_KEY_ID']
+        secretKey System.env['AWS_SECRET_ACCESS_KEY']
+      }
+    }
   }
 
   [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
@@ -81,7 +95,7 @@ ext {
   guiceVer = "3.0"
   jacksonVer = "2.6.3"
   junitVer = "4.11"
-  mesosVer = "1.1.0"
+  mesosVer = "1.1.0-SNAPSHOT"
   slf4jVer = "1.7.10"
   jsonVer = "20160212"
   protobufFormatVer = "1.4"
@@ -149,7 +163,7 @@ dependencies {
   compile "org.apache.curator:curator-test:${curatorVer}"
   compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
   compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
-  compile files('./libs/mesos-1.1.0.jar')
+  compile "org.apache.mesos:mesos:${mesosVer}"
   compile "org.apache.commons:commons-lang3:3.4"
   compile "org.slf4j:log4j-over-slf4j:${slf4jVer}"
   compile "org.slf4j:jcl-over-slf4j:${slf4jVer}"

@@ -4,7 +4,7 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.protobuf.Devolver;
 import org.apache.mesos.protobuf.Evolver;
-import org.apache.mesos.v1.scheduler.JNIMesos;
+import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
@@ -305,9 +305,9 @@ public class MesosToSchedulerDriverAdapter implements
             }
         } else if (version.equals("V1")) {
             if (credential == null) {
-                return new JNIMesos(this, master);
+                return new V1Mesos(this, master);
             } else {
-                return new JNIMesos(this, master, credential);
+                return new V1Mesos(this, master, credential);
             }
         } else {
             throw new IllegalArgumentException("Unsupported API version: " + version);
