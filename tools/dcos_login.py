@@ -66,7 +66,7 @@ class DCOSLogin(object):
             headers = request_headers)
         response = conn.getresponse()
         if log_error and (response.status < 200 or response.status >= 300):
-            print('Got {} response to update request:'.format(response.status))
+            print('Got {} response to HTTP request:'.format(response.status))
             print('Request: {} {}'.format(request_method, request_path))
             print('Response: {} {}'.format(response.status, str(response.msg).strip()))
             pprint.pprint(response.getheaders())

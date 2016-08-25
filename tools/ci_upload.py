@@ -85,9 +85,14 @@ class CIUploader(object):
             properties_file.write('stub {}\n'.format(universe_url))
             properties_file.flush()
             properties_file.close()
+        num_artifacts = len(self.__artifact_paths)
+        if num_artifacts > 1:
+            suffix = 's'
+        else:
+            suffix = ''
         self.__github_updater.update(
             'success',
-            'Uploaded {} artifacts and stub universe'.format(len(self.__artifact_paths)),
+            'Uploaded stub universe and {} artifact{}'.format(num_artifacts, suffix),
             universe_url)
 
 
