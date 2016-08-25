@@ -9,6 +9,7 @@ import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,6 +53,11 @@ public class CuratorStateStoreTest {
         CuratorPersister curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
         assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
+    }
+
+    @After
+    public void afterEach() {
+        ((CuratorStateStore) store).close();
     }
 
     @Test

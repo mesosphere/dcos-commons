@@ -370,6 +370,10 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
+    void close() {
+        curator.close();
+    }
+
     // Internals
 
     private static class TaskPathMapper {

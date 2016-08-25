@@ -14,52 +14,41 @@ import java.util.Collection;
 public class CuratorPersister implements Persister {
     private final String connectionString;
     private final RetryPolicy retryPolicy;
+    private final CuratorFramework client;
 
     public CuratorPersister(String connectionString, RetryPolicy retryPolicy) {
         this.connectionString = connectionString;
         this.retryPolicy = retryPolicy;
+        this.client = startClient();
     }
 
     @Override
     public void store(String path, byte[] bytes) throws Exception {
-        CuratorFramework client = startClient();
         try {
             client.create().creatingParentsIfNeeded().forPath(path, bytes);
         } catch (KeeperException.NodeExistsException e) {
             client.setData().forPath(path, bytes);
-        } finally {
-            client.close();
         }
     }
 
     @Override
     public byte[] fetch(String path) throws Exception {
-        CuratorFramework client = startClient();
-        try {
-            return client.getData().forPath(path);
-        } finally {
-            client.close();
-        }
+        return client.getData().forPath(path);
     }
 
     @Override
     public void clear(String path) throws Exception {
-        CuratorFramework client = startClient();
-        try {
-            client.delete().deletingChildrenIfNeeded().forPath(path);
-        } finally {
-            client.close();
-        }
+        client.delete().deletingChildrenIfNeeded().forPath(path);
     }
 
     @Override
     public Collection<String> getChildren(String path) throws Exception {
-        CuratorFramework client = startClient();
-        try {
-            return client.getChildren().forPath(path);
-        } finally {
-            client.close();
-        }
+        return client.getChildren().forPath(path);
+    }
+
+    @Override
+    public void close() {
+        client.close();
     }
 
     private CuratorFramework startClient() {

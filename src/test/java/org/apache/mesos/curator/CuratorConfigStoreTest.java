@@ -7,6 +7,7 @@ import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.StringConfiguration;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,6 +47,11 @@ public class CuratorConfigStoreTest {
 
         testConfig = new StringConfiguration("test-config");
         configFactory = new StringConfiguration.Factory();
+    }
+
+    @After
+    public void afterEach() {
+        ((CuratorConfigStore<StringConfiguration>) store).close();
     }
 
     @Test
