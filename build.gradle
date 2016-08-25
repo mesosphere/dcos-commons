@@ -81,7 +81,7 @@ ext {
   guiceVer = "3.0"
   jacksonVer = "2.6.3"
   junitVer = "4.11"
-  mesosVer = "1.0.0"
+  mesosVer = "0.28.0"
   slf4jVer = "1.7.10"
   jsonVer = "20160212"
   protobufFormatVer = "1.4"
@@ -97,7 +97,7 @@ ext {
 }
 
 group = "mesosphere"
-version = "0.4.36-SNAPSHOT"
+version = "0.4.37-SNAPSHOT"
 
 task sourceJar(type: Jar) {
   from sourceSets.main.allJava
