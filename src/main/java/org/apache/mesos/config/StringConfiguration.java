@@ -1,13 +1,15 @@
 package org.apache.mesos.config;
 
-import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
 
-import java.util.Objects;
+import java.io.*;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class implements the Configuration interface for configurations stored as Strings.
  */
-public class StringConfiguration implements Configuration {
+public class StringConfiguration implements Configuration<String, String> {
 
     /**
      * Factory which performs the inverse of {@link StringConfiguration#getBytes()}.
@@ -16,39 +18,64 @@ public class StringConfiguration implements Configuration {
     public static class Factory implements ConfigurationFactory<StringConfiguration> {
         @Override
         public StringConfiguration parse(byte[] bytes) throws ConfigStoreException {
-            return new StringConfiguration(new String(bytes, StandardCharsets.UTF_8));
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+            try {
+                ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+                Map<String, String> map = (Map<String, String>) objectInputStream.readObject();
+                return new StringConfiguration(map);
+            } catch (ClassNotFoundException|IOException e) {
+                throw new ConfigStoreException(e);
+            }
         }
     }
 
-    private final String config;
+    private final Map<String, String> configuration;
 
-    public StringConfiguration(String config) {
-        this.config = config;
+    public StringConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
     }
 
     @Override
     public byte[] getBytes() throws ConfigStoreException {
-        return config.getBytes(StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public String toJsonString() {
-        return String.format("{ \"string\": \"%s\" }", config.replace("\"", "\\\""));
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = null;
+        try {
+            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(configuration);
+            return byteArrayOutputStream.toByteArray();
+        } catch (IOException e) {
+            throw new ConfigStoreException(e);
+        }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof StringConfiguration)) {
-            return false;
-        }
-        return Objects.equals(config, ((StringConfiguration) o).config);
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StringConfiguration that = (StringConfiguration) o;
+
+        return configuration != null ? configuration.equals(that.configuration) : that.configuration == null;
+
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(config);
+        return configuration != null ? configuration.hashCode() : 0;
+    }
+
+    @Override
+    public String toJsonString() {
+        return new JSONObject(configuration).toString();
+    }
+
+    @Override
+    public Optional<String> get(String key) {
+        String value = configuration.get(key);
+        if (value != null) {
+            return Optional.of(value);
+        } else {
+            return Optional.empty();
+        }
     }
 }
