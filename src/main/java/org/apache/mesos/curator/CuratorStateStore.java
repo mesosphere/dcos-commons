@@ -4,6 +4,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
 import org.apache.mesos.dcos.DcosConstants;
+import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.SchemaVersionStore;
@@ -137,16 +138,19 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Protos.FrameworkID fetchFrameworkId() throws StateStoreException {
+    public Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException {
         try {
             logger.debug("Fetching FrameworkID from '{}'", fwkIdPath);
             byte[] bytes = curator.fetch(fwkIdPath);
             if (bytes.length > 0) {
-                return Protos.FrameworkID.parseFrom(bytes);
+                return Optional.of(Protos.FrameworkID.parseFrom(bytes));
             } else {
                 throw new StateStoreException(String.format(
                         "Failed to retrieve FrameworkID in '%s'", fwkIdPath));
             }
+        } catch (KeeperException.NoNodeException e) {
+            logger.warn("No FramweworkId found.");
+            return Optional.empty();
         } catch (Exception e) {
             // Also throws if the FrameworkID isn't found
             throw new StateStoreException(e);
@@ -183,21 +187,25 @@ public class CuratorStateStore implements StateStore {
         // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
         // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
         // occasionally get these for stale tasks that have since been changed (with new UUIDs).
-        Protos.TaskInfo taskInfo;
+        Optional<Protos.TaskInfo> optionalTaskInfo;
         try {
-            taskInfo = fetchTask(taskName);
+            optionalTaskInfo = fetchTask(taskName);
         } catch (Exception e) {
             throw new StateStoreException(String.format(
-                    "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s. " +
-                            "Call storeTasks() before calling storeStatus()", taskName), e);
+                    "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s.", taskName), e);
         }
-        if (!taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
+
+        if (!optionalTaskInfo.isPresent()) {
+            throw new StateStoreException("The following TaskStatus is not present in the StateStore: " + taskName);
+        }
+
+        if (!optionalTaskInfo.get().getTaskId().getValue().equals(status.getTaskId().getValue())) {
             throw new StateStoreException(String.format(
                     "Task ID '%s' of updated status doesn't match Task ID '%s' of current TaskInfo."
                             + " Task IDs must exactly match before status may be updated."
                             + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
-                    status.getTaskId().getValue(), taskInfo.getTaskId().getValue(),
-                    status, taskInfo));
+                    status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
+                    status, optionalTaskInfo));
         }
 
         String path = taskPathMapper.getTaskStatusPath(taskName);
@@ -262,17 +270,20 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Protos.TaskInfo fetchTask(String taskName) throws StateStoreException {
+    public Optional<Protos.TaskInfo> fetchTask(String taskName) throws StateStoreException {
         String path = taskPathMapper.getTaskInfoPath(taskName);
         logger.debug("Fetching TaskInfo {} from '{}'", taskName, path);
         try {
             byte[] bytes = curator.fetch(path);
             if (bytes.length > 0) {
-                return Protos.TaskInfo.parseFrom(bytes);
+                return Optional.of(Protos.TaskInfo.parseFrom(bytes));
             } else {
                 throw new StateStoreException(String.format(
                         "Failed to retrieve TaskInfo for TaskName: %s", taskName));
             }
+        } catch (KeeperException.NoNodeException e) {
+            logger.warn("No TaskInfo found for the requested name: " + taskName);
+            return Optional.empty();
         } catch (Exception e) {
             // Not found, or other error
             throw new StateStoreException(e);
@@ -371,6 +382,32 @@ public class CuratorStateStore implements StateStore {
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
+    }
+
+    @Override
+    public List<Protos.Resource> getExpectedResources() {
+        List<Protos.Resource> resources = new ArrayList<>();
+        try {
+            for (Protos.TaskInfo taskInfo : fetchTasks()) {
+                for (Protos.Resource resource : taskInfo.getResourcesList()) {
+                    if (ResourceUtils.getResourceId(resource) != null) {
+                        resources.add(resource);
+                    }
+                }
+
+                if (taskInfo.hasExecutor()) {
+                    for (Protos.Resource resource : taskInfo.getExecutor().getResourcesList()) {
+                        if (ResourceUtils.getResourceId(resource) != null) {
+                            resources.add(resource);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("Failed to retrieve all Task information", ex);
+            return resources;
+        }
+        return resources;
     }
 
     void close() {

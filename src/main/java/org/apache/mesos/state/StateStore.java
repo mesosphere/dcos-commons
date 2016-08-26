@@ -47,10 +47,10 @@ public interface StateStore extends TaskStatusProvider {
     /**
      * Fetches the previously stored FrameworkID.
      *
-     * @return The previously stored FrameworkID
-     * @throws StateStoreException if no data was found (not set yet), or when fetching the FrameworkID otherwise fails
+     * @return The previously stored FrameworkID, or an empty Optional indicating the FrameworkID has not been set.
+     * @throws StateStoreException when fetching the FrameworkID fails
      */
-    Protos.FrameworkID fetchFrameworkId() throws StateStoreException;
+    Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException;
 
 
     // Write Tasks
@@ -143,7 +143,7 @@ public interface StateStore extends TaskStatusProvider {
      * @throws StateStoreException if no data was found for the requested name, or if fetching the TaskInfo otherwise
      *                             fails
      */
-    TaskInfo fetchTask(String taskName) throws StateStoreException;
+    Optional<TaskInfo> fetchTask(String taskName) throws StateStoreException;
 
 
     /**
@@ -207,4 +207,9 @@ public interface StateStore extends TaskStatusProvider {
      */
     void clearProperty(final String key) throws StateStoreException;
 
+    /**
+     * Provides the list of Resources which are expected to be reserved to a particular role.
+     * @return
+     */
+    List<Protos.Resource> getExpectedResources();
 }
