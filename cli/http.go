@@ -182,10 +182,9 @@ func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", dcosUrl, err)
 	}
 	if len(dcosAuthToken) == 0 {
-		dcosAuthToken = RequiredCLIConfigValue(
-			"core.dcos_acs_token",
-			"DC/OS Authentication Token",
-			"Run 'dcos auth login' to log in to the cluster.")
+		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
+		// this value is optional: clusters can be configured to not require any auth
+		dcosAuthToken = OptionalCLIConfigValue("core.dcos_acs_token")
 	}
 	parsedUrl.Path = path.Join("service", serviceName, urlPath)
 	parsedUrl.RawQuery = urlQuery
@@ -199,7 +198,9 @@ func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 	if err != nil {
 		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, parsedUrl, err)
 	}
-	request.Header.Set("Authorization", fmt.Sprintf("token=%s", dcosAuthToken))
+	if len(dcosAuthToken) != 0 {
+		request.Header.Set("Authorization", fmt.Sprintf("token=%s", dcosAuthToken))
+	}
 	if len(contentType) != 0 {
 		request.Header.Set("Content-Type", contentType)
 	}
