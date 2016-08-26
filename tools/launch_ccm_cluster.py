@@ -16,6 +16,7 @@ except ImportError:
 
 class CCMLauncher(object):
 
+    # NOTE: this will need to be updated once 'stable' is no longer 1.7
     __DCOS_17_CHANNELS = ['testing/continuous', 'stable']
 
     # From mesosphere/cloud-cluster-manager/app/models.py:
@@ -34,8 +35,13 @@ class CCMLauncher(object):
     __CCM_PATH = '/api/cluster/'
 
 
+    DEFAULT_TIMEOUT_MINS = 45
+    DEFAULT_ATTEMPTS = 2
+
+
     def __init__(self, ccm_token):
         self.__http_headers = {'Authorization': 'Token ' + ccm_token}
+        self.__dry_run = os.environ.get('DRY_RUN', '')
 
 
     def __pretty_time(self, seconds):
@@ -46,10 +52,29 @@ class CCMLauncher(object):
             return '{:.0f}s'.format(seconds)
 
 
+    def __retry(self, attempts, method, arg):
+        for i in range(attempts):
+            try:
+                return method.__call__(arg)
+            except Exception as e:
+                attempt_str = '[{}/{}]'.format(i + 1, attempts)
+                if i + 1 == attempts:
+                    print('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
+                    # re-raise original stacktrace:
+                    raise
+                else:
+                    print('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
+
+
     def __query_http(self, request_method, request_path,
             request_json_payload=None,
             log_error=True,
             debug=False):
+        if self.__dry_run:
+            print('[DRY RUN] {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
+            if request_json_payload:
+                print('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
+            return None
         conn = HTTPSConnection(self.__CCM_HOST)
         if debug:
             conn.set_debuglevel(999)
@@ -68,10 +93,11 @@ class CCMLauncher(object):
         response = conn.getresponse()
         if log_error and (response.status < 200 or response.status >= 300):
             print('Got {} response to HTTP request:'.format(response.status))
-            print('Request: {} {}'.format(request_method, request_path))
-            print('Response: {} {}'.format(response.status, str(response.msg).strip()))
-            pprint.pprint(response.getheaders())
-            pprint.pprint(response.read())
+            print('Request: {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
+            print('Response:')
+            print('  - Status: {} {}'.format(response.status, str(response.msg).strip()))
+            print('  - Headers: {}'.format(pprint.pformat(response.getheaders())))
+            print('  - Body: {}'.format(pprint.pformat(response.read())))
             return None
         elif debug:
             print('{}: {}'.format(response.status, str(response.msg).strip()))
@@ -140,42 +166,36 @@ class CCMLauncher(object):
         return None
 
 
-    def start(
-            self,
-            name,
-            description,
-            time_mins,
-            ccm_channel,
-            cf_template,
-            start_timeout_mins = 45,
-            public_agents = 0,
-            private_agents = 1,
-            aws_region = 'us-west-2',
-            admin_location = '0.0.0.0/0',
-            cloud_provider = '0'): # https://mesosphere.atlassian.net/browse/TEST-231
-        is_17_cluster = ccm_channel in self.__DCOS_17_CHANNELS
+    def start(self, config, attempts = DEFAULT_ATTEMPTS):
+        return self.__retry(attempts, self.__start, config)
+
+
+    def __start(self, config):
+        is_17_cluster = config.ccm_channel in self.__DCOS_17_CHANNELS
         if is_17_cluster:
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos'
-        elif cf_template.startswith('ee.'):
+        elif config.cf_template.startswith('ee.'):
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise'
         else:
             hostrepo = 's3-us-west-2.amazonaws.com/downloads.dcos.io/dcos'
-        template_url = 'https://{}/{}/cloudformation/{}'.format(hostrepo, ccm_channel, cf_template)
+        template_url = 'https://{}/{}/cloudformation/{}'.format(
+            hostrepo, config.ccm_channel, config.cf_template)
 
         payload = {
             'template_url': template_url,
-            'name': name,
-            'cluster_desc': description,
-            'time': time_mins,
-            'private_agents': str(private_agents),
-            'public_agents': str(public_agents),
+            'name': config.name,
+            'cluster_desc': config.description,
+            'time': config.duration_mins,
+            'private_agents': str(config.private_agents),
+            'public_agents': str(config.public_agents),
             'pre_1_8_cluster': is_17_cluster,
-            'adminlocation': admin_location,
-            'cloud_provider': cloud_provider,
-            'region': aws_region
+            'adminlocation': config.admin_location,
+            'cloud_provider': config.cloud_provider,
+            'region': config.aws_region
         }
         print('Launching cluster named "{}" with {} private/{} public agents for {} minutes against template at {}'.format(
-            name, private_agents, public_agents, time_mins, template_url))
+            config.name, config.private_agents, config.public_agents,
+            config.duration_mins, template_url))
         response = self.__query_http('POST', self.__CCM_PATH, request_json_payload=payload)
         if not response:
             raise Exception('CCM cluster creation request failed')
@@ -183,7 +203,7 @@ class CCMLauncher(object):
         cluster_id = int(json.loads(response_content).get('id', 0))
         if not cluster_id:
             raise Exception('No ID returned in cluster creation response: {}'.format(response_content))
-        cluster_info = self.wait_for_status(cluster_id, 'CREATING', 'RUNNING', start_timeout_mins)
+        cluster_info = self.wait_for_status(cluster_id, 'CREATING', 'RUNNING', config.start_timeout_mins)
         if not cluster_info:
             raise Exception('CCM cluster creation failed or timed out')
         dns_address = cluster_info.get('DnsAddress', '')
@@ -194,17 +214,62 @@ class CCMLauncher(object):
             'url': 'https://' + dns_address}
 
 
-    def stop(self, cluster_id, stop_timeout_mins = 10):
-        response = self.__query_http('DELETE', self.__CCM_PATH + cluster_id + '/')
+    def stop(self, config, attempts = DEFAULT_ATTEMPTS):
+        return self.__retry(attempts, self.__stop, config)
+
+
+    def __stop(self, config):
+        print('Deleting cluster #{}'.format(config.cluster_id))
+        response = self.__query_http('DELETE', self.__CCM_PATH + config.cluster_id + '/')
         if not response:
             raise Exception('CCM cluster deletion request failed')
-        cluster_info = self.wait_for_status(cluster_id, 'DELETING', 'DELETED', stop_timeout_mins)
+        cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
         if not cluster_info:
             raise Exception('CCM cluster deletion failed or timed out')
         pprint.pprint(cluster_info)
 
-def __rand_str(size):
-    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
+
+class StartConfig(object):
+    def __rand_str(size):
+        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
+
+    def __init__(
+            self,
+            name = 'test-cluster-' + __rand_str(8),
+            description = '',
+            duration_mins = 60,
+            ccm_channel = 'testing/master',
+            cf_template = 'ee.single-master.cloudformation.json',
+            start_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS,
+            public_agents = 0,
+            private_agents = 1,
+            aws_region = 'us-west-2',
+            admin_location = '0.0.0.0/0',
+            cloud_provider = '0'): # https://mesosphere.atlassian.net/browse/TEST-231
+        self.name = name
+        if not description:
+            description = 'A test cluster with {} private/{} public agents'.format(
+                private_agents, public_agents)
+        self.description = description
+        self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
+        self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
+        self.cf_template = os.environ.get('CCM_TEMPLATE', cf_template)
+        self.start_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', start_timeout_mins)
+        self.public_agents = int(os.environ.get('CCM_PUBLIC_AGENTS', public_agents))
+        self.private_agents = int(os.environ.get('CCM_AGENTS', private_agents))
+        self.aws_region = os.environ.get('CCM_AWS_REGION', aws_region)
+        self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
+        self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
+
+
+class StopConfig(object):
+    def __init__(
+            self,
+            cluster_id,
+            stop_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS):
+        self.cluster_id = cluster_id
+        self.stop_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', stop_timeout_mins)
+
 
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
@@ -212,19 +277,20 @@ def main(argv):
         raise Exception('CCM_AUTH_TOKEN is required')
 
     launcher = CCMLauncher(ccm_token)
-    timeout_mins = int(os.environ.get('CCM_TIMEOUT_MINUTES', 45))
+    # error detection (and retry) for either a start or a stop operation:
+    start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))
 
     if len(argv) >= 2:
         if argv[1] == 'stop':
             if len(argv) >= 3:
-                launcher.stop(argv[2], timeout_mins)
+                launcher.stop(StopConfig(argv[2]), start_stop_attempts)
                 return 0
             else:
                 print('Usage: {} stop <ccm_id>'.format(argv[0]))
                 return 1
         if argv[1] == 'wait':
             if len(argv) >= 5:
-                cluster_info = launcher.wait_for_status(argv[2], argv[3], argv[4], timeout_mins)
+                cluster_info = launcher.wait_for_status(argv[2], argv[3], argv[4], start_stop_timeout_mins)
                 if not cluster_info:
                     return 1
                 pprint.pprint(cluster_info)
@@ -236,33 +302,7 @@ def main(argv):
             print('Usage: {} [stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
             return
 
-    public_agents = int(os.environ.get('CCM_PUBLIC_AGENTS', '0'))
-    private_agents = int(os.environ.get('CCM_AGENTS', '1'))
-
-    cluster_name = os.environ.get('CCM_CLUSTER_NAME', 'test-cluster-' + __rand_str(8))
-    cluster_description = os.environ.get(
-        'CCM_CLUSTER_DESCRIPTION',
-        'A test cluster with {} private/{} public agents'.format(
-            private_agents, public_agents))
-
-    time_mins = int(os.environ.get('CCM_CLUSTER_MINUTES', '60'))
-
-    ccm_channel = os.environ.get('CCM_CHANNEL', 'testing/master')
-    cf_template = os.environ.get('CCM_TEMPLATE', 'ee.single-master.cloudformation.json')
-
-    cluster_id_url = launcher.start(
-        name=cluster_name,
-        description=cluster_description,
-
-        time_mins=time_mins,
-
-        ccm_channel=ccm_channel,
-        cf_template=cf_template,
-
-        start_timeout_mins=timeout_mins,
-
-        public_agents=public_agents,
-        private_agents=private_agents)
+    cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
     pprint.pprint(cluster_id_url)
     return 0
 
