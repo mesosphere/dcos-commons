@@ -1,8 +1,5 @@
 package org.apache.mesos.config.api;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.ConfigurationFactory;
@@ -13,9 +10,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.UUID;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 public class ConfigResourceTest {
 
@@ -24,7 +26,8 @@ public class ConfigResourceTest {
 
     private static final UUID ID1 = UUID.randomUUID();
     private static final UUID ID2 = UUID.randomUUID();
-    private static final StringConfiguration CONFIG1 = new StringConfiguration("one");
+    private static final Map<String, String> configuration = new HashMap<>();
+    private static StringConfiguration CONFIG1;
 
     @Mock private ConfigStore<StringConfiguration> mockConfigStore;
 
@@ -34,6 +37,8 @@ public class ConfigResourceTest {
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
         resource = new ConfigResource<>(mockConfigStore, FACTORY);
+        configuration.put("key", "value");
+        CONFIG1 = new StringConfiguration(configuration) ;
     }
 
     @Test
