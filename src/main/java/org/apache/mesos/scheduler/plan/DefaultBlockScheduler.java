@@ -80,7 +80,12 @@ public class DefaultBlockScheduler implements StageScheduler {
 
         acceptedOffers = offerAccepter.accept(driver, recommendations);
         // notify block of offer outcome:
-        block.updateOfferStatus(getOperations(recommendations));
+        if (acceptedOffers.size() > 0) {
+            block.updateOfferStatus(getOperations(recommendations));
+        } else {
+            block.updateOfferStatus(Optional.empty());
+        }
+
         return acceptedOffers;
     }
 

@@ -1,9 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.*;
 
@@ -88,13 +86,11 @@ public class DefaultBlockSchedulerTest {
     @Test
     public void testEvaluateNoRecommendations() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.PENDING);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
-
-        assertTrue(block.operationsOptional.isPresent());
+        assertFalse(block.operationsOptional.isPresent());
         verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
         assertTrue(block.isPending());
     }
@@ -102,15 +98,12 @@ public class DefaultBlockSchedulerTest {
     @Test
     public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.PENDING);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
-        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
-                .thenReturn(new ArrayList<>());
+        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
-
-        assertTrue(block.operationsOptional.isPresent());
+        assertFalse(block.operationsOptional.isPresent());
         verify(mockOfferAccepter).accept(mockSchedulerDriver, RECOMMENDATIONS);
         assertTrue(block.isPending());
     }
@@ -118,14 +111,11 @@ public class DefaultBlockSchedulerTest {
     @Test
     public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.PENDING);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
-        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
-                .thenReturn(ACCEPTED_IDS);
+        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(ACCEPTED_IDS);
 
         assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block));
-
         assertTrue(block.operationsOptional.isPresent());
         assertTrue(block.isInProgress());
     }
@@ -137,12 +127,17 @@ public class DefaultBlockSchedulerTest {
         private TestOfferBlock(OfferRequirement requirementToReturn) {
             super();
             this.requirement = requirementToReturn;
+            this.operationsOptional = Optional.empty();
         }
 
         @Override
         public Optional<OfferRequirement> start() {
             super.start();
-            return Optional.of(requirement);
+            if (requirement == null) {
+                return Optional.empty();
+            } else {
+                return Optional.of(requirement);
+            }
         }
 
         @Override
