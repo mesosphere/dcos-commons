@@ -3,6 +3,8 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,7 +64,7 @@ public interface Block extends Completable {
      * could be found. This is only called if {@link #start()} returned a non-{@code null}
      * {@link OfferRequirement}.
      */
-    void updateOfferStatus(boolean accepted);
+    void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional);
 
     /**
      * Forcefully restarts the block, putting it into a PENDING state, waiting to be resumed with

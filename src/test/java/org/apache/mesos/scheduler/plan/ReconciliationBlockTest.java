@@ -5,8 +5,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.reconciliation.Reconciler;
@@ -116,12 +120,13 @@ public class ReconciliationBlockTest {
     @Test
     public void testUpdateOfferStatusFalseSucceeds() {
         // Expect no exception to be thrown
-        block.updateOfferStatus(false);
+        block.updateOfferStatus(Optional.empty());
     }
 
     @Test(expected=UnsupportedOperationException.class)
     public void testUpdateOfferStatusTrueFails() {
-        block.updateOfferStatus(true);
+        List<Protos.Offer.Operation> operations = new ArrayList<>();
+        block.updateOfferStatus(Optional.of(operations));
     }
 
     @Test

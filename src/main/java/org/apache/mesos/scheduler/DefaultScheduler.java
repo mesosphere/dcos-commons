@@ -16,14 +16,12 @@ import org.apache.mesos.scheduler.recovery.DefaultTaskFailureListener;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
 import org.apache.mesos.specification.PlanSpecification;
-import org.apache.mesos.specification.PlanSpecificationFactory;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.plaf.synth.SynthComboBoxUI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +41,7 @@ public class DefaultScheduler implements Scheduler {
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
     private PlanManager planManager;
-    private DefaultPlanScheduler planScheduler;
+    private DefaultBlockScheduler blockScheduler;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
@@ -53,11 +51,11 @@ public class DefaultScheduler implements Scheduler {
         logger.info("Initializing.");
         stateStore = new CuratorStateStore(serviceSpecification.getName());
         TaskFailureListener taskFailureListener = new DefaultTaskFailureListener(stateStore);
-        taskKiller = new DefaultTaskKiller(taskFailureListener);
+        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler();
         offerAccepter =
                 new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
+        blockScheduler = new DefaultBlockScheduler(offerAccepter, taskKiller);
         PlanSpecification planSpecification = new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
         try {
@@ -163,12 +161,11 @@ public class DefaultScheduler implements Scheduler {
 
                 Block block = planManager.getCurrentBlock();
                 if (block != null) {
-                    acceptedOffers = planScheduler.resourceOffers(driver, offers, block);
+                    acceptedOffers = blockScheduler.resourceOffers(driver, offers, block);
                     logger.info(String.format("Accepted %d of %d offers: %s",
                             acceptedOffers.size(), offers.size(), acceptedOffers));
                 }
                 List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
-
 
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {

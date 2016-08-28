@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,8 +72,8 @@ public class ReconciliationBlock implements Block {
     }
 
     @Override
-    public void updateOfferStatus(boolean accepted) {
-        if (accepted) {
+    public void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional) {
+        if (operationsOptional.isPresent()) {
             throw new UnsupportedOperationException(
                     "updateOfferStatus() not expected: start() always returns null");
         }
