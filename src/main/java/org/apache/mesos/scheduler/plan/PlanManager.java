@@ -9,11 +9,11 @@ import java.util.UUID;
 /**
  * Interface for StageManagers.
  */
-public interface StageManager extends Observer {
+public interface PlanManager extends Observer {
 
-    Stage getStage();
+    Plan getPlan();
 
-    void setStage(Stage stage);
+    void setPlan(Plan plan);
 
     Phase getCurrentPhase();
 

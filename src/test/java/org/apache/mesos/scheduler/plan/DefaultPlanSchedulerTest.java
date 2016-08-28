@@ -29,9 +29,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
- * Tests for {@link DefaultStageScheduler}.
+ * Tests for {@link DefaultPlanScheduler}.
  */
-public class DefaultStageSchedulerTest {
+public class DefaultPlanSchedulerTest {
 
     private static final List<TaskInfo> TASKINFOS = Arrays.asList(TaskInfo.newBuilder()
             .setName("hi")
@@ -56,12 +56,12 @@ public class DefaultStageSchedulerTest {
     @Mock private OfferEvaluator mockOfferEvaluator;
     @Mock private SchedulerDriver mockSchedulerDriver;
 
-    private DefaultStageScheduler scheduler;
+    private DefaultPlanScheduler scheduler;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        scheduler = new DefaultStageScheduler(mockOfferAccepter, mockOfferEvaluator);
+        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator);
     }
 
     @Test
@@ -143,9 +143,9 @@ public class DefaultStageSchedulerTest {
         }
 
         @Override
-        public OfferRequirement start() {
+        public Optional<OfferRequirement> start() {
             super.start();
-            return requirement;
+            return Optional.of(requirement);
         }
 
         @Override

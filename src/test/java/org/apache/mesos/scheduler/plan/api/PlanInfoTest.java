@@ -3,11 +3,8 @@ package org.apache.mesos.scheduler.plan.api;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.Stage;
-import org.apache.mesos.scheduler.plan.StageManager;
-import org.apache.mesos.scheduler.plan.Status;
+import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -20,14 +17,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class StageInfoTest {
+public class PlanInfoTest {
 
     @Mock Block mockBlock0;
     @Mock Block mockBlock1;
     @Mock Phase mockPhase0; // 2 blocks
     @Mock Phase mockPhase1; // no blocks
-    @Mock Stage mockStage; // 2 phases
-    @Mock StageManager mockStageManager;
+    @Mock
+    Plan mockPlan; // 2 phases
+    @Mock
+    PlanManager mockPlanManager;
 
     @Before
     public void beforeAll() {
@@ -36,8 +35,8 @@ public class StageInfoTest {
 
     /**
      * This also effectively tests:
-     * - {@link PhaseInfo#forPhase(Phase, StageManager)}
-     * - {@link BlockInfo#forBlock(Block, StageManager)}.
+     * - {@link PhaseInfo#forPhase(Phase, PlanManager)}
+     * - {@link BlockInfo#forBlock(Block, PlanManager)}.
      */
     @Test
     public void testForStage() {
@@ -51,7 +50,7 @@ public class StageInfoTest {
         when(mockBlock0.getName()).thenReturn(block0Name);
         String block0Message = "hi";
         when(mockBlock0.getMessage()).thenReturn(block0Message);
-        when(mockStageManager.hasDecisionPoint(mockBlock0)).thenReturn(false);
+        when(mockPlanManager.hasDecisionPoint(mockBlock0)).thenReturn(false);
 
         UUID block1Id = UUID.randomUUID();
         when(mockBlock1.getId()).thenReturn(block1Id);
@@ -60,7 +59,7 @@ public class StageInfoTest {
         when(mockBlock1.getName()).thenReturn(block1Name);
         String block1Message = "hey";
         when(mockBlock1.getMessage()).thenReturn(block1Message);
-        when(mockStageManager.hasDecisionPoint(mockBlock1)).thenReturn(true);
+        when(mockPlanManager.hasDecisionPoint(mockBlock1)).thenReturn(true);
 
         // phase calls within PhaseInfo.forPhase(), against phase 0 and phase 1
 
@@ -69,7 +68,7 @@ public class StageInfoTest {
         String phase0Name = "phase-0";
         when(mockPhase0.getName()).thenReturn(phase0Name);
         Status phase0Status = Status.PENDING;
-        when(mockStageManager.getPhaseStatus(phase0Id)).thenReturn(phase0Status);
+        when(mockPlanManager.getPhaseStatus(phase0Id)).thenReturn(phase0Status);
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
         when(mockPhase0.getBlocks()).thenAnswer(new Answer<List<? extends Block>>() {
             @Override
@@ -84,13 +83,13 @@ public class StageInfoTest {
         String phase1Name = "phase-1";
         when(mockPhase1.getName()).thenReturn(phase1Name);
         Status phase1Status = Status.COMPLETE;
-        when(mockStageManager.getPhaseStatus(phase1Id)).thenReturn(phase1Status);
+        when(mockPlanManager.getPhaseStatus(phase1Id)).thenReturn(phase1Status);
         when(mockPhase1.getBlocks()).thenReturn(new ArrayList<>());
 
-        // stage calls within StageInfo.forStage()
+        // plan calls within StageInfo.forStage()
 
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
-        when(mockStage.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
+        when(mockPlan.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
             @Override
             public List<? extends Phase> answer(InvocationOnMock invocation)
                     throws Throwable {
@@ -98,13 +97,13 @@ public class StageInfoTest {
             }
         });
         List<String> stageErrors = Arrays.asList("err0", "err1");
-        when(mockStage.getErrors()).thenReturn(stageErrors);
+        when(mockPlan.getErrors()).thenReturn(stageErrors);
 
-        when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.WAITING);
+        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
+        when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
 
 
-        StageInfo stageInfo = StageInfo.forStage(mockStageManager);
+        StageInfo stageInfo = StageInfo.forStage(mockPlanManager);
 
 
         assertEquals(stageErrors, stageInfo.getErrors());

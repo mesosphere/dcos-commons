@@ -10,5 +10,5 @@ import java.util.Collection;
 public interface TaskSpecification {
     String getName();
     Protos.CommandInfo getCommand();
-    Collection<Protos.Resource> getResources();
+    Collection<ResourceSpecification> getResources();
 }

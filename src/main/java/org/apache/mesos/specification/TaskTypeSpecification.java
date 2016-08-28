@@ -11,5 +11,5 @@ public interface TaskTypeSpecification {
     int getCount();
     String getName();
     Protos.CommandInfo getCommand();
-    Collection<Protos.Resource> getResources();
+    Collection<ResourceSpecification> getResources();
 }

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Immutable JSON serialization object for a Stage which includes child Phases.
+ * Immutable JSON serialization object for a Plan which includes child Phases.
  */
 class StageInfo {
 
@@ -30,13 +30,13 @@ class StageInfo {
         return new StageInfo(phases, errors, status);
     }
 
-    public static StageInfo forStage(final StageManager manager) {
-        List<PhaseInfo> info = new ArrayList<>(manager.getStage().getPhases().size());
-        for (Phase phase : manager.getStage().getPhases()) {
+    public static StageInfo forStage(final PlanManager manager) {
+        List<PhaseInfo> info = new ArrayList<>(manager.getPlan().getPhases().size());
+        for (Phase phase : manager.getPlan().getPhases()) {
             info.add(PhaseInfo.forPhase(phase, manager));
         }
         return create(info,
-                manager.getStage().getErrors(),
+                manager.getPlan().getErrors(),
                 manager.getStatus());
     }
 

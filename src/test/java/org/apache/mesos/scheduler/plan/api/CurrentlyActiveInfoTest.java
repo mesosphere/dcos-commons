@@ -3,11 +3,8 @@ package org.apache.mesos.scheduler.plan.api;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.Stage;
-import org.apache.mesos.scheduler.plan.StageManager;
-import org.apache.mesos.scheduler.plan.Status;
+import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,8 +22,10 @@ public class CurrentlyActiveInfoTest {
     @Mock Block mockBlock1;
     @Mock Phase mockPhase0; // 2 blocks
     @Mock Phase mockPhase1;
-    @Mock Stage mockStage; // 2 phases
-    @Mock StageManager mockStageManager;
+    @Mock
+    Plan mockPlan; // 2 phases
+    @Mock
+    PlanManager mockPlanManager;
 
     @Before
     public void beforeAll() {
@@ -36,7 +35,7 @@ public class CurrentlyActiveInfoTest {
     @Test
     public void testForInactiveStage() {
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
-        when(mockStage.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
+        when(mockPlan.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
             @Override
             public List<? extends Phase> answer(InvocationOnMock invocation)
                     throws Throwable {
@@ -44,12 +43,12 @@ public class CurrentlyActiveInfoTest {
             }
         });
         List<String> stageErrors = Arrays.asList("err0", "err1");
-        when(mockStage.getErrors()).thenReturn(stageErrors);
+        when(mockPlan.getErrors()).thenReturn(stageErrors);
 
-        when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.WAITING);
+        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
+        when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
 
-        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockStageManager);
+        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockPlanManager);
 
         assertNull(activeInfo.getBlock());
         assertNull(activeInfo.getPhaseStatus());
@@ -60,9 +59,9 @@ public class CurrentlyActiveInfoTest {
 
     /**
      * This also effectively tests:
-     * - {@link BlockInfo#forBlock(Block, StageManager)}
-     * - {@link CurrentlyActivePhaseInfo#forPhase(Phase, StageManager)}
-     * - {@link CurrentlyActiveStageInfo#forStage(StageManager)}.
+     * - {@link BlockInfo#forBlock(Block, PlanManager)}
+     * - {@link CurrentlyActivePhaseInfo#forPhase(Phase, PlanManager)}
+     * - {@link CurrentlyActiveStageInfo#forStage(PlanManager)}.
      */
     @Test
     public void testForActiveStage() {
@@ -75,7 +74,7 @@ public class CurrentlyActiveInfoTest {
         when(mockBlock0.getName()).thenReturn(block0Name);
         String block0Message = "hi";
         when(mockBlock0.getMessage()).thenReturn(block0Message);
-        when(mockStageManager.hasDecisionPoint(mockBlock0)).thenReturn(false);
+        when(mockPlanManager.hasDecisionPoint(mockBlock0)).thenReturn(false);
 
         // phase calls within CurrentlyActivePhaseInfo.forPhase()
 
@@ -84,7 +83,7 @@ public class CurrentlyActiveInfoTest {
         String phase0Name = "phase-0";
         when(mockPhase0.getName()).thenReturn(phase0Name);
         Status phase0Status = Status.PENDING;
-        when(mockStageManager.getPhaseStatus(phase0Id)).thenReturn(phase0Status);
+        when(mockPlanManager.getPhaseStatus(phase0Id)).thenReturn(phase0Status);
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
         when(mockPhase0.getBlocks()).thenAnswer(new Answer<List<? extends Block>>() {
             @Override
@@ -94,10 +93,10 @@ public class CurrentlyActiveInfoTest {
             }
         });
 
-        // stage calls within CurrentlyActiveStageInfo.forStage()
+        // plan calls within CurrentlyActiveStageInfo.forStage()
 
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
-        when(mockStage.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
+        when(mockPlan.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
             @Override
             public List<? extends Phase> answer(InvocationOnMock invocation)
                     throws Throwable {
@@ -105,15 +104,15 @@ public class CurrentlyActiveInfoTest {
             }
         });
         List<String> stageErrors = Arrays.asList("err0", "err1");
-        when(mockStage.getErrors()).thenReturn(stageErrors);
+        when(mockPlan.getErrors()).thenReturn(stageErrors);
 
-        when(mockStageManager.getCurrentBlock()).thenReturn(mockBlock0);
-        when(mockStageManager.getCurrentPhase()).thenReturn(mockPhase0);
-        when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.WAITING);
+        when(mockPlanManager.getCurrentBlock()).thenReturn(mockBlock0);
+        when(mockPlanManager.getCurrentPhase()).thenReturn(mockPhase0);
+        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
+        when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
 
 
-        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockStageManager);
+        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockPlanManager);
 
 
         BlockInfo blockInfo = activeInfo.getBlock();

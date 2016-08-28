@@ -5,14 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Immutable JSON serialization object for a Stage which omits child Phases.
+ * Immutable JSON serialization object for a Plan which omits child Phases.
  */
 class CurrentlyActiveStageInfo {
 
@@ -28,9 +28,9 @@ class CurrentlyActiveStageInfo {
         return new CurrentlyActiveStageInfo(phaseCount, errors, status);
     }
 
-    public static CurrentlyActiveStageInfo forStage(final StageManager manager) {
-        return create(manager.getStage().getPhases().size(),
-                manager.getStage().getErrors(),
+    public static CurrentlyActiveStageInfo forStage(final PlanManager manager) {
+        return create(manager.getPlan().getPhases().size(),
+                manager.getPlan().getErrors(),
                 manager.getStatus());
     }
 

@@ -10,9 +10,11 @@ import java.util.List;
  * Created by gabriel on 8/25/16.
  */
 public class DefaultPhaseSpecification implements PhaseSpecification {
+    private final String name;
     private final List<TaskSpecification> taskSpecifications;
 
-    public DefaultPhaseSpecification(TaskTypeSpecification taskTypeSpecification) {
+    public DefaultPhaseSpecification(String name, TaskTypeSpecification taskTypeSpecification) {
+        this.name = name;
         this.taskSpecifications = new ArrayList<>();
         for (int i = 0; i < taskTypeSpecification.getCount(); i++) {
             taskSpecifications.add(getTaskSpecification(i, taskTypeSpecification));
@@ -20,7 +22,12 @@ public class DefaultPhaseSpecification implements PhaseSpecification {
     }
 
     @Override
-    public List<TaskSpecification> getTaskSpecification() {
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public List<TaskSpecification> getTaskSpecifications() {
         return taskSpecifications;
     }
 
@@ -37,7 +44,7 @@ public class DefaultPhaseSpecification implements PhaseSpecification {
             }
 
             @Override
-            public Collection<Protos.Resource> getResources() {
+            public Collection<ResourceSpecification> getResources() {
                 return taskTypeSpecification.getResources();
             }
         };

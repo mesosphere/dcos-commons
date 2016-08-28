@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.ArrayList;
@@ -34,15 +34,15 @@ class PhaseInfo {
     }
 
     public static PhaseInfo forPhase(
-            final Phase phase, final StageManager stageManager) {
+            final Phase phase, final PlanManager planManager) {
         List<BlockInfo> info = new ArrayList<>(phase.getBlocks().size());
         for (Block block : phase.getBlocks()) {
-            info.add(BlockInfo.forBlock(block, stageManager));
+            info.add(BlockInfo.forBlock(block, planManager));
         }
         return create(phase.getId().toString(),
                 phase.getName(),
                 info,
-                stageManager.getPhaseStatus(phase.getId()));
+                planManager.getPhaseStatus(phase.getId()));
     }
 
     private PhaseInfo(

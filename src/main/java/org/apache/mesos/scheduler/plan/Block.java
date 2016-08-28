@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -44,7 +45,7 @@ public interface Block extends Completable {
 
     /**
      * Starts the Block, whose {@link Status} should be {@link Status.Pending}. Returns an
-     * {@link OfferRequirement}, or {@code null} if obtaining/updating resource requirements are not
+     * {@link OfferRequirement}, or an empty Optional if obtaining/updating resource requirements are not
      * applicable to the Block. This will continue to be called for as long as {@link isPending()}
      * returns {@code true}.
      *
@@ -52,7 +53,7 @@ public interface Block extends Completable {
      * @see {@link #updateOfferStatus(boolean)} which returns the outcome of the
      *      {@link OfferRequirement}
      */
-    OfferRequirement start();
+    Optional<OfferRequirement> start();
 
     /**
      * Notifies the Block whether the {@link OfferRequirement} previously returned by

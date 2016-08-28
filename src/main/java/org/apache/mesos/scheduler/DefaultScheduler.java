@@ -5,22 +5,30 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.ResourceCleaner;
 import org.apache.mesos.offer.ResourceCleanerScheduler;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.DefaultTaskFailureListener;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
+import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
+import org.apache.mesos.specification.PlanSpecification;
+import org.apache.mesos.specification.PlanSpecificationFactory;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.plaf.synth.SynthComboBoxUI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by gabriel on 8/25/16.
@@ -28,11 +36,14 @@ import java.util.List;
 public class DefaultScheduler implements Scheduler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
+    ExecutorService executor = Executors.newFixedThreadPool(1);
 
     private Reconciler reconciler;
     private StateStore stateStore;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
+    private PlanManager planManager;
+    private DefaultPlanScheduler planScheduler;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
@@ -46,6 +57,17 @@ public class DefaultScheduler implements Scheduler {
         reconciler = new DefaultReconciler();
         offerAccepter =
                 new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
+        PlanSpecification planSpecification = new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
+
+        try {
+            Plan plan = new DefaultPlanFactory(stateStore).getPlan(planSpecification);
+            planManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());
+        } catch (InvalidRequirementException e) {
+            logger.error("Failed to generate plan with exception: ", e);
+            hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
+        }
+
     }
 
     private void logOffers(List<Protos.Offer> offers) {
@@ -80,6 +102,27 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
+    private List<Protos.Offer> filterAcceptedOffers(List<Protos.Offer> offers, List<Protos.OfferID> acceptedOfferIds) {
+        List<Protos.Offer> filteredOffers = new ArrayList<>();
+
+        for (Protos.Offer offer : offers) {
+            if (!offerAccepted(offer, acceptedOfferIds)) {
+                filteredOffers.add(offer);
+            }
+        }
+
+        return filteredOffers;
+    }
+
+    private boolean offerAccepted(Protos.Offer offer, List<Protos.OfferID> acceptedOfferIds) {
+        for (Protos.OfferID acceptedOfferId: acceptedOfferIds) {
+            if(acceptedOfferId.equals(offer.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @SuppressWarnings({"DM_EXIT"})
     private void hardExit(SchedulerErrorCode errorCode) {
         System.exit(errorCode.ordinal());
@@ -107,23 +150,35 @@ public class DefaultScheduler implements Scheduler {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-        logOffers(offers);
-        reconciler.reconcile(driver);
-        List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-        if (!reconciler.isReconciled()) {
-            logger.info("Accepting no offers: Reconciler is still in progress");
-        }
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                logOffers(offers);
+                reconciler.reconcile(driver);
+                List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+                if (!reconciler.isReconciled()) {
+                    logger.info("Accepting no offers: Reconciler is still in progress");
+                    return;
+                }
 
-        logger.info(String.format("Accepted %d of %d offers: %s",
-                acceptedOffers.size(), offers.size(), acceptedOffers));
+                Block block = planManager.getCurrentBlock();
+                if (block != null) {
+                    acceptedOffers = planScheduler.resourceOffers(driver, offers, block);
+                    logger.info(String.format("Accepted %d of %d offers: %s",
+                            acceptedOffers.size(), offers.size(), acceptedOffers));
+                }
+                List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
 
-        ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
-        if (cleanerScheduler != null) {
-            acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
-        }
-        declineOffers(driver, acceptedOffers, offers);
 
-        taskKiller.process(driver);
+                ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
+                if (cleanerScheduler != null) {
+                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+                }
+                declineOffers(driver, acceptedOffers, offers);
+
+                taskKiller.process(driver);
+            }
+        });
     }
 
     @Override
@@ -134,7 +189,25 @@ public class DefaultScheduler implements Scheduler {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                logger.info(String.format(
+                        "Received status update for taskId=%s state=%s message='%s'",
+                        status.getTaskId().getValue(),
+                        status.getState().toString(),
+                        status.getMessage()));
 
+                // Store status, then pass status to PlanManager => Plan => Blocks
+                try {
+                    stateStore.storeStatus(status);
+                    planManager.update(status);
+                } catch (Exception e) {
+                    logger.warn("Failed to update TaskStatus received from Mesos. "
+                            + "This may be expected if Mesos sent stale status information: " + status, e);
+                }
+            }
+        });
     }
 
     @Override

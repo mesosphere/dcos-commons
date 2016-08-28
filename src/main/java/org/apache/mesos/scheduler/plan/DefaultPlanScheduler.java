@@ -7,30 +7,34 @@ import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.offer.OfferRecommendation;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.scheduler.TaskKiller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Default scheduler. See docs in {@link StageScheduler} interface.
  */
-public class DefaultStageScheduler implements StageScheduler {
+public class DefaultPlanScheduler implements StageScheduler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultStageScheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPlanScheduler.class);
 
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
+    private final TaskKiller taskKiller;
 
     @Inject
-    public DefaultStageScheduler(OfferAccepter offerAccepter) {
-        this(offerAccepter, new OfferEvaluator());
+    public DefaultPlanScheduler(OfferAccepter offerAccepter, TaskKiller taskKiller) {
+        this(offerAccepter, new OfferEvaluator(), taskKiller);
     }
 
-    public DefaultStageScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator) {
+    public DefaultPlanScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, TaskKiller taskKiller) {
         this.offerAccepter = offerAccepter;
         this.offerEvaluator = offerEvaluator;
+        this.taskKiller = taskKiller;
     }
 
     @Override
@@ -56,8 +60,8 @@ public class DefaultStageScheduler implements StageScheduler {
         }
 
         logger.info("Processing resource offers for block: {}", block.getName());
-        OfferRequirement offerReq = block.start();
-        if (offerReq == null) {
+        Optional<OfferRequirement> offerRequirementOptional = block.start();
+        if (!offerRequirementOptional.isPresent()) {
             logger.info("No OfferRequirement for block: {}", block.getName());
             block.updateOfferStatus(false);
             return acceptedOffers;
@@ -65,12 +69,12 @@ public class DefaultStageScheduler implements StageScheduler {
 
         // Block has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
-        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerReq, offers);
+        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerRequirementOptional.get(), offers);
         if (recommendations.isEmpty()) {
             // complain that we're not finding suitable offers. out of space on the cluster?:
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by block {}: {}",
-                    block.getName(), offerReq);
+                    block.getName(), offerRequirementOptional.get());
             block.updateOfferStatus(false);
             return acceptedOffers;
         }

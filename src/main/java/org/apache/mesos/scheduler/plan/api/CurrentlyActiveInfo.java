@@ -8,11 +8,11 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import java.util.Objects;
 
 /**
- * Immutable JSON serialization object for the Active Stage Status.
+ * Immutable JSON serialization object for the Active Plan Status.
  */
 class CurrentlyActiveInfo {
 
@@ -24,14 +24,14 @@ class CurrentlyActiveInfo {
     public static CurrentlyActiveInfo create(
             @JsonProperty("block") final Object block,
             @JsonProperty("phase") final Object phase,
-            @JsonProperty("stage") final CurrentlyActiveStageInfo stage) {
+            @JsonProperty("plan") final CurrentlyActiveStageInfo stage) {
         BlockInfo blockInfo = block instanceof BlockInfo ? (BlockInfo) block : null;
         CurrentlyActivePhaseInfo phaseInfo =
             phase instanceof CurrentlyActivePhaseInfo ? (CurrentlyActivePhaseInfo) phase : null;
         return new CurrentlyActiveInfo(blockInfo, phaseInfo, stage);
     }
 
-    public static CurrentlyActiveInfo forStage(final StageManager manager) {
+    public static CurrentlyActiveInfo forStage(final PlanManager manager) {
         Block activeBlock = manager.getCurrentBlock();
         Phase activePhase = manager.getCurrentPhase();
         return create(
@@ -60,7 +60,7 @@ class CurrentlyActiveInfo {
       return phaseStatus;
     }
 
-    @JsonProperty("stage")
+    @JsonProperty("plan")
     public CurrentlyActiveStageInfo getStageStatus() {
       return stageStatus;
     }

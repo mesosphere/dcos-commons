@@ -9,45 +9,43 @@ import com.google.protobuf.TextFormat;
 import java.util.*;
 
 /**
- * Provides the default implementation of a {@link StageManager}.
+ * Provides the default implementation of a {@link PlanManager}.
  * Encapsulates the plan and a strategy for executing that plan.
  */
-public class DefaultStageManager implements StageManager {
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStageManager.class);
+public class DefaultPlanManager implements PlanManager {
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanManager.class);
 
   /**
    * Access to {@code phaseStrategies} MUST be locked/synchronized against
    * {@code phaseStrategies}.
    */
   protected final Map<UUID, PhaseStrategy> phaseStrategies = new HashMap<>();
-  protected volatile Stage stage;
+  protected volatile Plan plan;
 
   private final PhaseStrategyFactory strategyFactory;
 
-  public DefaultStageManager(final Stage stage,
-    final PhaseStrategyFactory
+  public DefaultPlanManager(final Plan plan,
+                            final PhaseStrategyFactory
       strategyFactory) {
     this.strategyFactory = strategyFactory;
-    setStage(stage);
+    setPlan(plan);
   }
 
-  @Override
-  public void setStage(final Stage stage) {
-    LOGGER.info("Setting stage : state = {}", stage);
-    this.stage = stage;
+  public void setPlan(final Plan plan) {
+    LOGGER.info("Setting plan : state = {}", plan);
+    this.plan = plan;
   }
 
-  @Override
-  public Stage getStage() {
-    return stage;
+  public Plan getPlan() {
+    return plan;
   }
 
   /**
-   * Returns the first {@link Phase} in the {@link Stage} which isn't marked complete.
+   * Returns the first {@link Phase} in the {@link Plan} which isn't marked complete.
    */
   @Override
   public Phase getCurrentPhase() {
-    for (Phase phase : stage.getPhases()) {
+    for (Phase phase : plan.getPhases()) {
       if (!phase.isComplete()) {
         LOGGER.debug("Phase {} ({}) is NOT complete. This is the current phase.",
                 phase.getName(), phase.getId());
@@ -68,7 +66,7 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public boolean isComplete() {
-    return stage.isComplete();
+    return plan.isComplete();
   }
 
   @Override
@@ -153,7 +151,7 @@ public class DefaultStageManager implements StageManager {
   }
 
   private UUID getPhaseId(final Block block) {
-    for (Phase phase : stage.getPhases()) {
+    for (Phase phase : plan.getPhases()) {
       for (Block blk : phase.getBlocks()) {
         if (block.getId().equals(blk.getId())) {
           return phase.getId();
@@ -171,42 +169,42 @@ public class DefaultStageManager implements StageManager {
     Status result;
     if (!getErrors().isEmpty()) {
       result = Status.ERROR;
-      LOGGER.warn("(status={}) Stage contains errors", result);
-    } else if (stage.getPhases().isEmpty()) {
+      LOGGER.warn("(status={}) Plan contains errors", result);
+    } else if (plan.getPhases().isEmpty()) {
       result = Status.COMPLETE;
-      LOGGER.warn("(status={}) Stage doesn't have any phases", result);
-    } else if (anyHaveStatus(Status.IN_PROGRESS, stage)) {
+      LOGGER.warn("(status={}) Plan doesn't have any phases", result);
+    } else if (anyHaveStatus(Status.IN_PROGRESS, plan)) {
       result = Status.IN_PROGRESS;
       LOGGER.info("(status={}) At least one phase has status: {}", result, Status.IN_PROGRESS);
-    } else if (anyHaveStatus(Status.WAITING, stage)) {
+    } else if (anyHaveStatus(Status.WAITING, plan)) {
       result = Status.WAITING;
       LOGGER.info("(status={}) At least one phase has status: {}", result, Status.WAITING);
-    } else if (allHaveStatus(Status.COMPLETE, stage)) {
+    } else if (allHaveStatus(Status.COMPLETE, plan)) {
       result = Status.COMPLETE;
       LOGGER.info("(status={}) All phases have status: {}", result, Status.COMPLETE);
-    } else if (allHaveStatus(Status.PENDING, stage)) {
+    } else if (allHaveStatus(Status.PENDING, plan)) {
       result = Status.PENDING;
       LOGGER.info("(status={}) All phases have status: {}", result, Status.PENDING);
-    } else if (anyHaveStatus(Status.COMPLETE, stage) && anyHaveStatus(Status.PENDING, stage)) {
+    } else if (anyHaveStatus(Status.COMPLETE, plan) && anyHaveStatus(Status.PENDING, plan)) {
       result = Status.IN_PROGRESS;
       LOGGER.info("(status={}) At least one phase has status '{}' and one has status '{}'",
               result, Status.COMPLETE, Status.PENDING);
     } else {
       result = null;
-      LOGGER.error("(status={}) Unexpected state. Stage: {}", result, stage);
+      LOGGER.error("(status={}) Unexpected state. Plan: {}", result, plan);
     }
     return result;
   }
 
-  public boolean allHaveStatus(Status status, Stage stage) {
-    final List<? extends Phase> phases = stage.getPhases();
+  public boolean allHaveStatus(Status status, Plan plan) {
+    final List<? extends Phase> phases = plan.getPhases();
     return phases
       .stream()
       .allMatch(phase -> getStrategy(phase).getStatus() == status);
   }
 
-  public boolean anyHaveStatus(Status status, Stage stage) {
-    final List<? extends Phase> phases = stage.getPhases();
+  public boolean anyHaveStatus(Status status, Plan plan) {
+    final List<? extends Phase> phases = plan.getPhases();
     return phases
       .stream()
       .anyMatch(phase -> getStrategy(phase).getStatus() == status);
@@ -220,7 +218,7 @@ public class DefaultStageManager implements StageManager {
 
   @Override
   public List<String> getErrors() {
-    return stage.getErrors();
+    return plan.getErrors();
   }
 
   @Override
@@ -290,7 +288,7 @@ public class DefaultStageManager implements StageManager {
       return null;
     }
 
-    for (Phase phase : stage.getPhases()) {
+    for (Phase phase : plan.getPhases()) {
       if (phaseId.equals(phase.getId())) {
         return phase;
       }

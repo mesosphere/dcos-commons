@@ -19,6 +19,14 @@ public class ResourceUtils {
     return setResource(Resource.newBuilder().setRole("*"), name, value);
   }
 
+  public static Resource getDesiredResource(ResourceSpecification resourceSpecification) {
+    return getDesiredResource(
+            resourceSpecification.getRole(),
+            resourceSpecification.getPrincipal(),
+            resourceSpecification.getName(),
+            resourceSpecification.getValue());
+  }
+
   public static Resource getUnreservedMountVolume(double diskSize, String mountRoot) {
     Value diskValue = Value.newBuilder()
             .setType(Value.Type.SCALAR)

@@ -3,8 +3,8 @@ package org.apache.mesos.scheduler.plan.api;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import org.apache.mesos.scheduler.plan.Stage;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
+import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,27 +15,27 @@ import java.util.ArrayList;
 import java.util.UUID;
 import javax.ws.rs.core.Response;
 
-public class StageResourceTest {
-    @Mock private Stage mockStage;
-    @Mock private StageManager mockStageManager;
+public class PlanResourceTest {
+    @Mock private Plan mockPlan;
+    @Mock private PlanManager mockPlanManager;
 
     private StageResource resource;
 
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new StageResource(mockStageManager);
+        resource = new StageResource(mockPlanManager);
     }
 
     @Test
     public void testGetStatus() {
         // just do the bare minimum. see CurrentlyActiveInfoTests for more thorough tests.
-        when(mockStageManager.getCurrentBlock()).thenReturn(null);
-        when(mockStageManager.getCurrentPhase()).thenReturn(null);
-        when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStageManager.getStatus()).thenReturn(Status.COMPLETE);
-        when(mockStage.getPhases()).thenReturn(new ArrayList<>());
-        when(mockStage.getErrors()).thenReturn(new ArrayList<>());
+        when(mockPlanManager.getCurrentBlock()).thenReturn(null);
+        when(mockPlanManager.getCurrentPhase()).thenReturn(null);
+        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
+        when(mockPlanManager.getStatus()).thenReturn(Status.COMPLETE);
+        when(mockPlan.getPhases()).thenReturn(new ArrayList<>());
+        when(mockPlan.getErrors()).thenReturn(new ArrayList<>());
 
         CurrentlyActiveInfo activeInfo = resource.getStatus();
 
@@ -49,12 +49,12 @@ public class StageResourceTest {
 
     @Test
     public void testFullInfoComplete() {
-        when(mockStageManager.isComplete()).thenReturn(true);
+        when(mockPlanManager.isComplete()).thenReturn(true);
         // just do the bare minimum. see StageInfoTests for more thorough tests.
-        when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStage.getPhases()).thenReturn(new ArrayList<>());
-        when(mockStage.getErrors()).thenReturn(new ArrayList<>());
-        when(mockStageManager.getStatus()).thenReturn(Status.PENDING);
+        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
+        when(mockPlan.getPhases()).thenReturn(new ArrayList<>());
+        when(mockPlan.getErrors()).thenReturn(new ArrayList<>());
+        when(mockPlanManager.getStatus()).thenReturn(Status.PENDING);
 
         Response response = resource.getFullInfo();
 
@@ -64,12 +64,12 @@ public class StageResourceTest {
 
     @Test
     public void testFullInfoIncomplete() {
-        when(mockStageManager.isComplete()).thenReturn(false);
+        when(mockPlanManager.isComplete()).thenReturn(false);
         // just do the bare minimum. see StageInfoTests for more thorough tests.
-        when(mockStageManager.getStage()).thenReturn(mockStage);
-        when(mockStage.getPhases()).thenReturn(new ArrayList<>());
-        when(mockStage.getErrors()).thenReturn(new ArrayList<>());
-        when(mockStageManager.getStatus()).thenReturn(Status.PENDING);
+        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
+        when(mockPlan.getPhases()).thenReturn(new ArrayList<>());
+        when(mockPlan.getErrors()).thenReturn(new ArrayList<>());
+        when(mockPlanManager.getStatus()).thenReturn(Status.PENDING);
 
         Response response = resource.getFullInfo();
 
@@ -80,13 +80,13 @@ public class StageResourceTest {
     @Test
     public void testContinue() {
         assertTrue(resource.continueCommand().getMessage().contains("continue"));
-        verify(mockStageManager).proceed();
+        verify(mockPlanManager).proceed();
     }
 
     @Test
     public void testInterrupt() {
         assertTrue(resource.interruptCommand().getMessage().contains("interrupt"));
-        verify(mockStageManager).interrupt();
+        verify(mockPlanManager).interrupt();
     }
 
     @Test
@@ -94,7 +94,7 @@ public class StageResourceTest {
         UUID phaseId = UUID.randomUUID(), blockId = UUID.randomUUID();
         assertTrue(resource.forceCompleteCommand(phaseId.toString(), blockId.toString())
                 .getMessage().contains("forceComplete"));
-        verify(mockStageManager).forceComplete(phaseId, blockId);
+        verify(mockPlanManager).forceComplete(phaseId, blockId);
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -107,7 +107,7 @@ public class StageResourceTest {
         UUID phaseId = UUID.randomUUID(), blockId = UUID.randomUUID();
         assertTrue(resource.restartCommand(phaseId.toString(), blockId.toString())
                 .getMessage().contains("restart"));
-        verify(mockStageManager).restart(phaseId, blockId);
+        verify(mockPlanManager).restart(phaseId, blockId);
     }
 
     @Test(expected=IllegalArgumentException.class)

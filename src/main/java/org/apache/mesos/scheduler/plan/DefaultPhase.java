@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.specification.PhaseSpecification;
+import org.apache.mesos.specification.TaskSpecification;
 
 import java.util.*;
 

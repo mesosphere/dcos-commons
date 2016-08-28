@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 /**
@@ -32,13 +32,13 @@ class BlockInfo {
     }
 
     public static BlockInfo forBlock(final Block block,
-                                     final StageManager stageManager) {
+                                     final PlanManager planManager) {
         return create(
                 block.getId().toString(),
                 Block.getStatus(block),
                 block.getName(),
                 block.getMessage(),
-                stageManager.hasDecisionPoint(block));
+                planManager.hasDecisionPoint(block));
     }
 
     private BlockInfo(

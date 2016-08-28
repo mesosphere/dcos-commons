@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -44,9 +45,9 @@ public class TestBlock implements Block {
     }
 
     @Override
-    public OfferRequirement start() {
+    public Optional<OfferRequirement> start() {
         setStatus(Status.IN_PROGRESS);
-        return null; // no requirements
+        return Optional.empty();
     }
 
     @Override

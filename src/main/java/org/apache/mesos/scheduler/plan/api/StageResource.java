@@ -1,7 +1,7 @@
 package org.apache.mesos.scheduler.plan.api;
 
 import com.google.inject.Inject;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 
 import java.util.UUID;
 
@@ -21,10 +21,10 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class StageResource {
-    private final StageManager manager;
+    private final PlanManager manager;
 
     @Inject
-    public StageResource(final StageManager manager) {
+    public StageResource(final PlanManager manager) {
         this.manager = manager;
     }
 
@@ -38,7 +38,7 @@ public class StageResource {
     }
 
     /**
-     * Returns a full list of the Stage's contents (incl all Phases/Blocks).
+     * Returns a full list of the Plan's contents (incl all Phases/Blocks).
      */
     @GET
     public Response getFullInfo() {

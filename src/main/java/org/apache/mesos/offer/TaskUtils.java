@@ -7,6 +7,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;
+import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
@@ -49,6 +50,14 @@ public class TaskUtils {
     return TaskID.newBuilder()
         .setValue(taskName + TASK_NAME_DELIM + UUID.randomUUID())
         .build();
+  }
+
+  public static TaskID emptyTaskId() {
+      return TaskID.newBuilder().setValue("").build();
+  }
+
+  public static SlaveID emptyAgentId() {
+      return SlaveID.newBuilder().setValue("").build();
   }
 
   /**
