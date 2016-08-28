@@ -23,6 +23,7 @@ import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.scheduler.TaskKiller;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -55,13 +56,14 @@ public class DefaultPlanSchedulerTest {
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
     @Mock private SchedulerDriver mockSchedulerDriver;
+    @Mock private TaskKiller mockTaskKiller;
 
     private DefaultPlanScheduler scheduler;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator);
+        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockTaskKiller);
     }
 
     @Test
