@@ -6,16 +6,13 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferAccepter;
-import org.apache.mesos.offer.ResourceCleaner;
-import org.apache.mesos.offer.ResourceCleanerScheduler;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.scheduler.recovery.DefaultRecoveryScheduler;
-import org.apache.mesos.scheduler.recovery.DefaultTaskFailureListener;
-import org.apache.mesos.scheduler.recovery.TaskFailureListener;
+import org.apache.mesos.scheduler.recovery.*;
+import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
+import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
 import org.apache.mesos.specification.PlanSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
@@ -24,6 +21,7 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,13 +33,15 @@ import java.util.concurrent.TimeUnit;
  * Created by gabriel on 8/25/16.
  */
 public class DefaultScheduler implements Scheduler {
+    private static final Integer PERMANENT_FAILURE_DELAY_SEC = 1200;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
-    ExecutorService executor = Executors.newFixedThreadPool(1);
+    private final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     private Reconciler reconciler;
     private StateStore stateStore;
+    private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
     private Plan plan;
@@ -69,24 +69,23 @@ public class DefaultScheduler implements Scheduler {
 
     private void initialize() {
         logger.info("Initializing.");
+        initializeGlobals();
+        initializeRecoveryScheduler();
+        initializeDeploymentPlan();
+    }
+
+    private void initializeGlobals() {
         stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
-        TaskFailureListener taskFailureListener = new DefaultTaskFailureListener(stateStore);
+        taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler();
         offerAccepter =
                 new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        blockScheduler = new DefaultBlockScheduler(offerAccepter, taskKiller);
-        // recoveryScheduler = new DefaultRecoveryScheduler(
-        //         stateStore,
-        //         taskFailureListener,
-        //         recoveryRequirementProvider,
-        //         offerAccepter,
-        //         //new KafkaRecoveryTestConstrainer(),
-        //         //new KafkaRepairTestMonitor(),
-        //         constrainer,
-        //         new KafkaFailureMonitor(recoveryConfiguration),
-        //         recoveryStatusRef);
 
+    }
+
+    private void initializeDeploymentPlan() {
+        blockScheduler = new DefaultBlockScheduler(offerAccepter, taskKiller);
         PlanSpecification planSpecification =
                 new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
@@ -98,6 +97,24 @@ public class DefaultScheduler implements Scheduler {
             logger.error("Failed to generate plan with exception: ", e);
             hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
         }
+
+    }
+
+
+    private void initializeRecoveryScheduler() {
+        RecoveryRequirementProvider recoveryRequirementProvider =
+                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
+        LaunchConstrainer constrainer = new TimedLaunchConstrainer(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC));
+        // recoveryScheduler = new DefaultRecoveryScheduler(
+        //         stateStore,
+        //         taskFailureListener,
+        //         recoveryRequirementProvider,
+        //         offerAccepter,
+        //         //new KafkaRecoveryTestConstrainer(),
+        //         //new KafkaRepairTestMonitor(),
+        //         constrainer,
+        //         new KafkaFailureMonitor(recoveryConfiguration),
+        //         recoveryStatusRef);
 
     }
 
