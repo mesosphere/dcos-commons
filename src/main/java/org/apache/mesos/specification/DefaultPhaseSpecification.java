@@ -32,21 +32,9 @@ public class DefaultPhaseSpecification implements PhaseSpecification {
     }
 
     private TaskSpecification getTaskSpecification(int id, TaskTypeSpecification taskTypeSpecification) {
-        return new TaskSpecification() {
-            @Override
-            public String getName() {
-                return taskTypeSpecification.getName() + "-" + id;
-            }
-
-            @Override
-            public Protos.CommandInfo getCommand() {
-                return taskTypeSpecification.getCommand();
-            }
-
-            @Override
-            public Collection<ResourceSpecification> getResources() {
-                return taskTypeSpecification.getResources();
-            }
-        };
+        return DefaultTaskSpecification.create(
+                taskTypeSpecification.getName() + "-" + id,
+                taskTypeSpecification.getCommand(),
+                taskTypeSpecification.getResources());
     }
 }

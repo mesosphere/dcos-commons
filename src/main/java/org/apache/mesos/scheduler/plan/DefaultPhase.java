@@ -17,6 +17,15 @@ import java.util.*;
  */
 public class DefaultPhase implements Phase {
 
+    @Override
+    public String toString() {
+        return "DefaultPhase{" +
+                "blocks=" + blocks +
+                ", name='" + name + '\'' +
+                ", id=" + id +
+                '}';
+    }
+
     /**
      * Fluent style builder class for {@link DefaultPhase}.
      */
@@ -182,8 +191,4 @@ public class DefaultPhase implements Phase {
         return Objects.hash(getBlocks(), byId, getName(), getId());
     }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
 }

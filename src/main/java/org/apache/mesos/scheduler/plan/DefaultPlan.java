@@ -78,4 +78,12 @@ public class DefaultPlan implements Plan {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultPlan{" +
+                "phases=" + phases +
+                ", errors=" + errors +
+                '}';
+    }
 }

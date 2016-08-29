@@ -5,7 +5,9 @@ import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.protobuf.TaskUtil;
 import org.apache.mesos.protobuf.ValueUtils;
+import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
@@ -29,13 +31,15 @@ public class DefaultBlockFactory implements BlockFactory {
     public Block getBlock(TaskSpecification taskSpecification) throws InvalidRequirementException {
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
         if (!taskInfoOptional.isPresent()) {
+            logger.info("Generating new block for: " + taskSpecification.getName());
             return new DefaultBlock(
-                    taskInfoOptional.get().getName(),
+                    taskSpecification.getName(),
                     getNewOfferRequirement(taskSpecification),
                     Status.PENDING);
         } else {
             TaskSpecification oldTaskSpecification = taskInfoToTaskSpec(taskInfoOptional.get());
             Status status = getStatus(oldTaskSpecification, taskSpecification);
+            logger.info("Generating existing block for: " + taskSpecification.getName() + " with status: " + status);
             if (status.equals(Status.COMPLETE)) {
                 return new DefaultBlock(taskSpecification.getName());
             } else {
@@ -48,7 +52,9 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        if (oldTaskSpecification.equals(newTaskSpecification)) {
+        if (areDifferent(oldTaskSpecification, newTaskSpecification)) {
+            return Status.PENDING;
+        } else {
             Protos.TaskState taskState = stateStore.fetchStatus(newTaskSpecification.getName()).getState();
             switch (taskState) {
                 case TASK_STAGING:
@@ -57,14 +63,60 @@ public class DefaultBlockFactory implements BlockFactory {
                 default:
                     return Status.COMPLETE;
             }
-        } else {
-            return Status.PENDING;
         }
+    }
+
+    private boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+        if (!oldTaskSpecification.getName().equals(newTaskSpecification.getName())) {
+            return true;
+        }
+
+        if (!oldTaskSpecification.getCommand().equals(oldTaskSpecification.getCommand())) {
+            return true;
+        }
+
+        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
+        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
+
+        if (oldResourceMap.size() != newResourceMap.size()) {
+            return true;
+        }
+
+        for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
+            ResourceSpecification oldResourceSpec = oldResourceMap.get(newEntry.getKey());
+            if (oldResourceSpec == null) {
+                return true;
+            } else {
+                return areDifferent(oldResourceSpec, newEntry.getValue());
+            }
+        }
+
+        return false;
+    }
+
+    private boolean areDifferent(
+            ResourceSpecification oldResourceSpecification,
+            ResourceSpecification newResourceSpecification) {
+
+        if (!ValueUtils.equal(oldResourceSpecification.getValue(), newResourceSpecification.getValue())) {
+            return true;
+        }
+
+        if (!oldResourceSpecification.getRole().equals(newResourceSpecification.getRole())) {
+            return true;
+        }
+
+        if (!oldResourceSpecification.getPrincipal().equals(newResourceSpecification.getPrincipal())) {
+            return true;
+        }
+
+        return false;
     }
 
     private OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification) throws InvalidRequirementException {
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
+                .setCommand(taskSpecification.getCommand())
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId())
                 .addAllResources(getNewResources(taskSpecification))
@@ -77,6 +129,16 @@ public class DefaultBlockFactory implements BlockFactory {
         Map<String, Protos.Resource> resourceMap = new HashMap<>();
         for (Protos.Resource resource : resources) {
             resourceMap.put(resource.getName(), resource);
+        }
+
+        return resourceMap;
+    }
+
+    private Map<String, ResourceSpecification> getResourceSpecMap(
+            Collection<ResourceSpecification> resourceSpecifications) {
+        Map<String, ResourceSpecification> resourceMap = new HashMap<>();
+        for (ResourceSpecification resourceSpecification : resourceSpecifications) {
+            resourceMap.put(resourceSpecification.getName(), resourceSpecification);
         }
 
         return resourceMap;
@@ -102,9 +164,10 @@ public class DefaultBlockFactory implements BlockFactory {
 
         Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(oldTask)
                 .clearResources()
+                .setCommand(newTaskSpecification.getCommand())
                 .addAllResources(updatedResources)
-                .clearTaskId()
-                .clearSlaveId();
+                .setTaskId(Protos.TaskID.newBuilder().setValue(""))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue(""));
 
         return new OfferRequirement(Arrays.asList(taskBuilder.build()));
     }
@@ -125,46 +188,7 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     private TaskSpecification taskInfoToTaskSpec(Protos.TaskInfo taskInfo) {
-        return new TaskSpecification() {
-            @Override
-            public String getName() {
-                return taskInfo.getName();
-            }
-
-            @Override
-            public Protos.CommandInfo getCommand() {
-                return taskInfo.getCommand();
-            }
-
-            @Override
-            public Collection<ResourceSpecification> getResources() {
-                Collection<ResourceSpecification> resourceSpecifications = new ArrayList<>();
-                for (Protos.Resource resource : taskInfo.getResourcesList()) {
-                    resourceSpecifications.add(new ResourceSpecification() {
-                        @Override
-                        public Protos.Value getValue() {
-                            return ValueUtils.getValue(resource);
-                        }
-
-                        @Override
-                        public String getName() {
-                            return resource.getName();
-                        }
-
-                        @Override
-                        public String getRole() {
-                            return resource.getRole();
-                        }
-
-                        @Override
-                        public String getPrincipal() {
-                            return resource.getReservation().getPrincipal();
-                        }
-                    });
-                }
-                return null;
-            }
-        };
+        return DefaultTaskSpecification.create(taskInfo);
     }
 
     private Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {

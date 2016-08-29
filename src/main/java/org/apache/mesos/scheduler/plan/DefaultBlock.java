@@ -96,9 +96,21 @@ public class DefaultBlock implements Block {
     }
 
     @Override
+    public String toString() {
+        return "DefaultBlock{" +
+                "name='" + name + '\'' +
+                ", offerRequirementOptional=" + offerRequirementOptional +
+                ", id=" + id +
+                ", status=" + status +
+                ", tasks=" + tasks +
+                '}';
+    }
+
+    @Override
     public void update(Protos.TaskStatus status) {
         if (!tasks.containsKey(status.getTaskId())) {
-            logger.warn("Ignoring irrelevant TaskStatus: " + status);
+            logger.warn(getName() + " ignoring irrelevant TaskStatus: " + status);
+            return;
         }
 
         switch (status.getState()) {

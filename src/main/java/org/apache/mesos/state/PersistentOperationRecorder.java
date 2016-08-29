@@ -33,11 +33,15 @@ public class PersistentOperationRecorder implements OperationRecorder {
         logger.info(String.format("Recording %d updated TaskInfos/TaskStatuses:", taskInfos.size()));
         List<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         for (Protos.TaskInfo taskInfo : taskInfos) {
-            Protos.TaskStatus taskStatus = Protos.TaskStatus.newBuilder()
+            Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
                     .setTaskId(taskInfo.getTaskId())
-                    .setExecutorId(taskInfo.getExecutor().getExecutorId())
-                    .setState(Protos.TaskState.TASK_STAGING)
-                    .build();
+                    .setState(Protos.TaskState.TASK_STAGING);
+
+            if (taskInfo.hasExecutor()) {
+                taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
+            }
+
+            Protos.TaskStatus taskStatus = taskStatusBuilder.build();
             logger.info(String.format("- %s => %s", taskInfo, taskStatus));
             taskStatuses.add(taskStatus);
         }

@@ -70,7 +70,7 @@ public class DefaultBlockScheduler implements StageScheduler {
         // requirement and accept them, if any are found:
         List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerRequirement, offers);
         if (recommendations.isEmpty()) {
-            // complain that we're not finding suitable offers. out of space on the cluster?:
+            // Log that we're not finding suitable offers, possibly due to insufficient resources.
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by block {}: {}",
                     block.getName(), offerRequirementOptional.get());
@@ -79,7 +79,7 @@ public class DefaultBlockScheduler implements StageScheduler {
         }
 
         acceptedOffers = offerAccepter.accept(driver, recommendations);
-        // notify block of offer outcome:
+        // Notify block of offer outcome:
         if (acceptedOffers.size() > 0) {
             block.updateOfferStatus(getOperations(recommendations));
         } else {

@@ -5,6 +5,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.ResourceCleaner;
@@ -27,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by gabriel on 8/25/16.
@@ -34,22 +36,38 @@ import java.util.concurrent.Executors;
 public class DefaultScheduler implements Scheduler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
+    private final String zkConnectionString;
     ExecutorService executor = Executors.newFixedThreadPool(1);
 
     private Reconciler reconciler;
     private StateStore stateStore;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
+    private Plan plan;
     private PlanManager planManager;
     private DefaultBlockScheduler blockScheduler;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
+        this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    }
+
+    public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
+        this.zkConnectionString = zkConnectionString;
+    }
+
+    void awaitTermination() throws InterruptedException {
+        executor.shutdown();
+        executor.awaitTermination(10, TimeUnit.SECONDS);
+    }
+
+    Plan getPlan() {
+        return plan;
     }
 
     private void initialize() {
         logger.info("Initializing.");
-        stateStore = new CuratorStateStore(serviceSpecification.getName());
+        stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         TaskFailureListener taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler();
@@ -59,7 +77,8 @@ public class DefaultScheduler implements Scheduler {
         PlanSpecification planSpecification = new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
         try {
-            Plan plan = new DefaultPlanFactory(stateStore).getPlan(planSpecification);
+            plan = new DefaultPlanFactory(stateStore).getPlan(planSpecification);
+            logger.info("Generated plan: " + plan);
             planManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());
         } catch (InvalidRequirementException e) {
             logger.error("Failed to generate plan with exception: ", e);
