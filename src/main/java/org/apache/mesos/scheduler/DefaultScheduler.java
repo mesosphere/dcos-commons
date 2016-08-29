@@ -13,6 +13,7 @@ import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
+import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
 import org.apache.mesos.specification.PlanSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
@@ -24,20 +25,24 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by gabriel on 8/25/16.
  */
 public class DefaultScheduler implements Scheduler {
+    private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES = 600;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 1200;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
+    private final AtomicReference<RecoveryStatus> recoveryStatusRef;
 
     private Reconciler reconciler;
     private StateStore stateStore;
@@ -56,6 +61,7 @@ public class DefaultScheduler implements Scheduler {
     public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
         this.zkConnectionString = zkConnectionString;
+        recoveryStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
     }
 
     void awaitTermination() throws InterruptedException {
@@ -100,21 +106,19 @@ public class DefaultScheduler implements Scheduler {
 
     }
 
-
     private void initializeRecoveryScheduler() {
         RecoveryRequirementProvider recoveryRequirementProvider =
                 new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
-        LaunchConstrainer constrainer = new TimedLaunchConstrainer(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC));
-        // recoveryScheduler = new DefaultRecoveryScheduler(
-        //         stateStore,
-        //         taskFailureListener,
-        //         recoveryRequirementProvider,
-        //         offerAccepter,
-        //         //new KafkaRecoveryTestConstrainer(),
-        //         //new KafkaRepairTestMonitor(),
-        //         constrainer,
-        //         new KafkaFailureMonitor(recoveryConfiguration),
-        //         recoveryStatusRef);
+        LaunchConstrainer constrainer =
+                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES));
+        recoveryScheduler = new DefaultRecoveryScheduler(
+                stateStore,
+                taskFailureListener,
+                recoveryRequirementProvider,
+                offerAccepter,
+                constrainer,
+                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
+                recoveryStatusRef);
 
     }
 
