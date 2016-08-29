@@ -18,9 +18,9 @@ public class ServiceConfiguration {
   private String name;
   @JsonProperty("user")
   private String user;
-  @JsonProperty("placement_strategy")
+  @JsonProperty("placementStrategy")
   private String placementStrategy;
-  @JsonProperty("phase_strategy")
+  @JsonProperty("phaseStrategy")
   private String phaseStrategy;
   @JsonProperty("role")
   private String role;
@@ -32,8 +32,8 @@ public class ServiceConfiguration {
     @JsonProperty("count") int count,
     @JsonProperty("name") String name,
     @JsonProperty("user") String user,
-    @JsonProperty("placement_strategy") String placementStrategy,
-    @JsonProperty("phase_strategy") String phaseStrategy,
+    @JsonProperty("placementStrategy") String placementStrategy,
+    @JsonProperty("phaseStrategy") String phaseStrategy,
     @JsonProperty("role") String role,
     @JsonProperty("principal") String principal) {
     this.count = count;
@@ -76,7 +76,7 @@ public class ServiceConfiguration {
     return placementStrategy;
   }
 
-  @JsonProperty("placement_strategy")
+  @JsonProperty("placementStrategy")
   public void setPlacementStrategy(String placementStrategy) {
     this.placementStrategy = placementStrategy;
   }
@@ -85,7 +85,7 @@ public class ServiceConfiguration {
     return phaseStrategy;
   }
 
-  @JsonProperty("phase_strategy")
+  @JsonProperty("phaseStrategy")
   public void setPhaseStrategy(String phaseStrategy) {
     this.phaseStrategy = phaseStrategy;
   }
