@@ -1,15 +1,15 @@
-schedulerConfiguration:
+scheduler_configuration:
   service:
     name: ${FRAMEWORK_NAME}
     user: ${USER}
-    placementStrategy: ${PLACEMENT_STRATEGY}
-    phaseStrategy: ${PHASE_STRATEGY}
+    placement_strategy: ${PLACEMENT_STRATEGY}
+    phase_strategy: ${PHASE_STRATEGY}
     role: "${FRAMEWORK_NAME}-role"
     principal: "${FRAMEWORK_NAME}-principal"
 
   acme:
-    zkAddress: "master.mesos:2181"
-    acmeZkUri: "master.mesos:2181/${FRAMEWORK_NAME}"
+    zk_address: "master.mesos:2181"
+    acme_zk_uri: "master.mesos:2181/${FRAMEWORK_NAME}"
 
 
 server:
