@@ -1,10 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.BlockFactory;
-import org.apache.mesos.scheduler.plan.DefaultPhase;
-import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.specification.PhaseSpecification;
 import org.apache.mesos.specification.TaskSpecification;
 

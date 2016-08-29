@@ -130,6 +130,8 @@ public class DefaultBlock implements Block {
             case TASK_STARTING:
                 tasks.replace(status.getTaskId(), Status.IN_PROGRESS);
                 break;
+            default:
+                logger.warn("Failed to process unexpected state: " + status.getState());
         }
 
         for (Status taskStatus : tasks.values()) {

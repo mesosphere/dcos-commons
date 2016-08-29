@@ -7,7 +7,6 @@ import org.apache.mesos.state.StateStore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by gabriel on 8/28/16.

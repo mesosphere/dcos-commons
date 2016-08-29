@@ -4,6 +4,8 @@ import java.util.Optional;
 
 /**
  * This interface defines requirements for objects which wish to be stored in the ConfigStore.
+ * @param <K> The key type
+ * @param <V> The value type
  */
 public interface Configuration<K, V> {
     /**

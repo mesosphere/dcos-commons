@@ -27,14 +27,14 @@ public class ConfigResourceTest {
     private static final UUID ID1 = UUID.randomUUID();
     private static final UUID ID2 = UUID.randomUUID();
     private static final Map<String, String> configuration = new HashMap<>();
-    private static StringConfiguration CONFIG1;
+    private StringConfiguration CONFIG1;
 
     @Mock private ConfigStore<StringConfiguration> mockConfigStore;
 
     private ConfigResource<StringConfiguration> resource;
 
     @Before
-    public void beforeAll() {
+    public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         resource = new ConfigResource<>(mockConfigStore, FACTORY);
         configuration.put("key", "value");

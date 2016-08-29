@@ -1,10 +1,5 @@
 package org.apache.mesos.scheduler.plan;
 
-
-import org.apache.mesos.specification.PhaseSpecification;
-import org.apache.mesos.specification.PlanSpecification;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

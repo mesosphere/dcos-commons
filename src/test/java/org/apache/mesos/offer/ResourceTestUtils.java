@@ -24,7 +24,7 @@ public class ResourceTestUtils {
   public static final String testExecutorId =
           ExecutorUtils.toExecutorId(testExecutorName).getValue();
   public static final String testTaskId = TaskUtils.toTaskId(testTaskName).getValue();
-  public static Protos.MasterInfo testMasterInfo =
+  public static final Protos.MasterInfo testMasterInfo =
           Protos.MasterInfo.newBuilder()
           .setId("test-master-id")
           .setIp(0)

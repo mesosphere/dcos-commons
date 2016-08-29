@@ -1,9 +1,6 @@
 package org.apache.mesos.specification;
 
-import org.apache.mesos.Protos;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**

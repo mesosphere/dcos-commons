@@ -28,7 +28,9 @@ import static org.mockito.Mockito.verify;
 /**
  * Created by gabriel on 8/28/16.
  */
+@SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
+    @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule public Timeout globalTimeout= new Timeout(1, TimeUnit.SECONDS);
     @Mock private SchedulerDriver mockSchedulerDriver;
 
@@ -45,8 +47,8 @@ public class DefaultSchedulerTest {
     private static final double TASK_B_MEM = 2000.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
-    private static ServiceSpecification serviceSpecification;
     private static TestingServer testingServer;
+    private ServiceSpecification serviceSpecification;
     private DefaultScheduler defaultScheduler;
 
     @BeforeClass

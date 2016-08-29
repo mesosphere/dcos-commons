@@ -5,7 +5,6 @@ import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.protobuf.TaskUtil;
 import org.apache.mesos.protobuf.ValueUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
@@ -113,7 +112,9 @@ public class DefaultBlockFactory implements BlockFactory {
         return false;
     }
 
-    private OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification) throws InvalidRequirementException {
+    private OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
+            throws InvalidRequirementException {
+
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
                 .setCommand(taskSpecification.getCommand())

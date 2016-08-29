@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.scheduler.plan.PlanManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

@@ -74,7 +74,8 @@ public class DefaultScheduler implements Scheduler {
         offerAccepter =
                 new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
         blockScheduler = new DefaultBlockScheduler(offerAccepter, taskKiller);
-        PlanSpecification planSpecification = new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
+        PlanSpecification planSpecification =
+                new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
         try {
             plan = new DefaultPlanFactory(stateStore).getPlan(planSpecification);
@@ -133,7 +134,7 @@ public class DefaultScheduler implements Scheduler {
 
     private boolean offerAccepted(Protos.Offer offer, List<Protos.OfferID> acceptedOfferIds) {
         for (Protos.OfferID acceptedOfferId: acceptedOfferIds) {
-            if(acceptedOfferId.equals(offer.getId())) {
+            if (acceptedOfferId.equals(offer.getId())) {
                 return true;
             }
         }
@@ -184,7 +185,8 @@ public class DefaultScheduler implements Scheduler {
                     logger.info(String.format("Accepted %d of %d offers: %s",
                             acceptedOffers.size(), offers.size(), acceptedOffers));
                 }
-                List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
+
+                //List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
 
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
@@ -227,7 +229,11 @@ public class DefaultScheduler implements Scheduler {
     }
 
     @Override
-    public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, byte[] data) {
+    public void frameworkMessage(
+            SchedulerDriver driver,
+            Protos.ExecutorID executorId,
+            Protos.SlaveID slaveId,
+            byte[] data) {
         logger.error("Received a Framework Message, but don't know how to process it");
         hardExit(SchedulerErrorCode.FRAMEWORK_MESSAGE);
     }

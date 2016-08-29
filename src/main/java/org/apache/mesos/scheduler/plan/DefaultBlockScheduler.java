@@ -96,7 +96,9 @@ public class DefaultBlockScheduler implements StageScheduler {
         }
     }
 
-    private Optional<Collection<Protos.Offer.Operation>> getOperations(Collection<OfferRecommendation> recommendations) {
+    private Optional<Collection<Protos.Offer.Operation>> getOperations(
+            Collection<OfferRecommendation> recommendations) {
+
         if (recommendations.size() == 0) {
             return Optional.empty();
         }

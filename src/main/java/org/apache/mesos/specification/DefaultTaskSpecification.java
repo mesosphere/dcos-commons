@@ -1,6 +1,5 @@
 package org.apache.mesos.specification;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.protobuf.ValueUtils;
 
@@ -48,14 +47,6 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public Collection<ResourceSpecification> getResources() {
         return resourceSpecifications;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (commandInfo != null ? commandInfo.hashCode() : 0);
-        result = 31 * result + (resourceSpecifications != null ? resourceSpecifications.hashCode() : 0);
-        return result;
     }
 
     private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {

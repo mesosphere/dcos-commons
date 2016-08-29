@@ -1,6 +1,5 @@
 package org.apache.mesos.scheduler;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
 /**

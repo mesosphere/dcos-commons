@@ -1,6 +1,5 @@
 package org.apache.mesos.specification;
 
-import org.apache.commons.math.stat.inference.TestUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceTestUtils;
 

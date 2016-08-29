@@ -38,7 +38,7 @@ public class DefaultTaskKiller implements TaskKiller {
         }
 
         Protos.TaskInfo taskInfo = taskInfoOptional.get();
-        if (!stateStore.fetchStatus(taskName).equals(Protos.TaskState.TASK_RUNNING)) {
+        if (!stateStore.fetchStatus(taskName).getState().equals(Protos.TaskState.TASK_RUNNING)) {
             logger.warn("Task is not running, no need to kill: " + taskInfo);
             return;
         }

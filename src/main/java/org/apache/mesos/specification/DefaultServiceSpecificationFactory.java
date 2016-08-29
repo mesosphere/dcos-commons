@@ -9,7 +9,9 @@ public class DefaultServiceSpecificationFactory implements ServiceSpecificationF
     private final String name;
     private final List<TaskTypeSpecificationFactory> taskTypeSpecificationFactories;
 
-    public DefaultServiceSpecificationFactory(String name, List<TaskTypeSpecificationFactory> taskTypeSpecificationFactories) {
+    public DefaultServiceSpecificationFactory(
+            String name,
+            List<TaskTypeSpecificationFactory> taskTypeSpecificationFactories) {
         this.name = name;
         this.taskTypeSpecificationFactories = taskTypeSpecificationFactories;
     }
