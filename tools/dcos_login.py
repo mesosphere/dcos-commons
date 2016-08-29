@@ -1,5 +1,11 @@
 #!/usr/bin/python
 
+# Launch a CCM cluster
+#
+# stdout:
+# {'id': ...
+#  'url': ...}
+
 import json
 import os
 import pprint
