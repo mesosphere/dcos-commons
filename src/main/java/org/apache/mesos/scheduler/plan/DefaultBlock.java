@@ -113,6 +113,10 @@ public class DefaultBlock implements Block {
             return;
         }
 
+        if (isComplete()) {
+            logger.warn(getName() + " ignoring due to being Complete, TaskStatus: " + status);
+        }
+
         switch (status.getState()) {
             case TASK_RUNNING:
                 tasks.replace(status.getTaskId(), Status.COMPLETE);

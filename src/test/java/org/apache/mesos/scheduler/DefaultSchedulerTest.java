@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule public Timeout globalTimeout= new Timeout(1, TimeUnit.SECONDS);
+    @Rule public Timeout globalTimeout= new Timeout(10, TimeUnit.SECONDS);
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     private static final String SERVICE_NAME = "test-service";
@@ -249,6 +249,43 @@ public class DefaultSchedulerTest {
                                 TASK_B_CMD,
                                 TASK_B_CPU * 2.0,
                                 TASK_B_MEM * 2.0));
+            }
+        };
+        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+        register();
+
+        Plan plan = defaultScheduler.getPlan();
+        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+    }
+
+    @Test
+    public void updateTaskBCpuSpecification() throws InterruptedException {
+        // Launch A and B in original configuration
+        testLaunchB();
+        defaultScheduler.awaitTermination();
+
+        // Double TaskB cpu and mem requirements
+        serviceSpecification = new ServiceSpecification() {
+            @Override
+            public String getName() {
+                return SERVICE_NAME;
+            }
+
+            @Override
+            public List<TaskTypeSpecification> getTaskSpecifications() {
+                return Arrays.asList(
+                        TestTaskSpecificationFactory.getTaskSpecification(
+                                TASK_A_NAME,
+                                TASK_A_COUNT,
+                                TASK_A_CMD,
+                                TASK_A_CPU,
+                                TASK_A_MEM),
+                        TestTaskSpecificationFactory.getTaskSpecification(
+                                TASK_B_NAME,
+                                TASK_B_COUNT,
+                                TASK_B_CMD,
+                                TASK_B_CPU * 2.0,
+                                TASK_B_MEM));
             }
         };
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());

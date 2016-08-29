@@ -25,7 +25,8 @@ public interface RecoveryRequirementProvider {
      * gone forever.
      * @param stoppedTasks The list of Tasks which have encountered a transient failure.
      */
-    List<RecoveryRequirement> getTransientRecoveryOfferRequirements(List<TaskInfo> stoppedTasks) throws InvalidRequirementException;
+    List<RecoveryRequirement> getTransientRecoveryOfferRequirements(List<TaskInfo> stoppedTasks)
+            throws InvalidRequirementException;
 
     /**
      * Returns a {@link List<RecoveryRequirement>} that will replace Tasks whose Resources are no longer available given
@@ -33,5 +34,6 @@ public interface RecoveryRequirementProvider {
      *
      * @param failedTasks The list of Tasks which have encountered a permanent failure.
      */
-    List<RecoveryRequirement> getPermanentRecoveryOfferRequirements(List<TaskInfo> failedTasks) throws InvalidRequirementException;
+    List<RecoveryRequirement> getPermanentRecoveryOfferRequirements(List<TaskInfo> failedTasks)
+            throws InvalidRequirementException;
 }

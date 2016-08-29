@@ -15,7 +15,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification) throws InvalidRequirementException {
+    public OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
+            throws InvalidRequirementException {
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
                 .setCommand(taskSpecification.getCommand())

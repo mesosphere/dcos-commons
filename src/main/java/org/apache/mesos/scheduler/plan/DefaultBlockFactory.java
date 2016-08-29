@@ -1,7 +1,10 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.*;
+import org.apache.mesos.offer.DefaultOfferRequirementProvider;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.protobuf.ValueUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
@@ -27,6 +30,7 @@ public class DefaultBlockFactory implements BlockFactory {
 
     @Override
     public Block getBlock(TaskSpecification taskSpecification) throws InvalidRequirementException {
+        logger.info("Generating block for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
         if (!taskInfoOptional.isPresent()) {
             logger.info("Generating new block for: " + taskSpecification.getName());
@@ -50,6 +54,7 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+        logger.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
         if (areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {
@@ -66,10 +71,12 @@ public class DefaultBlockFactory implements BlockFactory {
 
     private boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
         if (!oldTaskSpecification.getName().equals(newTaskSpecification.getName())) {
+            logger.info("Task names are different.");
             return true;
         }
 
         if (!oldTaskSpecification.getCommand().equals(oldTaskSpecification.getCommand())) {
+            logger.info("Task commands are different.");
             return true;
         }
 
@@ -77,15 +84,19 @@ public class DefaultBlockFactory implements BlockFactory {
         Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
+            logger.info("Resource lengths are different.");
             return true;
         }
 
         for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
-            ResourceSpecification oldResourceSpec = oldResourceMap.get(newEntry.getKey());
+            String resourceName = newEntry.getKey();
+            logger.info("Checking resource difference for: " + resourceName);
+            ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
+                logger.info("Resource not found.");
                 return true;
-            } else {
-                return areDifferent(oldResourceSpec, newEntry.getValue());
+            } else if (areDifferent(oldResourceSpec, newEntry.getValue())) {
+                return true;
             }
         }
 
@@ -96,15 +107,22 @@ public class DefaultBlockFactory implements BlockFactory {
             ResourceSpecification oldResourceSpecification,
             ResourceSpecification newResourceSpecification) {
 
-        if (!ValueUtils.equal(oldResourceSpecification.getValue(), newResourceSpecification.getValue())) {
+        Protos.Value oldValue = oldResourceSpecification.getValue();
+        Protos.Value newValue = newResourceSpecification.getValue();
+        if (!ValueUtils.equal(oldValue, newValue)) {
+            logger.info("Values are different.");
             return true;
+        } else {
+            logger.info("Values are EQUAL, oldValue: " + oldValue + " newValue: " + newValue);
         }
 
         if (!oldResourceSpecification.getRole().equals(newResourceSpecification.getRole())) {
+            logger.info("Roles are different.");
             return true;
         }
 
         if (!oldResourceSpecification.getPrincipal().equals(newResourceSpecification.getPrincipal())) {
+            logger.info("Principals are different.");
             return true;
         }
 

@@ -17,77 +17,40 @@ public class TestTaskSpecificationFactory {
             double cpu,
             double mem) {
 
-        return new TaskTypeSpecification() {
-            @Override
-            public int getCount() {
-                return count;
-            }
+        return new DefaultTaskTypeSpecification(
+                count,
+                name,
+                getCommand(cmd),
+                getResources(cpu, mem, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal));
+    }
 
-            @Override
-            public String getName() {
-                return name;
-            }
+    private static Protos.CommandInfo getCommand(String cmd) {
+        return Protos.CommandInfo.newBuilder()
+                .setValue(cmd)
+                .build();
+    }
 
-            @Override
-            public Protos.CommandInfo getCommand() {
-                return Protos.CommandInfo.newBuilder()
-                        .setValue(cmd)
-                        .build();
-            }
-
-            @Override
-            public Collection<ResourceSpecification> getResources() {
-                return Arrays.asList(
-                        new ResourceSpecification() {
-                            @Override
-                            public Protos.Value getValue() {
-                                return Protos.Value.newBuilder()
-                                        .setType(Protos.Value.Type.SCALAR)
-                                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpu))
-                                        .build();
-                            }
-
-                            @Override
-                            public String getRole() {
-                                return ResourceTestUtils.testRole;
-                            }
-
-                            @Override
-                            public String getPrincipal() {
-                                return ResourceTestUtils.testPrincipal;
-                            }
-
-                            @Override
-                            public String getName() {
-                                return "cpus";
-                            }
-                        },
-                        new ResourceSpecification() {
-                            @Override
-                            public Protos.Value getValue() {
-                                return Protos.Value.newBuilder()
-                                        .setType(Protos.Value.Type.SCALAR)
-                                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem))
-                                        .build();
-                            }
-
-                            @Override
-                            public String getRole() {
-                                return ResourceTestUtils.testRole;
-                            }
-
-                            @Override
-                            public String getPrincipal() {
-                                return ResourceTestUtils.testPrincipal;
-                            }
-
-                            @Override
-                            public String getName() {
-                                return "mem";
-                            }
-                        }
-                );
-            }
-        };
+    private static Collection<ResourceSpecification> getResources(
+            double cpu,
+            double mem,
+            String role,
+            String principal) {
+        return Arrays.asList(
+                new DefaultResourceSpecification(
+                        "cpus",
+                        Protos.Value.newBuilder()
+                                .setType(Protos.Value.Type.SCALAR)
+                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpu))
+                                .build(),
+                        role,
+                        principal),
+                new DefaultResourceSpecification(
+                        "mem",
+                        Protos.Value.newBuilder()
+                                .setType(Protos.Value.Type.SCALAR)
+                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem))
+                                .build(),
+                        role,
+                        principal));
     }
 }

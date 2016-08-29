@@ -52,29 +52,22 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {
         Collection<ResourceSpecification> resourceSpecifications = new ArrayList<>();
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
-            resourceSpecifications.add(new ResourceSpecification() {
-                @Override
-                public Protos.Value getValue() {
-                    return ValueUtils.getValue(resource);
-                }
-
-                @Override
-                public String getName() {
-                    return resource.getName();
-                }
-
-                @Override
-                public String getRole() {
-                    return resource.getRole();
-                }
-
-                @Override
-                public String getPrincipal() {
-                    return resource.getReservation().getPrincipal();
-                }
-            });
+            resourceSpecifications.add(
+                    new DefaultResourceSpecification(
+                            resource.getName(),
+                            ValueUtils.getValue(resource),
+                            resource.getRole(),
+                            resource.getReservation().getPrincipal()));
         }
         return resourceSpecifications;
     }
 
+    @Override
+    public String toString() {
+        return "DefaultTaskSpecification{" +
+                "name='" + name + '\'' +
+                ", commandInfo=" + commandInfo +
+                ", resourceSpecifications=" + resourceSpecifications +
+                '}';
+    }
 }
