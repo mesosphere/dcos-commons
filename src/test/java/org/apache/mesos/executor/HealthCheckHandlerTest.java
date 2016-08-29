@@ -65,7 +65,6 @@ public class HealthCheckHandlerTest {
 
     @Test
     public void testSuccess() throws HealthCheckHandler.HealthCheckValidationException, ExecutionException, InterruptedException {
-        int maxConsecutiveFailures = 1;
         Protos.TaskInfo failureTask = HealthCheckTestUtils.getSuccesfulTask();
         HealthCheckStats healthCheckStats = new HealthCheckStats("test");
         HealthCheckHandler healthCheckHandler = HealthCheckHandler.create(
@@ -74,7 +73,7 @@ public class HealthCheckHandlerTest {
                 healthCheckStats);
 
         healthCheckHandler.start();
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(healthCheckStats).getTotalSuccesses(), greaterThan(1L));
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(to(healthCheckStats).getTotalSuccesses(), greaterThan(1L));
 
         Assert.assertEquals(0, healthCheckStats.getTotalFailures());
         Assert.assertEquals(0, healthCheckStats.getConsecutiveFailures());
