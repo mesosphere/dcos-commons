@@ -23,7 +23,7 @@ public class StringConfiguration implements Configuration<String, String> {
                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
                 Map<String, String> map = (Map<String, String>) objectInputStream.readObject();
                 return new StringConfiguration(map);
-            } catch (ClassNotFoundException|IOException e) {
+            } catch (ClassNotFoundException | IOException e) {
                 throw new ConfigStoreException(e);
             }
         }
@@ -49,6 +49,7 @@ public class StringConfiguration implements Configuration<String, String> {
     }
 
     @Override
+    @SuppressWarnings("PMD.IfStmtsMustUseBraces")
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
