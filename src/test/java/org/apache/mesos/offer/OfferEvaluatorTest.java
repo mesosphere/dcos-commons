@@ -608,9 +608,10 @@ public class OfferEvaluatorTest {
     ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(expectedExecutorMem);
 
     // Set incorrect ExecutorID
-    execInfo = ExecutorInfo.newBuilder(execInfo)
-            .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
-            .build();
+    execInfo = Optional.of(
+            ExecutorInfo.newBuilder(execInfo.get())
+                    .setExecutorId(ExecutorUtils.toExecutorId(execInfo.get().getName()))
+                    .build());
 
     OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
 

@@ -13,6 +13,7 @@ import org.apache.mesos.offer.ResourceCleanerScheduler;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.recovery.DefaultRecoveryScheduler;
 import org.apache.mesos.scheduler.recovery.DefaultTaskFailureListener;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
@@ -46,6 +47,7 @@ public class DefaultScheduler implements Scheduler {
     private Plan plan;
     private PlanManager planManager;
     private DefaultBlockScheduler blockScheduler;
+    private DefaultRecoveryScheduler recoveryScheduler;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
         this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
@@ -74,6 +76,17 @@ public class DefaultScheduler implements Scheduler {
         offerAccepter =
                 new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
         blockScheduler = new DefaultBlockScheduler(offerAccepter, taskKiller);
+        // recoveryScheduler = new DefaultRecoveryScheduler(
+        //         stateStore,
+        //         taskFailureListener,
+        //         recoveryRequirementProvider,
+        //         offerAccepter,
+        //         //new KafkaRecoveryTestConstrainer(),
+        //         //new KafkaRepairTestMonitor(),
+        //         constrainer,
+        //         new KafkaFailureMonitor(recoveryConfiguration),
+        //         recoveryStatusRef);
+
         PlanSpecification planSpecification =
                 new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
@@ -186,7 +199,12 @@ public class DefaultScheduler implements Scheduler {
                             acceptedOffers.size(), offers.size(), acceptedOffers));
                 }
 
-                //List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
+                List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
+                try {
+                    acceptedOffers.addAll(recoveryScheduler.resourceOffers(driver, unacceptedOffers, block));
+                } catch (Exception e) {
+                    logger.error("Error repairing block: " + block + " Reason: " + e);
+                }
 
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {

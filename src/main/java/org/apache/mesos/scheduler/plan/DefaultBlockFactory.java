@@ -1,10 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferRequirement;
-import org.apache.mesos.offer.ResourceUtils;
-import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.protobuf.ValueUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
@@ -21,9 +18,11 @@ import java.util.*;
 public class DefaultBlockFactory implements BlockFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
+    private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultBlockFactory(StateStore stateStore) {
         this.stateStore = stateStore;
+        this.offerRequirementProvider = new DefaultOfferRequirementProvider();
     }
 
     @Override
@@ -33,7 +32,7 @@ public class DefaultBlockFactory implements BlockFactory {
             logger.info("Generating new block for: " + taskSpecification.getName());
             return new DefaultBlock(
                     taskSpecification.getName(),
-                    getNewOfferRequirement(taskSpecification),
+                    offerRequirementProvider.getNewOfferRequirement(taskSpecification),
                     Status.PENDING);
         } else {
             TaskSpecification oldTaskSpecification = taskInfoToTaskSpec(taskInfoOptional.get());
@@ -44,7 +43,7 @@ public class DefaultBlockFactory implements BlockFactory {
             } else {
                 return new DefaultBlock(
                         taskSpecification.getName(),
-                        getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
+                        offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
                         status);
             }
         }
@@ -112,29 +111,6 @@ public class DefaultBlockFactory implements BlockFactory {
         return false;
     }
 
-    private OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
-            throws InvalidRequirementException {
-
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(taskSpecification.getName())
-                .setCommand(taskSpecification.getCommand())
-                .setTaskId(TaskUtils.emptyTaskId())
-                .setSlaveId(TaskUtils.emptyAgentId())
-                .addAllResources(getNewResources(taskSpecification))
-                .build();
-
-        return new OfferRequirement(Arrays.asList(taskInfo));
-    }
-
-    private Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
-        Map<String, Protos.Resource> resourceMap = new HashMap<>();
-        for (Protos.Resource resource : resources) {
-            resourceMap.put(resource.getName(), resource);
-        }
-
-        return resourceMap;
-    }
-
     private Map<String, ResourceSpecification> getResourceSpecMap(
             Collection<ResourceSpecification> resourceSpecifications) {
         Map<String, ResourceSpecification> resourceMap = new HashMap<>();
@@ -143,49 +119,6 @@ public class DefaultBlockFactory implements BlockFactory {
         }
 
         return resourceMap;
-    }
-
-
-    private OfferRequirement getExistingOfferRequirement(
-            Protos.TaskInfo oldTask,
-            TaskSpecification newTaskSpecification) throws InvalidRequirementException {
-
-        Map<String, Protos.Resource> oldResourceMap = getResourceMap(oldTask.getResourcesList());
-        List<Protos.Resource> updatedResources = new ArrayList<>();
-
-        for (ResourceSpecification resourceSpecification : newTaskSpecification.getResources()) {
-            Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
-            if (oldResource != null) {
-                updatedResources.add(updateResource(oldResource, resourceSpecification));
-            } else {
-                    updatedResources.add(
-                            ResourceUtils.getDesiredResource(resourceSpecification));
-            }
-        }
-
-        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(oldTask)
-                .clearResources()
-                .setCommand(newTaskSpecification.getCommand())
-                .addAllResources(updatedResources)
-                .setTaskId(Protos.TaskID.newBuilder().setValue(""))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(""));
-
-        return new OfferRequirement(Arrays.asList(taskBuilder.build()));
-    }
-
-    private Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification) {
-        Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
-        switch (resource.getType()) {
-            case SCALAR:
-                return builder.setScalar(resourceSpecification.getValue().getScalar()).build();
-            case RANGES:
-                return builder.setRanges(resourceSpecification.getValue().getRanges()).build();
-            case SET:
-                return builder.setSet(resourceSpecification.getValue().getSet()).build();
-            default:
-                logger.error("Encountered unexpected Value type: " + resource.getType());
-                return resource;
-        }
     }
 
     private TaskSpecification taskInfoToTaskSpec(Protos.TaskInfo taskInfo) {

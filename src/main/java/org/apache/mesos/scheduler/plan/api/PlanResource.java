@@ -3,16 +3,10 @@ package org.apache.mesos.scheduler.plan.api;
 import com.google.inject.Inject;
 import org.apache.mesos.scheduler.plan.PlanManager;
 
-import java.util.UUID;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.UUID;
 
 /**
  * API for plan display and control.
@@ -20,11 +14,11 @@ import javax.ws.rs.core.Response;
 @Path("/v1/plan")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class StageResource {
+public class PlanResource {
     private final PlanManager manager;
 
     @Inject
-    public StageResource(final PlanManager manager) {
+    public PlanResource(final PlanManager manager) {
         this.manager = manager;
     }
 

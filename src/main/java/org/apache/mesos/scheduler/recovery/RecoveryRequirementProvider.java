@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public interface RecoveryRequirementProvider {
      * gone forever.
      * @param stoppedTasks The list of Tasks which have encountered a transient failure.
      */
-    List<RecoveryRequirement> getTransientRecoveryOfferRequirements(List<TaskInfo> stoppedTasks);
+    List<RecoveryRequirement> getTransientRecoveryOfferRequirements(List<TaskInfo> stoppedTasks) throws InvalidRequirementException;
 
     /**
      * Returns a {@link List<RecoveryRequirement>} that will replace Tasks whose Resources are no longer available given
@@ -32,5 +33,5 @@ public interface RecoveryRequirementProvider {
      *
      * @param failedTasks The list of Tasks which have encountered a permanent failure.
      */
-    List<RecoveryRequirement> getPermanentRecoveryOfferRequirements(List<TaskInfo> failedTasks);
+    List<RecoveryRequirement> getPermanentRecoveryOfferRequirements(List<TaskInfo> failedTasks) throws InvalidRequirementException;
 }

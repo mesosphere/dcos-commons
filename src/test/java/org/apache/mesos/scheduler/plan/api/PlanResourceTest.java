@@ -1,30 +1,31 @@
 package org.apache.mesos.scheduler.plan.api;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Plan;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.UUID;
-import javax.ws.rs.core.Response;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PlanResourceTest {
     @Mock private Plan mockPlan;
     @Mock private PlanManager mockPlanManager;
 
-    private StageResource resource;
+    private PlanResource resource;
 
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new StageResource(mockPlanManager);
+        resource = new PlanResource(mockPlanManager);
     }
 
     @Test
