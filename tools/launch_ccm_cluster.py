@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 import json
+import logging
 import os
 import pprint
 import random
@@ -13,6 +16,10 @@ try:
 except ImportError:
     # Python 2
     from httplib import HTTPSConnection
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
 
 class CCMLauncher(object):
 
@@ -59,11 +66,11 @@ class CCMLauncher(object):
             except Exception as e:
                 attempt_str = '[{}/{}]'.format(i + 1, attempts)
                 if i + 1 == attempts:
-                    print('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
+                    logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
                     # re-raise original stacktrace:
                     raise
                 else:
-                    print('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
+                    logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
 
 
     def __query_http(self, request_method, request_path,
@@ -71,9 +78,9 @@ class CCMLauncher(object):
             log_error=True,
             debug=False):
         if self.__dry_run:
-            print('[DRY RUN] {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
+            logger.info('[DRY RUN] {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
             if request_json_payload:
-                print('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
+                logger.info('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
             return None
         conn = HTTPSConnection(self.__CCM_HOST)
         if debug:
@@ -92,21 +99,21 @@ class CCMLauncher(object):
             headers = request_headers)
         response = conn.getresponse()
         if log_error and (response.status < 200 or response.status >= 300):
-            print('Got {} response to HTTP request:'.format(response.status))
-            print('Request: {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
-            print('Response:')
-            print('  - Status: {} {}'.format(response.status, str(response.msg).strip()))
-            print('  - Headers: {}'.format(pprint.pformat(response.getheaders())))
-            print('  - Body: {}'.format(pprint.pformat(response.read())))
+            logger.error('Got {} response to HTTP request:'.format(response.status))
+            logger.error('Request: {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
+            logger.error('Response:')
+            logger.error('  - Status: {} {}'.format(response.status, str(response.msg).strip()))
+            logger.error('  - Headers: {}'.format(pprint.pformat(response.getheaders())))
+            logger.error('  - Body: {}'.format(pprint.pformat(response.read())))
             return None
         elif debug:
-            print('{}: {}'.format(response.status, str(response.msg).strip()))
-            pprint.pprint(response.getheaders())
+            logger.debug('{}: {}'.format(response.status, str(response.msg).strip()))
+            logger.debug(pprint.pformat(response.getheaders()))
         return response
 
 
     def wait_for_status(self, cluster_id, pending_status_label, complete_status_label, timeout_minutes):
-        print('Waiting {} minutes for cluster {} to go from {} to {}'.format(
+        logger.info('Waiting {} minutes for cluster {} to go from {} to {}'.format(
             timeout_minutes, cluster_id, pending_status_label, complete_status_label))
 
         pending_state_code = self.__CCM_STATUS_LABELS[pending_status_label]
@@ -131,29 +138,29 @@ class CCMLauncher(object):
                     cluster_info_str = status_json.get('cluster_info', '')
                     if cluster_info_str:
                         # cluster_info in the CCM API is a string containing a dict...:
-                        print('Cluster {} has entered state {}, returning cluster_info.'.format(
+                        logger.info('Cluster {} has entered state {}, returning cluster_info.'.format(
                             cluster_id, status_label))
                         try:
                             return json.loads(cluster_info_str)
                         except:
-                            print('Failed to parse cluster_info string as JSON. Operation failed?: "{}"'.format(cluster_info_str))
+                            logger.error('Failed to parse cluster_info string as JSON. Operation failed?: "{}"'.format(cluster_info_str))
                             return None
                     else:
-                        print('Cluster {} has entered state {}, but lacks cluster_info...'.format(
+                        logger.error('Cluster {} has entered state {}, but lacks cluster_info...'.format(
                             cluster_id, status_label))
                 elif status_code != pending_state_code:
-                    print('Cluster {} has entered state {}. Giving up.'.format(
+                    logger.error('Cluster {} has entered state {}. Giving up.'.format(
                         cluster_id, status_label))
                     return None
 
-                print('Cluster {} has state {} after {}, refreshing in {}. ({} left)'.format(
+                logger.info('Cluster {} has state {} after {}, refreshing in {}. ({} left)'.format(
                     cluster_id,
                     status_label,
                     self.__pretty_time(now - start_time),
                     self.__pretty_time(sleep_duration_s),
                     self.__pretty_time(stop_time - now)))
             else:
-                print('Failed to get cluster {} state after {}, refreshing in {}. ({} left)'.format(
+                logger.error('Failed to get cluster {} state after {}, refreshing in {}. ({} left)'.format(
                     cluster_id,
                     self.__pretty_time(now - start_time),
                     self.__pretty_time(sleep_duration_s),
@@ -162,7 +169,7 @@ class CCMLauncher(object):
             time.sleep(sleep_duration_s)
             now = time.time()
 
-        print('Giving up after {}'.format(self.__pretty_time(60 * timeout_minutes)))
+        logger.error('Giving up after {}'.format(self.__pretty_time(60 * timeout_minutes)))
         return None
 
 
@@ -193,7 +200,7 @@ class CCMLauncher(object):
             'cloud_provider': config.cloud_provider,
             'region': config.aws_region
         }
-        print('Launching cluster named "{}" with {} private/{} public agents for {} minutes against template at {}'.format(
+        logger.info('Launching cluster named "{}" with {} private/{} public agents for {} minutes against template at {}'.format(
             config.name, config.private_agents, config.public_agents,
             config.duration_mins, template_url))
         response = self.__query_http('POST', self.__CCM_PATH, request_json_payload=payload)
@@ -219,14 +226,14 @@ class CCMLauncher(object):
 
 
     def __stop(self, config):
-        print('Deleting cluster #{}'.format(config.cluster_id))
+        logger.info('Deleting cluster #{}'.format(config.cluster_id))
         response = self.__query_http('DELETE', self.__CCM_PATH + config.cluster_id + '/')
         if not response:
             raise Exception('CCM cluster deletion request failed')
         cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
         if not cluster_info:
             raise Exception('CCM cluster deletion failed or timed out')
-        pprint.pprint(cluster_info)
+        logger.info(pprint.pformat(cluster_info))
 
 
 class StartConfig(object):
@@ -286,7 +293,7 @@ def main(argv):
                 launcher.stop(StopConfig(argv[2]), start_stop_attempts)
                 return 0
             else:
-                print('Usage: {} stop <ccm_id>'.format(argv[0]))
+                print('Usage: {} stop <ccm_id>'.format(argv[0]), file=sys.stderr)
                 return 1
         if argv[1] == 'wait':
             if len(argv) >= 5:
@@ -296,10 +303,10 @@ def main(argv):
                 pprint.pprint(cluster_info)
                 return 0
             else:
-                print('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]))
+                print('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]), file=sys.stderr)
                 return 1
         else:
-            print('Usage: {} [stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
+            print('Usage: {} [stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]), file=sys.stderr)
             return
 
     cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
