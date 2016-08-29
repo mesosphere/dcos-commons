@@ -13,12 +13,12 @@ import java.util.Objects;
  */
 public class DropwizardConfiguration extends Configuration {
 
-  @JsonProperty("scheduler_configuration")
+  @JsonProperty("schedulerConfiguration")
   AcmeSchedulerConfiguration schedulerConfiguration;
 
   @JsonCreator
   public DropwizardConfiguration(
-    @JsonProperty("scheduler_configuration") AcmeSchedulerConfiguration schedulerConfiguration) {
+    @JsonProperty("schedulerConfiguration") AcmeSchedulerConfiguration schedulerConfiguration) {
     this.schedulerConfiguration = schedulerConfiguration;
   }
 
@@ -26,7 +26,7 @@ public class DropwizardConfiguration extends Configuration {
     return schedulerConfiguration;
   }
 
-  @JsonProperty("scheduler_configuration")
+  @JsonProperty("schedulerConfiguration")
   public void setSchedulerConfiguration(AcmeSchedulerConfiguration schedulerConfiguration) {
     this.schedulerConfiguration = schedulerConfiguration;
   }

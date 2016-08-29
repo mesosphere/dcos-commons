@@ -12,16 +12,16 @@ import java.util.Objects;
  */
 public class AcmeConfiguration {
 
-  @JsonProperty("acme_zk_uri")
+  @JsonProperty("acmeZkUri")
   private String acmeZkUri;
 
-  @JsonProperty("zk_address")
+  @JsonProperty("zkAddress")
   private String zkAddress;
 
   @JsonCreator
   public AcmeConfiguration(
-    @JsonProperty("acme_zk_uri") String acmeZkUri,
-    @JsonProperty("zk_address") String zkAddress) {
+    @JsonProperty("acmeZkUri") String acmeZkUri,
+    @JsonProperty("zkAddress") String zkAddress) {
     this.acmeZkUri = acmeZkUri;
     this.zkAddress = zkAddress;
   }
@@ -30,7 +30,7 @@ public class AcmeConfiguration {
     return acmeZkUri;
   }
 
-  @JsonProperty("acme_zk_uri")
+  @JsonProperty("acmeZkUri")
   public void setAcmeZkUri(String acmeZkUri) {
     this.acmeZkUri = acmeZkUri;
   }
@@ -39,7 +39,7 @@ public class AcmeConfiguration {
     return zkAddress;
   }
 
-  @JsonProperty("zk_address")
+  @JsonProperty("zkAddress")
   public void setZkAddress(String zkAddress) {
     this.zkAddress = zkAddress;
   }
