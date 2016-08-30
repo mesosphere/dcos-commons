@@ -147,6 +147,8 @@ What follows is a more detailed description of what each utility does and how it
 
 Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and upload the whole set to S3. This is useful for quickly getting a local build up and available for installation in a DC/OS cluster. This tool relies on `universe_builder.py`, which is described below.
 
+The resulting uploaded stub universe URL is logged to stdout (while all other logging is to stderr).
+
 Note that this uses the `aws` CLI to perform the upload. You must have `aws` installed in your `PATH` to use this.
 
 #### Usage
@@ -207,6 +209,8 @@ The only needed parameters are a `stub-universe.zip` (built by `ci_upload.py`, o
 
 Only artifacts which share the same directory path as the `stub-universe.zip` itself are copied. This allows for artifacts which are not built as a part of every release, but are instead shared across builds (e.g. a JVM package).
 
+The resulting pull request URL is logged to stdout (while all other logging is to stderr).
+
 Note that this utility is careful to avoid overwriting existing artifacts in production (ie if the provided version is already taken). If artifacts are already detected in the release destination, the program will exit and print the necessary `aws` command to manually delete the data.
 
 #### Usage
@@ -260,7 +264,7 @@ The following are optional:
 
 ### launch_ccm_cluster.py
 
-Launches a DC/OS cluster using the Mesosphere-internal 'CCM' tool. This is not usable by the general public and will be going away or getting replaced soon.
+Launches a DC/OS cluster using the Mesosphere-internal 'CCM' tool, then prints the information about the launched cluster to stdout (all other logging is to stderr). This is not usable by the general public and will be going away or getting replaced soon.
 
 #### Usage
 
@@ -348,7 +352,7 @@ dcos config set core.dcos_url http://your-cluster-url.com
 [dcos CLI is now logged in...]
 ```
 
-If the `print` argument is provided, `dcos_login.py` will also print the resulting token to stdout. All other log output is always sent to stderr, to ensure that stdout is not polluted by logs.
+If the `print` argument is provided, `dcos_login.py` will also print the resulting token to stdout. All other log output is sent to stderr.
 
 #### Environment variables
 
@@ -393,7 +397,7 @@ Meanwhile `GITHUB_COMMIT_STATUS_URL` is useful for providing custom links in sta
 
 ### universe_builder.py
 
-Builds a self-contained Universe 2.x-format package ('stub-universe') which may be used to add/test a given build directly on a DC/OS cluster.
+Builds a self-contained Universe 2.x-format package ('stub-universe') which may be used to add/test a given build directly on a DC/OS cluster. The resulting zip file's path is printed to stdout, while all other logging goes to stderr.
 
 The provided universe files may contain template parameters of the form `{{some-param}}`. The following parameters are filled by default:
 - `{{package-version}}`: The version string to use for this package. Filled with the provided `package-version` argument
