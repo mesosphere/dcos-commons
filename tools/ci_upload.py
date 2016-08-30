@@ -1,15 +1,18 @@
 #!/usr/bin/python
 
+import logging
 import os
 import os.path
 import random
 import string
 import sys
 import time
-import traceback
 
 import github_update
 import universe_builder
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class CIUploader(object):
@@ -52,16 +55,16 @@ class CIUploader(object):
     def __upload_artifact(self, filepath):
         filename = os.path.basename(filepath)
         if self.__aws_region:
-            cmd = 'aws s3 --region={} cp --acl public-read {} {}/{}'.format(
+            cmd = 'aws s3 --region={} cp --acl public-read {} {}/{} 1>&2'.format(
                 self.__aws_region, filepath, self.__s3_directory, filename)
         else:
-            cmd = 'aws s3 cp --acl public-read {} {}/{}'.format(
+            cmd = 'aws s3 cp --acl public-read {} {}/{} 1>&2'.format(
                 filepath, self.__s3_directory, filename)
         if self.__dry_run:
-            print('[DRY RUN] {}'.format(cmd))
+            logger.info('[DRY RUN] {}'.format(cmd))
             ret = 0
         else:
-            print(cmd)
+            logger.info(cmd)
             ret = os.system(cmd)
         if not ret == 0:
             err = 'Failed to upload {} to S3'.format(filename)
@@ -71,8 +74,8 @@ class CIUploader(object):
 
 
     def __spam_universe_url(self, universe_url):
-        if os.environ.get('JENKINS_HOME', ''):
-            # write jenkins properties file:
+        if 'JENKINS_HOME' in os.environ:
+            # write jenkins properties file to $WORKSPACE/stub-universe.properties:
             properties_file = open(os.path.join(os.environ['WORKSPACE'], 'stub-universe.properties'), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
             properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self.__s3_directory))
@@ -103,31 +106,32 @@ class CIUploader(object):
                 self.__pkg_name, self.__pkg_version,
                 self.__input_dir_path, self.__http_directory, self.__artifact_paths).build_zip()
         except Exception as e:
-            traceback.format_exc()
             err = 'Failed to create stub universe: {}'.format(str(e))
             self.__github_updater.update('error', err)
-            raise Exception(err)
+            raise
 
         # print universe url early
         universe_url = self.__upload_artifact(universe_path)
-        print('---')
-        print('Built and uploaded stub universe:')
-        print(universe_url)
-        print('---')
-        print('Uploading {} artifacts:'.format(len(self.__artifact_paths)))
+        logger.info('---')
+        logger.info('Built and uploaded stub universe:')
+        logger.info(universe_url)
+        logger.info('---')
+        logger.info('Uploading {} artifacts:'.format(len(self.__artifact_paths)))
 
         for path in self.__artifact_paths:
             self.__upload_artifact(path)
 
         self.__spam_universe_url(universe_url)
 
+        # print to stdout, while the rest was all stderr:
+        print(universe_url)
         return universe_url
 
 
 def print_help(argv):
-    print('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
-    print('  Example: $ {} kafka /path/to/template/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
-    print('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
+    logger.info('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
+    logger.info('  Example: $ {} kafka /path/to/template/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    logger.info('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
 def main(argv):
@@ -140,7 +144,7 @@ def main(argv):
     package_dir_path = argv[2].rstrip('/')
     # artifact paths (to upload along with stub universe)
     artifact_paths = argv[3:]
-    print('''###
+    logger.info('''###
 Package:         {}
 Template path:   {}
 Artifacts:       {}

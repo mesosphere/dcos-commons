@@ -2,6 +2,7 @@
 
 import difflib
 import hashlib
+import logging
 import os
 import os.path
 import re
@@ -10,6 +11,9 @@ import sys
 import tempfile
 import time
 import zipfile
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class UniversePackageBuilder(object):
@@ -135,12 +139,12 @@ class UniversePackageBuilder(object):
     def __apply_templating_file(self, filepath):
         # basic checks to avoid files that we shouldn't edit:
         if not '.json' in os.path.basename(filepath):
-            print('')
-            print('Ignoring non-json file: {}'.format(filepath))
+            logger.warning('')
+            logger.warning('Ignoring non-json file: {}'.format(filepath))
             return
         if os.stat(filepath).st_size > (1024 * 1024):
-            print('')
-            print('Ignoring file larger than 1MB: {}'.format(filepath))
+            logger.warning('')
+            logger.warning('Ignoring file larger than 1MB: {}'.format(filepath))
             return
 
         template_mapping = self.__get_file_template_mapping(filepath)
@@ -149,18 +153,18 @@ class UniversePackageBuilder(object):
         for template_key, template_val in template_mapping.items():
             new_content = new_content.replace('{{%s}}' % template_key, template_val)
         if orig_content == new_content:
-            print('')
-            print('No templating detected in {}, leaving file as-is'.format(filepath))
+            logger.info('')
+            logger.info('No templating detected in {}, leaving file as-is'.format(filepath))
             return
-        print('')
-        print('Applied templating changes to {}:'.format(filepath))
-        print('Template params used:')
+        logger.info('')
+        logger.info('Applied templating changes to {}:'.format(filepath))
+        logger.info('Template params used:')
         template_keys = template_mapping.keys()
         template_keys.sort()
         for key in template_keys:
-            print('  {{%s}} => %s' % (key, template_mapping[key]))
-        print('Resulting diff:')
-        print('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
+            logger.info('  {{%s}} => %s' % (key, template_mapping[key]))
+        logger.info('Resulting diff:')
+        logger.info('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
         rewrite = open(filepath, 'w')
         rewrite.write(new_content)
         rewrite.flush()
@@ -181,7 +185,7 @@ class UniversePackageBuilder(object):
         zipout = zipfile.ZipFile(zippath, 'w', zipfile.ZIP_STORED)
         for root, dirs, files in os.walk(scratchdir):
             destroot = root[len(scratchdir):]
-            print('  adding: {}/ => {}/'.format(root, destroot))
+            logger.info('  adding: {}/ => {}/'.format(root, destroot))
             # cosmos requires a preceding explicit directory entry:
             zipout.write(root, destroot)
             files.sort() # nice to have: process in consistent order
@@ -191,7 +195,7 @@ class UniversePackageBuilder(object):
                     # don't include the (newly created) zipfile itself!
                     continue
                 destpath = srcpath[len(scratchdir):]
-                print('  adding: {} => {}'.format(srcpath, destpath))
+                logger.info('  adding: {} => {}'.format(srcpath, destpath))
                 zipout.write(srcpath, destpath)
         return zippath
 
@@ -207,9 +211,9 @@ class UniversePackageBuilder(object):
 
 
 def print_help(argv):
-    print('Syntax: {} <package-name> <package-version> <template-package-dir> <artifact-base-path> [artifact files ...]'.format(argv[0]))
-    print('  Example: $ {} kafka 1.2.3-4.5.6 /path/to/template/jsons/ https://example.com/path/to/kafka-artifacts /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
-    print('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
+    logger.info('Syntax: {} <package-name> <package-version> <template-package-dir> <artifact-base-path> [artifact files ...]'.format(argv[0]))
+    logger.info('  Example: $ {} kafka 1.2.3-4.5.6 /path/to/template/jsons/ https://example.com/path/to/kafka-artifacts /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    logger.info('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
 def main(argv):
@@ -226,7 +230,7 @@ def main(argv):
     upload_dir_url = argv[4].rstrip('/')
     # artifact paths (for sha256 as needed)
     artifact_paths = argv[5:]
-    print('''###
+    logger.info('''###
 Package:         {} (version {})
 Template path:   {}
 Upload base dir: {}
@@ -238,9 +242,9 @@ Artifacts:       {}
     package_path = builder.build_zip()
     if not package_path:
         return -1
-    print('---')
-    print('Built stub universe package:')
-    # print the package location as the last line of stdout (used by ci-upload.sh):
+    logger.info('---')
+    logger.info('Built stub universe package:')
+    # print the package location as stdout (the rest of the file is stderr):
     print(package_path)
     return 0
 

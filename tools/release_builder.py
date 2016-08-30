@@ -3,6 +3,7 @@
 import base64
 import difflib
 import json
+import logging
 import os
 import os.path
 import pprint
@@ -13,6 +14,9 @@ import tempfile
 import urllib
 import urllib2
 import zipfile
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 try:
     from http.client import HTTPSConnection
@@ -61,10 +65,10 @@ class UniverseReleaseBuilder(object):
 
     def __run_cmd(self, cmd, dry_run_return = 0):
         if self.__dry_run:
-            print('[DRY RUN] {}'.format(cmd))
+            logger.info('[DRY RUN] {}'.format(cmd))
             return dry_run_return
         else:
-            print(cmd)
+            logger.info(cmd)
             return os.system(cmd)
 
     def __download_unpack_stub_universe(self, scratchdir):
@@ -98,14 +102,14 @@ class UniverseReleaseBuilder(object):
 
     def __update_file_content(self, path, orig_content, new_content, showdiff=True):
         if orig_content == new_content:
-            print('No changes detected in {}'.format(path))
+            logger.info('No changes detected in {}'.format(path))
             # no-op
         else:
             if showdiff:
-                print('Applied templating changes to {}:'.format(path))
-                print('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
+                logger.info('Applied templating changes to {}:'.format(path))
+                logger.info('\n'.join(difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
             else:
-                print('Applied templating changes to {}'.format(path))
+                logger.info('Applied templating changes to {}'.format(path))
             newfile = open(path, 'w')
             newfile.write(new_content)
             newfile.flush()
@@ -120,7 +124,7 @@ class UniverseReleaseBuilder(object):
             minDcosReleaseVersion = None
         else:
             minDcosReleaseVersion = self.__min_dcos_release_version
-        print('[1/2] Setting version={}, packagingVersion={}, minDcosReleaseVersion={} in {}'.format(
+        logger.info('[1/2] Setting version={}, packagingVersion={}, minDcosReleaseVersion={} in {}'.format(
             self.__pkg_version, packagingVersion, minDcosReleaseVersion, path))
         orig_content = open(path, 'r').read()
         content_json = json.loads(orig_content)
@@ -131,13 +135,13 @@ class UniverseReleaseBuilder(object):
         # dumps() adds trailing space, fix that:
         new_content_lines = json.dumps(content_json, indent=2, sort_keys=True).split('\n')
         new_content = '\n'.join([line.rstrip() for line in new_content_lines]) + '\n'
-        print(new_content)
+        logger.info(new_content)
         # don't bother showing diff, things get rearranged..
         self.__update_file_content(path, orig_content, new_content, showdiff=False)
 
         # we expect the artifacts to share the same directory prefix as the stub universe zip itself:
         original_artifact_prefix = '/'.join(self.__stub_universe_url.split('/')[:-1])
-        print('[2/2] Replacing artifact prefix {} with {}'.format(
+        logger.info('[2/2] Replacing artifact prefix {} with {}'.format(
             original_artifact_prefix, self.__release_artifact_http_dir))
         original_artifact_urls = []
         for filename in os.listdir(pkgdir):
@@ -153,8 +157,8 @@ class UniverseReleaseBuilder(object):
     def __copy_artifacts_s3(self, scratchdir, original_artifact_urls):
         # before we do anything else, verify that the upload directory doesn't already exist, to
         # avoid automatically stomping on a previous release. if you *want* to do this, you must
-        # manually delete the destination directory first.
-        cmd = 'aws s3 ls --recursive {}'.format(self.__release_artifact_s3_dir)
+        # manually delete the destination directory first. (and redirect stdout to stderr)
+        cmd = 'aws s3 ls --recursive {} 1>&2'.format(self.__release_artifact_s3_dir)
         ret = self.__run_cmd(cmd, 1)
         if ret == 0:
             raise Exception('Release artifact destination already exists. ' +
@@ -162,7 +166,7 @@ class UniverseReleaseBuilder(object):
                             'Do this: aws s3 rm --dryrun --recursive {}'.format(self.__release_artifact_s3_dir))
         elif ret > 256:
             raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
-        print('Destination {} doesnt exist, proceeding...'.format(self.__release_artifact_s3_dir))
+        logger.info('Destination {} doesnt exist, proceeding...'.format(self.__release_artifact_s3_dir))
 
         for i in range(len(original_artifact_urls)):
             progress = '[{}/{}]'.format(i + 1, len(original_artifact_urls))
@@ -178,21 +182,21 @@ class UniverseReleaseBuilder(object):
             # download the artifact (dev s3, via http)
             if self.__dry_run:
                 # create stub file to make 'aws s3 cp --dryrun' happy:
-                print('[DRY RUN] {} Downloading {} to {}'.format(progress, src_url, local_path))
+                logger.info('[DRY RUN] {} Downloading {} to {}'.format(progress, src_url, local_path))
                 stub = open(local_path, 'w')
                 stub.write('stub')
                 stub.flush()
                 stub.close()
-                print('[DRY RUN] {} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
-                ret = os.system('aws s3 cp --dryrun --acl public-read {} {}'.format(
+                logger.info('[DRY RUN] {} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
+                ret = os.system('aws s3 cp --dryrun --acl public-read {} {} 1>&2'.format(
                     local_path, dest_s3_url))
             else:
                 # download the artifact (http url referenced in package)
-                print('{} Downloading {} to {}'.format(progress, src_url, local_path))
+                logger.info('{} Downloading {} to {}'.format(progress, src_url, local_path))
                 urllib.URLopener().retrieve(src_url, local_path)
                 # re-upload the artifact (prod s3, via awscli)
-                print('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
-                ret = os.system('aws s3 cp --acl public-read {} {}'.format(
+                logger.info('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
+                ret = os.system('aws s3 cp --acl public-read {} {} 1>&2'.format(
                     local_path, dest_s3_url))
             if not ret == 0:
                 raise Exception(
@@ -280,9 +284,10 @@ class UniverseReleaseBuilder(object):
         # commit the change and push the branch:
         cmds = ['cd {}'.format(os.path.join(scratchdir, 'universe')),
                 'git add .',
-                'git commit -F {}'.format(commitmsg_path)]
+                'git commit -q -F {}'.format(commitmsg_path)]
         if self.__dry_run:
-            cmds.append('git show -q HEAD')
+            # ensure the debug goes to stderr...:
+            cmds.append('git show -q HEAD 1>&2')
         else:
             cmds.append('git push origin {}'.format(branch))
         ret = os.system(' && '.join(cmds))
@@ -295,7 +300,7 @@ class UniverseReleaseBuilder(object):
 
     def __create_universe_pr(self, branch, commitmsg_path):
         if self.__dry_run:
-            print('[DRY RUN] Skipping creation of PR against branch {}'.format(branch))
+            logger.info('[DRY RUN] Skipping creation of PR against branch {}'.format(branch))
             return None
         headers = {
             'User-Agent': 'release_builder.py',
@@ -326,14 +331,14 @@ class UniverseReleaseBuilder(object):
 
 
 def print_help(argv):
-    print('Syntax: {} <package-version> <stub-universe-url> [commit message]'.format(argv[0]))
-    print('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip'.format(argv[0]))
-    print('Required credentials in env:')
-    print('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
-    print('- Github (Personal Access Token): GITHUB_TOKEN')
-    print('Required CLI programs:')
-    print('- git')
-    print('- aws')
+    logger.info('Syntax: {} <package-version> <stub-universe-url> [commit message]'.format(argv[0]))
+    logger.info('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.zip'.format(argv[0]))
+    logger.info('Required credentials in env:')
+    logger.info('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
+    logger.info('- Github (Personal Access Token): GITHUB_TOKEN')
+    logger.info('Required CLI programs:')
+    logger.info('- git')
+    logger.info('- aws')
 
 
 def main(argv):
@@ -350,7 +355,7 @@ def main(argv):
         comment_info = '\nCommit Message:  {}'.format(commit_desc)
     else:
         comment_info = ''
-    print('''###
+    logger.info('''###
 Release Version: {}
 Universe URL:    {}{}
 ###'''.format(package_version, stub_universe_url, comment_info))
@@ -358,17 +363,18 @@ Universe URL:    {}{}
     builder = UniverseReleaseBuilder(package_version, stub_universe_url, commit_desc)
     response = builder.release_zip()
     if not response:
+        # print the PR location as stdout for use upstream (the rest is all stderr):
         print('[DRY RUN] The pull request URL would appear here.')
         return 0
     if response.status < 200 or response.status >= 300:
-        print('Got {} response to PR creation request:'.format(response.status))
-        print('Response:')
-        pprint.pprint(response.read())
-        print('You will need to manually create the PR against the branch that was pushed above.')
+        logger.error('Got {} response to PR creation request:'.format(response.status))
+        logger.error('Response:')
+        logger.error(pprint.pformat(response.read()))
+        logger.error('You will need to manually create the PR against the branch that was pushed above.')
         return -1
-    print('---')
-    print('Created pull request for version {} (PTAL):'.format(package_version))
-    # print the PR location as the last line of stdout (may be used upstream):
+    logger.info('---')
+    logger.info('Created pull request for version {} (PTAL):'.format(package_version))
+    # print the PR location as stdout for use upstream (the rest is all stderr):
     print(json.loads(response.read())['html_url'])
     return 0
 

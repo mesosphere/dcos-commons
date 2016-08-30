@@ -2,12 +2,16 @@
 
 import base64
 import json
+import logging
 import os
 import os.path
 import pprint
 import re
 import sys
 import subprocess
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 try:
     from http.client import HTTPSConnection
@@ -149,9 +153,9 @@ class GithubStatusUpdater(object):
         '''sends an update to github.
         returns True on success or False otherwise.
         state should be one of 'pending', 'success', 'error', or 'failure'.'''
-        print('[STATUS] {} {}: {}'.format(self.__context_label, state, message))
+        logger.info('[STATUS] {} {}: {}'.format(self.__context_label, state, message))
         if details_url:
-            print('[STATUS] URL: {}'.format(details_url))
+            logger.info('[STATUS] URL: {}'.format(details_url))
 
         if not 'JENKINS_HOME' in os.environ:
             # not running in CI. skip actually sending anything to GitHub
@@ -160,18 +164,18 @@ class GithubStatusUpdater(object):
         request = self.__build_request(state, message, details_url)
         response = self.__send_request(request)
         if response.status < 200 or response.status >= 300:
-            print('Got {} response to update request:'.format(response.status))
-            print('Request:')
-            pprint.pprint(request)
-            print('Response:')
-            pprint.pprint(response.read())
+            logger.error('Got {} response to update request:'.format(response.status))
+            logger.error('Request:')
+            logger.error(pprint.pformat(request))
+            logger.error('Response:')
+            logger.error(pprint.pformat(response.read()))
             return False
-        print('Updated GitHub PR with status: {}'.format(request['path']))
+        logger.info('Updated GitHub PR with status: {}'.format(request['path']))
         return True
 
 
 def print_help(argv):
-    print('Syntax: {} <state: pending|success|error|failure> <context_label> <status message>'.format(argv[0]))
+    logger.info('Syntax: {} <state: pending|success|error|failure> <context_label> <status message>'.format(argv[0]))
 
 
 def main(argv):

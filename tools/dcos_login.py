@@ -1,12 +1,15 @@
 #!/usr/bin/python
 
-# Launch a CCM cluster
+# Log in to a cluster using default credentials.
 #
-# stdout:
-# {'id': ...
-#  'url': ...}
+# On success: CLI in PATH is logged in and zero is returned
+# On failure: non-zero is returned
+#
+# Configuration:
+# - DCOS_TOKEN: Custom core.dcos_acs_token to use, instead of default credentials
 
 import json
+import logging
 import os
 import pprint
 import subprocess
@@ -20,6 +23,10 @@ except ImportError:
     # Python 2
     from httplib import HTTPConnection, HTTPSConnection, ssl
     from urlparse import urlparse
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+
 
 class DCOSLogin(object):
 
@@ -38,6 +45,7 @@ class DCOSLogin(object):
         self.__token_open = token_open
         self.__user_ee = user_ee
         self.__password_ee = password_ee
+        self.__cached_token = ''
 
 
     def __query_http(
@@ -72,15 +80,15 @@ class DCOSLogin(object):
             headers = request_headers)
         response = conn.getresponse()
         if log_error and (response.status < 200 or response.status >= 300):
-            print('Got {} response to HTTP request:'.format(response.status))
-            print('Request: {} {}'.format(request_method, request_path))
-            print('Response: {} {}'.format(response.status, str(response.msg).strip()))
-            pprint.pprint(response.getheaders())
-            pprint.pprint(response.read())
+            logger.error('Got {} response to HTTP request:'.format(response.status))
+            logger.error('Request: {} {}'.format(request_method, request_path))
+            logger.error('Response: {} {}'.format(response.status, str(response.msg).strip()))
+            logger.error(pprint.pformat(response.getheaders()))
+            logger.error(pprint.pformat(response.read()))
             return None
         elif debug:
-            print('{}: {}'.format(response.status, str(response.msg).strip()))
-            pprint.pprint(response.getheaders())
+            logger.debug('{}: {}'.format(response.status, str(response.msg).strip()))
+            logger.debug(pprint.pformat(response.getheaders()))
         return response
 
 
@@ -97,17 +105,23 @@ class DCOSLogin(object):
                 break
         if auth_type == 'oauthjwt':
             if debug:
-                print('Autodetected DC/OS Open')
+                logger.debug('Autodetected DC/OS Open')
             return False
         elif auth_type == 'acsjwt':
             if debug:
-                print('Autodetected DC/OS Enterprise')
+                logger.debug('Autodetected DC/OS Enterprise')
             return True
         else:
             raise Exception('Unknown authentication method in response headers: {}'.format(
                 response.getheaders()))
 
     def get_acs_token(self, debug=False):
+        env_token = os.environ.get('DCOS_TOKEN', '')
+        if env_token:
+            return env_token
+        if self.__cached_token:
+            return self.__cached_token
+
         if self.__is_enterprise_cluster(debug):
             payload = {'uid': self.__user_ee, 'password': self.__password_ee}
         else:
@@ -116,28 +130,33 @@ class DCOSLogin(object):
             'POST', '/acs/api/v1/auth/login', request_json_payload=payload, debug=debug)
         if not response:
             raise Exception('Failed to authenticate with cluster at {}'.format(self.__dcos_url))
-        return json.loads(response.read().decode('utf-8'))['token']
+
+        self.__cached_token = json.loads(response.read().decode('utf-8'))['token']
+        return self.__cached_token
 
 
     def login(self, debug=False):
         token = self.get_acs_token(debug)
-        ret = subprocess.Popen(
-            'dcos config set core.dcos_acs_token {}'.format(token).split(' '),
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.check_call(
+            'dcos config set core.dcos_acs_token {}'.format(token).split(' '))
 
 
 def main(argv):
+    # get url from dcos CLI:
     ret = subprocess.Popen(
         'dcos config show core.dcos_url'.split(' '),
         stdout=subprocess.PIPE)
     dcos_url = ret.stdout.readline().decode('utf-8').strip()
+    # do handshake:
     login = DCOSLogin(dcos_url)
-    if len(argv) >= 2 and argv[1] == "token":
+    logger.info('Logging in to: {}'.format(dcos_url))
+    login.login()
+    logger.info('Login successful. Access token with: dcos config show core.dcos_acs_token')
+    if len(argv) >= 2 and argv[1] == "print":
+        # use stdout, while the rest of the file is stderr
         print(login.get_acs_token())
     else:
-        print('Logging in to: {}'.format(dcos_url))
-        DCOSLogin(dcos_url).login()
-        print('Login successful. Access token with: dcos config show core.dcos_acs_token')
+        logger.info('(Or call this script with "print" to also print token to stdout)')
     return 0
 
 
