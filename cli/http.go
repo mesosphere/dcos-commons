@@ -138,7 +138,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 func CheckHTTPResponse(response *http.Response) *http.Response {
 	switch {
 	case response.StatusCode == 401:
-		log.Printf("Got 401 Unauthorized response from %s", request.URL)
+		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
 		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == 500:
 		log.Printf("HTTP %s Query for %s failed: %s",
