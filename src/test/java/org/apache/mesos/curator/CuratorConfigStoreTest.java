@@ -12,7 +12,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -43,9 +45,7 @@ public class CuratorConfigStoreTest {
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
         assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
 
-        Map<String, String> configuration = new HashMap<>();
-        configuration.put("key", "value");
-        testConfig = new StringConfiguration(configuration);
+        testConfig = new StringConfiguration("test-config");
         configFactory = new StringConfiguration.Factory();
     }
 

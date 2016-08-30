@@ -12,8 +12,6 @@ import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -26,19 +24,16 @@ public class ConfigResourceTest {
 
     private static final UUID ID1 = UUID.randomUUID();
     private static final UUID ID2 = UUID.randomUUID();
-    private static final Map<String, String> configuration = new HashMap<>();
-    private StringConfiguration CONFIG1;
+    private static final StringConfiguration CONFIG1 = new StringConfiguration("one");
 
     @Mock private ConfigStore<StringConfiguration> mockConfigStore;
 
     private ConfigResource<StringConfiguration> resource;
 
     @Before
-    public void beforeEach() {
+    public void beforeAll() {
         MockitoAnnotations.initMocks(this);
         resource = new ConfigResource<>(mockConfigStore, FACTORY);
-        configuration.put("key", "value");
-        CONFIG1 = new StringConfiguration(configuration) ;
     }
 
     @Test

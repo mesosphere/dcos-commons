@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 public class DefaultConfigurationValidatorTest {
     public static class TestConfig implements Configuration {
@@ -28,11 +27,6 @@ public class DefaultConfigurationValidatorTest {
         @Override
         public String toJsonString() throws Exception {
             return null;
-        }
-
-        @Override
-        public Optional get(Object key) {
-            return Optional.empty();
         }
     }
 
