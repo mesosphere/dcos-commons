@@ -84,7 +84,7 @@ public class DefaultScheduler implements Scheduler {
         stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
-        reconciler = new DefaultReconciler();
+        reconciler = new DefaultReconciler(stateStore);
         offerAccepter =
                 new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
 
