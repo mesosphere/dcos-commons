@@ -1,24 +1,24 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.protobuf.TaskStatusBuilder;
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.testutils.TestConstants;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.UUID;
+
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the {@link DefaultStageManager}.
  */
 public class DefaultStageManagerTest {
 
-    private static String testTaskId = "test-task-id";
     private TestBlock firstBlock, secondBlock;
     private Stage stage;
     private PhaseStrategyFactory stratFactory;
@@ -200,7 +200,10 @@ public class DefaultStageManagerTest {
                         "phase-0",
                         Arrays.asList(mockBlock)));
         StageManager mockStageManager = new DefaultStageManager(mockStage, stratFactory);
-        Protos.TaskStatus testStatus = TaskStatusBuilder.createTaskStatus(testTaskId, Protos.TaskState.TASK_RUNNING);
+        Protos.TaskStatus testStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(TestConstants.taskId)
+                .setState(Protos.TaskState.TASK_RUNNING)
+                .build();
 
         verify(mockBlock, times(0)).update(any());
         mockStageManager.update(testStatus);
@@ -217,7 +220,10 @@ public class DefaultStageManagerTest {
                         "phase-0",
                         Arrays.asList(mockBlock)));
         StageManager mockStageManager = new DefaultStageManager(mockStage, stratFactory);
-        Protos.TaskStatus testStatus = TaskStatusBuilder.createTaskStatus(testTaskId, Protos.TaskState.TASK_RUNNING);
+        Protos.TaskStatus testStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(TestConstants.taskId)
+                .setState(Protos.TaskState.TASK_RUNNING)
+                .build();
 
         verify(mockBlock, times(0)).update(any());
         mockStageManager.update(null, testStatus);

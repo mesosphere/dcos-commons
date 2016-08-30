@@ -1,36 +1,39 @@
 package org.apache.mesos.offer;
 
-import static org.junit.Assert.*;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.protobuf.ResourceBuilder;
+import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Test;
 
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 public class ExecutorRequirementTest {
 
     private static final ExecutorInfo VALID_EXECINFO = ExecutorInfo.newBuilder()
-            .setExecutorId(ExecutorID.newBuilder().setValue(ResourceTestUtils.testExecutorId))
-            .setName(ResourceTestUtils.testExecutorName)
+            .setExecutorId(TestConstants.executorId)
+            .setName(TestConstants.executorName)
             .setCommand(CommandInfo.newBuilder().build()) // ignored, required by proto
             .build();
 
     @Test
     public void testExecutorIdRemainsSame() throws Exception {
-        assertEquals(ResourceTestUtils.testExecutorId,
-                ExecutorRequirement.create(VALID_EXECINFO).getExecutorInfo().getExecutorId().getValue());
+        assertEquals(
+                TestConstants.executorId,
+                ExecutorRequirement.create(VALID_EXECINFO).getExecutorInfo().getExecutorId());
     }
 
     @Test(expected=InvalidRequirementException.class)
     public void testRejectDesiredResourcesForExistingExecutor() throws Exception {
         Protos.Resource desiredCpu = ResourceUtils.getDesiredScalar("test-role", "test-prinicipal", "cpus", 1.0);
         ExecutorInfo invalidExecInfo = ExecutorInfo.newBuilder()
-                .setExecutorId(ExecutorID.newBuilder().setValue(ResourceTestUtils.testExecutorId))
-                .setName(ResourceTestUtils.testExecutorName)
+                .setExecutorId(TestConstants.executorId)
+                .setName(TestConstants.executorName)
                 .setCommand(CommandInfo.newBuilder().build()) // ignored, required by proto
                 .addResources(desiredCpu)
                 .build();
@@ -54,8 +57,8 @@ public class ExecutorRequirementTest {
     @Test
     public void testTwoResourcesValid() throws Exception {
         assertEquals(2, ExecutorRequirement.create(VALID_EXECINFO.toBuilder()
-                .addResources(ResourceBuilder.cpus(1.0))
-                .addResources(ResourceBuilder.disk(1234.))
+                .addResources(ResourceUtils.getUnreservedScalar("cpus", 1.0))
+                .addResources(ResourceUtils.getUnreservedScalar("disk", 1234.0))
                 .build()).getResourceRequirements().size());
     }
 

@@ -10,7 +10,6 @@ import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.executor.ExecutorUtils;
-import org.apache.mesos.protobuf.ValueUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,7 +201,7 @@ public class OfferEvaluator {
                   unreserveValue);
               unreserveResource = ResourceUtils.setResourceId(unreserveResource, resReq.getResourceId());
 
-              pool.release(new MesosResource(ResourceUtils.getRawResource(resReq.getName(), unreserveValue)));
+              pool.release(new MesosResource(ResourceUtils.getUnreservedResource(resReq.getName(), unreserveValue)));
               unreserveRecommendations.add(new UnreserveOfferRecommendation(offer, unreserveResource));
               fulfilledResource = getFulfilledResource(resReq, new MesosResource(resReq.getResource()));
             }

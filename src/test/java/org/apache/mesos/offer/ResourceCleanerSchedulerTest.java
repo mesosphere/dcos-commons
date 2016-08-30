@@ -2,7 +2,7 @@ package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.protobuf.ResourceBuilder;
+import org.apache.mesos.testutils.ResourceTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,10 +46,10 @@ public class ResourceCleanerSchedulerTest {
 
         offers = Arrays.asList(offerA, offerB);
 
-        final DestroyOfferRecommendation destroyRecommendationA = new DestroyOfferRecommendation(offerA, ResourceBuilder.cpus(1));
-        final DestroyOfferRecommendation destroyRecommendationB = new DestroyOfferRecommendation(offerB, ResourceBuilder.cpus(1));
-        final UnreserveOfferRecommendation unreserveRecommendationA = new UnreserveOfferRecommendation(offerA, ResourceBuilder.cpus(1));
-        final UnreserveOfferRecommendation unreserveRecommendationB = new UnreserveOfferRecommendation(offerB, ResourceBuilder.cpus(1));
+        final DestroyOfferRecommendation destroyRecommendationA = new DestroyOfferRecommendation(offerA, ResourceTestUtils.getUnreservedCpu(1.0));
+        final DestroyOfferRecommendation destroyRecommendationB = new DestroyOfferRecommendation(offerB, ResourceTestUtils.getUnreservedCpu(1.0));
+        final UnreserveOfferRecommendation unreserveRecommendationA = new UnreserveOfferRecommendation(offerA, ResourceTestUtils.getUnreservedCpu(1.0));
+        final UnreserveOfferRecommendation unreserveRecommendationB = new UnreserveOfferRecommendation(offerB, ResourceTestUtils.getUnreservedCpu(1.0));
 
         recommendations = Arrays.asList(
                 destroyRecommendationA,

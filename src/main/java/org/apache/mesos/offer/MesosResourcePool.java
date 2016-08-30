@@ -4,8 +4,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
-import org.apache.mesos.protobuf.ValueUtils;
-import org.apache.mesos.protobuf.ResourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +165,7 @@ public class MesosResourcePool {
 
     if (sufficientValue(desiredValue, availableValue)) {
       unreservedMergedPool.put(resReq.getName(), ValueUtils.subtract(availableValue, desiredValue));
-      Resource resource = ResourceBuilder.getResource(resReq.getName(), desiredValue);
+      Resource resource = ResourceUtils.getUnreservedResource(resReq.getName(), desiredValue);
       return new MesosResource(resource);
     } else {
       return null;

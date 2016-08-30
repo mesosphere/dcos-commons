@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.protobuf.OperationBuilder;
 
 import java.util.Arrays;
 
@@ -17,9 +16,10 @@ public class CreateOfferRecommendation implements OfferRecommendation {
 
     public CreateOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
-        this.operation = new OperationBuilder()
+        this.operation = Operation.newBuilder()
                 .setType(Operation.Type.CREATE)
-                .setCreate(Arrays.asList(resource))
+                .setCreate(Operation.Create.newBuilder()
+                        .addAllVolumes(Arrays.asList(resource)))
                 .build();
     }
 
