@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.protobuf.ValueUtils;
+import org.apache.mesos.offer.ValueUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
