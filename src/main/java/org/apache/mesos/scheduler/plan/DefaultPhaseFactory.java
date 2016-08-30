@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by gabriel on 8/28/16.
+ * This class generates Phases given PhaseSpecifications.
  */
 public class DefaultPhaseFactory {
 

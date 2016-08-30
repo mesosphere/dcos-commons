@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Interface for StageManagers.
+ * Interface for PlanManagers.
  */
 public interface PlanManager extends Observer {
 

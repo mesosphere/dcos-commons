@@ -50,7 +50,7 @@ public class DefaultScheduler implements Scheduler {
     private OfferAccepter offerAccepter;
     private Plan plan;
     private PlanManager planManager;
-    private DefaultPlanScheduler blockScheduler;
+    private DefaultPlanScheduler planScheduler;
     private DefaultRecoveryScheduler recoveryScheduler;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
@@ -92,7 +92,7 @@ public class DefaultScheduler implements Scheduler {
 
     private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan");
-        blockScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
+        planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
         PlanSpecification planSpecification =
                 new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
@@ -219,7 +219,7 @@ public class DefaultScheduler implements Scheduler {
                 // Deployment
                 Optional<Block> block = planManager.getCurrentBlock();
                 if (block.isPresent()) {
-                    acceptedOffers = blockScheduler.resourceOffers(driver, offers, block.get());
+                    acceptedOffers = planScheduler.resourceOffers(driver, offers, block.get());
                     logger.info(String.format("Accepted %d of %d offers: %s",
                             acceptedOffers.size(), offers.size(), acceptedOffers));
                 }

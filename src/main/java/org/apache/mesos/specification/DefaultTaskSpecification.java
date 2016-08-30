@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 8/28/16.
+ * This class provides a default implementation of the TaskSpecification interface.
  */
 public class DefaultTaskSpecification implements TaskSpecification {
     private final String name;

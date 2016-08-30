@@ -3,7 +3,7 @@ package org.apache.mesos.specification;
 import org.apache.mesos.Protos;
 
 /**
- * Created by gabriel on 8/29/16.
+ * This class provides a default implementation of the ResourceSpecification interface.
  */
 public class DefaultResourceSpecification implements ResourceSpecification {
     private final String name;

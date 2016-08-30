@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 /**
- * Created by gabriel on 8/25/16.
+ * A PlanSpecificationFactory should generate a PlanSpecification when provided a ServiceSpecification.
  */
 public interface PlanSpecificationFactory {
     PlanSpecification getPlanSpecification(ServiceSpecification serviceSpecification);

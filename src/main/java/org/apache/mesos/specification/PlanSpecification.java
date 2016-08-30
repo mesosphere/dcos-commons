@@ -3,7 +3,7 @@ package org.apache.mesos.specification;
 import java.util.List;
 
 /**
- * Created by gabriel on 8/25/16.
+ * A Plan Specification provides an encapsulation of the PhaseSpecifications which should be executed.
  */
 public interface PlanSpecification {
     List<PhaseSpecification> getPhaseSpecifications();

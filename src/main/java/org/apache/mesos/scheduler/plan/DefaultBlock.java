@@ -26,7 +26,6 @@ public class DefaultBlock implements Block {
         this.name = name;
         this.offerRequirementOptional = offerRequirementOptional;
         this.status = status;
-
     }
 
     private boolean isStatus(Status status) {
@@ -92,17 +91,6 @@ public class DefaultBlock implements Block {
     }
 
     @Override
-    public String toString() {
-        return "DefaultBlock{" +
-                "name='" + name + '\'' +
-                ", offerRequirementOptional=" + offerRequirementOptional +
-                ", id=" + id +
-                ", status=" + status +
-                ", tasks=" + tasks +
-                '}';
-    }
-
-    @Override
     public void update(Protos.TaskStatus status) {
         if (!tasks.containsKey(status.getTaskId())) {
             logger.warn(getName() + " ignoring irrelevant TaskStatus: " + status);
@@ -158,5 +146,16 @@ public class DefaultBlock implements Block {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultBlock{" +
+                "name='" + name + '\'' +
+                ", offerRequirementOptional=" + offerRequirementOptional +
+                ", id=" + id +
+                ", status=" + status +
+                ", tasks=" + tasks +
+                '}';
     }
 }

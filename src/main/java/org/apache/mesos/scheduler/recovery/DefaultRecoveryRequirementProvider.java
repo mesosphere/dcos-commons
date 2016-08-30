@@ -5,17 +5,14 @@ import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.TaskSpecification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gabriel on 8/29/16.
+ * This class is a default implementation of the RecoveryRequirementProvider interface.
  */
 public class DefaultRecoveryRequirementProvider implements RecoveryRequirementProvider {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultRecoveryRequirementProvider(OfferRequirementProvider offerRequirementProvider) {

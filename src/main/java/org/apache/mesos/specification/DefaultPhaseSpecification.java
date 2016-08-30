@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gabriel on 8/25/16.
+ * This class provides a default implementation of the PhaseSpecification interface.
  */
 public class DefaultPhaseSpecification implements PhaseSpecification {
     private final String name;

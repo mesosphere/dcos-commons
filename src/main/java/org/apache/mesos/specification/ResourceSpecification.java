@@ -3,7 +3,8 @@ package org.apache.mesos.specification;
 import org.apache.mesos.Protos;
 
 /**
- * Created by gabriel on 8/27/16.
+ * A ResourceSpecification encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
+ * TaskSpecification.
  */
 public interface ResourceSpecification extends Named {
     Protos.Value getValue();

@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 8/30/16.
+ * This implementation of the TaskSpecification is for test purposes.  It allows what would otherwise be bad practices
+ * like changing the ResourceSpecifications encapsulated by the TaskSpecification after construction.
  */
 public class TestTaskSpecification implements TaskSpecification {
     private final String name;

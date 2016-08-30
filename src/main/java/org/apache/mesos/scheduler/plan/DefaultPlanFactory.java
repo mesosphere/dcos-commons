@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gabriel on 8/28/16.
+ * Given a StateStore and a PlanSpecification the DefaultPlanFactory can generate a Plan.
  */
 public class DefaultPlanFactory {
     private final DefaultPhaseFactory phaseFactory;

@@ -5,7 +5,7 @@ import org.apache.mesos.Protos;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 8/29/16.
+ * This class provides a default implementation of the TaskTypeSpecification interface.
  */
 public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     private final int count;

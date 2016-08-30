@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 /**
- * Created by gabriel on 8/27/16.
+ * A named object provides a name.
  */
 public interface Named {
     String getName();

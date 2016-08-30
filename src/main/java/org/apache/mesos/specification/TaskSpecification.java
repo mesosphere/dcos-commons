@@ -5,7 +5,7 @@ import org.apache.mesos.Protos;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 8/25/16.
+ * A TaskSpecification is a simplified description of a Mesos Task.
  */
 public interface TaskSpecification {
     String getName();

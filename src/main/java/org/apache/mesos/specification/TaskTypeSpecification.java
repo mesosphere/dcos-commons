@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 /**
- * Created by gabriel on 8/25/16.
+ * A TaskTypeSpecification describes the count of a particular TaskSpecification which should be launched.
  */
 public interface TaskTypeSpecification extends TaskSpecification {
     int getCount();

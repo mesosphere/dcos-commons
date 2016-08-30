@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Created by gabriel on 8/20/16.
+ * This class provides a default implementation of the TaskFailureListener interface.
  */
 public class DefaultTaskFailureListener implements TaskFailureListener {
     private final Logger logger = LoggerFactory.getLogger(getClass());
