@@ -5,6 +5,10 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.specification.ResourceSpecification;
+import org.apache.mesos.specification.TaskSpecification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -12,6 +16,7 @@ import java.util.*;
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
 public class TaskUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
 
@@ -228,5 +233,49 @@ public class TaskUtils {
 
         final Protos.TaskStatus taskStatus = builder.build();
         driver.sendStatusUpdate(taskStatus);
+    }
+
+    public static boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+        if (!oldTaskSpecification.getName().equals(newTaskSpecification.getName())) {
+            LOGGER.info("Task names are different.");
+            return true;
+        }
+
+        if (!oldTaskSpecification.getCommand().equals(newTaskSpecification.getCommand())) {
+            LOGGER.info("Task commands are different.");
+            return true;
+        }
+
+        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
+        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
+
+        if (oldResourceMap.size() != newResourceMap.size()) {
+            LOGGER.info("Resource lengths are different.");
+            return true;
+        }
+
+        for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
+            String resourceName = newEntry.getKey();
+            LOGGER.info("Checking resource difference for: " + resourceName);
+            ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
+            if (oldResourceSpec == null) {
+                LOGGER.info("Resource not found.");
+                return true;
+            } else if (ResourceUtils.areDifferent(oldResourceSpec, newEntry.getValue())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static Map<String, ResourceSpecification> getResourceSpecMap(
+            Collection<ResourceSpecification> resourceSpecifications) {
+        Map<String, ResourceSpecification> resourceMap = new HashMap<>();
+        for (ResourceSpecification resourceSpecification : resourceSpecifications) {
+            resourceMap.put(resourceSpecification.getName(), resourceSpecification);
+        }
+
+        return resourceMap;
     }
 }

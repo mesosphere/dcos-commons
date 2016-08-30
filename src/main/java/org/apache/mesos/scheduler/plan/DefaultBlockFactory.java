@@ -1,11 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferRequirementProvider;
-import org.apache.mesos.offer.ResourceUtils;
-import org.apache.mesos.protobuf.ValueUtils;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
@@ -13,7 +9,9 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Created by gabriel on 8/27/16.
@@ -55,7 +53,7 @@ public class DefaultBlockFactory implements BlockFactory {
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
         logger.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
-        if (areDifferent(oldTaskSpecification, newTaskSpecification)) {
+        if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {
             Protos.TaskState taskState = stateStore.fetchStatus(newTaskSpecification.getName()).getState();
@@ -67,76 +65,6 @@ public class DefaultBlockFactory implements BlockFactory {
                     return Status.COMPLETE;
             }
         }
-    }
-
-    private boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        if (!oldTaskSpecification.getName().equals(newTaskSpecification.getName())) {
-            logger.info("Task names are different.");
-            return true;
-        }
-
-        if (!oldTaskSpecification.getCommand().equals(oldTaskSpecification.getCommand())) {
-            logger.info("Task commands are different.");
-            return true;
-        }
-
-        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
-        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
-
-        if (oldResourceMap.size() != newResourceMap.size()) {
-            logger.info("Resource lengths are different.");
-            return true;
-        }
-
-        for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
-            String resourceName = newEntry.getKey();
-            logger.info("Checking resource difference for: " + resourceName);
-            ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
-            if (oldResourceSpec == null) {
-                logger.info("Resource not found.");
-                return true;
-            } else if (areDifferent(oldResourceSpec, newEntry.getValue())) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean areDifferent(
-            ResourceSpecification oldResourceSpecification,
-            ResourceSpecification newResourceSpecification) {
-
-        Protos.Value oldValue = oldResourceSpecification.getValue();
-        Protos.Value newValue = newResourceSpecification.getValue();
-        if (!ValueUtils.equal(oldValue, newValue)) {
-            logger.info("Values are different.");
-            return true;
-        } else {
-            logger.info("Values are EQUAL, oldValue: " + oldValue + " newValue: " + newValue);
-        }
-
-        if (!oldResourceSpecification.getRole().equals(newResourceSpecification.getRole())) {
-            logger.info("Roles are different.");
-            return true;
-        }
-
-        if (!oldResourceSpecification.getPrincipal().equals(newResourceSpecification.getPrincipal())) {
-            logger.info("Principals are different.");
-            return true;
-        }
-
-        return false;
-    }
-
-    private Map<String, ResourceSpecification> getResourceSpecMap(
-            Collection<ResourceSpecification> resourceSpecifications) {
-        Map<String, ResourceSpecification> resourceMap = new HashMap<>();
-        for (ResourceSpecification resourceSpecification : resourceSpecifications) {
-            resourceMap.put(resourceSpecification.getName(), resourceSpecification);
-        }
-
-        return resourceMap;
     }
 
     private TaskSpecification taskInfoToTaskSpec(Protos.TaskInfo taskInfo) {

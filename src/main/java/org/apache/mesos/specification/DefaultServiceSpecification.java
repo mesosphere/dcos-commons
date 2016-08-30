@@ -3,7 +3,7 @@ package org.apache.mesos.specification;
 import java.util.List;
 
 /**
- * Created by gabriel on 8/25/16.
+ * This class is a default implementation of the ServiceSpecification interface.
  */
 public class DefaultServiceSpecification implements ServiceSpecification {
     private final String name;

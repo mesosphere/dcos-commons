@@ -1,6 +1,10 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.specification.DefaultResourceSpecification;
+import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.TestTaskSpecification;
+import org.apache.mesos.specification.TestTaskSpecificationFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,6 +46,97 @@ public class TaskUtilsTest {
     public void testSetTargetConfiguration() throws Exception {
         Protos.TaskInfo taskInfo = TaskUtils.setTargetConfiguration(getTestTaskInfo(), testTargetConfigurationId);
         Assert.assertEquals(testTargetConfigurationId, TaskUtils.getTargetConfiguration(taskInfo));
+    }
+
+    @Test
+    public void testAreNotDifferentTaskSpecifications() {
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification newTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testAreDifferentTaskSpecificationsName() {
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification newTaskSpecification =
+                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        "new" + TestTaskSpecificationFactory.NAME,
+                        TestTaskSpecificationFactory.COUNT,
+                        TestTaskSpecificationFactory.CMD.getValue(),
+                        TestTaskSpecificationFactory.CPU,
+                        TestTaskSpecificationFactory.MEM);
+
+        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testAreDifferentTaskSpecificationsCmd() {
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification newTaskSpecification =
+                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSpecificationFactory.NAME,
+                        TestTaskSpecificationFactory.COUNT,
+                        TestTaskSpecificationFactory.CMD.getValue() + " && echo foo",
+                        TestTaskSpecificationFactory.CPU,
+                        TestTaskSpecificationFactory.MEM);
+
+        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testAreDifferentTaskSpecificationsResourcesLength() {
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification tmpTaskSpecification =
+                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSpecificationFactory.NAME,
+                        TestTaskSpecificationFactory.COUNT,
+                        TestTaskSpecificationFactory.CMD.getValue(),
+                        TestTaskSpecificationFactory.CPU,
+                        TestTaskSpecificationFactory.MEM);
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpTaskSpecification);
+        newTaskSpecification.addResource(new DefaultResourceSpecification(
+                "foo",
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
+                .build(),
+                ResourceTestUtils.testRole,
+                ResourceTestUtils.testPrincipal));
+
+        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testAreDifferentTaskSpecificationsNoResourceOverlap() {
+        TaskSpecification tmpOldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(tmpOldTaskSpecification);
+        oldTaskSpecification.addResource(new DefaultResourceSpecification(
+                "bar",
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
+                        .build(),
+                ResourceTestUtils.testRole,
+                ResourceTestUtils.testPrincipal));
+
+        TaskSpecification tmpNewTaskSpecification =
+                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSpecificationFactory.NAME,
+                        TestTaskSpecificationFactory.COUNT,
+                        TestTaskSpecificationFactory.CMD.getValue(),
+                        TestTaskSpecificationFactory.CPU,
+                        TestTaskSpecificationFactory.MEM);
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpNewTaskSpecification);
+        newTaskSpecification.addResource(new DefaultResourceSpecification(
+                "foo",
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
+                        .build(),
+                ResourceTestUtils.testRole,
+                ResourceTestUtils.testPrincipal));
+
+        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     private Protos.TaskID getTaskId(String value) {
