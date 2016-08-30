@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
@@ -7,6 +8,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
+import org.apache.mesos.specification.ResourceSpecification;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,8 @@ import java.util.List;
  * This class encapsulates common methods for manipulating Resources.
  */
 public class ResourceUtils {
+  private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
+
   public static Resource getUnreservedResource(String name, Value value) {
     return setResource(Resource.newBuilder().setRole("*"), name, value);
   }
@@ -245,6 +249,28 @@ public class ResourceUtils {
             .build();
   }
 
+  public static boolean areDifferent(
+          ResourceSpecification oldResourceSpecification,
+          ResourceSpecification newResourceSpecification) {
+
+    Protos.Value oldValue = oldResourceSpecification.getValue();
+    Protos.Value newValue = newResourceSpecification.getValue();
+    if (!ValueUtils.equal(oldValue, newValue)) {
+      LOGGER.info("Values are different.");
+      return true;
+    }
+
+    if (!oldResourceSpecification.getRole().equals(newResourceSpecification.getRole())) {
+      LOGGER.info("Roles are different.");
+      return true;
+    }
+
+    if (!oldResourceSpecification.getPrincipal().equals(newResourceSpecification.getPrincipal())) {
+      LOGGER.info("Principals are different.");
+      return true;
+    }
+
+    return false;
   public static Resource addReservation(Resource resource, String principal, String resourceId) {
     return Resource.newBuilder(resource)
             .setReservation(ReservationInfo.newBuilder()
@@ -255,6 +281,21 @@ public class ResourceUtils {
                                     .setValue(resourceId))
                             .build()))
             .build();
+  }
+
+  public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification) {
+    Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
+    switch (resource.getType()) {
+      case SCALAR:
+        return builder.setScalar(resourceSpecification.getValue().getScalar()).build();
+      case RANGES:
+        return builder.setRanges(resourceSpecification.getValue().getRanges()).build();
+      case SET:
+        return builder.setSet(resourceSpecification.getValue().getSet()).build();
+      default:
+        LOGGER.error("Encountered unexpected Value type: " + resource.getType());
+        return resource;
+    }
   }
 
   private static List<Resource> clearResourceIds(List<Resource> resources) {

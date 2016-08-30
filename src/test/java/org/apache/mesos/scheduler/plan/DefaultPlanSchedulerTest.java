@@ -25,9 +25,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
- * Tests for {@link DefaultBlockScheduler}.
+ * Tests for {@link DefaultPlanScheduler}.
  */
-public class DefaultBlockSchedulerTest {
+public class DefaultPlanSchedulerTest {
 
     private static final List<TaskInfo> TASKINFOS = Arrays.asList(TaskInfo.newBuilder()
             .setName("hi")
@@ -53,12 +53,12 @@ public class DefaultBlockSchedulerTest {
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private TaskKiller mockTaskKiller;
 
-    private DefaultBlockScheduler scheduler;
+    private DefaultPlanScheduler scheduler;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        scheduler = new DefaultBlockScheduler(mockOfferAccepter, mockOfferEvaluator, mockTaskKiller);
+        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockTaskKiller);
     }
 
     @Test

@@ -44,24 +44,24 @@ public class DefaultPlanManager implements PlanManager {
    * Returns the first {@link Phase} in the {@link Plan} which isn't marked complete.
    */
   @Override
-  public Phase getCurrentPhase() {
+  public Optional<Phase> getCurrentPhase() {
     for (Phase phase : plan.getPhases()) {
       if (!phase.isComplete()) {
         LOGGER.debug("Phase {} ({}) is NOT complete. This is the current phase.",
                 phase.getName(), phase.getId());
-        return phase;
+        return Optional.of(phase);
       } else {
         LOGGER.debug("Phase {} ({}) is complete.", phase.getName(), phase.getId());
       }
     }
     LOGGER.debug("All phases are complete.");
-    return null;
+    return Optional.empty();
   }
 
   @Override
-  public Block getCurrentBlock() {
-    PhaseStrategy currPhase = getCurrentPhaseStrategy();
-    return (currPhase != null) ? currPhase.getCurrentBlock() : null;
+  public Optional<Block> getCurrentBlock() {
+    Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
+    return currPhaseOptional.isPresent() ? Optional.of(currPhaseOptional.get().getCurrentBlock()) : Optional.empty();
   }
 
   @Override
@@ -72,10 +72,10 @@ public class DefaultPlanManager implements PlanManager {
   @Override
   public void proceed() {
     LOGGER.info("Proceeding with staged execution");
-    final PhaseStrategy currPhase = getCurrentPhaseStrategy();
-    if (currPhase != null) {
-      currPhase.proceed();
-      LOGGER.info("Proceeding with current phase: phase = {}", currPhase);
+    final Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
+    if (currPhaseOptional.isPresent()) {
+      currPhaseOptional.get().proceed();
+      LOGGER.info("Proceeding with current phase: phase = {}", currPhaseOptional.get());
     } else {
       LOGGER.info("No phase to proceed");
     }
@@ -84,10 +84,10 @@ public class DefaultPlanManager implements PlanManager {
   @Override
   public void interrupt() {
     LOGGER.info("Interrupting staged execution");
-    final PhaseStrategy currPhase = getCurrentPhaseStrategy();
-    if (currPhase != null) {
-      currPhase.interrupt();
-      LOGGER.info("Interrupted current phase: phase = {}", currPhase);
+    final Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
+    if (currPhaseOptional.isPresent()) {
+      currPhaseOptional.get().interrupt();
+      LOGGER.info("Interrupted current phase: phase = {}", currPhaseOptional.get());
     } else {
       LOGGER.info("No phase to interrupt");
     }
@@ -123,9 +123,9 @@ public class DefaultPlanManager implements PlanManager {
   @Override
   public void update(final Protos.TaskStatus status) {
     LOGGER.debug("Received status update : status = {}", TextFormat.shortDebugString(status));
-    final PhaseStrategy currentPhaseStrategy = getCurrentPhaseStrategy();
-    if (currentPhaseStrategy != null) {
-      final Phase currentPhase = currentPhaseStrategy.getPhase();
+    final Optional<PhaseStrategy> currPhaseStrategyOptional = getCurrentPhaseStrategy();
+    if (currPhaseStrategyOptional.isPresent()) {
+      final Phase currentPhase = currPhaseStrategyOptional.get().getPhase();
       if (currentPhase != null) {
         final List<? extends Block> blocks = currentPhase.getBlocks();
         for (Block block : blocks) {
@@ -136,7 +136,7 @@ public class DefaultPlanManager implements PlanManager {
         LOGGER.debug("currentPhase is null. No blocks to receive status");
       }
     } else {
-      LOGGER.debug("currentPhaseStrategy is null. No blocks to receive status");
+      LOGGER.debug("currentPhaseStrategy is not present. No blocks to receive status");
     }
   }
 
@@ -228,9 +228,9 @@ public class DefaultPlanManager implements PlanManager {
     }
   }
 
-  private PhaseStrategy getCurrentPhaseStrategy() {
-    Phase phase = getCurrentPhase();
-    return phase != null ? getStrategy(phase) : null;
+  private Optional<PhaseStrategy> getCurrentPhaseStrategy() {
+    Optional<Phase> phaseOptional = getCurrentPhase();
+    return phaseOptional.isPresent() ? Optional.of(getStrategy(phaseOptional.get())) : Optional.empty();
   }
 
   /**

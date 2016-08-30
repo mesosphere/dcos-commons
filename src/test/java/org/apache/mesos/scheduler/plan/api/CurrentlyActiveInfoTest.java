@@ -1,8 +1,5 @@
 package org.apache.mesos.scheduler.plan.api;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 import org.apache.mesos.scheduler.plan.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +10,11 @@ import org.mockito.stubbing.Answer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 public class CurrentlyActiveInfoTest {
 
@@ -46,6 +47,8 @@ public class CurrentlyActiveInfoTest {
 
         when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
+        when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.empty());
+        when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.empty());
 
         CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockPlanManager);
 
@@ -105,8 +108,8 @@ public class CurrentlyActiveInfoTest {
         List<String> stageErrors = Arrays.asList("err0", "err1");
         when(mockPlan.getErrors()).thenReturn(stageErrors);
 
-        when(mockPlanManager.getCurrentBlock()).thenReturn(mockBlock0);
-        when(mockPlanManager.getCurrentPhase()).thenReturn(mockPhase0);
+        when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.of(mockBlock0));
+        when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.of(mockPhase0));
         when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
 

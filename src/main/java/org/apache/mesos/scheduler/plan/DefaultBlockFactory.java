@@ -1,20 +1,20 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.*;
+import org.apache.mesos.offer.DefaultOfferRequirementProvider;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Created by gabriel on 8/27/16.
+ * This class is a default implementation of the BlockFactory interface.
  */
 public class DefaultBlockFactory implements BlockFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -37,17 +37,13 @@ public class DefaultBlockFactory implements BlockFactory {
                     offerRequirementProvider.getNewOfferRequirement(taskSpecification),
                     Status.PENDING);
         } else {
-            TaskSpecification oldTaskSpecification = taskInfoToTaskSpec(taskInfoOptional.get());
+            TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfoOptional.get());
             Status status = getStatus(oldTaskSpecification, taskSpecification);
             logger.info("Generating existing block for: " + taskSpecification.getName() + " with status: " + status);
-            if (status.equals(Status.COMPLETE)) {
-                return new DefaultBlock(taskSpecification.getName());
-            } else {
-                return new DefaultBlock(
-                        taskSpecification.getName(),
-                        offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
-                        status);
-            }
+            return new DefaultBlock(
+                    taskSpecification.getName(),
+                    offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
+                    status);
         }
     }
 
@@ -65,19 +61,5 @@ public class DefaultBlockFactory implements BlockFactory {
                     return Status.COMPLETE;
             }
         }
-    }
-
-    private TaskSpecification taskInfoToTaskSpec(Protos.TaskInfo taskInfo) {
-        return DefaultTaskSpecification.create(taskInfo);
-    }
-
-    private Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {
-        Collection<Protos.Resource> resources = new ArrayList<>();
-
-        for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
-            resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
-        }
-
-        return resources;
     }
 }

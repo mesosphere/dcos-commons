@@ -53,13 +53,13 @@ public class DefaultPlanManagerTest {
     public void testGetCurrentPhase() {
         Phase firstPhase = plan.getPhases().get(0);
         Phase secondPhase = plan.getPhases().get(1);
-        Assert.assertEquals(firstPhase, planManager.getCurrentPhase());
+        Assert.assertEquals(firstPhase, planManager.getCurrentPhase().get());
 
         completePhase(firstPhase);
-        Assert.assertEquals(secondPhase, planManager.getCurrentPhase());
+        Assert.assertEquals(secondPhase, planManager.getCurrentPhase().get());
 
         completePhase(secondPhase);
-        Assert.assertNull(planManager.getCurrentPhase());
+        Assert.assertFalse(planManager.getCurrentPhase().isPresent());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class DefaultPlanManagerTest {
 
     @Test
     public void testGetCurrentBlock() {
-        Assert.assertEquals(plan.getPhases().get(0).getBlock(0), planManager.getCurrentBlock());
+        Assert.assertEquals(plan.getPhases().get(0).getBlock(0), planManager.getCurrentBlock().get());
     }
 
     @Test

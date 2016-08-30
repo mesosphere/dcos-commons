@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Created by gabriel on 8/27/16.
+ * This class is a default implementation of the Block interface.
  */
 public class DefaultBlock implements Block {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -17,10 +17,6 @@ public class DefaultBlock implements Block {
     private final UUID id = UUID.randomUUID();
     private Status status;
     private Map<Protos.TaskID, Status> tasks = new HashMap<>();
-
-    public DefaultBlock(String name) {
-        this(name, Optional.empty(), Status.COMPLETE);
-    }
 
     public DefaultBlock(String name, OfferRequirement offerRequirement, Status status) {
         this(name, Optional.of(offerRequirement), status);

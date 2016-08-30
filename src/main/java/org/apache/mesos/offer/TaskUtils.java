@@ -262,6 +262,7 @@ public class TaskUtils {
                 LOGGER.info("Resource not found.");
                 return true;
             } else if (ResourceUtils.areDifferent(oldResourceSpec, newEntry.getValue())) {
+                LOGGER.info("Resources are different.");
                 return true;
             }
         }

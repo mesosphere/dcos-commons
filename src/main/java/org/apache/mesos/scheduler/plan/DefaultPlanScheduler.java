@@ -14,22 +14,22 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Default scheduler. See docs in {@link StageScheduler} interface.
+ * Default deployment scheduler. See docs in {@link PlanScheduler} interface.
  */
-public class DefaultBlockScheduler implements StageScheduler {
+public class DefaultPlanScheduler implements PlanScheduler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultBlockScheduler.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultPlanScheduler.class);
 
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
     private final TaskKiller taskKiller;
 
     @Inject
-    public DefaultBlockScheduler(OfferAccepter offerAccepter, TaskKiller taskKiller) {
+    public DefaultPlanScheduler(OfferAccepter offerAccepter, TaskKiller taskKiller) {
         this(offerAccepter, new OfferEvaluator(), taskKiller);
     }
 
-    public DefaultBlockScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, TaskKiller taskKiller) {
+    public DefaultPlanScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, TaskKiller taskKiller) {
         this.offerAccepter = offerAccepter;
         this.offerEvaluator = offerEvaluator;
         this.taskKiller = taskKiller;

@@ -1,7 +1,7 @@
 package org.apache.mesos.scheduler;
 
 /**
- * Created by gabriel on 8/25/16.
+ * This enum provides exit codes for Schedulers.
  */
 public enum SchedulerErrorCode {
     SUCCESS,

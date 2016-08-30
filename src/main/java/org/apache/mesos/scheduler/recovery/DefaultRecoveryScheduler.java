@@ -65,7 +65,7 @@ public class DefaultRecoveryScheduler {
      * @return IDs of accepted offers
      * @throws Exception
      */
-    public synchronized List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Block block)
+    public synchronized List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Optional<Block> block)
             throws Exception {
         List<OfferID> acceptedOffers = new ArrayList<>();
         updateRecoveryPools(block);
@@ -106,15 +106,15 @@ public class DefaultRecoveryScheduler {
         return acceptedOffers;
     }
 
-    private Collection<TaskInfo> getTerminatedTasks(Block block) {
+    private Collection<TaskInfo> getTerminatedTasks(Optional<Block> block) {
         List<TaskInfo> filteredTerminatedTasks = new ArrayList<TaskInfo>();
 
         try {
-            if (block == null) {
+            if (!block.isPresent()) {
                 return stateStore.fetchTerminatedTasks();
             }
 
-            String blockName = block.getName();
+            String blockName = block.get().getName();
             for (TaskInfo taskInfo : stateStore.fetchTerminatedTasks()) {
                 if (!taskInfo.getName().equals(blockName)) {
                     filteredTerminatedTasks.add(taskInfo);
@@ -127,7 +127,7 @@ public class DefaultRecoveryScheduler {
         return filteredTerminatedTasks;
     }
 
-    private void updateRecoveryPools(Block block) {
+    private void updateRecoveryPools(Optional<Block> block) {
         List<TaskInfo> terminatedTasks = new ArrayList<>(getTerminatedTasks(block));
 
         List<TaskInfo> failed = new ArrayList<>(terminatedTasks.stream()

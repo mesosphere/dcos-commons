@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 
 import java.util.List;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -15,9 +16,9 @@ public interface PlanManager extends Observer {
 
     void setPlan(Plan plan);
 
-    Phase getCurrentPhase();
+    Optional<Phase> getCurrentPhase();
 
-    Block getCurrentBlock();
+    Optional<Block> getCurrentBlock();
 
     boolean isComplete();
 

@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -35,6 +36,8 @@ public class PlanResourceTest {
         when(mockPlanManager.getCurrentPhase()).thenReturn(null);
         when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlanManager.getStatus()).thenReturn(Status.COMPLETE);
+        when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.empty());
+        when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.empty());
         when(mockPlan.getPhases()).thenReturn(new ArrayList<>());
         when(mockPlan.getErrors()).thenReturn(new ArrayList<>());
 

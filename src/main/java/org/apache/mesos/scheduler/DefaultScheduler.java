@@ -23,21 +23,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Created by gabriel on 8/25/16.
+ * This scheduler when provided with a ServiceSpecification will deploy the service and recover from encountered faults
+ * when possible.  Changes to the ServiceSpecification will result in rolling configuration updates, or the creation of
+ * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler {
-    private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES = 600;
-    private static final Integer PERMANENT_FAILURE_DELAY_SEC = 1200;
+    private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
+    private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
@@ -51,7 +50,7 @@ public class DefaultScheduler implements Scheduler {
     private OfferAccepter offerAccepter;
     private Plan plan;
     private PlanManager planManager;
-    private DefaultBlockScheduler blockScheduler;
+    private DefaultPlanScheduler blockScheduler;
     private DefaultRecoveryScheduler recoveryScheduler;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
@@ -81,6 +80,7 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void initializeGlobals() {
+        logger.info("Initializing globals");
         stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
@@ -91,7 +91,8 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void initializeDeploymentPlan() {
-        blockScheduler = new DefaultBlockScheduler(offerAccepter, taskKiller);
+        logger.info("Initializing deployment plan");
+        blockScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
         PlanSpecification planSpecification =
                 new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
@@ -107,10 +108,11 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void initializeRecoveryScheduler() {
+        logger.info("Initializing recovery scheduler");
         RecoveryRequirementProvider recoveryRequirementProvider =
                 new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
         LaunchConstrainer constrainer =
-                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES));
+                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
         recoveryScheduler = new DefaultRecoveryScheduler(
                 stateStore,
                 taskFailureListener,
@@ -119,7 +121,6 @@ public class DefaultScheduler implements Scheduler {
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
                 recoveryStatusRef);
-
     }
 
     private void logOffers(List<Protos.Offer> offers) {
@@ -206,6 +207,8 @@ public class DefaultScheduler implements Scheduler {
             @Override
             public void run() {
                 logOffers(offers);
+
+                // Task Reconciliation
                 reconciler.reconcile(driver);
                 List<Protos.OfferID> acceptedOffers = new ArrayList<>();
                 if (!reconciler.isReconciled()) {
@@ -213,26 +216,31 @@ public class DefaultScheduler implements Scheduler {
                     return;
                 }
 
-                Block block = planManager.getCurrentBlock();
-                if (block != null) {
-                    acceptedOffers = blockScheduler.resourceOffers(driver, offers, block);
+                // Deployment
+                Optional<Block> block = planManager.getCurrentBlock();
+                if (block.isPresent()) {
+                    acceptedOffers = blockScheduler.resourceOffers(driver, offers, block.get());
                     logger.info(String.format("Accepted %d of %d offers: %s",
                             acceptedOffers.size(), offers.size(), acceptedOffers));
                 }
-
                 List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
+
+                // Recovery
                 try {
                     acceptedOffers.addAll(recoveryScheduler.resourceOffers(driver, unacceptedOffers, block));
                 } catch (Exception e) {
                     logger.error("Error repairing block: " + block + " Reason: " + e);
                 }
 
+                // Leaked resource recovery
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
                     acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
                 }
+
                 declineOffers(driver, acceptedOffers, offers);
 
+                // Kill tasks (for configuration update, or user requested Task restart or replace)
                 taskKiller.process(driver);
             }
         });

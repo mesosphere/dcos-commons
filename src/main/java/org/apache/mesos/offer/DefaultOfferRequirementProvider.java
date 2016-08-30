@@ -38,7 +38,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
             Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
             if (oldResource != null) {
-                updatedResources.add(updateResource(oldResource, resourceSpecification));
+                updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
             } else {
                 updatedResources.add(
                         ResourceUtils.getDesiredResource(resourceSpecification));
@@ -72,20 +72,5 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return resourceMap;
-    }
-
-    private Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification) {
-        Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
-        switch (resource.getType()) {
-            case SCALAR:
-                return builder.setScalar(resourceSpecification.getValue().getScalar()).build();
-            case RANGES:
-                return builder.setRanges(resourceSpecification.getValue().getRanges()).build();
-            case SET:
-                return builder.setSet(resourceSpecification.getValue().getSet()).build();
-            default:
-                logger.error("Encountered unexpected Value type: " + resource.getType());
-                return resource;
-        }
     }
 }

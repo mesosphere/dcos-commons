@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Created by gabriel on 8/20/16.
+ * This class is a default implementation of the TaskKiller interface.
  */
 public class DefaultTaskKiller implements TaskKiller {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -45,12 +45,12 @@ public class DefaultTaskKiller implements TaskKiller {
 
         if (destructive) {
             synchronized (rescheduleLock) {
-                logger.info("Killing task destructively: " + taskInfo);
+                logger.info("Scheduling task to be killed destructively: " + taskInfo);
                 tasksToReschedule.add(taskInfo);
             }
         } else {
             synchronized (restartLock) {
-                logger.info("Killing task: " + taskInfo);
+                logger.info("Scheduling task to be killed with intention to restart: " + taskInfo);
                 tasksToRestart.add(taskInfo);
             }
         }

@@ -3,13 +3,14 @@ package org.apache.mesos.scheduler.plan.api;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.PlanManager;
+
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Immutable JSON serialization object for the Active Plan Status.
@@ -32,11 +33,13 @@ class CurrentlyActiveInfo {
     }
 
     public static CurrentlyActiveInfo forStage(final PlanManager manager) {
-        Block activeBlock = manager.getCurrentBlock();
-        Phase activePhase = manager.getCurrentPhase();
+        Optional<Block> activeBlockOptional = manager.getCurrentBlock();
+        Optional<Phase> activePhaseOptional = manager.getCurrentPhase();
         return create(
-            (activeBlock != null) ? BlockInfo.forBlock(activeBlock, manager) : null,
-            (activePhase != null) ? CurrentlyActivePhaseInfo.forPhase(activePhase, manager) : null,
+            activeBlockOptional.isPresent() ? BlockInfo.forBlock(activeBlockOptional.get(), manager) : null,
+            activePhaseOptional.isPresent() ?
+                    CurrentlyActivePhaseInfo.forPhase(activePhaseOptional.get(), manager) :
+                    null,
             CurrentlyActiveStageInfo.forStage(manager));
     }
 

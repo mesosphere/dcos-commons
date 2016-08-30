@@ -149,10 +149,9 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve FrameworkID in '%s'", fwkIdPath));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No FramweworkId found.");
+            logger.warn("No FrameworkId found.");
             return Optional.empty();
         } catch (Exception e) {
-            // Also throws if the FrameworkID isn't found
             throw new StateStoreException(e);
         }
     }
@@ -285,7 +284,6 @@ public class CuratorStateStore implements StateStore {
             logger.warn("No TaskInfo found for the requested name: " + taskName);
             return Optional.empty();
         } catch (Exception e) {
-            // Not found, or other error
             throw new StateStoreException(e);
         }
     }
