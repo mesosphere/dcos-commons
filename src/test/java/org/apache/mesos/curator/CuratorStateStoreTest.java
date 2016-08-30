@@ -371,8 +371,7 @@ public class CuratorStateStoreTest {
     // taskid is required and cannot be unset, so lets try the next best thing
     @Test(expected=StateStoreException.class)
     public void testStoreStatusEmptyTaskId() throws Exception {
-        store.storeStatus(createTaskStatus(
-                Protos.TaskID.newBuilder().setValue("").build()));
+        store.storeStatus(createTaskStatus(TaskUtils.emptyTaskId()));
     }
 
     @Test(expected=StateStoreException.class)

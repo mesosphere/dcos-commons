@@ -49,8 +49,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .clearResources()
                 .setCommand(taskSpecification.getCommand())
                 .addAllResources(updatedResources)
-                .setTaskId(Protos.TaskID.newBuilder().setValue(""))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(""));
+                .setTaskId(TaskUtils.emptyTaskId())
+                .setSlaveId(TaskUtils.emptyAgentId());
 
         return new OfferRequirement(Arrays.asList(taskBuilder.build()));
     }

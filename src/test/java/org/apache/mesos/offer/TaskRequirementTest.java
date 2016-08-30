@@ -37,7 +37,7 @@ public class TaskRequirementTest {
     @Test
     public void testEmptyTaskIdValid() throws Exception {
         new TaskRequirement(VALID_TASKINFO.toBuilder()
-                .setTaskId(TaskID.newBuilder().setValue(""))
+                .setTaskId(TaskUtils.emptyTaskId())
                 .build());
     }
 
