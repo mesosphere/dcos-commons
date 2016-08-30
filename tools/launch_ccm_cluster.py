@@ -218,7 +218,7 @@ class CCMLauncher(object):
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
         return {
             'id': cluster_id,
-            'url': 'https://' + dns_address}
+            'url': str('https://' + dns_address)}
 
 
     def stop(self, config, attempts = DEFAULT_ATTEMPTS):
@@ -297,7 +297,7 @@ def main(argv):
                 return 1
         if argv[1] == 'wait':
             if len(argv) >= 5:
-                cluster_info = launcher.wait_for_status(argv[2], argv[3], argv[4], start_stop_timeout_mins)
+                cluster_info = launcher.wait_for_status(argv[2], argv[3], argv[4], CCMLauncher.DEFAULT_TIMEOUT_MINS)
                 if not cluster_info:
                     return 1
                 pprint.pprint(cluster_info)
