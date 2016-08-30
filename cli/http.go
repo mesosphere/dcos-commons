@@ -129,10 +129,6 @@ func HTTPQuery(request *http.Request) *http.Response {
 			log.Fatalf("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
-	if response.StatusCode == 401 {
-		log.Printf("Got 401 Unauthorized response from %s", request.URL)
-		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
-	}
 	if Verbose {
 		log.Printf("Response: %s (%d bytes)", response.Status, response.ContentLength)
 	}
@@ -141,6 +137,9 @@ func HTTPQuery(request *http.Request) *http.Response {
 
 func CheckHTTPResponse(response *http.Response) *http.Response {
 	switch {
+	case response.StatusCode == 401:
+		log.Printf("Got 401 Unauthorized response from %s", request.URL)
+		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == 500:
 		log.Printf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
