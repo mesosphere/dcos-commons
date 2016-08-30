@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Created by gabriel on 8/29/16.
+ * A default implementation of the OfferRequirementProvider interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
