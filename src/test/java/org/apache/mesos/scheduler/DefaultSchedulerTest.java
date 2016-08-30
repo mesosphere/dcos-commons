@@ -26,7 +26,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
 /**
- * Created by gabriel on 8/28/16.
+ * This class tests the DefaultScheduler class.
  */
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
@@ -69,13 +69,13 @@ public class DefaultSchedulerTest {
             @Override
             public List<TaskTypeSpecification> getTaskSpecifications() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM),
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -200,13 +200,13 @@ public class DefaultSchedulerTest {
             @Override
             public List<TaskTypeSpecification> getTaskSpecifications() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU * 2.0,
                                 TASK_A_MEM * 2.0),
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -237,13 +237,13 @@ public class DefaultSchedulerTest {
             @Override
             public List<TaskTypeSpecification> getTaskSpecifications() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM),
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -274,13 +274,13 @@ public class DefaultSchedulerTest {
             @Override
             public List<TaskTypeSpecification> getTaskSpecifications() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM),
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -311,13 +311,13 @@ public class DefaultSchedulerTest {
             @Override
             public List<TaskTypeSpecification> getTaskSpecifications() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_A_NAME,
                                 TASK_A_COUNT + 1,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM),
-                        TestTaskSpecificationFactory.getTaskSpecification(
+                        TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,

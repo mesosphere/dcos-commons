@@ -7,10 +7,25 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 8/28/16.
+ * This class provides TaskTypeSpecifications for testing purposes.
  */
 public class TestTaskSpecificationFactory {
-    public static TaskTypeSpecification getTaskSpecification(
+    public static final String NAME = "test-task-type";
+    public static final int COUNT = 1;
+    public static final double CPU = 1.0;
+    public static final double MEM = 1000.0;
+    public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
+
+    public static TaskTypeSpecification getTaskTypeSpecification() {
+        return getTaskTypeSpecification(
+                NAME,
+                COUNT,
+                CMD.getValue(),
+                CPU,
+                MEM);
+    }
+
+    public static TaskTypeSpecification getTaskTypeSpecification(
             String name,
             Integer count,
             String cmd,
@@ -30,7 +45,7 @@ public class TestTaskSpecificationFactory {
                 .build();
     }
 
-    private static Collection<ResourceSpecification> getResources(
+    static Collection<ResourceSpecification> getResources(
             double cpu,
             double mem,
             String role,

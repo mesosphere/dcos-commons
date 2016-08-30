@@ -13,16 +13,6 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     private final Protos.CommandInfo command;
     private final Collection<ResourceSpecification> resources;
 
-    @Override
-    public String toString() {
-        return "DefaultTaskTypeSpecification{" +
-                "count=" + count +
-                ", name='" + name + '\'' +
-                ", command=" + command +
-                ", resources=" + resources +
-                '}';
-    }
-
     public DefaultTaskTypeSpecification(
             int count,
             String name,
@@ -33,6 +23,7 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
         this.command = command;
         this.resources = resources;
     }
+
     @Override
     public int getCount() {
         return count;
@@ -51,5 +42,15 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     @Override
     public Collection<ResourceSpecification> getResources() {
         return resources;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultTaskTypeSpecification{" +
+                "count=" + count +
+                ", name='" + name + '\'' +
+                ", command=" + command +
+                ", resources=" + resources +
+                '}';
     }
 }
