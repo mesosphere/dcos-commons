@@ -346,7 +346,7 @@ def main(argv):
     try:
         cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
         # print to stdout (the rest of this script only writes to stderr):
-        print(pprint.pformat(cluster_id_url))
+        print(json.dumps(cluster_id_url))
         __write_jenkins_config(github_label, cluster_id_url)
     except Exception as e:
         __write_jenkins_config(github_label, {}, e)
