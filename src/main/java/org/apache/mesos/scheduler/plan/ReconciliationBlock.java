@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.reconciliation.Reconciler;
-import org.apache.mesos.reconciliation.TaskStatusProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,6 @@ public class ReconciliationBlock implements Block {
     private static final Logger logger = LoggerFactory.getLogger(ReconciliationBlock.class);
 
     private final Reconciler reconciler;
-    private final TaskStatusProvider taskProvider;
     private final UUID id = UUID.randomUUID();
     private boolean isPending = true; // reconciler hasn't start()ed yet
 
@@ -30,15 +28,12 @@ public class ReconciliationBlock implements Block {
      * @param reconciler The reconciler to use for reconciliation.
      * @return A new ReconciliationBlock
      */
-    public static final ReconciliationBlock create(
-            Reconciler reconciler, TaskStatusProvider taskProvider) {
-        return new ReconciliationBlock(reconciler, taskProvider);
+    public static final ReconciliationBlock create(Reconciler reconciler) {
+        return new ReconciliationBlock(reconciler);
     }
 
-    private ReconciliationBlock(
-            final Reconciler reconciler, final TaskStatusProvider taskProvider) {
+    private ReconciliationBlock(final Reconciler reconciler) {
         this.reconciler = reconciler;
-        this.taskProvider = taskProvider;
     }
 
     @Override
@@ -65,7 +60,7 @@ public class ReconciliationBlock implements Block {
     @Override
     public OfferRequirement start() {
         try {
-            reconciler.start(taskProvider.getTaskStatuses());
+            reconciler.start();
             isPending = false;
         } catch (Exception ex) {
             isPending = true; // try again later
