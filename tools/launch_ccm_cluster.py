@@ -72,16 +72,18 @@ class CCMLauncher(object):
             return '{:.0f}s'.format(seconds)
 
 
-    def __retry(self, attempts, method, arg):
+    def __retry(self, attempts, method, arg, operation_name):
         for i in range(attempts):
             attempt_str = '[{}/{}]'.format(i + 1, attempts)
             try:
-                self.__github_updater.update('pending', '{} Launching cluster'.format(attempt_str))
-                return method.__call__(arg)
+                self.__github_updater.update('pending', '{} {} in progress'.format(attempt_str, operation_name.title()))
+                result = method.__call__(arg)
+                self.__github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
+                return result
             except Exception as e:
                 if i + 1 == attempts:
                     logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
-                    self.__github_updater.update('error', 'Launch failed after {} attempts'.format(attempts))
+                    self.__github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
                     raise
                 else:
                     logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
@@ -188,7 +190,7 @@ class CCMLauncher(object):
 
 
     def start(self, config, attempts = DEFAULT_ATTEMPTS):
-        return self.__retry(attempts, self.__start, config)
+        return self.__retry(attempts, self.__start, config, 'launch')
 
 
     def __start(self, config):
@@ -236,7 +238,7 @@ class CCMLauncher(object):
 
 
     def stop(self, config, attempts = DEFAULT_ATTEMPTS):
-        return self.__retry(attempts, self.__stop, config)
+        return self.__retry(attempts, self.__stop, config, 'shutdown')
 
 
     def __stop(self, config):
