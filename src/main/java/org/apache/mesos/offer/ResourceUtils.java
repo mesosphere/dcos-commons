@@ -17,7 +17,7 @@ import java.util.List;
  * This class encapsulates common methods for manipulating Resources.
  */
 public class ResourceUtils {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtils.class);
 
   public static Resource getUnreservedResource(String name, Value value) {
     return setResource(Resource.newBuilder().setRole("*"), name, value);

@@ -193,6 +193,8 @@ public class DefaultScheduler implements Scheduler {
                     "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
             hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
+
+        reconciler.reconcile(driver);
     }
 
     @Override
