@@ -453,9 +453,7 @@ public class DefaultSchedulerTest {
     private int countBlocks(Plan plan) {
         int i = 0;
         for (Phase phase : plan.getPhases()) {
-            for (Block block : phase.getBlocks()) {
-                i++;
-            }
+            i += phase.getBlocks().size();
         }
 
         return i;

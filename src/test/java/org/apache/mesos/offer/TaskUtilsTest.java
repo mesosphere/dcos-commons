@@ -1,10 +1,7 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.specification.DefaultResourceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
-import org.apache.mesos.specification.TestTaskSpecification;
-import org.apache.mesos.specification.TestTaskSpecificationFactory;
+import org.apache.mesos.specification.*;
 import org.junit.Assert;
 import org.junit.Test;
 

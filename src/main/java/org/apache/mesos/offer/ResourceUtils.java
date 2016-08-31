@@ -260,12 +260,12 @@ public class ResourceUtils {
       return true;
     }
 
-    if (!oldResourceSpecification.getRole().equals(newResourceSpecification.getRole())) {
+    if (areDifferent(oldResourceSpecification.getRole(), newResourceSpecification.getRole())) {
       LOGGER.info("Roles are different.");
       return true;
     }
 
-    if (!oldResourceSpecification.getPrincipal().equals(newResourceSpecification.getPrincipal())) {
+    if (areDifferent(oldResourceSpecification.getPrincipal(), newResourceSpecification.getPrincipal())) {
       LOGGER.info("Principals are different.");
       return true;
     }
@@ -281,6 +281,10 @@ public class ResourceUtils {
                                     .setValue(resourceId))
                             .build()))
             .build();
+  }
+
+  private static boolean areDifferent(String string1, String string2) {
+    return !(string1 == null ? string2 == null : string1.equals(string2));
   }
 
   public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification) {
