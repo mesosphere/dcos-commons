@@ -22,7 +22,9 @@ import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -95,7 +97,9 @@ public class DefaultSchedulerTest {
     @Test
     public void testEmptyOffers() {
         defaultScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
-        Mockito.verifyZeroInteractions(mockSchedulerDriver);
+        verify(mockSchedulerDriver, times(1)).reconcileTasks(any());
+        verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollection(), any());
+        verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
     }
 
     @Test
