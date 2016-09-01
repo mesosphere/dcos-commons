@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * This implementation of the TaskSpecification is for test purposes.  It allows what would otherwise be bad practices
@@ -12,12 +13,14 @@ import java.util.Collection;
 public class TestTaskSpecification implements TaskSpecification {
     private final String name;
     private final Protos.CommandInfo command;
+    private final Optional<Collection<VolumeSpecification>> volumes;
     private Collection<ResourceSpecification> resources;
 
     public TestTaskSpecification(TaskSpecification taskSpecification) {
         this.name = taskSpecification.getName();
         this.command = taskSpecification.getCommand();
         this.resources = taskSpecification.getResources();
+        this.volumes = taskSpecification.getVolumes();
     }
 
     @Override
@@ -33,6 +36,11 @@ public class TestTaskSpecification implements TaskSpecification {
     @Override
     public Collection<ResourceSpecification> getResources() {
         return resources;
+    }
+
+    @Override
+    public Optional<Collection<VolumeSpecification>> getVolumes() {
+        return volumes;
     }
 
     public void addResource(ResourceSpecification resourceSpecification) {

@@ -6,6 +6,7 @@ import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
+import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
@@ -37,13 +38,19 @@ public class DefaultBlockFactory implements BlockFactory {
                     offerRequirementProvider.getNewOfferRequirement(taskSpecification),
                     Status.PENDING);
         } else {
-            TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfoOptional.get());
-            Status status = getStatus(oldTaskSpecification, taskSpecification);
-            logger.info("Generating existing block for: " + taskSpecification.getName() + " with status: " + status);
-            return new DefaultBlock(
-                    taskSpecification.getName(),
-                    offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
-                    status);
+            try {
+                TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfoOptional.get());
+                Status status = getStatus(oldTaskSpecification, taskSpecification);
+                logger.info("Generating existing block for: " + taskSpecification.getName() +
+                        " with status: " + status);
+                return new DefaultBlock(
+                        taskSpecification.getName(),
+                        offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
+                        status);
+            } catch (InvalidTaskSpecificationException e) {
+                logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
+                throw new InvalidRequirementException(e);
+            }
         }
     }
 
