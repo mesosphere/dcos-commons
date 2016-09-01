@@ -10,7 +10,7 @@ A `ServiceSpecification` is nothing more than a name for the service and a list 
 
 For example in the case of a `metadata` node we might write a `TaskTypeSpecification` like the following:
 
-```
+```java
 TaskTypeSpecification taskTypeSpecification = new TaskTypeSpecification() {
     @Override
     public int getCount() {
@@ -64,7 +64,7 @@ TaskTypeSpecification taskTypeSpecification = new TaskTypeSpecification() {
 
 Writing a `TaskTypeSpecification` for the `data` node type is left as an exercise for the reader.  Once a `ServiceSpecification` is constructed it may be deployed on a DC/OS cluster by running the following on a machine with access to a Mesos master node.
 
-```
+```java
 public static void main(String[] args) throws Exception {
     LOGGER.info("Starting reference scheduler with args: " + Arrays.asList(args));
     new DefaultService().register(getServiceSpecification());
