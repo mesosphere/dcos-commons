@@ -129,10 +129,6 @@ func HTTPQuery(request *http.Request) *http.Response {
 			log.Fatalf("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
-	if response.StatusCode == 401 {
-		log.Printf("Got 401 Unauthorized response from %s", request.URL)
-		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
-	}
 	if Verbose {
 		log.Printf("Response: %s (%d bytes)", response.Status, response.ContentLength)
 	}
@@ -141,6 +137,9 @@ func HTTPQuery(request *http.Request) *http.Response {
 
 func CheckHTTPResponse(response *http.Response) *http.Response {
 	switch {
+	case response.StatusCode == 401:
+		log.Printf("Got 401 Unauthorized response from %s", response.Request.URL)
+		log.Fatalf("- Bad auth token? Run 'dcos auth login' to log in.")
 	case response.StatusCode == 500:
 		log.Printf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
@@ -182,10 +181,9 @@ func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", dcosUrl, err)
 	}
 	if len(dcosAuthToken) == 0 {
-		dcosAuthToken = RequiredCLIConfigValue(
-			"core.dcos_acs_token",
-			"DC/OS Authentication Token",
-			"Run 'dcos auth login' to log in to the cluster.")
+		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
+		// this value is optional: clusters can be configured to not require any auth
+		dcosAuthToken = OptionalCLIConfigValue("core.dcos_acs_token")
 	}
 	parsedUrl.Path = path.Join("service", serviceName, urlPath)
 	parsedUrl.RawQuery = urlQuery
@@ -199,7 +197,9 @@ func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 	if err != nil {
 		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, parsedUrl, err)
 	}
-	request.Header.Set("Authorization", fmt.Sprintf("token=%s", dcosAuthToken))
+	if len(dcosAuthToken) != 0 {
+		request.Header.Set("Authorization", fmt.Sprintf("token=%s", dcosAuthToken))
+	}
 	if len(contentType) != 0 {
 		request.Header.Set("Content-Type", contentType)
 	}
