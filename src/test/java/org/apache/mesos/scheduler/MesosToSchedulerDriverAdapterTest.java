@@ -8,8 +8,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Collections;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -60,16 +64,21 @@ public class MesosToSchedulerDriverAdapterTest {
     public void testSubscribe() {
         Scheduler scheduler = mock(Scheduler.class);
         Mesos mesos = mock(Mesos.class);
-        Timer subscribeTimer = mock(Timer.class);
+        ScheduledExecutorService subscribeTimer = mock(ScheduledExecutorService.class);
 
         CustomMesosToSchedulerDriverAdapter driver =
                 new CustomMesosToSchedulerDriverAdapter(scheduler, mesos, subscribeTimer);
 
         assertEquals(org.apache.mesos.Protos.Status.DRIVER_RUNNING, driver.start());
 
-        doAnswer((InvocationOnMock invocation) -> {
-            TimerTask callback = (TimerTask) invocation.getArguments()[0];
-            callback.run();
+        final AtomicBoolean once = new AtomicBoolean();
+        when(subscribeTimer.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+                .thenAnswer((InvocationOnMock invocation) -> {
+            Runnable callback = (Runnable) invocation.getArguments()[0];
+            if (!once.get()) {
+                once.set(true);
+                callback.run();
+            }
             final Protos.Event subscribedEvent = org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
                     .setSubscribed(org.apache.mesos.v1.scheduler.Protos.Event.Subscribed.newBuilder()
                             .setFrameworkId(org.apache.mesos.v1.Protos.FrameworkID.newBuilder()
@@ -81,7 +90,7 @@ public class MesosToSchedulerDriverAdapterTest {
                     .build();
             driver.received(mesos, subscribedEvent);
             return null;
-        }).doNothing().when(subscribeTimer).schedule(any(TimerTask.class), anyLong());
+        });
 
         driver.connected(mesos);
 
@@ -95,30 +104,36 @@ public class MesosToSchedulerDriverAdapterTest {
     public void testSubscribeDisconnect() {
         Scheduler scheduler = mock(Scheduler.class);
         Mesos mesos = mock(Mesos.class);
-        Timer subscribeTimer = mock(Timer.class);
-
+        ScheduledExecutorService subscribeTimer = mock(ScheduledExecutorService.class);
+        when(subscribeTimer.shutdownNow()).thenReturn(Collections.EMPTY_LIST);
         CustomMesosToSchedulerDriverAdapter driver =
                 new CustomMesosToSchedulerDriverAdapter(scheduler, mesos, subscribeTimer);
 
         assertEquals(org.apache.mesos.Protos.Status.DRIVER_RUNNING, driver.start());
 
-        doAnswer((InvocationOnMock invocation) -> {
-            TimerTask callback = (TimerTask) invocation.getArguments()[0];
-            callback.run();
-            final Protos.Event subscribedEvent = org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
-                    .setSubscribed(org.apache.mesos.v1.scheduler.Protos.Event.Subscribed.newBuilder()
-                            .setFrameworkId(org.apache.mesos.v1.Protos.FrameworkID.newBuilder()
-                                    .setValue("dummy-framework")
-                                    .build())
-                            .setHeartbeatIntervalSeconds(0)
-                            .build())
-                    .setType(Protos.Event.Type.SUBSCRIBED)
-                    .build();
-            driver.received(mesos, subscribedEvent);
+        final AtomicBoolean once = new AtomicBoolean();
+        when(subscribeTimer.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+                .then((InvocationOnMock invocation) -> {
+                    Runnable callback = (Runnable) invocation.getArguments()[0];
+                    if (!once.get()) {
+                        once.set(true);
+                        callback.run();
+                        final Protos.Event subscribedEvent = org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
+                                .setSubscribed(org.apache.mesos.v1.scheduler.Protos.Event.Subscribed.newBuilder()
+                                        .setFrameworkId(org.apache.mesos.v1.Protos.FrameworkID.newBuilder()
+                                                .setValue("dummy-framework")
+                                                .build())
+                                        .setHeartbeatIntervalSeconds(0)
+                                        .build())
+                                .setType(Protos.Event.Type.SUBSCRIBED)
+                                .build();
+                        driver.received(mesos, subscribedEvent);
 
-            driver.disconnected(mesos);
-            return null;
-        }).doNothing().when(subscribeTimer).schedule(any(TimerTask.class), anyLong());
+                        driver.disconnected(mesos);
+                        return null;
+                    }
+                    return null;
+                });
 
         driver.connected(mesos);
 
@@ -136,33 +151,41 @@ public class MesosToSchedulerDriverAdapterTest {
     public void testSubscribeBackoff() {
         Scheduler scheduler = mock(Scheduler.class);
         Mesos mesos = mock(Mesos.class);
-        Timer subscribeTimer = mock(Timer.class);
+        ScheduledExecutorService subscribeTimer = mock(ScheduledExecutorService.class);
 
         CustomMesosToSchedulerDriverAdapter driver =
                 new CustomMesosToSchedulerDriverAdapter(scheduler, mesos, subscribeTimer);
 
         assertEquals(org.apache.mesos.Protos.Status.DRIVER_RUNNING, driver.start());
 
-        doAnswer((InvocationOnMock invocation) -> {
-            TimerTask callback = (TimerTask) invocation.getArguments()[0];
-            callback.run();
-            return null;
-        }).doAnswer((InvocationOnMock invocation) -> {
-            TimerTask callback = (TimerTask) invocation.getArguments()[0];
-            callback.run();
-            final Protos.Event subscribedEvent = org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
-                    .setSubscribed(org.apache.mesos.v1.scheduler.Protos.Event.Subscribed.newBuilder()
-                            .setFrameworkId(org.apache.mesos.v1.Protos.FrameworkID.newBuilder()
-                                    .setValue("dummy-framework")
-                                    .build())
-                            .setHeartbeatIntervalSeconds(0)
-                            .build())
-                    .setType(Protos.Event.Type.SUBSCRIBED)
-                    .build();
-            driver.received(mesos, subscribedEvent);
+        final AtomicInteger counter = new AtomicInteger(2);
+        when(subscribeTimer.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+                .then((InvocationOnMock invocation) -> {
+            Runnable callback = (Runnable) invocation.getArguments()[0];
+            if (counter.get() == 2) {
+                counter.decrementAndGet();
+                callback.run();
+                return null;
+            } else if (counter.get() == 1) {
+                counter.decrementAndGet();
+                callback.run();
 
-            return null;
-        }).doNothing().when(subscribeTimer).schedule(any(TimerTask.class), anyLong());
+                final Protos.Event subscribedEvent = org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
+                        .setSubscribed(org.apache.mesos.v1.scheduler.Protos.Event.Subscribed.newBuilder()
+                                .setFrameworkId(org.apache.mesos.v1.Protos.FrameworkID.newBuilder()
+                                        .setValue("dummy-framework")
+                                        .build())
+                                .setHeartbeatIntervalSeconds(0)
+                                .build())
+                        .setType(Protos.Event.Type.SUBSCRIBED)
+                        .build();
+                driver.received(mesos, subscribedEvent);
+
+                return null;
+            } else {
+                return null;
+            }
+        });
 
         driver.connected(mesos);
 
@@ -180,7 +203,7 @@ public class MesosToSchedulerDriverAdapterTest {
     public void testReconnect() {
         Scheduler scheduler = mock(Scheduler.class);
         Mesos mesos = mock(Mesos.class);
-        Timer heartbeatTimer = mock(Timer.class);
+        ScheduledExecutorService heartbeatTimer = mock(ScheduledExecutorService.class);
 
         CustomMesosToSchedulerDriverAdapter driver =
                 new CustomMesosToSchedulerDriverAdapter(scheduler, mesos, heartbeatTimer);
@@ -188,10 +211,11 @@ public class MesosToSchedulerDriverAdapterTest {
         assertEquals(org.apache.mesos.Protos.Status.DRIVER_RUNNING, driver.start());
 
         doAnswer((InvocationOnMock invocation) -> {
-            TimerTask callback = (TimerTask) invocation.getArguments()[0];
+            Runnable callback = (Runnable) invocation.getArguments()[0];
             callback.run();
             return null;
-        }).when(heartbeatTimer).schedule(any(TimerTask.class), anyLong(), anyLong());
+        }).when(heartbeatTimer)
+                .scheduleWithFixedDelay(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class));
 
         // Set the heartbeat interval to 0. This should result in `reconnect()` being invoked immediately.
         driver.received(mesos, org.apache.mesos.v1.scheduler.Protos.Event.newBuilder()
@@ -209,15 +233,15 @@ public class MesosToSchedulerDriverAdapterTest {
 
     private static class CustomMesosToSchedulerDriverAdapter extends MesosToSchedulerDriverAdapter {
         private final Mesos mesos;
-        private final Timer timer;
+        private final ScheduledExecutorService timer;
 
         CustomMesosToSchedulerDriverAdapter(Scheduler scheduler, Mesos mesos) {
             super(scheduler, FRAMEWORK_INFO, "master");
             this.mesos = mesos;
-            this.timer = new Timer();
+            this.timer = Executors.newSingleThreadScheduledExecutor();
         }
 
-        CustomMesosToSchedulerDriverAdapter(Scheduler scheduler, Mesos mesos, Timer timer) {
+        CustomMesosToSchedulerDriverAdapter(Scheduler scheduler, Mesos mesos, ScheduledExecutorService timer) {
             super(scheduler, FRAMEWORK_INFO, "master");
             this.mesos = mesos;
             this.timer = timer;
@@ -229,7 +253,7 @@ public class MesosToSchedulerDriverAdapterTest {
         }
 
         @Override
-        protected Timer createTimerInternal() {
+        protected ScheduledExecutorService createTimerInternal() {
             return timer;
         }
     }

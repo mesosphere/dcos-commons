@@ -4,17 +4,23 @@ import com.google.api.client.util.ExponentialBackOff;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.protobuf.Devolver;
 import org.apache.mesos.protobuf.Evolver;
-import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
+import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.OptionalLong;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This is a threadsafe  adapter from the new v1 `Mesos` + `Scheduler` interface to the old  v0 `SchedulerDriver`
@@ -49,9 +55,9 @@ public class MesosToSchedulerDriverAdapter implements
     private org.apache.mesos.Protos.Status status;
     private boolean registered;
     private Mesos mesos;
-    private volatile Timer subscriberTimer;
+    private volatile ScheduledExecutorService subscriberTimer;
     private State state;
-    private Timer heartbeatTimer;
+    private ScheduledExecutorService heartbeatTimer;
     private Instant lastHeartbeat;
     private OptionalLong heartbeatTimeout;
 
@@ -119,7 +125,7 @@ public class MesosToSchedulerDriverAdapter implements
         long nextBackoffMs;
         nextBackoffMs = backOff.nextBackOffMillis();
         LOGGER.info("Backing off for: {}", nextBackoffMs);
-        subscriberTimer.schedule(new SubscriberTask(backOff), nextBackoffMs);
+        subscriberTimer.schedule(new SubscriberTask(backOff), nextBackoffMs, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -137,7 +143,7 @@ public class MesosToSchedulerDriverAdapter implements
                     .setRandomizationFactor(0.5)
                     .setInitialIntervalMillis(SEED_BACKOFF_MS)
                     .build();
-            subscriberTimer.schedule(new SubscriberTask(backOff), SEED_BACKOFF_MS);
+            subscriberTimer.schedule(new SubscriberTask(backOff), SEED_BACKOFF_MS, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -319,19 +325,18 @@ public class MesosToSchedulerDriverAdapter implements
         lastHeartbeat = Instant.now();
 
         heartbeatTimer = createTimerInternal();
-        heartbeatTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                heartbeat(mesos);
-            }
-        }, heartbeatTimeout.getAsLong(), heartbeatTimeout.getAsLong());
+        heartbeatTimer.scheduleWithFixedDelay(
+                () -> heartbeat(mesos),
+                heartbeatTimeout.getAsLong(),
+                heartbeatTimeout.getAsLong(),
+                TimeUnit.MILLISECONDS);
     }
 
     /**
      * Broken out into a separate function to allow speeding up the `Timer` callbacks.
      */
-    protected Timer createTimerInternal() {
-        return new Timer();
+    protected ScheduledExecutorService createTimerInternal() {
+        return Executors.newSingleThreadScheduledExecutor();
     }
 
     private synchronized void cancelHeartbeatTimer() {
@@ -339,8 +344,7 @@ public class MesosToSchedulerDriverAdapter implements
 
         // Cancel previous heartbeat timer if one exists.
         if (heartbeatTimer != null) {
-            heartbeatTimer.cancel();
-            heartbeatTimer.purge();
+            heartbeatTimer.shutdownNow();
         }
 
         heartbeatTimer = null;
@@ -678,13 +682,10 @@ public class MesosToSchedulerDriverAdapter implements
         return status;
     }
 
-    private void cancelSubscriber() {
+    private synchronized void cancelSubscriber() {
         LOGGER.info("Cancelling subscriber...");
-        synchronized (subscriberTimer) {
-            subscriberTimer.cancel();
-            subscriberTimer.purge();
-            subscriberTimer = null;
-        }
+        subscriberTimer.shutdownNow();
+        subscriberTimer = null;
     }
 
     private synchronized void heartbeat(final Mesos mesos) {
@@ -712,7 +713,7 @@ public class MesosToSchedulerDriverAdapter implements
     /**
      * Sends subscription call, and rescehdules next subscription attempt.
      */
-    public class SubscriberTask extends TimerTask {
+    public class SubscriberTask implements Runnable {
         ExponentialBackOff backOff;
 
         public SubscriberTask(ExponentialBackOff backOff) {
