@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.reconciliation.TaskStatusProvider;
 
 import java.util.*;
 
@@ -17,7 +18,7 @@ import java.util.*;
  * TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation and when Tasks
  * change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
  */
-public interface StateStore {
+public interface StateStore extends TaskStatusProvider {
 
 
     // Write Framework ID

@@ -12,6 +12,8 @@ import org.mockito.Mockito;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.mockito.Mockito.timeout;
+
 public class ProcessTaskTest {
     private static final String EXECUTOR_NAME = "TEST_EXECUTOR";
     private static final String TASK_NAME = "TEST_TASK";
@@ -99,7 +101,6 @@ public class ProcessTaskTest {
         final ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(failingProcessTask);
 
-        Thread.sleep(100);
-        Mockito.verify(mockExecutorDriver).sendStatusUpdate(Mockito.any());
+        Mockito.verify(mockExecutorDriver, timeout(1000)).sendStatusUpdate(Mockito.any());
     }
 }

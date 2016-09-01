@@ -15,9 +15,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * CuratorStateStore is an implementation of {@link StateStore} which persists data in Zookeeper.
@@ -300,6 +298,11 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
+    public Set<Protos.TaskStatus> getTaskStatuses() throws StateStoreException {
+        return new HashSet<>(fetchStatuses());
+    }
+
+    @Override
     public Protos.TaskStatus fetchStatus(String taskName) throws StateStoreException {
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Fetching status for '{}' in '{}'", taskName, path);
@@ -368,6 +371,10 @@ public class CuratorStateStore implements StateStore {
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
+    }
+
+    void close() {
+        curator.close();
     }
 
     // Internals
