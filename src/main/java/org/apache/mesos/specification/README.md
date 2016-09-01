@@ -43,7 +43,7 @@ TaskTypeSpecification taskTypeSpecification = new TaskTypeSpecification() {
                         SchedulerUtils.nameToPrincipal("my-service")),
                 new DefaultResourceSpecification(
                         "mem",
-                        ValueUtils.getValue(ResourceUtils.getUnreservedScalar("mem", 1024)),
+                        ValueUtils.getValue(ResourceUtils.getUnreservedScalar("mem", 512)),
                         SchedulerUtils.nameToRole("my-service"),
                         SchedulerUtils.nameToPrincipal("my-service")));
     }
@@ -74,8 +74,10 @@ public static void main(String[] args) throws Exception {
 This runs a Mesos Scheduler which will deploy the service as per the `ServiceSpecification`.  This system will be fault tolerant in that it will relaunch all failed Tasks on the same machine and using the same resources as when it was initially deployed.  This behavior will occur under any combination of Scheduler and Task failures.  By default if a Task fails to launch for greater than 20 minutes, it is destructively replaced.  All this behavior is overridable by replacement of default implementation of interfaces with more sophisticated custom components.  //TODO: Guide for customization
 
 Deploying a Service's Scheduler reliably is accomplished most easily by defining a Universe service package.
+
 ## Defining a Universe package
-// TODO: content
+See the example service definition in `/example-service/universe`.
+
 ## Service Updates
 Service updates can be made simply be restarting a Scheduler with a new `ServiceSpecification`.  Changes to `VolumeSpecification`s are not supported and so should be considered carefully at the initial point of `ServiceSpecification`.
 
