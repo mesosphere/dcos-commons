@@ -1,6 +1,16 @@
 #!/usr/bin/python
 
-from __future__ import print_function
+# Launches a CCM cluster
+#
+# stdout:
+# {'id': ...
+#  'url': ...}
+#
+# cluster.properties file (if JENKINS_HOME is set in env):
+# CLUSTER_ID=...
+# CLUSTER_URL=...
+#
+# Configuration: Mostly through env vars. See README.md.
 
 import json
 import logging
@@ -11,6 +21,8 @@ import string
 import sys
 import time
 
+import github_update
+
 try:
     from http.client import HTTPSConnection
 except ImportError:
@@ -18,7 +30,7 @@ except ImportError:
     from httplib import HTTPSConnection
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class CCMLauncher(object):
@@ -46,9 +58,10 @@ class CCMLauncher(object):
     DEFAULT_ATTEMPTS = 2
 
 
-    def __init__(self, ccm_token):
+    def __init__(self, ccm_token, github_label):
         self.__http_headers = {'Authorization': 'Token ' + ccm_token}
         self.__dry_run = os.environ.get('DRY_RUN', '')
+        self.__github_updater = github_update.GithubStatusUpdater('cluster:{}'.format(github_label))
 
 
     def __pretty_time(self, seconds):
@@ -59,15 +72,18 @@ class CCMLauncher(object):
             return '{:.0f}s'.format(seconds)
 
 
-    def __retry(self, attempts, method, arg):
+    def __retry(self, attempts, method, arg, operation_name):
         for i in range(attempts):
+            attempt_str = '[{}/{}]'.format(i + 1, attempts)
             try:
-                return method.__call__(arg)
+                self.__github_updater.update('pending', '{} {} in progress'.format(attempt_str, operation_name.title()))
+                result = method.__call__(arg)
+                self.__github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
+                return result
             except Exception as e:
-                attempt_str = '[{}/{}]'.format(i + 1, attempts)
                 if i + 1 == attempts:
                     logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
-                    # re-raise original stacktrace:
+                    self.__github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
                     raise
                 else:
                     logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
@@ -174,7 +190,7 @@ class CCMLauncher(object):
 
 
     def start(self, config, attempts = DEFAULT_ATTEMPTS):
-        return self.__retry(attempts, self.__start, config)
+        return self.__retry(attempts, self.__start, config, 'launch')
 
 
     def __start(self, config):
@@ -222,7 +238,7 @@ class CCMLauncher(object):
 
 
     def stop(self, config, attempts = DEFAULT_ATTEMPTS):
-        return self.__retry(attempts, self.__stop, config)
+        return self.__retry(attempts, self.__stop, config, 'shutdown')
 
 
     def __stop(self, config):
@@ -278,40 +294,67 @@ class StopConfig(object):
         self.stop_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', stop_timeout_mins)
 
 
+def __write_jenkins_config(github_label, cluster_id_url, error = None):
+    if not 'JENKINS_HOME' in os.environ:
+        return
+
+    # write jenkins properties file to $WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties:
+    properties_file = open(os.path.join(os.environ['WORKSPACE'], 'cluster-{}.properties'.format(github_label)), 'w')
+    properties_file.write('CLUSTER_ID={}\n'.format(cluster_id_url.get('id','0')))
+    properties_file.write('CLUSTER_URL={}\n'.format(cluster_id_url.get('url','null')))
+    if error:
+        properties_file.write('ERROR={}\n'.format(error))
+    properties_file.flush()
+    properties_file.close()
+
+
 def main(argv):
     ccm_token = os.environ.get('CCM_AUTH_TOKEN', '')
     if not ccm_token:
         raise Exception('CCM_AUTH_TOKEN is required')
 
-    launcher = CCMLauncher(ccm_token)
+    # used for status and for jenkins .properties file:
+    github_label = os.environ.get('CCM_GITHUB_LABEL', 'ccm')
+
     # error detection (and retry) for either a start or a stop operation:
     start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))
 
+    launcher = CCMLauncher(ccm_token, github_label)
     if len(argv) >= 2:
         if argv[1] == 'stop':
             if len(argv) >= 3:
                 launcher.stop(StopConfig(argv[2]), start_stop_attempts)
                 return 0
             else:
-                print('Usage: {} stop <ccm_id>'.format(argv[0]), file=sys.stderr)
+                logger.info('Usage: {} stop <ccm_id>'.format(argv[0]), file=sys.stderr)
                 return 1
         if argv[1] == 'wait':
             if len(argv) >= 5:
-                cluster_info = launcher.wait_for_status(argv[2], argv[3], argv[4], CCMLauncher.DEFAULT_TIMEOUT_MINS)
+                # piggy-back off of StopConfig's env handling:
+                stop_config = StopConfig(argv[2])
+                cluster_info = launcher.wait_for_status(stop_config.cluster_id, argv[3], argv[4], stop_config.stop_timeout_mins)
                 if not cluster_info:
                     return 1
-                pprint.pprint(cluster_info)
+                # print to stdout (the rest of this script only writes to stderr):
+                print(pprint.pformat(cluster_info))
                 return 0
             else:
-                print('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]), file=sys.stderr)
+                logger.info('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]), file=sys.stderr)
                 return 1
         else:
-            print('Usage: {} [stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]), file=sys.stderr)
+            logger.info('Usage: {} [stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]), file=sys.stderr)
             return
 
-    cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
-    pprint.pprint(cluster_id_url)
+    try:
+        cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
+        # print to stdout (the rest of this script only writes to stderr):
+        print(json.dumps(cluster_id_url))
+        __write_jenkins_config(github_label, cluster_id_url)
+    except Exception as e:
+        __write_jenkins_config(github_label, {}, e)
+        raise
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
