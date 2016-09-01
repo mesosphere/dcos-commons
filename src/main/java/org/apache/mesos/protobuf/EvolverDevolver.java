@@ -9,8 +9,8 @@ import org.apache.mesos.scheduler.Protos.Call;
 /**
  * Utility class for evolving v0 protos to vX.
  */
-public class Evolver {
-    private static <T extends Message> T evolve(Message message, Message.Builder builder) {
+public class EvolverDevolver {
+    private static <T extends Message> T transform(Message message, Message.Builder builder) {
         byte[] data = message.toByteArray();
         try {
             builder.mergeFrom(data);
@@ -24,18 +24,31 @@ public class Evolver {
     }
 
     public static org.apache.mesos.v1.Protos.FrameworkInfo evolve(FrameworkInfo frameworkInfo) {
-        return evolve(frameworkInfo, org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder());
+        return transform(frameworkInfo, org.apache.mesos.v1.Protos.FrameworkInfo.newBuilder());
     }
 
     public static org.apache.mesos.v1.Protos.FrameworkID evolve(Protos.FrameworkID frameworkID) {
-        return evolve(frameworkID, org.apache.mesos.v1.Protos.FrameworkID.newBuilder());
+        return transform(frameworkID, org.apache.mesos.v1.Protos.FrameworkID.newBuilder());
     }
 
     public static org.apache.mesos.v1.Protos.Credential evolve(Protos.Credential credential) {
-        return evolve(credential, org.apache.mesos.v1.Protos.Credential.newBuilder());
+        return transform(credential, org.apache.mesos.v1.Protos.Credential.newBuilder());
     }
 
     public static org.apache.mesos.v1.scheduler.Protos.Call evolve(Call call) {
-        return evolve(call, org.apache.mesos.v1.scheduler.Protos.Call.newBuilder());
+        return transform(call, org.apache.mesos.v1.scheduler.Protos.Call.newBuilder());
+    }
+
+    public static Protos.FrameworkInfo devolve(
+            org.apache.mesos.v1.Protos.FrameworkInfo frameworkInfo) {
+        return transform(frameworkInfo, Protos.FrameworkInfo.newBuilder());
+    }
+
+    public static Protos.FrameworkID devolve(org.apache.mesos.v1.Protos.FrameworkID frameworkId) {
+        return transform(frameworkId, org.apache.mesos.Protos.FrameworkID.newBuilder());
+    }
+
+    public static org.apache.mesos.scheduler.Protos.Event devolve(org.apache.mesos.v1.scheduler.Protos.Event event) {
+        return transform(event, org.apache.mesos.scheduler.Protos.Event.newBuilder());
     }
 }
