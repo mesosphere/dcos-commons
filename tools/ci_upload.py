@@ -39,7 +39,15 @@ class CIUploader(object):
             err = 'Provided package path is not a directory: {}'.format(input_dir_path)
             self.__github_updater.update('error', err)
             raise Exception(err)
-
+        
+        # check if aws cli tools are installed
+        cmd = "aws --version"
+        ret = os.system(cmd)
+        if not ret == 0:
+            err = 'Required AWS cli tools not installed.'
+            self.__github_updater.update('error', err)
+            raise Exception(err)
+            
         self.__artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
