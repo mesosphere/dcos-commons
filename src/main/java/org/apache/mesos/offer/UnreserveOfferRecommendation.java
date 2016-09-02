@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.protobuf.OperationBuilder;
 
 import java.util.Arrays;
 
@@ -17,12 +16,13 @@ public class UnreserveOfferRecommendation implements OfferRecommendation {
 
     public UnreserveOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
-        this.operation = new OperationBuilder()
+        this.operation = Operation.newBuilder()
                 .setType(Operation.Type.UNRESERVE)
-                .setUnreserve(Arrays.asList(Resource.newBuilder(resource)
-                        .clearDisk()
-                        .clearRevocable()
-                        .build()))
+                .setUnreserve(Operation.Unreserve.newBuilder()
+                        .addAllResources(Arrays.asList(Resource.newBuilder(resource)
+                                .clearDisk()
+                                .clearRevocable()
+                                .build())))
                 .build();
     }
 

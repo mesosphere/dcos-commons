@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.protobuf.OperationBuilder;
 
 import java.util.Arrays;
 
@@ -17,10 +16,12 @@ public class DestroyOfferRecommendation implements OfferRecommendation {
 
     public DestroyOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
-        this.operation = new OperationBuilder().setType(Operation.Type.DESTROY)
-                .setDestroy(Arrays.asList(Resource.newBuilder(resource)
-                        .clearRevocable()
-                        .build()))
+        this.operation = Operation.newBuilder()
+                .setType(Operation.Type.DESTROY)
+                .setDestroy(Operation.Destroy.newBuilder()
+                        .addAllVolumes(Arrays.asList(Resource.newBuilder(resource)
+                                .clearRevocable()
+                                .build())))
                 .build();
     }
 

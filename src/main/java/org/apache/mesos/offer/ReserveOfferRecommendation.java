@@ -5,7 +5,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
-import org.apache.mesos.protobuf.OperationBuilder;
 
 import java.util.Arrays;
 
@@ -18,9 +17,10 @@ public class ReserveOfferRecommendation implements OfferRecommendation {
 
     public ReserveOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
-        this.operation = new OperationBuilder()
+        this.operation = Operation.newBuilder()
                 .setType(Operation.Type.RESERVE)
-                .setReserve(Arrays.asList(getReservedResource(resource)))
+                .setReserve(Operation.Reserve.newBuilder()
+                        .addAllResources(Arrays.asList(Resource.newBuilder(getReservedResource(resource)).build())))
                 .build();
     }
 

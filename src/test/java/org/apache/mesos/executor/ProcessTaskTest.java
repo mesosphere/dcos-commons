@@ -4,7 +4,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.protobuf.EnvironmentBuilder;
+import org.apache.mesos.testutils.TaskTestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -37,7 +37,8 @@ public class ProcessTaskTest {
                         .setValue("sleep 5")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                .addVariables(
+                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -59,10 +60,6 @@ public class ProcessTaskTest {
     }
 
     public static class FailingProcessTask extends ProcessTask {
-        public FailingProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task) {
-            super(executorDriver, task, true);
-        }
-
         public FailingProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task, boolean exitOnTermination) {
             super(executorDriver, task, exitOnTermination);
         }
@@ -93,7 +90,8 @@ public class ProcessTaskTest {
                         .setValue("sleep 5")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                .addVariables(
+                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();

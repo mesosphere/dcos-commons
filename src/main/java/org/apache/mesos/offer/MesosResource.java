@@ -5,7 +5,6 @@ import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value;
-import org.apache.mesos.protobuf.ValueUtils;
 
 /**
  * A representation of a Mesos Resources.

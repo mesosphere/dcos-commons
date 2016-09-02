@@ -1,26 +1,23 @@
 package org.apache.mesos.offer;
 
-import static org.junit.Assert.*;
-
-import org.apache.mesos.Protos.CommandInfo;
-import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.protobuf.ExecutorInfoBuilder;
-import org.apache.mesos.protobuf.ResourceBuilder;
+import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TaskTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Test;
+
+import java.util.Collections;
+
+import static org.junit.Assert.assertNotEquals;
 
 public class TaskRequirementTest {
 
-    private static final TaskInfo VALID_TASKINFO = TaskInfo.newBuilder()
-            .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
-            .setTaskId(TaskID.newBuilder().setValue(ResourceTestUtils.testTaskId))
-            .setName(ResourceTestUtils.testTaskName)
-            .build();
+    private static final TaskInfo VALID_TASKINFO = TaskTestUtils.getTaskInfo(Collections.emptyList());
 
     @Test
     public void testTaskIdChanges() throws Exception {
-        assertNotEquals(ResourceTestUtils.testTaskId,
+        assertNotEquals(TestConstants.taskId,
                 new TaskRequirement(VALID_TASKINFO).getTaskInfo().getTaskId().getValue());
     }
 
@@ -32,8 +29,8 @@ public class TaskRequirementTest {
     @Test
     public void testTwoResourcesValid() throws Exception {
         new TaskRequirement(VALID_TASKINFO.toBuilder()
-                .addResources(ResourceBuilder.cpus(1.0))
-                .addResources(ResourceBuilder.disk(1234.))
+                .addResources(ResourceTestUtils.getUnreservedCpu(1.0))
+                .addResources(ResourceTestUtils.getDesiredRootVolume(1000))
                 .build());
     }
 
@@ -64,8 +61,7 @@ public class TaskRequirementTest {
     @Test(expected = InvalidRequirementException.class)
     public void testExecutorInfoPresentFails() throws Exception {
         new TaskRequirement(VALID_TASKINFO.toBuilder()
-                .setExecutor(new ExecutorInfoBuilder(
-                        "ignored-id", "ignored-name", CommandInfo.newBuilder().build()).build())
+                .setExecutor(TaskTestUtils.getExecutorInfo(Collections.emptyList()))
                 .build());
     }
 }

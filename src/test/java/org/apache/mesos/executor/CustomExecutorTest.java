@@ -2,7 +2,7 @@ package org.apache.mesos.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import org.apache.mesos.protobuf.EnvironmentBuilder;
+import org.apache.mesos.testutils.TaskTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,7 +51,8 @@ public class CustomExecutorTest {
                         .setValue("date")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                .addVariables(
+                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -78,7 +79,8 @@ public class CustomExecutorTest {
                         .setValue("date")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                .addVariables(
+                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -134,7 +136,8 @@ public class CustomExecutorTest {
                         .setValue("date")
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
-                                .addVariables(EnvironmentBuilder.createEnvironment(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                .addVariables(
+                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
                         .build()
                         .toByteString())
                 .build();

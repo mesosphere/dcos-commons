@@ -1,14 +1,13 @@
-package org.apache.mesos.protobuf;
-
-import java.util.Collections;
-import java.util.List;
+package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Type;
-
 import org.apache.mesos.util.Algorithms;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Utilities for manipulating Value protobufs.
@@ -16,7 +15,8 @@ import org.apache.mesos.util.Algorithms;
 public class ValueUtils {
   public static Value getValue(Resource resource) {
     Type type = resource.getType();
-    ValueBuilder builder = new ValueBuilder(type);
+    Value.Builder builder = Value.newBuilder();
+    builder.setType(type);
 
     switch (type) {
       case SCALAR:
@@ -41,10 +41,10 @@ public class ValueUtils {
     switch (type1) {
       case SCALAR:
         Value.Scalar scalar = add(val1.getScalar(), val2.getScalar());
-        return new ValueBuilder(type1).setScalar(scalar).build();
+        return Value.newBuilder().setType(type1).setScalar(scalar).build();
       case RANGES:
         Value.Ranges ranges = add(val1.getRanges(), val2.getRanges());
-        return new ValueBuilder(type1).setRanges(ranges).build();
+        return Value.newBuilder().setType(type1).setRanges(ranges).build();
       default:
         return null;
     }
@@ -73,10 +73,10 @@ public class ValueUtils {
     switch (type1) {
       case SCALAR:
         Value.Scalar scalar = subtract(val1.getScalar(), val2.getScalar());
-        return new ValueBuilder(type1).setScalar(scalar).build();
+        return Value.newBuilder().setType(type1).setScalar(scalar).build();
       case RANGES:
         Value.Ranges ranges = subtract(val1.getRanges(), val2.getRanges());
-        return new ValueBuilder(type1).setRanges(ranges).build();
+        return Value.newBuilder().setType(type1).setRanges(ranges).build();
       default:
         return null;
     }
@@ -146,10 +146,10 @@ public class ValueUtils {
     switch (type) {
       case SCALAR:
         Value.Scalar scalar = Value.Scalar.newBuilder().setValue(0).build();
-        return new ValueBuilder(type).setScalar(scalar).build();
+        return Value.newBuilder().setType(type).setScalar(scalar).build();
       case RANGES:
         Value.Ranges ranges = Value.Ranges.newBuilder().addAllRange(Collections.emptyList()).build();
-        return new ValueBuilder(type).setRanges(ranges).build();
+        return Value.newBuilder().setType(type).setRanges(ranges).build();
       default:
         return null;
     }
