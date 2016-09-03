@@ -16,7 +16,7 @@ import (
 var (
 	dcosAuthToken      string
 	dcosUrl            string
-	serviceName        string
+	ServiceName        string
 	tlsAllowUnverified bool
 	tlsCACertPath      string
 )
@@ -143,7 +143,7 @@ func CheckHTTPResponse(response *http.Response) *http.Response {
 	case response.StatusCode == 500:
 		log.Printf("HTTP %s Query for %s failed: %s",
 			response.Request.Method, response.Request.URL, response.Status)
-		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", serviceName)
+		log.Printf("- Did you provide the correct service name? Currently using '%s', specify a different name with '--name=<name>'.", ServiceName)
 		log.Fatalf("- Was the service recently installed? It may still be initializing, Wait a bit and try again.")
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		log.Fatalf("HTTP %s Query for %s failed: %s",
@@ -169,6 +169,10 @@ func CreateHTTPRequest(method, urlPath string) *http.Request {
 }
 
 func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string) *http.Request {
+	return CreateHTTPURLRequest(method, CreateURL(urlPath, urlQuery), payload, contentType)
+}
+
+func CreateURL(urlPath, urlQuery string) *url.URL {
 	// get data from CLI, if overrides were not provided by user:
 	if len(dcosUrl) == 0 {
 		dcosUrl = RequiredCLIConfigValue(
@@ -180,22 +184,26 @@ func CreateHTTPRawRequest(method, urlPath, urlQuery, payload, contentType string
 	if err != nil {
 		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", dcosUrl, err)
 	}
-	if len(dcosAuthToken) == 0 {
-		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
-		// this value is optional: clusters can be configured to not require any auth
-		dcosAuthToken = OptionalCLIConfigValue("core.dcos_acs_token")
-	}
-	parsedUrl.Path = path.Join("service", serviceName, urlPath)
+	parsedUrl.Path = path.Join("service", ServiceName, urlPath)
 	parsedUrl.RawQuery = urlQuery
+	return parsedUrl
+}
+
+func CreateHTTPURLRequest(method string, url *url.URL, payload, contentType string) *http.Request {
 	if Verbose {
-		log.Printf("HTTP Query: %s %s", method, parsedUrl)
+		log.Printf("HTTP Query: %s %s", method, url)
 		if len(payload) != 0 {
 			log.Printf("  Payload: %s", payload)
 		}
 	}
-	request, err := http.NewRequest(method, parsedUrl.String(), bytes.NewReader([]byte(payload)))
+	request, err := http.NewRequest(method, url.String(), bytes.NewReader([]byte(payload)))
 	if err != nil {
-		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, parsedUrl, err)
+		log.Fatalf("Failed to create HTTP %s request for %s: %s", method, url, err)
+	}
+	if len(dcosAuthToken) == 0 {
+		// if the token wasnt manually provided by the user, try to fetch it from the main CLI.
+		// this value is optional: clusters can be configured to not require any auth
+		dcosAuthToken = OptionalCLIConfigValue("core.dcos_acs_token")
 	}
 	if len(dcosAuthToken) != 0 {
 		request.Header.Set("Authorization", fmt.Sprintf("token=%s", dcosAuthToken))
