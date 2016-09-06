@@ -65,7 +65,7 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 		return nil
 	}).Bool()
 
-	app.Flag("force-insecure", "Allow unverified TLS certificates when querying service").BoolVar(&tlsAllowUnverified)
+	app.Flag("force-insecure", "Allow unverified TLS certificates when querying service").BoolVar(&tlsForceInsecure)
 
 	// Overrides of data that we fetch from DC/OS CLI:
 
