@@ -2,6 +2,7 @@ package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -97,8 +98,8 @@ public class TaskUtilsTest {
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
                 .build(),
-                ResourceTestUtils.testRole,
-                ResourceTestUtils.testPrincipal));
+                TestConstants.role,
+                TestConstants.principal));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -113,8 +114,8 @@ public class TaskUtilsTest {
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
                         .build(),
-                ResourceTestUtils.testRole,
-                ResourceTestUtils.testPrincipal));
+                TestConstants.role,
+                TestConstants.principal));
 
         TaskSpecification tmpNewTaskSpecification =
                 TestTaskSpecificationFactory.getTaskTypeSpecification(
@@ -130,8 +131,8 @@ public class TaskUtilsTest {
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
                         .build(),
-                ResourceTestUtils.testRole,
-                ResourceTestUtils.testPrincipal));
+                TestConstants.role,
+                TestConstants.principal));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }

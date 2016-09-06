@@ -8,10 +8,7 @@ import org.apache.mesos.testutils.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class OfferEvaluatorTest {
 
@@ -26,7 +23,7 @@ public class OfferEvaluatorTest {
 
     OfferRequirement offerReq = new OfferRequirement(
             Arrays.asList(TaskTestUtils.getTaskInfo(desiredTaskCpu)),
-            TaskTestUtils.getExecutorInfo(desiredExecutorCpu),
+            Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorCpu)),
             null,
             null);
     List<Offer> offers = Arrays.asList(OfferTestUtils.getOffer(insufficientOfferedResource));
@@ -324,7 +321,7 @@ public class OfferEvaluatorTest {
     ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(desiredExecutorResource);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            new OfferRequirement(Arrays.asList(taskInfo), execInfo),
+            new OfferRequirement(Arrays.asList(taskInfo), Optional.of(execInfo)),
             Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredTaskResource, offeredExecutorResource))));
     Assert.assertEquals(3, recommendations.size());
 
@@ -393,7 +390,7 @@ public class OfferEvaluatorTest {
     ExecutorInfo execInfo = TaskTestUtils.getExistingExecutorInfo(desiredExecutorResource);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            new OfferRequirement(Arrays.asList(taskInfo), execInfo),
+            new OfferRequirement(Arrays.asList(taskInfo), Optional.of(execInfo)),
             Arrays.asList(
                     OfferTestUtils.getOffer(
                             TestConstants.executorId,
@@ -605,7 +602,7 @@ public class OfferEvaluatorTest {
     Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 256, resourceId);
 
     TaskInfo taskInfo = TaskTestUtils.getTaskInfo(expectedTaskCpu);
-    ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(expectedExecutorMem);
+    Optional<ExecutorInfo> execInfo = Optional.of(TaskTestUtils.getExecutorInfo(expectedExecutorMem));
 
     // Set incorrect ExecutorID
     execInfo = Optional.of(
@@ -632,7 +629,7 @@ public class OfferEvaluatorTest {
     TaskInfo taskInfo = TaskTestUtils.getTaskInfo(expectedTaskCpu);
     ExecutorInfo execInfo = TaskTestUtils.getExistingExecutorInfo(expectedExecutorMem);
 
-    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
+    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), Optional.of(execInfo));
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
@@ -656,7 +653,7 @@ public class OfferEvaluatorTest {
     TaskInfo taskInfo = TaskTestUtils.getTaskInfo(expectedTaskCpu);
     ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(expectedExecutorMem);
 
-    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), execInfo);
+    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo), Optional.of(execInfo));
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
@@ -679,7 +676,9 @@ public class OfferEvaluatorTest {
     TaskInfo taskInfo0 = TaskTestUtils.getTaskInfo(desiredTask0Cpu);
     TaskInfo taskInfo1 = TaskTestUtils.getTaskInfo(desiredTask1Cpu);
     ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(desiredExecutorCpu);
-    OfferRequirement offerRequirement = new OfferRequirement(Arrays.asList(taskInfo0, taskInfo1), execInfo);
+    OfferRequirement offerRequirement = new OfferRequirement(
+            Arrays.asList(taskInfo0, taskInfo1),
+            Optional.of(execInfo));
     List<OfferRecommendation> recommendations = evaluator.evaluate(
             offerRequirement,
             Arrays.asList(OfferTestUtils.getOffer(null, Arrays.asList(offeredResource))));

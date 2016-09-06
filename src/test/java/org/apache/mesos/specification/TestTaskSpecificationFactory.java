@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.ResourceTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +36,7 @@ public class TestTaskSpecificationFactory {
                 count,
                 name,
                 getCommand(cmd),
-                getResources(cpu, mem, ResourceTestUtils.testRole, ResourceTestUtils.testPrincipal));
+                getResources(cpu, mem, TestConstants.role, TestConstants.principal));
     }
 
     private static Protos.CommandInfo getCommand(String cmd) {

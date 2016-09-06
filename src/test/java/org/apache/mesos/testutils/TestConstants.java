@@ -23,4 +23,10 @@ public class TestConstants {
     public static final String resourceId = "test-resource-id";
     public static final Protos.ExecutorID executorId = ExecutorUtils.toExecutorId(executorName);
     public static final Protos.TaskID taskId = TaskUtils.toTaskId(taskName);
+    public static final Protos.MasterInfo masterInfo =
+            Protos.MasterInfo.newBuilder()
+                    .setId("test-master-id")
+                    .setIp(0)
+                    .setPort(0)
+                    .build();
 }

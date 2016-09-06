@@ -3,17 +3,23 @@ package org.apache.mesos.scheduler;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.offer.ResourceTestUtils;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
-import org.apache.mesos.specification.*;
+import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TaskTypeSpecification;
+import org.apache.mesos.specification.TestTaskSpecificationFactory;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
 import org.junit.*;
 import org.junit.rules.Timeout;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -23,9 +29,7 @@ import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollection;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the DefaultScheduler class.
@@ -369,45 +373,45 @@ public class DefaultSchedulerTest {
     }
 
     private void register() {
-        defaultScheduler.registered(mockSchedulerDriver, ResourceTestUtils.testFrameworkId, ResourceTestUtils.testMasterInfo);
+        defaultScheduler.registered(mockSchedulerDriver, TestConstants.frameworkId, TestConstants.masterInfo);
     }
 
     private Protos.Offer getInsufficientOfferForTaskA(UUID offerId) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(ResourceTestUtils.testFrameworkId)
-                .setSlaveId(ResourceTestUtils.testSlaveId)
-                .setHostname(ResourceTestUtils.testHostname)
+                .setFrameworkId(TestConstants.frameworkId)
+                .setSlaveId(TestConstants.agentId)
+                .setHostname(TestConstants.hostname)
                 .addAllResources(
                         Arrays.asList(
-                                ResourceTestUtils.getOfferedUnreservedScalar("cpus", TASK_A_CPU / 2.0),
-                                ResourceTestUtils.getOfferedUnreservedScalar("mem", TASK_A_MEM / 2.0)))
+                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU / 2.0),
+                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM / 2.0)))
                 .build();
     }
 
     private Protos.Offer getSufficientOfferForTaskA(UUID offerId) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(ResourceTestUtils.testFrameworkId)
-                .setSlaveId(ResourceTestUtils.testSlaveId)
-                .setHostname(ResourceTestUtils.testHostname)
+                .setFrameworkId(TestConstants.frameworkId)
+                .setSlaveId(TestConstants.agentId)
+                .setHostname(TestConstants.hostname)
                 .addAllResources(
                         Arrays.asList(
-                                ResourceTestUtils.getOfferedUnreservedScalar("cpus", TASK_A_CPU),
-                                ResourceTestUtils.getOfferedUnreservedScalar("mem", TASK_A_MEM)))
+                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU),
+                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM)))
                 .build();
     }
 
     private Protos.Offer getSufficientOfferForTaskB(UUID offerId) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(ResourceTestUtils.testFrameworkId)
-                .setSlaveId(ResourceTestUtils.testSlaveId)
-                .setHostname(ResourceTestUtils.testHostname)
+                .setFrameworkId(TestConstants.frameworkId)
+                .setSlaveId(TestConstants.agentId)
+                .setHostname(TestConstants.hostname)
                 .addAllResources(
                         Arrays.asList(
-                                ResourceTestUtils.getOfferedUnreservedScalar("cpus", TASK_B_CPU),
-                                ResourceTestUtils.getOfferedUnreservedScalar("mem", TASK_B_MEM)))
+                                ResourceTestUtils.getUnreservedCpu(TASK_B_CPU),
+                                ResourceTestUtils.getUnreservedMem(TASK_B_MEM)))
                 .build();
     }
 

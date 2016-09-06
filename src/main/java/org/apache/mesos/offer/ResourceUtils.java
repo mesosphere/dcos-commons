@@ -9,6 +9,8 @@ import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
 import org.apache.mesos.specification.ResourceSpecification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -272,6 +274,8 @@ public class ResourceUtils {
     }
 
     return false;
+  }
+
   public static Resource addReservation(Resource resource, String principal, String resourceId) {
     return Resource.newBuilder(resource)
             .setReservation(ReservationInfo.newBuilder()

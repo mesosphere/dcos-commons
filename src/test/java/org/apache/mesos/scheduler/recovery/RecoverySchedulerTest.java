@@ -23,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
@@ -125,7 +126,7 @@ public class RecoverySchedulerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
         when(recoveryRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
@@ -168,7 +169,7 @@ public class RecoverySchedulerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
         launchConstrainer.setCanLaunch(true);
 
         when(recoveryRequirementProvider.getTransientRecoveryOfferRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
@@ -248,7 +249,7 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(desiredCpu);
         Resource mem = ResourceTestUtils.getDesiredMem(desiredMem);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
 
         List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
 
