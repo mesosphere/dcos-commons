@@ -27,7 +27,7 @@ public class TaskUtils {
     /**
      * Converts the unique {@link TaskID} into a Framework defined task name.
      *
-     * For example: "instance-0_aoeu5678" => "instance-0"
+     * For example: "instance-0__aoeu5678" => "instance-0"
      */
     public static String toTaskName(TaskID taskId) throws TaskException {
         int underScoreIndex = taskId.getValue().lastIndexOf(TASK_NAME_DELIM);
@@ -44,7 +44,7 @@ public class TaskUtils {
     /**
      * Converts the Framework defined task name into a unique {@link TaskID}.
      *
-     * For example: "instance-0" => "instance-0_aoeu5678"
+     * For example: "instance-0" => "instance-0__aoeu5678"
      */
     public static TaskID toTaskId(String taskName) {
         return TaskID.newBuilder()

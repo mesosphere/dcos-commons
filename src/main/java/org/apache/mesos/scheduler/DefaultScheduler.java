@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultScheduler implements Scheduler {
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
+    private static final Integer AWAIT_TERMINATION_TIMEOUT_SEC = 10;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
@@ -65,7 +66,7 @@ public class DefaultScheduler implements Scheduler {
 
     void awaitTermination() throws InterruptedException {
         executor.shutdown();
-        executor.awaitTermination(10, TimeUnit.SECONDS);
+        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_SEC, TimeUnit.SECONDS);
     }
 
     Plan getPlan() {
