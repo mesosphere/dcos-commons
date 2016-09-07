@@ -3,6 +3,8 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -44,9 +46,18 @@ public class TestBlock implements Block {
     }
 
     @Override
-    public OfferRequirement start() {
+    public Optional<OfferRequirement> start() {
         setStatus(Status.IN_PROGRESS);
-        return null; // no requirements
+        return Optional.empty();
+    }
+
+    @Override
+    public void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional) {
+        if (!operationsOptional.isPresent()) {
+            setStatus(Status.PENDING);
+        } else {
+            setStatus(Status.IN_PROGRESS);
+        }
     }
 
     @Override
@@ -67,14 +78,5 @@ public class TestBlock implements Block {
     @Override
     public String getName() {
         return "test-block";
-    }
-
-    @Override
-    public void updateOfferStatus(boolean accepted) {
-        if (!accepted) {
-            setStatus(Status.PENDING);
-        } else {
-            setStatus(Status.IN_PROGRESS);
-        }
     }
 }

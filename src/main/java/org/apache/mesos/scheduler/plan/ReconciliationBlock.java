@@ -1,5 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
+import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.mesos.Protos;
@@ -58,7 +60,7 @@ public class ReconciliationBlock implements Block {
     }
 
     @Override
-    public OfferRequirement start() {
+    public Optional<OfferRequirement> start() {
         try {
             reconciler.start();
             isPending = false;
@@ -66,12 +68,12 @@ public class ReconciliationBlock implements Block {
             isPending = true; // try again later
             logger.error("Failed to retrieve TaskStatus Set to proceed with reconciliation.", ex);
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public void updateOfferStatus(boolean accepted) {
-        if (accepted) {
+    public void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional) {
+        if (operationsOptional.isPresent()) {
             throw new UnsupportedOperationException(
                     "updateOfferStatus() not expected: start() always returns null");
         }

@@ -80,11 +80,11 @@ public class OfferAccepterTest {
   }
 
   public static class TestOperationRecorder implements OperationRecorder {
-    private List<Operation> reserves = new ArrayList<Operation>();
-    private List<Operation> unreserves = new ArrayList<Operation>();
-    private List<Operation> creates = new ArrayList<Operation>();
-    private List<Operation> destroys = new ArrayList<Operation>();
-    private List<Operation> launches = new ArrayList<Operation>();
+    private List<Operation> reserves = new ArrayList<>();
+    private List<Operation> unreserves = new ArrayList<>();
+    private List<Operation> creates = new ArrayList<>();
+    private List<Operation> destroys = new ArrayList<>();
+    private List<Operation> launches = new ArrayList<>();
 
     public void record(Operation operation, Offer offer) throws Exception {
       switch (operation.getType()) {

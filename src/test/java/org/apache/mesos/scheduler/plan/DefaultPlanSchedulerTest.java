@@ -1,14 +1,9 @@
 package org.apache.mesos.scheduler.plan;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.InvalidRequirementException;
@@ -23,15 +18,16 @@ import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.scheduler.TaskKiller;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 /**
- * Tests for {@link DefaultStageScheduler}.
+ * Tests for {@link DefaultPlanScheduler}.
  */
-public class DefaultStageSchedulerTest {
+public class DefaultPlanSchedulerTest {
 
     private static final List<TaskInfo> TASKINFOS = Arrays.asList(TaskInfo.newBuilder()
             .setName("hi")
@@ -55,13 +51,14 @@ public class DefaultStageSchedulerTest {
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
     @Mock private SchedulerDriver mockSchedulerDriver;
+    @Mock private TaskKiller mockTaskKiller;
 
-    private DefaultStageScheduler scheduler;
+    private DefaultPlanScheduler scheduler;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        scheduler = new DefaultStageScheduler(mockOfferAccepter, mockOfferEvaluator);
+        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockTaskKiller);
     }
 
     @Test
@@ -89,13 +86,11 @@ public class DefaultStageSchedulerTest {
     @Test
     public void testEvaluateNoRecommendations() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.PENDING);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
-
-        assertTrue(block.offerStatus.isPresent());
+        assertFalse(block.operationsOptional.isPresent());
         verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
         assertTrue(block.isPending());
     }
@@ -103,16 +98,12 @@ public class DefaultStageSchedulerTest {
     @Test
     public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.PENDING);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
-        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
-                .thenReturn(new ArrayList<>());
+        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
-
-        assertTrue(block.offerStatus.isPresent());
-        assertFalse(block.offerStatus.get());
+        assertFalse(block.operationsOptional.isPresent());
         verify(mockOfferAccepter).accept(mockSchedulerDriver, RECOMMENDATIONS);
         assertTrue(block.isPending());
     }
@@ -120,38 +111,39 @@ public class DefaultStageSchedulerTest {
     @Test
     public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement)
-                .setStatus(Status.PENDING);
+        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
-        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS))
-                .thenReturn(ACCEPTED_IDS);
+        when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(ACCEPTED_IDS);
 
         assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block));
-
-        assertTrue(block.offerStatus.isPresent());
-        assertTrue(block.offerStatus.get());
+        assertTrue(block.operationsOptional.isPresent());
         assertTrue(block.isInProgress());
     }
 
     private static class TestOfferBlock extends TestBlock {
         private final OfferRequirement requirement;
-        private Optional<Boolean> offerStatus = Optional.empty();
+        private Optional<Collection<Operation>> operationsOptional;
 
         private TestOfferBlock(OfferRequirement requirementToReturn) {
             super();
             this.requirement = requirementToReturn;
+            this.operationsOptional = Optional.empty();
         }
 
         @Override
-        public OfferRequirement start() {
+        public Optional<OfferRequirement> start() {
             super.start();
-            return requirement;
+            if (requirement == null) {
+                return Optional.empty();
+            } else {
+                return Optional.of(requirement);
+            }
         }
 
         @Override
-        public void updateOfferStatus(boolean accepted) {
-            super.updateOfferStatus(accepted);
-            offerStatus = Optional.of(accepted);
+        public void updateOfferStatus(Optional<Collection<Operation>> operationsOptional) {
+            super.updateOfferStatus(operationsOptional);
+            this.operationsOptional = operationsOptional;
         }
     }
 }

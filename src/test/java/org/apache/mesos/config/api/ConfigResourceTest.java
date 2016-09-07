@@ -1,8 +1,5 @@
 package org.apache.mesos.config.api;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.ConfigurationFactory;
@@ -13,9 +10,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.UUID;
-import javax.ws.rs.core.Response;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 public class ConfigResourceTest {
 

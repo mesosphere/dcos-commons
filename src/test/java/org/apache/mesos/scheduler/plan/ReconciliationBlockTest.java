@@ -1,12 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.Set;
-
+import com.google.common.collect.Sets;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.reconciliation.Reconciler;
@@ -15,7 +10,13 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link ReconciliationBlock}.
@@ -45,13 +46,13 @@ public class ReconciliationBlockTest {
     @Test
     public void testStart_statusProviderFailure() throws Exception {
         doThrow(new RuntimeException("hello")).when(mockReconciler).start();
-        assertNull(block.start());
+        assertFalse(block.start().isPresent());
         assertTrue(block.isPending());
     }
 
     @Test
     public void testStart() throws Exception {
-        assertNull(block.start());
+        assertFalse(block.start().isPresent());
         assertFalse(block.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
@@ -64,7 +65,7 @@ public class ReconciliationBlockTest {
 
     @Test
     public void testStartInProgressRestart() throws Exception {
-        assertNull(block.start());
+        assertFalse(block.start().isPresent());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
         assertTrue(block.isInProgress());
@@ -74,7 +75,7 @@ public class ReconciliationBlockTest {
 
     @Test
     public void testStartCompleteRestart() throws Exception {
-        assertNull(block.start());
+        assertFalse(block.start().isPresent());
         assertFalse(block.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(true);
@@ -94,7 +95,7 @@ public class ReconciliationBlockTest {
 
     @Test
     public void testForceCompleteFromInProgress() throws Exception {
-        assertNull(block.start());
+        assertFalse(block.start().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(false);
         assertTrue(block.isInProgress());
 
@@ -105,7 +106,7 @@ public class ReconciliationBlockTest {
 
     @Test
     public void testForceCompleteFromComplete() throws Exception {
-        assertNull(block.start());
+        assertFalse(block.start().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(true);
         assertTrue(block.isComplete());
 
@@ -116,12 +117,13 @@ public class ReconciliationBlockTest {
     @Test
     public void testUpdateOfferStatusFalseSucceeds() {
         // Expect no exception to be thrown
-        block.updateOfferStatus(false);
+        block.updateOfferStatus(Optional.empty());
     }
 
     @Test(expected=UnsupportedOperationException.class)
     public void testUpdateOfferStatusTrueFails() {
-        block.updateOfferStatus(true);
+        List<Protos.Offer.Operation> operations = new ArrayList<>();
+        block.updateOfferStatus(Optional.of(operations));
     }
 
     @Test

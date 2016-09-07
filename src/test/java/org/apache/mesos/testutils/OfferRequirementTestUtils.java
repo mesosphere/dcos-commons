@@ -4,10 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class provides utility methods for tests concerned with OfferRequirements.
@@ -26,7 +23,7 @@ public class OfferRequirementTestUtils {
             throws InvalidRequirementException {
         return new OfferRequirement(
                 Arrays.asList(TaskTestUtils.getTaskInfo(resource)),
-                null,
+                Optional.empty(),
                 toSlaveIds(avoidAgents),
                 toSlaveIds(collocateAgents));
     }

@@ -5,38 +5,38 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Immutable JSON serialization object for a Stage which omits child Phases.
+ * Immutable JSON serialization object for a Plan which omits child Phases.
  */
-class CurrentlyActiveStageInfo {
+class CurrentlyActivePlanInfo {
 
     private final Integer phaseCount;
     private final List<String> errors;
     private final Status status;
 
     @JsonCreator
-    public static CurrentlyActiveStageInfo create(
+    public static CurrentlyActivePlanInfo create(
             @JsonProperty("phase_count") final Integer phaseCount,
             @JsonProperty("errors") final List<String> errors,
             @JsonProperty("status") final Status status) {
-        return new CurrentlyActiveStageInfo(phaseCount, errors, status);
+        return new CurrentlyActivePlanInfo(phaseCount, errors, status);
     }
 
-    public static CurrentlyActiveStageInfo forStage(final StageManager manager) {
-        return create(manager.getStage().getPhases().size(),
-                manager.getStage().getErrors(),
+    public static CurrentlyActivePlanInfo forStage(final PlanManager manager) {
+        return create(manager.getPlan().getPhases().size(),
+                manager.getPlan().getErrors(),
                 manager.getStatus());
     }
 
-    private CurrentlyActiveStageInfo(final Integer phaseCount,
-                     final List<String> errors,
-                     final Status status) {
+    private CurrentlyActivePlanInfo(final Integer phaseCount,
+                                    final List<String> errors,
+                                    final Status status) {
         this.phaseCount = phaseCount;
         this.errors = errors;
         this.status = status;

@@ -1,19 +1,19 @@
 package org.apache.mesos.state.api;
 
-import java.util.Arrays;
+import com.googlecode.protobuf.format.JsonFormat;
+import org.apache.mesos.Protos;
+import org.apache.mesos.state.StateStore;
+import org.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.apache.mesos.state.StateStore;
-import org.json.JSONArray;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.googlecode.protobuf.format.JsonFormat;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * A read-only API for accessing task and frameworkId state from persistent storage.
@@ -56,13 +56,16 @@ public class StateResource {
     @GET
     public Response getFrameworkId() {
         try {
-            JSONArray idArray = new JSONArray(
-                    Arrays.asList(stateStore.fetchFrameworkId().getValue()));
-            return Response.ok(idArray.toString(), MediaType.APPLICATION_JSON).build();
+            Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
+            if (frameworkIDOptional.isPresent()) {
+                JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
+                return Response.ok(idArray.toString(), MediaType.APPLICATION_JSON).build();
+            }
         } catch (Exception ex) {
             logger.error("Failed to fetch target configuration", ex);
-            return Response.serverError().build();
         }
+
+        return Response.serverError().build();
     }
 
     /**
@@ -89,14 +92,18 @@ public class StateResource {
     public Response getTaskInfo(@PathParam("taskName") String taskName) {
         try {
             logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
-            return Response.ok(new JsonFormat().printToString(stateStore.fetchTask(taskName)),
-                    MediaType.APPLICATION_JSON).build();
+            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
+            if (taskInfoOptional.isPresent()) {
+                return Response.ok(new JsonFormat().printToString(taskInfoOptional.get()),
+                        MediaType.APPLICATION_JSON).build();
+            }
         } catch (Exception ex) {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format(
                     "Failed to fetch requested TaskInfo for task '%s'", taskName), ex);
-            return Response.serverError().build();
         }
+
+        return Response.serverError().build();
     }
 
     /**

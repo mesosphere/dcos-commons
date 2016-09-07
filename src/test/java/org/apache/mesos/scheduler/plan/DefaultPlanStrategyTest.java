@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * This class tests the {@link DefaultStageStrategy}.
  */
-public class DefaultStageStrategyTest {
+public class DefaultPlanStrategyTest {
     private Phase phase;
     private DefaultStageStrategy strategy;
 

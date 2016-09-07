@@ -16,8 +16,6 @@ public interface Reconciler {
      * currently knows about task status.
      * <p>
      * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
-     *
-     * @param tasks Current set of tasks known by the Scheduler, which will be reconciled with Mesos
      */
     void start();
 

@@ -6,10 +6,10 @@ import org.apache.mesos.SchedulerDriver;
 import java.util.List;
 
 /**
- * Interface for Stage schedulers. Attempts to start {@link Block}s, while fulfilling any
+ * Interface for Plan schedulers. Attempts to start {@link Block}s, while fulfilling any
  * {@link OfferRequirement} they provide.
  */
-public interface StageScheduler {
+public interface PlanScheduler {
   /**
    * Processes the provided {@code offers} using the provided {@code driver} against the provided
    * {@code block}. {@code block} should be whatever block is currently the next pending block in

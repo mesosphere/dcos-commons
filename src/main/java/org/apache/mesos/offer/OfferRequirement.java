@@ -1,13 +1,14 @@
 package org.apache.mesos.offer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * An OfferRequirement encapsulates the needed resources an Offer must have.
@@ -26,13 +27,13 @@ public class OfferRequirement {
 
   public OfferRequirement(
     Collection<TaskInfo> taskInfos,
-    ExecutorInfo execInfo,
+    Optional<ExecutorInfo> executorInfoOptional,
     Collection<SlaveID> avoidAgents,
     Collection<SlaveID> colocateAgents)
     throws InvalidRequirementException {
     this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-    if (execInfo != null) {
-      this.executorRequirement = ExecutorRequirement.create(execInfo);
+    if (executorInfoOptional.isPresent()) {
+      this.executorRequirement = ExecutorRequirement.create(executorInfoOptional.get());
     }
 
     if (avoidAgents == null) {
@@ -49,12 +50,12 @@ public class OfferRequirement {
   }
 
   public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
-    this(taskInfos, null, Collections.emptyList(), Collections.emptyList());
+    this(taskInfos, Optional.empty(), Collections.emptyList(), Collections.emptyList());
   }
 
-  public OfferRequirement(Collection<TaskInfo> taskInfos, ExecutorInfo execInfo)
+  public OfferRequirement(Collection<TaskInfo> taskInfos, Optional<ExecutorInfo> executorInfoOptional)
       throws InvalidRequirementException {
-    this(taskInfos, execInfo, Collections.emptyList(), Collections.emptyList());
+    this(taskInfos, executorInfoOptional, Collections.emptyList(), Collections.emptyList());
   }
 
   public Collection<TaskRequirement> getTaskRequirements() {

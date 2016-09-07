@@ -1,13 +1,7 @@
 package org.apache.mesos.state.api;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.SlaveID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskState;
-import org.apache.mesos.Protos.TaskStatus;
+import com.googlecode.protobuf.format.JsonFormat;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
@@ -17,11 +11,13 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.googlecode.protobuf.format.JsonFormat;
-
+import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.Response;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 public class StateResourceTest {
 
@@ -38,7 +34,7 @@ public class StateResourceTest {
     @Test
     public void testGetFrameworkId() {
         FrameworkID id = FrameworkID.newBuilder().setValue("aoeu-asdf").build();
-        when(mockStateStore.fetchFrameworkId()).thenReturn(id);
+        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.of(id));
         Response response = resource.getFrameworkId();
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
@@ -81,7 +77,7 @@ public class StateResourceTest {
                 .setTaskId(TaskUtils.toTaskId(taskName))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
                 .build();
-        when(mockStateStore.fetchTask(taskName)).thenReturn(taskInfo);
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.getTaskInfo(taskName);
         assertEquals(200, response.getStatus());
         assertEquals(new JsonFormat().printToString(taskInfo), (String) response.getEntity());

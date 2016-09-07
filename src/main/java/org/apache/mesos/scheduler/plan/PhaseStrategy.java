@@ -14,7 +14,7 @@ public interface PhaseStrategy {
     Block getCurrentBlock();
 
     /**
-     * If the current Stage is interrupted at this Phase. This phase should
+     * If the current Plan is interrupted at this Phase. This phase should
      * now proceed with execution.
      */
     void proceed();

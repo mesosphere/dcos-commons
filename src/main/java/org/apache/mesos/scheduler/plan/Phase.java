@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Defines the interface for one {@link Phase} within a {@link Stage}. A Phase is an ordered list of
+ * Defines the interface for one {@link Phase} within a {@link Plan}. A Phase is an ordered list of
  * one or more {@link Blocks}s, which each describe a single unit of work.
  * <p>
  * For example, a Block might represent a cluster task that needs to be updated, while the Phase is
  * a list of all of those cluster tasks.
  * <p>
- * See {@link Stage} docs for more background.
+ * See {@link Plan} docs for more background.
  */
 public interface Phase extends Completable {
 

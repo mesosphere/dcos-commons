@@ -48,7 +48,7 @@ public class OfferAccepter {
   public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations, Filters filters) {
     if (CollectionUtils.isEmpty(recommendations)) {
       logger.warn("No recommendations, nothing to do");
-      return new ArrayList<OfferID>();
+      return new ArrayList<>();
     }
 
     List<OfferID> offerIds = getOfferIds(recommendations);
@@ -60,7 +60,7 @@ public class OfferAccepter {
       record(recommendations);
     } catch (Exception ex) {
       logger.error("Failed to record Operations so not launching Task", ex);
-      return new ArrayList<OfferID>();
+      return new ArrayList<>();
     }
 
     if (CollectionUtils.isNotEmpty(operations)) {
@@ -81,7 +81,7 @@ public class OfferAccepter {
   }
 
   private static List<Operation> getOperations(List<OfferRecommendation> recommendations) {
-    List<Operation> operations = new ArrayList<Operation>();
+    List<Operation> operations = new ArrayList<>();
 
     for (OfferRecommendation recommendation : recommendations) {
       if (recommendation instanceof LaunchOfferRecommendation &&
@@ -97,13 +97,13 @@ public class OfferAccepter {
   }
 
   private static List<OfferID> getOfferIds(List<OfferRecommendation> recommendations) {
-    Set<OfferID> offerIdSet = new HashSet<OfferID>();
+    Set<OfferID> offerIdSet = new HashSet<>();
 
     for (OfferRecommendation recommendation : recommendations) {
       offerIdSet.add(recommendation.getOffer().getId());
     }
 
-    return new ArrayList<OfferID>(offerIdSet);
+    return new ArrayList<>(offerIdSet);
   }
 
   private static void logOperations(List<Operation> operations) {

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.StageManager;
+import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.Objects;
@@ -32,11 +32,11 @@ class CurrentlyActivePhaseInfo {
     }
 
     public static CurrentlyActivePhaseInfo forPhase(
-            final Phase phase, final StageManager stageManager) {
+            final Phase phase, final PlanManager planManager) {
         return create(phase.getId().toString(),
                 phase.getName(),
                 phase.getBlocks().size(),
-                stageManager.getPhaseStatus(phase.getId()));
+                planManager.getPhaseStatus(phase.getId()));
     }
 
     private CurrentlyActivePhaseInfo(final String id,

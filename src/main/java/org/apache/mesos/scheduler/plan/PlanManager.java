@@ -4,20 +4,21 @@ import org.apache.mesos.Protos;
 
 import java.util.List;
 import java.util.Observer;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Interface for StageManagers.
+ * Interface for PlanManagers.
  */
-public interface StageManager extends Observer {
+public interface PlanManager extends Observer {
 
-    Stage getStage();
+    Plan getPlan();
 
-    void setStage(Stage stage);
+    void setPlan(Plan plan);
 
-    Phase getCurrentPhase();
+    Optional<Phase> getCurrentPhase();
 
-    Block getCurrentBlock();
+    Optional<Block> getCurrentBlock();
 
     boolean isComplete();
 
