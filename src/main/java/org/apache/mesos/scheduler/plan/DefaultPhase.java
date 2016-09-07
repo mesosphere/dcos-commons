@@ -2,8 +2,8 @@ package org.apache.mesos.scheduler.plan;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.*;
 
@@ -181,10 +181,6 @@ public class DefaultPhase implements Phase {
 
     @Override
     public String toString() {
-        return "DefaultPhase{" +
-                "blocks=" + blocks +
-                ", name='" + name + '\'' +
-                ", id=" + id +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

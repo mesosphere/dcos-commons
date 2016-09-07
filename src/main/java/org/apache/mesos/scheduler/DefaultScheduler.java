@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultScheduler implements Scheduler {
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
-    private static final Integer AWAIT_TERMINATION_TIMEOUT_SEC = 10;
+    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
@@ -66,7 +66,7 @@ public class DefaultScheduler implements Scheduler {
 
     void awaitTermination() throws InterruptedException {
         executor.shutdown();
-        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_SEC, TimeUnit.SECONDS);
+        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 
     Plan getPlan() {
@@ -148,7 +148,7 @@ public class DefaultScheduler implements Scheduler {
 
     private ResourceCleanerScheduler getCleanerScheduler() {
         try {
-            ResourceCleaner cleaner = new ResourceCleaner(stateStore.getExpectedResources());
+            ResourceCleaner cleaner = new ResourceCleaner(stateStore);
             return new ResourceCleanerScheduler(cleaner, offerAccepter);
         } catch (Exception ex) {
             logger.error("Failed to construct ResourceCleaner", ex);
@@ -211,7 +211,10 @@ public class DefaultScheduler implements Scheduler {
             public void run() {
                 logOffers(offers);
 
-                // Task Reconciliation
+                // Task Reconciliation:
+                // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+                // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+                // http://mesos.apache.org/documentation/latest/reconciliation/
                 reconciler.reconcile(driver);
                 List<Protos.OfferID> acceptedOffers = new ArrayList<>();
                 if (!reconciler.isReconciled()) {
@@ -219,7 +222,11 @@ public class DefaultScheduler implements Scheduler {
                     return;
                 }
 
-                // Deployment
+                // Deployment:
+                // The PlanManager provides blocks of work usually representing a Task to a PlanScheduler to be
+                // evaluated against the Offer stream.  The PlanScheduler launches Tasks and reserves Resources and
+                // Creates volumes where appropriate.  It's work is complete once all Tasks have been deployed to the
+                // current target configuration.
                 Optional<Block> block = planManager.getCurrentBlock();
                 if (block.isPresent()) {
                     acceptedOffers = planScheduler.resourceOffers(driver, offers, block.get());
@@ -228,14 +235,22 @@ public class DefaultScheduler implements Scheduler {
                 }
                 List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
 
-                // Recovery
+                // Recovery:
+                // Post deployment it is the role of a RecoveryScheduler to monitor service state for failed task and
+                // restart them appropriately.  It restarts tasks destructively or not depending upon the configuration
+                // of the TaskFailureMonitor.
                 try {
                     acceptedOffers.addAll(recoveryScheduler.resourceOffers(driver, unacceptedOffers, block));
                 } catch (Exception e) {
                     logger.error("Error repairing block: " + block + " Reason: " + e);
                 }
 
-                // Leaked resource recovery
+                // Resource Cleaning:
+                // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
+                // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
+                // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
+                // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
+                // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
                     acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
@@ -243,7 +258,10 @@ public class DefaultScheduler implements Scheduler {
 
                 declineOffers(driver, acceptedOffers, offers);
 
-                // Kill tasks (for configuration update, or user requested Task restart or replace)
+                // Kill tasks (for configuration update, or user requested Task restart or replace):
+                // It is the normal state of affairs, that in order to update the configuration of a Task it must be
+                // restarted.  In order to drive the restart process, it is necessary to give some component, the
+                // TaskKiller, an opportunity to kill Tasks so that they may be redeployed with a new configuration.
                 taskKiller.process(driver);
             }
         });
@@ -285,7 +303,6 @@ public class DefaultScheduler implements Scheduler {
             Protos.SlaveID slaveId,
             byte[] data) {
         logger.error("Received a Framework Message, but don't know how to process it");
-        hardExit(SchedulerErrorCode.FRAMEWORK_MESSAGE);
     }
 
     @Override
@@ -295,12 +312,14 @@ public class DefaultScheduler implements Scheduler {
     }
 
     @Override
-    public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
-        logger.warn("Slave lost: " + slaveId);
+    public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
+        // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
+        logger.warn("Agent lost: " +  agentId);
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
+        // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
         logger.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
     }
 

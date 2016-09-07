@@ -28,7 +28,7 @@ public class PlanResource {
     @GET
     @Path("/status")
     public CurrentlyActiveInfo getStatus() {
-        return CurrentlyActiveInfo.forStage(manager);
+        return CurrentlyActiveInfo.forPlan(manager);
     }
 
     /**

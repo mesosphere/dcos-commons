@@ -85,7 +85,7 @@ public class PlanInfoTest {
         when(mockPlanManager.getPhaseStatus(phase1Id)).thenReturn(phase1Status);
         when(mockPhase1.getBlocks()).thenReturn(new ArrayList<>());
 
-        // plan calls within StageInfo.forStage()
+        // plan calls within StageInfo.forPlan()
 
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
         when(mockPlan.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {

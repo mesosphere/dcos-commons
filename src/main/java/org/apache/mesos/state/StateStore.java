@@ -206,10 +206,4 @@ public interface StateStore extends TaskStatusProvider {
      * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
-
-    /**
-     * Provides the list of Resources which are expected to be reserved to a particular role.
-     * @return
-     */
-    List<Protos.Resource> getExpectedResources();
 }

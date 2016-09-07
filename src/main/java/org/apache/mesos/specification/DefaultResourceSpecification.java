@@ -1,5 +1,6 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
 /**
@@ -40,11 +41,6 @@ public class DefaultResourceSpecification implements ResourceSpecification {
 
     @Override
     public String toString() {
-        return "DefaultResourceSpecification{" +
-                "name='" + name + '\'' +
-                ", value=" + value +
-                ", role='" + role + '\'' +
-                ", principal='" + principal + '\'' +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

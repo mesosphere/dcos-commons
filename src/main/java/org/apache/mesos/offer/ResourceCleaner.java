@@ -36,15 +36,7 @@ public class ResourceCleaner {
      *             if there's a failure when retrieving resource information
      */
     public ResourceCleaner(StateStore stateStore) {
-        this(getExpectedResources(stateStore));
-    }
-
-    /**
-     * Creates a new {@link ResourceCleaner} using the provided expected resource information.
-     *
-     * @param expectedResources a list of all expected resources
-     */
-    public ResourceCleaner(Collection<Resource> expectedResources) {
+        Collection<Resource> expectedResources = getExpectedResources(stateStore);
         this.expectedPersistentVolumeIds = getPersistentVolumeIds(expectedResources);
         this.expectedReservedResourceIds = getReservedResourceIds(expectedResources);
     }

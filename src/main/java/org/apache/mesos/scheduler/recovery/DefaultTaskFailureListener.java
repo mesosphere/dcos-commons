@@ -32,7 +32,7 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
                 logger.error("TaskInfo for TaskID was not present in the StateStore: " + taskId);
             }
         } catch (TaskException e) {
-            logger.error("Failed to fetch Task for taskId: " + taskId + " with exception:", e);
+            logger.error("Failed to fetch/store Task for taskId: " + taskId + " with exception:", e);
         }
     }
 }

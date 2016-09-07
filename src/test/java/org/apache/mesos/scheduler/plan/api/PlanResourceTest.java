@@ -45,7 +45,7 @@ public class PlanResourceTest {
 
         assertNull(activeInfo.getBlock());
         assertNull(activeInfo.getPhaseStatus());
-        CurrentlyActiveStageInfo stageInfo = activeInfo.getStageStatus();
+        CurrentlyActivePlanInfo stageInfo = activeInfo.getPlanStatus();
         assertEquals(Status.COMPLETE, stageInfo.getStatus());
         assertEquals(Integer.valueOf(0), stageInfo.getPhaseCount());
         assertTrue(stageInfo.getErrors().isEmpty());

@@ -38,7 +38,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
             Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
             if (oldResource != null) {
-                updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
+                try {
+                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
+                } catch (IllegalArgumentException e) {
+                    logger.error("Failed to update Resources with exception: ", e);
+                    // On failure to update resources keep the old resources.
+                    updatedResources.add(oldResource);
+                }
             } else {
                 updatedResources.add(
                         ResourceUtils.getDesiredResource(resourceSpecification));

@@ -4,7 +4,6 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
 import org.apache.mesos.dcos.DcosConstants;
-import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.SchemaVersionStore;
@@ -149,7 +148,7 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve FrameworkID in '%s'", fwkIdPath));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No FrameworkId found.");
+            logger.warn("No FrameworkId found at: " + fwkIdPath);
             return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -195,7 +194,9 @@ public class CuratorStateStore implements StateStore {
         }
 
         if (!optionalTaskInfo.isPresent()) {
-            throw new StateStoreException("The following TaskStatus is not present in the StateStore: " + taskName);
+            throw new StateStoreException(
+                    String.format("The following TaskInfo is not present in the StateStore: %s. " +
+                            "TaskInfo must be present in order to store a TaskStatus.", taskName));
         }
 
         if (!optionalTaskInfo.get().getTaskId().getValue().equals(status.getTaskId().getValue())) {
@@ -281,7 +282,7 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve TaskInfo for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName);
+            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
             return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -380,32 +381,6 @@ public class CuratorStateStore implements StateStore {
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
-    }
-
-    @Override
-    public List<Protos.Resource> getExpectedResources() {
-        List<Protos.Resource> resources = new ArrayList<>();
-        try {
-            for (Protos.TaskInfo taskInfo : fetchTasks()) {
-                for (Protos.Resource resource : taskInfo.getResourcesList()) {
-                    if (ResourceUtils.getResourceId(resource) != null) {
-                        resources.add(resource);
-                    }
-                }
-
-                if (taskInfo.hasExecutor()) {
-                    for (Protos.Resource resource : taskInfo.getExecutor().getResourcesList()) {
-                        if (ResourceUtils.getResourceId(resource) != null) {
-                            resources.add(resource);
-                        }
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            logger.error("Failed to retrieve all Task information", ex);
-            return resources;
-        }
-        return resources;
     }
 
     void close() {

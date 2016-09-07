@@ -9,11 +9,11 @@ import java.util.List;
 /**
  * Implementations of this know how to relaunch tasks from a framework when those tasks crash or fail.
  * <p>
- * The method {@link RecoveryRequirementProvider#getTransientRecoveryOfferRequirements(List)} is called once a
+ * The method {@link RecoveryRequirementProvider#getTransientRecoveryRequirements(List)} is called once a
  * given Task crashes. The implementation should look at the given {@link List<TaskInfo>} in order to know which Tasks
  * it's replacing, and where that task's resources & data have been reserved.
  * <p>
- * The method {@link RecoveryRequirementProvider#getPermanentRecoveryOfferRequirements(List)} is called once the
+ * The method {@link RecoveryRequirementProvider#getPermanentRecoveryRequirements(List)} is called once the
  * framework's {@link FailureMonitor} decides that a task has permanently failed, and a new location is needed to run
  * it. Typically, this means that if the task represented a database node, the data on that node is permanently lost.
  */
@@ -25,7 +25,7 @@ public interface RecoveryRequirementProvider {
      * gone forever.
      * @param stoppedTasks The list of Tasks which have encountered a transient failure.
      */
-    List<RecoveryRequirement> getTransientRecoveryOfferRequirements(List<TaskInfo> stoppedTasks)
+    List<RecoveryRequirement> getTransientRecoveryRequirements(List<TaskInfo> stoppedTasks)
             throws InvalidRequirementException;
 
     /**
@@ -34,6 +34,6 @@ public interface RecoveryRequirementProvider {
      *
      * @param failedTasks The list of Tasks which have encountered a permanent failure.
      */
-    List<RecoveryRequirement> getPermanentRecoveryOfferRequirements(List<TaskInfo> failedTasks)
+    List<RecoveryRequirement> getPermanentRecoveryRequirements(List<TaskInfo> failedTasks)
             throws InvalidRequirementException;
 }

@@ -19,20 +19,20 @@ class CurrentlyActiveInfo {
 
     private final BlockInfo block;
     private final CurrentlyActivePhaseInfo phaseStatus;
-    private final CurrentlyActiveStageInfo stageStatus;
+    private final CurrentlyActivePlanInfo planStatus;
 
     @JsonCreator
     public static CurrentlyActiveInfo create(
             @JsonProperty("block") final Object block,
             @JsonProperty("phase") final Object phase,
-            @JsonProperty("plan") final CurrentlyActiveStageInfo stage) {
+            @JsonProperty("plan") final CurrentlyActivePlanInfo plan) {
         BlockInfo blockInfo = block instanceof BlockInfo ? (BlockInfo) block : null;
         CurrentlyActivePhaseInfo phaseInfo =
             phase instanceof CurrentlyActivePhaseInfo ? (CurrentlyActivePhaseInfo) phase : null;
-        return new CurrentlyActiveInfo(blockInfo, phaseInfo, stage);
+        return new CurrentlyActiveInfo(blockInfo, phaseInfo, plan);
     }
 
-    public static CurrentlyActiveInfo forStage(final PlanManager manager) {
+    public static CurrentlyActiveInfo forPlan(final PlanManager manager) {
         Optional<Block> activeBlockOptional = manager.getCurrentBlock();
         Optional<Phase> activePhaseOptional = manager.getCurrentPhase();
         return create(
@@ -40,15 +40,15 @@ class CurrentlyActiveInfo {
             activePhaseOptional.isPresent() ?
                     CurrentlyActivePhaseInfo.forPhase(activePhaseOptional.get(), manager) :
                     null,
-            CurrentlyActiveStageInfo.forStage(manager));
+            CurrentlyActivePlanInfo.forStage(manager));
     }
 
     private CurrentlyActiveInfo(final BlockInfo block,
                      final CurrentlyActivePhaseInfo phaseStatus,
-                     final CurrentlyActiveStageInfo stageStatus) {
+                     final CurrentlyActivePlanInfo planStatus) {
         this.block = block;
         this.phaseStatus = phaseStatus;
-        this.stageStatus = stageStatus;
+        this.planStatus = planStatus;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL) // omit field when null/COMPLETE
@@ -64,8 +64,8 @@ class CurrentlyActiveInfo {
     }
 
     @JsonProperty("plan")
-    public CurrentlyActiveStageInfo getStageStatus() {
-      return stageStatus;
+    public CurrentlyActivePlanInfo getPlanStatus() {
+      return planStatus;
     }
 
     @Override
@@ -75,7 +75,7 @@ class CurrentlyActiveInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getBlock(), getPhaseStatus(), getStageStatus());
+        return Objects.hash(getBlock(), getPhaseStatus(), getPlanStatus());
     }
 
     @Override

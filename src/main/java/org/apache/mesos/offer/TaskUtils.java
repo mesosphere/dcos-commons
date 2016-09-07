@@ -236,13 +236,17 @@ public class TaskUtils {
     }
 
     public static boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        if (!oldTaskSpecification.getName().equals(newTaskSpecification.getName())) {
-            LOGGER.info("Task names are different.");
+        String oldTaskName = oldTaskSpecification.getName();
+        String newTaskName = newTaskSpecification.getName();
+        if (!Objects.equals(oldTaskName, newTaskName)) {
+            LOGGER.info(String.format("Task names '%s' and '%s' are different.", oldTaskName, newTaskName));
             return true;
         }
 
-        if (!oldTaskSpecification.getCommand().equals(newTaskSpecification.getCommand())) {
-            LOGGER.info("Task commands are different.");
+        CommandInfo oldCommand = oldTaskSpecification.getCommand();
+        CommandInfo newCommand = newTaskSpecification.getCommand();
+        if (!Objects.equals(oldCommand, newCommand)) {
+            LOGGER.info(String.format("Task commands '%s' and '%s' are different.", oldCommand, newCommand));
             return true;
         }
 
@@ -250,7 +254,8 @@ public class TaskUtils {
         Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
-            LOGGER.info("Resource lengths are different.");
+            LOGGER.info(String.format("Resource lengths are different for old resources: '%s' and new resources: '%s'",
+                    oldResourceMap, newResourceMap));
             return true;
         }
 
@@ -259,7 +264,7 @@ public class TaskUtils {
             LOGGER.info("Checking resource difference for: " + resourceName);
             ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
-                LOGGER.info("Resource not found.");
+                LOGGER.info("Resource not found: " + resourceName);
                 return true;
             } else if (ResourceUtils.areDifferent(oldResourceSpec, newEntry.getValue())) {
                 LOGGER.info("Resources are different.");

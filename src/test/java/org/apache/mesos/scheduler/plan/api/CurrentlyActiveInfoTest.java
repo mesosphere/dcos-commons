@@ -50,20 +50,20 @@ public class CurrentlyActiveInfoTest {
         when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.empty());
         when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.empty());
 
-        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockPlanManager);
+        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forPlan(mockPlanManager);
 
         assertNull(activeInfo.getBlock());
         assertNull(activeInfo.getPhaseStatus());
-        assertEquals(stageErrors, activeInfo.getStageStatus().getErrors());
-        assertEquals(Integer.valueOf(2), activeInfo.getStageStatus().getPhaseCount());
-        assertEquals(Status.WAITING, activeInfo.getStageStatus().getStatus());
+        assertEquals(stageErrors, activeInfo.getPlanStatus().getErrors());
+        assertEquals(Integer.valueOf(2), activeInfo.getPlanStatus().getPhaseCount());
+        assertEquals(Status.WAITING, activeInfo.getPlanStatus().getStatus());
     }
 
     /**
      * This also effectively tests:
      * - {@link BlockInfo#forBlock(Block, PlanManager)}
      * - {@link CurrentlyActivePhaseInfo#forPhase(Phase, PlanManager)}
-     * - {@link CurrentlyActiveStageInfo#forStage(PlanManager)}.
+     * - {@link CurrentlyActivePlanInfo#forStage(PlanManager)}.
      */
     @Test
     public void testForActiveStage() {
@@ -95,7 +95,7 @@ public class CurrentlyActiveInfoTest {
             }
         });
 
-        // plan calls within CurrentlyActiveStageInfo.forStage()
+        // plan calls within CurrentlyActivePlanInfo.forPlan()
 
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
         when(mockPlan.getPhases()).thenAnswer(new Answer<List<? extends Phase>>() {
@@ -114,7 +114,7 @@ public class CurrentlyActiveInfoTest {
         when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
 
 
-        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forStage(mockPlanManager);
+        CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forPlan(mockPlanManager);
 
 
         BlockInfo blockInfo = activeInfo.getBlock();
@@ -130,7 +130,7 @@ public class CurrentlyActiveInfoTest {
         assertEquals(phase0Status, phaseInfo.getStatus());
         assertEquals(Integer.valueOf(2), phaseInfo.getBlockCount());
 
-        CurrentlyActiveStageInfo stageInfo = activeInfo.getStageStatus();
+        CurrentlyActivePlanInfo stageInfo = activeInfo.getPlanStatus();
         assertEquals(stageErrors, stageInfo.getErrors());
         assertEquals(Integer.valueOf(2), stageInfo.getPhaseCount());
         assertEquals(Status.WAITING, stageInfo.getStatus());

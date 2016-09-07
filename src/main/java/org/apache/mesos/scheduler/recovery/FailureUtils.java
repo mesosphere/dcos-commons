@@ -14,7 +14,7 @@ public class FailureUtils {
      * @param taskInfo The Task to check for failure.
      * @return True if the Task has been marked, false otherwise.
      */
-    public static boolean labeledAsFailed(Protos.TaskInfo taskInfo) {
+    public static boolean isLabeledAsFailed(Protos.TaskInfo taskInfo) {
         for (Protos.Label label : taskInfo.getLabels().getLabelsList()) {
             if (label.getKey().equals(PERMANENTLY_FAILED_KEY) && Boolean.valueOf(label.getValue())) {
                 return true;
@@ -25,12 +25,12 @@ public class FailureUtils {
     }
 
     /**
-     * Mark a task as permanently failed.  This new marekd Task should be persistently stored.
+     * Mark a task as permanently failed.  This new marked Task should be persistently stored.
      * @param taskInfo The Task to be marked.
-     * @return The marked Task.
+     * @return The marked TaskInfo which may be a copy of the original TaskInfo.
      */
     public static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
-        if (!labeledAsFailed(taskInfo)) {
+        if (!isLabeledAsFailed(taskInfo)) {
             taskInfo = ResourceUtils.clearResourceIds(taskInfo);
             return Protos.TaskInfo.newBuilder(taskInfo)
                     .setLabels(Protos.Labels.newBuilder(taskInfo.getLabels())
@@ -39,7 +39,7 @@ public class FailureUtils {
                                     .setValue(String.valueOf(true))))
                     .build();
         } else {
-            return  taskInfo;
+            return taskInfo;
         }
     }
 }

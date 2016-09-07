@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.slf4j.Logger;
@@ -150,12 +151,6 @@ public class DefaultBlock implements Block {
 
     @Override
     public String toString() {
-        return "DefaultBlock{" +
-                "name='" + name + '\'' +
-                ", offerRequirementOptional=" + offerRequirementOptional +
-                ", id=" + id +
-                ", status=" + status +
-                ", tasks=" + tasks +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

@@ -20,7 +20,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
     }
 
     @Override
-    public List<RecoveryRequirement> getTransientRecoveryOfferRequirements(List<Protos.TaskInfo> stoppedTasks)
+    public List<RecoveryRequirement> getTransientRecoveryRequirements(List<Protos.TaskInfo> stoppedTasks)
             throws InvalidRequirementException {
         List<RecoveryRequirement> transientRecoveryRequirements = new ArrayList<>();
 
@@ -36,7 +36,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
     }
 
     @Override
-    public List<RecoveryRequirement> getPermanentRecoveryOfferRequirements(List<Protos.TaskInfo> failedTasks)
+    public List<RecoveryRequirement> getPermanentRecoveryRequirements(List<Protos.TaskInfo> failedTasks)
             throws InvalidRequirementException {
         List<RecoveryRequirement> transientRecoveryRequirements = new ArrayList<>();
 

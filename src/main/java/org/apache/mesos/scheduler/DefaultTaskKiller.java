@@ -38,8 +38,14 @@ public class DefaultTaskKiller implements TaskKiller {
         }
 
         Protos.TaskInfo taskInfo = taskInfoOptional.get();
-        if (!stateStore.fetchStatus(taskName).getState().equals(Protos.TaskState.TASK_RUNNING)) {
-            logger.warn("Task is not running, no need to kill: " + taskInfo);
+        if (taskInfo == null) {
+            logger.warn("Encountered unexpected 'null' TaskInfo. NOT scheduling kill operation.");
+            return;
+        }
+
+        Protos.TaskState taskState = stateStore.fetchStatus(taskName).getState();
+        if (!taskState.equals(Protos.TaskState.TASK_RUNNING)) {
+            logger.warn(String.format("No need to kill: '%s', task state: '%s'", taskName, taskState));
             return;
         }
 
@@ -65,12 +71,8 @@ public class DefaultTaskKiller implements TaskKiller {
     private void processTasksToRestart(SchedulerDriver driver) {
         synchronized (restartLock) {
             for (Protos.TaskInfo taskInfo : tasksToRestart) {
-                if (taskInfo != null) {
-                    logger.info("Restarting task: " + taskInfo.getTaskId().getValue());
-                    driver.killTask(taskInfo.getTaskId());
-                } else {
-                    logger.warn("Asked to restart null task.");
-                }
+                logger.info("Restarting task: " + taskInfo.getTaskId().getValue());
+                driver.killTask(taskInfo.getTaskId());
             }
 
             tasksToRestart = new ArrayList<>();
@@ -80,13 +82,9 @@ public class DefaultTaskKiller implements TaskKiller {
     private void processTasksToReschedule(SchedulerDriver driver) {
         synchronized (rescheduleLock) {
             for (Protos.TaskInfo taskInfo : tasksToReschedule) {
-                if (taskInfo != null) {
-                    logger.info("Rescheduling task: " + taskInfo.getTaskId().getValue());
-                    taskFailureListener.taskFailed(taskInfo.getTaskId());
-                    driver.killTask(taskInfo.getTaskId());
-                } else {
-                    logger.warn("Asked to reschedule null task.");
-                }
+                logger.info("Rescheduling task: " + taskInfo.getTaskId().getValue());
+                taskFailureListener.taskFailed(taskInfo.getTaskId());
+                driver.killTask(taskInfo.getTaskId());
             }
 
             tasksToReschedule = new ArrayList<>();

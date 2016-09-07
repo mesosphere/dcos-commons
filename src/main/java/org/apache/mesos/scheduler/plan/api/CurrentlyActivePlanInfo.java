@@ -14,29 +14,29 @@ import java.util.Objects;
 /**
  * Immutable JSON serialization object for a Plan which omits child Phases.
  */
-class CurrentlyActiveStageInfo {
+class CurrentlyActivePlanInfo {
 
     private final Integer phaseCount;
     private final List<String> errors;
     private final Status status;
 
     @JsonCreator
-    public static CurrentlyActiveStageInfo create(
+    public static CurrentlyActivePlanInfo create(
             @JsonProperty("phase_count") final Integer phaseCount,
             @JsonProperty("errors") final List<String> errors,
             @JsonProperty("status") final Status status) {
-        return new CurrentlyActiveStageInfo(phaseCount, errors, status);
+        return new CurrentlyActivePlanInfo(phaseCount, errors, status);
     }
 
-    public static CurrentlyActiveStageInfo forStage(final PlanManager manager) {
+    public static CurrentlyActivePlanInfo forStage(final PlanManager manager) {
         return create(manager.getPlan().getPhases().size(),
                 manager.getPlan().getErrors(),
                 manager.getStatus());
     }
 
-    private CurrentlyActiveStageInfo(final Integer phaseCount,
-                     final List<String> errors,
-                     final Status status) {
+    private CurrentlyActivePlanInfo(final Integer phaseCount,
+                                    final List<String> errors,
+                                    final Status status) {
         this.phaseCount = phaseCount;
         this.errors = errors;
         this.status = status;

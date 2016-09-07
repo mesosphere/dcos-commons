@@ -1,5 +1,6 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ValueUtils;
 
@@ -64,10 +65,6 @@ public class DefaultTaskSpecification implements TaskSpecification {
 
     @Override
     public String toString() {
-        return "DefaultTaskSpecification{" +
-                "name='" + name + '\'' +
-                ", commandInfo=" + commandInfo +
-                ", resourceSpecifications=" + resourceSpecifications +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

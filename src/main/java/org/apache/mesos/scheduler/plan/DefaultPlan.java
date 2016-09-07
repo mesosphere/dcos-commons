@@ -1,5 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -76,9 +78,6 @@ public class DefaultPlan implements Plan {
 
     @Override
     public String toString() {
-        return "DefaultPlan{" +
-                "phases=" + phases +
-                ", errors=" + errors +
-                '}';
+        return ReflectionToStringBuilder.toString(this);
     }
 }

@@ -63,7 +63,9 @@ public class DefaultPlanScheduler implements PlanScheduler {
         }
 
         OfferRequirement offerRequirement = offerRequirementOptional.get();
-        // It is harmless to attempt to kill tasks which have never been launched.
+        // It is harmless to attempt to kill tasks which have never been launched.  This call attempts to Kill all Tasks
+        // with a Task name which is equivalent to that expressed by the OfferRequirement.  If no such Task is currently
+        // running no operation occurs.
         killTasks(offerRequirement);
 
         // Block has returned an OfferRequirement to process. Find offers which match the
@@ -83,6 +85,8 @@ public class DefaultPlanScheduler implements PlanScheduler {
         if (acceptedOffers.size() > 0) {
             block.updateOfferStatus(getOperations(recommendations));
         } else {
+            // If no Operations occurred it may be of interest to the Block.  For example it may want to set it's state
+            // to Pending to ensure it will be reattempted on the next Offer cycle.
             block.updateOfferStatus(Optional.empty());
         }
 
