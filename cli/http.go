@@ -13,12 +13,23 @@ import (
 	"strings"
 )
 
+type tlsSetting int
+
+const (
+	tlsUnknown tlsSetting = iota
+	tlsUnverified
+	tlsVerified
+	tlsSpecificCert
+)
+
 var (
-	dcosAuthToken      string
-	dcosUrl            string
-	ServiceName        string
-	tlsAllowUnverified bool
-	tlsCACertPath      string
+	dcosAuthToken string
+	dcosUrl       string
+	ServiceName   string
+
+	tlsForceInsecure bool
+	tlsCliSetting    tlsSetting = tlsUnknown
+	tlsCACertPath    string
 )
 
 func HTTPGet(urlPath string) *http.Response {
@@ -74,26 +85,33 @@ func HTTPPutJSON(urlPath, jsonPayload string) *http.Response {
 }
 
 func HTTPQuery(request *http.Request) *http.Response {
-	// get CA settings from CLI (local flags override CLI):
-	cliVerifySetting := OptionalCLIConfigValue("core.ssl_verify")
-	if strings.EqualFold(cliVerifySetting, "false") {
-		// 'false': disable cert validation
-		tlsAllowUnverified = true
-	} else if strings.EqualFold(cliVerifySetting, "true") {
-		// 'true': require validation against default CAs
-		// (leave tlsAllowUnverified alone: already defaults to false)
-	} else if len(cliVerifySetting) != 0 {
-		// '<other string>': path to local/custom cert file
-		if len(tlsCACertPath) == 0 {
-			tlsCACertPath = cliVerifySetting
+	if tlsForceInsecure { // user override via '--force-insecure'
+		tlsCliSetting = tlsUnverified
+	}
+	if tlsCliSetting == tlsUnknown {
+		// get CA settings from CLI
+		cliVerifySetting := OptionalCLIConfigValue("core.ssl_verify")
+		if strings.EqualFold(cliVerifySetting, "false") {
+			// 'false': disable cert validation
+			tlsCliSetting = tlsUnverified
+		} else if strings.EqualFold(cliVerifySetting, "true") {
+			// 'true': require validation against default CAs
+			tlsCliSetting = tlsVerified
+		} else if len(cliVerifySetting) != 0 {
+			// '<other string>': path to local/custom cert file
+			if len(tlsCACertPath) == 0 {
+				tlsCACertPath = cliVerifySetting
+			}
+			tlsCliSetting = tlsSpecificCert
+		} else {
+			// this shouldn't happen: 'auth login' requires a non-empty setting.
+			// play it safe and leave cert verification enabled by default.
+			tlsCliSetting = tlsVerified
 		}
-	} else {
-		// this shouldn't happen: 'auth login' requires a non-empty setting.
-		// play it safe and leave cert verification enabled by default.
 	}
 
-	// allow unverified certs if user manually set the flag, or if it's configured that way in CLI:
-	tlsConfig := &tls.Config{InsecureSkipVerify: tlsAllowUnverified}
+	// allow unverified certs if user invoked --force-insecure, or if it's configured that way in CLI:
+	tlsConfig := &tls.Config{InsecureSkipVerify: (tlsCliSetting == tlsUnverified)}
 
 	// import custom cert if user manually set the flag, or if it's configured in CLI:
 	if len(tlsCACertPath) != 0 {
