@@ -12,8 +12,7 @@ public class DefaultPlanSpecificationFactory implements PlanSpecificationFactory
         List<PhaseSpecification> phaseSpecifications = new ArrayList<>();
 
         for (TaskTypeSpecification taskTypeSpecification : serviceSpecification.getTaskSpecifications()) {
-            phaseSpecifications.add(
-                    new DefaultPhaseSpecification(taskTypeSpecification.getName(), taskTypeSpecification));
+            phaseSpecifications.add(new DefaultPhaseSpecification(taskTypeSpecification));
         }
 
         return new DefaultPlanSpecification(phaseSpecifications);

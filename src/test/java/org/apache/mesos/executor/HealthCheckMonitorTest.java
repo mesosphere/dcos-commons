@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 
 /**
- * This class test the HealthCheckMonitor class.
+ * This class tests the HealthCheckMonitor class.
  */
 public class HealthCheckMonitorTest {
     private static final int HEALTH_CHECK_THREAD_POOL_SIZE = 50;

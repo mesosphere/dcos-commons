@@ -87,6 +87,10 @@ public class ResourceTestUtils {
     return ResourceUtils.getUnreservedScalar("mem", mem);
   }
 
+  public static Resource getUnreservedDisk(double disk) {
+    return ResourceUtils.getUnreservedScalar("disk", disk);
+  }
+
   public static Resource getExpectedCpu(double cpus) {
     return ResourceTestUtils.getExpectedScalar("cpus", cpus, TestConstants.resourceId);
   }
@@ -98,4 +102,5 @@ public class ResourceTestUtils {
   public static Resource getDesiredMem(double mem) {
     return ResourceTestUtils.getDesiredScalar("mem", mem);
   }
+
 }
