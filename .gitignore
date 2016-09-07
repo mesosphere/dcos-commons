@@ -1,6 +1,10 @@
 target/
 *.pyc
 
+# leftovers from running tools directly
+tools/env/
+tools/cluster-*.properties
+
 # idea
 *.i??
 .idea/

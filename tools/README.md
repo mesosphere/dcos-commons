@@ -196,7 +196,7 @@ Optional:
 - `S3_BUCKET` (default: `infinity-artifacts`): Name of the S3 bucket to use as the upload destination.
 - `S3_DIR_PATH` (default: `autodelete7d`): Parent directory on the bucket to deposit the files within. A randomly generated subdirectory will be created within this path.
 - `AWS_UPLOAD_REGION`: manual region to use for the S3 upload
-- `JENKINS_HOME`: Used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
+- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
 - `CUSTOM_UNIVERSES_PATH`: Text file to write the stub universe URL into
 - `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
 - `DRY_RUN`: Refrain from actually uploading anything to S3.
@@ -306,7 +306,7 @@ Startup-specific options:
 - `CCM_AWS_REGION`: Region to start an AWS cluster in (default `us-west-2`)
 - `CCM_ADMIN_LOCATION`: IP filter range for accessing the dashboard (default `0.0.0.0/0`)
 - `CCM_CLOUD_PROVIDER`: Cloud provider type value to use (default `0`)
-- `JENKINS_HOME`: Used to determine if a `$WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties` file should be created with `CLUSTER_ID` and `CLUSTER_URL` values.
+- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties` file should be created with `CLUSTER_ID` and `CLUSTER_URL` values.
 
 ### run_tests.py
 
@@ -386,7 +386,7 @@ For other examples of usage, take a look at the `build.sh` for [Kafka](https://g
 
 Much of the logic for detecting the CI environment is handled automatically by checking one or more environment variables:
 
-- Detecting a CI environment: Non-empty `JENKINS_HOME`
+- Detecting a CI environment: Non-empty `WORKSPACE`
 - GitHub [auth token](https://github.com/settings/tokens): `GITHUB_TOKEN_REPO_STATUS`, or `GITHUB_TOKEN`
 - git commit SHA: `ghprbActualCommit`, `GIT_COMMIT`, `${${GIT_COMMIT_ENV_NAME}}`, or finally by checking `git` directly.
 - GitHub repository path: `GITHUB_REPO_PATH`, or by checking `git` directly.

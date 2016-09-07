@@ -157,7 +157,7 @@ class GithubStatusUpdater(object):
         if details_url:
             logger.info('[STATUS] URL: {}'.format(details_url))
 
-        if not 'JENKINS_HOME' in os.environ:
+        if not 'WORKSPACE' in os.environ:
             # not running in CI. skip actually sending anything to GitHub
             return True
 

@@ -39,7 +39,7 @@ class CIUploader(object):
             err = 'Provided package path is not a directory: {}'.format(input_dir_path)
             self.__github_updater.update('error', err)
             raise Exception(err)
-        
+
         # check if aws cli tools are installed
         cmd = "aws --version"
         ret = os.system(cmd)
@@ -47,7 +47,7 @@ class CIUploader(object):
             err = 'Required AWS cli tools not installed.'
             self.__github_updater.update('error', err)
             raise Exception(err)
-            
+
         self.__artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
@@ -82,7 +82,7 @@ class CIUploader(object):
 
 
     def __spam_universe_url(self, universe_url):
-        if 'JENKINS_HOME' in os.environ:
+        if 'WORKSPACE' in os.environ:
             # write jenkins properties file to $WORKSPACE/stub-universe.properties:
             properties_file = open(os.path.join(os.environ['WORKSPACE'], 'stub-universe.properties'), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
