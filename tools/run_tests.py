@@ -82,7 +82,7 @@ class CITester(object):
     def setup_cli(self):
         try:
             self.__github_updater.update('pending', 'Setting up CLI')
-            self.__configure_cli_sandbox() # adds to os.environ
+            self.__configure_cli_sandbox()  # adds to os.environ
             cli_filepath = self.__download_cli_to_sandbox()
             self.__configure_cli(self.__dcos_url)
             dcos_login.DCOSLogin(self.__dcos_url).login()
@@ -165,7 +165,7 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
 
     def delete_sandbox(self):
         if not self.__sandbox_path:
-            return # no-op
+            return  # no-op
         logger.info('Deleting CLI sandbox: {}'.format(self.__sandbox_path))
         shutil.rmtree(self.__sandbox_path)
 
