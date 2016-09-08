@@ -68,7 +68,11 @@ public class DefaultOfferRequirementProviderTest {
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
         TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
 
-        Assert.assertNotNull(defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification));
+        OfferRequirement offerRequirement =
+                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.persistenceId));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.resourceId));
     }
 
     @Test
@@ -83,6 +87,10 @@ public class DefaultOfferRequirementProviderTest {
                 .addResources(mem)
                 .build());
 
-        Assert.assertNotNull(defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification));
+        OfferRequirement offerRequirement =
+                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.persistenceId));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.resourceId));
     }
 }
