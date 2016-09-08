@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 /**
- * Created by gabriel on 9/8/16.
+ * This class provides utilities useful for all tests which may have Network related needs.
  */
 public class NetworkTestUtils {
     public static int getRandomPort() throws IOException {

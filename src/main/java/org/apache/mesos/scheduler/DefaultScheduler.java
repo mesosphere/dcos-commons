@@ -154,7 +154,6 @@ public class DefaultScheduler implements Scheduler {
         }).start();
     }
 
-
     private void logOffers(List<Protos.Offer> offers) {
         if (offers == null) {
             return;
