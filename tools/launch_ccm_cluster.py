@@ -6,7 +6,7 @@
 # {'id': ...
 #  'url': ...}
 #
-# cluster.properties file (if JENKINS_HOME is set in env):
+# cluster.properties file (if WORKSPACE is set in env):
 # CLUSTER_ID=...
 # CLUSTER_URL=...
 #
@@ -295,7 +295,7 @@ class StopConfig(object):
 
 
 def __write_jenkins_config(github_label, cluster_id_url, error = None):
-    if not 'JENKINS_HOME' in os.environ:
+    if not 'WORKSPACE' in os.environ:
         return
 
     # write jenkins properties file to $WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties:
