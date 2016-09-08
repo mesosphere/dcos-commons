@@ -103,5 +103,4 @@ public class ResourceTestUtils {
   public static Resource getDesiredMem(double mem) {
     return ResourceTestUtils.getDesiredScalar("mem", mem);
   }
-
 }
