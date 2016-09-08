@@ -38,6 +38,7 @@ public class ResourceTestUtils {
             TestConstants.role,
             TestConstants.principal,
             TestConstants.mountRoot,
+            TestConstants.containerPath,
             TestConstants.persistenceId);
   }
 

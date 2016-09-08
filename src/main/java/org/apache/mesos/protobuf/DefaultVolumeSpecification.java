@@ -1,5 +1,6 @@
 package org.apache.mesos.protobuf;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.specification.VolumeSpecification;
 
@@ -52,5 +53,37 @@ public class DefaultVolumeSpecification implements VolumeSpecification {
     @Override
     public String getName() {
         return "disk";
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    @SuppressWarnings("PMD.IfStmtsMustUseBraces")
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DefaultVolumeSpecification that = (DefaultVolumeSpecification) o;
+
+        if (type != that.type) return false;
+        if (containerPath != null ? !containerPath.equals(that.containerPath) : that.containerPath != null)
+            return false;
+        if (role != null ? !role.equals(that.role) : that.role != null) return false;
+        if (principal != null ? !principal.equals(that.principal) : that.principal != null) return false;
+        return value != null ? value.equals(that.value) : that.value == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + (containerPath != null ? containerPath.hashCode() : 0);
+        result = 31 * result + (role != null ? role.hashCode() : 0);
+        result = 31 * result + (principal != null ? principal.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
     }
 }
