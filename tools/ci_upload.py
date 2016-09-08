@@ -18,26 +18,26 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 class CIUploader(object):
 
     def __init__(self, package_name, input_dir_path, artifact_paths, package_version = 'stub-universe'):
-        self.__dry_run = os.environ.get('DRY_RUN', '')
-        self.__pkg_name = package_name
-        self.__pkg_version = package_version
-        self.__input_dir_path = input_dir_path
+        self._dry_run = os.environ.get('DRY_RUN', '')
+        self._pkg_name = package_name
+        self._pkg_version = package_version
+        self._input_dir_path = input_dir_path
 
-        self.__aws_region = os.environ.get('AWS_UPLOAD_REGION', '')
+        self._aws_region = os.environ.get('AWS_UPLOAD_REGION', '')
         s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')
         s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
         dir_name = '{}-{}'.format(
             time.strftime("%Y%m%d-%H%M%S"),
             ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
         # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
-        self.__s3_directory = 's3://{}/{}/{}/{}'.format(s3_bucket, s3_dir_path, self.__pkg_name, dir_name)
-        self.__http_directory = 'https://{}.s3.amazonaws.com/{}/{}/{}'.format(s3_bucket, s3_dir_path, self.__pkg_name, dir_name)
+        self._s3_directory = 's3://{}/{}/{}/{}'.format(s3_bucket, s3_dir_path, self._pkg_name, dir_name)
+        self._http_directory = 'https://{}.s3.amazonaws.com/{}/{}/{}'.format(s3_bucket, s3_dir_path, self._pkg_name, dir_name)
 
-        self.__github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
+        self._github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
 
         if not os.path.isdir(input_dir_path):
             err = 'Provided package path is not a directory: {}'.format(input_dir_path)
-            self.__github_updater.update('error', err)
+            self._github_updater.update('error', err)
             raise Exception(err)
 
         # check if aws cli tools are installed
@@ -45,30 +45,30 @@ class CIUploader(object):
         ret = os.system(cmd)
         if not ret == 0:
             err = 'Required AWS cli tools not installed.'
-            self.__github_updater.update('error', err)
+            self._github_updater.update('error', err)
             raise Exception(err)
 
-        self.__artifact_paths = []
+        self._artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
                 raise Exception(err)
-            if artifact_path in self.__artifact_paths:
+            if artifact_path in self._artifact_paths:
                 err = 'Duplicate filename between "{}" and "{}". Artifact filenames must be unique.'.format(prior_path, artifact_path)
-                self.__github_updater.update('error', err)
+                self._github_updater.update('error', err)
                 raise Exception(err)
-            self.__artifact_paths.append(artifact_path)
+            self._artifact_paths.append(artifact_path)
 
 
-    def __upload_artifact(self, filepath):
+    def _upload_artifact(self, filepath):
         filename = os.path.basename(filepath)
-        if self.__aws_region:
+        if self._aws_region:
             cmd = 'aws s3 --region={} cp --acl public-read {} {}/{} 1>&2'.format(
-                self.__aws_region, filepath, self.__s3_directory, filename)
+                self._aws_region, filepath, self._s3_directory, filename)
         else:
             cmd = 'aws s3 cp --acl public-read {} {}/{} 1>&2'.format(
-                filepath, self.__s3_directory, filename)
-        if self.__dry_run:
+                filepath, self._s3_directory, filename)
+        if self._dry_run:
             logger.info('[DRY RUN] {}'.format(cmd))
             ret = 0
         else:
@@ -76,17 +76,17 @@ class CIUploader(object):
             ret = os.system(cmd)
         if not ret == 0:
             err = 'Failed to upload {} to S3'.format(filename)
-            self.__github_updater.update('error', err)
+            self._github_updater.update('error', err)
             raise Exception(err)
-        return '{}/{}'.format(self.__http_directory, filename)
+        return '{}/{}'.format(self._http_directory, filename)
 
 
-    def __spam_universe_url(self, universe_url):
+    def _spam_universe_url(self, universe_url):
         if 'WORKSPACE' in os.environ:
             # write jenkins properties file to $WORKSPACE/stub-universe.properties:
             properties_file = open(os.path.join(os.environ['WORKSPACE'], 'stub-universe.properties'), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
-            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self.__s3_directory))
+            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
             properties_file.flush()
             properties_file.close()
         custom_universes_path = os.environ.get('CUSTOM_UNIVERSES_PATH', '')
@@ -96,12 +96,12 @@ class CIUploader(object):
             properties_file.write('stub {}\n'.format(universe_url))
             properties_file.flush()
             properties_file.close()
-        num_artifacts = len(self.__artifact_paths)
+        num_artifacts = len(self._artifact_paths)
         if num_artifacts > 1:
             suffix = 's'
         else:
             suffix = ''
-        self.__github_updater.update(
+        self._github_updater.update(
             'success',
             'Uploaded stub universe and {} artifact{}'.format(num_artifacts, suffix),
             universe_url)
@@ -111,25 +111,25 @@ class CIUploader(object):
         '''generates a unique directory, then uploads artifacts and a new stub universe to that directory'''
         try:
             universe_path = universe_builder.UniversePackageBuilder(
-                self.__pkg_name, self.__pkg_version,
-                self.__input_dir_path, self.__http_directory, self.__artifact_paths).build_zip()
+                self._pkg_name, self._pkg_version,
+                self._input_dir_path, self._http_directory, self._artifact_paths).build_zip()
         except Exception as e:
             err = 'Failed to create stub universe: {}'.format(str(e))
-            self.__github_updater.update('error', err)
+            self._github_updater.update('error', err)
             raise
 
         # print universe url early
-        universe_url = self.__upload_artifact(universe_path)
+        universe_url = self._upload_artifact(universe_path)
         logger.info('---')
         logger.info('Built and uploaded stub universe:')
         logger.info(universe_url)
         logger.info('---')
-        logger.info('Uploading {} artifacts:'.format(len(self.__artifact_paths)))
+        logger.info('Uploading {} artifacts:'.format(len(self._artifact_paths)))
 
-        for path in self.__artifact_paths:
-            self.__upload_artifact(path)
+        for path in self._artifact_paths:
+            self._upload_artifact(path)
 
-        self.__spam_universe_url(universe_url)
+        self._spam_universe_url(universe_url)
 
         # print to stdout, while the rest was all stderr:
         print(universe_url)

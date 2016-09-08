@@ -20,30 +20,30 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 class CITester(object):
 
     def __init__(self, dcos_url, github_label):
-        self.__CLI_URL_TEMPLATE = 'https://downloads.dcos.io/binaries/cli/{}/x86-64/latest/{}'
-        self.__dcos_url = dcos_url
-        self.__sandbox_path = ''
-        self.__github_updater = github_update.GithubStatusUpdater('test:{}'.format(github_label))
+        self._CLI_URL_TEMPLATE = 'https://downloads.dcos.io/binaries/cli/{}/x86-64/latest/{}'
+        self._dcos_url = dcos_url
+        self._sandbox_path = ''
+        self._github_updater = github_update.GithubStatusUpdater('test:{}'.format(github_label))
 
 
-    def __configure_cli_sandbox(self):
-        self.__sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
+    def _configure_cli_sandbox(self):
+        self._sandbox_path = tempfile.mkdtemp(prefix='ci-test-')
         custom_env = {}
         # must be custom for CLI to behave properly:
-        custom_env['HOME'] = self.__sandbox_path
+        custom_env['HOME'] = self._sandbox_path
         # prepend HOME (where CLI binary is downloaded) to PATH:
-        custom_env['PATH'] = '{}:{}'.format(self.__sandbox_path, os.environ['PATH'])
+        custom_env['PATH'] = '{}:{}'.format(self._sandbox_path, os.environ['PATH'])
         # must be explicitly provided for CLI to behave properly:
-        custom_env['DCOS_CONFIG'] = os.path.join(self.__sandbox_path, 'cli-config')
+        custom_env['DCOS_CONFIG'] = os.path.join(self._sandbox_path, 'cli-config')
         # optional:
         #custom_env['DCOS_DEBUG'] = custom_env.get('DCOS_DEBUG', 'true')
         #custom_env['DCOS_LOG_LEVEL'] = custom_env.get('DCOS_LOG_LEVEL', 'debug')
-        logger.info('Created CLI sandbox: {}, Custom envvars: {}.'.format(self.__sandbox_path, custom_env))
+        logger.info('Created CLI sandbox: {}, Custom envvars: {}.'.format(self._sandbox_path, custom_env))
         for k, v in custom_env.items():
             os.environ[k] = v
 
 
-    def __download_cli_to_sandbox(self):
+    def _download_cli_to_sandbox(self):
         cli_filename = 'dcos'
         if sys.platform == 'win32':
             cli_platform = 'windows'
@@ -54,8 +54,8 @@ class CITester(object):
             cli_platform = 'darwin'
         else:
             raise Exception('Unsupported platform: {}'.format(sys.platform))
-        cli_url = self.__CLI_URL_TEMPLATE.format(cli_platform, cli_filename)
-        cli_filepath = os.path.join(self.__sandbox_path, cli_filename)
+        cli_url = self._CLI_URL_TEMPLATE.format(cli_platform, cli_filename)
+        cli_filepath = os.path.join(self._sandbox_path, cli_filename)
         local_path = os.environ.get('DCOS_CLI_PATH', '')
         if local_path:
             logger.info('Copying {} to {}'.format(local_path, cli_filepath))
@@ -67,7 +67,7 @@ class CITester(object):
         return cli_filepath
 
 
-    def __configure_cli(self, dcos_url):
+    def _configure_cli(self, dcos_url):
         cmds = [
             'which dcos',
             'dcos config set core.dcos_url "{}"'.format(dcos_url),
@@ -81,13 +81,13 @@ class CITester(object):
 
     def setup_cli(self):
         try:
-            self.__github_updater.update('pending', 'Setting up CLI')
-            self.__configure_cli_sandbox()  # adds to os.environ
-            cli_filepath = self.__download_cli_to_sandbox()
-            self.__configure_cli(self.__dcos_url)
-            dcos_login.DCOSLogin(self.__dcos_url).login()
+            self._github_updater.update('pending', 'Setting up CLI')
+            self._configure_cli_sandbox()  # adds to os.environ
+            cli_filepath = self._download_cli_to_sandbox()
+            self._configure_cli(self._dcos_url)
+            dcos_login.DCOSLogin(self._dcos_url).login()
         except:
-            self.__github_updater.update('error', 'CLI Setup failed')
+            self._github_updater.update('error', 'CLI Setup failed')
             raise
 
 
@@ -99,7 +99,7 @@ class CITester(object):
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'env')
         logger.info('Configuring virtualenv in {}'.format(virtualenv_path))
         # to ensure the 'source' call works, just create a shell script and execute it directly:
-        script_path = os.path.join(self.__sandbox_path, 'run_shakedown.sh')
+        script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
         script_file = open(script_path, 'w')
         if requirements_file:
             requirements_cmd = 'pip install -r {}'.format(requirements_file)
@@ -121,15 +121,15 @@ shakedown --dcos-url "{dcos_url}" --ssh-key-file "" --stdout=all --stdout-inline
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_file,
            reqs_cmd=requirements_cmd,
-           dcos_url=self.__dcos_url,
+           dcos_url=self._dcos_url,
            test_dirs=test_dirs))
         script_file.flush()
         script_file.close()
         try:
-            self.__github_updater.update('pending', 'Running shakedown tests')
+            self._github_updater.update('pending', 'Running shakedown tests')
             subprocess.check_call(['bash', script_path])
         except:
-            self.__github_updater.update('failure', 'Shakedown tests failed')
+            self._github_updater.update('failure', 'Shakedown tests failed')
             raise
 
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
@@ -140,7 +140,7 @@ shakedown --dcos-url "{dcos_url}" --ssh-key-file "" --stdout=all --stdout-inline
         else:
             jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
-        script_path = os.path.join(self.__sandbox_path, 'run_dcos_tests.sh')
+        script_path = os.path.join(self._sandbox_path, 'run_dcos_tests.sh')
         script_file = open(script_path, 'w')
         # TODO(nick): remove this inlined script with external templating
         #             (or find a way of entering the virtualenv that doesn't involve a shell script)
@@ -154,24 +154,24 @@ source utils/python_setup
 echo "PYTEST RUN $(pwd)"
 SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
 '''.format(dcos_tests_dir=dcos_tests_dir,
-           dcos_url=self.__dcos_url,
+           dcos_url=self._dcos_url,
            jenkins_args=jenkins_args,
            pytest_types=pytest_types,
            test_dirs=test_dirs))
         script_file.flush()
         script_file.close()
         try:
-            self.__github_updater.update('pending', 'Running dcos-tests')
+            self._github_updater.update('pending', 'Running dcos-tests')
             subprocess.check_call(['bash', script_path])
         except:
-            self.__github_updater.update('failure', 'dcos-tests failed')
+            self._github_updater.update('failure', 'dcos-tests failed')
             raise
 
     def delete_sandbox(self):
-        if not self.__sandbox_path:
+        if not self._sandbox_path:
             return  # no-op
-        logger.info('Deleting CLI sandbox: {}'.format(self.__sandbox_path))
-        shutil.rmtree(self.__sandbox_path)
+        logger.info('Deleting CLI sandbox: {}'.format(self._sandbox_path))
+        shutil.rmtree(self._sandbox_path)
 
 
 def print_help(argv):
