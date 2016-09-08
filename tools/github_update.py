@@ -22,10 +22,10 @@ except ImportError:
 class GithubStatusUpdater(object):
 
     def __init__(self, context_label):
-        self.__context_label = context_label
+        self._context_label = context_label
 
 
-    def __get_dotgit_path(self):
+    def _get_dotgit_path(self):
         '''returns the path to the .git directory for the repo'''
         gitdir = '.git'
         startdir = os.environ.get('GIT_REPOSITORY_ROOT', '')
@@ -41,7 +41,7 @@ class GithubStatusUpdater(object):
                         'Run this command within the git repo, or provide GIT_REPOSITORY_ROOT')
 
 
-    def __get_commit_sha(self):
+    def _get_commit_sha(self):
         '''returns the sha1 of the commit being reported upon'''
         # 1. try 'ghprbActualCommit' and 'GIT_COMMIT' envvars:
         commit_sha = os.environ.get('ghprbActualCommit', '')
@@ -55,7 +55,7 @@ class GithubStatusUpdater(object):
                     os.environ['GIT_COMMIT_ENV_NAME'], os.environ))
         if not commit_sha:
             # 3. fall back to using current commit according to .git/ (note: not present in teamcity)
-            dotgit_path = self.__get_dotgit_path()
+            dotgit_path = self._get_dotgit_path()
             ret = subprocess.Popen(['git', '--git-dir={}'.format(dotgit_path), 'rev-parse', 'HEAD'],
                                    stdout=subprocess.PIPE)
             commit_sha = ret.stdout.readline().decode('utf-8').strip()
@@ -64,12 +64,12 @@ class GithubStatusUpdater(object):
         return commit_sha
 
 
-    def __get_repo_path(self):
+    def _get_repo_path(self):
         '''returns the repository path, in the form "mesosphere/some-repo"'''
         repo_path = os.environ.get('GITHUB_REPO_PATH', '')
         if repo_path:
             return repo_path
-        dotgit_path = self.__get_dotgit_path()
+        dotgit_path = self._get_dotgit_path()
         ret = subprocess.Popen(['git', '--git-dir={}'.format(dotgit_path), 'config', 'remote.origin.url'],
                                stdout=subprocess.PIPE)
         full_url = ret.stdout.readline().decode('utf-8').strip()
@@ -87,7 +87,7 @@ class GithubStatusUpdater(object):
         return re_match.group(1)
 
 
-    def __get_details_link_url(self, details_url):
+    def _get_details_link_url(self, details_url):
         '''returns the url to be included as the details link in the status'''
         if not details_url:
             details_url = os.environ.get('GITHUB_COMMIT_STATUS_URL', '') # custom URL via env
@@ -102,7 +102,7 @@ class GithubStatusUpdater(object):
         return details_url
 
 
-    def __get_auth_token(self):
+    def _get_auth_token(self):
         github_token = os.environ.get('GITHUB_TOKEN_REPO_STATUS', '')
         if not github_token:
             github_token = os.environ.get('GITHUB_TOKEN', '')
@@ -114,30 +114,30 @@ class GithubStatusUpdater(object):
         return encoded_tok.decode('utf-8').rstrip('\n')
 
 
-    def __build_request(self, state, message, details_url = ''):
+    def _build_request(self, state, message, details_url = ''):
         '''returns everything needed for the HTTP request, except the auth token'''
         return {
             'method': 'POST',
             'path': '/repos/{}/commits/{}/statuses'.format(
-                self.__get_repo_path(),
-                self.__get_commit_sha()),
+                self._get_repo_path(),
+                self._get_commit_sha()),
             'headers': {
                 'User-Agent': 'github_update.py',
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic HIDDENTOKEN'}, # replaced within update_query
             'payload': {
-                'context': self.__context_label,
+                'context': self._context_label,
                 'state': state,
                 'description': message,
-                'target_url': self.__get_details_link_url(details_url)
+                'target_url': self._get_details_link_url(details_url)
             }
         }
 
 
-    def __send_request(self, request, debug = False):
-        '''sends the provided request which was created by __build_request()'''
+    def _send_request(self, request, debug = False):
+        '''sends the provided request which was created by _build_request()'''
         request_headers_with_auth = request['headers'].copy()
-        request_headers_with_auth['Authorization'] = 'Basic {}'.format(self.__get_auth_token())
+        request_headers_with_auth['Authorization'] = 'Basic {}'.format(self._get_auth_token())
         conn = HTTPSConnection('api.github.com')
         if debug:
             conn.set_debuglevel(999)
@@ -153,7 +153,7 @@ class GithubStatusUpdater(object):
         '''sends an update to github.
         returns True on success or False otherwise.
         state should be one of 'pending', 'success', 'error', or 'failure'.'''
-        logger.info('[STATUS] {} {}: {}'.format(self.__context_label, state, message))
+        logger.info('[STATUS] {} {}: {}'.format(self._context_label, state, message))
         if details_url:
             logger.info('[STATUS] URL: {}'.format(details_url))
 
@@ -161,8 +161,8 @@ class GithubStatusUpdater(object):
             # not running in CI. skip actually sending anything to GitHub
             return True
 
-        request = self.__build_request(state, message, details_url)
-        response = self.__send_request(request)
+        request = self._build_request(state, message, details_url)
+        response = self._send_request(request)
         if response.status < 200 or response.status >= 300:
             logger.error('Got {} response to update request:'.format(response.status))
             logger.error('Request:')

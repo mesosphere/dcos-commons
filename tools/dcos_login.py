@@ -41,21 +41,21 @@ class DCOSLogin(object):
             token_open=__CLI_LOGIN_OPEN_TOKEN,
             user_ee=__CLI_LOGIN_EE_USERNAME,
             password_ee=__CLI_LOGIN_EE_PASSWORD):
-        self.__dcos_url = dcos_url.rstrip('/')
-        self.__token_open = token_open
-        self.__user_ee = user_ee
-        self.__password_ee = password_ee
-        self.__cached_token = ''
+        self._dcos_url = dcos_url.rstrip('/')
+        self._token_open = token_open
+        self._user_ee = user_ee
+        self._password_ee = password_ee
+        self._cached_token = ''
 
 
-    def __query_http(
+    def _query_http(
             self,
             request_method,
             request_path,
             request_json_payload=None,
             log_error=True,
             debug=False):
-        parsed_url = urlparse(self.__dcos_url)
+        parsed_url = urlparse(self._dcos_url)
         if parsed_url.scheme == 'https':
             # EE clusters are often self-signed, disable validation:
             conn = HTTPSConnection(parsed_url.hostname, context=ssl._create_unverified_context())
@@ -63,7 +63,7 @@ class DCOSLogin(object):
             conn = HTTPConnection(parsed_url.hostname)
         else:
             raise Exception('Unsupported protocol: {} (from url={})'.format(
-                parsed_url.scheme, self.__dcos_url))
+                parsed_url.scheme, self._dcos_url))
         if debug:
             conn.set_debuglevel(999)
 
@@ -92,10 +92,10 @@ class DCOSLogin(object):
         return response
 
 
-    def __is_enterprise_cluster(self, debug):
+    def is_enterprise_cluster(self, debug):
         # the main auth/login endpoint doesn't return the 'www-authenticate' header unless we
         # actually attempt a login (fully populated json), so use a different arbitrary endpoint:
-        response = self.__query_http('GET', '/acs/api/v1/groups', log_error=False, debug=debug)
+        response = self._query_http('GET', '/acs/api/v1/groups', log_error=False, debug=debug)
         if not response.status == 401:
             raise Exception('Expected 401 error for detection request, got {}', response.status)
         auth_type = ''
@@ -119,20 +119,20 @@ class DCOSLogin(object):
         env_token = os.environ.get('DCOS_TOKEN', '')
         if env_token:
             return env_token
-        if self.__cached_token:
-            return self.__cached_token
+        if self._cached_token:
+            return self._cached_token
 
-        if self.__is_enterprise_cluster(debug):
-            payload = {'uid': self.__user_ee, 'password': self.__password_ee}
+        if self.is_enterprise_cluster(debug):
+            payload = {'uid': self._user_ee, 'password': self._password_ee}
         else:
-            payload = {'token': self.__token_open}
-        response = self.__query_http(
+            payload = {'token': self._token_open}
+        response = self._query_http(
             'POST', '/acs/api/v1/auth/login', request_json_payload=payload, debug=debug)
         if not response:
-            raise Exception('Failed to authenticate with cluster at {}'.format(self.__dcos_url))
+            raise Exception('Failed to authenticate with cluster at {}'.format(self._dcos_url))
 
-        self.__cached_token = json.loads(response.read().decode('utf-8'))['token']
-        return self.__cached_token
+        self._cached_token = json.loads(response.read().decode('utf-8'))['token']
+        return self._cached_token
 
 
     def login(self, debug=False):

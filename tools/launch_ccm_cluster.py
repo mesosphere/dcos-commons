@@ -59,12 +59,12 @@ class CCMLauncher(object):
 
 
     def __init__(self, ccm_token, github_label):
-        self.__http_headers = {'Authorization': 'Token ' + ccm_token}
-        self.__dry_run = os.environ.get('DRY_RUN', '')
-        self.__github_updater = github_update.GithubStatusUpdater('cluster:{}'.format(github_label))
+        self._http_headers = {'Authorization': 'Token ' + ccm_token}
+        self._dry_run = os.environ.get('DRY_RUN', '')
+        self._github_updater = github_update.GithubStatusUpdater('cluster:{}'.format(github_label))
 
 
-    def __pretty_time(self, seconds):
+    def _pretty_time(self, seconds):
         if seconds > 60:
             disp_seconds = seconds % 60
             return '{:.0f}m{:.0f}s'.format((seconds - disp_seconds) / 60, disp_seconds)
@@ -72,37 +72,37 @@ class CCMLauncher(object):
             return '{:.0f}s'.format(seconds)
 
 
-    def __retry(self, attempts, method, arg, operation_name):
+    def _retry(self, attempts, method, arg, operation_name):
         for i in range(attempts):
             attempt_str = '[{}/{}]'.format(i + 1, attempts)
             try:
-                self.__github_updater.update('pending', '{} {} in progress'.format(attempt_str, operation_name.title()))
+                self._github_updater.update('pending', '{} {} in progress'.format(attempt_str, operation_name.title()))
                 result = method.__call__(arg)
-                self.__github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
+                self._github_updater.update('success', '{} {} succeeded'.format(attempt_str, operation_name.title()))
                 return result
             except Exception as e:
                 if i + 1 == attempts:
                     logger.error('{} Final attempt failed, giving up: {}'.format(attempt_str, e))
-                    self.__github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
+                    self._github_updater.update('error', '{} {} failed'.format(attempt_str, operation_name.title()))
                     raise
                 else:
                     logger.error('{} Previous attempt failed, retrying: {}\n'.format(attempt_str, e))
 
 
-    def __query_http(self, request_method, request_path,
+    def _query_http(self, request_method, request_path,
             request_json_payload=None,
             log_error=True,
             debug=False):
-        if self.__dry_run:
-            logger.info('[DRY RUN] {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
+        if self._dry_run:
+            logger.info('[DRY RUN] {} https://{}{}'.format(request_method, self._CCM_HOST, request_path))
             if request_json_payload:
                 logger.info('[DRY RUN] Payload: {}'.format(pprint.pformat(request_json_payload)))
             return None
-        conn = HTTPSConnection(self.__CCM_HOST)
+        conn = HTTPSConnection(self._CCM_HOST)
         if debug:
             conn.set_debuglevel(999)
 
-        request_headers = self.__http_headers.copy()
+        request_headers = self._http_headers.copy()
         if request_json_payload:
             request_body = json.dumps(request_json_payload).encode('utf-8')
             request_headers['Content-Type'] = 'application/json'
@@ -116,7 +116,7 @@ class CCMLauncher(object):
         response = conn.getresponse()
         if log_error and (response.status < 200 or response.status >= 300):
             logger.error('Got {} response to HTTP request:'.format(response.status))
-            logger.error('Request: {} https://{}{}'.format(request_method, self.__CCM_HOST, request_path))
+            logger.error('Request: {} https://{}{}'.format(request_method, self._CCM_HOST, request_path))
             logger.error('Response:')
             logger.error('  - Status: {} {}'.format(response.status, str(response.msg).strip()))
             logger.error('  - Headers: {}'.format(pprint.pformat(response.getheaders())))
@@ -132,8 +132,8 @@ class CCMLauncher(object):
         logger.info('Waiting {} minutes for cluster {} to go from {} to {}'.format(
             timeout_minutes, cluster_id, pending_status_label, complete_status_label))
 
-        pending_state_code = self.__CCM_STATUS_LABELS[pending_status_label]
-        complete_state_code = self.__CCM_STATUS_LABELS[complete_status_label]
+        pending_state_code = self._CCM_STATUS_LABELS[pending_status_label]
+        complete_state_code = self._CCM_STATUS_LABELS[complete_status_label]
 
         start_time = time.time()
         stop_time = start_time + (60 * timeout_minutes)
@@ -144,11 +144,11 @@ class CCMLauncher(object):
             if sleep_duration_s < 32:
                 sleep_duration_s *= 2
 
-            response = self.__query_http('GET', self.__CCM_PATH + str(cluster_id) + '/')
+            response = self._query_http('GET', self._CCM_PATH + str(cluster_id) + '/')
             if response:
                 status_json = json.loads(response.read())
                 status_code = status_json.get('status', -1)
-                status_label = self.__CCM_STATUSES.get(status_code, 'unknown:{}'.format(status_code))
+                status_label = self._CCM_STATUSES.get(status_code, 'unknown:{}'.format(status_code))
                 if status_code == complete_state_code:
                     # additional check: does the cluster have a non-empty 'cluster_info'?
                     cluster_info_str = status_json.get('cluster_info', '')
@@ -172,29 +172,29 @@ class CCMLauncher(object):
                 logger.info('Cluster {} has state {} after {}, refreshing in {}. ({} left)'.format(
                     cluster_id,
                     status_label,
-                    self.__pretty_time(now - start_time),
-                    self.__pretty_time(sleep_duration_s),
-                    self.__pretty_time(stop_time - now)))
+                    self._pretty_time(now - start_time),
+                    self._pretty_time(sleep_duration_s),
+                    self._pretty_time(stop_time - now)))
             else:
                 logger.error('Failed to get cluster {} state after {}, refreshing in {}. ({} left)'.format(
                     cluster_id,
-                    self.__pretty_time(now - start_time),
-                    self.__pretty_time(sleep_duration_s),
-                    self.__pretty_time(stop_time - now)))
+                    self._pretty_time(now - start_time),
+                    self._pretty_time(sleep_duration_s),
+                    self._pretty_time(stop_time - now)))
 
             time.sleep(sleep_duration_s)
             now = time.time()
 
-        logger.error('Giving up after {}'.format(self.__pretty_time(60 * timeout_minutes)))
+        logger.error('Giving up after {}'.format(self._pretty_time(60 * timeout_minutes)))
         return None
 
 
     def start(self, config, attempts = DEFAULT_ATTEMPTS):
-        return self.__retry(attempts, self.__start, config, 'launch')
+        return self._retry(attempts, self._start, config, 'launch')
 
 
-    def __start(self, config):
-        is_17_cluster = config.ccm_channel in self.__DCOS_17_CHANNELS
+    def _start(self, config):
+        is_17_cluster = config.ccm_channel in self._DCOS_17_CHANNELS
         if is_17_cluster:
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos'
         elif config.cf_template.startswith('ee.'):
@@ -219,7 +219,7 @@ class CCMLauncher(object):
         logger.info('Launching cluster named "{}" with {} private/{} public agents for {} minutes against template at {}'.format(
             config.name, config.private_agents, config.public_agents,
             config.duration_mins, template_url))
-        response = self.__query_http('POST', self.__CCM_PATH, request_json_payload=payload)
+        response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
         if not response:
             raise Exception('CCM cluster creation request failed')
         response_content = response.read()
@@ -238,12 +238,12 @@ class CCMLauncher(object):
 
 
     def stop(self, config, attempts = DEFAULT_ATTEMPTS):
-        return self.__retry(attempts, self.__stop, config, 'shutdown')
+        return self._retry(attempts, self._stop, config, 'shutdown')
 
 
-    def __stop(self, config):
+    def _stop(self, config):
         logger.info('Deleting cluster #{}'.format(config.cluster_id))
-        response = self.__query_http('DELETE', self.__CCM_PATH + config.cluster_id + '/')
+        response = self._query_http('DELETE', self._CCM_PATH + config.cluster_id + '/')
         if not response:
             raise Exception('CCM cluster deletion request failed')
         cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
@@ -253,7 +253,7 @@ class CCMLauncher(object):
 
 
 class StartConfig(object):
-    def __rand_str(size):
+    def _rand_str(size):
         return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
     def __init__(
@@ -294,7 +294,7 @@ class StopConfig(object):
         self.stop_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', stop_timeout_mins)
 
 
-def __write_jenkins_config(github_label, cluster_id_url, error = None):
+def _write_jenkins_config(github_label, cluster_id_url, error = None):
     if not 'WORKSPACE' in os.environ:
         return
 
