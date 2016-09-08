@@ -14,6 +14,8 @@ import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -58,11 +60,12 @@ public class JettyApiServerTest {
         Assert.assertEquals(TEST, responseString);
     }
 
-    @Path("/" + TEST)
+    @Path("/")
     public static class TestPojo {
+        @Path("/" + TEST)
         @GET
-        public String getString() {
-            return TEST;
+        public Response getFrameworkId() {
+            return Response.ok(TEST, MediaType.APPLICATION_JSON).build();
         }
     }
 }
