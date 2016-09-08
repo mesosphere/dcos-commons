@@ -36,10 +36,10 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 class CCMLauncher(object):
 
     # NOTE: this will need to be updated once 'stable' is no longer 1.7
-    __DCOS_17_CHANNELS = ['testing/continuous', 'stable']
+    _DCOS_17_CHANNELS = ['testing/continuous', 'stable']
 
     # From mesosphere/cloud-cluster-manager/app/models.py:
-    __CCM_STATUSES = {
+    _CCM_STATUSES = {
         0: 'RUNNING',
         3: 'CREATING',
         4: 'DELETING',
@@ -48,10 +48,10 @@ class CCMLauncher(object):
         7: 'CREATING_ERROR'
     }
     # Reverse:
-    __CCM_STATUS_LABELS = {v: k for k, v in __CCM_STATUSES.items()}
+    _CCM_STATUS_LABELS = {v: k for k, v in _CCM_STATUSES.items()}
 
-    __CCM_HOST = 'ccm.mesosphere.com'
-    __CCM_PATH = '/api/cluster/'
+    _CCM_HOST = 'ccm.mesosphere.com'
+    _CCM_PATH = '/api/cluster/'
 
 
     DEFAULT_TIMEOUT_MINS = 45
