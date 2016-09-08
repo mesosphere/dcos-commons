@@ -258,7 +258,7 @@ class StartConfig(object):
 
     def __init__(
             self,
-            name = 'test-cluster-' + __rand_str(8),
+            name = 'test-cluster-' + _rand_str(8),
             description = '',
             duration_mins = 60,
             ccm_channel = 'testing/master',
@@ -349,9 +349,9 @@ def main(argv):
         cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
         # print to stdout (the rest of this script only writes to stderr):
         print(json.dumps(cluster_id_url))
-        __write_jenkins_config(github_label, cluster_id_url)
+        _write_jenkins_config(github_label, cluster_id_url)
     except Exception as e:
-        __write_jenkins_config(github_label, {}, e)
+        _write_jenkins_config(github_label, {}, e)
         raise
     return 0
 
