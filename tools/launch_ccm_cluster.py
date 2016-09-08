@@ -232,6 +232,10 @@ class CCMLauncher(object):
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
+        if config.mount_volumes:
+            logger.info('Enabling mount volumes for cluster {}'.format(cluster_id))
+            import enable_mount_volumes
+            enable_mount_volumes.main(str(cluster_id))
         return {
             'id': cluster_id,
             'url': str('https://' + dns_address)}
@@ -268,7 +272,8 @@ class StartConfig(object):
             private_agents = 1,
             aws_region = 'us-west-2',
             admin_location = '0.0.0.0/0',
-            cloud_provider = '0'): # https://mesosphere.atlassian.net/browse/TEST-231
+            cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
+            mount_volumes = False):
         self.name = name
         if not description:
             description = 'A test cluster with {} private/{} public agents'.format(
@@ -283,6 +288,7 @@ class StartConfig(object):
         self.aws_region = os.environ.get('CCM_AWS_REGION', aws_region)
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
+        self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
 
 
 class StopConfig(object):
