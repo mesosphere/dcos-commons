@@ -1,8 +1,8 @@
 package org.apache.mesos.offer;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.specification.ResourceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +32,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     public OfferRequirement getExistingOfferRequirement(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
 
+        validateVolumes(taskInfo, taskSpecification);
         Map<String, Protos.Resource> oldResourceMap = getResourceMap(taskInfo.getResourcesList());
-        List<Protos.Resource> updatedResources = new ArrayList<>();
 
+        List<Protos.Resource> updatedResources = new ArrayList<>();
         for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
             Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
             if (oldResource != null) {
@@ -46,19 +47,44 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     updatedResources.add(oldResource);
                 }
             } else {
-                updatedResources.add(
-                        ResourceUtils.getDesiredResource(resourceSpecification));
+                updatedResources.add(ResourceUtils.getDesiredResource(resourceSpecification));
             }
         }
+
 
         Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
                 .setCommand(taskSpecification.getCommand())
                 .addAllResources(updatedResources)
+                .addAllResources(getVolumes(taskInfo.getResourcesList()))
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
 
         return new OfferRequirement(Arrays.asList(taskBuilder.build()));
+    }
+
+    private void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
+            throws InvalidRequirementException {
+
+        try {
+            TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
+            Collection<VolumeSpecification> oldVolumes = oldTaskSpecification.getVolumes();
+            Collection<VolumeSpecification> newVolumes = taskSpecification.getVolumes();
+
+            if (oldVolumes.size() > 0 && newVolumes.size() > 0) {
+                if (!CollectionUtils.isEqualCollection(oldVolumes, newVolumes)){
+                    throw new InvalidRequirementException(
+                            String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
+                                    oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
+                }
+            } else if (!(oldVolumes.size() == 0 && newVolumes.size() == 0)) {
+                throw new InvalidRequirementException(
+                        String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
+                                oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
+            }
+        } catch (InvalidTaskSpecificationException e) {
+            throw new InvalidRequirementException(e);
+        }
     }
 
     private Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {
@@ -68,15 +94,53 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
         }
 
+        if (taskSpecification.getVolumes().size() > 0) {
+            for (VolumeSpecification volumeSpecification : taskSpecification.getVolumes()) {
+                switch (volumeSpecification.getType()) {
+                    case ROOT:
+                        resources.add(
+                                ResourceUtils.getDesiredRootVolume(
+                                        volumeSpecification.getRole(),
+                                        volumeSpecification.getPrincipal(),
+                                        volumeSpecification.getValue().getScalar().getValue(),
+                                        volumeSpecification.getContainerPath()));
+                        break;
+                    case MOUNT:
+                        resources.add(
+                                ResourceUtils.getDesiredMountVolume(
+                                        volumeSpecification.getRole(),
+                                        volumeSpecification.getPrincipal(),
+                                        volumeSpecification.getValue().getScalar().getValue(),
+                                        volumeSpecification.getContainerPath()));
+                        break;
+                    default:
+                        logger.error("Encountered unsupported disk type: " + volumeSpecification.getType());
+                }
+            }
+        }
+
         return resources;
     }
 
     private Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
         Map<String, Protos.Resource> resourceMap = new HashMap<>();
         for (Protos.Resource resource : resources) {
-            resourceMap.put(resource.getName(), resource);
+            if (!resource.hasDisk()) {
+                resourceMap.put(resource.getName(), resource);
+            }
         }
 
         return resourceMap;
+    }
+
+    private Collection<Protos.Resource> getVolumes(Collection<Protos.Resource> resources) {
+        List<Protos.Resource> volumes = new ArrayList<>();
+        for (Protos.Resource resource : resources) {
+            if (resource.hasDisk()) {
+                volumes.add(resource);
+            }
+        }
+
+        return volumes;
     }
 }

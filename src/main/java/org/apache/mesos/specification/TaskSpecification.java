@@ -11,4 +11,5 @@ public interface TaskSpecification {
     String getName();
     Protos.CommandInfo getCommand();
     Collection<ResourceSpecification> getResources();
+    Collection<VolumeSpecification> getVolumes();
 }

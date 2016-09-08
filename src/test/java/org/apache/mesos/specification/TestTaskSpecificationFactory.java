@@ -1,6 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
@@ -14,6 +15,7 @@ public class TestTaskSpecificationFactory {
     public static final int COUNT = 1;
     public static final double CPU = 1.0;
     public static final double MEM = 1000.0;
+    public static final double DISK = 2000.0;
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
 
     public static TaskTypeSpecification getTaskTypeSpecification() {
@@ -22,7 +24,8 @@ public class TestTaskSpecificationFactory {
                 COUNT,
                 CMD.getValue(),
                 CPU,
-                MEM);
+                MEM,
+                DISK);
     }
 
     public static TaskTypeSpecification getTaskTypeSpecification(
@@ -30,13 +33,15 @@ public class TestTaskSpecificationFactory {
             Integer count,
             String cmd,
             double cpu,
-            double mem) {
+            double mem,
+            double disk) {
 
         return new DefaultTaskTypeSpecification(
                 count,
                 name,
                 getCommand(cmd),
-                getResources(cpu, mem, TestConstants.role, TestConstants.principal));
+                getResources(cpu, mem, TestConstants.role, TestConstants.principal),
+                getVolumes(disk, TestConstants.role, TestConstants.principal));
     }
 
     private static Protos.CommandInfo getCommand(String cmd) {
@@ -65,6 +70,16 @@ public class TestTaskSpecificationFactory {
                                 .setType(Protos.Value.Type.SCALAR)
                                 .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem))
                                 .build(),
+                        role,
+                        principal));
+    }
+
+    static Collection<VolumeSpecification> getVolumes(double diskSize, String role, String principal) {
+        return Arrays.asList(
+                new DefaultVolumeSpecification(
+                        diskSize,
+                        VolumeSpecification.Type.ROOT,
+                        TestConstants.containerPath,
                         role,
                         principal));
     }

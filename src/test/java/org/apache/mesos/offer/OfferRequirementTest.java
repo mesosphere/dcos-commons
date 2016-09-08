@@ -52,6 +52,7 @@ public class OfferRequirementTest {
             TestConstants.role,
             TestConstants.principal,
             TestConstants.mountRoot,
+            TestConstants.containerPath,
             TestConstants.persistenceId);
     OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(resource);
     Assert.assertEquals(1, offerRequirement.getResourceIds().size());
@@ -75,6 +76,7 @@ public class OfferRequirementTest {
             TestConstants.role,
             TestConstants.principal,
             TestConstants.mountRoot,
+            TestConstants.containerPath,
             TestConstants.persistenceId);
     OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(Arrays.asList(cpu, volume));
     Assert.assertEquals(2, offerRequirement.getResourceIds().size());
