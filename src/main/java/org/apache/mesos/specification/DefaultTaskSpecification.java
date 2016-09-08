@@ -101,11 +101,11 @@ public class DefaultTaskSpecification implements TaskSpecification {
                 }
 
                 if (type == null || containerPath == null) {
-                    throw new InvalidTaskSpecificationException(
-                            String.format(
-                                    "Failed to reconstruct a volume from a TaskInfo. type: '%s', " +
-                                            "containerPath: '%s', size: '%s'",
-                                    type, containerPath, size));
+                    String errMsg = String.format(
+                            "Failed to reconstruct a volume from a TaskInfo. type: '%s', " +
+                                    "containerPath: '%s', size: '%s'",
+                            type, containerPath, size);
+                    throw new InvalidTaskSpecificationException(errMsg);
                 }
 
                 volumeSpecifications.add(
@@ -129,10 +129,10 @@ public class DefaultTaskSpecification implements TaskSpecification {
         if (diskInfo.hasSource()) {
             Protos.Resource.DiskInfo.Source.Type type = diskInfo.getSource().getType();
             switch (type) {
-                case MOUNT:
-                    return VolumeSpecification.Type.MOUNT;
                 case PATH:
                     return VolumeSpecification.Type.PATH;
+                case MOUNT:
+                    return VolumeSpecification.Type.MOUNT;
                 default:
                     LOGGER.error("Encountered unexpected type: " + type + " defaulting to ROOT volume.");
                     return VolumeSpecification.Type.ROOT;
