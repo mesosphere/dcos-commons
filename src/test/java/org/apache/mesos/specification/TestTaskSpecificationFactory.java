@@ -6,7 +6,6 @@ import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -75,14 +74,13 @@ public class TestTaskSpecificationFactory {
                         principal));
     }
 
-    static Optional<Collection<VolumeSpecification>> getVolumes(double diskSize, String role, String principal) {
-        return Optional.of(
-                Arrays.asList(
-                        new DefaultVolumeSpecification(
-                                diskSize,
-                                VolumeSpecification.Type.ROOT,
-                                TestConstants.containerPath,
-                                role,
-                                principal)));
+    static Collection<VolumeSpecification> getVolumes(double diskSize, String role, String principal) {
+        return Arrays.asList(
+                new DefaultVolumeSpecification(
+                        diskSize,
+                        VolumeSpecification.Type.ROOT,
+                        TestConstants.containerPath,
+                        role,
+                        principal));
     }
 }
