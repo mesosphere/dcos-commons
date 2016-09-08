@@ -64,6 +64,7 @@ public class ResourceUtils {
             String role,
             String principal,
             String mountRoot,
+            String containerPath,
             String persistenceId) {
         Value diskValue = Value.newBuilder()
                 .setType(Value.Type.SCALAR)
@@ -71,7 +72,7 @@ public class ResourceUtils {
                 .build();
         Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource("disk", diskValue));
         resBuilder.setRole(role);
-        resBuilder.setDisk(getExpectedMountVolumeDiskInfo(mountRoot, persistenceId, principal));
+        resBuilder.setDisk(getExpectedMountVolumeDiskInfo(mountRoot, containerPath, persistenceId, principal));
         resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
 
         return resBuilder.build();
@@ -436,12 +437,17 @@ public class ResourceUtils {
 
     private static DiskInfo getExpectedMountVolumeDiskInfo(
             String mountRoot,
+            String containerPath,
             String persistenceId,
             String principal) {
         return DiskInfo.newBuilder(getUnreservedMountVolumeDiskInfo(mountRoot))
                 .setPersistence(Persistence.newBuilder()
                         .setId(persistenceId)
                         .setPrincipal(principal)
+                        .build())
+                .setVolume(Volume.newBuilder()
+                        .setContainerPath(containerPath)
+                        .setMode(Volume.Mode.RW)
                         .build())
                 .build();
     }

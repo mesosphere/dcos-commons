@@ -45,12 +45,14 @@ public class DefaultSchedulerTest {
     private static final String TASK_A_NAME = "A";
     private static final double TASK_A_CPU = 1.0;
     private static final double TASK_A_MEM = 1000.0;
+    private static final double TASK_A_DISK = 1500.0;
     private static final String TASK_A_CMD = "echo " + TASK_A_NAME;
 
     private static final int TASK_B_COUNT = 2;
     private static final String TASK_B_NAME = "B";
     private static final double TASK_B_CPU = 2.0;
     private static final double TASK_B_MEM = 2000.0;
+    private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
     private static TestingServer testingServer;
@@ -80,13 +82,15 @@ public class DefaultSchedulerTest {
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
-                                TASK_A_MEM),
+                                TASK_A_MEM,
+                                TASK_A_DISK),
                         TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
                                 TASK_B_CPU,
-                                TASK_B_MEM));
+                                TASK_B_MEM,
+                                TASK_B_DISK));
             }
         };
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
@@ -124,8 +128,9 @@ public class DefaultSchedulerTest {
 
         // Verify 2 Reserve and 1 Launch Operations were executed
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
-        Assert.assertEquals(3, operations.size());
-        Assert.assertEquals(2, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
+        Assert.assertEquals(5, operations.size());
+        Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
+        Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
         Assert.assertTrue(blockTaskA0.isInProgress());
 
@@ -163,8 +168,9 @@ public class DefaultSchedulerTest {
 
         // Verify 2 Reserve and 1 Launch Operations were executed
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
-        Assert.assertEquals(3, operations.size());
-        Assert.assertEquals(2, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
+        Assert.assertEquals(5, operations.size());
+        Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
+        Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
         Assert.assertTrue(blockTaskB0.isInProgress());
 
@@ -213,13 +219,15 @@ public class DefaultSchedulerTest {
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU * 2.0,
-                                TASK_A_MEM * 2.0),
+                                TASK_A_MEM * 2.0,
+                                TASK_A_DISK),
                         TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
                                 TASK_B_CPU,
-                                TASK_B_MEM));
+                                TASK_B_MEM,
+                                TASK_B_DISK));
             }
         };
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
@@ -250,13 +258,15 @@ public class DefaultSchedulerTest {
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
-                                TASK_A_MEM),
+                                TASK_A_MEM,
+                                TASK_A_DISK),
                         TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
                                 TASK_B_CPU * 2.0,
-                                TASK_B_MEM * 2.0));
+                                TASK_B_MEM * 2.0,
+                                TASK_B_DISK));
             }
         };
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
@@ -287,13 +297,15 @@ public class DefaultSchedulerTest {
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
-                                TASK_A_MEM),
+                                TASK_A_MEM,
+                                TASK_A_DISK),
                         TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
                                 TASK_B_CPU * 2.0,
-                                TASK_B_MEM));
+                                TASK_B_MEM,
+                                TASK_B_DISK));
             }
         };
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
@@ -324,13 +336,15 @@ public class DefaultSchedulerTest {
                                 TASK_A_COUNT + 1,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
-                                TASK_A_MEM),
+                                TASK_A_MEM,
+                                TASK_A_DISK),
                         TestTaskSpecificationFactory.getTaskTypeSpecification(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
                                 TASK_B_CPU,
-                                TASK_B_MEM));
+                                TASK_B_MEM,
+                                TASK_B_DISK));
             }
         };
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
@@ -398,7 +412,8 @@ public class DefaultSchedulerTest {
                 .addAllResources(
                         Arrays.asList(
                                 ResourceTestUtils.getUnreservedCpu(TASK_A_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM)))
+                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM),
+                                ResourceTestUtils.getUnreservedDisk(TASK_A_DISK)))
                 .build();
     }
 
@@ -411,7 +426,8 @@ public class DefaultSchedulerTest {
                 .addAllResources(
                         Arrays.asList(
                                 ResourceTestUtils.getUnreservedCpu(TASK_B_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_B_MEM)))
+                                ResourceTestUtils.getUnreservedMem(TASK_B_MEM),
+                                ResourceTestUtils.getUnreservedDisk(TASK_B_DISK)))
                 .build();
     }
 

@@ -62,7 +62,8 @@ public class TaskUtilsTest {
                         TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue(),
                         TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM);
+                        TestTaskSpecificationFactory.MEM,
+                        TestTaskSpecificationFactory.DISK);
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -76,7 +77,8 @@ public class TaskUtilsTest {
                         TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue() + " && echo foo",
                         TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM);
+                        TestTaskSpecificationFactory.MEM,
+                        TestTaskSpecificationFactory.DISK);
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -90,7 +92,8 @@ public class TaskUtilsTest {
                         TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue(),
                         TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM);
+                        TestTaskSpecificationFactory.MEM,
+                        TestTaskSpecificationFactory.DISK);
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpTaskSpecification);
         newTaskSpecification.addResource(new DefaultResourceSpecification(
                 "foo",
@@ -123,7 +126,8 @@ public class TaskUtilsTest {
                         TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue(),
                         TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM);
+                        TestTaskSpecificationFactory.MEM,
+                        TestTaskSpecificationFactory.DISK);
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpNewTaskSpecification);
         newTaskSpecification.addResource(new DefaultResourceSpecification(
                 "foo",

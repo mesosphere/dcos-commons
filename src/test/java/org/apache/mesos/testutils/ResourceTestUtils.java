@@ -38,6 +38,7 @@ public class ResourceTestUtils {
             TestConstants.role,
             TestConstants.principal,
             TestConstants.mountRoot,
+            TestConstants.containerPath,
             TestConstants.persistenceId);
   }
 
@@ -85,6 +86,10 @@ public class ResourceTestUtils {
 
   public static Resource getUnreservedMem(double mem) {
     return ResourceUtils.getUnreservedScalar("mem", mem);
+  }
+
+  public static Resource getUnreservedDisk(double disk) {
+    return ResourceUtils.getUnreservedScalar("disk", disk);
   }
 
   public static Resource getExpectedCpu(double cpus) {
