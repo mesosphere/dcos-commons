@@ -4,13 +4,16 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.api.JettyApiServer;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.recovery.*;
+import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
@@ -19,6 +22,7 @@ import org.apache.mesos.specification.PlanSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +47,7 @@ public class DefaultScheduler implements Scheduler {
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final AtomicReference<RecoveryStatus> recoveryStatusRef;
+    private final int apiPort;
 
     private Reconciler reconciler;
     private StateStore stateStore;
@@ -54,14 +59,15 @@ public class DefaultScheduler implements Scheduler {
     private DefaultPlanScheduler planScheduler;
     private DefaultRecoveryScheduler recoveryScheduler;
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification) {
-        this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public DefaultScheduler(ServiceSpecification serviceSpecification, int apiPort) {
+        this(serviceSpecification, apiPort, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
+    public DefaultScheduler(ServiceSpecification serviceSpecification, int apiPort, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
         this.zkConnectionString = zkConnectionString;
         recoveryStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
+        this.apiPort = apiPort;
     }
 
     void awaitTermination() throws InterruptedException {
@@ -78,6 +84,7 @@ public class DefaultScheduler implements Scheduler {
         initializeGlobals();
         initializeRecoveryScheduler();
         initializeDeploymentPlan();
+        initializeApi();
     }
 
     private void initializeGlobals() {
@@ -86,9 +93,7 @@ public class DefaultScheduler implements Scheduler {
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter =
-                new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-
+        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
     }
 
     private void initializeDeploymentPlan() {
@@ -123,6 +128,32 @@ public class DefaultScheduler implements Scheduler {
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
                 recoveryStatusRef);
     }
+
+    private void initializeApi() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                JettyApiServer apiServer = new JettyApiServer(
+                        apiPort,
+                        new PlanResource(planManager),
+                        new RecoveryResource(recoveryStatusRef),
+                        new StateResource(stateStore));
+                try {
+                    apiServer.start();
+                } catch (Exception e) {
+                    logger.error("API Server failed with exception: ", e);
+                } finally {
+                    logger.info("API Server exiting.");
+                    try {
+                        apiServer.stop();
+                    } catch (Exception e) {
+                        logger.error("Failed to stop API server with exception: ", e);
+                    }
+                }
+            }
+        }).start();
+    }
+
 
     private void logOffers(List<Protos.Offer> offers) {
         if (offers == null) {

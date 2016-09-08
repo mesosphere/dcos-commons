@@ -158,6 +158,8 @@ dependencies {
     compile "com.google.inject:guice:${guiceVer}"
     compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:2.23.2"
+    compile "org.eclipse.jetty:jetty-servlet:9.2.3.v20140905"
+    compile "org.glassfish.jersey.containers:jersey-container-servlet-core:2.7"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
     testCompile "org.mockito:mockito-all:${mockitoVer}"

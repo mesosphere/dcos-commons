@@ -11,6 +11,7 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskTypeSpecification;
 import org.apache.mesos.specification.TestTaskSpecificationFactory;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.NetworkTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
@@ -21,6 +22,7 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -93,7 +95,11 @@ public class DefaultSchedulerTest {
                                 TASK_B_DISK));
             }
         };
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+
+        defaultScheduler = new DefaultScheduler(
+                serviceSpecification,
+                NetworkTestUtils.getRandomPort(),
+                testingServer.getConnectString());
         register();
     }
 
@@ -199,7 +205,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updatePerTaskASpecification() throws InterruptedException {
+    public void updatePerTaskASpecification() throws InterruptedException, IOException {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
@@ -230,7 +236,11 @@ public class DefaultSchedulerTest {
                                 TASK_B_DISK));
             }
         };
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+
+        defaultScheduler = new DefaultScheduler(
+                serviceSpecification,
+                NetworkTestUtils.getRandomPort(),
+                testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -238,7 +248,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updatePerTaskBSpecification() throws InterruptedException {
+    public void updatePerTaskBSpecification() throws InterruptedException, IOException {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
@@ -269,7 +279,11 @@ public class DefaultSchedulerTest {
                                 TASK_B_DISK));
             }
         };
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+
+        defaultScheduler = new DefaultScheduler(
+                serviceSpecification,
+                NetworkTestUtils.getRandomPort(),
+                testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -277,7 +291,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updateTaskBCpuSpecification() throws InterruptedException {
+    public void updateTaskBCpuSpecification() throws InterruptedException, IOException {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
@@ -308,7 +322,11 @@ public class DefaultSchedulerTest {
                                 TASK_B_DISK));
             }
         };
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+
+        defaultScheduler = new DefaultScheduler(
+                serviceSpecification,
+                NetworkTestUtils.getRandomPort(),
+                testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -316,7 +334,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void updateTaskTypeASpecification() throws InterruptedException {
+    public void updateTaskTypeASpecification() throws InterruptedException, IOException {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
@@ -347,7 +365,11 @@ public class DefaultSchedulerTest {
                                 TASK_B_DISK));
             }
         };
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+
+        defaultScheduler = new DefaultScheduler(
+                serviceSpecification,
+                NetworkTestUtils.getRandomPort(),
+                testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
