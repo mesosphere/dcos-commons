@@ -105,6 +105,8 @@ class CITester(object):
             requirements_cmd = 'pip install -r {}'.format(requirements_file)
         else:
             requirements_cmd = ''
+        # TODO(nick): remove this inlined script with external templating
+        #             (or find a way of entering the virtualenv that doesn't involve a shell script)
         script_file.write('''
 #!/bin/bash
 set -e
@@ -140,6 +142,8 @@ shakedown --dcos-url "{dcos_url}" --ssh-key-file "" --stdout=all --stdout-inline
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self.__sandbox_path, 'run_dcos_tests.sh')
         script_file = open(script_path, 'w')
+        # TODO(nick): remove this inlined script with external templating
+        #             (or find a way of entering the virtualenv that doesn't involve a shell script)
         script_file.write('''
 #!/bin/bash
 set -e
