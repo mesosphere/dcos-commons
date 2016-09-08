@@ -3,6 +3,7 @@
 import logging
 import os
 import os.path
+import random
 import shutil
 import stat
 import string
@@ -79,13 +80,16 @@ class CITester(object):
             subprocess.check_call(cmd.split(' '))
 
 
-    def setup_cli(self):
+    def setup_cli(self, stub_universes = {}):
         try:
             self._github_updater.update('pending', 'Setting up CLI')
             self._configure_cli_sandbox()  # adds to os.environ
             cli_filepath = self._download_cli_to_sandbox()
             self._configure_cli(self._dcos_url)
             dcos_login.DCOSLogin(self._dcos_url).login()
+            for name, url in stub_universes.items():
+                logger.info('Adding repository: {} {}'.format(name, url))
+                subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split(' '))
         except:
             self._github_updater.update('error', 'CLI Setup failed')
             raise
@@ -175,10 +179,14 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
 
 
 def print_help(argv):
-    logger.info('Syntax: {} <"shakedown"|"dcos-tests"> <dcos-url> <path/to/tests/> [/path/to/custom-requirements.txt | /path/to/dcos-tests [test-types]]'.format(argv[0]))
-    logger.info('  Example (shakedown w/ requirements): $ {} shakedown http://your-cluster.com /path/to/your/tests/ /path/to/custom/requirements.txt')
-    logger.info('  Example (shakedown w/o requirements): $ {} shakedown http://your-cluster.com /path/to/your/tests/')
-    logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests http://your-cluster.com /path/to/your/tests/ /path/to/dcos-tests/ "sanity or recovery"')
+    logger.info('Syntax: CLUSTER_URL=yourcluster.com {} <"shakedown"|"dcos-tests"> <path/to/tests/> [/path/to/custom-requirements.txt | /path/to/dcos-tests [test-types]]'.format(argv[0]))
+    logger.info('  Example (shakedown w/ requirements): $ {} shakedown /path/to/your/tests/ /path/to/custom/requirements.txt')
+    logger.info('  Example (shakedown w/o requirements): $ {} shakedown /path/to/your/tests/')
+    logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests /path/to/your/tests/ /path/to/dcos-tests/ "sanity or recovery"')
+
+
+def _rand_str(size):
+    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
 
 def main(argv):
@@ -186,20 +194,29 @@ def main(argv):
         print_help(argv)
         return 1
     test_type = argv[1]
-    dcos_url = argv[2]
-    test_dirs = argv[3]
+    test_dirs = argv[2]
 
-    tester = CITester(dcos_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
+    cluster_url = os.environ.get('CLUSTER_URL', '')
+    if not cluster_url:
+        logger.error('CLUSTER_URL envvar is required.')
+        return 1
+
+    stub_universes = {}
+    stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')
+    if stub_universe_url:
+        stub_universes['testpkg-' + _rand_str(8)] = stub_universe_url
+
+    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
+
     try:
+        tester.setup_cli(stub_universes)
         if test_type == 'shakedown':
-            tester.setup_cli()
             if len(argv) >= 5:
                 test_requirements = argv[4]
                 tester.run_shakedown(test_dirs, test_requirements)
             else:
                 tester.run_shakedown(test_dirs)
         elif test_type == 'dcos-tests':
-            tester.setup_cli()
             dcos_tests_dir = argv[4]
             if len(argv) >= 6:
                 pytest_types = argv[5]

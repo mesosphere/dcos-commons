@@ -295,6 +295,7 @@ Common options:
 - `CCM_ATTEMPTS`: Number of attempts to complete a start/stop operation (e.g. number of times to attempt cluster creation before giving up) (default `2`)
 - `CCM_TIMEOUT_MINS`: Number of minutes to wait for a start/stop operation to complete before treating it as a failure (default `45`)
 - `DRY_RUN`: Refrain from actually sending requests to the cluster (only partially works, as no fake response is generated) (default `''`)
+- `CCM_MOUNT_VOLUMES`: Enable mount volumes in the launched cluster (non-empty value = `true`).
 
 Startup-specific options:
 
@@ -319,22 +320,26 @@ Returns zero on success, or non-zero otherwise.
 Shakedown tests:
 
 ```
-./run_tests.py shakedown http://your-dcos-cluster.com /path/to/your/shakedown/tests/
+CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py shakedown /path/to/your/shakedown/tests/
 ```
 
 Shakedown tests, with preceding installation of library requirements:
 
 ```
-./run_tests.py shakedown http://your-dcos-cluster.com /path/to/shakedown/tests/ /path/to/shakedown/requirements.txt
+CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py shakedown /path/to/your/shakedown/tests/ /path/to/shakedown/requirements.txt
 ```
 
 dcos-tests (Mesosphere-internal, deprecated in favor of Shakedown):
 
 ```
-./run_tests.py dcos-tests http://your-dcos-cluster.com /path/to/your/tests/ /path/to/dcos-tests/repo/ "selected types (eg 'sanity or recovery')"
+CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py dcos-tests /path/to/dcos-tests/test/path /path/to/dcos-tests/ "selected types (eg 'sanity or recovery')"
 ```
 
 #### Environment variables
+
+- `CLUSTER_URL` (REQUIRED): The URL of a DC/OS cluster to be tested against
+- `STUB_UNIVERSE_URL`: The URL of a stub universe package, if any, to be added to the cluster's repository list.
+- `TEST_GITHUB_LABEL`: Custom label to use when reporting status to Github. This value will be prepended with `test:`.
 
 This utility calls `dcos_login.py` and `github_update.py`, so the environment variables used by those tools are inherited. For example, the `DCOS_TOKEN` environment variable may be assigned to authenticate against a DC/OS Open cluster which had already been logged into (at which point the default token used by `dcos_login.py` is no longer valid).
 
