@@ -196,7 +196,7 @@ Optional:
 - `S3_BUCKET` (default: `infinity-artifacts`): Name of the S3 bucket to use as the upload destination.
 - `S3_DIR_PATH` (default: `autodelete7d`): Parent directory on the bucket to deposit the files within. A randomly generated subdirectory will be created within this path.
 - `AWS_UPLOAD_REGION`: manual region to use for the S3 upload
-- `JENKINS_HOME`: Used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
+- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
 - `CUSTOM_UNIVERSES_PATH`: Text file to write the stub universe URL into
 - `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
 - `DRY_RUN`: Refrain from actually uploading anything to S3.
@@ -295,6 +295,7 @@ Common options:
 - `CCM_ATTEMPTS`: Number of attempts to complete a start/stop operation (e.g. number of times to attempt cluster creation before giving up) (default `2`)
 - `CCM_TIMEOUT_MINS`: Number of minutes to wait for a start/stop operation to complete before treating it as a failure (default `45`)
 - `DRY_RUN`: Refrain from actually sending requests to the cluster (only partially works, as no fake response is generated) (default `''`)
+- `CCM_MOUNT_VOLUMES`: Enable mount volumes in the launched cluster (non-empty value = `true`).
 
 Startup-specific options:
 
@@ -306,7 +307,7 @@ Startup-specific options:
 - `CCM_AWS_REGION`: Region to start an AWS cluster in (default `us-west-2`)
 - `CCM_ADMIN_LOCATION`: IP filter range for accessing the dashboard (default `0.0.0.0/0`)
 - `CCM_CLOUD_PROVIDER`: Cloud provider type value to use (default `0`)
-- `JENKINS_HOME`: Used to determine if a `$WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties` file should be created with `CLUSTER_ID` and `CLUSTER_URL` values.
+- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties` file should be created with `CLUSTER_ID` and `CLUSTER_URL` values.
 
 ### run_tests.py
 
@@ -319,22 +320,26 @@ Returns zero on success, or non-zero otherwise.
 Shakedown tests:
 
 ```
-./run_tests.py shakedown http://your-dcos-cluster.com /path/to/your/shakedown/tests/
+CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py shakedown /path/to/your/shakedown/tests/
 ```
 
 Shakedown tests, with preceding installation of library requirements:
 
 ```
-./run_tests.py shakedown http://your-dcos-cluster.com /path/to/shakedown/tests/ /path/to/shakedown/requirements.txt
+CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py shakedown /path/to/your/shakedown/tests/ /path/to/shakedown/requirements.txt
 ```
 
 dcos-tests (Mesosphere-internal, deprecated in favor of Shakedown):
 
 ```
-./run_tests.py dcos-tests http://your-dcos-cluster.com /path/to/your/tests/ /path/to/dcos-tests/repo/ "selected types (eg 'sanity or recovery')"
+CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py dcos-tests /path/to/dcos-tests/test/path /path/to/dcos-tests/ "selected types (eg 'sanity or recovery')"
 ```
 
 #### Environment variables
+
+- `CLUSTER_URL` (REQUIRED): The URL of a DC/OS cluster to be tested against
+- `STUB_UNIVERSE_URL`: The URL of a stub universe package, if any, to be added to the cluster's repository list.
+- `TEST_GITHUB_LABEL`: Custom label to use when reporting status to Github. This value will be prepended with `test:`.
 
 This utility calls `dcos_login.py` and `github_update.py`, so the environment variables used by those tools are inherited. For example, the `DCOS_TOKEN` environment variable may be assigned to authenticate against a DC/OS Open cluster which had already been logged into (at which point the default token used by `dcos_login.py` is no longer valid).
 
@@ -386,7 +391,7 @@ For other examples of usage, take a look at the `build.sh` for [Kafka](https://g
 
 Much of the logic for detecting the CI environment is handled automatically by checking one or more environment variables:
 
-- Detecting a CI environment: Non-empty `JENKINS_HOME`
+- Detecting a CI environment: Non-empty `WORKSPACE`
 - GitHub [auth token](https://github.com/settings/tokens): `GITHUB_TOKEN_REPO_STATUS`, or `GITHUB_TOKEN`
 - git commit SHA: `ghprbActualCommit`, `GIT_COMMIT`, `${${GIT_COMMIT_ENV_NAME}}`, or finally by checking `git` directly.
 - GitHub repository path: `GITHUB_REPO_PATH`, or by checking `git` directly.
