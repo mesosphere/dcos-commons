@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * This class provides a default implementation of the TaskTypeSpecification interface.
@@ -14,14 +13,14 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     private final String name;
     private final Protos.CommandInfo command;
     private final Collection<ResourceSpecification> resources;
-    private final Optional<Collection<VolumeSpecification>> volumes;
+    private final Collection<VolumeSpecification> volumes;
 
     public DefaultTaskTypeSpecification(
             int count,
             String name,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
-            Optional<Collection<VolumeSpecification>> volumes) {
+            Collection<VolumeSpecification> volumes) {
         this.count = count;
         this.name = name;
         this.command = command;
@@ -50,7 +49,7 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     }
 
     @Override
-    public Optional<Collection<VolumeSpecification>> getVolumes() {
+    public Collection<VolumeSpecification> getVolumes() {
         return volumes;
     }
 

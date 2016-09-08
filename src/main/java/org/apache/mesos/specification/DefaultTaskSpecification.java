@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * This class provides a default implementation of the TaskSpecification interface.
@@ -19,7 +18,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private final String name;
     private final Protos.CommandInfo commandInfo;
     private final Collection<ResourceSpecification> resourceSpecifications;
-    private final Optional<Collection<VolumeSpecification>> volumeSpecifications;
+    private final Collection<VolumeSpecification> volumeSpecifications;
 
     public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo) throws InvalidTaskSpecificationException {
         return new DefaultTaskSpecification(
@@ -33,7 +32,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             String name,
             Protos.CommandInfo commandInfo,
             Collection<ResourceSpecification> resourceSpecifications,
-            Optional<Collection<VolumeSpecification>> volumeSpecifications) {
+            Collection<VolumeSpecification> volumeSpecifications) {
         return new DefaultTaskSpecification(name, commandInfo, resourceSpecifications, volumeSpecifications);
     }
 
@@ -41,7 +40,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             String name,
             Protos.CommandInfo commandInfo,
             Collection<ResourceSpecification> resourceSpecifications,
-            Optional<Collection<VolumeSpecification>> volumeSpecifications) {
+            Collection<VolumeSpecification> volumeSpecifications) {
         this.name = name;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
@@ -64,7 +63,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     }
 
     @Override
-    public Optional<Collection<VolumeSpecification>> getVolumes() {
+    public Collection<VolumeSpecification> getVolumes() {
         return volumeSpecifications;
     }
 
@@ -83,7 +82,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
         return resourceSpecifications;
     }
 
-    private static Optional<Collection<VolumeSpecification>> getVolumes(Protos.TaskInfo taskInfo)
+    private static Collection<VolumeSpecification> getVolumes(Protos.TaskInfo taskInfo)
             throws InvalidTaskSpecificationException {
         Collection<VolumeSpecification> volumeSpecifications = new ArrayList<>();
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
@@ -118,11 +117,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             }
         }
 
-        if (volumeSpecifications.size() > 0) {
-            return Optional.of(volumeSpecifications);
-        } else {
-            return Optional.empty();
-        }
+        return volumeSpecifications;
     }
 
     private static VolumeSpecification.Type getType(Protos.Resource.DiskInfo diskInfo) {

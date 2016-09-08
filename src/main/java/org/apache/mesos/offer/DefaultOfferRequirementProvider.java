@@ -68,16 +68,16 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         try {
             TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
-            Optional<Collection<VolumeSpecification>> oldVolumes = oldTaskSpecification.getVolumes();
-            Optional<Collection<VolumeSpecification>> newVolumes = taskSpecification.getVolumes();
+            Collection<VolumeSpecification> oldVolumes = oldTaskSpecification.getVolumes();
+            Collection<VolumeSpecification> newVolumes = taskSpecification.getVolumes();
 
-            if (oldVolumes.isPresent() && newVolumes.isPresent()) {
-                if (!CollectionUtils.isEqualCollection(oldVolumes.get(), newVolumes.get())){
+            if (oldVolumes.size() > 0 && newVolumes.size() > 0) {
+                if (!CollectionUtils.isEqualCollection(oldVolumes, newVolumes)){
                     throw new InvalidRequirementException(
                             String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
-                                    oldTaskSpecification.getVolumes().get(), taskSpecification.getVolumes().get()));
+                                    oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
                 }
-            } else if (!(!oldVolumes.isPresent() && !newVolumes.isPresent())) {
+            } else if (!(oldVolumes.size() == 0 && newVolumes.size() == 0)) {
                 throw new InvalidRequirementException(
                         String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
                                 oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
@@ -94,8 +94,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
         }
 
-        if (taskSpecification.getVolumes().isPresent()) {
-            for (VolumeSpecification volumeSpecification : taskSpecification.getVolumes().get()) {
+        if (taskSpecification.getVolumes().size() > 0) {
+            for (VolumeSpecification volumeSpecification : taskSpecification.getVolumes()) {
                 switch (volumeSpecification.getType()) {
                     case ROOT:
                         resources.add(
