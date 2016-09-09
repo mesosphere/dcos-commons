@@ -3,6 +3,7 @@ package org.apache.mesos.executor;
 import org.apache.mesos.Protos;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.*;
@@ -17,7 +18,12 @@ public class HealthCheckHandlerTest {
     private static final double SHORT_INTERVAL_S = 0.001;
     private static final double SHORT_DELAY_S = 0.001;
     private static final double SHORT_GRACE_PERIOD_S = 0.001;
-    private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService scheduledExecutorService;
+
+    @Before
+    public void beforeEach() {
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    }
 
     @Test
     public void testSingleFailure() throws HealthCheckHandler.HealthCheckValidationException, ExecutionException, InterruptedException {
