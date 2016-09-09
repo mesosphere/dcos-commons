@@ -5,6 +5,7 @@ package org.apache.mesos.scheduler;
  */
 public enum SchedulerErrorCode {
     SUCCESS,
+    INITIALIZATION_FAILURE,
     REGISTRATION_FAILURE,
     RE_REGISTRATION,
     OFFER_RESCINDED,

@@ -5,7 +5,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.apache.mesos.testutils.NetworkTestUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Arrays;
 
 /**
@@ -30,7 +30,7 @@ public class JettyApiServerTest {
     @Before
     public void beforeEach() throws IOException {
         MockitoAnnotations.initMocks(this);
-        port = NetworkTestUtils.getRandomPort();
+        port = getRandomPort();
         jettyApiServer = new JettyApiServer(port, Arrays.asList(new TestPojo()));
     }
 
@@ -58,6 +58,13 @@ public class JettyApiServerTest {
         String responseString = EntityUtils.toString(entity, "UTF-8");
 
         Assert.assertEquals(TEST, responseString);
+    }
+
+    private static int getRandomPort() throws IOException {
+        ServerSocket serverSocket = new ServerSocket(0);
+        int port = serverSocket.getLocalPort();
+        serverSocket.close();
+        return port;
     }
 
     @Path("/")

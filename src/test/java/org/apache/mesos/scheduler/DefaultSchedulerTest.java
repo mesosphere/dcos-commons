@@ -11,7 +11,6 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskTypeSpecification;
 import org.apache.mesos.specification.TestTaskSpecificationFactory;
 import org.apache.mesos.testing.CuratorTestUtils;
-import org.apache.mesos.testutils.NetworkTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
@@ -98,7 +97,6 @@ public class DefaultSchedulerTest {
 
         defaultScheduler = new DefaultScheduler(
                 serviceSpecification,
-                NetworkTestUtils.getRandomPort(),
                 testingServer.getConnectString());
         register();
     }
@@ -239,7 +237,6 @@ public class DefaultSchedulerTest {
 
         defaultScheduler = new DefaultScheduler(
                 serviceSpecification,
-                NetworkTestUtils.getRandomPort(),
                 testingServer.getConnectString());
         register();
 
@@ -282,7 +279,6 @@ public class DefaultSchedulerTest {
 
         defaultScheduler = new DefaultScheduler(
                 serviceSpecification,
-                NetworkTestUtils.getRandomPort(),
                 testingServer.getConnectString());
         register();
 
@@ -325,7 +321,6 @@ public class DefaultSchedulerTest {
 
         defaultScheduler = new DefaultScheduler(
                 serviceSpecification,
-                NetworkTestUtils.getRandomPort(),
                 testingServer.getConnectString());
         register();
 
@@ -368,7 +363,6 @@ public class DefaultSchedulerTest {
 
         defaultScheduler = new DefaultScheduler(
                 serviceSpecification,
-                NetworkTestUtils.getRandomPort(),
                 testingServer.getConnectString());
         register();
 

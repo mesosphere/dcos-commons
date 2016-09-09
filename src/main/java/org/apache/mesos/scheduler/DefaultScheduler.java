@@ -4,7 +4,6 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.api.JettyApiServer;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
@@ -28,9 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -47,7 +44,7 @@ public class DefaultScheduler implements Scheduler {
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final AtomicReference<RecoveryStatus> recoveryStatusRef;
-    private final int apiPort;
+    private final BlockingQueue<Collection<Object>> resourcesQueue;
 
     private Reconciler reconciler;
     private StateStore stateStore;
@@ -58,16 +55,26 @@ public class DefaultScheduler implements Scheduler {
     private PlanManager planManager;
     private DefaultPlanScheduler planScheduler;
     private DefaultRecoveryScheduler recoveryScheduler;
+    private Collection<Object> resources;
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification, int apiPort) {
-        this(serviceSpecification, apiPort, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public DefaultScheduler(ServiceSpecification serviceSpecification) {
+        this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification, int apiPort, String zkConnectionString) {
+    public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
         this.zkConnectionString = zkConnectionString;
-        recoveryStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
-        this.apiPort = apiPort;
+        this.recoveryStatusRef =
+                new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
+        this.resourcesQueue = new ArrayBlockingQueue<>(1);
+    }
+
+    public Collection<Object> getResources() throws InterruptedException {
+        if (resources == null) {
+            resources = resourcesQueue.take();
+        }
+
+        return resources;
     }
 
     void awaitTermination() throws InterruptedException {
@@ -79,12 +86,12 @@ public class DefaultScheduler implements Scheduler {
         return plan;
     }
 
-    private void initialize() {
+    private void initialize() throws InterruptedException {
         logger.info("Initializing.");
         initializeGlobals();
         initializeRecoveryScheduler();
         initializeDeploymentPlan();
-        initializeApi();
+        initializeResources();
     }
 
     private void initializeGlobals() {
@@ -94,6 +101,22 @@ public class DefaultScheduler implements Scheduler {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+    }
+
+    private void initializeRecoveryScheduler() {
+        logger.info("Initializing recovery scheduler");
+        RecoveryRequirementProvider recoveryRequirementProvider =
+                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
+        LaunchConstrainer constrainer =
+                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
+        recoveryScheduler = new DefaultRecoveryScheduler(
+                stateStore,
+                taskFailureListener,
+                recoveryRequirementProvider,
+                offerAccepter,
+                constrainer,
+                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
+                recoveryStatusRef);
     }
 
     private void initializeDeploymentPlan() {
@@ -113,45 +136,12 @@ public class DefaultScheduler implements Scheduler {
 
     }
 
-    private void initializeRecoveryScheduler() {
-        logger.info("Initializing recovery scheduler");
-        RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
-        LaunchConstrainer constrainer =
-                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
-        recoveryScheduler = new DefaultRecoveryScheduler(
-                stateStore,
-                taskFailureListener,
-                recoveryRequirementProvider,
-                offerAccepter,
-                constrainer,
-                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
-                recoveryStatusRef);
-    }
-
-    private void initializeApi() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JettyApiServer apiServer = new JettyApiServer(
-                        apiPort,
-                        new PlanResource(planManager),
-                        new RecoveryResource(recoveryStatusRef),
-                        new StateResource(stateStore));
-                try {
-                    apiServer.start();
-                } catch (Exception e) {
-                    logger.error("API Server failed with exception: ", e);
-                } finally {
-                    logger.info("API Server exiting.");
-                    try {
-                        apiServer.stop();
-                    } catch (Exception e) {
-                        logger.error("Failed to stop API server with exception: ", e);
-                    }
-                }
-            }
-        }).start();
+    private void initializeResources() throws InterruptedException {
+        Collection<Object> resources = new ArrayList<>();
+        resources.add(new PlanResource(planManager));
+        resources.add(new RecoveryResource(recoveryStatusRef));
+        resources.add(new StateResource(stateStore));
+        resourcesQueue.put(resources);
     }
 
     private void logOffers(List<Protos.Offer> offers) {
@@ -215,7 +205,12 @@ public class DefaultScheduler implements Scheduler {
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         logger.info("Registered framework with frameworkId: " + frameworkId.getValue());
-        initialize();
+        try {
+            initialize();
+        } catch (InterruptedException e) {
+            logger.error("Initialization failed with exception: ", e);
+            hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+        }
 
         try {
             stateStore.storeFrameworkId(frameworkId);

@@ -1,15 +1,11 @@
 package org.apache.mesos.api;
 
-import org.apache.mesos.scheduler.plan.api.PlanResource;
-import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
-import org.apache.mesos.state.api.StateResource;
 import org.eclipse.jetty.server.Server;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -17,14 +13,6 @@ import java.util.Collection;
  */
 public class JettyApiServer {
     private final Server server;
-
-    public JettyApiServer(
-            int port,
-            PlanResource planResource,
-            RecoveryResource recoveryResource,
-            StateResource stateResource) {
-        this(port, Arrays.asList(planResource, recoveryResource, stateResource));
-    }
 
     public JettyApiServer(int port, Collection<Object> resources) {
         ResourceConfig resourceConfig = new ResourceConfig();
