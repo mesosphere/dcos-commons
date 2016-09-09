@@ -216,26 +216,43 @@ class CCMLauncher(object):
             'cloud_provider': config.cloud_provider,
             'region': config.aws_region
         }
-        logger.info('Launching cluster named "{}" with {} private/{} public agents for {} minutes against template at {}'.format(
-            config.name, config.private_agents, config.public_agents,
-            config.duration_mins, template_url))
+        logger.info('''Launching cluster:
+  name="{}"
+  agents={} private/{} public
+  duration={} minutes
+  mountvols={}
+  channel={}
+  template={}'''.format(
+      config.name,
+      config.private_agents, config.public_agents,
+      config.duration_mins,
+      config.mount_volumes,
+      config.ccm_channel,
+      config.cf_template))
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
         if not response:
             raise Exception('CCM cluster creation request failed')
         response_content = response.read()
-        cluster_id = int(json.loads(response_content).get('id', 0))
+        response_json = json.loads(response_content)
+        logger.info('Launch response:\n{}'.format(pprint.pformat(response_json)))
+        cluster_id = int(response_json.get('id', 0))
         if not cluster_id:
-            raise Exception('No ID returned in cluster creation response: {}'.format(response_content))
+            raise Exception('No Cluster ID returned in cluster creation response: {}'.format(response_content))
+
         cluster_info = self.wait_for_status(cluster_id, 'CREATING', 'RUNNING', config.start_timeout_mins)
         if not cluster_info:
             raise Exception('CCM cluster creation failed or timed out')
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
+        stack_id = cluster_info.get('stack_id', '')
+        if not stack_id:
+            raise Exception('CCM cluster_info is missing stack_id: {}'.format(cluster_info))
+
         if config.mount_volumes:
-            logger.info('Enabling mount volumes for cluster {}'.format(cluster_id))
+            logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
             import enable_mount_volumes
-            enable_mount_volumes.main(str(cluster_id))
+            enable_mount_volumes.main(stack_id)
         return {
             'id': cluster_id,
             'url': str('https://' + dns_address)}
@@ -245,15 +262,22 @@ class CCMLauncher(object):
         return self._retry(attempts, self._stop, config, 'shutdown')
 
 
-    def _stop(self, config):
+    def trigger_stop(self, config):
+        self._stop(config, False)
+
+
+    def _stop(self, config, wait=True):
         logger.info('Deleting cluster #{}'.format(config.cluster_id))
         response = self._query_http('DELETE', self._CCM_PATH + config.cluster_id + '/')
         if not response:
             raise Exception('CCM cluster deletion request failed')
-        cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
-        if not cluster_info:
-            raise Exception('CCM cluster deletion failed or timed out')
-        logger.info(pprint.pformat(cluster_info))
+        if wait:
+            cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
+            if not cluster_info:
+                raise Exception('CCM cluster deletion failed or timed out')
+            logger.info(pprint.pformat(cluster_info))
+        else:
+            logger.info('Delete triggered, exiting.')
 
 
 class StartConfig(object):
@@ -306,8 +330,8 @@ def _write_jenkins_config(github_label, cluster_id_url, error = None):
 
     # write jenkins properties file to $WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties:
     properties_file = open(os.path.join(os.environ['WORKSPACE'], 'cluster-{}.properties'.format(github_label)), 'w')
-    properties_file.write('CLUSTER_ID={}\n'.format(cluster_id_url.get('id','0')))
-    properties_file.write('CLUSTER_URL={}\n'.format(cluster_id_url.get('url','null')))
+    properties_file.write('CLUSTER_ID={}\n'.format(cluster_id_url.get('id', '0')))
+    properties_file.write('CLUSTER_URL={}\n'.format(cluster_id_url.get('url', 'null')))
     if error:
         properties_file.write('ERROR={}\n'.format(error))
     properties_file.flush()
@@ -332,23 +356,31 @@ def main(argv):
                 launcher.stop(StopConfig(argv[2]), start_stop_attempts)
                 return 0
             else:
-                logger.info('Usage: {} stop <ccm_id>'.format(argv[0]), file=sys.stderr)
+                logger.info('Usage: {} stop <ccm_id>'.format(argv[0]))
+                return 1
+        if argv[1] == 'trigger-stop':
+            if len(argv) >= 3:
+                launcher.trigger_stop(StopConfig(argv[2]))
+                return 0
+            else:
+                logger.info('Usage: {} trigger-stop <ccm_id>'.format(argv[0]))
                 return 1
         if argv[1] == 'wait':
             if len(argv) >= 5:
                 # piggy-back off of StopConfig's env handling:
                 stop_config = StopConfig(argv[2])
-                cluster_info = launcher.wait_for_status(stop_config.cluster_id, argv[3], argv[4], stop_config.stop_timeout_mins)
+                cluster_info = launcher.wait_for_status(
+                    stop_config.cluster_id, argv[3], argv[4], stop_config.stop_timeout_mins)
                 if not cluster_info:
                     return 1
                 # print to stdout (the rest of this script only writes to stderr):
                 print(pprint.pformat(cluster_info))
                 return 0
             else:
-                logger.info('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]), file=sys.stderr)
+                logger.info('Usage: {} wait <ccm_id> <current_state> <new_state>'.format(argv[0]))
                 return 1
         else:
-            logger.info('Usage: {} [stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]), file=sys.stderr)
+            logger.info('Usage: {} [stop <ccm_id>|trigger-stop <ccm_id>|wait <ccm_id> <current_state> <new_state>]'.format(argv[0]))
             return
 
     try:
