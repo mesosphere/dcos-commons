@@ -196,7 +196,7 @@ def main(argv):
     test_type = argv[1]
     test_dirs = argv[2]
 
-    cluster_url = os.environ.get('CLUSTER_URL', '')
+    cluster_url = os.environ.get('CLUSTER_URL', '').strip('"').strip('\'')
     if not cluster_url:
         logger.error('CLUSTER_URL envvar is required.')
         return 1
