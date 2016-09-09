@@ -97,7 +97,7 @@ ext {
     awaitilityVer = "2.0.0"
     jettyServletVer = "9.2.3.v20140905"
     jerseyContainerVer = "2.23.2";
-    gensonVer = "1.4"
+    jsonProviderVer = "2.2.3"
 }
 
 group = "mesosphere"
@@ -162,7 +162,7 @@ dependencies {
     compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyContainerVer}"
     compile "org.eclipse.jetty:jetty-servlet:${jettyServletVer}"
-    compile "com.owlike:genson:${gensonVer}"
+    compile "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${jsonProviderVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
     testCompile "org.mockito:mockito-all:${mockitoVer}"
