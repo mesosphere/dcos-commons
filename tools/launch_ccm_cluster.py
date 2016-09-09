@@ -238,6 +238,9 @@ class CCMLauncher(object):
         cluster_id = int(response_json.get('id', 0))
         if not cluster_id:
             raise Exception('No Cluster ID returned in cluster creation response: {}'.format(response_content))
+        stack_id = response_json.get('stack_id', '')
+        if not stack_id:
+            raise Exception('No Stack ID returned in cluster creation response: {}'.format(response_content))
 
         cluster_info = self.wait_for_status(cluster_id, 'CREATING', 'RUNNING', config.start_timeout_mins)
         if not cluster_info:
@@ -245,9 +248,6 @@ class CCMLauncher(object):
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
-        stack_id = cluster_info.get('stack_id', '')
-        if not stack_id:
-            raise Exception('CCM cluster_info is missing stack_id: {}'.format(cluster_info))
 
         if config.mount_volumes:
             logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
