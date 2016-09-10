@@ -26,11 +26,6 @@ from fabric.tasks import execute
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-# fabric spams to stdout, which causes problems with launch_ccm_cluster.
-# force total redirect to stderr:
-stdout = sys.stdout
-sys.stdout = sys.stderr
-
 
 def tag_match(instance, key, value):
     tags = instance.get('Tags')

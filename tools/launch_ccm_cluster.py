@@ -251,8 +251,13 @@ class CCMLauncher(object):
 
         if config.mount_volumes:
             logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
+            # fabric spams to stdout, which causes problems with launch_ccm_cluster.
+            # force total redirect to stderr:
+            stdout = sys.stdout
+            sys.stdout = sys.stderr
             import enable_mount_volumes
             enable_mount_volumes.main(stack_id)
+            sys.stdout = stdout
         return {
             'id': cluster_id,
             'url': str('https://' + dns_address)}
