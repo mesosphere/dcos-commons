@@ -31,7 +31,7 @@ public class DefaultPhaseSpecification implements PhaseSpecification {
     private static TaskSpecification getTaskSpecification(int id, TaskTypeSpecification taskTypeSpecification) {
         return DefaultTaskSpecification.create(
                 taskTypeSpecification.getName() + "-" + id,
-                taskTypeSpecification.getCommand(),
+                taskTypeSpecification.getCommand(id),
                 taskTypeSpecification.getResources(),
                 taskTypeSpecification.getVolumes());
     }
