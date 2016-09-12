@@ -116,7 +116,7 @@ class DCOSLogin(object):
                 response.getheaders()))
 
     def get_acs_token(self, debug=False):
-        env_token = os.environ.get('DCOS_TOKEN', '')
+        env_token = os.environ.get('CLUSTER_AUTH_TOKEN', '')
         if env_token:
             return env_token
         if self._cached_token:
@@ -135,27 +135,24 @@ class DCOSLogin(object):
         return self._cached_token
 
 
-    def login(self, debug=False):
-        token = self.get_acs_token(debug)
-        subprocess.check_call(
-            'dcos config set core.dcos_acs_token {}'.format(token).split(' '))
-
-
 def main(argv):
-    # get url from dcos CLI:
-    ret = subprocess.Popen(
-        'dcos config show core.dcos_url'.split(' '),
-        stdout=subprocess.PIPE)
-    dcos_url = ret.stdout.readline().decode('utf-8').strip()
+    dcos_url = os.environ.get('CLUSTER_URL', '')
+    if not dcos_url:
+        # get url from dcos CLI:
+        ret = subprocess.Popen(
+            'dcos config show core.dcos_url'.split(' '),
+            stdout=subprocess.PIPE)
+        dcos_url = ret.stdout.readline().decode('utf-8').strip()
     # do handshake:
     login = DCOSLogin(dcos_url)
     logger.info('Logging in to: {}'.format(dcos_url))
-    login.login()
-    logger.info('Login successful. Access token with: dcos config show core.dcos_acs_token')
     if len(argv) >= 2 and argv[1] == "print":
-        # use stdout, while the rest of the file is stderr
+        # use stdout. the rest of the code uses stderr via 'logger'
         print(login.get_acs_token())
     else:
+        subprocess.check_call(
+            'dcos config set core.dcos_acs_token {}'.format(self.get_acs_token(debug)).split(' '))
+        logger.info('Login successful. Access token with: dcos config show core.dcos_acs_token')
         logger.info('(Or call this script with "print" to also print token to stdout)')
     return 0
 
