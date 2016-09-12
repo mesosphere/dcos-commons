@@ -129,7 +129,7 @@ class CCMLauncher(object):
 
 
     def wait_for_status(self, cluster_id, pending_status_label, complete_status_label, timeout_minutes):
-        logger.info('Waiting {} minutes for cluster {} to go from {} to {}'.format(
+        logger.info('Waiting {} minutes for cluster {} to transition from {} to {}'.format(
             timeout_minutes, cluster_id, pending_status_label, complete_status_label))
 
         pending_state_code = self._CCM_STATUS_LABELS[pending_status_label]
@@ -251,8 +251,13 @@ class CCMLauncher(object):
 
         if config.mount_volumes:
             logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
+            # fabric spams to stdout, which causes problems with launch_ccm_cluster.
+            # force total redirect to stderr:
+            stdout = sys.stdout
+            sys.stdout = sys.stderr
             import enable_mount_volumes
             enable_mount_volumes.main(stack_id)
+            sys.stdout = stdout
         return {
             'id': cluster_id,
             'url': str('https://' + dns_address)}
@@ -299,10 +304,6 @@ class StartConfig(object):
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
             mount_volumes = False):
         self.name = name
-        if not description:
-            description = 'A test cluster with {} private/{} public agents'.format(
-                private_agents, public_agents)
-        self.description = description
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
         self.cf_template = os.environ.get('CCM_TEMPLATE', cf_template)
@@ -313,6 +314,11 @@ class StartConfig(object):
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
         self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
+        if not description:
+            description = 'A test cluster with {} private/{} public agents'.format(
+                self.private_agents, self.public_agents)
+        self.description = description
+
 
 
 class StopConfig(object):
