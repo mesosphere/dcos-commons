@@ -149,6 +149,8 @@ public class HealthCheckHandler {
                     logger.info("Health check: " + commandInfo + " succeeded.");
                     healthCheckStats.succeeded();
                 }
+
+                logger.debug("Health check stats: " + healthCheckStats);
             } catch (Throwable t) {
                 logger.error("Failed to run health check: " + commandInfo + " with throwable: ", t);
                 healthCheckStats.failed();
