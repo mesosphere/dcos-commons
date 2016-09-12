@@ -341,7 +341,7 @@ CLUSTER_URL=http://your-dcos-cluster.com ./run_tests.py dcos-tests /path/to/dcos
 - `STUB_UNIVERSE_URL`: The URL of a stub universe package, if any, to be added to the cluster's repository list.
 - `TEST_GITHUB_LABEL`: Custom label to use when reporting status to Github. This value will be prepended with `test:`.
 
-This utility calls `dcos_login.py` and `github_update.py`, so the environment variables used by those tools are inherited. For example, the `DCOS_TOKEN` environment variable may be assigned to authenticate against a DC/OS Open cluster which had already been logged into (at which point the default token used by `dcos_login.py` is no longer valid).
+This utility calls `dcos_login.py` and `github_update.py`, so the environment variables used by those tools are inherited. For example, the `CLUSTER_AUTH_TOKEN` environment variable may be assigned to authenticate against a DC/OS Open cluster which had already been logged into (at which point the default token used by `dcos_login.py` is no longer valid).
 
 ## Misc Utilities
 
@@ -361,7 +361,8 @@ If the `print` argument is provided, `dcos_login.py` will also print the resulti
 
 #### Environment variables
 
-- `DCOS_TOKEN`: Use the provided auth token for `core.dcos_acs_token`, instead of attempting to fetch a token from the cluster. This is mainly for use by Open DC/OS clusters which are not newly created and have been logged into, at which point the default token used by `dcos_login.py` is no longer valid.
+- `CLUSTER_URL`: Use the provided URL, instead of fetching `core.dcos_url` from a CLI.
+- `CLUSTER_AUTH_TOKEN`: Use the provided auth token for `core.dcos_acs_token`, instead of attempting to fetch a token from the cluster. This is mainly for use by Open DC/OS clusters which are not newly created and have been logged into, at which point the default token used by `dcos_login.py` is no longer valid.
 
 ### github_update.py
 
