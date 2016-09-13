@@ -121,7 +121,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 {reqs_cmd}
 echo "SHAKEDOWN RUN: {test_dirs}"
-shakedown --dcos-url "{dcos_url}" --ssh-key-file "" --stdout=all --stdout-inline {test_dirs}
+py.test -s {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_file,
            reqs_cmd=requirements_cmd,
