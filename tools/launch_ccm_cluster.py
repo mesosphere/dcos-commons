@@ -21,6 +21,7 @@ import string
 import sys
 import time
 
+import dcos_login
 import github_update
 
 try:
@@ -258,9 +259,16 @@ class CCMLauncher(object):
             import enable_mount_volumes
             enable_mount_volumes.main(stack_id)
             sys.stdout = stdout
+
+        logger.info('Fetching auth token')
+        dcos_url = 'https://' + dns_address
+        auth_token = dcos_login.DCOSLogin(dcos_url).get_acs_token()
+
         return {
             'id': cluster_id,
-            'url': str('https://' + dns_address)}
+            'url': dcos_url,
+            'auth_token': auth_token
+        }
 
 
     def stop(self, config, attempts = DEFAULT_ATTEMPTS):
@@ -330,14 +338,15 @@ class StopConfig(object):
         self.stop_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', stop_timeout_mins)
 
 
-def _write_jenkins_config(github_label, cluster_id_url, error = None):
+def _write_jenkins_config(github_label, cluster_info, error = None):
     if not 'WORKSPACE' in os.environ:
         return
 
     # write jenkins properties file to $WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties:
     properties_file = open(os.path.join(os.environ['WORKSPACE'], 'cluster-{}.properties'.format(github_label)), 'w')
-    properties_file.write('CLUSTER_ID={}\n'.format(cluster_id_url.get('id', '0')))
-    properties_file.write('CLUSTER_URL={}\n'.format(cluster_id_url.get('url', 'null')))
+    properties_file.write('CLUSTER_ID={}\n'.format(cluster_info.get('id', '0')))
+    properties_file.write('CLUSTER_URL={}\n'.format(cluster_info.get('url', '')))
+    properties_file.write('CLUSTER_AUTH_TOKEN={}\n'.format(cluster_info.get('auth_token', '')))
     if error:
         properties_file.write('ERROR={}\n'.format(error))
     properties_file.flush()
@@ -390,10 +399,10 @@ def main(argv):
             return
 
     try:
-        cluster_id_url = launcher.start(StartConfig(), start_stop_attempts)
+        cluster_info = launcher.start(StartConfig(), start_stop_attempts)
         # print to stdout (the rest of this script only writes to stderr):
-        print(json.dumps(cluster_id_url))
-        _write_jenkins_config(github_label, cluster_id_url)
+        print(json.dumps(cluster_info))
+        _write_jenkins_config(github_label, cluster_info)
     except Exception as e:
         _write_jenkins_config(github_label, {}, e)
         raise

@@ -116,11 +116,14 @@ class DCOSLogin(object):
                 response.getheaders()))
 
     def get_acs_token(self, debug=False):
-        env_token = os.environ.get('CLUSTER_AUTH_TOKEN', '')
-        if env_token:
-            return env_token
         if self._cached_token:
             return self._cached_token
+
+        env_token = os.environ.get('CLUSTER_AUTH_TOKEN', '')
+        if env_token:
+            logger.info('Using token provided by CLUSTER_AUTH_TOKEN.')
+            self._cached_token = env_token
+            return env_token
 
         if self.is_enterprise_cluster(debug):
             payload = {'uid': self._user_ee, 'password': self._password_ee}
@@ -133,6 +136,12 @@ class DCOSLogin(object):
 
         self._cached_token = json.loads(response.read().decode('utf-8'))['token']
         return self._cached_token
+
+
+    def login(self, debug=False):
+        token = self.get_acs_token(debug)
+        subprocess.check_call(
+            'dcos config set core.dcos_acs_token {}'.format(token).split(' '))
 
 
 def main(argv):
@@ -150,8 +159,7 @@ def main(argv):
         # use stdout. the rest of the code uses stderr via 'logger'
         print(login.get_acs_token())
     else:
-        subprocess.check_call(
-            'dcos config set core.dcos_acs_token {}'.format(self.get_acs_token(debug)).split(' '))
+        login.login()
         logger.info('Login successful. Access token with: dcos config show core.dcos_acs_token')
         logger.info('(Or call this script with "print" to also print token to stdout)')
     return 0
