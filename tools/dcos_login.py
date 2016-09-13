@@ -151,7 +151,7 @@ def main(argv):
         print(login.get_acs_token())
     else:
         subprocess.check_call(
-            'dcos config set core.dcos_acs_token {}'.format(self.get_acs_token(debug)).split(' '))
+            'dcos config set core.dcos_acs_token {}'.format(login.get_acs_token(debug)).split(' '))
         logger.info('Login successful. Access token with: dcos config show core.dcos_acs_token')
         logger.info('(Or call this script with "print" to also print token to stdout)')
     return 0
