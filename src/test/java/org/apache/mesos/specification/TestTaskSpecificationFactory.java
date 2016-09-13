@@ -44,6 +44,30 @@ public class TestTaskSpecificationFactory {
                 getVolumes(disk, TestConstants.role, TestConstants.principal));
     }
 
+    public static TaskSpecification getTaskSpecification() {
+        return getTaskSpecification(
+                NAME,
+                CMD.getValue(),
+                CPU,
+                MEM,
+                DISK);
+    }
+
+    public static TaskSpecification getTaskSpecification(
+            String name,
+            String cmd,
+            double cpu,
+            double mem,
+            double disk) {
+
+        return new DefaultTaskSpecification(
+                name,
+                getCommand(cmd),
+                getResources(cpu, mem, TestConstants.role, TestConstants.principal),
+                getVolumes(disk, TestConstants.role, TestConstants.principal));
+    }
+
+
     private static Protos.CommandInfo getCommand(String cmd) {
         return Protos.CommandInfo.newBuilder()
                 .setValue(cmd)

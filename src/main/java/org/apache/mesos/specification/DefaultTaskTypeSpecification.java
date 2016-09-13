@@ -39,7 +39,7 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     }
 
     @Override
-    public Protos.CommandInfo getCommand() {
+    public Protos.CommandInfo getCommand(int id) {
         return command;
     }
 

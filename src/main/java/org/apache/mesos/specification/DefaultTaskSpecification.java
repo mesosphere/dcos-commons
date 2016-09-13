@@ -28,12 +28,12 @@ public class DefaultTaskSpecification implements TaskSpecification {
                 getVolumes(taskInfo));
     }
 
-    public static DefaultTaskSpecification create(
-            String name,
-            Protos.CommandInfo commandInfo,
-            Collection<ResourceSpecification> resourceSpecifications,
-            Collection<VolumeSpecification> volumeSpecifications) {
-        return new DefaultTaskSpecification(name, commandInfo, resourceSpecifications, volumeSpecifications);
+    public static DefaultTaskSpecification create(TaskTypeSpecification taskTypeSpecification, int index) {
+        return new DefaultTaskSpecification(
+                taskTypeSpecification.getName() + "-" + index,
+                taskTypeSpecification.getCommand(index),
+                taskTypeSpecification.getResources(),
+                taskTypeSpecification.getVolumes());
     }
 
     protected DefaultTaskSpecification(
