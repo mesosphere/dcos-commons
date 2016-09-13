@@ -48,18 +48,17 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreNotDifferentTaskSpecifications() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
-        TaskSpecification newTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
+        TaskSpecification newTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsName() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
-                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                TestTaskSpecificationFactory.getTaskSpecification(
                         "new" + TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue(),
                         TestTaskSpecificationFactory.CPU,
                         TestTaskSpecificationFactory.MEM,
@@ -70,11 +69,10 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsCmd() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
-                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                TestTaskSpecificationFactory.getTaskSpecification(
                         TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue() + " && echo foo",
                         TestTaskSpecificationFactory.CPU,
                         TestTaskSpecificationFactory.MEM,
@@ -85,11 +83,10 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsResourcesLength() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
         TaskSpecification tmpTaskSpecification =
-                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                TestTaskSpecificationFactory.getTaskSpecification(
                         TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue(),
                         TestTaskSpecificationFactory.CPU,
                         TestTaskSpecificationFactory.MEM,
@@ -109,7 +106,7 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsNoResourceOverlap() {
-        TaskSpecification tmpOldTaskSpecification = TestTaskSpecificationFactory.getTaskTypeSpecification();
+        TaskSpecification tmpOldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
         TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(tmpOldTaskSpecification);
         oldTaskSpecification.addResource(new DefaultResourceSpecification(
                 "bar",
@@ -121,9 +118,8 @@ public class TaskUtilsTest {
                 TestConstants.principal));
 
         TaskSpecification tmpNewTaskSpecification =
-                TestTaskSpecificationFactory.getTaskTypeSpecification(
+                TestTaskSpecificationFactory.getTaskSpecification(
                         TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.COUNT,
                         TestTaskSpecificationFactory.CMD.getValue(),
                         TestTaskSpecificationFactory.CPU,
                         TestTaskSpecificationFactory.MEM,

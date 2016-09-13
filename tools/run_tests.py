@@ -132,6 +132,7 @@ shakedown --dcos-url "{dcos_url}" --ssh-key-file "" --stdout=all --stdout-inline
         try:
             self._github_updater.update('pending', 'Running shakedown tests')
             subprocess.check_call(['bash', script_path])
+            self._github_updater.update('success', 'Shakedown tests succeeded')
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
             raise
@@ -167,6 +168,7 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
         try:
             self._github_updater.update('pending', 'Running dcos-tests')
             subprocess.check_call(['bash', script_path])
+            self._github_updater.update('success', 'dcos-tests succeeded')
         except:
             self._github_updater.update('failure', 'dcos-tests failed')
             raise
@@ -211,15 +213,15 @@ def main(argv):
     try:
         tester.setup_cli(stub_universes)
         if test_type == 'shakedown':
-            if len(argv) >= 5:
-                test_requirements = argv[4]
+            if len(argv) >= 4:
+                test_requirements = argv[3]
                 tester.run_shakedown(test_dirs, test_requirements)
             else:
                 tester.run_shakedown(test_dirs)
         elif test_type == 'dcos-tests':
-            dcos_tests_dir = argv[4]
-            if len(argv) >= 6:
-                pytest_types = argv[5]
+            dcos_tests_dir = argv[3]
+            if len(argv) >= 5:
+                pytest_types = argv[4]
                 tester.run_dcostests(test_dirs, dcos_tests_dir, pytest_types)
             else:
                 tester.run_dcostests(test_dirs, dcos_tests_dir)
