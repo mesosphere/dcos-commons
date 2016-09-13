@@ -15,6 +15,7 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -351,6 +352,35 @@ public class CuratorStateStore implements StateStore {
             return curator.fetch(path);
         } catch (Exception e) {
             throw new StateStoreException(e);
+        }
+    }
+
+    public void storePropertyAsObj(final String key, final Object obj) throws StateStoreException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(obj);
+            oos.close();
+            bos.close();
+        } catch (IOException e) {
+            logger.error(String.format("Failed to write object (%s) to the StateStore", obj), e);
+            return;
+        }
+        byte[] value = bos.toByteArray();
+        storeProperty(key, value);
+    }
+
+    public Object fetchPropertyAsObj(final String key) {
+        byte[] value = fetchProperty(key);
+        ByteArrayInputStream bis = new ByteArrayInputStream(value);
+        ObjectInput in = null;
+        try {
+            in = new ObjectInputStream(bis);
+            return in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            logger.error(String.format("Failed to read 'suppressed' property from the StateStore"), e);
+            return false;
         }
     }
 

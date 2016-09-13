@@ -138,7 +138,7 @@ public class ResourceUtils {
 
     public static Resource getExpectedScalar(
             String name,
-            double value,
+           double value,
             String resourceId,
             String role,
             String principal) {

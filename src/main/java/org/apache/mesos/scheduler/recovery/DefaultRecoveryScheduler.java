@@ -98,7 +98,8 @@ public class DefaultRecoveryScheduler {
             recoveryRequirement = Optional.of(recoveryCandidates.get(new Random().nextInt(recoveryCandidates.size())));
         }
 
-        if (recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get())) {
+        boolean b = recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get());
+        if (recoveryRequirement.isPresent() && b) {
             log.info("Preparing to launch task");
             OfferEvaluator offerEvaluator = new OfferEvaluator();
             List<OfferRecommendation> recommendations =
