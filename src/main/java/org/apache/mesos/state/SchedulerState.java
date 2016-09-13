@@ -14,29 +14,34 @@ import java.util.*;
 /**
  * Read/write interface for the state of a Scheduler.
  */
-public class SchedulerState extends CuratorStateStore implements TaskStatusProvider {
+public class SchedulerState implements TaskStatusProvider {
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
-
     private static final String SUPPRESSED_KEY = "suppressed";
 
+    private final AbstractStateStore stateStore;
+
     public SchedulerState(String frameworkName, String mesosZkURI) {
-        super(frameworkName, mesosZkURI);
+        this(new CuratorStateStore(frameworkName, mesosZkURI));
     }
 
-    public FrameworkID getFrameworkId() {
+    public SchedulerState(AbstractStateStore stateStore) {
+        this.stateStore = stateStore;
+    }
+
+    public Optional<FrameworkID> getFrameworkId() {
         try {
-            return fetchFrameworkId().orElse(null);
+            return stateStore.fetchFrameworkId();
         } catch (StateStoreException ex) {
             log.warn("Failed to get FrameworkID. "
                     + "This is expected when the service is starting for the first time.", ex);
         }
-        return null;
+        return Optional.empty();
     }
 
     public void setFrameworkId(FrameworkID fwkId) throws StateStoreException {
         try {
             log.info(String.format("Storing framework id: %s", fwkId));
-            storeFrameworkId(fwkId);
+            stateStore.storeFrameworkId(fwkId);
         } catch (StateStoreException ex) {
             log.error("Failed to set FrameworkID: " + fwkId, ex);
             throw ex;
@@ -57,7 +62,7 @@ public class SchedulerState extends CuratorStateStore implements TaskStatusProvi
             taskStatuses.add(taskStatus);
         }
 
-        storeTasks(taskInfos);
+        stateStore.storeTasks(taskInfos);
         for (TaskStatus taskStatus : taskStatuses) {
             recordTaskStatus(taskStatus);
         }
@@ -69,61 +74,33 @@ public class SchedulerState extends CuratorStateStore implements TaskStatusProvi
     }
 
     public List<TaskInfo> getTerminatedTaskInfos() throws Exception {
-        return new ArrayList(fetchTerminatedTasks());
-    }
-
-    public int getRunningBrokersCount() throws StateStoreException {
-        int count = 0;
-
-        for (TaskStatus taskStatus : getTaskStatuses()) {
-            if (taskStatus.getState().equals(TaskState.TASK_RUNNING)) {
-                count++;
-            }
-        }
-
-        return count;
+        return new ArrayList(stateStore.fetchTerminatedTasks());
     }
 
     @Override
     public Set<TaskStatus> getTaskStatuses() throws StateStoreException {
         Set<TaskStatus> taskStatuses = new HashSet<TaskStatus>();
-        taskStatuses.addAll(fetchStatuses());
+        taskStatuses.addAll(stateStore.fetchStatuses());
         return taskStatuses;
     }
 
     public List<TaskInfo> getTaskInfos() throws StateStoreException {
         List<TaskInfo> taskInfos = new ArrayList<TaskInfo>();
-        taskInfos.addAll(fetchTasks());
+        taskInfos.addAll(stateStore.fetchTasks());
         return taskInfos;
-    }
-
-    public List<Resource> getExpectedResources() {
-        List<Resource> resources = new ArrayList<>();
-        try {
-            for (TaskInfo taskInfo : getTaskInfos()) {
-                resources.addAll(taskInfo.getResourcesList());
-                if (taskInfo.hasExecutor()) {
-                    resources.addAll(taskInfo.getExecutor().getResourcesList());
-                }
-            }
-        } catch (Exception ex) {
-            log.error("Failed to retrieve all Task information", ex);
-            return resources;
-        }
-        return resources;
     }
 
     public void recordTaskInfo(TaskInfo taskInfo) throws StateStoreException {
         log.info(String.format("Recording updated TaskInfo to state store: %s", taskInfo));
-        storeTasks(Arrays.asList(taskInfo));
+        stateStore.storeTasks(Arrays.asList(taskInfo));
     }
 
     public boolean isSuppressed() {
-        return (Boolean) fetchPropertyAsObj(SUPPRESSED_KEY);
+        return (Boolean) stateStore.fetchPropertyAsObj(SUPPRESSED_KEY);
     }
 
     public void setSuppressed(boolean isSuppressed) {
-        storePropertyAsObj(SUPPRESSED_KEY, isSuppressed);
+        stateStore.storePropertyAsObj(SUPPRESSED_KEY, isSuppressed);
     }
 
     private void recordTaskStatus(TaskStatus taskStatus) throws StateStoreException {
@@ -132,7 +109,7 @@ public class SchedulerState extends CuratorStateStore implements TaskStatusProvi
             log.warn("Dropping non-STAGING status update because the ZK path doesn't exist: "
                     + taskStatus);
         } else {
-            storeStatus(taskStatus);
+            stateStore.storeStatus(taskStatus);
         }
     }
 
@@ -145,7 +122,7 @@ public class SchedulerState extends CuratorStateStore implements TaskStatusProvi
                     "Failed to get TaskName/ExecName from TaskStatus %s", taskStatus), e);
         }
         try {
-            fetchStatus(taskName);
+            stateStore.fetchStatus(taskName);
             return true;
         } catch (Exception e) {
             return false;

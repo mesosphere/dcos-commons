@@ -12,7 +12,7 @@ import java.util.Set;
 public interface Reconciler {
 
     /**
-     * Starts reconciliation.
+     * Starts task reconciliation.
      * <p>
      * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
      */

@@ -6,10 +6,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.state.SchemaVersionStore;
-import org.apache.mesos.state.StateStore;
-import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.state.StateStoreUtils;
+import org.apache.mesos.state.*;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -40,7 +37,7 @@ import java.util.*;
  * Note that for frameworks which don't use custom executors, the same structure is used, except
  * where ExecutorName values are equal to TaskName values.
  */
-public class CuratorStateStore implements StateStore {
+public class CuratorStateStore extends AbstractStateStore {
 
     private static final Logger logger = LoggerFactory.getLogger(CuratorStateStore.class);
 
@@ -352,35 +349,6 @@ public class CuratorStateStore implements StateStore {
             return curator.fetch(path);
         } catch (Exception e) {
             throw new StateStoreException(e);
-        }
-    }
-
-    public void storePropertyAsObj(final String key, final Object obj) throws StateStoreException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = null;
-        try {
-            oos = new ObjectOutputStream(bos);
-            oos.writeObject(obj);
-            oos.close();
-            bos.close();
-        } catch (IOException e) {
-            logger.error(String.format("Failed to write object (%s) to the StateStore", obj), e);
-            return;
-        }
-        byte[] value = bos.toByteArray();
-        storeProperty(key, value);
-    }
-
-    public Object fetchPropertyAsObj(final String key) {
-        byte[] value = fetchProperty(key);
-        ByteArrayInputStream bis = new ByteArrayInputStream(value);
-        ObjectInput in = null;
-        try {
-            in = new ObjectInputStream(bis);
-            return in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            logger.error(String.format("Failed to read 'suppressed' property from the StateStore"), e);
-            return false;
         }
     }
 

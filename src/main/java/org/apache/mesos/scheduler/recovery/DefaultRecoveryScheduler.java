@@ -98,8 +98,7 @@ public class DefaultRecoveryScheduler {
             recoveryRequirement = Optional.of(recoveryCandidates.get(new Random().nextInt(recoveryCandidates.size())));
         }
 
-        boolean b = recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get());
-        if (recoveryRequirement.isPresent() && b) {
+        if (recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get())) {
             log.info("Preparing to launch task");
             OfferEvaluator offerEvaluator = new OfferEvaluator();
             List<OfferRecommendation> recommendations =
@@ -154,7 +153,6 @@ public class DefaultRecoveryScheduler {
                 .collect(Collectors.toList()));
         failed = failed.stream().distinct().collect(Collectors.toList());
 
-        // Why? They're already stored as failed.
         failed.stream().forEach(it -> failureListener.taskFailed(it.getTaskId()));
 
         List<TaskInfo> stopped = terminatedTasks.stream()
