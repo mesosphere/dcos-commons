@@ -22,17 +22,17 @@ public class DcosCluster {
         this.dcosUri = dcosUri;
     }
 
-    public DcosCluster() throws URISyntaxException {
-        this(new URI(DcosConstants.MESOS_MASTER_URI));
+    public DcosCluster() {
+        this(getUriUnchecked(DcosConstants.MESOS_MASTER_URI));
     }
 
     public URI getDcosUri() {
         return dcosUri;
     }
 
-    public DcosVersion getDcosVersion() throws IOException, URISyntaxException {
+    public DcosVersion getDcosVersion() throws IOException {
         if (!dcosVersion.isPresent()) {
-            URI versionUri = new URI(dcosUri + DCOS_VERSION_PATH);
+            URI versionUri = getUriUnchecked(dcosUri + DCOS_VERSION_PATH);
             Content content = Request.Get(versionUri)
                     .execute().returnContent();
             JSONObject jsonObject = new JSONObject(content.toString());
@@ -40,5 +40,17 @@ public class DcosCluster {
         }
 
         return dcosVersion.get();
+    }
+
+    /**
+     * Wrapper around {@link URI} constructor which converts the checked exception to an unchecked
+     * exception. Meant for use by static, known-good URLs.
+     */
+    private static URI getUriUnchecked(String path) {
+        try {
+            return new URI(path);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Unable to parse internal URL: " + path, e);
+        }
     }
 }

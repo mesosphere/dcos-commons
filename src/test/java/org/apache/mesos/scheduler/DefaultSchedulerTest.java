@@ -136,7 +136,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
-        Assert.assertTrue(blockTaskA0.isInProgress());
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskA0).isInProgress(), equalTo(true));
 
         // Sent TASK_RUNNING status
         Protos.TaskID launchedTaskId = getTaskId(operations);
@@ -176,7 +176,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
-        Assert.assertTrue(blockTaskB0.isInProgress());
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskB0).isInProgress(), equalTo(true));
 
         // Sent TASK_RUNNING status
         Protos.TaskID launchedTaskId = getTaskId(operations);
