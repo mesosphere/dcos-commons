@@ -260,6 +260,8 @@ class CCMLauncher(object):
             enable_mount_volumes.main(stack_id)
             sys.stdout = stdout
 
+        # we fetch the token once up-front because on Open clusters it must be reused.
+        # given that, we may as well use the same flow across both Open and EE.
         logger.info('Fetching auth token')
         dcos_url = 'https://' + dns_address
         auth_token = dcos_login.DCOSLogin(dcos_url).get_acs_token()
