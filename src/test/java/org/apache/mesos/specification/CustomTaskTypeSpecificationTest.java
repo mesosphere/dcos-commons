@@ -41,7 +41,7 @@ public class CustomTaskTypeSpecificationTest {
 
         @Override
         public Protos.CommandInfo getCommand(int id) {
-            return Protos.CommandInfo.newBuilder().setValue(getTypeName() + " " + id).build();
+            return Protos.CommandInfo.newBuilder().setValue(getName() + " " + id).build();
         }
     }
 }
