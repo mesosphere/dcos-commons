@@ -4,11 +4,13 @@
 #
 # stdout:
 # {'id': ...
-#  'url': ...}
+#  'url': ...,
+#  'auth_token': ...}
 #
 # cluster.properties file (if WORKSPACE is set in env):
 # CLUSTER_ID=...
 # CLUSTER_URL=...
+# CLUSTER_AUTH_TOKEN=...
 #
 # Configuration: Mostly through env vars. See README.md.
 
