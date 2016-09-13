@@ -347,7 +347,9 @@ def _write_jenkins_config(github_label, cluster_info, error = None):
         return
 
     # write jenkins properties file to $WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties:
-    properties_file = open(os.path.join(os.environ['WORKSPACE'], 'cluster-{}.properties'.format(github_label)), 'w')
+    properties_path = os.path.join(os.environ['WORKSPACE'], 'cluster-{}.properties'.format(github_label))
+    logger.info('Writing cluster properties to {}'.format(properties_path))
+    properties_file = open(properties_path, 'w')
     properties_file.write('CLUSTER_ID={}\n'.format(cluster_info.get('id', '0')))
     properties_file.write('CLUSTER_URL={}\n'.format(cluster_info.get('url', '')))
     properties_file.write('CLUSTER_AUTH_TOKEN={}\n'.format(cluster_info.get('auth_token', '')))
