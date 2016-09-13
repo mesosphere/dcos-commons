@@ -105,6 +105,7 @@ TaskTypeSpecification taskTypeSpecification = new TaskTypeSpecification() {
     }
 }
 ```
+The most complicated portion of defining a `TaskTypeSpecification` is defining the command.  It is a [protobuf CommandInfo as defined by the Mesos protobufs](https://github.com/apache/mesos/blob/0.28.x/include/mesos/mesos.proto#L353-L412).  The only element required from a `TaskTypeSpecification` perspective is the [`value` element](https://github.com/apache/mesos/blob/0.28.x/include/mesos/mesos.proto#L405).  It is almost certainly also useful to downlaod any dependencies or the binaries supporting the command `value` by specifying URIs [as defined here in the command](https://github.com/apache/mesos/blob/0.28.x/include/mesos/mesos.proto#L364-L387).  An example of these elements in a fictional form is provided in the `TaskTypeSpecification` above.
 
 Writing a `TaskTypeSpecification` for the `data` node type is left as an exercise for the reader.
 
