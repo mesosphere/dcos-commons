@@ -11,7 +11,7 @@ public class DefaultPhaseSpecification implements PhaseSpecification {
     private final List<TaskSpecification> taskSpecifications;
 
     public DefaultPhaseSpecification(TaskTypeSpecification taskTypeSpecification) {
-        this.name = taskTypeSpecification.getName();
+        this.name = taskTypeSpecification.getTypeName();
         this.taskSpecifications = new ArrayList<>();
         for (int i = 0; i < taskTypeSpecification.getCount(); i++) {
             taskSpecifications.add(getTaskSpecification(i, taskTypeSpecification));
@@ -30,7 +30,7 @@ public class DefaultPhaseSpecification implements PhaseSpecification {
 
     private static TaskSpecification getTaskSpecification(int id, TaskTypeSpecification taskTypeSpecification) {
         return DefaultTaskSpecification.create(
-                taskTypeSpecification.getName() + "-" + id,
+                taskTypeSpecification.getTaskName(id),
                 taskTypeSpecification.getCommand(id),
                 taskTypeSpecification.getResources(),
                 taskTypeSpecification.getVolumes());

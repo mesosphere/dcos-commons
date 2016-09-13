@@ -34,8 +34,13 @@ public class DefaultTaskTypeSpecification implements TaskTypeSpecification {
     }
 
     @Override
-    public String getName() {
+    public String getTypeName() {
         return name;
+    }
+
+    @Override
+    public String getTaskName(int id) {
+        return getTypeName() + "-" + id;
     }
 
     @Override
