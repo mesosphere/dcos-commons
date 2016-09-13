@@ -5,9 +5,13 @@ package org.apache.mesos.executor;
  */
 public class HealthCheckStats {
     private final String name;
+
+    private Object failureLock = new Object();
     private long totalFailures = 0;
-    private long totalSuccesses = 0;
     private long consecutiveFailures = 0;
+
+    private Object successLock = new Object();
+    private long totalSuccesses = 0;
     private long consecutiveSuccesses = 0;
 
     public HealthCheckStats(String name) {
@@ -15,15 +19,25 @@ public class HealthCheckStats {
     }
 
     public void failed() {
-        totalFailures++;
-        consecutiveFailures++;
-        consecutiveSuccesses = 0;
+        synchronized (failureLock) {
+            totalFailures++;
+            consecutiveFailures++;
+        }
+
+        synchronized (successLock) {
+            consecutiveSuccesses = 0;
+        }
     }
 
     public void succeeded() {
-        totalSuccesses++;
-        consecutiveSuccesses++;
-        consecutiveFailures = 0;
+        synchronized (successLock) {
+            totalSuccesses++;
+            consecutiveSuccesses++;
+        }
+
+        synchronized (failureLock) {
+            consecutiveFailures = 0;
+        }
     }
 
     public String getName() {
@@ -31,20 +45,28 @@ public class HealthCheckStats {
     }
 
     public long getTotalFailures() {
-        return totalFailures;
+        synchronized (failureLock) {
+            return totalFailures;
+        }
     }
 
     public long getConsecutiveFailures() {
-        return consecutiveFailures;
+        synchronized (failureLock) {
+            return consecutiveFailures;
+        }
     }
 
     public long getTotalSuccesses() {
-        return totalSuccesses;
+        synchronized (successLock) {
+            return totalSuccesses;
+        }
     }
 
 
     public long getConsecutiveSuccesses() {
-        return consecutiveSuccesses;
+        synchronized (successLock) {
+            return consecutiveSuccesses;
+        }
     }
 
     @Override
