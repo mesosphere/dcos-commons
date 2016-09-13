@@ -28,6 +28,10 @@ public class SchedulerState implements TaskStatusProvider {
         this.stateStore = stateStore;
     }
 
+    public AbstractStateStore getStateStore() {
+        return stateStore;
+    }
+
     public Optional<FrameworkID> getFrameworkId() {
         try {
             return stateStore.fetchFrameworkId();
