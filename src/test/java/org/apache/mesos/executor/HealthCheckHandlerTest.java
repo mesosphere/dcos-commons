@@ -2,7 +2,9 @@ package org.apache.mesos.executor;
 
 import org.apache.mesos.Protos;
 import org.awaitility.Awaitility;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.*;
@@ -14,10 +16,18 @@ import static org.hamcrest.Matchers.greaterThan;
  * This class tests the HealthCheckHandler class.
  */
 public class HealthCheckHandlerTest {
-    private static final double SHORT_INTERVAL_S = 0.001;
-    private static final double SHORT_DELAY_S = 0.001;
-    private static final double SHORT_GRACE_PERIOD_S = 0.001;
-    private static final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService scheduledExecutorService;
+
+    @Before
+    public void beforeEach() {
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    }
+
+    @After
+    public void afterEach() throws InterruptedException {
+        scheduledExecutorService.shutdown();
+        scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS);
+    }
 
     @Test
     public void testSingleFailure() throws HealthCheckHandler.HealthCheckValidationException, ExecutionException, InterruptedException {
@@ -79,7 +89,6 @@ public class HealthCheckHandlerTest {
         Assert.assertEquals(0, healthCheckStats.getConsecutiveFailures());
         long consecutiveSuccesses = healthCheckStats.getConsecutiveSuccesses();
         Assert.assertTrue("Found consecutive successes: " + consecutiveSuccesses, consecutiveSuccesses >= 1);
-        Assert.assertEquals(healthCheckStats.getTotalSuccesses(), consecutiveSuccesses);
     }
 
     @Test(expected=HealthCheckHandler.HealthCheckValidationException.class)

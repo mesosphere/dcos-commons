@@ -15,6 +15,7 @@ import boto3
 import botocore
 import logging
 import os
+import pprint
 import sys
 import time
 import uuid
@@ -23,25 +24,33 @@ from fabric.api import run, env
 from fabric.tasks import execute
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+def tag_match(instance, key, value):
+    tags = instance.get('Tags')
+    if not tags:
+        return False
+    for tag in tags:
+        if tag.get('Key') == key and tag.get('Value') == value:
+            return True
+    return False
 
 
 def filter_reservations_tags(reservations, filter_key, filter_value):
     filtered_reservations = []
+    logger.info('Values for {} (searching for "{}"):'.format(filter_key, filter_value))
     for reservation in reservations:
         instances = reservation['Instances']
-        tags = instances[0].get('Tags')
-
-        if not tags:
-            continue
-
-        for tag in tags:
-            key = tag.get('Key')
-            value = tag.get('Value')
-            if key == filter_key and value == filter_value:
-                filtered_reservations.append(reservation)
-
+        if tag_match(reservation['Instances'][0], filter_key, filter_value):
+            filtered_reservations.append(reservation)
     return filtered_reservations
+
+
+def filter_gateway_instance(instances):
+    for instance in instances:
+        if tag_match(instance, 'role', 'mesos-master'):
+            return instance
 
 
 def enumerate_instances(reservations):
@@ -67,7 +76,7 @@ def create_volume(client, zone):
         Encrypted=False
     )
 
-    logger.info(response)
+    logger.info('Create volume response: {}'.format(response))
 
     return response
 
@@ -78,7 +87,7 @@ def attach_volume(client, volume_id, instance_id, device='/dev/xvdm'):
         InstanceId=instance_id,
         Device=device)
 
-    logger.info(response)
+    logger.info('Attach volume response: {}'.format(response))
 
     return response
 
@@ -97,7 +106,7 @@ def configure_delete_on_termination(client, volume_id, instance_id, device='/dev
         ]
     )
 
-    logger.info(response)
+    logger.info('Instance attribute modification response: {}'.format(response))
 
     return response
 
@@ -122,7 +131,7 @@ def detach_volume(client, volume_id, instance_id, device='/dev/xvdm'):
         InstanceId=instance_id,
         Device=device)
 
-    logger.info(response)
+    logger.info('Volume detach response: {}'.format(response))
 
     return response
 
@@ -150,24 +159,13 @@ def configure_mesos():
     run("sudo systemctl start dcos-mesos-slave")
 
 
-def filter_gateway_instance(instances):
-    # role:mesos-master
-    for instance in instances:
-        tags = instance.get('Tags')
-        for tag in tags:
-            key = tag.get('Key')
-            value = tag.get('Value')
-            if key == 'role' and value == 'mesos-master':
-                return instance
-
-
 def main(stack_id = ''):
     # Read inputs from environment
     aws_access_key = os.environ.get('AWS_ACCESS_KEY_ID', '')
     aws_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
-    stack_id = str(os.environ.get('CLUSTER_ID', stack_id))
+    stack_id = str(os.environ.get('STACK_ID', stack_id))
     if not aws_access_key or not aws_secret_key or not stack_id:
-        logger.error('AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and CLUSTER_ID envvars are required.')
+        logger.error('AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and STACK_ID envvars are required.')
         return 1
     region_name = os.environ.get('AWS_DEFAULT_REGION', 'us-west-2')
 
@@ -179,24 +177,29 @@ def main(stack_id = ''):
 
     # Get all provisioned instances
     instances = ec2.describe_instances()
-    reservations = instances.get('Reservations')
+    #logger.info('Instances: {}'.format(pprint.pformat(instances)))
+    all_reservations = instances.get('Reservations')
+    #logger.info('Reservations: {}'.format(pprint.pformat(all_reservations)))
 
     # Filter instances for the given stack-id
-    reservations = filter_reservations_tags(
-        reservations=reservations,
-        filter_key='aws:cloudformation:stack-id',
-        filter_value=stack_id)
+    stack_id_key = 'aws:cloudformation:stack-id'
+    reservations = filter_reservations_tags(all_reservations, stack_id_key, stack_id)
+    if not reservations:
+        logger.error('Unable to find any reservations with {} = {}.'.format(stack_id_key, stack_id))
+        return 1
+    logger.info('Found {} reservations with {} = {}'.format(len(reservations), stack_id_key, stack_id))
 
     # Extract all the instance objects
     instances = enumerate_instances(reservations)
-    logger.info(instances)
+    #logger.info('Reservation instances:\n{}'.format(pprint.pformat(instances)))
 
     # Extract the public host from our list of instances
     gateway_instance = filter_gateway_instance(instances)
+    #logger.info('Gateway instance:\n{}'.format(pprint.pformat(gateway_instance)))
 
     # This gateway ip will be used as a jump host for SSH into private nodes
     gateway_ip = gateway_instance.get('PublicIpAddress')
-    logger.info("Gateway IP: {}".format(gateway_ip))
+    logger.info('Gateway IP: {}'.format(gateway_ip))
 
     # Attach EBS volumes to private instances only
     private_instances = filter_instances_private(instances)
@@ -212,7 +215,7 @@ def main(stack_id = ''):
 
         # Create volume for the instance in the same AvailabilityZone
         volume = create_volume(ec2, azone)
-        logger.info("Creating volume: {}".format(volume))
+        logger.info('Creating volume: {}'.format(volume))
 
         volume_id = volume['VolumeId']
 
@@ -229,13 +232,13 @@ def main(stack_id = ''):
                 logger.info('Volume: {} is now available'.format(volume_id))
                 break
             except botocore.exceptions.WaiterError as e:
-                logger.error("Error occured: {}".format(e))
+                logger.error('Error occured: {}'.format(e))
                 raise e
             except botocore.exceptions.ClientError as e:
-                logger.error("Error occured: {}".format(e))
+                logger.error('Error occured: {}'.format(e))
                 if e.response['Error']['Code'] == 'RequestLimitExceeded':
                     curr_wait_time = 2**attempts * wait_time
-                    logger.error("Going to wait for: {} before retrying.".format(curr_wait_time))
+                    logger.error('Going to wait for: {} before retrying.'.format(curr_wait_time))
                     time.sleep(curr_wait_time)
                 else:
                     raise e
@@ -243,7 +246,7 @@ def main(stack_id = ''):
 
         # Attach the volume to our instance.
         att_res = attach_volume(ec2, volume_id=volume_id, instance_id=instance_id)
-        logger.info("Attaching volume: {}".format(att_res))
+        logger.info('Attaching volume: {}'.format(att_res))
 
         # Wait for volume to attach.
         volume_attach = ec2.get_waiter('volume_in_use')
@@ -258,23 +261,23 @@ def main(stack_id = ''):
                 logger.info('Volume: {} is now attached to instance: {}'.format(volume_id, instance_id))
                 break
             except botocore.exceptions.WaiterError as e:
-                logger.error("Error occured: {}".format(e))
+                logger.error('Error occured: {}'.format(e))
                 raise e
             except botocore.exceptions.ClientError as e:
-                logger.error("Error occured: {}".format(e))
+                logger.error('Error occured: {}'.format(e))
                 if e.response['Error']['Code'] == 'RequestLimitExceeded':
                     curr_wait_time = 2**attempts * wait_time
-                    logger.error("Going to wait for: {} before retrying.".format(curr_wait_time))
+                    logger.error('Going to wait for: {} before retrying.'.format(curr_wait_time))
                     time.sleep(curr_wait_time)
                 else:
                     raise e
 
 
         conf_res = configure_delete_on_termination(ec2, volume_id=volume_id, instance_id=instance_id)
-        logger.info("Delete on termination: {}".format(conf_res))
+        logger.info('Delete on termination: {}'.format(conf_res))
 
         tag_res = tag_volume(ec2, volume_id=volume_id)
-        logger.info("Tag volume: {}".format(tag_res))
+        logger.info('Tag volume: {}'.format(tag_res))
 
         private_ip = instance.get('PrivateIpAddress')
         env.hosts = [private_ip]
