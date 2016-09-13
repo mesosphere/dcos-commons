@@ -132,6 +132,7 @@ shakedown --dcos-url "{dcos_url}" --ssh-key-file "" --stdout=all --stdout-inline
         try:
             self._github_updater.update('pending', 'Running shakedown tests')
             subprocess.check_call(['bash', script_path])
+            self._github_updater.update('success', 'Shakedown tests succeeded')
         except:
             self._github_updater.update('failure', 'Shakedown tests failed')
             raise
@@ -167,6 +168,7 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
         try:
             self._github_updater.update('pending', 'Running dcos-tests')
             subprocess.check_call(['bash', script_path])
+            self._github_updater.update('success', 'dcos-tests succeeded')
         except:
             self._github_updater.update('failure', 'dcos-tests failed')
             raise
