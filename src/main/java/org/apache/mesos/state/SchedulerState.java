@@ -18,7 +18,7 @@ public class SchedulerState implements TaskStatusProvider {
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
     private static final String SUPPRESSED_KEY = "suppressed";
 
-    private final AbstractStateStore stateStore;
+    protected final AbstractStateStore stateStore;
 
     public SchedulerState(String frameworkName, String mesosZkURI) {
         this(new CuratorStateStore(frameworkName, mesosZkURI));
