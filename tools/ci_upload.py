@@ -1,4 +1,11 @@
 #!/usr/bin/python
+#
+# Env:
+#   S3_BUCKET (default: infinity-artifacts)
+#   S3_DIR_PATH (default: autdelete7d)
+#   S3_URL (default: s3://${S3_BUCKET}/${S3_DIR_PATH}/<pkg_name>/<random>
+#   ARTIFACT_DIR (default: ...s3.amazonaws.com...)
+#     Base HTTP dir to use when rendering links
 
 import logging
 import os
@@ -17,7 +24,12 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 class CIUploader(object):
 
-    def __init__(self, package_name, input_dir_path, artifact_paths, package_version = 'stub-universe'):
+    def __init__(
+            self,
+            package_name,
+            input_dir_path,
+            artifact_paths,
+            package_version = 'stub-universe'):
         self._dry_run = os.environ.get('DRY_RUN', '')
         self._pkg_name = package_name
         self._pkg_version = package_version
@@ -29,9 +41,23 @@ class CIUploader(object):
         dir_name = '{}-{}'.format(
             time.strftime("%Y%m%d-%H%M%S"),
             ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
+
         # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
-        self._s3_directory = 's3://{}/{}/{}/{}'.format(s3_bucket, s3_dir_path, self._pkg_name, dir_name)
-        self._http_directory = 'https://{}.s3.amazonaws.com/{}/{}/{}'.format(s3_bucket, s3_dir_path, self._pkg_name, dir_name)
+        self._s3_directory = os.environ.get(
+            'S3_URL',
+            's3://{}/{}/{}/{}'.format(
+                s3_bucket,
+                s3_dir_path,
+                self._pkg_name,
+                dir_name))
+
+        self._http_directory = os.environ.get(
+            'ARTIFACT_DIR',
+            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
+                s3_bucket,
+                s3_dir_path,
+                self._pkg_name,
+                dir_name))
 
         self._github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
 
