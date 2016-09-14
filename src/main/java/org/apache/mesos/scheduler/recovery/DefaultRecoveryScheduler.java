@@ -65,6 +65,19 @@ public class DefaultRecoveryScheduler {
     }
 
     /**
+     * True if this scheduler has operations to perform.
+     *
+     * @param block block whose tasks to exclude from consideration.
+     * @return true if this scheduler has operations to perform.
+     */
+    public boolean hasOperations(Optional<Block> block) {
+        updateRecoveryPools(getTerminatedTasks(block));
+
+        return repairStatusRef.get().getStopped().size() > 0 ||
+                repairStatusRef.get().getFailed().size() > 0;
+    }
+
+    /**
      * This function runs the recovery logic. It should be invoked periodically.
      *
      * This function is synchronized in order to avoid launchConstrainer race conditions.
