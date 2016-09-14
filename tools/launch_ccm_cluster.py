@@ -67,6 +67,10 @@ class CCMLauncher(object):
         self._github_updater = github_update.GithubStatusUpdater('cluster:{}'.format(github_label))
 
 
+    def _rand_str(self, size):
+        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
+
+
     def _pretty_time(self, seconds):
         if seconds > 60:
             disp_seconds = seconds % 60
@@ -207,9 +211,10 @@ class CCMLauncher(object):
         template_url = 'https://{}/{}/cloudformation/{}'.format(
             hostrepo, config.ccm_channel, config.cf_template)
 
+        cluster_name = config.name_prefix + self._rand_str(8)
         payload = {
             'template_url': template_url,
-            'name': config.name,
+            'name': cluster_name,
             'cluster_desc': config.description,
             'time': config.duration_mins,
             'private_agents': str(config.private_agents),
@@ -220,13 +225,13 @@ class CCMLauncher(object):
             'region': config.aws_region
         }
         logger.info('''Launching cluster:
-  name="{}"
+  name={}
   agents={} private/{} public
   duration={} minutes
   mountvols={}
   channel={}
   template={}'''.format(
-      config.name,
+      cluster_name,
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
@@ -298,12 +303,10 @@ class CCMLauncher(object):
 
 
 class StartConfig(object):
-    def _rand_str(size):
-        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
     def __init__(
             self,
-            name = 'test-cluster-' + _rand_str(8),
+            name_prefix = 'test-cluster-',
             description = '',
             duration_mins = 60,
             ccm_channel = 'testing/master',
@@ -315,7 +318,7 @@ class StartConfig(object):
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
             mount_volumes = False):
-        self.name = name
+        self.name_prefix = name_prefix
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
         self.cf_template = os.environ.get('CCM_TEMPLATE', cf_template)
@@ -365,7 +368,9 @@ def main(argv):
         raise Exception('CCM_AUTH_TOKEN is required')
 
     # used for status and for jenkins .properties file:
-    github_label = os.environ.get('CCM_GITHUB_LABEL', 'ccm')
+    github_label = os.environ.get('CCM_GITHUB_LABEL', '')
+    if not github_label:
+        github_label = os.environ.get('TEST_GITHUB_LABEL', 'ccm')
 
     # error detection (and retry) for either a start or a stop operation:
     start_stop_attempts = int(os.environ.get('CCM_ATTEMPTS', CCMLauncher.DEFAULT_ATTEMPTS))

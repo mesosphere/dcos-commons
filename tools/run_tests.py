@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import json
 import logging
 import os
 import os.path
@@ -87,9 +88,17 @@ class CITester(object):
             cli_filepath = self._download_cli_to_sandbox()
             self._configure_cli(self._dcos_url)
             dcos_login.DCOSLogin(self._dcos_url).login()
-            for name, url in stub_universes.items():
-                logger.info('Adding repository: {} {}'.format(name, url))
-                subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split(' '))
+            # check for any preexisting universes and remove them -- the cluster requires no duplicate uris
+            if stub_universes:
+                logger.info('Checking for duplicate stub universes')
+                for repo in json.loads(subprocess.check_output('dcos package repo list --json'.split()))['repositories']:
+                    # {u'name': u'Universe', u'uri': u'https://universe.mesosphere.com/repo'}
+                    if repo['uri'] in stub_universes.values():
+                        logger.info('Removing duplicate repository: {} {}'.format(repo['name'], repo['uri']))
+                        subprocess.check_call('dcos package repo remove {}'.format(repo['name']).split())
+                for name, url in stub_universes.items():
+                    logger.info('Adding repository: {} {}'.format(name, url))
+                    subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split(' '))
         except:
             self._github_updater.update('error', 'CLI Setup failed')
             raise
