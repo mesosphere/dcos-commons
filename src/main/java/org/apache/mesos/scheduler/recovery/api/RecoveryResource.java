@@ -1,7 +1,8 @@
-package org.apache.mesos.scheduler.recovery;
+package org.apache.mesos.scheduler.recovery.api;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mesos.scheduler.recovery.RecoveryStatus;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

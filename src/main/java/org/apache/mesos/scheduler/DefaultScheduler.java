@@ -10,7 +10,9 @@ import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.recovery.*;
+import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
@@ -19,14 +21,13 @@ import org.apache.mesos.specification.PlanSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -43,6 +44,7 @@ public class DefaultScheduler implements Scheduler {
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final AtomicReference<RecoveryStatus> recoveryStatusRef;
+    private final BlockingQueue<Collection<Object>> resourcesQueue;
 
     private Reconciler reconciler;
     private StateStore stateStore;
@@ -53,6 +55,7 @@ public class DefaultScheduler implements Scheduler {
     private PlanManager planManager;
     private DefaultPlanScheduler planScheduler;
     private DefaultRecoveryScheduler recoveryScheduler;
+    private Collection<Object> resources;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
         this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
@@ -61,7 +64,17 @@ public class DefaultScheduler implements Scheduler {
     public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
         this.zkConnectionString = zkConnectionString;
-        recoveryStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
+        this.recoveryStatusRef =
+                new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
+        this.resourcesQueue = new ArrayBlockingQueue<>(1);
+    }
+
+    public Collection<Object> getResources() throws InterruptedException {
+        if (resources == null) {
+            resources = resourcesQueue.take();
+        }
+
+        return resources;
     }
 
     void awaitTermination() throws InterruptedException {
@@ -73,11 +86,12 @@ public class DefaultScheduler implements Scheduler {
         return plan;
     }
 
-    private void initialize() {
+    private void initialize() throws InterruptedException {
         logger.info("Initializing.");
         initializeGlobals();
         initializeRecoveryScheduler();
         initializeDeploymentPlan();
+        initializeResources();
     }
 
     private void initializeGlobals() {
@@ -86,9 +100,23 @@ public class DefaultScheduler implements Scheduler {
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter =
-                new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+    }
 
+    private void initializeRecoveryScheduler() {
+        logger.info("Initializing recovery scheduler");
+        RecoveryRequirementProvider recoveryRequirementProvider =
+                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
+        LaunchConstrainer constrainer =
+                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
+        recoveryScheduler = new DefaultRecoveryScheduler(
+                stateStore,
+                taskFailureListener,
+                recoveryRequirementProvider,
+                offerAccepter,
+                constrainer,
+                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
+                recoveryStatusRef);
     }
 
     private void initializeDeploymentPlan() {
@@ -108,20 +136,12 @@ public class DefaultScheduler implements Scheduler {
 
     }
 
-    private void initializeRecoveryScheduler() {
-        logger.info("Initializing recovery scheduler");
-        RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
-        LaunchConstrainer constrainer =
-                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
-        recoveryScheduler = new DefaultRecoveryScheduler(
-                stateStore,
-                taskFailureListener,
-                recoveryRequirementProvider,
-                offerAccepter,
-                constrainer,
-                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
-                recoveryStatusRef);
+    private void initializeResources() throws InterruptedException {
+        Collection<Object> resources = new ArrayList<>();
+        resources.add(new PlanResource(planManager));
+        resources.add(new RecoveryResource(recoveryStatusRef));
+        resources.add(new StateResource(stateStore));
+        resourcesQueue.put(resources);
     }
 
     private void logOffers(List<Protos.Offer> offers) {
@@ -185,7 +205,12 @@ public class DefaultScheduler implements Scheduler {
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         logger.info("Registered framework with frameworkId: " + frameworkId.getValue());
-        initialize();
+        try {
+            initialize();
+        } catch (InterruptedException e) {
+            logger.error("Initialization failed with exception: ", e);
+            hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+        }
 
         try {
             stateStore.storeFrameworkId(frameworkId);
