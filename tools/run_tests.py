@@ -95,20 +95,18 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_file = ''):
+    def run_shakedown(self, test_dirs, requirements_txt, pytest_types='sanity'):
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
-            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'env')
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
+            # produce test report for consumption by Jenkins:
+            jenkins_args = '--junitxml=shakedown-report.xml '
         else:
-            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'env')
-        logger.info('Configuring virtualenv in {}'.format(virtualenv_path))
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
+            jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
         script_file = open(script_path, 'w')
-        if requirements_file:
-            requirements_cmd = 'pip install -r {}'.format(requirements_file)
-        else:
-            requirements_cmd = ''
         # TODO(nick): remove this inlined script with external templating
         #             (or find a way of entering the virtualenv that doesn't involve a shell script)
         script_file.write('''
@@ -119,13 +117,14 @@ virtualenv -p $(which python3) --always-copy {venv_path}
 echo "VIRTUALENV ACTIVATE: {venv_path}"
 source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
-{reqs_cmd}
-echo "SHAKEDOWN RUN: {test_dirs}"
-py.test -s {test_dirs}
+pip install -r {reqs_file}
+echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
+py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
-           reqs_file=requirements_file,
-           reqs_cmd=requirements_cmd,
+           reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
+           jenkins_args=jenkins_args,
+           pytest_types=pytest_types,
            test_dirs=test_dirs))
         script_file.flush()
         script_file.close()
@@ -141,7 +140,7 @@ py.test -s {test_dirs}
         os.environ['DOCKER_CLI'] = 'false'
         if 'WORKSPACE' in os.environ:
             # produce test report for consumption by Jenkins:
-            jenkins_args = '--junitxml=report.xml '
+            jenkins_args = '--junitxml=dcostests-report.xml '
         else:
             jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
@@ -156,7 +155,7 @@ cd {dcos_tests_dir}
 echo "{dcos_url}" > docker-context/dcos-url.txt
 echo "PYTHON SETUP"
 source utils/python_setup
-echo "PYTEST RUN $(pwd)"
+echo "DCOS-TEST RUN $(pwd)"
 SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
 '''.format(dcos_tests_dir=dcos_tests_dir,
            dcos_url=self._dcos_url,
@@ -181,10 +180,9 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
 
 
 def print_help(argv):
-    logger.info('Syntax: CLUSTER_URL=yourcluster.com {} <"shakedown"|"dcos-tests"> <path/to/tests/> [/path/to/custom-requirements.txt | /path/to/dcos-tests [test-types]]'.format(argv[0]))
-    logger.info('  Example (shakedown w/ requirements): $ {} shakedown /path/to/your/tests/ /path/to/custom/requirements.txt')
-    logger.info('  Example (shakedown w/o requirements): $ {} shakedown /path/to/your/tests/')
-    logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests /path/to/your/tests/ /path/to/dcos-tests/ "sanity or recovery"')
+    logger.info('Syntax: TEST_TYPES="sanity or recovery" CLUSTER_URL="yourcluster.com" {} <"shakedown"|"dcos-tests"> <path/to/tests/> </path/to/requirements.txt | /path/to/dcos-tests>'.format(argv[0]))
+    logger.info('  Example (shakedown): $ {} shakedown /path/to/your/tests/ /path/to/requirements.txt')
+    logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests /path/to/your/tests/ /path/to/dcos-tests/')
 
 
 def _rand_str(size):
@@ -201,30 +199,26 @@ def main(argv):
     cluster_url = os.environ.get('CLUSTER_URL', '').strip('"').strip('\'')
     if not cluster_url:
         logger.error('CLUSTER_URL envvar is required.')
+        print_help(argv)
         return 1
+
+    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
 
     stub_universes = {}
     stub_universe_url = os.environ.get('STUB_UNIVERSE_URL', '')
     if stub_universe_url:
         stub_universes['testpkg-' + _rand_str(8)] = stub_universe_url
 
-    tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
+    pytest_types = os.environ.get('TEST_TYPES', 'sanity')
 
     try:
         tester.setup_cli(stub_universes)
         if test_type == 'shakedown':
-            if len(argv) >= 4:
-                test_requirements = argv[3]
-                tester.run_shakedown(test_dirs, test_requirements)
-            else:
-                tester.run_shakedown(test_dirs)
+            requirements_txt = argv[3]
+            tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]
-            if len(argv) >= 5:
-                pytest_types = argv[4]
-                tester.run_dcostests(test_dirs, dcos_tests_dir, pytest_types)
-            else:
-                tester.run_dcostests(test_dirs, dcos_tests_dir)
+            tester.run_dcostests(test_dirs, dcos_tests_dir, pytest_types)
         else:
             raise Exception('Unsupported test type: {}'.format(test_type))
 
