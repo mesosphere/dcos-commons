@@ -3,7 +3,6 @@ package org.apache.mesos.scheduler;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.Protos.FrameworkInfo;
 import org.apache.mesos.Scheduler;
-import org.apache.mesos.protobuf.EvolverDevolver;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.Protos;
 import org.junit.Test;
