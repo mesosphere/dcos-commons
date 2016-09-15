@@ -268,7 +268,7 @@ public class DefaultScheduler implements Scheduler {
                 try {
                     acceptedOffers.addAll(recoveryScheduler.resourceOffers(driver, unacceptedOffers, block));
                 } catch (Exception e) {
-                    logger.error("Error repairing block: " + block + " Reason: " + e);
+                    logger.error("Error recovering block: " + block + " Reason: " + e);
                 }
 
                 // Resource Cleaning:

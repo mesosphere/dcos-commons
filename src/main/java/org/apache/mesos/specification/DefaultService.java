@@ -69,7 +69,7 @@ public class DefaultService implements Service {
     private void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
         logger.info("Registering framework: " + frameworkInfo);
         SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
-        driver.start();
+        driver.run();
     }
 
     private Protos.FrameworkInfo getFrameworkInfo() {
