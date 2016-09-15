@@ -12,7 +12,8 @@ import java.util.Set;
 public interface Reconciler {
 
     /**
-     * Starts task reconciliation.
+     * Starts reconciliation against the provided tasks, which should represent what the Scheduler
+     * currently knows about task status.
      * <p>
      * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
      */
