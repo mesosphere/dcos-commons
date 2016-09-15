@@ -6,13 +6,15 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.state.*;
+import org.apache.mesos.state.SchemaVersionStore;
+import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreException;
+import org.apache.mesos.state.StateStoreUtils;
 import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
 import java.util.*;
 
 /**
@@ -37,7 +39,7 @@ import java.util.*;
  * Note that for frameworks which don't use custom executors, the same structure is used, except
  * where ExecutorName values are equal to TaskName values.
  */
-public class CuratorStateStore extends AbstractStateStore {
+public class CuratorStateStore implements StateStore {
 
     private static final Logger logger = LoggerFactory.getLogger(CuratorStateStore.class);
 
