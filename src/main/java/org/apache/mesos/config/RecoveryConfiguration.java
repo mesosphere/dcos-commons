@@ -66,12 +66,13 @@ public class RecoveryConfiguration {
         this.enableReplacement = enableReplacement;
     }
 
-    public int getRepairDelaySecs() {
+    @JsonProperty("min_delay_between_recoveries_secs")
+    public int getRecoveryDelaySecs() {
         return recoverDelaySecs;
     }
 
     @JsonProperty("min_delay_between_recoveries_secs")
-    public void setRepairDelaySecs(int recoverDelaySecs) {
+    public void setRecoveryDelaySecs(int recoverDelaySecs) {
         this.recoverDelaySecs = recoverDelaySecs;
     }
 
