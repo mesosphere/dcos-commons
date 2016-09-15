@@ -155,9 +155,11 @@ py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
         os.environ['DOCKER_CLI'] = 'false'
         if 'WORKSPACE' in os.environ:
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
             # produce test report for consumption by Jenkins:
             jenkins_args = '--junitxml=dcostests-report.xml '
         else:
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dcostests_env')
             jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_dcos_tests.sh')
@@ -169,11 +171,17 @@ py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
 set -e
 cd {dcos_tests_dir}
 echo "{dcos_url}" > docker-context/dcos-url.txt
-echo "PYTHON SETUP"
-source utils/python_setup
-echo "DCOS-TEST RUN $(pwd)"
+echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
+virtualenv -p $(which python3) --always-copy {venv_path}
+echo "VIRTUALENV ACTIVATE: {venv_path}"
+source {venv_path}/bin/activate
+echo "REQUIREMENTS INSTALL: {reqs_file}"
+pip install -r {reqs_file}
+echo "DCOS-TEST RUN $(pwd): {test_dirs} FILTER: {pytest_types}"
 SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
-'''.format(dcos_tests_dir=dcos_tests_dir,
+'''.format(venv_path=virtualenv_path,
+           reqs_file=os.path.join(dcos_tests_dir, 'requirements.txt'),
+           dcos_tests_dir=dcos_tests_dir,
            dcos_url=self._dcos_url,
            jenkins_args=jenkins_args,
            pytest_types=pytest_types,
