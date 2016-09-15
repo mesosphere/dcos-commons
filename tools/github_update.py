@@ -160,6 +160,9 @@ class GithubStatusUpdater(object):
         if not 'WORKSPACE' in os.environ:
             # not running in CI. skip actually sending anything to GitHub
             return True
+        if os.environ.get('GITHUB_DISABLE', ''):
+            # environment has notifications disabled. skip actually sending anything to GitHub
+            return True
 
         request = self._build_request(state, message, details_url)
         response = self._send_request(request)
