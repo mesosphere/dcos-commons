@@ -19,17 +19,17 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RecoveryResource {
     private static final Log log = LogFactory.getLog(RecoveryResource.class);
 
-    private final AtomicReference<RecoveryStatus> repairStatus;
+    private final AtomicReference<RecoveryStatus> recoveryStatus;
 
-    public RecoveryResource(AtomicReference<RecoveryStatus> repairStatus) {
-        this.repairStatus = repairStatus;
+    public RecoveryResource(AtomicReference<RecoveryStatus> recoveryStatus) {
+        this.recoveryStatus = recoveryStatus;
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public RecoveryStatus repair() {
+    public RecoveryStatus recovery() {
         try {
-            return repairStatus.get();
+            return recoveryStatus.get();
         } catch (Exception ex) {
             log.error("Failed to fetch data with exception:", ex);
             throw ex;

@@ -32,7 +32,7 @@ public class DefaultRecoveryScheduler {
     private final RecoveryRequirementProvider offerReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
-    private final AtomicReference<RecoveryStatus> repairStatusRef;
+    private final AtomicReference<RecoveryStatus> recoveryStatusRef;
 
     public DefaultRecoveryScheduler(
             StateStore stateStore,
@@ -41,13 +41,13 @@ public class DefaultRecoveryScheduler {
             OfferAccepter offerAccepter,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
-            AtomicReference<RecoveryStatus> repairStatusRef) {
+            AtomicReference<RecoveryStatus> recoveryStatusRef) {
         this.stateStore = stateStore;
         this.offerReqProvider = offerReqProvider;
         this.offerAccepter = offerAccepter;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        this.repairStatusRef = repairStatusRef;
+        this.recoveryStatusRef = recoveryStatusRef;
         this.failureListener = failureListener;
     }
 
@@ -70,8 +70,8 @@ public class DefaultRecoveryScheduler {
         List<OfferID> acceptedOffers = new ArrayList<>();
         updateRecoveryPools(getTerminatedTasks(block));
 
-        List<TaskInfo> stopped = repairStatusRef.get().getStopped();
-        List<TaskInfo> failed = repairStatusRef.get().getFailed();
+        List<TaskInfo> stopped = recoveryStatusRef.get().getStopped();
+        List<TaskInfo> failed = recoveryStatusRef.get().getFailed();
 
         List<RecoveryRequirement> recoveryCandidates = offerReqProvider.getTransientRecoveryRequirements(stopped);
         recoveryCandidates.addAll(offerReqProvider.getPermanentRecoveryRequirements(failed));
@@ -145,6 +145,6 @@ public class DefaultRecoveryScheduler {
             }
         }
 
-        repairStatusRef.set(new RecoveryStatus(stopped, failed));
+        recoveryStatusRef.set(new RecoveryStatus(stopped, failed));
     }
 }
