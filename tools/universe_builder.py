@@ -159,7 +159,7 @@ class UniversePackageBuilder(object):
         logger.info('')
         logger.info('Applied templating changes to {}:'.format(filepath))
         logger.info('Template params used:')
-        template_keys = template_mapping.keys()
+        template_keys = list(template_mapping.keys())
         template_keys.sort()
         for key in template_keys:
             logger.info('  {{%s}} => %s' % (key, template_mapping[key]))

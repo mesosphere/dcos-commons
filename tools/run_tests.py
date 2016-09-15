@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import json
 import logging
 import os
 import os.path
@@ -10,13 +11,19 @@ import string
 import subprocess
 import sys
 import tempfile
-import urllib
 
 import dcos_login
 import github_update
 
+try:
+    from urllib.request import URLopener
+except ImportError:
+    # Python 2
+    from urllib import URLopener
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+
 
 class CITester(object):
 
@@ -49,7 +56,7 @@ class CITester(object):
         if sys.platform == 'win32':
             cli_platform = 'windows'
             cli_filename = 'dcos.exe'
-        elif sys.platform == 'linux2':
+        elif sys.platform == 'linux2' or sys.platform == 'linux':
             cli_platform = 'linux'
         elif sys.platform == 'darwin':
             cli_platform = 'darwin'
@@ -63,8 +70,8 @@ class CITester(object):
             shutil.copyfile(local_path, cli_filepath)
         else:
             logger.info('Downloading {} to {}'.format(cli_url, cli_filepath))
-            urllib.URLopener().retrieve(cli_url, cli_filepath)
-        os.chmod(cli_filepath, 0755)
+            URLopener().retrieve(cli_url, cli_filepath)
+        os.chmod(cli_filepath, 0o755)
         return cli_filepath
 
 
@@ -87,9 +94,18 @@ class CITester(object):
             cli_filepath = self._download_cli_to_sandbox()
             self._configure_cli(self._dcos_url)
             dcos_login.DCOSLogin(self._dcos_url).login()
-            for name, url in stub_universes.items():
-                logger.info('Adding repository: {} {}'.format(name, url))
-                subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split(' '))
+            # check for any preexisting universes and remove them -- the cluster requires no duplicate uris
+            if stub_universes:
+                logger.info('Checking for duplicate stub universes')
+                cur_universes = subprocess.check_output('dcos package repo list --json'.split()).decode('utf-8')
+                for repo in json.loads(cur_universes)['repositories']:
+                    # {u'name': u'Universe', u'uri': u'https://universe.mesosphere.com/repo'}
+                    if repo['uri'] in stub_universes.values():
+                        logger.info('Removing duplicate repository: {} {}'.format(repo['name'], repo['uri']))
+                        subprocess.check_call('dcos package repo remove {}'.format(repo['name']).split())
+                for name, url in stub_universes.items():
+                    logger.info('Adding repository: {} {}'.format(name, url))
+                    subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split(' '))
         except:
             self._github_updater.update('error', 'CLI Setup failed')
             raise
@@ -139,9 +155,11 @@ py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
         os.environ['DOCKER_CLI'] = 'false'
         if 'WORKSPACE' in os.environ:
+            virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
             # produce test report for consumption by Jenkins:
             jenkins_args = '--junitxml=dcostests-report.xml '
         else:
+            virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dcostests_env')
             jenkins_args = ''
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_dcos_tests.sh')
@@ -153,11 +171,17 @@ py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
 set -e
 cd {dcos_tests_dir}
 echo "{dcos_url}" > docker-context/dcos-url.txt
-echo "PYTHON SETUP"
-source utils/python_setup
-echo "DCOS-TEST RUN $(pwd)"
+echo "VIRTUALENV CREATE/UPDATE: {venv_path}"
+virtualenv -p $(which python3) --always-copy {venv_path}
+echo "VIRTUALENV ACTIVATE: {venv_path}"
+source {venv_path}/bin/activate
+echo "REQUIREMENTS INSTALL: {reqs_file}"
+pip install -r {reqs_file}
+echo "DCOS-TEST RUN $(pwd): {test_dirs} FILTER: {pytest_types}"
 SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
-'''.format(dcos_tests_dir=dcos_tests_dir,
+'''.format(venv_path=virtualenv_path,
+           reqs_file=os.path.join(dcos_tests_dir, 'requirements.txt'),
+           dcos_tests_dir=dcos_tests_dir,
            dcos_url=self._dcos_url,
            jenkins_args=jenkins_args,
            pytest_types=pytest_types,

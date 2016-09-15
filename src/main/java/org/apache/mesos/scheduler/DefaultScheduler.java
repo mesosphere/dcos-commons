@@ -137,6 +137,7 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void initializeResources() throws InterruptedException {
+        logger.info("Initializing resources");
         Collection<Object> resources = new ArrayList<>();
         resources.add(new PlanResource(planManager));
         resources.add(new RecoveryResource(recoveryStatusRef));

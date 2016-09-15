@@ -37,8 +37,8 @@ public class DefaultService implements Service {
         this.serviceSpecification = serviceSpecification;
         this.stateStore = new CuratorStateStore(serviceSpecification.getName());
         DefaultScheduler defaultScheduler = new DefaultScheduler(serviceSpecification);
-        registerFramework(defaultScheduler, getFrameworkInfo(), MASTER_URI);
         startApiServer(defaultScheduler);
+        registerFramework(defaultScheduler, getFrameworkInfo(), MASTER_URI);
     }
 
     private void startApiServer(DefaultScheduler defaultScheduler) {
@@ -47,6 +47,7 @@ public class DefaultService implements Service {
             public void run() {
                 JettyApiServer apiServer = null;
                 try {
+                    logger.info("Starting API server.");
                     apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
                     apiServer.start();
                 } catch (Exception e) {
@@ -68,7 +69,7 @@ public class DefaultService implements Service {
     private void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
         logger.info("Registering framework: " + frameworkInfo);
         SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
-        driver.run();
+        driver.start();
     }
 
     private Protos.FrameworkInfo getFrameworkInfo() {
