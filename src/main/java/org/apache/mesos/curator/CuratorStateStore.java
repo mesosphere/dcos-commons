@@ -321,9 +321,12 @@ public class CuratorStateStore implements StateStore {
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskStatus.parseFrom(bytes));
             } else {
-                logger.warn(String.format("Failed to retrieve TaskStatus for TaskName: %s", taskName));
-                return Optional.empty();
+                throw new StateStoreException(String.format(
+                        "Failed to retrieve TaskStatus for TaskName: %s", taskName));
             }
+        } catch (KeeperException.NoNodeException e) {
+            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);
         }

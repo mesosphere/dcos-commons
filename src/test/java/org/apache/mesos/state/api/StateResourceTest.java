@@ -108,7 +108,7 @@ public class StateResourceTest {
     @Test
     public void testGetTaskStatusFails() {
         String taskName = "task1";
-        when(mockStateStore.fetchStatus(taskName)).thenThrow(new StateStoreException("hi"));
+        when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.empty());
         Response response = resource.getTaskStatus(taskName);
         assertEquals(500, response.getStatus());
     }
