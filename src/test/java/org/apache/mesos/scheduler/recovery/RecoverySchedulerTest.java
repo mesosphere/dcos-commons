@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
  * as failed
  */
 public class RecoverySchedulerTest {
-    private DefaultRecoveryScheduler recoveryScheduler;
+    private DefaultRecoveryScheduler repairScheduler;
     private TaskFailureListener taskFailureListener;
     private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
@@ -73,7 +73,7 @@ public class RecoverySchedulerTest {
         offerAccepter = mock(OfferAccepter.class);
         recoveryRequirementProvider = mock(RecoveryRequirementProvider.class);
         stateStore = mock(StateStore.class);
-        recoveryScheduler = spy(
+        repairScheduler = spy(
                 new DefaultRecoveryScheduler(
                         stateStore,
                         taskFailureListener,
@@ -104,7 +104,7 @@ public class RecoverySchedulerTest {
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         launchConstrainer.setCanLaunch(false);
 
-        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+        List<Protos.OfferID> acceptedOffers = repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
         assertEquals(0, acceptedOffers.size());
 
         // Verify launchConstrainer was used
@@ -112,7 +112,7 @@ public class RecoverySchedulerTest {
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+            repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
             //verify the UI
             assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getStoppedNames());
             assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getFailedNames());
@@ -132,7 +132,7 @@ public class RecoverySchedulerTest {
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
 
-        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, offers, null);
+        List<Protos.OfferID> acceptedOffers = repairScheduler.resourceOffers(schedulerDriver, offers, null);
         assertEquals(1, acceptedOffers.size());
 
         // Verify launchConstrainer was checked before launch
@@ -155,7 +155,7 @@ public class RecoverySchedulerTest {
         when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
 
         List<Protos.OfferID> acceptedOffers =
-                recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.of(block));
+                repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.of(block));
         assertEquals(0, acceptedOffers.size());
 
         // Verify the RecoveryStatus has empty pools.
@@ -180,7 +180,7 @@ public class RecoverySchedulerTest {
         when(block.getName()).thenReturn("different-name");
 
         List<Protos.OfferID> acceptedOffers =
-                recoveryScheduler.resourceOffers(schedulerDriver, offers, Optional.of(block));
+                repairScheduler.resourceOffers(schedulerDriver, offers, Optional.of(block));
         assertEquals(1, acceptedOffers.size());
     }
 
@@ -193,14 +193,14 @@ public class RecoverySchedulerTest {
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(false);
 
-        recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+        repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
 
         // Verify we performed the failed task callback.
         verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+            repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
             // verify the transition to stopped
             assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
             assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
@@ -222,7 +222,7 @@ public class RecoverySchedulerTest {
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(true);
 
-        List<Protos.OfferID> accepteOffers = recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+        List<Protos.OfferID> accepteOffers = repairScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
         assertEquals(1, accepteOffers.size());
 
         // Verify we launched the task
@@ -258,7 +258,7 @@ public class RecoverySchedulerTest {
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(true);
 
-        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, insufficientOffers, Optional.empty());
+        List<Protos.OfferID> acceptedOffers = repairScheduler.resourceOffers(schedulerDriver, insufficientOffers, Optional.empty());
         assertEquals(0, acceptedOffers.size());
 
         // Verify the appropriate task was checked for failure.
