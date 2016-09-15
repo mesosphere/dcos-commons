@@ -99,7 +99,7 @@ public class StateResourceTest {
                 .setTaskId(TaskUtils.toTaskId(taskName))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
                 .build();
-        when(mockStateStore.fetchStatus(taskName)).thenReturn(taskStatus);
+        when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.of(taskStatus));
         Response response = resource.getTaskStatus(taskName);
         assertEquals(200, response.getStatus());
         assertEquals(new JsonFormat().printToString(taskStatus), (String) response.getEntity());

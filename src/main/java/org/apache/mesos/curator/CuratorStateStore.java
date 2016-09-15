@@ -313,16 +313,16 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Protos.TaskStatus fetchStatus(String taskName) throws StateStoreException {
+    public Optional<Protos.TaskStatus> fetchStatus(String taskName) throws StateStoreException {
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Fetching status for '{}' in '{}'", taskName, path);
         try {
             byte[] bytes = curator.fetch(path);
             if (bytes.length > 0) {
-                return Protos.TaskStatus.parseFrom(bytes);
+                return Optional.of(Protos.TaskStatus.parseFrom(bytes));
             } else {
-                throw new StateStoreException(String.format(
-                        "Failed to retrieve TaskStatus for TaskName: %s", taskName));
+                logger.warn(String.format("Failed to retrieve TaskStatus for TaskName: %s", taskName));
+                return Optional.empty();
             }
         } catch (Exception e) {
             throw new StateStoreException(e);

@@ -59,7 +59,7 @@ public class DefaultBlockFactory implements BlockFactory {
         if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {
-            Protos.TaskState taskState = stateStore.fetchStatus(newTaskSpecification.getName()).getState();
+            Protos.TaskState taskState = stateStore.fetchStatus(newTaskSpecification.getName()).get().getState();
             switch (taskState) {
                 case TASK_STAGING:
                 case TASK_STARTING:

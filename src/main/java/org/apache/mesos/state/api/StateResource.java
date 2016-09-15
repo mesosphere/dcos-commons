@@ -114,14 +114,15 @@ public class StateResource {
     @Path("/tasks/status/{taskName}")
     @GET
     public Response getTaskStatus(@PathParam("taskName") String taskName) {
-        try {
-            logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
-            return Response.ok(new JsonFormat().printToString(stateStore.fetchStatus(taskName)),
+        logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
+
+        Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskName);
+        if (taskStatus.isPresent()) {
+            return Response.ok(new JsonFormat().printToString(taskStatus.get()),
                     MediaType.APPLICATION_JSON).build();
-        } catch (Exception ex) {
+        } else {
             // Warning instead of Error: Subject to user input
-            logger.warn(String.format(
-                    "Failed to fetch requested TaskStatus for task '%s'", taskName), ex);
+            logger.warn(String.format("Failed to fetch requested TaskStatus for task '%s'", taskName));
             return Response.serverError().build();
         }
     }

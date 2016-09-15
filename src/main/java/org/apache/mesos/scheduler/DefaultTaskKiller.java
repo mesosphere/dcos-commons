@@ -43,7 +43,7 @@ public class DefaultTaskKiller implements TaskKiller {
             return;
         }
 
-        Protos.TaskState taskState = stateStore.fetchStatus(taskName).getState();
+        Protos.TaskState taskState = stateStore.fetchStatus(taskName).get().getState();
         if (!taskState.equals(Protos.TaskState.TASK_RUNNING)) {
             logger.warn(String.format("No need to kill: '%s', task state: '%s'", taskName, taskState));
             return;
