@@ -11,13 +11,19 @@ import string
 import subprocess
 import sys
 import tempfile
-import urllib
 
 import dcos_login
 import github_update
 
+try:
+    from urllib.request import URLopener
+except ImportError:
+    # Python 2
+    from urllib import URLopener
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+
 
 class CITester(object):
 
@@ -50,7 +56,7 @@ class CITester(object):
         if sys.platform == 'win32':
             cli_platform = 'windows'
             cli_filename = 'dcos.exe'
-        elif sys.platform == 'linux2':
+        elif sys.platform == 'linux2' or sys.platform == 'linux':
             cli_platform = 'linux'
         elif sys.platform == 'darwin':
             cli_platform = 'darwin'
@@ -64,8 +70,8 @@ class CITester(object):
             shutil.copyfile(local_path, cli_filepath)
         else:
             logger.info('Downloading {} to {}'.format(cli_url, cli_filepath))
-            urllib.URLopener().retrieve(cli_url, cli_filepath)
-        os.chmod(cli_filepath, 0755)
+            URLopener().retrieve(cli_url, cli_filepath)
+        os.chmod(cli_filepath, 0o755)
         return cli_filepath
 
 

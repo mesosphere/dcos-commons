@@ -11,18 +11,21 @@ import re
 import shutil
 import sys
 import tempfile
-import urllib
-import urllib2
 import zipfile
+
+try:
+    from http.client import HTTPSConnection
+    from urllib.request import URLopener
+    from urllib.request import urlopen
+except ImportError:
+    # Python 2
+    from httplib import HTTPSConnection
+    from urllib import URLopener
+    from urllib2 import urlopen
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-try:
-    from http.client import HTTPSConnection
-except ImportError:
-    # Python 2
-    from httplib import HTTPSConnection
 
 class UniverseReleaseBuilder(object):
 
@@ -73,7 +76,7 @@ class UniverseReleaseBuilder(object):
 
     def _download_unpack_stub_universe(self, scratchdir):
         local_zip_path = os.path.join(scratchdir, self._stub_universe_url.split('/')[-1])
-        result = urllib2.urlopen(self._stub_universe_url)
+        result = urlopen(self._stub_universe_url)
         dlfile = open(local_zip_path, 'wb')
         dlfile.write(result.read())
         dlfile.flush()
@@ -127,7 +130,7 @@ class UniverseReleaseBuilder(object):
         logger.info('[1/2] Setting version={}, packagingVersion={}, minDcosReleaseVersion={} in {}'.format(
             self._pkg_version, packagingVersion, minDcosReleaseVersion, path))
         orig_content = open(path, 'r').read()
-        content_json = json.loads(orig_content.decode('utf-8'))
+        content_json = json.loads(orig_content)
         content_json['version'] = self._pkg_version
         content_json['packagingVersion'] = packagingVersion
         if minDcosReleaseVersion:
@@ -193,7 +196,7 @@ class UniverseReleaseBuilder(object):
             else:
                 # download the artifact (http url referenced in package)
                 logger.info('{} Downloading {} to {}'.format(progress, src_url, local_path))
-                urllib.URLopener().retrieve(src_url, local_path)
+                URLopener().retrieve(src_url, local_path)
                 # re-upload the artifact (prod s3, via awscli)
                 logger.info('{} Uploading {} to {}'.format(progress, local_path, dest_s3_url))
                 ret = os.system('aws s3 cp --acl public-read {} {} 1>&2'.format(
@@ -270,7 +273,7 @@ class UniverseReleaseBuilder(object):
             resultlines.insert(0, 'Description:\n{}\n\n'.format(self._commit_desc))
         # surround diff description with quotes to ensure formatting is preserved:
         resultlines.append('```\n')
-        filediff_names = filediffs.keys()
+        filediff_names = list(filediffs.keys())
         filediff_names.sort()
         for filename in filediff_names:
             resultlines.append(filediffs[filename])
