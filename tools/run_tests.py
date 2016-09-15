@@ -91,7 +91,8 @@ class CITester(object):
             # check for any preexisting universes and remove them -- the cluster requires no duplicate uris
             if stub_universes:
                 logger.info('Checking for duplicate stub universes')
-                for repo in json.loads(subprocess.check_output('dcos package repo list --json'.split()))['repositories']:
+                cur_universes = subprocess.check_output('dcos package repo list --json'.split()).decode('utf-8')
+                for repo in json.loads(cur_universes)['repositories']:
                     # {u'name': u'Universe', u'uri': u'https://universe.mesosphere.com/repo'}
                     if repo['uri'] in stub_universes.values():
                         logger.info('Removing duplicate repository: {} {}'.format(repo['name'], repo['uri']))

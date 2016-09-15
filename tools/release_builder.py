@@ -127,7 +127,7 @@ class UniverseReleaseBuilder(object):
         logger.info('[1/2] Setting version={}, packagingVersion={}, minDcosReleaseVersion={} in {}'.format(
             self._pkg_version, packagingVersion, minDcosReleaseVersion, path))
         orig_content = open(path, 'r').read()
-        content_json = json.loads(orig_content)
+        content_json = json.loads(orig_content.decode('utf-8'))
         content_json['version'] = self._pkg_version
         content_json['packagingVersion'] = packagingVersion
         if minDcosReleaseVersion:
@@ -375,7 +375,7 @@ Universe URL:    {}{}
     logger.info('---')
     logger.info('Created pull request for version {} (PTAL):'.format(package_version))
     # print the PR location as stdout for use upstream (the rest is all stderr):
-    print(json.loads(response.read())['html_url'])
+    print(json.loads(response.read().decode('utf-8'))['html_url'])
     return 0
 
 

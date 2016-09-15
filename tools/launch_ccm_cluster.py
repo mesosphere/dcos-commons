@@ -153,7 +153,7 @@ class CCMLauncher(object):
 
             response = self._query_http('GET', self._CCM_PATH + str(cluster_id) + '/')
             if response:
-                status_json = json.loads(response.read())
+                status_json = json.loads(response.read().decode('utf-8'))
                 status_code = status_json.get('status', -1)
                 status_label = self._CCM_STATUSES.get(status_code, 'unknown:{}'.format(status_code))
                 if status_code == complete_state_code:
@@ -240,7 +240,7 @@ class CCMLauncher(object):
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
         if not response:
             raise Exception('CCM cluster creation request failed')
-        response_content = response.read()
+        response_content = response.read().decode('utf-8')
         response_json = json.loads(response_content)
         logger.info('Launch response:\n{}'.format(pprint.pformat(response_json)))
         cluster_id = int(response_json.get('id', 0))
