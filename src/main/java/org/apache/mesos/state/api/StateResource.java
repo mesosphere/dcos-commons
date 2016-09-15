@@ -126,6 +126,9 @@ public class StateResource {
         }
     }
 
+    /**
+     * Produces a listing of the names of all stored tasks.
+     */
     @Path("/properties")
     @GET
     public Response getPropertyKeys() {
@@ -138,6 +141,10 @@ public class StateResource {
         }
     }
 
+    /**
+     * Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
+     * exist or the data couldn't be read.
+     */
     @Path("/properties/{key}")
     @GET
     public Response getProperty(@PathParam("key") String key) {
