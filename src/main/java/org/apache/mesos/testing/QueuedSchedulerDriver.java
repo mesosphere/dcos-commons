@@ -161,6 +161,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
 
   public static final long DEFAULT_TIMEOUT_MS = 60 * 1000;
   private volatile SynchronizedStatus status = new SynchronizedStatus();
+  private boolean suppressed = false;
   private final BlockingQueue<OfferOperations> operations =
     new LinkedBlockingDeque<>();
   private final BlockingQueue<Protos.OfferID> declined =
@@ -334,12 +335,18 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
 
   @Override
   public Protos.Status reviveOffers() {
+    suppressed = false;
     return status.get();
   }
 
   @Override
   public Protos.Status suppressOffers() {
+    suppressed = true;
     return status.get();
+  }
+
+  public boolean isSuppressed() {
+    return suppressed;
   }
 
   @Override
