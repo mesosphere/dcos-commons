@@ -4,6 +4,11 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.executor.ExecutorUtils;
+import org.apache.mesos.protobuf.DefaultVolumeSpecification;
+import org.apache.mesos.specification.DefaultTaskSpecification;
+import org.apache.mesos.specification.DefaultTaskTypeSpecification;
+import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.VolumeSpecification;
 import org.apache.mesos.testutils.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,11 +39,45 @@ public class OfferEvaluatorTest {
 
   @Test
   public void testReserveCreateLaunchMountVolume() throws InvalidRequirementException {
-    Resource desiredResource = ResourceTestUtils.getDesiredMountVolume(1000);
-    Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+    final Integer desiredDiskSize = 1000;
+    Resource desiredResource = ResourceTestUtils.getDesiredMountVolume(desiredDiskSize);
+    testReserveCreateLaunchMountVolume(
+            OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+            desiredDiskSize * 2);
+  }
+
+  @Test
+  public void testReserveCreateLaunchMountVolumeFromSpec() throws InvalidRequirementException {
+    final Integer desiredDiskSize = 1000;
+
+    TaskSpecification taskSpecification = DefaultTaskSpecification.create(
+            new DefaultTaskTypeSpecification(
+                    1,
+                    "test-task-spec",
+                    Protos.CommandInfo.newBuilder()
+                            .setValue("echo test")
+                            .build(),
+                    Collections.emptyList(),
+                    Arrays.asList(
+                            new DefaultVolumeSpecification(
+                                    desiredDiskSize,
+                                    VolumeSpecification.Type.MOUNT,
+                                    TestConstants.containerPath,
+                                    TestConstants.role,
+                                    TestConstants.principal))),
+            0);
+
+    OfferRequirement offerRequirement = new DefaultOfferRequirementProvider().getNewOfferRequirement(taskSpecification);
+    testReserveCreateLaunchMountVolume(offerRequirement, desiredDiskSize * 2);
+  }
+
+  private void testReserveCreateLaunchMountVolume(OfferRequirement offerRequirement, int offeredDiskSize)
+          throws InvalidRequirementException {
+
+    Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(offeredDiskSize);
 
     List<OfferRecommendation> recommendations = evaluator.evaluate(
-            OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+            offerRequirement,
             Arrays.asList(OfferTestUtils.getOffer(offeredResource)));
     Assert.assertEquals(3, recommendations.size());
 
