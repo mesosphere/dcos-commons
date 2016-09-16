@@ -3,12 +3,10 @@ package org.apache.mesos.state;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.curator.CuratorStateStore;
-import org.apache.mesos.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SchedulerStateTest {
@@ -28,13 +26,8 @@ public class SchedulerStateTest {
     }
 
     @Test
-    public void testGetFrameworkId() {
-        schedulerState.setFrameworkId(TestConstants.frameworkId);
-        assertEquals(schedulerState.getFrameworkId().get(), TestConstants.frameworkId);
-    }
-
-    @Test
     public void testIsSuppressed() {
+        assertTrue(!schedulerState.isSuppressed());
         schedulerState.setSuppressed(true);
         assertTrue(schedulerState.isSuppressed());
         schedulerState.setSuppressed(false);

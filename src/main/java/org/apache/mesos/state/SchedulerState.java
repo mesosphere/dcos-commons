@@ -1,15 +1,12 @@
 package org.apache.mesos.state;
 
-import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 /**
  * Read/write interface for the state of a Scheduler.
  */
-public class SchedulerState  {
+public class SchedulerState {
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
 
     private static final String SUPPRESSED_KEY = "suppressed";
@@ -17,26 +14,6 @@ public class SchedulerState  {
 
     public SchedulerState(StateStore stateStore) {
         this.stateStore = stateStore;
-    }
-
-    public Optional<FrameworkID> getFrameworkId() {
-        try {
-            return stateStore.fetchFrameworkId();
-        } catch (StateStoreException ex) {
-            log.warn("Failed to get FrameworkID. "
-                    + "This is expected when the service is starting for the first time.", ex);
-        }
-        return Optional.empty();
-    }
-
-    public void setFrameworkId(FrameworkID fwkId) throws StateStoreException {
-        try {
-            log.info(String.format("Storing FrameworkID: %s", fwkId));
-            stateStore.storeFrameworkId(fwkId);
-        } catch (StateStoreException ex) {
-            log.error("Failed to set FrameworkID: " + fwkId, ex);
-            throw ex;
-        }
     }
 
     public boolean isSuppressed() {
