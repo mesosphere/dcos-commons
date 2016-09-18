@@ -100,6 +100,7 @@ public class DefaultBlock implements Block {
 
         if (isComplete()) {
             logger.warn(getName() + " ignoring due to being Complete, TaskStatus: " + status);
+            return;
         }
 
         switch (status.getState()) {

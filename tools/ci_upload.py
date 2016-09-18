@@ -110,7 +110,7 @@ class CIUploader(object):
     def _spam_universe_url(self, universe_url):
         if 'WORKSPACE' in os.environ:
             # write jenkins properties file to $WORKSPACE/stub-universe.properties:
-            properties_file = open(os.path.join(os.environ['WORKSPACE'], 'stub-universe.properties'), 'w')
+            properties_file = open(os.path.join(os.environ['WORKSPACE'], '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
             properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
             properties_file.flush()

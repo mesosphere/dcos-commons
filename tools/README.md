@@ -17,6 +17,7 @@ Test tools:
 Misc utilities:
 
 - **[dcos_login.py](#dcos_loginpy)**: Log into a DC/OS cluster using default/test credentials. Autodetects DC/OS Open vs DC/OS Enterprise.
+- **[print_package_tag.py](#print_package_tagpy)**: Return the Git repo SHA for the provided package on the cluster.
 - **[github_update.py](#github_updatepy)**: Update a GitHub PR status with the progress of a build. Used by the above scripts, and may be used in your own build scripts to provide a nicer CI experience in PRs.
 - **[universe_builder.py](#universe_builderpy)**: Underlying script which builds a `stub-universe.zip` given the necessary template data (package name, version, upload dir, ...). This is called by `ci_upload.py` after autogenerating an upload directory.
 
@@ -154,7 +155,7 @@ Note that this uses the `aws` CLI to perform the upload. You must have `aws` ins
 #### Usage
 
 ```
-./ci_upload.py <package-name> <template-package-dir> [artifact files ...]
+$ ./ci_upload.py <package-name> <template-package-dir> [artifact files ...]
 ```
 
 Example:
@@ -216,7 +217,7 @@ Note that this utility is careful to avoid overwriting existing artifacts in pro
 #### Usage
 
 ```
-./release_builder.py \
+$ ./release_builder.py \
     <package-version> \
     <stub-universe-url> \
     [commit message]
@@ -269,19 +270,25 @@ Launches a DC/OS cluster using the Mesosphere-internal 'CCM' tool, then prints t
 #### Usage
 
 ```
-./launch_ccm_cluster.py
+$ ./launch_ccm_cluster.py
 ```
 
 Starts cluster with the env-provided configuration (see env vars). On success, returns zero and prints a json-formatted dictionary containing the cluster ID and URL.  All other log output is always sent to stderr, to ensure that stdout is not polluted by logs. In addition to this, if the script detects that it's running in a Jenkins environment, it will also write the cluster ID and URL to a `$WORKSPACE/cluster-$CCM_GITHUB_LABEL.properties` file. On failure, returns non-zero.
 
 ```
-./launch_ccm_cluster.py stop <ccm_id>
+$ ./launch_ccm_cluster.py stop <ccm_id>
 ```
 
 Stops cluster with provided id, with up to `CCM_ATTEMPTS` attempts and `CCM_TIMEOUT_MINS` time waited per attempt. Returns 0 on success or non-zero otherwise.
 
 ```
-./launch_ccm_cluster.py wait <ccm_id> <current_state> <new_state>
+$ ./launch_ccm_cluster.py trigger-stop <ccm_id>
+```
+
+Stops cluster with provided id, then immediately returns rather than waiting for the cluster to turn down.
+
+```
+$ ./launch_ccm_cluster.py wait <ccm_id> <current_state> <new_state>
 ```
 
 Waits for the cluster to switch from some current state to some new state (eg `PENDING` => `RUNNING`), with up to `CCM_TIMEOUT_MINS` time waited. Returns 0 on success or non-zero otherwise.
@@ -320,7 +327,7 @@ Returns zero on success, or non-zero otherwise.
 Shakedown tests:
 
 ```
-TEST_TYPES="sanity or recovery" \
+$ TEST_TYPES="sanity or recovery" \
 CLUSTER_URL=http://your-dcos-cluster.com \
   ./run_tests.py shakedown /path/to/your/shakedown/tests/ /path/to/shakedown/requirements.txt
 ```
@@ -328,7 +335,7 @@ CLUSTER_URL=http://your-dcos-cluster.com \
 dcos-tests (Mesosphere-internal, deprecated in favor of Shakedown):
 
 ```
-TEST_TYPES="recovery" \
+$ TEST_TYPES="recovery" \
 CLUSTER_URL=http://your-dcos-cluster.com \
   ./run_tests.py dcos-tests /path/to/dcos-tests/test/path /path/to/root/dcos-tests/
 ```
@@ -351,8 +358,8 @@ Logs in the DC/OS CLI, effectively performing a complete `dcos auth login` hands
 #### Usage
 
 ```
-dcos config set core.dcos_url http://your-cluster-url.com
-./dcos_login.py [print]
+$ dcos config set core.dcos_url http://your-cluster-url.com
+$ ./dcos_login.py [print]
 [dcos CLI is now logged in...]
 ```
 
@@ -363,6 +370,42 @@ If the `print` argument is provided, `dcos_login.py` will also print the resulti
 - `CLUSTER_URL`: Use the provided URL, instead of fetching `core.dcos_url` from a CLI.
 - `CLUSTER_AUTH_TOKEN`: Use the provided auth token for `core.dcos_acs_token`, instead of attempting to fetch a token from the cluster. This is mainly for use by Open DC/OS clusters which are not newly created and have been logged into, at which point the default token used by `dcos_login.py` is no longer valid.
 
+### print_package_tag.py
+
+1. Looks up the latest package version available on the cluster.
+2. Finds a tag of that name in the provided Git repository (url or local path).
+3. Returns the SHA for that tag.
+
+#### Usage
+
+```
+$ ./print_package_tag.py <package> [/local/repo/path or git@host.com:remote/repo]
+```
+
+Example (SHA from remote repository):
+
+```
+[dcos CLI must be logged into a cluster already...]
+$ ./print_package_tag.py spark git@github.com:mesosphere/spark-build
+238f921b65c2a0c5a6703d8400399aa09e084754
+```
+
+Example (SHA from local checkout of repository):
+
+```
+[dcos CLI must be logged into a cluster already...]
+$ ./print_package_tag.py spark /local/path/to/spark-build/
+238f921b65c2a0c5a6703d8400399aa09e084754
+```
+
+Example (just print the revision string):
+
+```
+[dcos CLI must be logged into a cluster already...]
+$ ./print_package_tag.py spark
+1.0.2-2.0.0
+```
+
 ### github_update.py
 
 Updates the correct GitHub PR with a status message about the progress of the build.
@@ -371,13 +414,13 @@ This is mainly meant to be invoked by CI during a build/test run, rather than be
 #### Usage
 
 ```
-./github_update.py <state: pending|success|error|failure> <context_label> <status message>
+$ ./github_update.py <state: pending|success|error|failure> <context_label> <status message>
 ```
 
 Example:
 
 ```
-GITHUB_TOKEN=yourGithubAuthToken \
+$ GITHUB_TOKEN=yourGithubAuthToken \
 GITHUB_COMMIT_STATUS_URL=http://example.com/detailsLinkGoesHere.html \
 ./github_update.py \
     pending \
@@ -396,6 +439,7 @@ Much of the logic for detecting the CI environment is handled automatically by c
 - git commit SHA: `ghprbActualCommit`, `GIT_COMMIT`, `${${GIT_COMMIT_ENV_NAME}}`, or finally by checking `git` directly.
 - GitHub repository path: `GITHUB_REPO_PATH`, or by checking `git` directly.
 - Detecting the link to include as a details link in the update: `GITHUB_COMMIT_STATUS_URL`, or `BUILD_URL/console`
+- Disabling the notification to GitHub (eg in out-of-band tests where updating the repo doesn't make sense): non-empty `GITHUB_DISABLE`
 
 Of these, `GITHUB_TOKEN` is the main one that needs to be set in a CI environment, while the others are generally autodetected.
 Meanwhile `GITHUB_COMMIT_STATUS_URL` is useful for providing custom links in status messages.
@@ -416,7 +460,7 @@ A universe template is effectively a directory with the JSON files that you want
 #### Usage
 
 ```
-./universe_builder.py \
+$ ./universe_builder.py \
     <package-name> \
     <package-version> \
     <template-package-dir> \

@@ -43,10 +43,12 @@ class GithubStatusUpdater(object):
 
     def _get_commit_sha(self):
         '''returns the sha1 of the commit being reported upon'''
-        # 1. try 'ghprbActualCommit' and 'GIT_COMMIT' envvars:
+        # 1. try 'ghprbActualCommit', 'GIT_COMMIT', and 'sha1' envvars:
         commit_sha = os.environ.get('ghprbActualCommit', '')
         if not commit_sha:
             commit_sha = os.environ.get('GIT_COMMIT', '')
+        if not commit_sha:
+            commit_sha = os.environ.get('sha1', '')
         if not commit_sha and 'GIT_COMMIT_ENV_NAME' in os.environ:
             # 2. grab the commit from the specified custom envvar
             commit_sha = os.environ.get(os.environ['GIT_COMMIT_ENV_NAME'], '')
@@ -159,6 +161,9 @@ class GithubStatusUpdater(object):
 
         if not 'WORKSPACE' in os.environ:
             # not running in CI. skip actually sending anything to GitHub
+            return True
+        if os.environ.get('GITHUB_DISABLE', ''):
+            # environment has notifications disabled. skip actually sending anything to GitHub
             return True
 
         request = self._build_request(state, message, details_url)
