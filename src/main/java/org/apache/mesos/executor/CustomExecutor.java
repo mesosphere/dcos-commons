@@ -37,8 +37,11 @@ public class CustomExecutor implements Executor {
     }
 
     @Override
-    public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo, Protos.FrameworkInfo frameworkInfo,
-                           Protos.SlaveInfo slaveInfo) {
+    public void registered(
+            ExecutorDriver driver,
+            Protos.ExecutorInfo executorInfo,
+            Protos.FrameworkInfo frameworkInfo,
+            Protos.SlaveInfo slaveInfo) {
         LOGGER.info("Registered executor: {}", executorInfo.getExecutorId());
         this.slaveInfo = slaveInfo;
         this.executorInfo = executorInfo;
