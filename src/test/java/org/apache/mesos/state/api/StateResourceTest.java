@@ -99,7 +99,7 @@ public class StateResourceTest {
                 .setTaskId(TaskUtils.toTaskId(taskName))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
                 .build();
-        when(mockStateStore.fetchStatus(taskName)).thenReturn(taskStatus);
+        when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.of(taskStatus));
         Response response = resource.getTaskStatus(taskName);
         assertEquals(200, response.getStatus());
         assertEquals(new JsonFormat().printToString(taskStatus), (String) response.getEntity());
@@ -108,7 +108,7 @@ public class StateResourceTest {
     @Test
     public void testGetTaskStatusFails() {
         String taskName = "task1";
-        when(mockStateStore.fetchStatus(taskName)).thenThrow(new StateStoreException("hi"));
+        when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.empty());
         Response response = resource.getTaskStatus(taskName);
         assertEquals(500, response.getStatus());
     }

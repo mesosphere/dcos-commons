@@ -52,6 +52,19 @@ public class DefaultRecoveryScheduler {
     }
 
     /**
+     * True if this scheduler has operations to perform.
+     *
+     * @param block block whose tasks to exclude from consideration.
+     * @return true if this scheduler has operations to perform.
+     */
+    public boolean hasOperations(Optional<Block> block) {
+        updateRecoveryStatus(getTerminatedTasks(block));
+
+        return recoveryStatusRef.get().getStopped().size() > 0 ||
+                recoveryStatusRef.get().getFailed().size() > 0;
+    }
+
+    /**
      * This function runs the recovery logic. It should be invoked periodically.
      *
      * This function is synchronized in order to avoid launchConstrainer race conditions.
@@ -68,7 +81,7 @@ public class DefaultRecoveryScheduler {
     public synchronized List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Optional<Block> block)
             throws Exception {
         List<OfferID> acceptedOffers = new ArrayList<>();
-        updateRecoveryPools(getTerminatedTasks(block));
+        updateRecoveryStatus(getTerminatedTasks(block));
 
         List<TaskInfo> stopped = recoveryStatusRef.get().getStopped();
         List<TaskInfo> failed = recoveryStatusRef.get().getFailed();
@@ -102,10 +115,17 @@ public class DefaultRecoveryScheduler {
             }
         }
 
-        updateRecoveryPools(getTerminatedTasks(block));
+        updateRecoveryStatus(getTerminatedTasks(block));
         return acceptedOffers;
     }
 
+    /**
+     * Returns all terminated tasks, excluding those corresponding to {@code block}.  This allows for mutual exclusion
+     * with another scheduler.
+     *
+     * @param block Block with tasks to exclude, empty if no tasks should be excluded
+     * @return Terminated tasks, excluding those corresponding to {@code block}
+     */
     private Collection<TaskInfo> getTerminatedTasks(Optional<Block> block) {
         List<TaskInfo> filteredTerminatedTasks = new ArrayList<TaskInfo>();
 
@@ -127,11 +147,12 @@ public class DefaultRecoveryScheduler {
         return filteredTerminatedTasks;
     }
 
-    private void updateRecoveryPools(Collection<TaskInfo> terminatedTasks) {
+    private void updateRecoveryStatus(Collection<TaskInfo> terminatedTasks) {
         List<TaskInfo> failed = new ArrayList<>(terminatedTasks.stream()
                 .filter(failureMonitor::hasFailed)
                 .collect(Collectors.toList()));
         failed = failed.stream().distinct().collect(Collectors.toList());
+
         failed.stream().forEach(it -> failureListener.taskFailed(it.getTaskId()));
 
         List<TaskInfo> stopped = terminatedTasks.stream()

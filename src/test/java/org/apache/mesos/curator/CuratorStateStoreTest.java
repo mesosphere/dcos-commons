@@ -247,15 +247,15 @@ public class CuratorStateStoreTest {
         // taskstatus id must exactly match taskinfo id:
         Protos.TaskStatus status = TASK_STATUS.toBuilder().setTaskId(task.getTaskId()).build();
         store.storeStatus(status);
-        assertEquals(status, store.fetchStatus(TASK_NAME));
+        assertEquals(status, store.fetchStatus(TASK_NAME).get());
         Collection<Protos.TaskStatus> statuses = store.fetchStatuses();
         assertEquals(1, statuses.size());
         assertEquals(status, statuses.iterator().next());
     }
 
-    @Test(expected=StateStoreException.class)
+    @Test
     public void testFetchMissingStatus() throws Exception {
-        store.fetchStatus(TASK_NAME);
+        assertTrue(!store.fetchStatus(TASK_NAME).isPresent());
     }
 
     @Test
@@ -271,10 +271,10 @@ public class CuratorStateStoreTest {
         // taskstatus id must exactly match taskinfo id:
         Protos.TaskStatus status = TASK_STATUS.toBuilder().setTaskId(task.getTaskId()).build();
         store.storeStatus(status);
-        assertEquals(status, store.fetchStatus(TASK_NAME));
+        assertEquals(status, store.fetchStatus(TASK_NAME).get());
 
         store.storeStatus(status);
-        assertEquals(status, store.fetchStatus(TASK_NAME));
+        assertEquals(status, store.fetchStatus(TASK_NAME).get());
 
         Collection<String> taskNames = store.fetchTaskNames();
         assertEquals(1, taskNames.size());
@@ -301,7 +301,7 @@ public class CuratorStateStoreTest {
         Protos.TaskStatus taskStatusA = createTaskStatus(taskA.getTaskId());
         store.storeStatus(taskStatusA);
 
-        assertEquals(taskStatusA, store.fetchStatus("a"));
+        assertEquals(taskStatusA, store.fetchStatus("a").get());
         assertEquals(2, store.fetchTaskNames().size());
         assertEquals("a", store.fetchTaskNames().iterator().next());
         assertEquals(1, store.fetchStatuses().size());
@@ -311,14 +311,14 @@ public class CuratorStateStoreTest {
         Protos.TaskStatus taskStatusB = createTaskStatus(taskB.getTaskId());
         store.storeStatus(taskStatusB);
 
-        assertEquals(taskStatusB, store.fetchStatus("b"));
+        assertEquals(taskStatusB, store.fetchStatus("b").get());
         assertEquals(2, store.fetchTaskNames().size());
         assertEquals(2, store.fetchStatuses().size());
         assertEquals(2, store.fetchTasks().size());
 
         store.clearTask("a");
 
-        assertEquals(taskStatusB, store.fetchStatus("b"));
+        assertEquals(taskStatusB, store.fetchStatus("b").get());
         assertEquals(1, store.fetchTaskNames().size());
         assertEquals("b", store.fetchTaskNames().iterator().next());
         assertEquals(1, store.fetchStatuses().size());
@@ -340,7 +340,7 @@ public class CuratorStateStoreTest {
         // taskstatus id must exactly match taskinfo id:
         Protos.TaskStatus status = TASK_STATUS.toBuilder().setTaskId(task.getTaskId()).build();
         store.storeStatus(status);
-        assertEquals(status, store.fetchStatus(TASK_NAME));
+        assertEquals(status, store.fetchStatus(TASK_NAME).get());
 
         // change the taskinfo id:
         Protos.TaskInfo taskNewId = createTask(TASK_NAME);
@@ -348,7 +348,7 @@ public class CuratorStateStoreTest {
         // send a new status whose id matches the updated taskinfo id:
         Protos.TaskStatus statusNewId = TASK_STATUS.toBuilder().setTaskId(taskNewId.getTaskId()).build();
         store.storeStatus(statusNewId);
-        assertEquals(statusNewId, store.fetchStatus(TASK_NAME));
+        assertEquals(statusNewId, store.fetchStatus(TASK_NAME).get());
     }
 
     @Test(expected=StateStoreException.class)
@@ -359,7 +359,7 @@ public class CuratorStateStoreTest {
         // taskstatus id must exactly match taskinfo id:
         Protos.TaskStatus status = TASK_STATUS.toBuilder().setTaskId(task.getTaskId()).build();
         store.storeStatus(status);
-        assertEquals(status, store.fetchStatus(TASK_NAME));
+        assertEquals(status, store.fetchStatus(TASK_NAME).get());
 
         // change the taskinfo id:
         Protos.TaskInfo taskNewId = createTask(TASK_NAME);
@@ -390,7 +390,7 @@ public class CuratorStateStoreTest {
 
         Protos.TaskStatus testStatus = createTaskStatus(testTask.getTaskId());
         store.storeStatus(testStatus);
-        assertEquals(testStatus, store.fetchStatus(TASK_NAME));
+        assertEquals(testStatus, store.fetchStatus(TASK_NAME).get());
     }
 
     @Test
@@ -413,7 +413,7 @@ public class CuratorStateStoreTest {
         Protos.TaskStatus taskStatusA = createTaskStatus(taskInfoA.getTaskId());
         store.storeStatus(taskStatusA);
 
-        assertEquals(taskStatusA, store.fetchStatus("a"));
+        assertEquals(taskStatusA, store.fetchStatus("a").get());
         assertEquals(1, store.fetchTaskNames().size());
         assertEquals("a", store.fetchTaskNames().iterator().next());
         assertEquals(1, store.fetchStatuses().size());

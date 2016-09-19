@@ -165,7 +165,7 @@ public interface StateStore extends TaskStatusProvider {
      * @throws StateStoreException if no data was found for the requested name, or if fetching the TaskStatus
      *                             information otherwise fails
      */
-    TaskStatus fetchStatus(String taskName) throws StateStoreException;
+    Optional<TaskStatus> fetchStatus(String taskName) throws StateStoreException;
 
 
     // Read/Write Properties
