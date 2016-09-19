@@ -1,28 +1,19 @@
 package org.apache.mesos.scheduler.plan;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
-
-import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferAccepter;
-import org.apache.mesos.offer.OfferEvaluator;
-import org.apache.mesos.offer.OfferRecommendation;
-import org.apache.mesos.offer.OfferRequirement;
-import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.Protos.SlaveID;
-import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.TaskKiller;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link DefaultPlanScheduler}.
@@ -90,7 +81,7 @@ public class DefaultPlanSchedulerTest {
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
-        assertFalse(block.operationsOptional.isPresent());
+        assertTrue(block.operations.isEmpty());
         verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
         assertTrue(block.isPending());
     }
@@ -103,7 +94,7 @@ public class DefaultPlanSchedulerTest {
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
-        assertFalse(block.operationsOptional.isPresent());
+        assertTrue(block.operations.isEmpty());
         verify(mockOfferAccepter).accept(mockSchedulerDriver, RECOMMENDATIONS);
         assertTrue(block.isPending());
     }
@@ -116,18 +107,18 @@ public class DefaultPlanSchedulerTest {
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(ACCEPTED_IDS);
 
         assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block));
-        assertTrue(block.operationsOptional.isPresent());
+        assertFalse(block.operations.isEmpty());
         assertTrue(block.isInProgress());
     }
 
     private static class TestOfferBlock extends TestBlock {
         private final OfferRequirement requirement;
-        private Optional<Collection<Operation>> operationsOptional;
+        private Collection<Operation> operations;
 
         private TestOfferBlock(OfferRequirement requirementToReturn) {
             super();
             this.requirement = requirementToReturn;
-            this.operationsOptional = Optional.empty();
+            this.operations = Collections.emptyList();
         }
 
         @Override
@@ -141,9 +132,9 @@ public class DefaultPlanSchedulerTest {
         }
 
         @Override
-        public void updateOfferStatus(Optional<Collection<Operation>> operationsOptional) {
-            super.updateOfferStatus(operationsOptional);
-            this.operationsOptional = operationsOptional;
+        public void updateOfferStatus(Collection<Operation> operations) {
+            super.updateOfferStatus(operations);
+            this.operations = operations;
         }
     }
 }

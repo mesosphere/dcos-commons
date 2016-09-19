@@ -72,9 +72,9 @@ public class DefaultBlock implements Block {
     }
 
     @Override
-    public void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional) {
-        if (operationsOptional.isPresent()) {
-            setTaskIds(operationsOptional.get());
+    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
+        if (!operations.isEmpty()) {
+            setTaskIds(operations);
             setStatus(Status.IN_PROGRESS);
         }
     }

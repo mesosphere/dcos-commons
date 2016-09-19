@@ -10,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * This class tests the DefaultBlock class.
@@ -40,7 +39,7 @@ public class DefaultBlockTest {
                                 .setName(TestConstants.taskName)
                                 .setSlaveId(TestConstants.agentId)))
                 .build();
-        block.updateOfferStatus(Optional.of(Arrays.asList(operation)));
+        block.updateOfferStatus(Arrays.asList(operation));
 
         Assert.assertTrue(block.isInProgress());
 

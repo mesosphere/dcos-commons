@@ -10,10 +10,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -117,13 +114,16 @@ public class ReconciliationBlockTest {
     @Test
     public void testUpdateOfferStatusFalseSucceeds() {
         // Expect no exception to be thrown
-        block.updateOfferStatus(Optional.empty());
+        block.updateOfferStatus(Collections.emptyList());
     }
 
     @Test(expected=UnsupportedOperationException.class)
     public void testUpdateOfferStatusTrueFails() {
-        List<Protos.Offer.Operation> operations = new ArrayList<>();
-        block.updateOfferStatus(Optional.of(operations));
+        Protos.Offer.Operation op = Protos.Offer.Operation.newBuilder()
+                .setType(Protos.Offer.Operation.Type.LAUNCH)
+                .build();
+        List<Protos.Offer.Operation> operations = Arrays.asList(op);
+        block.updateOfferStatus(operations);
     }
 
     @Test
