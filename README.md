@@ -10,3 +10,21 @@ Building dcos-commons
 --------------------------
 
 1. `./gradlew build`
+
+Using dcos-commons
+--------------------------
+
+The releases are hosted at the Maven repository at `downloads.mesosphere.com`. A sample `build.gradle` is provided below.
+```
+repositories {
+  // other repositories
+  maven {
+    url "http://downloads.mesosphere.com/maven/"
+  }
+}
+
+dependencies {
+  // other dependencies
+  compile "mesosphere:dcos-commons:+"
+}
+```
