@@ -51,19 +51,19 @@ public interface Block extends Completable {
      * returns {@code true}.
      *
      * @see {@link #isPending()} which is the gate to whether {@code start()} is called
-     * @see {@link #updateOfferStatus(boolean)} which returns the outcome of the
+     * @see {@link #updateOfferStatus(Collection<Offer.Operation>)} which returns the outcome of the
      *      {@link OfferRequirement}
      */
     Optional<OfferRequirement> start();
 
     /**
      * Notifies the Block whether the {@link OfferRequirement} previously returned by
-     * {@link #start()} has been successfully accepted/fulfilled. The {@code accepted} param is
-     * {@code false} when no offers matching the requirement previously returned by {@link #clone()
+     * {@link #start()} has been successfully accepted/fulfilled. The {@code operations} param is
+     * empty when no offers matching the requirement previously returned by {@link #clone()
      * could be found. This is only called if {@link #start()} returned a non-{@code null}
      * {@link OfferRequirement}.
      */
-    void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional);
+    void updateOfferStatus(Collection<Protos.Offer.Operation> operations);
 
     /**
      * Forcefully restarts the block, putting it into a PENDING state, waiting to be resumed with

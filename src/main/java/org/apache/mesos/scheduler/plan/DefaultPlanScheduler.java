@@ -8,10 +8,7 @@ import org.apache.mesos.scheduler.TaskKiller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Default deployment scheduler. See docs in {@link PlanScheduler} interface.
@@ -58,7 +55,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         Optional<OfferRequirement> offerRequirementOptional = block.start();
         if (!offerRequirementOptional.isPresent()) {
             logger.info("No OfferRequirement for block: {}", block.getName());
-            block.updateOfferStatus(Optional.empty());
+            block.updateOfferStatus(Collections.emptyList());
             return acceptedOffers;
         }
 
@@ -76,7 +73,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by block {}: {}",
                     block.getName(), offerRequirementOptional.get());
-            block.updateOfferStatus(Optional.empty());
+            block.updateOfferStatus(Collections.emptyList());
             return acceptedOffers;
         }
 
@@ -87,7 +84,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         } else {
             // If no Operations occurred it may be of interest to the Block.  For example it may want to set it's state
             // to Pending to ensure it will be reattempted on the next Offer cycle.
-            block.updateOfferStatus(Optional.empty());
+            block.updateOfferStatus(Collections.emptyList());
         }
 
         return acceptedOffers;
@@ -100,11 +97,11 @@ public class DefaultPlanScheduler implements PlanScheduler {
         }
     }
 
-    private Optional<Collection<Protos.Offer.Operation>> getOperations(
+    private Collection<Protos.Offer.Operation> getOperations(
             Collection<OfferRecommendation> recommendations) {
 
         if (recommendations.size() == 0) {
-            return Optional.empty();
+            return Collections.emptyList();
         }
 
         List<Protos.Offer.Operation> operations = new ArrayList<>();
@@ -112,6 +109,6 @@ public class DefaultPlanScheduler implements PlanScheduler {
             operations.add(recommendation.getOperation());
         }
 
-        return Optional.of(operations);
+        return operations;
     }
 }

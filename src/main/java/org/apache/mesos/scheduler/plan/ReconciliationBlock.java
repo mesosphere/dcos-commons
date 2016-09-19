@@ -1,15 +1,14 @@
 package org.apache.mesos.scheduler.plan;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.reconciliation.Reconciler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 
 /**
@@ -72,8 +71,8 @@ public class ReconciliationBlock implements Block {
     }
 
     @Override
-    public void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional) {
-        if (operationsOptional.isPresent()) {
+    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
+        if (!operations.isEmpty()) {
             throw new UnsupportedOperationException(
                     "updateOfferStatus() not expected: start() always returns null");
         }

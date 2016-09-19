@@ -52,8 +52,8 @@ public class TestBlock implements Block {
     }
 
     @Override
-    public void updateOfferStatus(Optional<Collection<Protos.Offer.Operation>> operationsOptional) {
-        if (!operationsOptional.isPresent()) {
+    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
+        if (operations.isEmpty()) {
             setStatus(Status.PENDING);
         } else {
             setStatus(Status.IN_PROGRESS);
