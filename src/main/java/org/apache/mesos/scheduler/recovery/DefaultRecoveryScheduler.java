@@ -141,7 +141,7 @@ public class DefaultRecoveryScheduler {
                 }
             }
         } catch (Exception ex) {
-            log.error("Stopped to fetch terminated tasks.");
+            log.error("Failed to fetch terminated tasks.", ex);
         }
 
         return filteredTerminatedTasks;
