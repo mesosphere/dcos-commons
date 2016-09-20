@@ -20,14 +20,14 @@ public class JsonSerializer implements Serializer {
     }
 
     @Override
-    public <T> byte[] serialize(T value) throws IOException {
+    public <T> byte[] serialize(T value) {
         String json = JsonUtils.toJsonString(value);
-        return json.getBytes("UTF-8");
+        return json.getBytes(charset);
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) throws IOException {
-        String json = new String(bytes, "UTF-8");
+        String json = new String(bytes, charset);
         return JsonUtils.fromJsonString(json, clazz);
     }
 }
