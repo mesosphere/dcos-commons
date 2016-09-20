@@ -3,36 +3,46 @@ package org.apache.mesos.state;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 /**
  * Read/write interface for the state of a Scheduler.
  */
 public class SchedulerState {
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
-
     private static final String SUPPRESSED_KEY = "suppressed";
+
     private final StateStore stateStore;
+    private final Serializer serializer;
 
     public SchedulerState(StateStore stateStore) {
         this.stateStore = stateStore;
+        this.serializer = new JsonSerializer();
     }
 
     public boolean isSuppressed() {
-        byte[] suppressed = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, SUPPRESSED_KEY);
-        if (suppressed.length == 0) {
+        byte[] bytes = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, SUPPRESSED_KEY);
+
+        boolean suppressed;
+        try {
+            suppressed = serializer.deserialize(bytes, Boolean.class);
+        } catch (IOException e){
+            log.error("Error converting property " + SUPPRESSED_KEY + " to boolean.", e);
             return false;
         }
 
-        if (suppressed.length != 1) {
-            log.error("Unexpected SUPPRESSED byte array length: " + suppressed.length);
-            return false;
-        }
-
-        return (suppressed[0] == 1) ? true : false;
+        return suppressed;
     }
 
     public void setSuppressed(boolean isSuppressed) {
-        final byte[] suppressed = new byte[]{(byte) (isSuppressed ? 1 : 0)};
-        stateStore.storeProperty(SUPPRESSED_KEY, suppressed);
+        byte[] bytes;
+        try {
+            bytes = serializer.serialize(isSuppressed);
+        } catch (IOException e) {
+            log.error("Error serializing property " + SUPPRESSED_KEY + ": " + isSuppressed + ".", e);
+            return;
+        }
+        stateStore.storeProperty(SUPPRESSED_KEY, bytes);
     }
 
     public StateStore getStateStore() {
