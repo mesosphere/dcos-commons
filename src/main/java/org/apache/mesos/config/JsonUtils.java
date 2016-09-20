@@ -22,6 +22,8 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.io.IOException;
+
 /**
  * Contains static Json manipulation utilities.
  */
@@ -57,5 +59,9 @@ public class JsonUtils {
         } catch (JsonProcessingException e) {
             return "";
         }
+    }
+
+    public static <T> T fromJsonString(String str, Class<T> clazz) throws IOException {
+        return MAPPER.readValue(str, clazz);
     }
 }
