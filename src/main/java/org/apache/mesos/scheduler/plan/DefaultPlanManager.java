@@ -64,7 +64,7 @@ public class DefaultPlanManager implements PlanManager {
     public Optional<Block> getCurrentBlock() {
         Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
         return currPhaseOptional.isPresent() ?
-                Optional.of(currPhaseOptional.get().getCurrentBlock()) : Optional.empty();
+                currPhaseOptional.get().getCurrentBlock() : Optional.empty();
     }
 
     @Override

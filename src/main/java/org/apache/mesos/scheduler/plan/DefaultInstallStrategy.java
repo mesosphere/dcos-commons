@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,16 +18,16 @@ public class DefaultInstallStrategy implements PhaseStrategy {
     }
 
     @Override
-    public Block getCurrentBlock() {
+    public Optional<Block> getCurrentBlock() {
         if (interrupted.get()) {
-            return null;
+            return Optional.empty();
         } else {
             for (Block block : phase.getBlocks()) {
                 if (!block.isComplete()) {
-                    return block;
+                    return Optional.of(block);
                 }
             }
-            return null;
+            return Optional.empty();
         }
     }
 

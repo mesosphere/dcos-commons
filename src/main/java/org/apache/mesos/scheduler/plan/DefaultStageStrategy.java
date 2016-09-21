@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -62,7 +63,7 @@ public class DefaultStageStrategy implements PhaseStrategy {
   }
 
   @Override
-  public Block getCurrentBlock() {
+  public Optional<Block> getCurrentBlock() {
     //TODO(nick) the returned Block is not guaranteed to stay in a consistent state.
     //alternative: instead provide a thread-safe wrapper for viewing/changing current block state
     synchronized (this) {
@@ -70,10 +71,10 @@ public class DefaultStageStrategy implements PhaseStrategy {
       if (shouldStart[currPos]) {
         Block block = phase.getBlocks().get(currPos);
         logger.info(String.format("Returning block '%s' at position: %d", block.getName(), currPos));
-        return block;
+        return Optional.of(block);
       } else {
         // WAITING for input, don't continue to next block
-        return null;
+        return Optional.empty();
       }
     }
   }
