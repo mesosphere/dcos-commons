@@ -29,19 +29,19 @@ public class DefaultPlanStrategyTest {
         TestBlock block0 = (TestBlock)phase.getBlock(0);
         TestBlock block1 = (TestBlock)phase.getBlock(1);
 
-        Assert.assertEquals(null, strategy.getCurrentBlock());
+        Assert.assertTrue(!strategy.getCurrentBlock().isPresent());
         strategy.proceed();
-        Assert.assertEquals(block0, strategy.getCurrentBlock());
+        Assert.assertEquals(block0, strategy.getCurrentBlock().get());
         strategy.interrupt();
-        Assert.assertEquals(block0, strategy.getCurrentBlock());
+        Assert.assertEquals(block0, strategy.getCurrentBlock().get());
 
         block0.setStatus(Status.COMPLETE);
-        Assert.assertEquals(null, strategy.getCurrentBlock());
+        Assert.assertTrue(!strategy.getCurrentBlock().isPresent());
         strategy.proceed();
-        Assert.assertEquals(block1, strategy.getCurrentBlock());
+        Assert.assertEquals(block1, strategy.getCurrentBlock().get());
 
         block1.setStatus(Status.COMPLETE);
-        Assert.assertEquals(block1, strategy.getCurrentBlock());
+        Assert.assertEquals(block1, strategy.getCurrentBlock().get());
     }
 
     @Test
