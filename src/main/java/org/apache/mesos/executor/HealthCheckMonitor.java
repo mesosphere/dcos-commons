@@ -12,14 +12,14 @@ import java.util.concurrent.Future;
  */
 public class HealthCheckMonitor implements Callable<Optional<HealthCheckStats>> {
     private final HealthCheckHandler healthCheckHandler;
-    private final ExecutorTask executorTask;
+    private final LaunchedTask launchedTask;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public HealthCheckMonitor(
             HealthCheckHandler healthCheckHandler,
-            ExecutorTask executorTask) {
+            LaunchedTask launchedTask) {
         this.healthCheckHandler = healthCheckHandler;
-        this.executorTask = executorTask;
+        this.launchedTask = launchedTask;
     }
 
     @Override
@@ -41,7 +41,7 @@ public class HealthCheckMonitor implements Callable<Optional<HealthCheckStats>> 
             }
         }
 
-        executorTask.stop();
+        launchedTask.getExecutorTask().stop(launchedTask.getFuture());
         return healthCheckStats;
     }
 }
