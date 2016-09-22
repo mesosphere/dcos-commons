@@ -52,6 +52,7 @@ public class DefaultReconcilerTest {
         when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>());
         reconciler.start();
 
+        assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
         reconciler.reconcile(mockDriver);
