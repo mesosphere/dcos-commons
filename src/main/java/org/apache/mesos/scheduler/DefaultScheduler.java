@@ -279,7 +279,8 @@ public class DefaultScheduler implements Scheduler {
                 // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
                 ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
                 if (cleanerScheduler != null) {
-                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+                    unacceptedOffers = filterAcceptedOffers(unacceptedOffers, acceptedOffers);
+                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, unacceptedOffers));
                 }
 
                 declineOffers(driver, acceptedOffers, offers);
