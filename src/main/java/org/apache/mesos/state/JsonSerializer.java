@@ -6,7 +6,9 @@ import org.apache.mesos.config.JsonUtils;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-/** Json Serialization */
+/**
+ * Implementation of {@link Serializer} for JSON input/output.
+ */
 public class JsonSerializer implements Serializer {
     private static final Charset DEFAULT_CHAR_SET = Charset.forName("UTF-8");
     private final Charset charset;
