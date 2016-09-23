@@ -17,6 +17,9 @@ public class CustomTaskTypeSpecificationTest {
     public void testCustomCommand() {
         Random random = new Random();
         int taskCount = random.nextInt(Integer.SIZE - 1); // Random positive integer
+        if (taskCount < 0) {
+            taskCount *= -1; // The above can return negative values (twos compliment bit still set?)
+        }
         TaskTypeSpecification taskTypeSpecification = new CustomTaskTypeSpecification(
                 taskCount,
                 "custom",

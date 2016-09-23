@@ -2,10 +2,13 @@ package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -135,6 +138,37 @@ public class TaskUtilsTest {
                 TestConstants.principal));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testSetGetOfferAttributes() {
+        Protos.Offer.Builder offerBuilder = OfferTestUtils.getEmptyOfferBuilder();
+        Protos.Attribute.Builder attrBuilder =
+                offerBuilder.addAttributesBuilder().setName("1").setType(Protos.Value.Type.RANGES);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(5).setEnd(6);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("2").setType(Protos.Value.Type.SCALAR);
+        attrBuilder.getScalarBuilder().setValue(123.4567);
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("3").setType(Protos.Value.Type.SET);
+        attrBuilder.getSetBuilder().addItem("foo").addItem("bar").addItem("baz");
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("4").setType(Protos.Value.Type.RANGES);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(7).setEnd(8);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
+
+        Assert.assertTrue(TaskUtils.getOfferAttributeStrings(getTestTaskInfo()).isEmpty());
+
+        Protos.TaskInfo.Builder tb = TaskUtils.setOfferAttributes(
+                getTestTaskInfo().toBuilder(), offerBuilder.build());
+        List<String> expectedStrings = new ArrayList<>();
+        expectedStrings.add("1:[5-6,10-12]");
+        expectedStrings.add("2:123.457");
+        expectedStrings.add("3:{foo,bar,baz}");
+        expectedStrings.add("4:[7-8,10-12]");
+        Assert.assertEquals(expectedStrings, TaskUtils.getOfferAttributeStrings(tb.build()));
+
+        tb = TaskUtils.setOfferAttributes(
+                getTestTaskInfo().toBuilder(), offerBuilder.clearAttributes().build());
+        Assert.assertTrue(TaskUtils.getOfferAttributeStrings(tb.build()).isEmpty());
     }
 
     private Protos.TaskID getTaskId(String value) {

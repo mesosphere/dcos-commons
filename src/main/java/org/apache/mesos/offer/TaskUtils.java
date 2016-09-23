@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
@@ -18,7 +20,14 @@ import java.util.*;
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
+    private static final char TASK_TYPE_DELIM = '-';
     private static final String TASK_NAME_DELIM = "__";
+    private static final Pattern TASK_ID_REGEX_FORMAT = Pattern.compile("(.*)-([0-9])+(__.*)");
+
+    /**
+     * Label key against which Offer attributes are stored.
+     */
+    private static final String OFFER_ATTRIBUTES_KEY = "offer_attributes";
 
     private TaskUtils() {
         // do not instantiate
@@ -50,6 +59,31 @@ public class TaskUtils {
         return TaskID.newBuilder()
                 .setValue(taskName + TASK_NAME_DELIM + UUID.randomUUID())
                 .build();
+    }
+
+    /**
+     * Converts the provided task type name and index into a task name.
+     *
+     * For example: "node" + 0 => "node-0"
+     */
+    public static String toTaskName(String taskTypeName, int index) {
+        return taskTypeName + TASK_TYPE_DELIM + index;
+    }
+
+    /**
+     * Returns the task type from the provided task id.
+     *
+     * For example: "node-0__UUID" => "node"
+     * @throws IllegalArgumentException if the provided value doesn't match the expected format
+     */
+    public static String toTaskType(TaskID taskId) throws IllegalArgumentException {
+        Matcher matcher = TASK_ID_REGEX_FORMAT.matcher(taskId.getValue());
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(String.format(
+                    "TaskID value doesn't match expected format %s: %s",
+                    TASK_ID_REGEX_FORMAT, taskId));
+        }
+        return matcher.group(1);
     }
 
     public static TaskID emptyTaskId() {
@@ -90,11 +124,15 @@ public class TaskUtils {
      * transient task.
      */
     public static TaskInfo setTransient(TaskInfo taskInfo) {
-        Labels labels = setTransient(taskInfo.getLabels());
+        Labels.Builder labelsBuilder =
+                removeLabel(taskInfo.getLabels(), MesosTask.TRANSIENT_FLAG_KEY).toBuilder();
+        labelsBuilder.addLabelsBuilder()
+                .setKey(MesosTask.TRANSIENT_FLAG_KEY)
+                .setValue("true");
 
         return TaskInfo.newBuilder(taskInfo)
                 .clearLabels()
-                .setLabels(labels)
+                .setLabels(labelsBuilder)
                 .build();
     }
 
@@ -103,11 +141,40 @@ public class TaskUtils {
      * a transient task.
      */
     public static TaskInfo clearTransient(TaskInfo taskInfo) {
-        TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
-        Labels clearedLabels = clearTransient(taskBuilder.getLabels());
-        taskBuilder.clearLabels();
-        taskBuilder.setLabels(clearedLabels);
-        return taskBuilder.build();
+        return TaskInfo.newBuilder(taskInfo)
+                .clearLabels()
+                .setLabels(removeLabel(taskInfo.getLabels(), MesosTask.TRANSIENT_FLAG_KEY))
+                .build();
+    }
+
+    /**
+     * Stores the {@link Attribute}s from the provided {@link Offer} into the {@link TaskInfo} as a
+     * {@link Label}. Any existing stored attributes are overwritten.
+     */
+    public static TaskInfo.Builder setOfferAttributes(TaskInfo.Builder taskBuilder, Offer launchOffer) {
+        String joinedAttributes = AttributeStringUtils.toString(launchOffer.getAttributesList());
+
+        Labels.Builder labelsBuilder =
+                removeLabel(taskBuilder.getLabels(), OFFER_ATTRIBUTES_KEY).toBuilder();
+        labelsBuilder.addLabelsBuilder()
+                .setKey(OFFER_ATTRIBUTES_KEY)
+                .setValue(joinedAttributes);
+
+        return taskBuilder
+                .clearLabels()
+                .setLabels(labelsBuilder);
+    }
+
+    /**
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * embedded in the provided {@link TaskInfo}.
+     */
+    public static List<String> getOfferAttributeStrings(TaskInfo taskInfo) {
+        String joinedAttributes = findLabelValue(taskInfo.getLabels(), OFFER_ATTRIBUTES_KEY);
+        if (joinedAttributes == null) {
+            return new ArrayList<>();
+        }
+        return AttributeStringUtils.toStringList(joinedAttributes);
     }
 
     /**
@@ -166,11 +233,11 @@ public class TaskUtils {
                 .build();
     }
 
-    private static Labels clearTransient(Labels labels) {
+    private static Labels removeLabel(Labels labels, String key) {
         Labels.Builder labelBuilder = Labels.newBuilder();
 
         for (Label label : labels.getLabelsList()) {
-            if (!label.getKey().equals(MesosTask.TRANSIENT_FLAG_KEY)) {
+            if (!label.getKey().equals(key)) {
                 labelBuilder.addLabels(label);
             }
         }
@@ -178,16 +245,13 @@ public class TaskUtils {
         return labelBuilder.build();
     }
 
-    private static Labels setTransient(Labels labels) {
-        labels = clearTransient(labels);
-
-        Labels.Builder labelBuilder = Labels.newBuilder(labels);
-        labelBuilder.addLabelsBuilder()
-                .setKey(MesosTask.TRANSIENT_FLAG_KEY)
-                .setValue("true")
-                .build();
-
-        return labelBuilder.build();
+    private static String findLabelValue(Labels labels, String key) {
+        for (Label label : labels.getLabelsList()) {
+            if (label.getKey().equals(key)) {
+                return label.getValue();
+            }
+        }
+        return null;
     }
 
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {

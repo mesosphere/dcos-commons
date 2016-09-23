@@ -2,6 +2,7 @@ package org.apache.mesos.specification;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
 
     public static DefaultTaskSpecification create(TaskTypeSpecification taskTypeSpecification, int index) {
         return new DefaultTaskSpecification(
-                taskTypeSpecification.getName() + "-" + index,
+                TaskUtils.toTaskName(taskTypeSpecification.getName(), index),
                 taskTypeSpecification.getCommand(index),
                 taskTypeSpecification.getResources(),
                 taskTypeSpecification.getVolumes());
