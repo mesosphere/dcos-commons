@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.scheduler.DefaultObservable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
  * framework. The Block will be complete when it receives status for all
  * known tasks and then performs implicit reconciliation.
  */
-public class ReconciliationBlock implements Block {
+public class ReconciliationBlock extends DefaultObservable implements Block {
 
     private static final Logger logger = LoggerFactory.getLogger(ReconciliationBlock.class);
 

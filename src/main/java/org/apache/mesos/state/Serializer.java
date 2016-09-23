@@ -3,7 +3,7 @@ package org.apache.mesos.state;
 import java.io.IOException;
 
 /**
- * Interfaace for serializing and deserializing objects to byte arrays using some serialization
+ * Interface for serializing and deserializing objects to byte arrays using some serialization
  * format.
  */
 public interface Serializer {
