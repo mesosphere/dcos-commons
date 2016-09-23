@@ -1,5 +1,6 @@
 package org.apache.mesos.state.api;
 
+import com.google.inject.Inject;
 import com.googlecode.protobuf.format.JsonFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.state.StateStore;
@@ -44,6 +45,7 @@ public class StateResource {
      * @param propertyDeserializer a deserializer which can turn any Property in the provided
      *                             {@code stateStore} to valid JSON
      */
+    @Inject
     public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
         this.stateStore = stateStore;
         this.propertyDeserializer = propertyDeserializer;
