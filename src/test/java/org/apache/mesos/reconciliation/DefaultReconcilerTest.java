@@ -47,12 +47,12 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testStartEmpty() throws Exception {
-        assertFalse(reconciler.isReconciled());
+        assertTrue(reconciler.isReconciled());
 
         when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>());
         reconciler.start();
 
-        assertFalse(reconciler.isReconciled()); // implicit reconciliation must still occur
+        assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
         reconciler.reconcile(mockDriver);
@@ -63,7 +63,7 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testStart() throws Exception {
-        assertFalse(reconciler.isReconciled());
+        assertTrue(reconciler.isReconciled());
         when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(getTaskStatuses())));
 
         reconciler.start();
@@ -74,7 +74,7 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testStartMultipleTimes() throws Exception {
-        assertFalse(reconciler.isReconciled());
+        assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
         when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(TASK_STATUS_1)));
@@ -116,7 +116,7 @@ public class DefaultReconcilerTest {
 
         reconciler.update(TASK_STATUS_2);
 
-        assertFalse(reconciler.isReconciled()); // still need implicit reconciliation
+        assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
         reconciler.reconcile(mockDriver); // trigger implicit reconciliation
@@ -169,7 +169,7 @@ public class DefaultReconcilerTest {
 
         reconciler.update(TASK_STATUS_1);
 
-        assertFalse(reconciler.isReconciled()); // still need implicit reconciliation
+        assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
         reconciler.reconcile(mockDriver); // third call to reconcileTasks: 0 values (implicit)

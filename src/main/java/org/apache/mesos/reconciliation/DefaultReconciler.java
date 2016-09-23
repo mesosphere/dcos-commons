@@ -149,8 +149,7 @@ public class DefaultReconciler implements Reconciler {
 
     @Override
     public boolean isReconciled() {
-        // note: it's assumed that this flag implies unreconciled.isEmpty()=true
-        return isImplicitReconciliationTriggered.get();
+        return unreconciled.isEmpty();
     }
 
     /**
