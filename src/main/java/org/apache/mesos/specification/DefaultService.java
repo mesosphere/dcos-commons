@@ -32,7 +32,7 @@ public class DefaultService implements Service {
     private ServiceSpecification serviceSpecification;
 
     /**
-     * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the
+     * Creates a new instance which when registered will start a Jetty HTTP API service on the
      * provided port.
      *
      * @param apiPort the port to run the HTTP API service against, typically the 'PORT0' envvar
