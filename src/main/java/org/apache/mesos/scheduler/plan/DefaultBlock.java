@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.scheduler.DefaultObservable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +12,7 @@ import java.util.*;
 /**
  * This class is a default implementation of the Block interface.
  */
-public class DefaultBlock implements Block {
+public class DefaultBlock extends DefaultObservable implements Block {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String name;
     private final Optional<OfferRequirement> offerRequirementOptional;
@@ -49,6 +50,10 @@ public class DefaultBlock implements Block {
         Status oldStatus = status;
         status = newStatus;
         logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+
+        if (!oldStatus.equals(newStatus)) {
+            notifyObservers();
+        }
     }
 
     @Override

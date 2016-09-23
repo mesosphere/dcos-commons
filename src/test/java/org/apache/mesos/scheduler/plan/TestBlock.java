@@ -2,6 +2,7 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.scheduler.DefaultObservable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -10,7 +11,7 @@ import java.util.UUID;
 /**
  * This class is an implementation of the Block interface for test purposes.
  */
-public class TestBlock implements Block {
+public class TestBlock extends DefaultObservable implements Block {
 
     private final UUID id = UUID.randomUUID();
     private Status status = Status.PENDING;
