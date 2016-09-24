@@ -1,6 +1,7 @@
 package org.apache.mesos.state;
 
 import org.apache.mesos.scheduler.DefaultObservable;
+import org.apache.mesos.scheduler.Observable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
