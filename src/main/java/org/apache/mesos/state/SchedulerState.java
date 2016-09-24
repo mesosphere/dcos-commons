@@ -11,7 +11,7 @@ import java.io.IOException;
  *
  * {@link SchedulerState} is an {@link Observable}.  It notifies its observers when tasks are modified.
  */
-public class SchedulerState extends DefaultObservable{
+public class SchedulerState extends DefaultObservable {
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
     private static final String SUPPRESSED_KEY = "suppressed";
 
