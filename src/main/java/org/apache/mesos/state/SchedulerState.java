@@ -1,5 +1,6 @@
 package org.apache.mesos.state;
 
+import org.apache.mesos.scheduler.DefaultObservable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,8 +8,10 @@ import java.io.IOException;
 
 /**
  * Read/write interface for the state of a Scheduler.
+ *
+ * {@link SchedulerState} is an {@link Observable}.  It notifies its observers when tasks are modified.
  */
-public class SchedulerState {
+public class SchedulerState extends DefaultObservable{
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
     private static final String SUPPRESSED_KEY = "suppressed";
 
