@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.scheduler.recovery.FailureUtils;
 
 import java.time.Duration;
 import java.util.Date;
@@ -20,7 +21,7 @@ import java.util.HashMap;
  * on the fact that the clock proceeds at 1 second per second, rather than on the clocks being synchronized across
  * machines.
  */
-public class TimedFailureMonitor implements FailureMonitor {
+public class TimedFailureMonitor extends DefaultFailureMonitor {
     private static final Log log = LogFactory.getLog(TimedFailureMonitor.class);
     // This map stores the time when we first noticed the failure
     private final HashMap<TaskID, Date> firstFailureDetected;
@@ -50,6 +51,10 @@ public class TimedFailureMonitor implements FailureMonitor {
      */
     @Override
     public boolean hasFailed(TaskInfo terminatedTask) {
+        if (super.hasFailed(terminatedTask)) {
+            return true;
+        }
+
         Date taskLaunchedTime;
         synchronized (firstFailureDetected) {
             if (!firstFailureDetected.containsKey(terminatedTask.getTaskId())) {
@@ -62,6 +67,11 @@ public class TimedFailureMonitor implements FailureMonitor {
         Date now = new Date();
         log.info("Looking at " + terminatedTask.getName() + " launchHappened at " + taskLaunchedTime + ", expires at "
                 + taskExpiredTime + " which is " + now.after(taskExpiredTime));
-        return now.after(taskExpiredTime);
+
+        if (now.after(taskExpiredTime)) {
+            FailureUtils.markFailed(terminatedTask);
+        }
+
+        return super.hasFailed(terminatedTask);
     }
 }

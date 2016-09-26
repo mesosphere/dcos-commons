@@ -19,10 +19,8 @@ public class DefaultTaskKiller implements TaskKiller {
     private final StateStore stateStore;
     private final TaskFailureListener taskFailureListener;
 
-    private final Object restartLock = new Object();
-    private List<Protos.TaskInfo> tasksToRestart = new ArrayList<>();
-    private final Object rescheduleLock = new Object();
-    private List<Protos.TaskInfo> tasksToReschedule = new ArrayList<>();
+    private final Object killLock = new Object();
+    private List<Protos.TaskInfo> tasksToKill = new ArrayList<>();
 
     public DefaultTaskKiller(StateStore stateStore, TaskFailureListener taskFailureListener) {
         this.stateStore = stateStore;
@@ -49,50 +47,27 @@ public class DefaultTaskKiller implements TaskKiller {
             return;
         }
 
-        if (!taskState.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
-            logger.warn(String.format("No need to kill: '%s', task state: '%s'", taskName, taskState));
-            return;
+        if (destructive) {
+            taskFailureListener.taskFailed(taskInfo.getTaskId());
         }
 
-        if (destructive) {
-            synchronized (rescheduleLock) {
-                logger.info("Scheduling task to be killed destructively: " + taskInfo);
-                tasksToReschedule.add(taskInfo);
-            }
-        } else {
-            synchronized (restartLock) {
-                logger.info("Scheduling task to be killed with intention to restart: " + taskInfo);
-                tasksToRestart.add(taskInfo);
-            }
+        logger.info(String.format(
+                "Scheduling task to be killed %s: %s",
+                destructive ? "destructively" : "non-destructively",
+                taskInfo));
+
+        synchronized (killLock) {
+            tasksToKill.add(taskInfo);
         }
     }
 
     @Override
     public void process(SchedulerDriver driver) {
-        processTasksToRestart(driver);
-        processTasksToReschedule(driver);
-    }
-
-    private void processTasksToRestart(SchedulerDriver driver) {
-        synchronized (restartLock) {
-            for (Protos.TaskInfo taskInfo : tasksToRestart) {
-                logger.info("Restarting task: " + taskInfo.getTaskId().getValue());
-                driver.killTask(taskInfo.getTaskId());
-            }
-
-            tasksToRestart = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : tasksToKill) {
+            logger.info("Killing task: " + taskInfo.getTaskId().getValue());
+            driver.killTask(taskInfo.getTaskId());
         }
-    }
 
-    private void processTasksToReschedule(SchedulerDriver driver) {
-        synchronized (rescheduleLock) {
-            for (Protos.TaskInfo taskInfo : tasksToReschedule) {
-                logger.info("Rescheduling task: " + taskInfo.getTaskId().getValue());
-                taskFailureListener.taskFailed(taskInfo.getTaskId());
-                driver.killTask(taskInfo.getTaskId());
-            }
-
-            tasksToReschedule = new ArrayList<>();
-        }
+        tasksToKill = new ArrayList<>();
     }
 }
