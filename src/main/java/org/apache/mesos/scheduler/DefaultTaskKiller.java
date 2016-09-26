@@ -7,8 +7,6 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -20,11 +18,12 @@ public class DefaultTaskKiller implements TaskKiller {
     private final TaskFailureListener taskFailureListener;
 
     private final Object killLock = new Object();
-    private List<Protos.TaskInfo> tasksToKill = new ArrayList<>();
+    private final SchedulerDriver driver;
 
-    public DefaultTaskKiller(StateStore stateStore, TaskFailureListener taskFailureListener) {
+    public DefaultTaskKiller(StateStore stateStore, TaskFailureListener taskFailureListener, SchedulerDriver driver) {
         this.stateStore = stateStore;
         this.taskFailureListener = taskFailureListener;
+        this.driver = driver;
     }
 
     @Override
@@ -56,18 +55,6 @@ public class DefaultTaskKiller implements TaskKiller {
                 destructive ? "destructively" : "non-destructively",
                 taskInfo));
 
-        synchronized (killLock) {
-            tasksToKill.add(taskInfo);
-        }
-    }
-
-    @Override
-    public void process(SchedulerDriver driver) {
-        for (Protos.TaskInfo taskInfo : tasksToKill) {
-            logger.info("Killing task: " + taskInfo.getTaskId().getValue());
-            driver.killTask(taskInfo.getTaskId());
-        }
-
-        tasksToKill = new ArrayList<>();
+        driver.killTask(taskInfo.getTaskId());
     }
 }
