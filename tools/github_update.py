@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# Env Vars
+#   GITHUB_TOKEN: github auth token
+
 import base64
 import json
 import logging
