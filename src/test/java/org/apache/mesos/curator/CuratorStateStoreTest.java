@@ -489,6 +489,20 @@ public class CuratorStateStoreTest {
         store.storeProperty(GOOD_PROPERTY_KEY, null);
     }
 
+    @Test
+    public void testTaskLostIsTerminated() {
+        Protos.TaskInfo testTask = createTask(TASK_NAME);
+        store.storeTasks(Arrays.asList(testTask));
+        assertEquals(0, store.fetchTerminatedTasks().size());
+        store.storeStatus(
+                Protos.TaskStatus.newBuilder()
+                        .setTaskId(testTask.getTaskId())
+                        .setState(Protos.TaskState.TASK_LOST)
+                        .build());
+        assertEquals(1, store.fetchTerminatedTasks().size());
+        assertEquals(testTask, store.fetchTerminatedTasks().iterator().next());
+    }
+
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {
         return TASK_STATUS.toBuilder().setTaskId(taskId).build();
     }
