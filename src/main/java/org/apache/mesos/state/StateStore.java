@@ -115,7 +115,7 @@ public interface StateStore extends TaskStatusProvider {
      * @return Terminated TaskInfos
      * @throws StateStoreException
      */
-    default Collection<TaskInfo> fetchTerminatedTasks() throws StateStoreException {
+    default Collection<TaskInfo> fetchTasksNeedingRecovery() throws StateStoreException {
         Collection<TaskInfo> allInfos = fetchTasks();
         Collection<TaskStatus> allStatuses = fetchStatuses();
         Map<Protos.TaskID, TaskStatus> statusMap = new HashMap<>();

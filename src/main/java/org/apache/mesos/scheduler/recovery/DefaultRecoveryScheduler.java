@@ -131,11 +131,11 @@ public class DefaultRecoveryScheduler {
 
         try {
             if (!block.isPresent()) {
-                return stateStore.fetchTerminatedTasks();
+                return stateStore.fetchTasksNeedingRecovery();
             }
 
             String blockName = block.get().getName();
-            for (TaskInfo taskInfo : stateStore.fetchTerminatedTasks()) {
+            for (TaskInfo taskInfo : stateStore.fetchTasksNeedingRecovery()) {
                 if (!taskInfo.getName().equals(blockName)) {
                     filteredTerminatedTasks.add(taskInfo);
                 }
@@ -159,7 +159,7 @@ public class DefaultRecoveryScheduler {
                 .filter(it -> !failureMonitor.hasFailed(it))
                 .collect(Collectors.toList());
 
-        for (TaskInfo terminatedTask : stateStore.fetchTerminatedTasks()) {
+        for (TaskInfo terminatedTask : stateStore.fetchTasksNeedingRecovery()) {
             log.info("Found stopped task: {}", TextFormat.shortDebugString(terminatedTask));
             if (failureMonitor.hasFailed(terminatedTask)) {
                 log.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(terminatedTask));

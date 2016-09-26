@@ -490,17 +490,17 @@ public class CuratorStateStoreTest {
     }
 
     @Test
-    public void testTaskLostIsTerminated() {
+    public void testTaskLostNeedsRecovery() {
         Protos.TaskInfo testTask = createTask(TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
-        assertEquals(0, store.fetchTerminatedTasks().size());
+        assertEquals(0, store.fetchTasksNeedingRecovery().size());
         store.storeStatus(
                 Protos.TaskStatus.newBuilder()
                         .setTaskId(testTask.getTaskId())
                         .setState(Protos.TaskState.TASK_LOST)
                         .build());
-        assertEquals(1, store.fetchTerminatedTasks().size());
-        assertEquals(testTask, store.fetchTerminatedTasks().iterator().next());
+        assertEquals(1, store.fetchTasksNeedingRecovery().size());
+        assertEquals(testTask, store.fetchTasksNeedingRecovery().iterator().next());
     }
 
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {
