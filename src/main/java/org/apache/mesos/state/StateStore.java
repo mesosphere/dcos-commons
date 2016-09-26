@@ -127,7 +127,7 @@ public interface StateStore extends TaskStatusProvider {
             if (!statusMap.containsKey(info.getTaskId())) {
                 continue;
             }
-            if (TaskUtils.isTerminated(statusMap.get(info.getTaskId()))) {
+            if (TaskUtils.needsRecovery(statusMap.get(info.getTaskId()))) {
                 results.add(info);
             }
         }
