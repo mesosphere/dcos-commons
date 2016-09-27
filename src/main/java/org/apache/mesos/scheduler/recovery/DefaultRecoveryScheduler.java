@@ -131,11 +131,11 @@ public class DefaultRecoveryScheduler {
 
         try {
             if (!block.isPresent()) {
-                return stateStore.fetchTerminatedTasks();
+                return stateStore.fetchTasksNeedingRecovery();
             }
 
             String blockName = block.get().getName();
-            for (TaskInfo taskInfo : stateStore.fetchTerminatedTasks()) {
+            for (TaskInfo taskInfo : stateStore.fetchTasksNeedingRecovery()) {
                 if (!taskInfo.getName().equals(blockName)) {
                     filteredTerminatedTasks.add(taskInfo);
                 }

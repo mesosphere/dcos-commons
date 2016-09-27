@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.scheduler.ChainedObserver;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,7 +11,7 @@ import java.util.List;
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
  * optionally contain a List of errors associated with the phase.
  */
-public class DefaultPlan implements Plan {
+public class DefaultPlan extends ChainedObserver implements Plan {
 
     private final List<? extends Phase> phases;
     private final List<String> errors;
@@ -48,6 +49,10 @@ public class DefaultPlan implements Plan {
                         final List<String> errors) {
         this.phases = phases;
         this.errors = errors;
+
+        for (Phase phase : phases) {
+            phase.subscribe(this);
+        }
     }
 
     /**

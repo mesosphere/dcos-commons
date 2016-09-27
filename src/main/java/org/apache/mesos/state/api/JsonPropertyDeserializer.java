@@ -4,7 +4,9 @@ import org.apache.mesos.state.StateStoreException;
 
 import java.nio.charset.Charset;
 
-/** Converts JSON byte arrays to JSON Strings */
+/**
+ * Implementation of {@link PropertyDeserializer} which converts UTF-8 JSON byte arrays to Strings.
+ */
 public class JsonPropertyDeserializer implements PropertyDeserializer {
     private static final Charset DEFAULT_CHAR_SET = Charset.forName("UTF-8");
     private final Charset charset;
