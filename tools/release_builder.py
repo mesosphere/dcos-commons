@@ -34,6 +34,7 @@ class UniverseReleaseBuilder(object):
                  min_dcos_release_version = os.environ.get('MIN_DCOS_RELEASE_VERSION', '1.7'),
                  http_release_server = os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
                  s3_release_bucket = os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
+                 release_docker_image = os.environ.get('RELEASE_DOCKER_IMAGE'),
                  release_dir_path = os.environ.get('RELEASE_DIR_PATH', '')): # default set below
         self._dry_run = os.environ.get('DRY_RUN', '')
         name_match = re.match('.+/stub-universe-(.+).zip$', stub_universe_url)
@@ -54,6 +55,7 @@ class UniverseReleaseBuilder(object):
             http_release_server, release_dir_path, self._pkg_version)
         self._release_artifact_s3_dir = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
+        self._release_docker_image = release_docker_image or None
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
@@ -61,9 +63,6 @@ class UniverseReleaseBuilder(object):
             raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
         encoded_tok = base64.encodestring(os.environ['GITHUB_TOKEN'].encode('utf-8'))
         self._github_token = encoded_tok.decode('utf-8').rstrip('\n')
-        if not 'AWS_ACCESS_KEY_ID' in os.environ or not 'AWS_SECRET_ACCESS_KEY' in os.environ:
-            raise Exception('AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are required: '
-                            + 'Credentials to prod AWS for uploading release artifacts')
 
 
     def _run_cmd(self, cmd, dry_run_return = 0):
@@ -120,6 +119,10 @@ class UniverseReleaseBuilder(object):
 
 
     def _update_package_get_artifact_source_urls(self, pkgdir):
+        '''Rewrites all artifact urls in pkgdir to
+        self.release_artifact_http_dir.  Returns the original urls.
+
+        '''
         # replace package.json:version (smart replace)
         path = os.path.join(pkgdir, 'package.json')
         packagingVersion = '3.0'
@@ -324,11 +327,47 @@ class UniverseReleaseBuilder(object):
         return conn.getresponse()
 
 
+    def _original_docker_image(self, pkgdir):
+        resource_filename = os.path.join(pkgdir, 'resource.json')
+        with open(resource_filename) as f:
+            resource_json = json.load(f)
+            try:
+                docker_dict = resource_json['assets']['container']['docker']
+                assert len(docker_dict) == 1
+                return docker_dict.values()[0]
+            except KeyError:
+                return None
+
+    def _copy_docker_image(self, pkgdir, orig_docker_image):
+        assert self._release_docker_image != None
+
+        self._run_cmd('docker pull {}'.format(
+            orig_docker_image))
+        self._run_cmd('docker tag {} {}'.format(
+            orig_docker_image,
+            self._release_docker_image))
+        self._run_cmd('docker push {}'.format(
+            self._release_docker_image))
+
+        resource_filename = os.path.join(pkgdir, 'resource.json')
+        with open(resource_filename) as f:
+            resource_json = json.load(f)
+            docker_dict = resource_json['assets']['container']['docker']
+            key = docker_dict.keys()[0]
+            docker_dict[key] = self._release_docker_image
+
+        with open(resource_filename, 'w') as f:
+            json.dump(resource_json, f, indent=4, sort_keys=True)
+
+
     def release_zip(self):
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         pkgdir = self._download_unpack_stub_universe(scratchdir)
         original_artifact_urls = self._update_package_get_artifact_source_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
+        orig_docker_image = self._original_docker_image(pkgdir)
+        if orig_docker_image:
+            self._copy_docker_image(pkgdir, orig_docker_image)
         (branch, commitmsg_path) = self._create_universe_branch(scratchdir, pkgdir)
         return self._create_universe_pr(branch, commitmsg_path)
 
