@@ -25,7 +25,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addAllResources(getNewResources(taskSpecification))
                 .build();
 
-        return new OfferRequirement(Arrays.asList(taskInfo));
+        return new OfferRequirement(
+                Arrays.asList(taskInfo),
+                Optional.empty(),
+                taskSpecification.getPlacement());
     }
 
     @Override
@@ -60,7 +63,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
 
-        return new OfferRequirement(Arrays.asList(taskBuilder.build()));
+        return new OfferRequirement(
+                Arrays.asList(taskBuilder.build()),
+                Optional.empty(),
+                taskSpecification.getPlacement());
     }
 
     private void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
