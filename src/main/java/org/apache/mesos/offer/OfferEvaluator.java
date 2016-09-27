@@ -10,6 +10,10 @@ import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.executor.ExecutorUtils;
+import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +29,21 @@ import java.util.*;
  * are ever returned.
  */
 public class OfferEvaluator {
+
     private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
 
-    public OfferEvaluator() { }
+    private final StateStore stateStore;
 
-    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers) {
+    public OfferEvaluator(StateStore stateStore) {
+        this.stateStore = stateStore;
+    }
+
+    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
+            throws StateStoreException {
+        Optional<PlacementRule> placementRule = getPlacementRule(offerRequirement, stateStore);
         for (Offer offer : offers) {
-            List<OfferRecommendation> recommendations = evaluate(offerRequirement, offer);
+            List<OfferRecommendation> recommendations =
+                    evaluateInternal(offerRequirement, offer, placementRule);
             if (recommendations != null && !recommendations.isEmpty()) {
                 return recommendations;
             }
@@ -39,32 +51,20 @@ public class OfferEvaluator {
         return Collections.emptyList();
     }
 
-    private boolean offerMeetsPlacementConstraints(OfferRequirement offerReq, Offer offer) {
-        if (offerReq.getAvoidAgents().contains(offer.getSlaveId())) {
-            return false;
-        }
-
-        if (offerReq.getColocateAgents().size() > 0 &&
-                !offerReq.getColocateAgents().contains(offer.getSlaveId())) {
-            return false;
-        }
-
-        return true;
+    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer)
+            throws StateStoreException {
+        return evaluateInternal(
+                offerRequirement, offer, getPlacementRule(offerRequirement, stateStore));
     }
 
-    private boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
-        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
-            if (execId.equals(executorID)) {
-                return true;
+    private List<OfferRecommendation> evaluateInternal(
+            OfferRequirement offerRequirement, Offer offer, Optional<PlacementRule> placementRule) {
+        if (placementRule.isPresent()) {
+            offer = placementRule.get().filter(offer);
+            if (offer.getResourcesCount() == 0) {
+                // Placement rule filtered all resources, short-circuit.
+                return Collections.emptyList();
             }
-        }
-
-        return false;
-    }
-
-    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer) {
-        if (!offerMeetsPlacementConstraints(offerRequirement, offer)) {
-            return Collections.emptyList();
         }
 
         MesosResourcePool pool = new MesosResourcePool(offer);
@@ -74,12 +74,14 @@ public class OfferEvaluator {
         List<OfferRecommendation> creates = new ArrayList<>();
         List<OfferRecommendation> launches = new ArrayList<>();
 
-        ExecutorRequirement execReq = offerRequirement.getExecutorRequirement();
+        Optional<ExecutorRequirement> execReq = offerRequirement.getExecutorRequirement();
         FulfilledRequirement fulfilledExecutorRequirement = null;
-        if (execReq != null) {
-            if (execReq.desiresResources() || execReq.getExecutorInfo().getExecutorId().getValue().isEmpty()) {
+        ExecutorInfo execInfo = null;
+        if (execReq.isPresent()) {
+            if (execReq.get().desiresResources() ||
+                    execReq.get().getExecutorInfo().getExecutorId().getValue().isEmpty()) {
                 fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
-                                execReq.getResourceRequirements(),
+                                execReq.get().getResourceRequirements(),
                                 offer,
                                 pool);
 
@@ -91,18 +93,15 @@ public class OfferEvaluator {
                 reserves.addAll(fulfilledExecutorRequirement.getReserveRecommendations());
                 creates.addAll(fulfilledExecutorRequirement.getCreateRecommendations());
             } else {
-                Protos.ExecutorID expectedExecutorId = execReq.getExecutorInfo().getExecutorId();
+                Protos.ExecutorID expectedExecutorId = execReq.get().getExecutorInfo().getExecutorId();
                 if (!hasExpectedExecutorId(offer, expectedExecutorId)) {
                     logger.info("Offer: '{}' does not contain the needed ExecutorID: '{}'",
                                     offer.getId().getValue(), expectedExecutorId.getValue());
                     return Collections.emptyList();
                 }
             }
-        }
 
-        ExecutorInfo execInfo = null;
-        if (execReq != null) {
-            execInfo = execReq.getExecutorInfo();
+            execInfo = execReq.get().getExecutorInfo();
             if (execInfo.getExecutorId().getValue().isEmpty()) {
                 execInfo = ExecutorInfo.newBuilder(execInfo)
                                 .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
@@ -129,7 +128,8 @@ public class OfferEvaluator {
                         taskReq,
                         fulfilledTaskRequirement,
                         execInfo,
-                        fulfilledExecutorRequirement)));
+                        fulfilledExecutorRequirement,
+                        offer)));
         }
 
         List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
@@ -266,6 +266,24 @@ public class OfferEvaluator {
         }
     }
 
+    private static Optional<PlacementRule> getPlacementRule(
+            OfferRequirement offerRequirement, StateStore stateStore)
+                    throws StateStoreException {
+        Optional<PlacementRuleGenerator> placementRuleGenerator =
+                offerRequirement.getPlacementRuleGenerator();
+        return placementRuleGenerator.isPresent()
+            ? Optional.of(placementRuleGenerator.get().generate(stateStore.fetchTasks()))
+            : Optional.empty();
+    }
+
+    private static boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
+        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
+            if (execId.equals(executorID)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private static boolean expectedValueChanged(ResourceRequirement resReq, MesosResource mesRes) {
         return !ValueUtils.equal(resReq.getValue(), mesRes.getValue());
@@ -328,23 +346,21 @@ public class OfferEvaluator {
         }
     }
 
-    private TaskInfo getFulfilledTaskInfo(
+    private static TaskInfo getFulfilledTaskInfo(
             TaskRequirement taskReq,
             FulfilledRequirement fulfilledTaskRequirement,
             ExecutorInfo execInfo,
-            FulfilledRequirement fulfilledExecutorRequirement) {
+            FulfilledRequirement fulfilledExecutorRequirement,
+            Offer launchOffer) {
 
         TaskInfo taskInfo = taskReq.getTaskInfo();
         List<Resource> fulfilledTaskResources = fulfilledTaskRequirement.getFulfilledResources();
-        TaskInfo.Builder taskBuilder =
-            TaskInfo.newBuilder(taskInfo)
-            .clearResources()
-            .addAllResources(fulfilledTaskResources);
+        TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo)
+                .clearResources()
+                .addAllResources(fulfilledTaskResources);
 
         if (execInfo != null) {
-            ExecutorInfo.Builder execBuilder =
-                            ExecutorInfo.newBuilder(execInfo)
-                                            .clearResources();
+            ExecutorInfo.Builder execBuilder = ExecutorInfo.newBuilder(execInfo).clearResources();
 
             if (fulfilledExecutorRequirement != null) {
                 List<Resource> fulfilledExecutorResources = fulfilledExecutorRequirement.getFulfilledResources();
@@ -355,6 +371,9 @@ public class OfferEvaluator {
 
             taskBuilder.setExecutor(execBuilder.build());
         }
+
+        // Store the Attributes from the Offer in the TaskInfo for later access by constraint filters:
+        taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
 
         return taskBuilder.build();
     }

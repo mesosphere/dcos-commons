@@ -4,15 +4,29 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.executor.ExecutorUtils;
+import org.apache.mesos.offer.constrain.AgentRule;
+import org.apache.mesos.offer.constrain.AndRule;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.*;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
 public class OfferEvaluatorTest {
 
-    private static final OfferEvaluator evaluator = new OfferEvaluator();
+    @Mock private StateStore mockStateStore;
+    private OfferEvaluator evaluator;
+
+    @Before
+    public void beforeAll() {
+        MockitoAnnotations.initMocks(this);
+        evaluator = new OfferEvaluator(mockStateStore);
+    }
 
     @Test
     public void testReserveTaskExecutorInsufficient() throws InvalidRequirementException {
@@ -23,9 +37,7 @@ public class OfferEvaluatorTest {
 
         OfferRequirement offerReq = new OfferRequirement(
                         Arrays.asList(TaskTestUtils.getTaskInfo(desiredTaskCpu)),
-                        Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorCpu)),
-                        null,
-                        null);
+                        Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorCpu)));
         List<Offer> offers = Arrays.asList(OfferTestUtils.getOffer(insufficientOfferedResource));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(offerReq, offers);
@@ -453,6 +465,35 @@ public class OfferEvaluatorTest {
     }
 
     @Test
+    public void testLaunchAttributesEmbedded() throws InvalidRequirementException {
+        String resourceId = UUID.randomUUID().toString();
+        Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        Offer.Builder offerBuilder = OfferTestUtils.getOffer(desiredResource).toBuilder();
+        Attribute.Builder attrBuilder =
+                offerBuilder.addAttributesBuilder().setName("rack").setType(Value.Type.TEXT);
+        attrBuilder.getTextBuilder().setValue("foo");
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("diskspeed").setType(Value.Type.SCALAR);
+        attrBuilder.getScalarBuilder().setValue(1234.5678);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                        OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+                        Arrays.asList(offerBuilder.build()));
+        Assert.assertEquals(1, recommendations.size());
+
+        // Validate LAUNCH Operation
+        Operation launchOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+
+        // Validate that TaskInfo has embedded the Attributes from the selected offer:
+        TaskInfo launchTask = launchOperation.getLaunch().getTaskInfosList().get(0);
+        Assert.assertEquals(
+                Arrays.asList("rack:foo", "diskspeed:1234.568"),
+                TaskUtils.getOfferAttributeStrings(launchTask));
+        Resource launchResource = launchTask.getResourcesList().get(0);
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
     public void testReserveLaunchExpectedScalar() throws InvalidRequirementException {
         String resourceId = UUID.randomUUID().toString();
         Resource desiredResource = ResourceTestUtils.getExpectedScalar("cpus", 2.0, resourceId);
@@ -548,12 +589,12 @@ public class OfferEvaluatorTest {
     }
 
     @Test
-    public void testAvoidAgents() throws Exception{
+    public void testAvoidAgents() throws Exception {
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
         Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(
+                        getOfferRequirement(
                                         desiredCpu,
                                         Arrays.asList(TestConstants.agentId.getValue()),
                                         Collections.emptyList()),
@@ -562,7 +603,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(0, recommendations.size());
 
         recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(
+                        getOfferRequirement(
                                         desiredCpu,
                                         Arrays.asList("some-random-agent"),
                                         Collections.emptyList()),
@@ -572,12 +613,12 @@ public class OfferEvaluatorTest {
     }
 
     @Test
-    public void testCollocateAgents() throws Exception{
+    public void testColocateAgents() throws Exception {
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
         Resource offeredCpu = ResourceUtils.getUnreservedScalar("cpus", 2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(
+                        getOfferRequirement(
                                         desiredCpu,
                                         Collections.emptyList(),
                                         Arrays.asList("some-random-agent")),
@@ -586,7 +627,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(0, recommendations.size());
 
         recommendations = evaluator.evaluate(
-                        OfferRequirementTestUtils.getOfferRequirement(
+                        getOfferRequirement(
                                         desiredCpu,
                                         Collections.emptyList(),
                                         Arrays.asList(TestConstants.agentId.getValue())),
@@ -721,4 +762,31 @@ public class OfferEvaluatorTest {
     private static Label getFirstLabel(Resource resource) {
         return resource.getReservation().getLabels().getLabels(0);
     }
+
+    private static OfferRequirement getOfferRequirement(
+            Protos.Resource resource, List<String> avoidAgents, List<String> colocateAgents)
+                    throws InvalidRequirementException {
+        Optional<PlacementRuleGenerator> placement;
+        if (!avoidAgents.isEmpty()) {
+            if (!colocateAgents.isEmpty()) {
+                // avoid and colocate enforcement
+                placement = Optional.of(new AndRule.Generator(
+                        new AgentRule.AvoidAgentsGenerator(avoidAgents),
+                        new AgentRule.ColocateAgentsGenerator(colocateAgents)));
+            } else {
+                // avoid enforcement only
+                placement = Optional.of(new AgentRule.AvoidAgentsGenerator(avoidAgents));
+            }
+        } else if (!colocateAgents.isEmpty()) {
+            // colocate enforcement only
+            placement = Optional.of(new AgentRule.ColocateAgentsGenerator(colocateAgents));
+        } else {
+            // no colocate/avoid enforcement
+            placement = Optional.empty();
+        }
+        return new OfferRequirement(
+                Arrays.asList(TaskTestUtils.getTaskInfo(resource)),
+                Optional.empty(),
+                placement);
+  }
 }

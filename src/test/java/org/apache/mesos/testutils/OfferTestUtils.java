@@ -1,6 +1,9 @@
 package org.apache.mesos.testutils;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.Value;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +21,7 @@ public class OfferTestUtils {
     }
 
     public static Protos.Offer getOffer(List<Protos.Resource> resources) {
-        return getBuilder().addAllResources(resources).build();
+        return getEmptyOfferBuilder().addAllResources(resources).build();
     }
 
     public static List<Protos.Offer> getOffers(Protos.Resource resource) {
@@ -26,7 +29,7 @@ public class OfferTestUtils {
     }
 
     public static Protos.Offer getOffer(Protos.ExecutorID executorId, List<Protos.Resource> resources) {
-        Protos.Offer.Builder builder = getBuilder();
+        Protos.Offer.Builder builder = getEmptyOfferBuilder();
         builder.addAllResources(resources);
 
         if (executorId != null) {
@@ -36,11 +39,31 @@ public class OfferTestUtils {
         return builder.build();
     }
 
-    private static Protos.Offer.Builder getBuilder() {
+    /**
+     * Minimum to keep required field errors away.
+     */
+    public static Protos.Offer.Builder getEmptyOfferBuilder() {
         return Protos.Offer.newBuilder()
                 .setId(TestConstants.offerId)
                 .setFrameworkId(TestConstants.frameworkId)
                 .setSlaveId(TestConstants.agentId)
                 .setHostname(TestConstants.hostname);
+    }
+
+    /**
+     * Minimum to keep required field errors away.
+     */
+    public static void addResource(Offer.Builder o, String name, String role) {
+        Resource.Builder b = o.addResourcesBuilder().setType(Value.Type.RANGES).setName(name);
+        if (role != null) {
+            b.setRole(role);
+        }
+    }
+
+    /**
+     * Minimum to keep required field errors away.
+     */
+    public static void addResource(Offer.Builder o, String name) {
+        addResource(o, name, null);
     }
 }
