@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.Plan;
@@ -15,6 +16,8 @@ import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
 import org.junit.*;
+import org.junit.rules.DisableOnDebug;
+import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
@@ -24,6 +27,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
@@ -38,7 +42,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule public Timeout globalTimeout= new Timeout(10, TimeUnit.SECONDS);
+    @Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     private static final String SERVICE_NAME = "test-service";
@@ -372,6 +376,62 @@ public class DefaultSchedulerTest {
                 Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING)));
     }
 
+    @Test
+    public void testOfferAcceptedOnce() throws Exception {
+        // Get first Block associated with Task A-0
+        Plan plan = defaultScheduler.getPlan();
+        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Assert.assertTrue(blockTaskA0.isPending());
+
+        // Offer sufficient Resource and wait for its acceptance
+        UUID offerId1 = UUID.randomUUID();
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA(offerId1)));
+        ArgumentCaptor<Collection> operationsCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
+            (Collection<Protos.OfferID>) Matchers.argThat(contains(getOfferId(offerId1))),
+            operationsCaptor.capture(),
+            any());
+
+        Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
+
+        // Sent TASK_RUNNING status
+        Protos.TaskID launchedTaskId = getTaskId(operations);
+        Protos.TaskStatus runningStatus = getTaskStatus(launchedTaskId, Protos.TaskState.TASK_RUNNING);
+        defaultScheduler.statusUpdate(mockSchedulerDriver, runningStatus);
+
+        // Wait for the Block to become Complete
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskA0).isComplete(), equalTo(true));
+        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+
+        // Sent TASK_KILLED status
+        runningStatus = getTaskStatus(launchedTaskId, Protos.TaskState.TASK_KILLED);
+        defaultScheduler.statusUpdate(mockSchedulerDriver, runningStatus);
+
+        reset(mockSchedulerDriver);
+
+        // Make an offer sufficient to recover Task A-0 and launch Task B-0,
+        // and also have some unused reserved resources for cleaning
+        Protos.Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
+        cpus = ResourceUtils.setResourceId(cpus, UUID.randomUUID().toString());
+        Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
+        mem = ResourceUtils.setResourceId(mem, UUID.randomUUID().toString());
+
+        UUID offerId2 = UUID.randomUUID();
+        Protos.Offer offer = Protos.Offer.newBuilder(getSufficientOfferForTaskB(offerId2))
+                .addAllResources(operations.stream()
+                        .filter(Protos.Offer.Operation::hasReserve)
+                        .flatMap(operation -> operation.getReserve().getResourcesList().stream())
+                        .collect(Collectors.toList()))
+                .addResources(cpus)
+                .addResources(mem)
+                .build();
+
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
+        defaultScheduler.awaitTermination();
+
+        // Verify scheduler accepted resources only once
+        verify(mockSchedulerDriver, times(1)).acceptOffers(any(), any(), any());
+    }
 
     private int countOperationType(
             Protos.Offer.Operation.Type operationType,
