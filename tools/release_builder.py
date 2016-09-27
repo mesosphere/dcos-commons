@@ -55,7 +55,7 @@ class UniverseReleaseBuilder(object):
             http_release_server, release_dir_path, self._pkg_version)
         self._release_artifact_s3_dir = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
-        self._release_docker_image = release_docker_image
+        self._release_docker_image = release_docker_image or None
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
