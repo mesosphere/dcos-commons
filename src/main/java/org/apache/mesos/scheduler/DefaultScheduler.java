@@ -86,19 +86,19 @@ public class DefaultScheduler implements Scheduler {
         return plan;
     }
 
-    private void initialize() throws InterruptedException {
+    private void initialize(SchedulerDriver driver) throws InterruptedException {
         logger.info("Initializing.");
-        initializeGlobals();
+        initializeGlobals(driver);
         initializeRecoveryScheduler();
         initializeDeploymentPlan();
         initializeResources();
     }
 
-    private void initializeGlobals() {
+    private void initializeGlobals(SchedulerDriver driver) {
         logger.info("Initializing globals");
         stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
+        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
     }
@@ -208,7 +208,7 @@ public class DefaultScheduler implements Scheduler {
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         logger.info("Registered framework with frameworkId: " + frameworkId.getValue());
         try {
-            initialize();
+            initialize(driver);
         } catch (InterruptedException e) {
             logger.error("Initialization failed with exception: ", e);
             hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -284,12 +284,6 @@ public class DefaultScheduler implements Scheduler {
                 }
 
                 declineOffers(driver, acceptedOffers, offers);
-
-                // Kill tasks (for configuration update, or user requested Task restart or replace):
-                // It is the normal state of affairs, that in order to update the configuration of a Task it must be
-                // restarted.  In order to drive the restart process, it is necessary to give some component, the
-                // TaskKiller, an opportunity to kill Tasks so that they may be redeployed with a new configuration.
-                taskKiller.process(driver);
             }
         });
     }

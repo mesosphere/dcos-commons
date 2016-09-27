@@ -1,7 +1,5 @@
 package org.apache.mesos.scheduler;
 
-import org.apache.mesos.SchedulerDriver;
-
 /**
  * This interface should be implemented to allow components to request the killing of Mesos Tasks.  This is a normal
  * part of restarting a Task, which is a normal part of updating the Configuration of a Task.  This is also useful for
@@ -18,11 +16,4 @@ public interface TaskKiller {
      *                    anticipates a future restart.
      */
     void killTask(String taskName, boolean destructive);
-
-
-    /**
-     * This method is called to provide a Scheduler driver so previously requested Task kills may be processed.
-     * @param driver The SchedulerDriver provided by Mesos.
-     */
-    void process(SchedulerDriver driver);
 }

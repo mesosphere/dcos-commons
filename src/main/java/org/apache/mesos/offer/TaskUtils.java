@@ -99,16 +99,36 @@ public class TaskUtils {
     }
 
     /**
-     * Returns whether the provided {@link TaskStatus} shows that the task is in a terminated state.
+     * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
      */
-    public static boolean isTerminated(TaskStatus taskStatus) {
+    public static boolean needsRecovery(TaskStatus taskStatus) {
+        switch (taskStatus.getState()) {
+            case TASK_FINISHED:
+            case TASK_FAILED:
+            case TASK_KILLED:
+            case TASK_ERROR:
+            case TASK_LOST:
+                return true;
+            case TASK_KILLING:
+            case TASK_RUNNING:
+            case TASK_STAGING:
+            case TASK_STARTING:
+                break;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns whether the provided {@link TaskStatus} shows that the task has reached a terminal state.
+     */
+    public static boolean isTerminal(TaskStatus taskStatus) {
         switch (taskStatus.getState()) {
             case TASK_FINISHED:
             case TASK_FAILED:
             case TASK_KILLED:
             case TASK_ERROR:
                 return true;
-            case TASK_LOST:
             case TASK_KILLING:
             case TASK_RUNNING:
             case TASK_STAGING:

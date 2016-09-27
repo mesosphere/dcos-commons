@@ -45,12 +45,12 @@ public class DefaultReconciler implements Reconciler {
         try {
             taskStatuses.addAll(statuses.getTaskStatuses());
         } catch (Exception e) {
-            throw new RuntimeException("error: bad");
+            throw new RuntimeException("Failed to initialize TaskStatuses for reconciliation with exception: ", e);
         }
 
         synchronized (unreconciled) {
             for (TaskStatus status : taskStatuses) {
-                if (!TaskUtils.isTerminated(status)) {
+                if (!TaskUtils.isTerminal(status)) {
                     unreconciled.put(status.getTaskId().getValue(), status);
                 }
             }
