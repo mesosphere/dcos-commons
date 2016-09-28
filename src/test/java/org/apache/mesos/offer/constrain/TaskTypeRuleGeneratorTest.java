@@ -71,7 +71,7 @@ public class TaskTypeRuleGeneratorTest {
 
     @Test
     public void testColocate() {
-        PlacementRule rule = TaskTypeGenerator.createColocate("match", new TaskEnvMapConverter())
+        PlacementRule rule = TaskTypeGenerator.createColocate("match")
                 .generate(Arrays.asList(
                         TASK_MISMATCH_1, TASK_MATCH_1,
                         TASK_MISMATCH_2,
@@ -83,7 +83,7 @@ public class TaskTypeRuleGeneratorTest {
 
     @Test
     public void testAvoid() {
-        PlacementRule rule = TaskTypeGenerator.createAvoid("match", new TaskEnvMapConverter())
+        PlacementRule rule = TaskTypeGenerator.createAvoid("match")
                 .generate(Arrays.asList(
                         TASK_MISMATCH_1, TASK_MATCH_1,
                         TASK_MISMATCH_2,
@@ -95,7 +95,7 @@ public class TaskTypeRuleGeneratorTest {
 
     @Test
     public void testColocateNotFound() {
-        PlacementRule rule = TaskTypeGenerator.createColocate("match", new TaskEnvMapConverter())
+        PlacementRule rule = TaskTypeGenerator.createColocate("match")
                 .generate(Arrays.asList(TASK_MISMATCH_1, TASK_MISMATCH_2, TASK_MISMATCH_3));
         assertEquals(rule.toString(), 2, rule.filter(OFFER_1).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_2).getResourcesCount());
@@ -104,7 +104,7 @@ public class TaskTypeRuleGeneratorTest {
 
     @Test
     public void testAvoidNotFound() {
-        PlacementRule rule = TaskTypeGenerator.createAvoid("match", new TaskEnvMapConverter())
+        PlacementRule rule = TaskTypeGenerator.createAvoid("match")
                 .generate(Arrays.asList(TASK_MISMATCH_1, TASK_MISMATCH_2, TASK_MISMATCH_3));
         assertEquals(rule.toString(), 2, rule.filter(OFFER_1).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_2).getResourcesCount());

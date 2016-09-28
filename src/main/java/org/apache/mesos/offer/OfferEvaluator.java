@@ -41,6 +41,12 @@ public class OfferEvaluator {
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
             throws StateStoreException {
         Optional<PlacementRule> placementRule = getPlacementRule(offerRequirement, stateStore);
+        if (placementRule.isPresent()) {
+            // The reference PlacementRules all have custom toString()s, so this should give a good
+            // representation of the filter:
+            logger.info("Evaluating {} offers against placement constraints: {}",
+                    offers.size(), placementRule.get());
+        }
         for (Offer offer : offers) {
             List<OfferRecommendation> recommendations =
                     evaluateInternal(offerRequirement, offer, placementRule);
@@ -60,10 +66,19 @@ public class OfferEvaluator {
     private List<OfferRecommendation> evaluateInternal(
             OfferRequirement offerRequirement, Offer offer, Optional<PlacementRule> placementRule) {
         if (placementRule.isPresent()) {
+            int originalCount = offer.getResourcesCount();
             offer = placementRule.get().filter(offer);
-            if (offer.getResourcesCount() == 0) {
-                // Placement rule filtered all resources, short-circuit.
-                return Collections.emptyList();
+            int filteredCount = offer.getResourcesCount();
+            if (filteredCount == originalCount) {
+                logger.info("Offer: '{}' fully passed placement constraints, evaluating {} of {} resources",
+                        offer.getId().getValue(), filteredCount, originalCount);
+            } else if (filteredCount > 0) {
+                logger.info("Offer: '{}' partially passed placement constraints, evaluating {} of {} resources",
+                        offer.getId().getValue(), filteredCount, originalCount);
+            } else {
+                logger.info("Offer: '{}' didn't pass placement constraints, short-circuiting {} resources",
+                        offer.getId().getValue(), originalCount);
+                return Collections.emptyList(); // short-circuit
             }
         }
 
@@ -96,7 +111,7 @@ public class OfferEvaluator {
                 Protos.ExecutorID expectedExecutorId = execReq.get().getExecutorInfo().getExecutorId();
                 if (!hasExpectedExecutorId(offer, expectedExecutorId)) {
                     logger.info("Offer: '{}' does not contain the needed ExecutorID: '{}'",
-                                    offer.getId().getValue(), expectedExecutorId.getValue());
+                            offer.getId().getValue(), expectedExecutorId.getValue());
                     return Collections.emptyList();
                 }
             }

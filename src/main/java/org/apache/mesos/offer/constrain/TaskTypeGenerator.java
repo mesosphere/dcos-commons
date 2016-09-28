@@ -75,6 +75,13 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     }
 
     /**
+     * Calls {@link #createAvoid(String, TaskTypeConverter) with a {@link TaskEnvMapConverter}.
+     */
+    public static PlacementRuleGenerator createAvoid(String typeToColocateWith) {
+        return createAvoid(typeToColocateWith, new TaskEnvMapConverter());
+    }
+
+    /**
      * Returns a PlacementRuleGenerator which enforces colocation with tasks which have the provided
      * type. For example, this could be used to ensure that 'data' nodes are always colocated with
      * 'index' nodes. Note that this rule is unidirectional; mutual colocation requires
@@ -88,6 +95,13 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     public static PlacementRuleGenerator createColocate(
             String typeToColocateWith, TaskTypeConverter typeConverter) {
         return new TaskTypeGenerator(typeToColocateWith, typeConverter, BehaviorType.COLOCATE);
+    }
+
+    /**
+     * Calls {@link #createColocate(String, TaskTypeConverter) with a {@link TaskEnvMapConverter}.
+     */
+    public static PlacementRuleGenerator createColocate(String typeToColocateWith) {
+        return createColocate(typeToColocateWith, new TaskEnvMapConverter());
     }
 
     /**
