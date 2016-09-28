@@ -3,6 +3,7 @@ package org.apache.mesos.offer;
 import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.TaskInfo;
 
 /**
@@ -77,5 +78,10 @@ public class TaskRequirement {
                     "TaskInfo must not contain ExecutorInfo. "
                     + "Use ExecutorRequirement for any Executor requirements: %s", taskInfo));
         }
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 }
