@@ -6,11 +6,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.executor.DcosTaskConstants;
+import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskUtils;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * This rule ensures that the given Offer is colocated with the specified task 'type', whose
@@ -32,29 +31,19 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     }
 
     /**
-     * Implementation of {@link TaskTypeConverter} which expects an envvar providing the task type
-     * named {@link DcosTaskConstants.TASK_TYPE}.
+     * Implementation of {@link TaskTypeConverter} which expects a Label which provides the task type.
      *
-     * @throws IllegalArgumentException if the provided task doesn't have TASK_TYPE in its env
+     * @throws IllegalArgumentException if the provided task doesn't have a task type label
      */
-    public static class TaskEnvMapConverter implements TaskTypeConverter {
+    public static class TaskTypeLabelConverter implements TaskTypeConverter {
         @Override
         public String getTaskType(TaskInfo taskInfo) {
-            Protos.CommandInfo commandInfo;
             try {
-                commandInfo = Protos.CommandInfo.parseFrom(taskInfo.getData());
-            } catch (InvalidProtocolBufferException e) {
+                return TaskUtils.getTaskType(taskInfo);
+            } catch (TaskException e) {
                 throw new IllegalArgumentException(String.format(
-                        "Unable to extract CommandInfo from provided TaskInfo: %s", taskInfo), e);
+                        "Unable to extract task type label from provided TaskInfo: %s", taskInfo), e);
             }
-            for (Protos.Environment.Variable var : commandInfo.getEnvironment().getVariablesList()) {
-                if (var.getName().equals(DcosTaskConstants.TASK_TYPE)) {
-                    return var.getValue();
-                }
-            }
-            throw new IllegalArgumentException(String.format(
-                    "Unable to find environment variable named '%s' in commandInfo: %s",
-                    DcosTaskConstants.TASK_TYPE, commandInfo));
         }
     }
 
@@ -75,10 +64,10 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     }
 
     /**
-     * Calls {@link #createAvoid(String, TaskTypeConverter) with a {@link TaskEnvMapConverter}.
+     * Calls {@link #createAvoid(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.
      */
     public static PlacementRuleGenerator createAvoid(String typeToColocateWith) {
-        return createAvoid(typeToColocateWith, new TaskEnvMapConverter());
+        return createAvoid(typeToColocateWith, new TaskTypeLabelConverter());
     }
 
     /**
@@ -98,10 +87,10 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     }
 
     /**
-     * Calls {@link #createColocate(String, TaskTypeConverter) with a {@link TaskEnvMapConverter}.
+     * Calls {@link #createColocate(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.
      */
     public static PlacementRuleGenerator createColocate(String typeToColocateWith) {
-        return createColocate(typeToColocateWith, new TaskEnvMapConverter());
+        return createColocate(typeToColocateWith, new TaskTypeLabelConverter());
     }
 
     /**

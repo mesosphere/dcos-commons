@@ -25,9 +25,14 @@ public class TaskUtils {
     private static final Pattern TASK_ID_REGEX_FORMAT = Pattern.compile("(.*)-([0-9])+(__.*)");
 
     /**
-     * Label key against which Offer attributes are stored.
+     * Label key against which Offer attributes are stored (in a string representation).
      */
     private static final String OFFER_ATTRIBUTES_KEY = "offer_attributes";
+
+    /**
+     * Label key against which the Task Type is stored.
+     */
+    private static final String TASK_TYPE_KEY = "task_type";
 
     private TaskUtils() {
         // do not instantiate
@@ -129,6 +134,7 @@ public class TaskUtils {
             case TASK_KILLED:
             case TASK_ERROR:
                 return true;
+            case TASK_LOST:
             case TASK_KILLING:
             case TASK_RUNNING:
             case TASK_STAGING:
@@ -165,6 +171,35 @@ public class TaskUtils {
                 .clearLabels()
                 .setLabels(removeLabel(taskInfo.getLabels(), MesosTask.TRANSIENT_FLAG_KEY))
                 .build();
+    }
+
+    /**
+     * Stores the provided Task Type string into the {@link TaskInfo} as a {@link Label}. Any
+     * existing stored task type is overwritten.
+     */
+    public static TaskInfo.Builder setTaskType(TaskInfo.Builder taskBuilder, String taskType) {
+        Labels.Builder labelsBuilder =
+                removeLabel(taskBuilder.getLabels(), TASK_TYPE_KEY).toBuilder();
+        labelsBuilder.addLabelsBuilder()
+                .setKey(TASK_TYPE_KEY)
+                .setValue(taskType);
+
+        return taskBuilder
+                .clearLabels()
+                .setLabels(labelsBuilder);
+    }
+
+    /**
+     * Returns the task type string, which was embedded in the provided {@link TaskInfo}.
+     *
+     * @throws TaskException if the type could not be found.
+     */
+    public static String getTaskType(TaskInfo taskInfo) throws TaskException {
+        String taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_KEY);
+        if (taskType == null) {
+            throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_KEY);
+        }
+        return taskType;
     }
 
     /**
@@ -227,13 +262,11 @@ public class TaskUtils {
      * configuration
      */
     public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
-        for (Label label : taskInfo.getLabels().getLabelsList()) {
-            if (label.getKey().equals(TARGET_CONFIGURATION_KEY)) {
-                return UUID.fromString(label.getValue());
-            }
+        String targetConfigString = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
+        if (targetConfigString == null) {
+            throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
         }
-
-        throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
+        return UUID.fromString(targetConfigString);
     }
 
     private static TaskInfo clearTargetConfigurationLabel(TaskInfo taskInfo) {

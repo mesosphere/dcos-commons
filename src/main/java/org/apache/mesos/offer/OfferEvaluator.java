@@ -153,7 +153,8 @@ public class OfferEvaluator {
                         fulfilledTaskRequirement,
                         execInfo,
                         fulfilledExecutorRequirement,
-                        offer)));
+                        offer,
+                        "TODO TASK TYPE"))); // TODO(nick): add once plumbed through
         }
 
         List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
@@ -375,7 +376,8 @@ public class OfferEvaluator {
             FulfilledRequirement fulfilledTaskRequirement,
             ExecutorInfo execInfo,
             FulfilledRequirement fulfilledExecutorRequirement,
-            Offer launchOffer) {
+            Offer launchOffer,
+            String taskType) {
 
         TaskInfo taskInfo = taskReq.getTaskInfo();
         List<Resource> fulfilledTaskResources = fulfilledTaskRequirement.getFulfilledResources();
@@ -398,6 +400,7 @@ public class OfferEvaluator {
 
         // Store the Attributes from the Offer in the TaskInfo for later access by constraint filters:
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
+        taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
 
         return taskBuilder.build();
     }

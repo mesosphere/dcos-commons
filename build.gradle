@@ -1,6 +1,7 @@
 // Config shared by the dcos-commons library and the examples:
 
 plugins {
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
     id 'com.github.ksoichiro.console.reporter' version '0.4.0'
 }
 
@@ -170,6 +171,16 @@ dependencies {
     testCompile "org.mock-server:mockserver-netty:${mockServerVer}"
     testCompile "org.springframework.integration:spring-integration-http:${springVer}"
     testCompile "org.awaitility:awaitility:${awaitilityVer}"
+}
+
+shadowJar {
+    classifier = 'uber'
+
+    mergeServiceFiles()
+
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
 }
 
 distributions {
