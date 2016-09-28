@@ -2,6 +2,10 @@
 
 # Env Vars
 #   GITHUB_TOKEN: github auth token
+#   GIT_COMMIT | ghprbActualCommit | sha1 (optional)
+#   GITHUB_DISABLE (optional): if non-empty, this script performs no action
+#   GITHUB_REPOSITORY_ROOT (optional): directory in which to look for .git (unused if GIT_COMMIT is set)
+#   GITHUB_REPO_PATH (optional): path to repo to update (e.g. mesosphere/spark)
 
 import base64
 import json
