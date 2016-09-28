@@ -13,8 +13,29 @@ import org.apache.mesos.offer.TaskUtils;
  * Ensures that the given Offer’s attributes each have no more than N instances of the task type
  * running on them.
  *
- * For example, this can ensure that no more than 3 tasks are running against the 'rack:foo'
- * attribute.
+ * For example, this can ensure that no more than N tasks are running against the 'rack:foo'
+ * attribute (exact match), or it can ensure that no distinct 'rack:.*' value has more than N tasks
+ * running against it (wildcarded grouping).
+ *
+ * To illustrate, let's look at a deployment scenario of 5 agents with 3 distinct 'rack' values:
+ *  agent |  attr  | # tasks
+ * -------+--------+---------
+ *    1   | rack:a |   3
+ *    2   | rack:b |   2
+ *    3   | rack:c |   1
+ *    4   | rack:a |   2
+ *    5   | rack:b |   2
+ *
+ * Given a {@link MaxPerAttributeGenerator} with a limit of 5 and a regex of 'rack:.*', let's see
+ * what PlacementRule would be produced:
+ *
+ * In this example, the regex of 'rack:.*' will result in grouping the task counts as follows:
+ * - rack:a: 5 tasks
+ * - rack:b: 4 tasks
+ * - rack:c: 1 task
+ *
+ * With the limit value of 5, this would result in a PlacementRule that blocks any offers with
+ * 'rack:a' from future deployments.
  */
 public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
 

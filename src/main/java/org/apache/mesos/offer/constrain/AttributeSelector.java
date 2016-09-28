@@ -4,22 +4,28 @@ import java.util.regex.Pattern;
 
 /**
  * Implements a check against a provided attribute string, determining whether it matches some
- * criteria.
+ * criteria. Checks are only performed against the string representations of attributes.
+ *
+ * @see org.apache.mesos.offer.AttributeStringUtils#toString(org.apache.mesos.Protos.Attribute)
  */
 public interface AttributeSelector {
     public boolean select(String attributeString);
 
     /**
-     * Returns a new {@link AttributeSelector} which selects attributes that exactly match the
-     * provided string.
+     * Returns a new {@link AttributeSelector} which selects attributes whose string representation
+     * exactly matches the provided string.
+     *
+     * @see org.apache.mesos.offer.AttributeStringUtils#toString(org.apache.mesos.Protos.Attribute)
      */
     public static AttributeSelector createStringSelector(String str) {
         return new StringSelector(str);
     }
 
     /**
-     * Returns a new {@link AttributeSelector} which selects attributes that match the provided
-     * regular expression.
+     * Returns a new {@link AttributeSelector} which selects attributes whose string representation
+     * match the provided regular expression.
+     *
+     * @see org.apache.mesos.offer.AttributeStringUtils#toString(org.apache.mesos.Protos.Attribute)
      */
     public static AttributeSelector createRegexSelector(String pattern) {
         return new RegexSelector(pattern);

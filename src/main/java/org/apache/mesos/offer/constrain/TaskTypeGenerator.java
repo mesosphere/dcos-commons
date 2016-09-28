@@ -9,7 +9,6 @@ import java.util.Set;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.executor.DcosTaskConstants;
-import org.apache.mesos.offer.TaskUtils;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -30,19 +29,6 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
      */
     public interface TaskTypeConverter {
         public String getTaskType(TaskInfo taskInfo);
-    }
-
-    /**
-     * Implementation of {@link TaskTypeConverter} which expects TaskIDs of the form
-     * "tasktypehere-0__uuid" => "tasktypehere".
-     *
-     * @see TaskUtils#toTaskType(org.apache.mesos.Protos.TaskID)
-     */
-    public static class TaskIDDashConverter implements TaskTypeConverter {
-        @Override
-        public String getTaskType(TaskInfo taskInfo) {
-            return TaskUtils.toTaskType(taskInfo.getTaskId());
-        }
     }
 
     /**
