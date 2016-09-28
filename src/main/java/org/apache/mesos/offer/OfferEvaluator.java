@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * The OfferEvaluator processes {@link Offer}s and produces {@link OfferRecommendation}s.
  * The determination of what {@link OfferRecommendation}s, if any should be made are made
- * in reference to the {@link OfferRequirement with which it was constructed.    In the
+ * in reference to the {@link OfferRequirement with which it was constructed.  In the
  * case where an OfferRequirement has not been provided no {@link OfferRecommendation}s
  * are ever returned.
  */
@@ -51,7 +51,12 @@ public class OfferEvaluator {
             List<OfferRecommendation> recommendations =
                     evaluateInternal(offerRequirement, offer, placementRule);
             if (recommendations != null && !recommendations.isEmpty()) {
+                logger.info("Offer produced {} recommendations: {}",
+                        recommendations.size(), TextFormat.shortDebugString(offer));
                 return recommendations;
+            } else {
+                logger.info("Offer did not pass constraints and/or resource requirements: {}",
+                        TextFormat.shortDebugString(offer));
             }
         }
         return Collections.emptyList();
@@ -101,6 +106,8 @@ public class OfferEvaluator {
                                 pool);
 
                 if (fulfilledExecutorRequirement == null) {
+                    logger.info("Offer: '{}' does not fulfill the executor Resource Requirements: '{}'",
+                            offer.getId().getValue(), execReq.get().getResourceRequirements());
                     return Collections.emptyList();
                 }
 
@@ -129,6 +136,8 @@ public class OfferEvaluator {
                 FulfilledRequirement.fulfillRequirement(taskReq.getResourceRequirements(), offer, pool);
 
             if (fulfilledTaskRequirement == null) {
+                logger.info("Offer: '{}' does not fulfill the task Resource Requirements: '{}'",
+                        offer.getId().getValue(), taskReq.getResourceRequirements());
                 return Collections.emptyList();
             }
 
