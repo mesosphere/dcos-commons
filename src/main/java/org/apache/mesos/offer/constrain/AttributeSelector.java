@@ -46,6 +46,11 @@ public interface AttributeSelector {
         public boolean select(String attribute) {
             return str.equals(attribute);
         }
+
+        @Override
+        public String toString() {
+            return String.format("StringSelector{str=%s}", str);
+        }
     }
 
     /**
@@ -62,6 +67,11 @@ public interface AttributeSelector {
         @Override
         public boolean select(String attribute) {
             return pattern.matcher(attribute).matches();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("RegexSelector{pattern=%s}", pattern);
         }
     }
 }

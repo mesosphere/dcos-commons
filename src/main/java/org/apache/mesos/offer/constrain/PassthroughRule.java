@@ -7,10 +7,15 @@ import org.apache.mesos.Protos.Offer;
  */
 public class PassthroughRule implements PlacementRule {
 
-    private static final PassthroughRule INSTANCE = new PassthroughRule();
+    private final String label;
 
-    public static PassthroughRule getInstance() {
-        return INSTANCE;
+    /**
+     * Creates a new PassthroughRule, which accepts everything it's provided.
+     *
+     * @param label a label describing the source of this passthrough to include in toString()
+     */
+    public PassthroughRule(String label) {
+        this.label = label;
     }
 
     @Override
@@ -20,6 +25,6 @@ public class PassthroughRule implements PlacementRule {
 
     @Override
     public String toString() {
-        return "PassthroughRule{}";
+        return String.format("PassthroughRule{label=%s}", label);
     }
 }

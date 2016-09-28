@@ -143,7 +143,8 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
                 // nothing to colocate with! fall back to picking whatever offer looks good.
                 // this is expected when the developer has configured bidirectional rules
                 // (A colocates with B + B colocates with A)
-                return new PassthroughRule();
+                return new PassthroughRule(
+                        String.format("no tasks of type '%s' to colocate with", typeToFind));
             } else {
                 return new OrRule(agentRules);
             }
@@ -152,7 +153,8 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
                 // nothing to avoid, but this is expected when avoiding nodes of the same type
                 // (self-avoidance), or when the developer has configured bidirectional rules
                 // (A avoids B + B avoids A)
-                return new PassthroughRule();
+                return new PassthroughRule(
+                        String.format("no tasks of type '%s' to avoid", typeToFind));
             } else {
                 return new NotRule(new OrRule(agentRules));
             }

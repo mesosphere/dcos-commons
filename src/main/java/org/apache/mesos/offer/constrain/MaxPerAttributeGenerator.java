@@ -83,7 +83,8 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
         switch (blockedAttributes.size()) {
         case 0:
             // nothing is full, don't filter any offers.
-            return PassthroughRule.getInstance();
+            return new PassthroughRule(
+                    String.format("no matching attributes are full: %s", attributeSelector));
         case 1:
             // shortcut: no OrRule needed, just block the one attribute
             return new NotRule(blockedAttributes.get(0));
