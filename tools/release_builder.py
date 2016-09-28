@@ -334,7 +334,7 @@ class UniverseReleaseBuilder(object):
             try:
                 docker_dict = resource_json['assets']['container']['docker']
                 assert len(docker_dict) == 1
-                return docker_dict.values()[0]
+                return list(docker_dict.values())[0]
             except KeyError:
                 return None
 
@@ -353,7 +353,7 @@ class UniverseReleaseBuilder(object):
         with open(resource_filename) as f:
             resource_json = json.load(f)
             docker_dict = resource_json['assets']['container']['docker']
-            key = docker_dict.keys()[0]
+            key = list(docker_dict.keys())[0]
             docker_dict[key] = self._release_docker_image
 
         with open(resource_filename, 'w') as f:
