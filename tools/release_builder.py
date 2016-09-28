@@ -65,13 +65,16 @@ class UniverseReleaseBuilder(object):
         self._github_token = encoded_tok.decode('utf-8').rstrip('\n')
 
 
-    def _run_cmd(self, cmd, dry_run_return = 0):
+    def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return = 0):
         if self._dry_run:
             logger.info('[DRY RUN] {}'.format(cmd))
             return dry_run_return
         else:
             logger.info(cmd)
-            return os.system(cmd)
+            ret = os.system(cmd)
+            if ret != 0 and exit_on_fail:
+                raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
+            return ret
 
     def _download_unpack_stub_universe(self, scratchdir):
         local_zip_path = os.path.join(scratchdir, self._stub_universe_url.split('/')[-1])
@@ -165,7 +168,7 @@ class UniverseReleaseBuilder(object):
         # avoid automatically stomping on a previous release. if you *want* to do this, you must
         # manually delete the destination directory first. (and redirect stdout to stderr)
         cmd = 'aws s3 ls --recursive {} 1>&2'.format(self._release_artifact_s3_dir)
-        ret = self._run_cmd(cmd, 1)
+        ret = self._run_cmd(cmd, False, 1)
         if ret == 0:
             raise Exception('Release artifact destination already exists. ' +
                             'Refusing to continue until destination has been manually removed:\n' +
