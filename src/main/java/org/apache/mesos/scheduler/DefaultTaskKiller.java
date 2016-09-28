@@ -16,8 +16,6 @@ public class DefaultTaskKiller implements TaskKiller {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
     private final TaskFailureListener taskFailureListener;
-
-    private final Object killLock = new Object();
     private final SchedulerDriver driver;
 
     public DefaultTaskKiller(StateStore stateStore, TaskFailureListener taskFailureListener, SchedulerDriver driver) {
