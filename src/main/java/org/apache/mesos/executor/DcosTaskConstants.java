@@ -13,8 +13,6 @@ public class DcosTaskConstants {
 // Executor Error Codes
 enum ExecutorErrorCode {
     EXIT_ON_TERMINATION_SUCCESS,
-    EXIT_ON_TERMINATION_FAILURE,
-    ON_REGISTERED_TASK_FAILURE,
-    ON_REREGISTERED_TASK_FAILURE
+    EXIT_ON_TERMINATION_FAILURE
 }
 
