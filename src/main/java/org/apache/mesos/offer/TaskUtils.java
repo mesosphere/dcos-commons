@@ -1,10 +1,12 @@
 package org.apache.mesos.offer;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.executor.DcosTaskConstants;
 import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
 import org.slf4j.Logger;
@@ -293,6 +295,33 @@ public class TaskUtils {
         }
 
         return false;
+    }
+
+    public static String getTaskType(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+        final Protos.CommandInfo commandInfo = getCommand(taskInfo);
+        final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
+        String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
+
+        if (taskType == null) {
+            return "";
+        } else {
+            return taskType;
+        }
+    }
+
+    public static CommandInfo getCommand(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+        return Protos.CommandInfo.parseFrom(taskInfo.getData());
+    }
+
+    public static ProcessBuilder getProcess(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+        CommandInfo commandInfo = getCommand(taskInfo);
+        String cmd = commandInfo.getValue();
+
+        ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
+        builder.inheritIO();
+        builder.environment().putAll(TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
+
+        return builder;
     }
 
     private static Map<String, ResourceSpecification> getResourceSpecMap(

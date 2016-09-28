@@ -1,5 +1,6 @@
 package org.apache.mesos.executor;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -42,7 +43,7 @@ public class ProcessTaskTest {
                         .build()
                         .toByteString())
                 .build();
-        final ProcessTask processTask = new ProcessTask(mockExecutorDriver, taskInfo, false);
+        final ProcessTask processTask = ProcessTask.create(mockExecutorDriver, taskInfo, false);
 
         Assert.assertFalse(processTask.isAlive());
         final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -52,16 +53,17 @@ public class ProcessTaskTest {
         Thread.sleep(1000);
 
         Assert.assertTrue(processTask.isAlive());
-
-
-        processTask.stop();
-
+        processTask.stop(null);
         Assert.assertFalse(processTask.isAlive());
     }
 
     public static class FailingProcessTask extends ProcessTask {
-        public FailingProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task, boolean exitOnTermination) {
-            super(executorDriver, task, exitOnTermination);
+        protected FailingProcessTask(
+                ExecutorDriver executorDriver,
+                Protos.TaskInfo taskInfo,
+                ProcessBuilder processBuilder,
+                boolean exitOnTermination) throws InvalidProtocolBufferException {
+            super(executorDriver, taskInfo, processBuilder, exitOnTermination);
         }
 
         @Override
@@ -95,7 +97,11 @@ public class ProcessTaskTest {
                         .build()
                         .toByteString())
                 .build();
-        final FailingProcessTask failingProcessTask = new FailingProcessTask(mockExecutorDriver, taskInfo, false);
+        final FailingProcessTask failingProcessTask = new FailingProcessTask(
+                mockExecutorDriver,
+                taskInfo,
+                TaskUtils.getProcess(taskInfo),
+                false);
         final ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(failingProcessTask);
 
