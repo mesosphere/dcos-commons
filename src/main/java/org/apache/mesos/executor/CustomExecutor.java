@@ -129,7 +129,7 @@ public class CustomExecutor implements Executor {
             }
             LOGGER.info("Stopping task as part of killTask: {}", taskId);
             final LaunchedTask launchedTask = launchedTasks.get(taskId);
-            launchedTask.getExecutorTask().stop(launchedTask.getFuture());
+            launchedTask.stop();
         } catch (Throwable t) {
             LOGGER.error("Error killing task {}. Reason: {}", taskId, t);
         }

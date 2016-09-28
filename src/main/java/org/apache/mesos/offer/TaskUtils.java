@@ -300,7 +300,13 @@ public class TaskUtils {
     public static String getTaskType(TaskInfo taskInfo) throws InvalidProtocolBufferException {
         final Protos.CommandInfo commandInfo = getCommand(taskInfo);
         final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
-        return envMap.get(DcosTaskConstants.TASK_TYPE);
+        String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
+
+        if (taskType == null) {
+            return "";
+        } else {
+            return taskType;
+        }
     }
 
     public static CommandInfo getCommand(TaskInfo taskInfo) throws InvalidProtocolBufferException {

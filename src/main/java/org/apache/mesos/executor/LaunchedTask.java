@@ -3,7 +3,7 @@ package org.apache.mesos.executor;
 import java.util.concurrent.Future;
 
 /**
- * Created by gabriel on 9/21/16.
+ * This class encapsulates an ExecutorTask and the Future returned whent it was started.
  */
 public class LaunchedTask {
     private final ExecutorTask executorTask;
@@ -20,5 +20,9 @@ public class LaunchedTask {
 
     public Future<?> getFuture() {
         return future;
+    }
+
+    public void stop() {
+        executorTask.stop(getFuture());
     }
 }
