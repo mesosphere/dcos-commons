@@ -83,6 +83,7 @@ public class MesosResourcePool {
                       .setRanges(Value.Ranges.newBuilder()
                               .addRange(Value.Range.newBuilder()
                                       .setBegin(range.getBegin())
+                                      // Use getBegin again, since we just want the one port.
                                       .setEnd(range.getBegin())))
                       .build());
 

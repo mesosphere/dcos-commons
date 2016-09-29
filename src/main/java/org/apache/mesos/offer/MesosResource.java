@@ -11,6 +11,7 @@ import org.apache.mesos.Protos.Value;
  **/
 public class MesosResource {
   public static final String RESOURCE_ID_KEY = "resource_id";
+  public static final String DYNAMIC_PORT_KEY = "dynamic_port";
 
   private Resource resource;
   private String resourceId;

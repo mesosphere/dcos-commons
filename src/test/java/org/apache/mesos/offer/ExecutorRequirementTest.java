@@ -30,7 +30,7 @@ public class ExecutorRequirementTest {
 
     @Test(expected=InvalidRequirementException.class)
     public void testRejectDesiredResourcesForExistingExecutor() throws Exception {
-        Protos.Resource desiredCpu = ResourceUtils.getDesiredScalar("test-ROLE", "test-prinicipal", "cpus", 1.0);
+        Protos.Resource desiredCpu = ResourceUtils.getDesiredScalar("test-role", "test-prinicipal", "cpus", 1.0);
         ExecutorInfo invalidExecInfo = ExecutorInfo.newBuilder()
                 .setExecutorId(TestConstants.EXECUTOR_ID)
                 .setName(TestConstants.EXECUTOR_NAME)

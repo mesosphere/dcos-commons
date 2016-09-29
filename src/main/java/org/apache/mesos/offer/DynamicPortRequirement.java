@@ -2,6 +2,8 @@ package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
 
+import java.util.Arrays;
+
 /**
  * This class allows the expression of a desire for a random port designated by a name which will be injected into the
  * environment.
@@ -21,35 +23,18 @@ public class DynamicPortRequirement extends ResourceRequirement {
     }
 
     public static Protos.Resource getDesiredDynamicPort(String name, String role, String principal) {
-        return Protos.Resource.newBuilder()
-                .setName("ports")
-                .setType(Protos.Value.Type.RANGES)
-                .setRole(role)
-                .setReservation(
-                        Protos.Resource.ReservationInfo.newBuilder()
-                        .setPrincipal(principal)
-                        .setLabels(
-                                Protos.Labels.newBuilder()
-                                .addLabels(
-                                        Protos.Label.newBuilder()
-                                        .setKey(DYNAMIC_PORT_KEY)
-                                        .setValue(name)
-                                )
-                                .addLabels(
-                                        Protos.Label.newBuilder()
-                                        .setKey(MesosResource.RESOURCE_ID_KEY)
-                                        .setValue("")
-                                )
-                        )
-                )
-                .setRanges(
-                        Protos.Value.Ranges.newBuilder()
-                        .addRange(
+        return ResourceUtils.setDynamicPortName(
+                ResourceUtils.getDesiredRanges(
+                        role,
+                        principal,
+                        "ports",
+                        Arrays.asList(
                                 Protos.Value.Range.newBuilder()
                                 .setBegin(0)
                                 .setEnd(0)
-                        )
-                ).build();
+                                .build())
+                        ),
+                name);
     }
 
     public static String getPortName(Protos.Resource resource) {

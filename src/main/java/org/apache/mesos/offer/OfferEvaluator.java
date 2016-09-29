@@ -356,48 +356,6 @@ public class OfferEvaluator {
         }
     }
 
-    private Protos.Environment getEnvironment(List<Resource> resources) {
-        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
-        for (Resource resource : resources) {
-            String portName = DynamicPortRequirement.getPortName(resource);
-            if (portName != null) {
-                String portNumber = String.valueOf(resource.getRanges().getRange(0).getBegin());
-                envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
-                        .setName(portName)
-                        .setValue(portNumber));
-            }
-        }
-
-        return envBuilder.build();
-    }
-
-    private Protos.Environment updateEnvironment(Protos.Environment env, List<Resource> resources) {
-        Protos.Environment resEnv = getEnvironment(resources);
-        return Protos.Environment.newBuilder(env)
-                .addAllVariables(resEnv.getVariablesList())
-                .build();
-    }
-
-    private TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
-        Protos.Environment updateEnv = updateEnvironment(builder.getCommand().getEnvironment(), resources);
-        if (updateEnv.getVariablesCount() > 0) {
-            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
-                    .setEnvironment(updateEnv));
-        } else {
-            return builder;
-        }
-    }
-
-    private ExecutorInfo.Builder updateEnvironment(Protos.ExecutorInfo.Builder builder, List<Resource> resources) {
-        Protos.Environment updateEnv = updateEnvironment(builder.getCommand().getEnvironment(), resources);
-        if (updateEnv.getVariablesCount() > 0) {
-            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
-                    .setEnvironment(updateEnv));
-        } else {
-            return builder;
-        }
-    }
-
     private TaskInfo getFulfilledTaskInfo(
             TaskRequirement taskReq,
             FulfilledRequirement fulfilledTaskRequirement,
@@ -411,7 +369,7 @@ public class OfferEvaluator {
                         .clearResources()
                         .addAllResources(fulfilledTaskResources);
 
-        taskBuilder = updateEnvironment(taskBuilder, fulfilledTaskResources);
+        taskBuilder = ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources);
 
         if (execInfo != null) {
             ExecutorInfo.Builder execBuilder =
@@ -421,10 +379,10 @@ public class OfferEvaluator {
             if (fulfilledExecutorRequirement != null) {
                 List<Resource> fulfilledExecutorResources = fulfilledExecutorRequirement.getFulfilledResources();
                 execBuilder.addAllResources(fulfilledExecutorResources);
-                execBuilder = updateEnvironment(execBuilder, fulfilledExecutorResources);
+                execBuilder = ResourceUtils.updateEnvironment(execBuilder, fulfilledExecutorResources);
             } else {
                 execBuilder.addAllResources(execInfo.getResourcesList());
-                execBuilder = updateEnvironment(execBuilder, execInfo.getResourcesList());
+                execBuilder = ResourceUtils.updateEnvironment(execBuilder, execInfo.getResourcesList());
             }
 
             taskBuilder.setExecutor(execBuilder.build());
