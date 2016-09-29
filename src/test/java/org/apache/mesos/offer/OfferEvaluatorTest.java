@@ -36,7 +36,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(2, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
 
         Label dynamicPortLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("dynamic_port_key", dynamicPortLabel.getKey());
+        Assert.assertEquals("dynamic_port", dynamicPortLabel.getKey());
         Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortLabel.getValue());
 
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
@@ -77,7 +77,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(2, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
 
         Label dynamicPortLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("dynamic_port_key", dynamicPortLabel.getKey());
+        Assert.assertEquals("dynamic_port", dynamicPortLabel.getKey());
         Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortLabel.getValue());
 
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);

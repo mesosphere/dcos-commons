@@ -7,7 +7,7 @@ import org.apache.mesos.Protos;
  * environment.
  */
 public class DynamicPortRequirement extends ResourceRequirement {
-    private static final String DYNAMIC_PORT_KEY = "dynamic_port_key";
+    private static final String DYNAMIC_PORT_KEY = "dynamic_port";
     private String name;
 
     public DynamicPortRequirement(Protos.Resource resource) throws DynamicPortException {
