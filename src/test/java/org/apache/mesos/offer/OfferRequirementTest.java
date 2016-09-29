@@ -37,8 +37,8 @@ public class OfferRequirementTest {
                 "cpus",
                 1.0,
                 testResourceId,
-                TestConstants.role,
-                TestConstants.principal);
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(resource);
         Assert.assertEquals(1, offerRequirement.getResourceIds().size());
         Assert.assertEquals(testResourceId, offerRequirement.getResourceIds().iterator().next());
@@ -48,17 +48,17 @@ public class OfferRequirementTest {
     public void testOnePersistenceId() throws InvalidRequirementException {
         Resource resource = ResourceUtils.getExpectedMountVolume(
                 1000,
-                TestConstants.persistenceId,
-                TestConstants.role,
-                TestConstants.principal,
-                TestConstants.mountRoot,
-                TestConstants.containerPath,
-                TestConstants.persistenceId);
+                TestConstants.PERSISTENCE_ID,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                TestConstants.MOUNT_ROOT,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.PERSISTENCE_ID);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(resource);
         Assert.assertEquals(1, offerRequirement.getResourceIds().size());
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.persistenceId));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.PERSISTENCE_ID));
         Assert.assertEquals(1, offerRequirement.getPersistenceIds().size());
-        Assert.assertEquals(TestConstants.persistenceId, offerRequirement.getPersistenceIds().iterator().next());
+        Assert.assertEquals(TestConstants.PERSISTENCE_ID, offerRequirement.getPersistenceIds().iterator().next());
     }
 
     @Test
@@ -68,22 +68,22 @@ public class OfferRequirementTest {
                 "cpus",
                 1.0,
                 testResourceId,
-                TestConstants.role,
-                TestConstants.principal);
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
         Resource volume = ResourceUtils.getExpectedMountVolume(
                 1000,
-                TestConstants.persistenceId,
-                TestConstants.role,
-                TestConstants.principal,
-                TestConstants.mountRoot,
-                TestConstants.containerPath,
-                TestConstants.persistenceId);
+                TestConstants.PERSISTENCE_ID,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                TestConstants.MOUNT_ROOT,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.PERSISTENCE_ID);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(Arrays.asList(cpu, volume));
         Assert.assertEquals(2, offerRequirement.getResourceIds().size());
         Assert.assertTrue(testResourceId, offerRequirement.getResourceIds().contains(testResourceId));
-        Assert.assertTrue(TestConstants.persistenceId, offerRequirement.getResourceIds().contains(testResourceId));
+        Assert.assertTrue(TestConstants.PERSISTENCE_ID, offerRequirement.getResourceIds().contains(testResourceId));
         Assert.assertEquals(1, offerRequirement.getPersistenceIds().size());
-        Assert.assertEquals(TestConstants.persistenceId, offerRequirement.getPersistenceIds().iterator().next());
+        Assert.assertEquals(TestConstants.PERSISTENCE_ID, offerRequirement.getPersistenceIds().iterator().next());
     }
 
     @Test

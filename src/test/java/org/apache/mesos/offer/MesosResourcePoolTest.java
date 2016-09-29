@@ -5,6 +5,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -101,6 +102,26 @@ public class MesosResourcePoolTest {
     MesosResourcePool pool = new MesosResourcePool(offer);
 
     Assert.assertEquals(null, pool.consume(resReq));
+  }
+
+  @Test
+  public void testConsumeDynamicPort() throws DynamicPortRequirement.DynamicPortException {
+    Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+            TestConstants.PORT_NAME,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
+
+    DynamicPortRequirement dynamicPortRequirement = new DynamicPortRequirement(desiredDynamicPort);
+    Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10005);
+    Offer offer = OfferTestUtils.getOffer(offeredPorts);
+    MesosResourcePool pool = new MesosResourcePool(offer);
+
+    MesosResource mesosResource = pool.consume(dynamicPortRequirement);
+    Assert.assertNotNull(mesosResource);
+    Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
+    Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
+    Assert.assertEquals(10000, range.getBegin());
+    Assert.assertEquals(10000, range.getEnd());
   }
 
   @Test

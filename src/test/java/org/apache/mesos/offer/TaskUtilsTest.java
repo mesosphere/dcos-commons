@@ -98,8 +98,8 @@ public class TaskUtilsTest {
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
                 .build(),
-                TestConstants.role,
-                TestConstants.principal));
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -114,8 +114,8 @@ public class TaskUtilsTest {
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
                         .build(),
-                TestConstants.role,
-                TestConstants.principal));
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL));
 
         TaskSpecification tmpNewTaskSpecification =
                 TestTaskSpecificationFactory.getTaskSpecification(
@@ -131,8 +131,8 @@ public class TaskUtilsTest {
                         .setType(Protos.Value.Type.SCALAR)
                         .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
                         .build(),
-                TestConstants.role,
-                TestConstants.principal));
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }

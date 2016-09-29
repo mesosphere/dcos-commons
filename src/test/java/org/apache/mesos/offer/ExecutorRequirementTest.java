@@ -16,24 +16,24 @@ import static org.junit.Assert.assertNotNull;
 public class ExecutorRequirementTest {
 
     private static final ExecutorInfo VALID_EXECINFO = ExecutorInfo.newBuilder()
-            .setExecutorId(TestConstants.executorId)
-            .setName(TestConstants.executorName)
+            .setExecutorId(TestConstants.EXECUTOR_ID)
+            .setName(TestConstants.EXECUTOR_NAME)
             .setCommand(CommandInfo.newBuilder().build()) // ignored, required by proto
             .build();
 
     @Test
     public void testExecutorIdRemainsSame() throws Exception {
         assertEquals(
-                TestConstants.executorId,
+                TestConstants.EXECUTOR_ID,
                 ExecutorRequirement.create(VALID_EXECINFO).getExecutorInfo().getExecutorId());
     }
 
     @Test(expected=InvalidRequirementException.class)
     public void testRejectDesiredResourcesForExistingExecutor() throws Exception {
-        Protos.Resource desiredCpu = ResourceUtils.getDesiredScalar("test-role", "test-prinicipal", "cpus", 1.0);
+        Protos.Resource desiredCpu = ResourceUtils.getDesiredScalar("test-ROLE", "test-prinicipal", "cpus", 1.0);
         ExecutorInfo invalidExecInfo = ExecutorInfo.newBuilder()
-                .setExecutorId(TestConstants.executorId)
-                .setName(TestConstants.executorName)
+                .setExecutorId(TestConstants.EXECUTOR_ID)
+                .setName(TestConstants.EXECUTOR_NAME)
                 .setCommand(CommandInfo.newBuilder().build()) // ignored, required by proto
                 .addResources(desiredCpu)
                 .build();

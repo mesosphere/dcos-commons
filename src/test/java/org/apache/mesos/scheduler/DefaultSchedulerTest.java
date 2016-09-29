@@ -403,15 +403,15 @@ public class DefaultSchedulerTest {
     }
 
     private void register() {
-        defaultScheduler.registered(mockSchedulerDriver, TestConstants.frameworkId, TestConstants.masterInfo);
+        defaultScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
 
     private Protos.Offer getInsufficientOfferForTaskA(UUID offerId) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(TestConstants.frameworkId)
-                .setSlaveId(TestConstants.agentId)
-                .setHostname(TestConstants.hostname)
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME)
                 .addAllResources(
                         Arrays.asList(
                                 ResourceTestUtils.getUnreservedCpu(TASK_A_CPU / 2.0),
@@ -422,9 +422,9 @@ public class DefaultSchedulerTest {
     private Protos.Offer getSufficientOfferForTaskA(UUID offerId) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(TestConstants.frameworkId)
-                .setSlaveId(TestConstants.agentId)
-                .setHostname(TestConstants.hostname)
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME)
                 .addAllResources(
                         Arrays.asList(
                                 ResourceTestUtils.getUnreservedCpu(TASK_A_CPU),
@@ -436,9 +436,9 @@ public class DefaultSchedulerTest {
     private Protos.Offer getSufficientOfferForTaskB(UUID offerId) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(TestConstants.frameworkId)
-                .setSlaveId(TestConstants.agentId)
-                .setHostname(TestConstants.hostname)
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME)
                 .addAllResources(
                         Arrays.asList(
                                 ResourceTestUtils.getUnreservedCpu(TASK_B_CPU),

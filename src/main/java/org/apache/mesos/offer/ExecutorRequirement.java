@@ -13,6 +13,7 @@ import org.apache.mesos.executor.ExecutorUtils;
  * have.
  */
 public class ExecutorRequirement {
+    private final Collection<DynamicPortRequirement> dynamicPortRequirements;
     private ExecutorInfo executorInfo;
     private Collection<ResourceRequirement> resourceRequirements;
 
@@ -56,7 +57,9 @@ public class ExecutorRequirement {
         validateExecutorInfo(executorInfo);
         this.executorInfo = executorInfo;
         this.resourceRequirements =
-                RequirementUtils.getResourceRequirements(this.executorInfo.getResourcesList());
+                RequirementUtils.getResourceRequirements(executorInfo.getResourcesList());
+        this.dynamicPortRequirements =
+                RequirementUtils.getDynamicPortRequirements(executorInfo.getResourcesList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -65,6 +68,10 @@ public class ExecutorRequirement {
 
     public Collection<ResourceRequirement> getResourceRequirements() {
         return resourceRequirements;
+    }
+
+    public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
+        return dynamicPortRequirements;
     }
 
     public Collection<String> getResourceIds() {
@@ -81,6 +88,7 @@ public class ExecutorRequirement {
                 return true;
             }
         }
+
         return false;
     }
 
