@@ -9,6 +9,8 @@ import org.testng.Assert;
 import java.util.Optional;
 import java.util.concurrent.*;
 
+import static org.mockito.Mockito.when;
+
 /**
  * This class tests the HealthCheckMonitor.
  */
@@ -18,12 +20,13 @@ public class HealthCheckMonitorTest {
             Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
     private static final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    @Mock
-    private static ExecutorTask executorTask;
+    @Mock private static LaunchedTask launchedTask;
+    @Mock private static ExecutorTask executorTask;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        when(launchedTask.getExecutorTask()).thenReturn(executorTask);
     }
 
     @Test
@@ -33,7 +36,7 @@ public class HealthCheckMonitorTest {
                 HealthCheckHandler.create(
                         HealthCheckTestUtils.getFailingTask(1),
                         scheduledExecutorService, new HealthCheckStats("test")),
-                executorTask);
+                launchedTask);
         Future<Optional<HealthCheckStats>> futureStats = executorService.submit(healthCheckMonitor);
         Optional<HealthCheckStats> optionalStats = futureStats.get();
         Assert.assertTrue(optionalStats.isPresent());
