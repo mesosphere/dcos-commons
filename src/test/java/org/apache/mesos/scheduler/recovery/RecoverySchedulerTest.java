@@ -114,7 +114,7 @@ public class RecoverySchedulerTest {
         for (int i = 0; i < 10; i++) {
             recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
             //verify the UI
-            assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getStoppedNames());
+            assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getStoppedNames());
             assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getFailedNames());
         }
     }
@@ -151,7 +151,7 @@ public class RecoverySchedulerTest {
         launchConstrainer.setCanLaunch(true);
 
         Block block = mock(Block.class);
-        when(block.getName()).thenReturn(TestConstants.taskName);
+        when(block.getName()).thenReturn(TestConstants.TASK_NAME);
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
 
         List<Protos.OfferID> acceptedOffers =
@@ -196,14 +196,14 @@ public class RecoverySchedulerTest {
         recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
 
         // Verify we performed the failed task callback.
-        verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
+        verify(taskFailureListener, times(2)).taskFailed(TestConstants.TASK_ID);
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
             recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
             // verify the transition to stopped
             assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-            assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+            assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
         }
     }
 
@@ -232,11 +232,11 @@ public class RecoverySchedulerTest {
         verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
 
         // Verify the appropriate task was checked for failure.
-        verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
+        verify(taskFailureListener, times(2)).taskFailed(TestConstants.TASK_ID);
 
         // Verify the Task is reported as failed.
         assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-        assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+        assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
     }
 
     @Test
@@ -262,11 +262,11 @@ public class RecoverySchedulerTest {
         assertEquals(0, acceptedOffers.size());
 
         // Verify the appropriate task was checked for failure.
-        verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
+        verify(taskFailureListener, times(2)).taskFailed(TestConstants.TASK_ID);
 
         // Verify we transitioned the task to failed
         assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-        assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+        assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
 
         // Verify we didn't launch the task
         verify(offerAccepter, times(1)).accept(any(), eq(Collections.EMPTY_LIST));

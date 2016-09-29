@@ -40,8 +40,8 @@ public class TestTaskSpecificationFactory {
                 count,
                 name,
                 getCommand(cmd),
-                getResources(cpu, mem, TestConstants.role, TestConstants.principal),
-                getVolumes(disk, TestConstants.role, TestConstants.principal));
+                getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL));
     }
 
     public static TaskSpecification getTaskSpecification() {
@@ -63,8 +63,8 @@ public class TestTaskSpecificationFactory {
         return new DefaultTaskSpecification(
                 name,
                 getCommand(cmd),
-                getResources(cpu, mem, TestConstants.role, TestConstants.principal),
-                getVolumes(disk, TestConstants.role, TestConstants.principal));
+                getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL));
     }
 
 
@@ -103,7 +103,7 @@ public class TestTaskSpecificationFactory {
                 new DefaultVolumeSpecification(
                         diskSize,
                         VolumeSpecification.Type.ROOT,
-                        TestConstants.containerPath,
+                        TestConstants.CONTAINER_PATH,
                         role,
                         principal));
     }

@@ -203,6 +203,72 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
+    public static Resource setDynamicPortName(Resource resource, String name) {
+        Labels labels = setDynamicPortName(resource.getReservation().getLabels(), name);
+
+        return Resource.newBuilder(resource)
+                .setReservation(
+                        ReservationInfo.newBuilder(resource.getReservation())
+                        .clearLabels()
+                        .setLabels(labels))
+                .build();
+    }
+
+    private static Labels setDynamicPortName(Labels labels, String name) {
+        Labels.Builder labelBuilder = Labels.newBuilder(labels);
+        labelBuilder.addLabelsBuilder()
+                .setKey(MesosResource.DYNAMIC_PORT_KEY)
+                .setValue(name)
+                .build();
+
+        return labelBuilder.build();
+    }
+
+    public static Protos.Environment getEnvironment(List<Resource> resources) {
+        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
+        for (Resource resource : resources) {
+            String portName = DynamicPortRequirement.getPortName(resource);
+            if (portName != null) {
+                String portNumber = String.valueOf(resource.getRanges().getRange(0).getBegin());
+                envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
+                        .setName(portName)
+                        .setValue(portNumber));
+            }
+        }
+
+        return envBuilder.build();
+    }
+
+    public static Protos.Environment updateEnvironment(Protos.Environment env, List<Resource> resources) {
+        Protos.Environment resEnv = ResourceUtils.getEnvironment(resources);
+        return Protos.Environment.newBuilder(env)
+                .addAllVariables(resEnv.getVariablesList())
+                .build();
+    }
+
+    public static TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
+        Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
+                builder.getCommand().getEnvironment(), resources);
+        if (updateEnv.getVariablesCount() > 0) {
+            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
+                    .setEnvironment(updateEnv));
+        } else {
+            return builder;
+        }
+    }
+
+    public static ExecutorInfo.Builder updateEnvironment(
+            Protos.ExecutorInfo.Builder builder, List<Resource> resources) {
+        Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
+                builder.getCommand().getEnvironment(), resources);
+        if (updateEnv.getVariablesCount() > 0) {
+            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
+                    .setEnvironment(updateEnv));
+        } else {
+            return builder;
+        }
+    }
+
     public static Resource setValue(Resource resource, Value value) {
         return setResource(Resource.newBuilder(resource), resource.getName(), value);
     }

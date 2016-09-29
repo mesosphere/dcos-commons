@@ -36,8 +36,8 @@ public class DefaultOfferRequirementProviderTest {
         OfferRequirement offerRequirement =
                 defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertTrue(offerRequirement.getPersistenceIds().contains(TestConstants.persistenceId));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.resourceId));
+        Assert.assertTrue(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
     }
 
     @Test(expected=InvalidRequirementException.class)
@@ -71,8 +71,8 @@ public class DefaultOfferRequirementProviderTest {
         OfferRequirement offerRequirement =
                 defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.persistenceId));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.resourceId));
+        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
     }
 
     @Test
@@ -90,7 +90,7 @@ public class DefaultOfferRequirementProviderTest {
         OfferRequirement offerRequirement =
                 defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.persistenceId));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.resourceId));
+        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
     }
 }

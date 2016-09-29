@@ -1,26 +1,14 @@
 package org.apache.mesos.scheduler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.apache.mesos.MesosSchedulerDriver;
+import org.apache.mesos.Protos.*;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
+import org.junit.Test;
 
 import java.util.List;
 
-import org.apache.mesos.Protos.Credential;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.FrameworkInfo;
-import org.apache.mesos.Protos.MasterInfo;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.Protos.SlaveID;
-import org.apache.mesos.Protos.TaskStatus;
-import org.apache.mesos.MesosSchedulerDriver;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
-
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class SchedulerDriverFactoryTest {
 

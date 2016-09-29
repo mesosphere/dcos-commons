@@ -9,56 +9,56 @@ import java.util.Arrays;
 public class ResourceTestUtils {
   public static Resource getDesiredRootVolume(double diskSize) {
     return ResourceUtils.getDesiredRootVolume(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             diskSize,
-            TestConstants.containerPath);
+            TestConstants.CONTAINER_PATH);
   }
 
   public static Resource getDesiredMountVolume(double diskSize) {
     return ResourceUtils.getDesiredMountVolume(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             diskSize,
-            TestConstants.containerPath);
+            TestConstants.CONTAINER_PATH);
   }
 
   public static Resource getUnreservedMountVolume(double diskSize) {
-    return ResourceUtils.getUnreservedMountVolume(diskSize, TestConstants.mountRoot);
+    return ResourceUtils.getUnreservedMountVolume(diskSize, TestConstants.MOUNT_ROOT);
   }
 
   public static Resource getExpectedMountVolume(double diskSize) {
-    return getExpectedMountVolume(diskSize, TestConstants.resourceId);
+    return getExpectedMountVolume(diskSize, TestConstants.RESOURCE_ID);
   }
 
   public static Resource getExpectedMountVolume(double diskSize, String resourceId) {
     return ResourceUtils.getExpectedMountVolume(
             diskSize,
             resourceId,
-            TestConstants.role,
-            TestConstants.principal,
-            TestConstants.mountRoot,
-            TestConstants.containerPath,
-            TestConstants.persistenceId);
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
+            TestConstants.MOUNT_ROOT,
+            TestConstants.CONTAINER_PATH,
+            TestConstants.PERSISTENCE_ID);
   }
 
   public static Resource getExpectedRootVolume(double diskSize) {
-    return getExpectedRootVolume(diskSize, TestConstants.resourceId);
+    return getExpectedRootVolume(diskSize, TestConstants.RESOURCE_ID);
   }
 
   public static Resource getExpectedRootVolume(double diskSize, String resourceId) {
     return ResourceUtils.getExpectedRootVolume(
             diskSize,
             resourceId,
-            TestConstants.role,
-            TestConstants.principal,
-            TestConstants.persistenceId);
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
+            TestConstants.PERSISTENCE_ID);
   }
 
   public static Resource getDesiredScalar(String name, double value) {
     return ResourceUtils.getDesiredScalar(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             name,
             value);
   }
@@ -68,14 +68,14 @@ public class ResourceTestUtils {
             name,
             value,
             resourceId,
-            TestConstants.role,
-            TestConstants.principal);
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
   }
 
   public static final Resource getDesiredRanges(String name, long begin, long end) {
     return ResourceUtils.getDesiredRanges(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             name,
             Arrays.asList(Protos.Value.Range.newBuilder().setBegin(begin).setEnd(end).build()));
   }
@@ -92,8 +92,17 @@ public class ResourceTestUtils {
     return ResourceUtils.getUnreservedScalar("disk", disk);
   }
 
+  public static Resource getUnreservedPorts(int begin, int end) {
+    return ResourceUtils.getUnreservedRanges(
+            "ports",
+            Arrays.asList(Protos.Value.Range.newBuilder()
+                            .setBegin(begin)
+                            .setEnd(end)
+                            .build()));
+  }
+
   public static Resource getExpectedCpu(double cpus) {
-    return ResourceTestUtils.getExpectedScalar("cpus", cpus, TestConstants.resourceId);
+    return ResourceTestUtils.getExpectedScalar("cpus", cpus, TestConstants.RESOURCE_ID);
   }
 
   public static Resource getDesiredCpu(double cpus) {
@@ -103,4 +112,5 @@ public class ResourceTestUtils {
   public static Resource getDesiredMem(double mem) {
     return ResourceTestUtils.getDesiredScalar("mem", mem);
   }
+
 }

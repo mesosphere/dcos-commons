@@ -3,7 +3,9 @@ package org.apache.mesos.scheduler;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Implementation of the Observable interface */
+/**
+ * Implementation of the Observable interface.
+ */
 public class DefaultObservable implements Observable {
     private Set<Observer> observers;
 
