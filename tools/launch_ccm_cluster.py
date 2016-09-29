@@ -314,7 +314,7 @@ class StartConfig(object):
             start_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS,
             public_agents = 0,
             private_agents = 1,
-            aws_region = 'us-west-2',
+            aws_region = 'eu-central-1',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
             mount_volumes = False):
