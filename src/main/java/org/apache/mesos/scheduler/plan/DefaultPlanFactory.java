@@ -22,7 +22,9 @@ public class DefaultPlanFactory {
         return DefaultPlan.fromList(getPhases(serviceSpecification));
     }
 
-    private List<? extends Phase> getPhases(ServiceSpecification serviceSpecification) throws InvalidRequirementException {
+    private List<? extends Phase> getPhases(ServiceSpecification serviceSpecification)
+            throws InvalidRequirementException {
+
         List<Phase> phases = new ArrayList<>();
         for (TaskSet taskSet : serviceSpecification.getTaskSets()) {
             phases.add(phaseFactory.getPhase(taskSet));
