@@ -8,8 +8,8 @@ import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskTypeSpecification;
-import org.apache.mesos.specification.TestTaskSpecificationFactory;
+import org.apache.mesos.specification.TaskSet;
+import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
@@ -76,16 +76,16 @@ public class DefaultSchedulerTest {
             }
 
             @Override
-            public List<TaskTypeSpecification> getTaskSpecifications() {
+            public List<TaskSet> getTaskSets() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM,
                                 TASK_A_DISK),
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -216,16 +216,16 @@ public class DefaultSchedulerTest {
             }
 
             @Override
-            public List<TaskTypeSpecification> getTaskSpecifications() {
+            public List<TaskSet> getTaskSets() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU * 2.0,
                                 TASK_A_MEM * 2.0,
                                 TASK_A_DISK),
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -258,16 +258,16 @@ public class DefaultSchedulerTest {
             }
 
             @Override
-            public List<TaskTypeSpecification> getTaskSpecifications() {
+            public List<TaskSet> getTaskSets() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM,
                                 TASK_A_DISK),
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -300,16 +300,16 @@ public class DefaultSchedulerTest {
             }
 
             @Override
-            public List<TaskTypeSpecification> getTaskSpecifications() {
+            public List<TaskSet> getTaskSets() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM,
                                 TASK_A_DISK),
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,
@@ -342,16 +342,16 @@ public class DefaultSchedulerTest {
             }
 
             @Override
-            public List<TaskTypeSpecification> getTaskSpecifications() {
+            public List<TaskSet> getTaskSets() {
                 return Arrays.asList(
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT + 1,
                                 TASK_A_CMD,
                                 TASK_A_CPU,
                                 TASK_A_MEM,
                                 TASK_A_DISK),
-                        TestTaskSpecificationFactory.getTaskTypeSpecification(
+                        TestTaskSetFactory.getTaskSet(
                                 TASK_B_NAME,
                                 TASK_B_COUNT,
                                 TASK_B_CMD,

@@ -11,16 +11,16 @@ import java.util.List;
  * This class tests the DefaultServiceSpecification class.
  */
 public class DefaultServiceSpecificationTest {
-    private List<TaskTypeSpecification> taskTypeSpecifications;
+    private List<TaskSet> taskSets;
     private DefaultServiceSpecification serviceSpecification;
     private static final String SERVICE_NAME = "test-service-name";
 
     @Before
     public void beforeEach() {
-        taskTypeSpecifications = Arrays.asList(TestTaskSpecificationFactory.getTaskTypeSpecification());
+        taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
         serviceSpecification = new DefaultServiceSpecification(
                 SERVICE_NAME,
-                taskTypeSpecifications);
+                taskSets);
     }
 
     @Test
@@ -30,9 +30,9 @@ public class DefaultServiceSpecificationTest {
 
     @Test
     public void testGetTaskSpecifications() {
-        Assert.assertEquals(1, serviceSpecification.getTaskSpecifications().size());
+        Assert.assertEquals(1, serviceSpecification.getTaskSets().size());
         Assert.assertEquals(
-                taskTypeSpecifications,
-                serviceSpecification.getTaskSpecifications());
+                taskSets,
+                serviceSpecification.getTaskSets());
     }
 }
