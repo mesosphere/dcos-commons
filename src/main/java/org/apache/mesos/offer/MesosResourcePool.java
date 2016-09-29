@@ -87,7 +87,7 @@ public class MesosResourcePool {
                                       .setEnd(range.getBegin())))
                       .build());
 
-      return new MesosResource(resource);
+      return consumeUnreservedMerged(new ResourceRequirement(resource));
     }
 
     return null;

@@ -137,7 +137,7 @@ public class OfferEvaluator {
                                     fulfilledExecutorRequirement)));
         }
 
-        List<OfferRecommendation> recommendations = new ArrayList<OfferRecommendation>();
+        List<OfferRecommendation> recommendations = new ArrayList<>();
         recommendations.addAll(unreserves);
         recommendations.addAll(reserves);
         recommendations.addAll(creates);
@@ -369,8 +369,6 @@ public class OfferEvaluator {
                         .clearResources()
                         .addAllResources(fulfilledTaskResources);
 
-        taskBuilder = ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources);
-
         if (execInfo != null) {
             ExecutorInfo.Builder execBuilder =
                     ExecutorInfo.newBuilder(execInfo)
@@ -387,6 +385,8 @@ public class OfferEvaluator {
 
             taskBuilder.setExecutor(execBuilder.build());
         }
+        taskBuilder = ResourceUtils.serializeCommandInfo(
+                ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources));
 
         return taskBuilder.build();
     }
