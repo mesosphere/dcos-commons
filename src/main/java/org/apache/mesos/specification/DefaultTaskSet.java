@@ -29,7 +29,11 @@ public class DefaultTaskSet implements TaskSet {
         return new DefaultTaskSet(name, taskSpecifications);
     }
 
-    public DefaultTaskSet(String name, List<TaskSpecification> taskSpecifications) {
+    public static DefaultTaskSet create(String name, List<TaskSpecification> taskSpecifications) {
+        return new DefaultTaskSet(name, taskSpecifications);
+    }
+
+    protected DefaultTaskSet(String name, List<TaskSpecification> taskSpecifications) {
         this.name = name;
         this.taskSpecifications = taskSpecifications;
     }
