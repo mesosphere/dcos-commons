@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -96,6 +97,79 @@ public class OfferEvaluatorTest {
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
+    }
+
+    @Test
+    public void testReserveTaskAndExecutorDynamicPort() throws InvalidRequirementException, InvalidProtocolBufferException {
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource offeredExecutorPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource offeredTaskPorts = ResourceTestUtils.getUnreservedPorts(11000, 11000);
+
+        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        Resource desiredExecutorDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                TestConstants.PORT_NAME,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+        String taskPortName = "TASK_PORT";
+        Resource desiredTaskDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                taskPortName,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerReq = new OfferRequirement(
+                Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort))),
+                Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort)),
+                null,
+                null);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerReq,
+                Arrays.asList(OfferTestUtils.getOffer(
+                        Arrays.asList(offeredCpu, offeredExecutorPorts, offeredTaskPorts))));
+
+        Assert.assertEquals(4, recommendations.size());
+
+        Operation launchOperation = recommendations.get(3).getOperation();
+        ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
+        Resource fulfilledExecutorPortResource = executorInfo.getResources(0);
+        Assert.assertEquals(2, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledTaskPortResource = taskInfo.getResources(1);
+        Assert.assertEquals(2, fulfilledTaskPortResource.getReservation().getLabels().getLabelsCount());
+
+        Label dynamicPortExecutorLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("dynamic_port", dynamicPortExecutorLabel.getKey());
+        Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortExecutorLabel.getValue());
+
+        Label dynamicPortTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("dynamic_port", dynamicPortTaskLabel.getKey());
+        Assert.assertEquals(taskPortName, dynamicPortTaskLabel.getValue());
+
+        Label resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        Label resourceIdTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("resource_id", resourceIdTaskLabel.getKey());
+
+        Assert.assertEquals(1, executorInfo.getCommand().getEnvironment().getVariablesCount());
+        Environment.Variable executorVariable = executorInfo.getCommand().getEnvironment().getVariables(0);
+        Assert.assertEquals(TestConstants.PORT_NAME, executorVariable.getName());
+        Assert.assertEquals(String.valueOf(10000), executorVariable.getValue());
+
+        fulfilledExecutorPortResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        CommandInfo command = CommandInfo.parseFrom(taskInfo.getData());
+        Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
+        Assert.assertEquals(1, command.getEnvironment().getVariablesCount());
+
+        Environment.Variable taskVariable = command.getEnvironment().getVariables(0);
+        Assert.assertEquals(taskPortName, taskVariable.getName());
+        Assert.assertEquals(String.valueOf(11000), taskVariable.getValue());
     }
 
     @Test
