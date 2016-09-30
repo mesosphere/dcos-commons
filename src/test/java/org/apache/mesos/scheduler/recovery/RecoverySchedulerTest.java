@@ -302,7 +302,7 @@ public class RecoverySchedulerTest {
 
         // Verify the Task is reported as failed.
         assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-        assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+        assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
 
         // Verify the appropriate task was not checked for failure with failure monitor.
         verify(failureMonitor, never()).hasFailed(any());
