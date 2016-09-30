@@ -32,6 +32,7 @@ public class FailureUtils {
     public static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
         if (!isLabeledAsFailed(taskInfo)) {
             taskInfo = ResourceUtils.clearResourceIds(taskInfo);
+            taskInfo = ResourceUtils.clearPersistence(taskInfo);
             return Protos.TaskInfo.newBuilder(taskInfo)
                     .setLabels(Protos.Labels.newBuilder(taskInfo.getLabels())
                             .addLabels(Protos.Label.newBuilder()

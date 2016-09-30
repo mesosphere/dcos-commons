@@ -330,6 +330,19 @@ public class ResourceUtils {
                 .build();
     }
 
+    public static TaskInfo clearPersistence(TaskInfo taskInfo) {
+        List<Protos.Resource> resources = new ArrayList<>();
+        for (Protos.Resource resource : taskInfo.getResourcesList()) {
+            if (resource.hasDisk()) {
+                resource = Protos.Resource.newBuilder(resource).setDisk(
+                    Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
+                ).build();
+            }
+            resources.add(resource);
+        }
+        return Protos.TaskInfo.newBuilder(taskInfo).clearResources().addAllResources(resources).build();
+    }
+
     public static boolean areDifferent(
             ResourceSpecification oldResourceSpecification,
             ResourceSpecification newResourceSpecification) {
