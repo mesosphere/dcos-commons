@@ -15,6 +15,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.*;
 
 /**
@@ -386,7 +388,8 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    void close() {
+    @VisibleForTesting
+    public void closeForTesting() {
         curator.close();
     }
 

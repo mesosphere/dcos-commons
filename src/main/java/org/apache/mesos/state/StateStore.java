@@ -45,7 +45,7 @@ public interface StateStore extends TaskStatusProvider {
 
 
     /**
-     * Fetches the previously stored FrameworkID.
+     * Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.
      *
      * @return The previously stored FrameworkID, or an empty Optional indicating the FrameworkID has not been set.
      * @throws StateStoreException when fetching the FrameworkID fails
@@ -136,7 +136,7 @@ public interface StateStore extends TaskStatusProvider {
 
 
     /**
-     * Fetches the TaskInfo for a particular Task, or throws an error if no matching task is found.
+     * Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.
      *
      * @param taskName The name of the Task
      * @return The corresponding TaskInfo object
@@ -157,8 +157,8 @@ public interface StateStore extends TaskStatusProvider {
 
 
     /**
-     * Fetches the TaskStatus for a particular Task, or throws an error if no matching status is found. A given task may
-     * sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
+     * Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.
+     * A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
      *
      * @param taskName The name of the Task which should have its status retrieved
      * @return The TaskStatus associated with a particular Task
