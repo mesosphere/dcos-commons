@@ -16,8 +16,6 @@ import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
-import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
-import org.apache.mesos.specification.PlanSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
@@ -122,11 +120,9 @@ public class DefaultScheduler implements Scheduler {
     private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan");
         planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
-        PlanSpecification planSpecification =
-                new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
         try {
-            plan = new DefaultPlanFactory(stateStore).getPlan(planSpecification);
+            plan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
             logger.info("Generated plan: " + plan);
             planManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());
         } catch (InvalidRequirementException e) {

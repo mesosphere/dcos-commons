@@ -48,49 +48,49 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreNotDifferentTaskSpecifications() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
-        TaskSpecification newTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
+        TaskSpecification newTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsName() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
-                TestTaskSpecificationFactory.getTaskSpecification(
-                        "new" + TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.CMD.getValue(),
-                        TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM,
-                        TestTaskSpecificationFactory.DISK);
+                TestTaskSetFactory.getTaskSpecification(
+                        "new" + TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.CMD.getValue(),
+                        TestTaskSetFactory.CPU,
+                        TestTaskSetFactory.MEM,
+                        TestTaskSetFactory.DISK);
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsCmd() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
-                TestTaskSpecificationFactory.getTaskSpecification(
-                        TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.CMD.getValue() + " && echo foo",
-                        TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM,
-                        TestTaskSpecificationFactory.DISK);
+                TestTaskSetFactory.getTaskSpecification(
+                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.CMD.getValue() + " && echo foo",
+                        TestTaskSetFactory.CPU,
+                        TestTaskSetFactory.MEM,
+                        TestTaskSetFactory.DISK);
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsResourcesLength() {
-        TaskSpecification oldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
+        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification tmpTaskSpecification =
-                TestTaskSpecificationFactory.getTaskSpecification(
-                        TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.CMD.getValue(),
-                        TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM,
-                        TestTaskSpecificationFactory.DISK);
+                TestTaskSetFactory.getTaskSpecification(
+                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.CMD.getValue(),
+                        TestTaskSetFactory.CPU,
+                        TestTaskSetFactory.MEM,
+                        TestTaskSetFactory.DISK);
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpTaskSpecification);
         newTaskSpecification.addResource(new DefaultResourceSpecification(
                 "foo",
@@ -106,7 +106,7 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsNoResourceOverlap() {
-        TaskSpecification tmpOldTaskSpecification = TestTaskSpecificationFactory.getTaskSpecification();
+        TaskSpecification tmpOldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(tmpOldTaskSpecification);
         oldTaskSpecification.addResource(new DefaultResourceSpecification(
                 "bar",
@@ -118,12 +118,12 @@ public class TaskUtilsTest {
                 TestConstants.PRINCIPAL));
 
         TaskSpecification tmpNewTaskSpecification =
-                TestTaskSpecificationFactory.getTaskSpecification(
-                        TestTaskSpecificationFactory.NAME,
-                        TestTaskSpecificationFactory.CMD.getValue(),
-                        TestTaskSpecificationFactory.CPU,
-                        TestTaskSpecificationFactory.MEM,
-                        TestTaskSpecificationFactory.DISK);
+                TestTaskSetFactory.getTaskSpecification(
+                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.CMD.getValue(),
+                        TestTaskSetFactory.CPU,
+                        TestTaskSetFactory.MEM,
+                        TestTaskSetFactory.DISK);
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpNewTaskSpecification);
         newTaskSpecification.addResource(new DefaultResourceSpecification(
                 "foo",

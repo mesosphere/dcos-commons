@@ -14,8 +14,8 @@ public interface ServiceSpecification {
 
 
     /**
-     * Gets the list of TaskTypeSpecifications defining the types of Tasks of which the Service is made.
+     * Gets the list of {@link TaskSet}s defining the types of Tasks of which the Service is made.
      * @return
      */
-    List<TaskTypeSpecification> getTaskSpecifications();
+    List<TaskSet> getTaskSets();
 }

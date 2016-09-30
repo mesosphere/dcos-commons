@@ -1,8 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.specification.PhaseSpecification;
-import org.apache.mesos.specification.PlanSpecification;
+import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.state.StateStore;
 
 import java.util.ArrayList;
@@ -18,14 +18,16 @@ public class DefaultPlanFactory {
         this.phaseFactory = new DefaultPhaseFactory(new DefaultBlockFactory(stateStore));
     }
 
-    public Plan getPlan(PlanSpecification planSpecification) throws InvalidRequirementException {
-        return DefaultPlan.fromList(getPhases(planSpecification));
+    public Plan getPlan(ServiceSpecification serviceSpecification) throws InvalidRequirementException {
+        return DefaultPlan.fromList(getPhases(serviceSpecification));
     }
 
-    private List<? extends Phase> getPhases(PlanSpecification planSpecification) throws InvalidRequirementException {
+    private List<? extends Phase> getPhases(ServiceSpecification serviceSpecification)
+            throws InvalidRequirementException {
+
         List<Phase> phases = new ArrayList<>();
-        for (PhaseSpecification phaseSpecification : planSpecification.getPhaseSpecifications()) {
-            phases.add(phaseFactory.getPhase(phaseSpecification));
+        for (TaskSet taskSet : serviceSpecification.getTaskSets()) {
+            phases.add(phaseFactory.getPhase(taskSet));
         }
 
         return phases;
