@@ -1,13 +1,12 @@
 package org.apache.mesos.offer;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.protobuf.TextFormat;
 
 import java.util.*;
 
@@ -64,6 +63,33 @@ public class MesosResourcePool {
 
     logger.error("The following resource requirement did not meet any consumption criteria: {}",
         TextFormat.shortDebugString(resReq.getResource()));
+    return null;
+  }
+
+  public MesosResource consume(DynamicPortRequirement dynamicPortRequirement) {
+    Value availableValue = unreservedMergedPool.get(dynamicPortRequirement.getName());
+
+    if (availableValue == null) {
+      return null;
+    }
+
+    // Choose first available port
+    if (availableValue.getRanges().getRangeCount() > 0) {
+      Value.Range range = availableValue.getRanges().getRange(0);
+      Resource resource = ResourceUtils.getUnreservedResource(
+              dynamicPortRequirement.getName(),
+              Value.newBuilder()
+                      .setType(Value.Type.RANGES)
+                      .setRanges(Value.Ranges.newBuilder()
+                              .addRange(Value.Range.newBuilder()
+                                      .setBegin(range.getBegin())
+                                      // Use getBegin again, since we just want the one port.
+                                      .setEnd(range.getBegin())))
+                      .build());
+
+      return consumeUnreservedMerged(new ResourceRequirement(resource));
+    }
+
     return null;
   }
 

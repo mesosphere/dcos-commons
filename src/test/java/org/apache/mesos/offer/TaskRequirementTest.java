@@ -17,7 +17,7 @@ public class TaskRequirementTest {
 
     @Test
     public void testTaskIdChanges() throws Exception {
-        assertNotEquals(TestConstants.taskId,
+        assertNotEquals(TestConstants.TASK_ID,
                 new TaskRequirement(VALID_TASKINFO).getTaskInfo().getTaskId().getValue());
     }
 

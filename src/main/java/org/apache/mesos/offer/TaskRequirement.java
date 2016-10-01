@@ -1,10 +1,10 @@
 package org.apache.mesos.offer;
 
-import java.util.Collection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.TaskInfo;
+
+import java.util.Collection;
 
 /**
  * A TaskRequirement encapsulates the needed resources a Task must have.
@@ -12,6 +12,7 @@ import org.apache.mesos.Protos.TaskInfo;
 public class TaskRequirement {
     private final TaskInfo taskInfo;
     private final Collection<ResourceRequirement> resourceRequirements;
+    private Collection<DynamicPortRequirement> dynamicPortRequirements;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
         validateTaskInfo(unverifiedTaskInfo);
@@ -20,7 +21,9 @@ public class TaskRequirement {
                 .setTaskId(TaskUtils.toTaskId(unverifiedTaskInfo.getName()))
                 .build();
         this.resourceRequirements =
-                RequirementUtils.getResourceRequirements(this.taskInfo.getResourcesList());
+                RequirementUtils.getResourceRequirements(taskInfo.getResourcesList());
+        this.dynamicPortRequirements =
+                RequirementUtils.getDynamicPortRequirements(taskInfo.getResourcesList());
     }
 
     public TaskInfo getTaskInfo() {
@@ -29,6 +32,10 @@ public class TaskRequirement {
 
     public Collection<ResourceRequirement> getResourceRequirements() {
         return resourceRequirements;
+    }
+
+    public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
+        return dynamicPortRequirements;
     }
 
     public Collection<String> getResourceIds() {

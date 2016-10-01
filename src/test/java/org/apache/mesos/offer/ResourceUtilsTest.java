@@ -17,10 +17,10 @@ public class ResourceUtilsTest {
   @Test
   public void testCreateDesiredMountVolume() {
     Resource desiredMountVolume = ResourceUtils.getDesiredMountVolume(
-        TestConstants.role,
-        TestConstants.principal,
+        TestConstants.ROLE,
+        TestConstants.PRINCIPAL,
         1000,
-        TestConstants.containerPath);
+        TestConstants.CONTAINER_PATH);
     Assert.assertNotNull(desiredMountVolume);
     Assert.assertTrue(desiredMountVolume.getDisk().hasPersistence());
     Assert.assertEquals("", desiredMountVolume.getDisk().getPersistence().getId());
@@ -31,10 +31,10 @@ public class ResourceUtilsTest {
   @Test
   public void testCreateDesiredRootVolume() {
     Resource desiredRootVolume = ResourceUtils.getDesiredRootVolume(
-        TestConstants.role,
-        TestConstants.principal,
+        TestConstants.ROLE,
+        TestConstants.PRINCIPAL,
         1000,
-        TestConstants.containerPath);
+        TestConstants.CONTAINER_PATH);
     Assert.assertNotNull(desiredRootVolume);
     Assert.assertTrue(desiredRootVolume.getDisk().hasPersistence());
     Assert.assertEquals("", desiredRootVolume.getDisk().getPersistence().getId());
@@ -53,8 +53,8 @@ public class ResourceUtilsTest {
   public void testGetDesiredRanges() {
     List<Protos.Value.Range> testRanges = getTestRanges();
     Resource resource = ResourceUtils.getDesiredRanges(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             "ports",
             testRanges);
 
@@ -70,8 +70,8 @@ public class ResourceUtilsTest {
             "ports",
             testRanges,
             expectedResourceId,
-            TestConstants.role,
-            TestConstants.principal);
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
 
     validateRanges(testRanges, resource.getRanges().getRangeList());
     validateRolePrincipal(resource);
@@ -81,19 +81,19 @@ public class ResourceUtilsTest {
   @Test
   public void testClearTaskInfoResourceIds() {
     Resource resource = ResourceUtils.getDesiredScalar(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             "cpus",
             1.0);
-    resource = ResourceUtils.setResourceId(resource, TestConstants.resourceId);
+    resource = ResourceUtils.setResourceId(resource, TestConstants.RESOURCE_ID);
 
     Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-            .setName(TestConstants.taskName)
-            .setTaskId(TestConstants.taskId)
-            .setSlaveId(TestConstants.agentId)
+            .setName(TestConstants.TASK_NAME)
+            .setTaskId(TestConstants.TASK_ID)
+            .setSlaveId(TestConstants.AGENT_ID)
             .addResources(resource)
             .build();
-    Assert.assertEquals(TestConstants.resourceId, ResourceUtils.getResourceId(taskInfo.getResources(0)));
+    Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(taskInfo.getResources(0)));
 
     taskInfo = ResourceUtils.clearResourceIds(taskInfo);
     Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getResources(0)));
@@ -102,18 +102,18 @@ public class ResourceUtilsTest {
   @Test
   public void testClearExecutorInfoResourceIds() {
     Resource resource = ResourceUtils.getDesiredScalar(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             "cpus",
             1.0);
-    resource = ResourceUtils.setResourceId(resource, TestConstants.resourceId);
+    resource = ResourceUtils.setResourceId(resource, TestConstants.RESOURCE_ID);
 
     Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
-            .setExecutorId(TestConstants.executorId)
+            .setExecutorId(TestConstants.EXECUTOR_ID)
             .setCommand(Protos.CommandInfo.newBuilder().build())
             .addResources(resource)
             .build();
-    Assert.assertEquals(TestConstants.resourceId, ResourceUtils.getResourceId(executorInfo.getResources(0)));
+    Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(executorInfo.getResources(0)));
 
     executorInfo = ResourceUtils.clearResourceIds(executorInfo);
     Assert.assertNull(ResourceUtils.getResourceId(executorInfo.getResources(0)));
@@ -122,27 +122,27 @@ public class ResourceUtilsTest {
   @Test
   public void testClearTaskInfoAndExecutorInfoResourceIds() {
     Resource resource = ResourceUtils.getDesiredScalar(
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             "cpus",
             1.0);
-    resource = ResourceUtils.setResourceId(resource, TestConstants.resourceId);
+    resource = ResourceUtils.setResourceId(resource, TestConstants.RESOURCE_ID);
 
     Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
-            .setExecutorId(TestConstants.executorId)
+            .setExecutorId(TestConstants.EXECUTOR_ID)
             .setCommand(Protos.CommandInfo.newBuilder().build())
             .addResources(resource)
             .build();
     Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-            .setName(TestConstants.taskName)
-            .setTaskId(TestConstants.taskId)
-            .setSlaveId(TestConstants.agentId)
+            .setName(TestConstants.TASK_NAME)
+            .setTaskId(TestConstants.TASK_ID)
+            .setSlaveId(TestConstants.AGENT_ID)
             .addResources(resource)
             .setExecutor(executorInfo)
             .build();
 
-    Assert.assertEquals(TestConstants.resourceId, ResourceUtils.getResourceId(taskInfo.getResources(0)));
-    Assert.assertEquals(TestConstants.resourceId, ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
+    Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(taskInfo.getResources(0)));
+    Assert.assertEquals(TestConstants.RESOURCE_ID, ResourceUtils.getResourceId(taskInfo.getExecutor().getResources(0)));
 
     taskInfo = ResourceUtils.clearResourceIds(taskInfo);
     Assert.assertNull(ResourceUtils.getResourceId(taskInfo.getResources(0)));
@@ -158,8 +158,8 @@ public class ResourceUtilsTest {
   }
 
   private void validateRolePrincipal(Resource resource) {
-    Assert.assertEquals(TestConstants.role, resource.getRole());
-    Assert.assertEquals(TestConstants.principal, resource.getReservation().getPrincipal());
+    Assert.assertEquals(TestConstants.ROLE, resource.getRole());
+    Assert.assertEquals(TestConstants.PRINCIPAL, resource.getReservation().getPrincipal());
   }
 
   public List<Protos.Value.Range> getTestRanges() {

@@ -35,23 +35,23 @@ public class DefaultBlockTest {
                 .setType(Protos.Offer.Operation.Type.LAUNCH)
                 .setLaunch(Protos.Offer.Operation.Launch.newBuilder()
                         .addTaskInfos(Protos.TaskInfo.newBuilder()
-                                .setTaskId(TestConstants.taskId)
-                                .setName(TestConstants.taskName)
-                                .setSlaveId(TestConstants.agentId)))
+                                .setTaskId(TestConstants.TASK_ID)
+                                .setName(TestConstants.TASK_NAME)
+                                .setSlaveId(TestConstants.AGENT_ID)))
                 .build();
         block.updateOfferStatus(Arrays.asList(operation));
 
         Assert.assertTrue(block.isInProgress());
 
         block.update(Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.taskId)
+                .setTaskId(TestConstants.TASK_ID)
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .build());
 
         Assert.assertTrue(block.isComplete());
 
         block.update(Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.taskId)
+                .setTaskId(TestConstants.TASK_ID)
                 .setState(Protos.TaskState.TASK_FAILED)
                 .build());
 

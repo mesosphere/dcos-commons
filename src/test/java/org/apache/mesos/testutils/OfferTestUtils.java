@@ -38,9 +38,9 @@ public class OfferTestUtils {
 
     private static Protos.Offer.Builder getBuilder() {
         return Protos.Offer.newBuilder()
-                .setId(TestConstants.offerId)
-                .setFrameworkId(TestConstants.frameworkId)
-                .setSlaveId(TestConstants.agentId)
-                .setHostname(TestConstants.hostname);
+                .setId(TestConstants.OFFER_ID)
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME);
     }
 }

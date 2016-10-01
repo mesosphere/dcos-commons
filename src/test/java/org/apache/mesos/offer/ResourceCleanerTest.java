@@ -34,35 +34,35 @@ public class ResourceCleanerTest {
             "ports",
             Arrays.asList(Value.Range.newBuilder().setBegin(123).setEnd(234).build()),
             EXPECTED_RESOURCE_1_ID,
-            TestConstants.role,
-            TestConstants.principal);
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
 
     private static final Resource EXPECTED_RESOURCE_2 = ResourceUtils.getExpectedRootVolume(
             999.0,
             EXPECTED_RESOURCE_2_ID,
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             EXPECTED_RESOURCE_2_ID);
 
     private static final Resource UNEXPECTED_RESOURCE_1 = ResourceUtils.getExpectedRootVolume(
             1000.0,
             UNEXPECTED_RESOURCE_1_ID,
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             UNEXPECTED_RESOURCE_1_ID);
 
     private static final Resource UNEXPECTED_RESOURCE_2 = ResourceUtils.getExpectedScalar(
             "cpus",
             1.0,
             UNEXPECTED_RESOURCE_2_ID,
-            TestConstants.role,
-            TestConstants.principal);
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
 
     private static final Resource UNEXPECTED_RESOURCE_3 = ResourceUtils.getExpectedRootVolume(
             1001.0,
             UNEXPECTED_RESOURCE_3_ID,
-            TestConstants.role,
-            TestConstants.principal,
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
             UNEXPECTED_RESOURCE_3_ID);
 
     private static final TaskInfo TASK_INFO_1 =

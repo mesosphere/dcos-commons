@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -13,6 +14,163 @@ import java.util.*;
 public class OfferEvaluatorTest {
 
     private static final OfferEvaluator evaluator = new OfferEvaluator();
+
+    @Test
+    public void testReserveTaskDynamicPort() throws InvalidRequirementException {
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                TestConstants.PORT_NAME,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredDynamicPort);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredPorts)));
+
+        Assert.assertEquals(2, recommendations.size());
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledPortResource = taskInfo.getResources(0);
+        Assert.assertEquals(2, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        Label dynamicPortLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("dynamic_port", dynamicPortLabel.getKey());
+        Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortLabel.getValue());
+
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        Assert.assertEquals(1, taskInfo.getCommand().getEnvironment().getVariablesCount());
+        Environment.Variable variable = taskInfo.getCommand().getEnvironment().getVariables(0);
+        Assert.assertEquals(TestConstants.PORT_NAME, variable.getName());
+        Assert.assertEquals(String.valueOf(10000), variable.getValue());
+    }
+
+    @Test
+    public void testReserveExecutorDynamicPort() throws InvalidRequirementException {
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+
+        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                TestConstants.PORT_NAME,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerReq = new OfferRequirement(
+                Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
+                Optional.of(TaskTestUtils.getExecutorInfo(desiredDynamicPort)),
+                null,
+                null);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerReq,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredCpu, offeredPorts))));
+
+        Assert.assertEquals(3, recommendations.size());
+
+        Operation launchOperation = recommendations.get(2).getOperation();
+        ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
+        Resource fulfilledPortResource = executorInfo.getResources(0);
+        Assert.assertEquals(2, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        Label dynamicPortLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("dynamic_port", dynamicPortLabel.getKey());
+        Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortLabel.getValue());
+
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        Assert.assertEquals(1, executorInfo.getCommand().getEnvironment().getVariablesCount());
+        Environment.Variable variable = executorInfo.getCommand().getEnvironment().getVariables(0);
+        Assert.assertEquals(TestConstants.PORT_NAME, variable.getName());
+        Assert.assertEquals(String.valueOf(10000), variable.getValue());
+
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        fulfilledPortResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
+    }
+
+    @Test
+    public void testReserveTaskAndExecutorDynamicPort() throws InvalidRequirementException, InvalidProtocolBufferException {
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource offeredExecutorPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource offeredTaskPorts = ResourceTestUtils.getUnreservedPorts(11000, 11000);
+
+        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        Resource desiredExecutorDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                TestConstants.PORT_NAME,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+        String taskPortName = "TASK_PORT";
+        Resource desiredTaskDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                taskPortName,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerReq = new OfferRequirement(
+                Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort))),
+                Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort)),
+                null,
+                null);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerReq,
+                Arrays.asList(OfferTestUtils.getOffer(
+                        Arrays.asList(offeredCpu, offeredExecutorPorts, offeredTaskPorts))));
+
+        Assert.assertEquals(4, recommendations.size());
+
+        Operation launchOperation = recommendations.get(3).getOperation();
+        ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
+        Resource fulfilledExecutorPortResource = executorInfo.getResources(0);
+        Assert.assertEquals(2, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledTaskPortResource = taskInfo.getResources(1);
+        Assert.assertEquals(2, fulfilledTaskPortResource.getReservation().getLabels().getLabelsCount());
+
+        Label dynamicPortExecutorLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("dynamic_port", dynamicPortExecutorLabel.getKey());
+        Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortExecutorLabel.getValue());
+
+        Label dynamicPortTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("dynamic_port", dynamicPortTaskLabel.getKey());
+        Assert.assertEquals(taskPortName, dynamicPortTaskLabel.getValue());
+
+        Label resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        Label resourceIdTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("resource_id", resourceIdTaskLabel.getKey());
+
+        Assert.assertEquals(1, executorInfo.getCommand().getEnvironment().getVariablesCount());
+        Environment.Variable executorVariable = executorInfo.getCommand().getEnvironment().getVariables(0);
+        Assert.assertEquals(TestConstants.PORT_NAME, executorVariable.getName());
+        Assert.assertEquals(String.valueOf(10000), executorVariable.getValue());
+
+        fulfilledExecutorPortResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        CommandInfo command = CommandInfo.parseFrom(taskInfo.getData());
+        Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
+        Assert.assertEquals(1, command.getEnvironment().getVariablesCount());
+
+        Environment.Variable taskVariable = command.getEnvironment().getVariables(0);
+        Assert.assertEquals(taskPortName, taskVariable.getName());
+        Assert.assertEquals(String.valueOf(11000), taskVariable.getValue());
+    }
 
     @Test
     public void testReserveTaskExecutorInsufficient() throws InvalidRequirementException {
@@ -52,9 +210,9 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.mountRoot, reserveResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
@@ -69,8 +227,8 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
-        Assert.assertEquals(TestConstants.mountRoot, createResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.principal, createResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
 
         // Validate LAUNCH Operation
@@ -87,8 +245,8 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.mountRoot, launchResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.principal, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
     }
 
@@ -115,8 +273,8 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(getFirstLabel(updatedResource).getValue(), getFirstLabel(launchResource).getValue());
         Assert.assertEquals(updatedResource.getDisk().getPersistence().getId(), launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.mountRoot, launchResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.principal, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
     }
 
@@ -163,8 +321,8 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1500, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
 
@@ -179,7 +337,7 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(resourceId, getFirstLabel(createResource).getValue());
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
-        Assert.assertEquals(TestConstants.principal, createResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
 
         // Validate LAUNCH Operation
@@ -196,7 +354,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.principal, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
     }
 
     @Test
@@ -231,11 +389,11 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(1000, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, launchResource.getRole());
-        Assert.assertEquals(TestConstants.mountRoot, launchResource.getDisk().getSource().getMount().getRoot());
-        Assert.assertEquals(TestConstants.persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.principal, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(TestConstants.principal, launchResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
+        Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
@@ -261,10 +419,10 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(1000, launchResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, launchResource.getRole());
-        Assert.assertEquals(TestConstants.persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.principal, launchResource.getDisk().getPersistence().getPrincipal());
-        Assert.assertEquals(TestConstants.principal, launchResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, launchResource.getRole());
+        Assert.assertEquals(TestConstants.PERSISTENCE_ID, launchResource.getDisk().getPersistence().getId());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
+        Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(launchResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
@@ -289,8 +447,8 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -336,8 +494,8 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals("mem", reserveResource.getName());
         Assert.assertEquals(2.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         String executorResourceId = getFirstLabel(reserveResource).getValue();
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, executorResourceId.length());
@@ -354,8 +512,8 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals("cpus", reserveResource.getName());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -393,7 +551,7 @@ public class OfferEvaluatorTest {
                         new OfferRequirement(Arrays.asList(taskInfo), Optional.of(execInfo)),
                         Arrays.asList(
                                         OfferTestUtils.getOffer(
-                                                        TestConstants.executorId,
+                                                        TestConstants.EXECUTOR_ID,
                                                         Arrays.asList(offeredTaskResource, offeredExecutorResource))));
         Assert.assertEquals(2, recommendations.size());
 
@@ -408,8 +566,8 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals("cpus", reserveResource.getName());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(36, getFirstLabel(reserveResource).getValue().length());
         Assert.assertFalse(reserveResource.hasDisk());
@@ -474,8 +632,8 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, reserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, reserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, reserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, reserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(reserveResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(reserveResource).getValue());
 
@@ -527,8 +685,8 @@ public class OfferEvaluatorTest {
 
         Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.role, unreserveResource.getRole());
-        Assert.assertEquals(TestConstants.principal, unreserveResource.getReservation().getPrincipal());
+        Assert.assertEquals(TestConstants.ROLE, unreserveResource.getRole());
+        Assert.assertEquals(TestConstants.PRINCIPAL, unreserveResource.getReservation().getPrincipal());
         Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, getFirstLabel(unreserveResource).getKey());
         Assert.assertEquals(resourceId, getFirstLabel(unreserveResource).getValue());
 
@@ -555,7 +713,7 @@ public class OfferEvaluatorTest {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                         OfferRequirementTestUtils.getOfferRequirement(
                                         desiredCpu,
-                                        Arrays.asList(TestConstants.agentId.getValue()),
+                                        Arrays.asList(TestConstants.AGENT_ID.getValue()),
                                         Collections.emptyList()),
                         Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
 
@@ -589,7 +747,7 @@ public class OfferEvaluatorTest {
                         OfferRequirementTestUtils.getOfferRequirement(
                                         desiredCpu,
                                         Collections.emptyList(),
-                                        Arrays.asList(TestConstants.agentId.getValue())),
+                                        Arrays.asList(TestConstants.AGENT_ID.getValue())),
                         Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
 
         Assert.assertEquals(2, recommendations.size());
@@ -635,7 +793,7 @@ public class OfferEvaluatorTest {
                         offerRequirement,
                         Arrays.asList(
                                         OfferTestUtils.getOffer(
-                                                        TestConstants.executorId,
+                                                        TestConstants.EXECUTOR_ID,
                                                         Arrays.asList(expectedTaskCpu, expectedExecutorMem))));
 
         Assert.assertEquals(1, recommendations.size());

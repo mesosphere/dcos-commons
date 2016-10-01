@@ -15,9 +15,9 @@ public class TaskTestUtils {
 
     public static Protos.TaskInfo getTaskInfo(List<Protos.Resource> resources) {
         Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder()
-                .setTaskId(TestConstants.taskId)
-                .setName(TestConstants.taskName)
-                .setSlaveId(TestConstants.agentId);
+                .setTaskId(TestConstants.TASK_ID)
+                .setName(TestConstants.TASK_NAME)
+                .setSlaveId(TestConstants.AGENT_ID);
 
         return builder.addAllResources(resources).build();
     }
@@ -33,7 +33,7 @@ public class TaskTestUtils {
     public static Protos.ExecutorInfo getExistingExecutorInfo(Protos.Resource resource) {
         return getExecutorInfoBuilder()
                 .addResources(resource)
-                .setExecutorId(TestConstants.executorId)
+                .setExecutorId(TestConstants.EXECUTOR_ID)
                 .build();
     }
 
@@ -45,7 +45,7 @@ public class TaskTestUtils {
         Protos.CommandInfo cmd = Protos.CommandInfo.newBuilder().build();
         return Protos.ExecutorInfo.newBuilder()
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
-                .setName(TestConstants.executorName)
+                .setName(TestConstants.EXECUTOR_NAME)
                 .setCommand(cmd);
     }
 }
