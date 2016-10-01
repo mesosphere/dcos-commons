@@ -20,9 +20,9 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.LAUNCH)
                 .setLaunch(Operation.Launch.newBuilder()
-                        .addAllTaskInfos(Arrays.asList(TaskInfo.newBuilder(taskInfo)
+                        .addTaskInfos(TaskInfo.newBuilder(taskInfo)
                                 .setSlaveId(offer.getSlaveId())
-                                .build())))
+                                .build()))
                 .build();
         this.mesosTask = new MesosTask(taskInfo);
     }
