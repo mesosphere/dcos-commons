@@ -5,8 +5,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.TaskInfo;
 
-import java.util.Arrays;
-
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code LAUNCH} Operation.
  */
