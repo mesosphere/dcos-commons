@@ -21,6 +21,7 @@ public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
+    private static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
 
     private TaskUtils() {
         // do not instantiate
@@ -298,7 +299,7 @@ public class TaskUtils {
     }
 
     public static String getTaskType(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        final Protos.CommandInfo commandInfo = getCommand(taskInfo);
+        final Protos.CommandInfo commandInfo = taskInfo.getCommand();
         final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
         String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
 
@@ -309,12 +310,49 @@ public class TaskUtils {
         }
     }
 
-    public static CommandInfo getCommand(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        return Protos.CommandInfo.parseFrom(taskInfo.getData());
+    public static TaskInfo serializeTaskInfo(TaskInfo taskInfo) {
+        if (!taskInfo.hasExecutor()) {
+            return taskInfo;
+        } else {
+            ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
+                    .setExecutorId(ExecutorID.newBuilder().setValue(COMMAND_DATA_PACKAGE_EXECUTOR));
+
+            if (taskInfo.hasCommand()) {
+                executorInfoBuilder.setCommand(taskInfo.getCommand());
+            }
+
+            if (taskInfo.hasData()) {
+                executorInfoBuilder.setData(taskInfo.getData());
+            }
+
+            return TaskInfo.newBuilder(taskInfo)
+                    .setData(executorInfoBuilder.build().toByteString())
+                    .clearCommand()
+                    .build();
+        }
+    }
+
+    public static TaskInfo deserializeTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+        if (!taskInfo.hasExecutor()) {
+            return taskInfo;
+        } else {
+            TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
+            ExecutorInfo pkgExecutorInfo = Protos.ExecutorInfo.parseFrom(taskInfo.getData());
+
+            if (pkgExecutorInfo.hasCommand()) {
+                taskBuilder.setCommand(pkgExecutorInfo.getCommand());
+            }
+
+            if (pkgExecutorInfo.hasData()) {
+                taskBuilder.setData(pkgExecutorInfo.getData());
+            }
+
+            return taskBuilder.build();
+        }
     }
 
     public static ProcessBuilder getProcess(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        CommandInfo commandInfo = getCommand(taskInfo);
+        CommandInfo commandInfo = taskInfo.getCommand();
         String cmd = commandInfo.getValue();
 
         ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);

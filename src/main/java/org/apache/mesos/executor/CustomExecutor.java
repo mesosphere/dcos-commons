@@ -63,12 +63,13 @@ public class CustomExecutor implements Executor {
         LOGGER.info("Launching task: {}", task);
 
         try {
-            final ExecutorTask taskToExecute = executorTaskFactory.createTask(task, driver);
+            Protos.TaskInfo deserializedTask = TaskUtils.deserializeTaskInfo(task);
+            final ExecutorTask taskToExecute = executorTaskFactory.createTask(deserializedTask, driver);
 
             Future<?> future = executorService.submit(taskToExecute);
             LaunchedTask launchedTask = new LaunchedTask(taskToExecute, future);
-            launchedTasks.put(task.getTaskId(), launchedTask);
-            scheduleHealthCheck(task, launchedTask);
+            launchedTasks.put(deserializedTask.getTaskId(), launchedTask);
+            scheduleHealthCheck(deserializedTask, launchedTask);
         } catch (Throwable t) {
             LOGGER.error("Error launching task = {}. Reason: {}", task, t);
 
