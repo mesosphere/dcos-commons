@@ -5,8 +5,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.TaskInfo;
 
-import java.util.Arrays;
-
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code LAUNCH} Operation.
  */
@@ -20,9 +18,9 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.LAUNCH)
                 .setLaunch(Operation.Launch.newBuilder()
-                        .addAllTaskInfos(Arrays.asList(TaskInfo.newBuilder(taskInfo)
+                        .addTaskInfos(TaskInfo.newBuilder(taskInfo)
                                 .setSlaveId(offer.getSlaveId())
-                                .build())))
+                                .build()))
                 .build();
         this.mesosTask = new MesosTask(taskInfo);
     }
