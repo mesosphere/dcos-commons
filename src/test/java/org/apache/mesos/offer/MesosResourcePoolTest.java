@@ -61,7 +61,7 @@ public class MesosResourcePoolTest {
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
-        MesosResource resourceToConsume = pool.consume(resReq);
+        MesosResource resourceToConsume = pool.consume(resReq).get();
         Assert.assertEquals(offerResource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
     }
@@ -74,7 +74,7 @@ public class MesosResourcePoolTest {
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertEquals(1, pool.getReservedPool().size());
-        MesosResource resourceToConsume = pool.consume(resReq);
+        MesosResource resourceToConsume = pool.consume(resReq).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getReservedPool().size());
     }
@@ -89,7 +89,7 @@ public class MesosResourcePoolTest {
         Assert.assertEquals(1, pool.getUnreservedMergedPool().size());
         Assert.assertEquals(resource.getScalar().getValue(),
                 pool.getUnreservedMergedPool().get("cpus").getScalar().getValue(), 0.0);
-        MesosResource resourceToConsume = pool.consume(resReq);
+        MesosResource resourceToConsume = pool.consume(resReq).get();
         Assert.assertEquals(resource, resourceToConsume.getResource());
         Assert.assertEquals(ValueUtils.getZero(Protos.Value.Type.SCALAR),
                 pool.getUnreservedMergedPool().get("cpus"));
@@ -103,7 +103,7 @@ public class MesosResourcePoolTest {
         Offer offer = OfferTestUtils.getOffer(offeredUnreservedResource);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
-        Assert.assertEquals(null, pool.consume(resReq));
+        Assert.assertFalse(pool.consume(resReq).isPresent());
     }
 
     @Test
@@ -118,8 +118,7 @@ public class MesosResourcePoolTest {
         Offer offer = OfferTestUtils.getOffer(offeredPorts);
         MesosResourcePool pool = new MesosResourcePool(offer);
 
-        MesosResource mesosResource = pool.consume(dynamicPortRequirement);
-        Assert.assertNotNull(mesosResource);
+        MesosResource mesosResource = pool.consume(dynamicPortRequirement).get();
         Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
         Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
         Assert.assertEquals(10000, range.getBegin());

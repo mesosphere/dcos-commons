@@ -94,7 +94,7 @@ public class OfferRequirementTest {
         OfferRequirement offerRequirement = new OfferRequirement(
                 "taskType", Arrays.asList(taskInfo), Optional.of(execInfo));
         Resource executorResource = offerRequirement
-                .getExecutorRequirement().get()
+                .getExecutorRequirementOptional().get()
                 .getExecutorInfo()
                 .getResourcesList()
                 .get(0);

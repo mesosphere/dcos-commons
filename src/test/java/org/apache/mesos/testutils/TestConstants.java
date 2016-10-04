@@ -35,4 +35,9 @@ public class TestConstants {
             Protos.FrameworkID.newBuilder()
                     .setValue("test-framework-id")
                     .build();
+
+    public static final Protos.CommandInfo COMMAND_INFO =
+            Protos.CommandInfo.newBuilder()
+            .setValue("echo test")
+            .build();
 }

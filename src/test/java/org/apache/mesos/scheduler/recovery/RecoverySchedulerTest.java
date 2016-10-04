@@ -6,6 +6,7 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.OfferAccepter;
+import org.apache.mesos.offer.OfferRecommendation;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.scheduler.plan.Block;
@@ -20,6 +21,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,8 +68,12 @@ public class RecoverySchedulerTest {
                         ResourceTestUtils.getUnreservedMem(mem)));
     }
 
+    @Captor
+    private ArgumentCaptor<List<OfferRecommendation>> recommendationCaptor;
+
     @Before
     public void setupTest() {
+        MockitoAnnotations.initMocks(this);
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         recoveryStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
@@ -225,9 +232,8 @@ public class RecoverySchedulerTest {
         assertEquals(1, acceptedOffers.size());
 
         // Verify we launched the task
-        ArgumentCaptor<List> operationCaptor = ArgumentCaptor.forClass(List.class);
-        verify(offerAccepter, times(1)).accept(any(), operationCaptor.capture());
-        assertEquals(3, operationCaptor.getValue().size());
+        verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
+        assertEquals(3, recommendationCaptor.getValue().size());
         verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
 
         // Verify the appropriate task was checked for failure.
@@ -248,8 +254,7 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(desiredCpu);
         Resource mem = ResourceTestUtils.getDesiredMem(desiredMem);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement =
-                getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
 
         List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
 
@@ -269,7 +274,7 @@ public class RecoverySchedulerTest {
         assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
 
         // Verify we didn't launch the task
-        verify(offerAccepter, times(1)).accept(any(), eq(Collections.EMPTY_LIST));
+        verify(offerAccepter, times(1)).accept(any(), eq(Collections.emptyList()));
         verify(launchConstrainer, never()).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
     }
 
@@ -294,9 +299,8 @@ public class RecoverySchedulerTest {
         assertEquals(1, acceptedOffers.size());
 
         // Verify we launched the task
-        ArgumentCaptor<List> operationCaptor = ArgumentCaptor.forClass(List.class);
-        verify(offerAccepter, times(1)).accept(any(), operationCaptor.capture());
-        assertEquals(2, operationCaptor.getValue().size());
+        verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
+        assertEquals(2, recommendationCaptor.getValue().size());
         verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
 
         // Verify the Task is reported as failed.

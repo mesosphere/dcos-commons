@@ -12,10 +12,10 @@ import java.util.Optional;
 /**
  * An OfferRequirement encapsulates the needed resources an Offer must have.
  * In general these are Resource requirements like it must have a certain amount of
- * cpu, memory, and disk.    Additionally it has two modes regarding expectations around
- * Persistent Volumes.    In the CREATE mode it anticipates that the Scheduler will be
+ * cpu, memory, and disk.  Additionally it has two modes regarding expectations around
+ * Persistent Volumes.  In the CREATE mode it anticipates that the Scheduler will be
  * creating the required volume, so a Volume with a particular persistence id is not
- * required to be already present in an Offer.    In the EXISTING mode, we expect that
+ * required to be already present in an Offer.  In the EXISTING mode, we expect that
  * an Offer will already have the indicated persistence ID.
  */
 public class OfferRequirement {
@@ -44,9 +44,9 @@ public class OfferRequirement {
                     throws InvalidRequirementException {
         this.taskType = taskType;
         this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-        this.executorRequirementOptional = executorInfoOptional.isPresent()
-                ? Optional.of(ExecutorRequirement.create(executorInfoOptional.get()))
-                : Optional.empty();
+        this.executorRequirementOptional = executorInfoOptional.isPresent() ?
+                Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
+                Optional.empty();
         this.placementRuleGeneratorOptional = placementRuleGeneratorOptional;
     }
 
@@ -82,11 +82,11 @@ public class OfferRequirement {
         return taskRequirements;
     }
 
-    public Optional<ExecutorRequirement> getExecutorRequirement() {
+    public Optional<ExecutorRequirement> getExecutorRequirementOptional() {
         return executorRequirementOptional;
     }
 
-    public Optional<PlacementRuleGenerator> getPlacementRuleGenerator() {
+    public Optional<PlacementRuleGenerator> getPlacementRuleGeneratorOptional() {
         return placementRuleGeneratorOptional;
     }
 

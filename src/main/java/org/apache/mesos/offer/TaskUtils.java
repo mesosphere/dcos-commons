@@ -20,6 +20,7 @@ public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
+    private static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
 
     /**
      * Label key against which Offer attributes are stored (in a string representation).
@@ -106,6 +107,7 @@ public class TaskUtils {
             case TASK_KILLED:
             case TASK_ERROR:
                 return true;
+            case TASK_LOST:
             case TASK_KILLING:
             case TASK_RUNNING:
             case TASK_STAGING:
@@ -297,12 +299,64 @@ public class TaskUtils {
         return false;
     }
 
-    public static CommandInfo getCommand(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        return Protos.CommandInfo.parseFrom(taskInfo.getData());
+    /**
+     * Mesos protobuf requirements do not allow a TaskInfo to simultaneously have a Command and Executor.  In order to
+     * workaround this we encapsulate a TaskInfo's Command and Data fields in an ExecutorInfo and store it in the
+     * data field of the TaskInfo.
+     * @param taskInfo
+     * @return
+     */
+    public static TaskInfo packTaskInfo(TaskInfo taskInfo) {
+        if (!taskInfo.hasExecutor()) {
+            return taskInfo;
+        } else {
+            ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
+                    .setExecutorId(ExecutorID.newBuilder().setValue(COMMAND_DATA_PACKAGE_EXECUTOR));
+
+            if (taskInfo.hasCommand()) {
+                executorInfoBuilder.setCommand(taskInfo.getCommand());
+            } else {
+                executorInfoBuilder.setCommand(CommandInfo.getDefaultInstance());
+            }
+
+            if (taskInfo.hasData()) {
+                executorInfoBuilder.setData(taskInfo.getData());
+            }
+
+            return TaskInfo.newBuilder(taskInfo)
+                    .setData(executorInfoBuilder.build().toByteString())
+                    .clearCommand()
+                    .build();
+        }
+    }
+
+    /**
+     * This method reverses the work done in packTaskInfo such that the original TaskInfo is regenerated.
+     * @param taskInfo
+     * @return
+     * @throws InvalidProtocolBufferException
+     */
+    public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+        if (!taskInfo.hasExecutor()) {
+            return taskInfo;
+        } else {
+            TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
+            ExecutorInfo pkgExecutorInfo = Protos.ExecutorInfo.parseFrom(taskInfo.getData());
+
+            if (pkgExecutorInfo.hasCommand()) {
+                taskBuilder.setCommand(pkgExecutorInfo.getCommand());
+            }
+
+            if (pkgExecutorInfo.hasData()) {
+                taskBuilder.setData(pkgExecutorInfo.getData());
+            }
+
+            return taskBuilder.build();
+        }
     }
 
     public static ProcessBuilder getProcess(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        CommandInfo commandInfo = getCommand(taskInfo);
+        CommandInfo commandInfo = taskInfo.getCommand();
         String cmd = commandInfo.getValue();
 
         ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
