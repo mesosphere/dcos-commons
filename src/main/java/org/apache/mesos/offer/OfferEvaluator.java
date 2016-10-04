@@ -20,7 +20,7 @@ import java.util.*;
 /**
  * The OfferEvaluator processes {@link Offer}s and produces {@link OfferRecommendation}s.
  * The determination of what {@link OfferRecommendation}s, if any should be made are made
- * in reference to the {@link OfferRequirement with which it was constructed.    In the
+ * in reference to the {@link OfferRequirement with which it was constructed.  In the
  * case where an OfferRequirement has not been provided no {@link OfferRecommendation}s
  * are ever returned.
  */
@@ -32,34 +32,16 @@ public class OfferEvaluator {
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers) {
         for (Offer offer : offers) {
             List<OfferRecommendation> recommendations = evaluate(offerRequirement, offer);
-            if (recommendations != null && !recommendations.isEmpty()) {
+            if (!recommendations.isEmpty()) {
+                logger.info("Offer passed resource requirements, produced {} recommendations: {}",
+                        recommendations.size(), TextFormat.shortDebugString(offer));
                 return recommendations;
+            } else {
+                logger.info("Offer did not pass resource requirements: {}",
+                        TextFormat.shortDebugString(offer));
             }
         }
         return Collections.emptyList();
-    }
-
-    private boolean offerMeetsPlacementConstraints(OfferRequirement offerReq, Offer offer) {
-        if (offerReq.getAvoidAgents().contains(offer.getSlaveId())) {
-            return false;
-        }
-
-        if (offerReq.getColocateAgents().size() > 0 &&
-                !offerReq.getColocateAgents().contains(offer.getSlaveId())) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
-        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
-            if (execId.equals(executorID)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer) {
@@ -74,67 +56,74 @@ public class OfferEvaluator {
         List<OfferRecommendation> creates = new ArrayList<>();
         List<OfferRecommendation> launches = new ArrayList<>();
 
-        ExecutorRequirement execReq = offerRequirement.getExecutorRequirement();
-        FulfilledRequirement fulfilledExecutorRequirement = null;
-        if (execReq != null) {
-            if (execReq.desiresResources() || execReq.getExecutorInfo().getExecutorId().getValue().isEmpty()) {
-                fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
+        final Optional<ExecutorRequirement> execReqOptional =
+                offerRequirement.getExecutorRequirementOptional();
+        Optional<FulfilledRequirement> fulfilledExecutorRequirementOptional = Optional.empty();
+        Optional<ExecutorInfo> execInfoOptional = Optional.empty();
+        if (execReqOptional.isPresent()) {
+            final ExecutorRequirement execReq = execReqOptional.get();
+            execInfoOptional = Optional.of(execReq.getExecutorInfo());
+
+            if (execReq.desiresResources()
+                    || execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
+                fulfilledExecutorRequirementOptional = FulfilledRequirement.fulfillRequirement(
                         execReq.getResourceRequirements(),
                         execReq.getDynamicPortRequirements(),
                         offer,
                         pool);
 
-                if (fulfilledExecutorRequirement == null) {
+                if (!fulfilledExecutorRequirementOptional.isPresent()) {
+                    logger.info("Offer: '{}' does not fulfill the executor Resource Requirements: '{}'",
+                            offer.getId().getValue(), execReq.getResourceRequirements());
                     return Collections.emptyList();
                 }
 
-                unreserves.addAll(fulfilledExecutorRequirement.getUnreserveRecommendations());
-                reserves.addAll(fulfilledExecutorRequirement.getReserveRecommendations());
-                creates.addAll(fulfilledExecutorRequirement.getCreateRecommendations());
+                unreserves.addAll(fulfilledExecutorRequirementOptional.get().getUnreserveRecommendations());
+                reserves.addAll(fulfilledExecutorRequirementOptional.get().getReserveRecommendations());
+                creates.addAll(fulfilledExecutorRequirementOptional.get().getCreateRecommendations());
             } else {
-                Protos.ExecutorID expectedExecutorId = execReq.getExecutorInfo().getExecutorId();
+                Protos.ExecutorID expectedExecutorId = execInfoOptional.get().getExecutorId();
                 if (!hasExpectedExecutorId(offer, expectedExecutorId)) {
                     logger.info("Offer: '{}' does not contain the needed ExecutorID: '{}'",
                             offer.getId().getValue(), expectedExecutorId.getValue());
                     return Collections.emptyList();
                 }
             }
-        }
 
-        ExecutorInfo execInfo = null;
-        if (execReq != null) {
-            execInfo = execReq.getExecutorInfo();
-            if (execInfo.getExecutorId().getValue().isEmpty()) {
-                execInfo = ExecutorInfo.newBuilder(execInfo)
-                        .setExecutorId(ExecutorUtils.toExecutorId(execInfo.getName()))
-                        .build();
+            // Set executor ID *after* the other check above for its presence:
+            if (execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
+                execInfoOptional = Optional.of(ExecutorInfo.newBuilder(execInfoOptional.get())
+                        .setExecutorId(ExecutorUtils.toExecutorId(execInfoOptional.get().getName()))
+                        .build());
             }
         }
 
         for (TaskRequirement taskReq : offerRequirement.getTaskRequirements()) {
-            FulfilledRequirement fulfilledTaskRequirement =
+            Optional<FulfilledRequirement> fulfilledTaskRequirementOptional =
                     FulfilledRequirement.fulfillRequirement(
                             taskReq.getResourceRequirements(),
                             taskReq.getDynamicPortRequirements(),
                             offer,
                             pool);
 
-            if (fulfilledTaskRequirement == null) {
+            if (!fulfilledTaskRequirementOptional.isPresent()) {
+                logger.info("Offer: '{}' does not fulfill the task Resource Requirements: '{}'",
+                        offer.getId().getValue(), taskReq.getResourceRequirements());
                 return Collections.emptyList();
             }
 
+            FulfilledRequirement fulfilledTaskRequirement = fulfilledTaskRequirementOptional.get();
             unreserves.addAll(fulfilledTaskRequirement.getUnreserveRecommendations());
             reserves.addAll(fulfilledTaskRequirement.getReserveRecommendations());
             creates.addAll(fulfilledTaskRequirement.getCreateRecommendations());
 
-            launches.add(
-                    new LaunchOfferRecommendation(
-                            offer,
-                            getFulfilledTaskInfo(
-                                    taskReq,
-                                    fulfilledTaskRequirement,
-                                    execInfo,
-                                    fulfilledExecutorRequirement)));
+            launches.add(new LaunchOfferRecommendation(
+                    offer,
+                    getFulfilledTaskInfo(
+                            taskReq,
+                            fulfilledTaskRequirement,
+                            execInfoOptional,
+                            fulfilledExecutorRequirementOptional)));
         }
 
         List<OfferRecommendation> recommendations = new ArrayList<>();
@@ -164,7 +153,7 @@ public class OfferEvaluator {
             this.createRecommendations = createRecommendations;
         }
 
-        public static FulfilledRequirement fulfillRequirement(
+        public static Optional<FulfilledRequirement> fulfillRequirement(
                 Collection<ResourceRequirement> resourceRequirements,
                 Collection<DynamicPortRequirement> dynamicPortRequirements,
                 Offer offer,
@@ -176,16 +165,16 @@ public class OfferEvaluator {
             List<OfferRecommendation> createRecommendations = new ArrayList<>();
 
             for (ResourceRequirement resReq : resourceRequirements) {
-                MesosResource mesRes = pool.consume(resReq);
-                if (mesRes == null) {
+                Optional<MesosResource> mesResOptional = pool.consume(resReq);
+                if (!mesResOptional.isPresent()) {
                     logger.warn("Failed to satisfy resource requirement: {}",
                             TextFormat.shortDebugString(resReq.getResource()));
-                    return null;
-                } else {
-                    logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                            TextFormat.shortDebugString(resReq.getResource()),
-                            TextFormat.shortDebugString(mesRes.getResource()));
+                    return Optional.empty();
                 }
+                final MesosResource mesRes = mesResOptional.get();
+                logger.info("Satisfying resource requirement: {}\nwith resource: {}",
+                        TextFormat.shortDebugString(resReq.getResource()),
+                        TextFormat.shortDebugString(mesRes.getResource()));
 
                 Resource fulfilledResource = getFulfilledResource(resReq, mesRes);
                 if (resReq.expectsResource()) {
@@ -221,14 +210,14 @@ public class OfferEvaluator {
                                     resReq.getName(),
                                     reserveValue);
 
-                            if (pool.consume(new ResourceRequirement(reserveResource)) != null) {
+                            if (pool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
                                 reserveResource = ResourceUtils.setResourceId(reserveResource, resReq.getResourceId());
                                 reserveRecommendations.add(new ReserveOfferRecommendation(offer, reserveResource));
                                 fulfilledResource = getFulfilledResource(
                                         resReq, new MesosResource(resReq.getResource()));
                             } else {
                                 logger.warn("Insufficient resources to increase resource usage.");
-                                return null;
+                                return Optional.empty();
                             }
                         }
                     }
@@ -249,16 +238,16 @@ public class OfferEvaluator {
             }
 
             for (DynamicPortRequirement dynamicPortRequirement : dynamicPortRequirements) {
-                MesosResource mesRes = pool.consume(dynamicPortRequirement);
-                if (mesRes == null) {
+                Optional<MesosResource> mesResOptional = pool.consume(dynamicPortRequirement);
+                if (!mesResOptional.isPresent()) {
                     logger.warn("Failed to satisfy resource requirement: {}",
                             TextFormat.shortDebugString(dynamicPortRequirement.getResource()));
-                    return null;
-                } else {
-                    logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                            TextFormat.shortDebugString(dynamicPortRequirement.getResource()),
-                            TextFormat.shortDebugString(mesRes.getResource()));
+                    return Optional.empty();
                 }
+                final MesosResource mesRes = mesResOptional.get();
+                logger.info("Satisfying resource requirement: {}\nwith resource: {}",
+                        TextFormat.shortDebugString(dynamicPortRequirement.getResource()),
+                        TextFormat.shortDebugString(mesRes.getResource()));
 
                 Resource fulfilledResource = getFulfilledResource(dynamicPortRequirement, mesRes);
                 if (dynamicPortRequirement.reservesResource()) {
@@ -270,11 +259,11 @@ public class OfferEvaluator {
                 fulfilledResources.add(fulfilledResource);
             }
 
-            return new FulfilledRequirement(
+            return Optional.of(new FulfilledRequirement(
                     fulfilledResources,
                     unreserveRecommendations,
                     reserveRecommendations,
-                    createRecommendations);
+                    createRecommendations));
         }
 
         public List<Resource> getFulfilledResources() {
@@ -294,6 +283,28 @@ public class OfferEvaluator {
         }
     }
 
+    private static boolean offerMeetsPlacementConstraints(OfferRequirement offerReq, Offer offer) {
+        if (offerReq.getAvoidAgents().contains(offer.getSlaveId())) {
+            return false;
+        }
+
+        if (offerReq.getColocateAgents().size() > 0 &&
+                !offerReq.getColocateAgents().contains(offer.getSlaveId())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
+        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
+            if (execId.equals(executorID)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static boolean expectedValueChanged(ResourceRequirement resReq, MesosResource mesRes) {
         return !ValueUtils.equal(resReq.getValue(), mesRes.getValue());
@@ -303,35 +314,23 @@ public class OfferEvaluator {
         Resource.Builder builder = Resource.newBuilder(mesRes.getResource());
         builder.setRole(resReq.getResource().getRole());
 
-        ReservationInfo resInfo = getFulfilledReservationInfo(resReq, mesRes);
-        if (resInfo != null) {
-            builder.setReservation(resInfo);
+        Optional<ReservationInfo> resInfo = getFulfilledReservationInfo(resReq, mesRes);
+        if (resInfo.isPresent()) {
+            builder.setReservation(resInfo.get());
         }
 
-        DiskInfo diskInfo = getFulfilledDiskInfo(resReq, mesRes);
-        if (diskInfo != null) {
-            builder.setDisk(diskInfo);
+        Optional<DiskInfo> diskInfo = getFulfilledDiskInfo(resReq, mesRes);
+        if (diskInfo.isPresent()) {
+            builder.setDisk(diskInfo.get());
         }
 
         return builder.build();
     }
 
-    private static ReservationInfo getFulfilledReservationInfo(ResourceRequirement resReq, MesosResource mesRes) {
-        if (!resReq.reservesResource()) {
-            return null;
-        } else {
-            ReservationInfo.Builder resBuilder = ReservationInfo.newBuilder(resReq.getResource().getReservation());
-            resBuilder.setLabels(
-                    ResourceUtils.setResourceId(
-                            resReq.getResource().getReservation().getLabels(),
-                            UUID.randomUUID().toString()));
-            return resBuilder.build();
-        }
-    }
-
-    private static DiskInfo getFulfilledDiskInfo(ResourceRequirement resReq, MesosResource mesRes) {
+    private static Optional<DiskInfo> getFulfilledDiskInfo(
+            ResourceRequirement resReq, MesosResource mesRes) {
         if (!resReq.getResource().hasDisk()) {
-            return null;
+            return Optional.empty();
         }
 
         DiskInfo.Builder builder = DiskInfo.newBuilder(resReq.getResource().getDisk());
@@ -339,51 +338,61 @@ public class OfferEvaluator {
             builder.setSource(mesRes.getResource().getDisk().getSource());
         }
 
-        Persistence persistence = getFulfilledPersistence(resReq);
-        if (persistence != null) {
-            builder.setPersistence(persistence);
+        Optional<Persistence> persistence = getFulfilledPersistence(resReq);
+        if (persistence.isPresent()) {
+            builder.setPersistence(persistence.get());
         }
 
-        return builder.build();
+        return Optional.of(builder.build());
     }
 
-    private static Persistence getFulfilledPersistence(ResourceRequirement resReq) {
-        if (!resReq.createsVolume()) {
-            return null;
+    private static Optional<ReservationInfo> getFulfilledReservationInfo(
+            ResourceRequirement resReq, MesosResource mesRes) {
+        if (!resReq.reservesResource()) {
+            return Optional.empty();
         } else {
-            String persistenceId = UUID.randomUUID().toString();
-            return Persistence.newBuilder(resReq.getResource().getDisk().getPersistence()).setId(persistenceId).build();
+            return Optional.of(ReservationInfo
+                    .newBuilder(resReq.getResource().getReservation())
+                    .setLabels(ResourceUtils.setResourceId(
+                            resReq.getResource().getReservation().getLabels(),
+                            UUID.randomUUID().toString()))
+                    .build());
         }
     }
 
-    private TaskInfo getFulfilledTaskInfo(
+    private static Optional<Persistence> getFulfilledPersistence(ResourceRequirement resReq) {
+        if (!resReq.createsVolume()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(Persistence
+                    .newBuilder(resReq.getResource().getDisk().getPersistence())
+                    .setId(UUID.randomUUID().toString())
+                    .build());
+        }
+    }
+
+    private static TaskInfo getFulfilledTaskInfo(
             TaskRequirement taskReq,
             FulfilledRequirement fulfilledTaskRequirement,
-            ExecutorInfo execInfo,
-            FulfilledRequirement fulfilledExecutorRequirement) {
+            Optional<ExecutorInfo> execInfo,
+            Optional<FulfilledRequirement> fulfilledExecutorRequirement) {
 
-        TaskInfo taskInfo = taskReq.getTaskInfo();
         List<Resource> fulfilledTaskResources = fulfilledTaskRequirement.getFulfilledResources();
-        TaskInfo.Builder taskBuilder =
-                TaskInfo.newBuilder(taskInfo)
-                        .clearResources()
-                        .addAllResources(fulfilledTaskResources);
+        TaskInfo.Builder taskBuilder = TaskInfo
+                .newBuilder(taskReq.getTaskInfo())
+                .clearResources()
+                .addAllResources(fulfilledTaskResources);
 
-        if (execInfo != null) {
-            ExecutorInfo.Builder execBuilder =
-                    ExecutorInfo.newBuilder(execInfo)
-                            .clearResources();
-
-            if (fulfilledExecutorRequirement != null) {
-                List<Resource> fulfilledExecutorResources = fulfilledExecutorRequirement.getFulfilledResources();
-                execBuilder.addAllResources(fulfilledExecutorResources);
-                execBuilder = ResourceUtils.updateEnvironment(execBuilder, fulfilledExecutorResources);
-            } else {
-                execBuilder.addAllResources(execInfo.getResourcesList());
-                execBuilder = ResourceUtils.updateEnvironment(execBuilder, execInfo.getResourcesList());
-            }
-
-            taskBuilder.setExecutor(execBuilder.build());
+        if (execInfo.isPresent()) {
+            List<Resource> selectedResources = fulfilledExecutorRequirement.isPresent()
+                    ? fulfilledExecutorRequirement.get().getFulfilledResources()
+                    : execInfo.get().getResourcesList();
+            ExecutorInfo.Builder execBuilder = ExecutorInfo
+                    .newBuilder(execInfo.get())
+                    .clearResources()
+                    .addAllResources(selectedResources);
+            execBuilder = ResourceUtils.updateEnvironment(execBuilder, selectedResources);
+            taskBuilder.setExecutor(execBuilder);
         }
 
         return TaskUtils.packTaskInfo(
