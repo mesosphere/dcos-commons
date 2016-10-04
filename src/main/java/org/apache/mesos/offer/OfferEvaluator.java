@@ -395,10 +395,7 @@ public class OfferEvaluator {
             taskBuilder.setExecutor(execBuilder);
         }
 
-        // Call this AFTER setting executor above. It looks at executor presence:
-        taskBuilder = ResourceUtils.serializeCommandInfo(
-                ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources));
-
-        return taskBuilder.build();
+        return TaskUtils.packTaskInfo(
+                ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources).build());
     }
 }
