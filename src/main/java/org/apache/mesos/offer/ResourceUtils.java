@@ -203,17 +203,6 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
-    public static TaskInfo.Builder serializeCommandInfo(Protos.TaskInfo.Builder builder) {
-        Protos.CommandInfo command = builder.getCommand();
-
-        if (builder.hasExecutor()) {
-            builder.clearCommand();
-            builder.setData(command.toByteString());
-        }
-
-        return builder;
-    }
-
     public static Resource setDynamicPortName(Resource resource, String name) {
         Labels labels = setDynamicPortName(resource.getReservation().getLabels(), name);
 

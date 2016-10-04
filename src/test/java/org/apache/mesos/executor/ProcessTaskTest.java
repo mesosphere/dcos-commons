@@ -19,6 +19,18 @@ public class ProcessTaskTest {
     private static final String EXECUTOR_NAME = "TEST_EXECUTOR";
     private static final String TASK_NAME = "TEST_TASK";
 
+    private static final Protos.ExecutorInfo cmdPkgExecutorInfo = Protos.ExecutorInfo
+            .newBuilder()
+            .setExecutorId(Protos.ExecutorID.newBuilder().setValue("dummy_value_unused"))
+            .setCommand(Protos.CommandInfo.newBuilder()
+                    .setValue("sleep 5")
+                    .setEnvironment(Protos.Environment
+                            .newBuilder()
+                            .addVariables(
+                                    TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                    .build())
+            .build();
+
     @Test
     public void testSimple() throws Exception {
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
@@ -27,23 +39,20 @@ public class ProcessTaskTest {
                 .setName(EXECUTOR_NAME)
                 .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("ls")).build();
+
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
                 .setName(TASK_NAME)
                 .setTaskId(TaskUtils.toTaskId(TASK_NAME))
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
-                .setData(Protos.CommandInfo
-                        .newBuilder()
-                        .setValue("sleep 5")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
-                        .build()
-                        .toByteString())
+                .setData(cmdPkgExecutorInfo.toByteString())
                 .build();
-        final ProcessTask processTask = ProcessTask.create(mockExecutorDriver, taskInfo, false);
+
+        final ProcessTask processTask = ProcessTask.create(
+                mockExecutorDriver,
+                TaskUtils.unpackTaskInfo(taskInfo),
+                false);
 
         Assert.assertFalse(processTask.isAlive());
         final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -55,6 +64,36 @@ public class ProcessTaskTest {
         Assert.assertTrue(processTask.isAlive());
         processTask.stop(null);
         Assert.assertFalse(processTask.isAlive());
+    }
+
+    @Test
+    public void testFailingTask() throws Exception {
+        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
+
+        final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
+                .newBuilder()
+                .setName(EXECUTOR_NAME)
+                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
+                .setCommand(Protos.CommandInfo.newBuilder().setValue("ls")).build();
+
+        final Protos.TaskInfo taskInfo = Protos.TaskInfo
+                .newBuilder()
+                .setName(TASK_NAME)
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
+                .setExecutor(executorInfo)
+                .setData(cmdPkgExecutorInfo.toByteString())
+                .build();
+
+        final FailingProcessTask failingProcessTask = new FailingProcessTask(
+                mockExecutorDriver,
+                taskInfo,
+                TaskUtils.getProcess(taskInfo),
+                false);
+        final ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.submit(failingProcessTask);
+
+        Mockito.verify(mockExecutorDriver, timeout(1000)).sendStatusUpdate(Mockito.any());
     }
 
     public static class FailingProcessTask extends ProcessTask {
@@ -72,39 +111,4 @@ public class ProcessTaskTest {
         }
     }
 
-    @Test
-    public void testFailingTask() throws Exception {
-        final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
-
-        final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
-                .newBuilder()
-                .setName(EXECUTOR_NAME)
-                .setExecutorId(ExecutorUtils.toExecutorId(EXECUTOR_NAME))
-                .setCommand(Protos.CommandInfo.newBuilder().setValue("ls")).build();
-        final Protos.TaskInfo taskInfo = Protos.TaskInfo
-                .newBuilder()
-                .setName(TASK_NAME)
-                .setTaskId(TaskUtils.toTaskId(TASK_NAME))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
-                .setExecutor(executorInfo)
-                .setData(Protos.CommandInfo
-                        .newBuilder()
-                        .setValue("sleep 5")
-                        .setEnvironment(Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
-                        .build()
-                        .toByteString())
-                .build();
-        final FailingProcessTask failingProcessTask = new FailingProcessTask(
-                mockExecutorDriver,
-                taskInfo,
-                TaskUtils.getProcess(taskInfo),
-                false);
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.submit(failingProcessTask);
-
-        Mockito.verify(mockExecutorDriver, timeout(1000)).sendStatusUpdate(Mockito.any());
-    }
 }
