@@ -10,7 +10,7 @@ import java.util.Collection;
 public interface TaskTypeSpecification {
     int getCount();
     String getName();
-    Protos.CommandInfo getCommand(int id);
+    Protos.CommandInfo getCommand();
     Collection<ResourceSpecification> getResources();
     Collection<VolumeSpecification> getVolumes();
 }

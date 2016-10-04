@@ -51,10 +51,11 @@ public class DefaultScheduler implements Scheduler {
     private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
-    private Plan plan;
-    private PlanManager planManager;
-    private DefaultPlanScheduler planScheduler;
-    private DefaultRecoveryScheduler recoveryScheduler;
+    private Plan deployPlan;
+    private PlanManager deployPlanManager;
+    private PlanScheduler planScheduler;
+    private PlanManager recoveryPlanManager;
+    private PlanCoordinator planCoordinator;
     private Collection<Object> resources;
 
     public DefaultScheduler(ServiceSpecification serviceSpecification) {
@@ -82,34 +83,44 @@ public class DefaultScheduler implements Scheduler {
         executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 
-    Plan getPlan() {
-        return plan;
+    Plan getDeployPlan() {
+        return deployPlan;
     }
 
     private void initialize() throws InterruptedException {
-        logger.info("Initializing.");
+        logger.info("Initializing...");
         initializeGlobals();
-        initializeRecoveryScheduler();
-        initializeDeploymentPlan();
+        final PlanSpecification planSpecification = new DefaultPlanSpecificationFactory()
+                .getPlanSpecification(serviceSpecification);
+        initializeDeploymentPlan(planSpecification);
+        initializeRecoveryPlanManager();
         initializeResources();
+        final List<PlanManager> planManagers = Arrays.asList(
+                deployPlanManager,
+                recoveryPlanManager,
+                getCleanerScheduler());
+        planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
+        logger.info("Done initializing.");
     }
 
     private void initializeGlobals() {
-        logger.info("Initializing globals");
+        logger.info("Initializing globals...");
         stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        logger.info("Done initializing globals.");
     }
 
-    private void initializeRecoveryScheduler() {
-        logger.info("Initializing recovery scheduler");
-        RecoveryRequirementProvider recoveryRequirementProvider =
+    private void initializeRecoveryPlanManager() {
+        logger.info("Initializing recovery plan...");
+        final RecoveryRequirementProvider recoveryRequirementProvider =
                 new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
-        LaunchConstrainer constrainer =
+        final LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
-        recoveryScheduler = new DefaultRecoveryScheduler(
+
+        recoveryPlanManager = new SimpleRecoveryPlanManager(
                 stateStore,
                 taskFailureListener,
                 recoveryRequirementProvider,
@@ -117,32 +128,32 @@ public class DefaultScheduler implements Scheduler {
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
                 recoveryStatusRef);
+        logger.info("Done initializing recovery plan.");
     }
 
-    private void initializeDeploymentPlan() {
-        logger.info("Initializing deployment plan");
+    private void initializeDeploymentPlan(PlanSpecification deployPlanSpecification) {
+        logger.info("Initializing deployment plan...");
         planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
-        PlanSpecification planSpecification =
-                new DefaultPlanSpecificationFactory().getPlanSpecification(serviceSpecification);
 
         try {
-            plan = new DefaultPlanFactory(stateStore).getPlan(planSpecification);
-            logger.info("Generated plan: " + plan);
-            planManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());
+            deployPlan = new DefaultPlanFactory(stateStore).getPlan(deployPlanSpecification);
+            logger.info("Generated deployPlan: " + deployPlan);
+            deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
         } catch (InvalidRequirementException e) {
-            logger.error("Failed to generate plan with exception: ", e);
+            logger.error("Failed to generate deployPlan with exception: ", e);
             hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
         }
-
+        logger.info("Done initializing deployment plan.");
     }
 
     private void initializeResources() throws InterruptedException {
-        logger.info("Initializing resources");
+        logger.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
-        resources.add(new PlanResource(planManager));
+        resources.add(new PlanResource(deployPlanManager));
         resources.add(new RecoveryResource(recoveryStatusRef));
         resources.add(new StateResource(stateStore));
         resourcesQueue.put(resources);
+        logger.info("Done initializing resources.");
     }
 
     private void logOffers(List<Protos.Offer> offers) {
@@ -190,7 +201,7 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private boolean offerAccepted(Protos.Offer offer, List<Protos.OfferID> acceptedOfferIds) {
-        for (Protos.OfferID acceptedOfferId: acceptedOfferIds) {
+        for (Protos.OfferID acceptedOfferId : acceptedOfferIds) {
             if (acceptedOfferId.equals(offer.getId())) {
                 return true;
             }
@@ -232,64 +243,62 @@ public class DefaultScheduler implements Scheduler {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                logOffers(offers);
+        executor.execute(() -> {
+            logOffers(offers);
 
-                // Task Reconciliation:
-                // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-                // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-                // http://mesos.apache.org/documentation/latest/reconciliation/
-                reconciler.reconcile(driver);
-                List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-                if (!reconciler.isReconciled()) {
-                    logger.info("Accepting no offers: Reconciler is still in progress");
-                    return;
-                }
-
-                // Deployment:
-                // The PlanManager provides blocks of work usually representing a Task to a PlanScheduler to be
-                // evaluated against the Offer stream.  The PlanScheduler launches Tasks and reserves Resources and
-                // Creates volumes where appropriate.  It's work is complete once all Tasks have been deployed to the
-                // current target configuration.
-                Optional<Block> block = planManager.getCurrentBlock();
-                if (block.isPresent()) {
-                    acceptedOffers = planScheduler.resourceOffers(driver, offers, block.get());
-                    logger.info(String.format("Accepted %d of %d offers: %s",
-                            acceptedOffers.size(), offers.size(), acceptedOffers));
-                }
-                List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
-
-                // Recovery:
-                // Post deployment it is the role of a RecoveryScheduler to monitor service state for failed task and
-                // restart them appropriately.  It restarts tasks destructively or not depending upon the configuration
-                // of the TaskFailureMonitor.
-                try {
-                    acceptedOffers.addAll(recoveryScheduler.resourceOffers(driver, unacceptedOffers, block));
-                } catch (Exception e) {
-                    logger.error("Error recovering block: " + block + " Reason: " + e);
-                }
-
-                // Resource Cleaning:
-                // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
-                // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
-                // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
-                // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
-                // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
-                ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
-                if (cleanerScheduler != null) {
-                    acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
-                }
-
-                declineOffers(driver, acceptedOffers, offers);
-
-                // Kill tasks (for configuration update, or user requested Task restart or replace):
-                // It is the normal state of affairs, that in order to update the configuration of a Task it must be
-                // restarted.  In order to drive the restart process, it is necessary to give some component, the
-                // TaskKiller, an opportunity to kill Tasks so that they may be redeployed with a new configuration.
-                taskKiller.process(driver);
+            // Task Reconciliation:
+            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+            // http://mesos.apache.org/documentation/latest/reconciliation/
+            reconciler.reconcile(driver);
+            if (!reconciler.isReconciled()) {
+                logger.info("Accepting no offers: Reconciler is still in progress");
+                return;
             }
+
+            List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+            acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
+            // Deployment:
+            // The PlanManager provides blocks of work usually representing a Task to a PlanScheduler to be
+            // evaluated against the Offer stream.  The PlanScheduler launches Tasks and reserves Resources and
+            // Creates volumes where appropriate.  It's work is complete once all Tasks have been deployed to the
+            // current target configuration.
+//            Optional<Block> block = deployPlanManager.getCurrentBlock(Arrays.asList());
+//            if (block.isPresent()) {
+//                acceptedOffers = planScheduler.resourceOffers(driver, offers, block.get());
+//                logger.info(String.format("Accepted %d of %d offers: %s",
+//                        acceptedOffers.size(), offers.size(), acceptedOffers));
+//            }
+//            List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
+
+            // Recovery:
+            // Post deployment it is the role of a RecoveryScheduler to monitor service state for failed task and
+            // restart them appropriately.  It restarts tasks destructively or not depending upon the configuration
+            // of the TaskFailureMonitor.
+//            try {
+//                acceptedOffers.addAll(recoveryPlanScheduler.resourceOffers(driver, unacceptedOffers, block.get()));
+//            } catch (Exception e) {
+//                logger.error("Error recovering block: " + block + " Reason: " + e);
+//            }
+
+            // Resource Cleaning:
+            // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
+            // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
+            // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
+            // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
+            // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
+//            ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
+//            if (cleanerScheduler != null) {
+//                acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
+//            }
+
+            declineOffers(driver, acceptedOffers, offers);
+
+            // Kill tasks (for configuration update, or user requested Task restart or replace):
+            // It is the normal state of affairs, that in order to update the configuration of a Task it must be
+            // restarted.  In order to drive the restart process, it is necessary to give some component, the
+            // TaskKiller, an opportunity to kill Tasks so that they may be redeployed with a new configuration.
+            taskKiller.process(driver);
         });
     }
 
@@ -313,7 +322,7 @@ public class DefaultScheduler implements Scheduler {
                 // Store status, then pass status to PlanManager => Plan => Blocks
                 try {
                     stateStore.storeStatus(status);
-                    planManager.update(status);
+                    deployPlanManager.update(status);
                 } catch (Exception e) {
                     logger.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -340,7 +349,7 @@ public class DefaultScheduler implements Scheduler {
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        logger.warn("Agent lost: " +  agentId);
+        logger.warn("Agent lost: " + agentId);
     }
 
     @Override

@@ -18,7 +18,7 @@ public interface PlanManager extends Observer {
 
     Optional<Phase> getCurrentPhase();
 
-    Optional<Block> getCurrentBlock();
+    Optional<Block> getCurrentBlock(List<Block> dirtiedAssets);
 
     boolean isComplete();
 

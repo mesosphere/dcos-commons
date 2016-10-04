@@ -18,6 +18,5 @@ public interface PlanScheduler {
    * @return a list of zero or more of the provided offers which were accepted to fulfill offer
    *         requirements returned by the block
    */
-  List<Protos.OfferID> resourceOffers(
-      SchedulerDriver driver, List<Protos.Offer> offers, Block block);
+  List<Protos.OfferID> resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers, Block block);
 }

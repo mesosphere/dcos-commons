@@ -117,7 +117,7 @@ public class DefaultSchedulerTest {
     @Test
     public void testLaunchA() throws InterruptedException {
         // Get first Block associated with Task A-0
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
         Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
@@ -150,7 +150,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testLaunchB() throws InterruptedException {
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
 
         // Launch A-0
         testLaunchA();
@@ -191,7 +191,7 @@ public class DefaultSchedulerTest {
     @Test
     public void testFailLaunchA() throws InterruptedException {
         // Get first Block associated with Task A-0
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
         Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
@@ -240,7 +240,7 @@ public class DefaultSchedulerTest {
                 testingServer.getConnectString());
         register();
 
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
         Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING)));
     }
 
@@ -282,7 +282,7 @@ public class DefaultSchedulerTest {
                 testingServer.getConnectString());
         register();
 
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
         Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
     }
 
@@ -324,7 +324,7 @@ public class DefaultSchedulerTest {
                 testingServer.getConnectString());
         register();
 
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
         Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
     }
 
@@ -366,7 +366,7 @@ public class DefaultSchedulerTest {
                 testingServer.getConnectString());
         register();
 
-        Plan plan = defaultScheduler.getPlan();
+        Plan plan = defaultScheduler.getDeployPlan();
         Assert.assertTrue(inExpectedState(
                 plan,
                 Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING)));

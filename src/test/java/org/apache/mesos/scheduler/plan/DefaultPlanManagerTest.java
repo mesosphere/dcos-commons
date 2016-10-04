@@ -117,7 +117,7 @@ public class DefaultPlanManagerTest {
 
     @Test
     public void testGetCurrentBlock() {
-        Assert.assertEquals(plan.getPhases().get(0).getBlock(0), planManager.getCurrentBlock().get());
+        Assert.assertEquals(plan.getPhases().get(0).getBlock(0), planManager.getCurrentBlock(Arrays.asList()).get());
     }
 
     @Test

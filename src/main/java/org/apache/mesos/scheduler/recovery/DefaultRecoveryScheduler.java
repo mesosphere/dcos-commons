@@ -1,8 +1,6 @@
 package org.apache.mesos.scheduler.recovery;
 
 import com.google.protobuf.TextFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
@@ -15,6 +13,8 @@ import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
 import org.apache.mesos.state.StateStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;

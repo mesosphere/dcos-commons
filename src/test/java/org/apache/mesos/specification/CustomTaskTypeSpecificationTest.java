@@ -24,8 +24,7 @@ public class CustomTaskTypeSpecificationTest {
                 Collections.emptyList(),
                 Collections.emptyList());
 
-        int id = random.nextInt(taskCount);
-        Assert.assertEquals("custom " + id, taskTypeSpecification.getCommand(id).getValue());
+        Assert.assertEquals("custom", taskTypeSpecification.getCommand().getValue());
     }
 
     public static class CustomTaskTypeSpecification extends DefaultTaskTypeSpecification {
@@ -40,8 +39,8 @@ public class CustomTaskTypeSpecificationTest {
         }
 
         @Override
-        public Protos.CommandInfo getCommand(int id) {
-            return Protos.CommandInfo.newBuilder().setValue(getName() + " " + id).build();
+        public Protos.CommandInfo getCommand() {
+            return Protos.CommandInfo.newBuilder().setValue(getName()).build();
         }
     }
 }

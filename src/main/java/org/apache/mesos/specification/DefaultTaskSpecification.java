@@ -31,7 +31,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     public static DefaultTaskSpecification create(TaskTypeSpecification taskTypeSpecification, int index) {
         return new DefaultTaskSpecification(
                 taskTypeSpecification.getName() + "-" + index,
-                taskTypeSpecification.getCommand(index),
+                taskTypeSpecification.getCommand(),
                 taskTypeSpecification.getResources(),
                 taskTypeSpecification.getVolumes());
     }
