@@ -1,9 +1,11 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * This implementation of the TaskSpecification is for test purposes.  It allows what would otherwise be bad practices
@@ -14,12 +16,14 @@ public class TestTaskSpecification implements TaskSpecification {
     private final Protos.CommandInfo command;
     private final Collection<VolumeSpecification> volumes;
     private Collection<ResourceSpecification> resources;
+    private Optional<PlacementRuleGenerator> placement;
 
     public TestTaskSpecification(TaskSpecification taskSpecification) {
         this.name = taskSpecification.getName();
         this.command = taskSpecification.getCommand();
         this.resources = taskSpecification.getResources();
         this.volumes = taskSpecification.getVolumes();
+        this.placement = taskSpecification.getPlacement();
     }
 
     @Override
@@ -40,6 +44,11 @@ public class TestTaskSpecification implements TaskSpecification {
     @Override
     public Collection<VolumeSpecification> getVolumes() {
         return volumes;
+    }
+
+    @Override
+    public Optional<PlacementRuleGenerator> getPlacement() {
+        return placement;
     }
 
     public void addResource(ResourceSpecification resourceSpecification) {

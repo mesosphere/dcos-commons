@@ -6,7 +6,6 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.executor.DcosTaskConstants;
 import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
 import org.slf4j.Logger;
@@ -21,6 +20,16 @@ public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
+
+    /**
+     * Label key against which Offer attributes are stored (in a string representation).
+     */
+    private static final String OFFER_ATTRIBUTES_KEY = "offer_attributes";
+
+    /**
+     * Label key against which the Task Type is stored.
+     */
+    private static final String TASK_TYPE_KEY = "task_type";
 
     private TaskUtils() {
         // do not instantiate
@@ -130,6 +139,50 @@ public class TaskUtils {
     }
 
     /**
+     * Stores the provided Task Type string into the {@link TaskInfo} as a {@link Label}. Any
+     * existing stored task type is overwritten.
+     */
+    public static TaskInfo.Builder setTaskType(TaskInfo.Builder taskBuilder, String taskType) {
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TASK_TYPE_KEY, taskType));
+    }
+
+    /**
+     * Returns the task type string, which was embedded in the provided {@link TaskInfo}.
+     *
+     * @throws TaskException if the type could not be found.
+     */
+    public static String getTaskType(TaskInfo taskInfo) throws TaskException {
+        String taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_KEY);
+        if (taskType == null) {
+            throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_KEY);
+        }
+        return taskType;
+    }
+
+    /**
+     * Stores the {@link Attribute}s from the provided {@link Offer} into the {@link TaskInfo} as a
+     * {@link Label}. Any existing stored attributes are overwritten.
+     */
+    public static TaskInfo.Builder setOfferAttributes(TaskInfo.Builder taskBuilder, Offer launchOffer) {
+        return taskBuilder
+                .setLabels(withLabelSet(taskBuilder.getLabels(),
+                        OFFER_ATTRIBUTES_KEY,
+                        AttributeStringUtils.toString(launchOffer.getAttributesList())));
+    }
+
+    /**
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * embedded in the provided {@link TaskInfo}.
+     */
+    public static List<String> getOfferAttributeStrings(TaskInfo taskInfo) {
+        String joinedAttributes = findLabelValue(taskInfo.getLabels(), OFFER_ATTRIBUTES_KEY);
+        if (joinedAttributes == null) {
+            return new ArrayList<>();
+        }
+        return AttributeStringUtils.toStringList(joinedAttributes);
+    }
+
+    /**
      * Sets a {@link Label} indicating the target configuruation for the provided {@link TaskInfo}.
      * @param taskInfo is the TaskInfo which will have the appropriate configuration {@link Label} set.
      * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}
@@ -152,13 +205,11 @@ public class TaskUtils {
      * configuration
      */
     public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
-        for (Label label : taskInfo.getLabels().getLabelsList()) {
-            if (label.getKey().equals(TARGET_CONFIGURATION_KEY)) {
-                return UUID.fromString(label.getValue());
-            }
+        String value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
+        if (value == null) {
+            throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
         }
-
-        throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
+        return UUID.fromString(value);
     }
 
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
@@ -246,18 +297,6 @@ public class TaskUtils {
         return false;
     }
 
-    public static String getTaskType(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        final Protos.CommandInfo commandInfo = getCommand(taskInfo);
-        final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
-        String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
-
-        if (taskType == null) {
-            return "";
-        } else {
-            return taskType;
-        }
-    }
-
     public static CommandInfo getCommand(TaskInfo taskInfo) throws InvalidProtocolBufferException {
         return Protos.CommandInfo.parseFrom(taskInfo.getData());
     }
@@ -271,6 +310,20 @@ public class TaskUtils {
         builder.environment().putAll(TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
 
         return builder;
+    }
+
+
+    /**
+     * Returns the value of a {@link Label} named {@code key}, or returns {@code null} if no
+     * matching {@link Label} is found.
+     */
+    private static String findLabelValue(Labels labels, String key) {
+        for (Label label : labels.getLabelsList()) {
+            if (label.getKey().equals(key)) {
+                return label.getValue();
+            }
+        }
+        return null;
     }
 
     /**

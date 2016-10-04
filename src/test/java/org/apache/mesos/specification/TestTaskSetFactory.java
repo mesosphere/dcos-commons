@@ -6,6 +6,7 @@ import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -41,7 +42,8 @@ public class TestTaskSetFactory {
                 name,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL));
+                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                Optional.empty());
     }
 
     public static TaskSpecification getTaskSpecification() {
@@ -64,7 +66,8 @@ public class TestTaskSetFactory {
                 name,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL));
+                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                Optional.empty());
     }
 
 

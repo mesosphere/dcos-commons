@@ -100,7 +100,7 @@ public class DefaultRecoveryScheduler {
 
         if (recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get())) {
             log.info("Preparing to launch task");
-            OfferEvaluator offerEvaluator = new OfferEvaluator();
+            OfferEvaluator offerEvaluator = new OfferEvaluator(stateStore);
             List<OfferRecommendation> recommendations =
                     offerEvaluator.evaluate(recoveryRequirement.get().getOfferRequirement(), offers);
             List<Operation> launchOperations = recommendations.stream()

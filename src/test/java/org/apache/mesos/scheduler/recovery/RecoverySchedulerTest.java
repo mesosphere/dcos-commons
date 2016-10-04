@@ -99,8 +99,7 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         launchConstrainer.setCanLaunch(false);
@@ -127,7 +126,7 @@ public class RecoverySchedulerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
@@ -170,7 +169,7 @@ public class RecoverySchedulerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
         launchConstrainer.setCanLaunch(true);
 
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
@@ -215,7 +214,7 @@ public class RecoverySchedulerTest {
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         List<Offer> offers = getOffers(1.0, 1.0);
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
 
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
@@ -249,7 +248,8 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(desiredCpu);
         Resource mem = ResourceTestUtils.getDesiredMem(desiredMem);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement =
+                getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
 
         List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
 
@@ -283,9 +283,8 @@ public class RecoverySchedulerTest {
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
 
         List<Offer> offers = getOffers(1.0, 1.0);
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(Collections.singletonList(ResourceUtils.clearResourceIds(taskInfo)),
-                        Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement =
+                getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, Collections.singletonList(ResourceUtils.clearResourceIds(taskInfo))));
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(eq(infos)))
                 .thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));

@@ -22,10 +22,6 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private final TaskKiller taskKiller;
 
     @Inject
-    public DefaultPlanScheduler(OfferAccepter offerAccepter, TaskKiller taskKiller) {
-        this(offerAccepter, new OfferEvaluator(), taskKiller);
-    }
-
     public DefaultPlanScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, TaskKiller taskKiller) {
         this.offerAccepter = offerAccepter;
         this.offerEvaluator = offerEvaluator;
