@@ -13,17 +13,17 @@ import java.util.Optional;
 /**
  * An OfferRequirement encapsulates the needed resources an Offer must have.
  * In general these are Resource requirements like it must have a certain amount of
- * cpu, memory, and disk.    Additionally it has two modes regarding expectations around
- * Persistent Volumes.    In the CREATE mode it anticipates that the Scheduler will be
+ * cpu, memory, and disk.  Additionally it has two modes regarding expectations around
+ * Persistent Volumes.  In the CREATE mode it anticipates that the Scheduler will be
  * creating the required volume, so a Volume with a particular persistence id is not
- * required to be already present in an Offer.    In the EXISTING mode, we expect that
+ * required to be already present in an Offer.  In the EXISTING mode, we expect that
  * an Offer will already have the indicated persistence ID.
  */
 public class OfferRequirement {
-    private Collection<SlaveID> avoidAgents;
-    private Collection<SlaveID> colocateAgents;
-    private Collection<TaskRequirement> taskRequirements;
-    private ExecutorRequirement executorRequirement;
+    private final Collection<SlaveID> avoidAgents;
+    private final Collection<SlaveID> colocateAgents;
+    private final Collection<TaskRequirement> taskRequirements;
+    private final Optional<ExecutorRequirement> executorRequirementOptional;
 
     public OfferRequirement(
         Collection<TaskInfo> taskInfos,
@@ -32,9 +32,9 @@ public class OfferRequirement {
         Collection<SlaveID> colocateAgents)
         throws InvalidRequirementException {
         this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-        if (executorInfoOptional.isPresent()) {
-            this.executorRequirement = ExecutorRequirement.create(executorInfoOptional.get());
-        }
+        this.executorRequirementOptional = executorInfoOptional.isPresent() ?
+                Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
+                Optional.empty();
 
         if (avoidAgents == null) {
             this.avoidAgents = Collections.emptyList();
@@ -62,8 +62,8 @@ public class OfferRequirement {
         return taskRequirements;
     }
 
-    public ExecutorRequirement getExecutorRequirement() {
-        return executorRequirement;
+    public Optional<ExecutorRequirement> getExecutorRequirementOptional() {
+        return executorRequirementOptional;
     }
 
     public Collection<SlaveID> getAvoidAgents() {
@@ -81,8 +81,8 @@ public class OfferRequirement {
             resourceIds.addAll(taskReq.getResourceIds());
         }
 
-        if (executorRequirement != null)    {
-            resourceIds.addAll(executorRequirement.getResourceIds());
+        if (executorRequirementOptional.isPresent()) {
+            resourceIds.addAll(executorRequirementOptional.get().getResourceIds());
         }
 
         return resourceIds;
@@ -95,8 +95,8 @@ public class OfferRequirement {
             persistenceIds.addAll(taskReq.getPersistenceIds());
         }
 
-        if (executorRequirement != null)    {
-            persistenceIds.addAll(executorRequirement.getPersistenceIds());
+        if (executorRequirementOptional.isPresent())    {
+            persistenceIds.addAll(executorRequirementOptional.get().getPersistenceIds());
         }
 
         return persistenceIds;

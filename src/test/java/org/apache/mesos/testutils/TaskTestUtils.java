@@ -17,7 +17,8 @@ public class TaskTestUtils {
         Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder()
                 .setTaskId(TestConstants.TASK_ID)
                 .setName(TestConstants.TASK_NAME)
-                .setSlaveId(TestConstants.AGENT_ID);
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setCommand(TestConstants.COMMAND_INFO);
 
         return builder.addAllResources(resources).build();
     }
