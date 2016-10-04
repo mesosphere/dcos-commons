@@ -56,32 +56,33 @@ public class OfferEvaluator {
         List<OfferRecommendation> creates = new ArrayList<>();
         List<OfferRecommendation> launches = new ArrayList<>();
 
-        final Optional<ExecutorRequirement> execReq =
+        final Optional<ExecutorRequirement> execReqOptional =
                 offerRequirement.getExecutorRequirementOptional();
-        Optional<FulfilledRequirement> fulfilledExecutorRequirement = Optional.empty();
-        Optional<ExecutorInfo> execInfo = Optional.empty();
-        if (execReq.isPresent()) {
-            execInfo = Optional.of(execReq.get().getExecutorInfo());
+        Optional<FulfilledRequirement> fulfilledExecutorRequirementOptional = Optional.empty();
+        Optional<ExecutorInfo> execInfoOptional = Optional.empty();
+        if (execReqOptional.isPresent()) {
+            final ExecutorRequirement execReq = execReqOptional.get();
+            execInfoOptional = Optional.of(execReq.getExecutorInfo());
 
-            if (execReq.get().desiresResources()
-                    || execInfo.get().getExecutorId().getValue().isEmpty()) {
-                fulfilledExecutorRequirement = FulfilledRequirement.fulfillRequirement(
-                        execReq.get().getResourceRequirements(),
-                        execReq.get().getDynamicPortRequirements(),
+            if (execReq.desiresResources()
+                    || execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
+                fulfilledExecutorRequirementOptional = FulfilledRequirement.fulfillRequirement(
+                        execReq.getResourceRequirements(),
+                        execReq.getDynamicPortRequirements(),
                         offer,
                         pool);
 
-                if (!fulfilledExecutorRequirement.isPresent()) {
+                if (!fulfilledExecutorRequirementOptional.isPresent()) {
                     logger.info("Offer: '{}' does not fulfill the executor Resource Requirements: '{}'",
-                            offer.getId().getValue(), execReq.get().getResourceRequirements());
+                            offer.getId().getValue(), execReq.getResourceRequirements());
                     return Collections.emptyList();
                 }
 
-                unreserves.addAll(fulfilledExecutorRequirement.get().getUnreserveRecommendations());
-                reserves.addAll(fulfilledExecutorRequirement.get().getReserveRecommendations());
-                creates.addAll(fulfilledExecutorRequirement.get().getCreateRecommendations());
+                unreserves.addAll(fulfilledExecutorRequirementOptional.get().getUnreserveRecommendations());
+                reserves.addAll(fulfilledExecutorRequirementOptional.get().getReserveRecommendations());
+                creates.addAll(fulfilledExecutorRequirementOptional.get().getCreateRecommendations());
             } else {
-                Protos.ExecutorID expectedExecutorId = execInfo.get().getExecutorId();
+                Protos.ExecutorID expectedExecutorId = execInfoOptional.get().getExecutorId();
                 if (!hasExpectedExecutorId(offer, expectedExecutorId)) {
                     logger.info("Offer: '{}' does not contain the needed ExecutorID: '{}'",
                             offer.getId().getValue(), expectedExecutorId.getValue());
@@ -90,9 +91,9 @@ public class OfferEvaluator {
             }
 
             // Set executor ID *after* the other check above for its presence:
-            if (execInfo.get().getExecutorId().getValue().isEmpty()) {
-                execInfo = Optional.of(ExecutorInfo.newBuilder(execInfo.get())
-                        .setExecutorId(ExecutorUtils.toExecutorId(execInfo.get().getName()))
+            if (execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
+                execInfoOptional = Optional.of(ExecutorInfo.newBuilder(execInfoOptional.get())
+                        .setExecutorId(ExecutorUtils.toExecutorId(execInfoOptional.get().getName()))
                         .build());
             }
         }
@@ -121,8 +122,8 @@ public class OfferEvaluator {
                     getFulfilledTaskInfo(
                             taskReq,
                             fulfilledTaskRequirement,
-                            execInfo,
-                            fulfilledExecutorRequirement)));
+                            execInfoOptional,
+                            fulfilledExecutorRequirementOptional)));
         }
 
         List<OfferRecommendation> recommendations = new ArrayList<>();
