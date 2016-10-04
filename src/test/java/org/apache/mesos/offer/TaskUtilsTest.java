@@ -171,6 +171,20 @@ public class TaskUtilsTest {
         Assert.assertTrue(TaskUtils.getOfferAttributeStrings(tb.build()).isEmpty());
     }
 
+    @Test(expected=TaskException.class)
+    public void testGetMissingTaskTypeFails() throws TaskException {
+        TaskUtils.getTaskType(getTestTaskInfo());
+    }
+
+    @Test
+    public void testSetGetTaskType() throws TaskException {
+        Assert.assertEquals("foo", TaskUtils.getTaskType(TaskUtils.setTaskType(
+                getTestTaskInfo().toBuilder(), "foo").build()));
+        Assert.assertEquals("", TaskUtils.getTaskType(TaskUtils.setTaskType(
+                getTestTaskInfo().toBuilder(), "").build()));
+
+    }
+
     private static Protos.TaskID getTaskId(String value) {
         return Protos.TaskID.newBuilder().setValue(value).build();
     }
