@@ -21,6 +21,7 @@ public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
+    private static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
 
     private TaskUtils() {
         // do not instantiate
@@ -112,11 +113,10 @@ public class TaskUtils {
      * transient task.
      */
     public static TaskInfo setTransient(TaskInfo taskInfo) {
-        Labels labels = setTransient(taskInfo.getLabels());
-
-        return TaskInfo.newBuilder(taskInfo)
-                .clearLabels()
-                .setLabels(labels)
+        return taskInfo.toBuilder()
+                .setLabels(withLabelSet(taskInfo.getLabels(),
+                        MesosTask.TRANSIENT_FLAG_KEY,
+                        "true"))
                 .build();
     }
 
@@ -125,11 +125,9 @@ public class TaskUtils {
      * a transient task.
      */
     public static TaskInfo clearTransient(TaskInfo taskInfo) {
-        TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
-        Labels clearedLabels = clearTransient(taskBuilder.getLabels());
-        taskBuilder.clearLabels();
-        taskBuilder.setLabels(clearedLabels);
-        return taskBuilder.build();
+        return taskInfo.toBuilder()
+                .setLabels(withLabelRemoved(taskInfo.getLabels(), MesosTask.TRANSIENT_FLAG_KEY))
+                .build();
     }
 
     /**
@@ -139,17 +137,10 @@ public class TaskUtils {
      * @return
      */
     public static TaskInfo setTargetConfiguration(TaskInfo taskInfo, UUID targetConfigurationId) {
-        taskInfo = clearTargetConfigurationLabel(taskInfo);
-        Labels labels = Labels.newBuilder(taskInfo.getLabels())
-                .addLabels(
-                        Label.newBuilder()
-                                .setKey(TARGET_CONFIGURATION_KEY)
-                                .setValue(targetConfigurationId.toString())
-                                .build())
-                .build();
-
-        return TaskInfo.newBuilder(taskInfo)
-                .setLabels(labels)
+        return taskInfo.toBuilder()
+                .setLabels(withLabelSet(taskInfo.getLabels(),
+                        TARGET_CONFIGURATION_KEY,
+                        targetConfigurationId.toString()))
                 .build();
     }
 
@@ -169,47 +160,6 @@ public class TaskUtils {
         }
 
         throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
-    }
-
-    private static TaskInfo clearTargetConfigurationLabel(TaskInfo taskInfo) {
-        List<Label> filteredLabels = new ArrayList<>();
-
-        for (Label label : taskInfo.getLabels().getLabelsList()) {
-            if (!label.getKey().equals(TARGET_CONFIGURATION_KEY)) {
-                filteredLabels.add(label);
-            }
-        }
-
-        return TaskInfo.newBuilder(taskInfo)
-                .setLabels(
-                        Labels.newBuilder()
-                                .addAllLabels(filteredLabels)
-                                .build())
-                .build();
-    }
-
-    private static Labels clearTransient(Labels labels) {
-        Labels.Builder labelBuilder = Labels.newBuilder();
-
-        for (Label label : labels.getLabelsList()) {
-            if (!label.getKey().equals(MesosTask.TRANSIENT_FLAG_KEY)) {
-                labelBuilder.addLabels(label);
-            }
-        }
-
-        return labelBuilder.build();
-    }
-
-    private static Labels setTransient(Labels labels) {
-        labels = clearTransient(labels);
-
-        Labels.Builder labelBuilder = Labels.newBuilder(labels);
-        labelBuilder.addLabelsBuilder()
-                .setKey(MesosTask.TRANSIENT_FLAG_KEY)
-                .setValue("true")
-                .build();
-
-        return labelBuilder.build();
     }
 
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
@@ -298,7 +248,7 @@ public class TaskUtils {
     }
 
     public static String getTaskType(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        final Protos.CommandInfo commandInfo = getCommand(taskInfo);
+        final Protos.CommandInfo commandInfo = taskInfo.getCommand();
         final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment());
         String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
 
@@ -309,12 +259,64 @@ public class TaskUtils {
         }
     }
 
-    public static CommandInfo getCommand(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        return Protos.CommandInfo.parseFrom(taskInfo.getData());
+    /**
+     * Mesos protobuf requirements do not allow a TaskInfo to simultaneously have a Command and Executor.  In order to
+     * workaround this we encapsulate a TaskInfo's Command and Data fields in an ExecutorInfo and store it in the
+     * data field of the TaskInfo.
+     * @param taskInfo
+     * @return
+     */
+    public static TaskInfo packTaskInfo(TaskInfo taskInfo) {
+        if (!taskInfo.hasExecutor()) {
+            return taskInfo;
+        } else {
+            ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
+                    .setExecutorId(ExecutorID.newBuilder().setValue(COMMAND_DATA_PACKAGE_EXECUTOR));
+
+            if (taskInfo.hasCommand()) {
+                executorInfoBuilder.setCommand(taskInfo.getCommand());
+            } else {
+                executorInfoBuilder.setCommand(CommandInfo.getDefaultInstance());
+            }
+
+            if (taskInfo.hasData()) {
+                executorInfoBuilder.setData(taskInfo.getData());
+            }
+
+            return TaskInfo.newBuilder(taskInfo)
+                    .setData(executorInfoBuilder.build().toByteString())
+                    .clearCommand()
+                    .build();
+        }
+    }
+
+    /**
+     * This method reverses the work done in packTaskInfo such that the original TaskInfo is regenerated.
+     * @param taskInfo
+     * @return
+     * @throws InvalidProtocolBufferException
+     */
+    public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+        if (!taskInfo.hasExecutor()) {
+            return taskInfo;
+        } else {
+            TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
+            ExecutorInfo pkgExecutorInfo = Protos.ExecutorInfo.parseFrom(taskInfo.getData());
+
+            if (pkgExecutorInfo.hasCommand()) {
+                taskBuilder.setCommand(pkgExecutorInfo.getCommand());
+            }
+
+            if (pkgExecutorInfo.hasData()) {
+                taskBuilder.setData(pkgExecutorInfo.getData());
+            }
+
+            return taskBuilder.build();
+        }
     }
 
     public static ProcessBuilder getProcess(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        CommandInfo commandInfo = getCommand(taskInfo);
+        CommandInfo commandInfo = taskInfo.getCommand();
         String cmd = commandInfo.getValue();
 
         ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", cmd);
@@ -322,6 +324,38 @@ public class TaskUtils {
         builder.environment().putAll(TaskUtils.fromEnvironmentToMap(commandInfo.getEnvironment()));
 
         return builder;
+    }
+
+    /**
+     * Removes any preexisting label with the provided {@code labelKey}, or makes no changes if no
+     * matching {@link Label} was found.
+     *
+     * @return an updated {@link Labels.Builder} with the requested label removed
+     */
+    private static Labels.Builder withLabelRemoved(Labels labels, String labelKey) {
+        Labels.Builder labelsBuilder = Labels.newBuilder();
+
+        for (Label label : labels.getLabelsList()) {
+            if (!label.getKey().equals(labelKey)) {
+                labelsBuilder.addLabels(label);
+            }
+        }
+
+        return labelsBuilder;
+    }
+
+    /**
+     * Removes any preexisting label with the provided {@code labelKey} and adds a new {@link Label}
+     * with the provided {@code labelKey}/{@code labelValue}.
+     *
+     * @return an updated {@link Labels.Builder} with the requested label
+     */
+    private static Labels.Builder withLabelSet(Labels labels, String labelKey, String labelValue) {
+        Labels.Builder labelsBuilder = withLabelRemoved(labels, labelKey);
+        labelsBuilder.addLabelsBuilder()
+                .setKey(labelKey)
+                .setValue(labelValue);
+        return labelsBuilder;
     }
 
     private static Map<String, ResourceSpecification> getResourceSpecMap(
