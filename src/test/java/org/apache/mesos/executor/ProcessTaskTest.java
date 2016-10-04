@@ -51,7 +51,7 @@ public class ProcessTaskTest {
 
         final ProcessTask processTask = ProcessTask.create(
                 mockExecutorDriver,
-                TaskUtils.deserializeTaskInfo(taskInfo),
+                TaskUtils.unpackTaskInfo(taskInfo),
                 false);
 
         Assert.assertFalse(processTask.isAlive());

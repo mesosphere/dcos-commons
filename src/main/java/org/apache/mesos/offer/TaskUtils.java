@@ -310,7 +310,14 @@ public class TaskUtils {
         }
     }
 
-    public static TaskInfo serializeTaskInfo(TaskInfo taskInfo) {
+    /**
+     * Mesos protobuf requirements do not allow a TaskInfo to simultaneously have a Command and Executor.  In order to
+     * workaround this we encapsulate a TaskInfo's Command and Data fields in an ExecutorInfo and store it in the
+     * data field of the TaskInfo.
+     * @param taskInfo
+     * @return
+     */
+    public static TaskInfo packTaskInfo(TaskInfo taskInfo) {
         if (!taskInfo.hasExecutor()) {
             return taskInfo;
         } else {
@@ -319,6 +326,8 @@ public class TaskUtils {
 
             if (taskInfo.hasCommand()) {
                 executorInfoBuilder.setCommand(taskInfo.getCommand());
+            } else {
+                executorInfoBuilder.setCommand(CommandInfo.getDefaultInstance());
             }
 
             if (taskInfo.hasData()) {
@@ -332,7 +341,13 @@ public class TaskUtils {
         }
     }
 
-    public static TaskInfo deserializeTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+    /**
+     * This method reverses the work done in packTaskInfo such that the original TaskInfo is regenerated.
+     * @param taskInfo
+     * @return
+     * @throws InvalidProtocolBufferException
+     */
+    public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
         if (!taskInfo.hasExecutor()) {
             return taskInfo;
         } else {

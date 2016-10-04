@@ -163,7 +163,7 @@ public class OfferEvaluatorTest {
         resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
-        CommandInfo command = TaskUtils.deserializeTaskInfo(taskInfo).getCommand();
+        CommandInfo command = TaskUtils.unpackTaskInfo(taskInfo).getCommand();
         Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
         Assert.assertEquals(1, command.getEnvironment().getVariablesCount());
 

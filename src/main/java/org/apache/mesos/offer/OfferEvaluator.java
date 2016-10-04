@@ -386,7 +386,7 @@ public class OfferEvaluator {
             taskBuilder.setExecutor(execBuilder.build());
         }
 
-        return TaskUtils.serializeTaskInfo(
+        return TaskUtils.packTaskInfo(
                 ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources).build());
     }
 }
