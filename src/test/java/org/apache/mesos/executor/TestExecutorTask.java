@@ -1,12 +1,12 @@
 package org.apache.mesos.executor;
 
 import org.apache.mesos.ExecutorDriver;
-
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.concurrent.Future;
 
 public class TestExecutorTask implements ExecutorTask {
     private Logger LOGGER = LoggerFactory.getLogger(getClass());
@@ -47,7 +47,7 @@ public class TestExecutorTask implements ExecutorTask {
     }
 
     @Override
-    public void stop() {
+    public void stop(Future<?> future) {
 
     }
 }

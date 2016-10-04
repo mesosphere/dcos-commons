@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.scheduler.*;
 
 import java.util.*;
 
@@ -12,7 +13,7 @@ import java.util.*;
  * their ordering. It is an immutable class that can be constructed either
  * directly, or using a fluent style builder.
  */
-public class DefaultPhase implements Phase {
+public class DefaultPhase extends ChainedObserver implements Phase {
 
     /**
      * Fluent style builder class for {@link DefaultPhase}.
@@ -121,8 +122,10 @@ public class DefaultPhase implements Phase {
         this.blocks = ImmutableList.copyOf(blocks);
         final ImmutableMap.Builder<UUID, Integer> builder =
                 ImmutableMap.builder();
+
         for (int i = 0; i < this.blocks.size(); ++i) {
             builder.put(this.blocks.get(i).getId(), i);
+            this.blocks.get(i).subscribe(this);
         }
         byId = builder.build();
     }

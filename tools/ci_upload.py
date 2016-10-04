@@ -1,5 +1,9 @@
 #!/usr/bin/python
 #
+# Uploads artifacts to S3.
+# Produces a universe, and uploads it to S3.
+# If running in jenkins ($WORKSPACE is defined), writes $WORKSPACE/stub-universe.properties
+#
 # Env:
 #   S3_BUCKET (default: infinity-artifacts)
 #   S3_DIR_PATH (default: autdelete7d)

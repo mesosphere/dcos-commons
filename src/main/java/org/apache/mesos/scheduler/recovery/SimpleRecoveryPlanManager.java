@@ -274,7 +274,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         final List<Protos.TaskInfo> filteredTerminatedTasks = new ArrayList<>();
 
         try {
-            final Collection<Protos.TaskInfo> terminatedTasks = stateStore.fetchTerminatedTasks();
+            final Collection<Protos.TaskInfo> terminatedTasks = stateStore.fetchTasksNeedingRecovery();
             if (CollectionUtils.isEmpty(dirtiedAssets)) {
                 return terminatedTasks;
             }
@@ -306,7 +306,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
                 .filter(it -> !failureMonitor.hasFailed(it))
                 .collect(Collectors.toList());
 
-        for (Protos.TaskInfo terminatedTask : stateStore.fetchTerminatedTasks()) {
+        for (Protos.TaskInfo terminatedTask : stateStore.fetchTasksNeedingRecovery()) {
             LOGGER.info("Found stopped task: {}", TextFormat.shortDebugString(terminatedTask));
             if (failureMonitor.hasFailed(terminatedTask)) {
                 LOGGER.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(terminatedTask));

@@ -131,11 +131,11 @@ public class DefaultRecoveryScheduler {
 
         try {
             if (!block.isPresent()) {
-                return stateStore.fetchTerminatedTasks();
+                return stateStore.fetchTasksNeedingRecovery();
             }
 
             String blockName = block.get().getName();
-            for (TaskInfo taskInfo : stateStore.fetchTerminatedTasks()) {
+            for (TaskInfo taskInfo : stateStore.fetchTasksNeedingRecovery()) {
                 if (!taskInfo.getName().equals(blockName)) {
                     filteredTerminatedTasks.add(taskInfo);
                 }
@@ -148,21 +148,17 @@ public class DefaultRecoveryScheduler {
     }
 
     private void updateRecoveryStatus(Collection<TaskInfo> terminatedTasks) {
-        List<TaskInfo> failed = new ArrayList<>(terminatedTasks.stream()
-                .filter(failureMonitor::hasFailed)
-                .collect(Collectors.toList()));
-        failed = failed.stream().distinct().collect(Collectors.toList());
+        List<TaskInfo> failed = new ArrayList<>();
+        List<TaskInfo> stopped = new ArrayList<>();
 
-        failed.stream().forEach(it -> failureListener.taskFailed(it.getTaskId()));
-
-        List<TaskInfo> stopped = terminatedTasks.stream()
-                .filter(it -> !failureMonitor.hasFailed(it))
-                .collect(Collectors.toList());
-
-        for (TaskInfo terminatedTask : stateStore.fetchTerminatedTasks()) {
+        for (TaskInfo terminatedTask : terminatedTasks) {
             log.info("Found stopped task: {}", TextFormat.shortDebugString(terminatedTask));
-            if (failureMonitor.hasFailed(terminatedTask)) {
+            if (FailureUtils.isLabeledAsFailed(terminatedTask) || failureMonitor.hasFailed(terminatedTask)) {
                 log.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(terminatedTask));
+                failed.add(terminatedTask);
+                failureListener.taskFailed(terminatedTask.getTaskId());
+            } else {
+                stopped.add(terminatedTask);
             }
         }
 

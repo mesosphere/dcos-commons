@@ -201,7 +201,7 @@ public class DefaultPlanManagerTest {
                         Arrays.asList(mockBlock)));
         PlanManager mockPlanManager = new DefaultPlanManager(mockPlan, stratFactory);
         Protos.TaskStatus testStatus = Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.taskId)
+                .setTaskId(TestConstants.TASK_ID)
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .build();
 
@@ -220,7 +220,7 @@ public class DefaultPlanManagerTest {
                         "phase-0",
                         Arrays.asList(mockBlock)));
         Protos.TaskStatus testStatus = Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.taskId)
+                .setTaskId(TestConstants.TASK_ID)
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .build();
         PlanManager mockPlanManager = new DefaultPlanManager(mockPlan, stratFactory);

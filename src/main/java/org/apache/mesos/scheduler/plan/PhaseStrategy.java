@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -11,7 +12,7 @@ public interface PhaseStrategy {
      *
      * @return The current Block selected by the strategy for execution.
      */
-    Block getCurrentBlock();
+    Optional<Block> getCurrentBlock();
 
     /**
      * If the current Plan is interrupted at this Phase. This phase should

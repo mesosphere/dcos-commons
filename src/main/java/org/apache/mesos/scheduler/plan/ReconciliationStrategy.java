@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -22,9 +23,9 @@ public class ReconciliationStrategy implements PhaseStrategy {
     }
 
     @Override
-    public Block getCurrentBlock() {
+    public Optional<Block> getCurrentBlock() {
         // ReconciliationPhases only have a single Block
-        return phase.getBlock(0);
+        return Optional.of(phase.getBlock(0));
     }
 
     @Override
@@ -39,17 +40,17 @@ public class ReconciliationStrategy implements PhaseStrategy {
 
     @Override
     public void restart(UUID blockId) {
-        getCurrentBlock().restart();
+        getCurrentBlock().get().restart();
     }
 
     @Override
     public void forceComplete(UUID blockId) {
-        getCurrentBlock().forceComplete();
+        getCurrentBlock().get().forceComplete();
     }
 
     @Override
     public Status getStatus() {
-        return Block.getStatus(getCurrentBlock());
+        return Block.getStatus(getCurrentBlock().get());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package org.apache.mesos.executor;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -8,38 +9,66 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 /**
  * Generic process task, that can be spawned using {@code CustomExecutor}.
  */
 public class ProcessTask implements ExecutorTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessTask.class);
-
-    private ExecutorDriver driver;
-    private Protos.TaskInfo task;
-    private volatile Process process;
+    private final String taskType;
+    private final ProcessBuilder processBuilder;
+    private final ExecutorDriver driver;
+    private final Protos.TaskInfo taskInfo;
     private final CompletableFuture<Boolean> initialized =
             new CompletableFuture<>();
     private final CompletableFuture<Integer> exit =
             new CompletableFuture<>();
+    private volatile Process process;
 
     private boolean exitOnTermination;
 
     // TODO(mohit): Remove this when KillPolicy is available.
     private static final Duration TERMINATE_TIMEOUT = Duration.ofSeconds(10);
 
-    public ProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task) {
-        this(executorDriver, task, true);
+    public static ProcessTask create(ExecutorDriver executorDriver, Protos.TaskInfo taskInfo)
+            throws InvalidProtocolBufferException {
+        return create(executorDriver, taskInfo, true);
     }
 
-    public ProcessTask(ExecutorDriver executorDriver, Protos.TaskInfo task, boolean exitOnTermination) {
+    public static ProcessTask create(ExecutorDriver executorDriver, Protos.TaskInfo taskInfo, boolean exitOnTermination)
+            throws InvalidProtocolBufferException {
+        return create(executorDriver, taskInfo, TaskUtils.getProcess(taskInfo), exitOnTermination);
+    }
+
+    public static ProcessTask create(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            ProcessBuilder processBuilder) throws InvalidProtocolBufferException {
+        return create(executorDriver, taskInfo, processBuilder, true);
+    }
+
+    public static ProcessTask create(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            ProcessBuilder processBuilder,
+            boolean exitOnTermination) throws InvalidProtocolBufferException {
+        return new ProcessTask(executorDriver, taskInfo, processBuilder, exitOnTermination);
+    }
+
+    public ProcessBuilder getProcessBuilder() {
+        return processBuilder;
+    }
+
+    protected ProcessTask(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            ProcessBuilder processBuilder,
+            boolean exitOnTermination) throws InvalidProtocolBufferException {
         this.driver = executorDriver;
-        this.task = task;
+        this.taskInfo = taskInfo;
+        this.taskType = TaskUtils.getTaskType(taskInfo);
+        this.processBuilder = processBuilder;
         this.exitOnTermination = exitOnTermination;
     }
 
@@ -52,27 +81,18 @@ public class ProcessTask implements ExecutorTask {
         try {
             preStart();
 
-            final Protos.CommandInfo taskData = Protos.CommandInfo.parseFrom(task.getData());
-            final Map<String, String> envMap = TaskUtils.fromEnvironmentToMap(taskData.getEnvironment());
-            final String taskType = envMap.get(DcosTaskConstants.TASK_TYPE);
-            final String command = taskData.getValue();
+            LOGGER.info("Executing command: {}", processBuilder.command());
+            LOGGER.info("With Environment: {}", processBuilder.environment());
 
-            ProcessBuilder builder = new ProcessBuilder("/bin/sh", "-c", command);
-            builder.inheritIO();
-            builder.environment().putAll(envMap);
-
-            LOGGER.info("Executing command: {}", builder.command());
-            LOGGER.info("With Environment: {}", builder.environment());
-
-            this.process = builder.start();
+            this.process = processBuilder.start();
 
             final String startMessage = "Launched Process of type: " + taskType;
             TaskUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_RUNNING,
-                    task.getTaskId(),
-                    task.getSlaveId(),
-                    task.getExecutor().getExecutorId(),
+                    taskInfo.getTaskId(),
+                    taskInfo.getSlaveId(),
+                    taskInfo.getExecutor().getExecutorId(),
                     startMessage);
             initialized.complete(true);
 
@@ -103,9 +123,9 @@ public class ProcessTask implements ExecutorTask {
             TaskUtils.sendStatus(
                     driver,
                     taskState,
-                    task.getTaskId(),
-                    task.getSlaveId(),
-                    task.getExecutor().getExecutorId(),
+                    taskInfo.getTaskId(),
+                    taskInfo.getSlaveId(),
+                    taskInfo.getExecutor().getExecutorId(),
                     exitMessage);
 
             if (exitOnTermination) {
@@ -118,9 +138,9 @@ public class ProcessTask implements ExecutorTask {
             TaskUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_FAILED,
-                    task.getTaskId(),
-                    task.getSlaveId(),
-                    task.getExecutor().getExecutorId(),
+                    taskInfo.getTaskId(),
+                    taskInfo.getSlaveId(),
+                    taskInfo.getExecutor().getExecutorId(),
                     e.getMessage(),
                     SerializationUtils.serialize(e));
             if (exitOnTermination) {
@@ -130,16 +150,16 @@ public class ProcessTask implements ExecutorTask {
     }
 
     @Override
-    public void stop() {
+    public void stop(Future<?> future) {
         if (process != null) {
-            LOGGER.info("Terminating process: task = {}", task);
+            LOGGER.info("Terminating process: task = {}", taskInfo);
 
             if (terminate(TERMINATE_TIMEOUT)) {
-                LOGGER.info("Terminated process: task = {}", task.getTaskId());
+                LOGGER.info("Terminated process: task = {}", taskInfo.getTaskId());
             } else {
                 LOGGER.warn("Failed to terminate process: task = {}",
-                        task.getTaskId());
-                LOGGER.info("Killing process task = {}", task.getTaskId());
+                        taskInfo.getTaskId());
+                LOGGER.info("Killing process task = {}", taskInfo.getTaskId());
                 kill();
             }
         }
@@ -192,7 +212,7 @@ public class ProcessTask implements ExecutorTask {
     }
 
     public int kill() {
-        LOGGER.info("Killing process: name = {}", task.getName());
+        LOGGER.info("Killing process: name = {}", taskInfo.getName());
         if (waitInit() && isAlive()) {
             sigKill();
         }

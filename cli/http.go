@@ -198,6 +198,8 @@ func CreateURL(urlPath, urlQuery string) *url.URL {
 			"DC/OS Cluster URL",
 			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")
 	}
+	// Trim eg "/#/" from copy-pasted Dashboard URL:
+	dcosUrl = strings.TrimRight(dcosUrl, "#/")
 	parsedUrl, err := url.Parse(dcosUrl)
 	if err != nil {
 		log.Fatalf("Unable to parse DC/OS Cluster URL '%s': %s", dcosUrl, err)

@@ -20,99 +20,99 @@ import java.util.Optional;
  * an Offer will already have the indicated persistence ID.
  */
 public class OfferRequirement {
-  private Collection<SlaveID> avoidAgents;
-  private Collection<SlaveID> colocateAgents;
-  private Collection<TaskRequirement> taskRequirements;
-  private ExecutorRequirement executorRequirement;
+    private final Collection<SlaveID> avoidAgents;
+    private final Collection<SlaveID> colocateAgents;
+    private final Collection<TaskRequirement> taskRequirements;
+    private final Optional<ExecutorRequirement> executorRequirementOptional;
 
-  public OfferRequirement(
-    Collection<TaskInfo> taskInfos,
-    Optional<ExecutorInfo> executorInfoOptional,
-    Collection<SlaveID> avoidAgents,
-    Collection<SlaveID> colocateAgents)
-    throws InvalidRequirementException {
-    this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-    if (executorInfoOptional.isPresent()) {
-      this.executorRequirement = ExecutorRequirement.create(executorInfoOptional.get());
+    public OfferRequirement(
+        Collection<TaskInfo> taskInfos,
+        Optional<ExecutorInfo> executorInfoOptional,
+        Collection<SlaveID> avoidAgents,
+        Collection<SlaveID> colocateAgents)
+        throws InvalidRequirementException {
+        this.taskRequirements = getTaskRequirementsInternal(taskInfos);
+        this.executorRequirementOptional = executorInfoOptional.isPresent() ?
+                Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
+                Optional.empty();
+
+        if (avoidAgents == null) {
+            this.avoidAgents = Collections.emptyList();
+        } else {
+            this.avoidAgents = avoidAgents;
+        }
+
+        if (colocateAgents == null) {
+            this.colocateAgents = Collections.emptyList();
+        } else {
+            this.colocateAgents = colocateAgents;
+        }
     }
 
-    if (avoidAgents == null) {
-      this.avoidAgents = Collections.emptyList();
-    } else {
-      this.avoidAgents = avoidAgents;
+    public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
+        this(taskInfos, Optional.empty(), Collections.emptyList(), Collections.emptyList());
     }
 
-    if (colocateAgents == null) {
-      this.colocateAgents = Collections.emptyList();
-    } else {
-      this.colocateAgents = colocateAgents;
-    }
-  }
-
-  public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
-    this(taskInfos, Optional.empty(), Collections.emptyList(), Collections.emptyList());
-  }
-
-  public OfferRequirement(Collection<TaskInfo> taskInfos, Optional<ExecutorInfo> executorInfoOptional)
-      throws InvalidRequirementException {
-    this(taskInfos, executorInfoOptional, Collections.emptyList(), Collections.emptyList());
-  }
-
-  public Collection<TaskRequirement> getTaskRequirements() {
-    return taskRequirements;
-  }
-
-  public ExecutorRequirement getExecutorRequirement() {
-    return executorRequirement;
-  }
-
-  public Collection<SlaveID> getAvoidAgents() {
-    return avoidAgents;
-  }
-
-  public Collection<SlaveID> getColocateAgents() {
-    return colocateAgents;
-  }
-
-  public Collection<String> getResourceIds() {
-    Collection<String> resourceIds = new ArrayList<String>();
-
-    for (TaskRequirement taskReq : taskRequirements) {
-      resourceIds.addAll(taskReq.getResourceIds());
+    public OfferRequirement(Collection<TaskInfo> taskInfos, Optional<ExecutorInfo> executorInfoOptional)
+            throws InvalidRequirementException {
+        this(taskInfos, executorInfoOptional, Collections.emptyList(), Collections.emptyList());
     }
 
-    if (executorRequirement != null)  {
-      resourceIds.addAll(executorRequirement.getResourceIds());
+    public Collection<TaskRequirement> getTaskRequirements() {
+        return taskRequirements;
     }
 
-    return resourceIds;
-  }
-
-  public Collection<String> getPersistenceIds() {
-    Collection<String> persistenceIds = new ArrayList<String>();
-
-    for (TaskRequirement taskReq : taskRequirements) {
-      persistenceIds.addAll(taskReq.getPersistenceIds());
+    public Optional<ExecutorRequirement> getExecutorRequirementOptional() {
+        return executorRequirementOptional;
     }
 
-    if (executorRequirement != null)  {
-      persistenceIds.addAll(executorRequirement.getPersistenceIds());
+    public Collection<SlaveID> getAvoidAgents() {
+        return avoidAgents;
     }
 
-    return persistenceIds;
-  }
-
-  private static Collection<TaskRequirement> getTaskRequirementsInternal(
-      Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
-    Collection<TaskRequirement> taskRequirements = new ArrayList<TaskRequirement>();
-    for (TaskInfo taskInfo : taskInfos) {
-      taskRequirements.add(new TaskRequirement(taskInfo));
+    public Collection<SlaveID> getColocateAgents() {
+        return colocateAgents;
     }
-    return taskRequirements;
-  }
 
-  @Override
-  public String toString() {
-      return ToStringBuilder.reflectionToString(this);
-  }
+    public Collection<String> getResourceIds() {
+        Collection<String> resourceIds = new ArrayList<String>();
+
+        for (TaskRequirement taskReq : taskRequirements) {
+            resourceIds.addAll(taskReq.getResourceIds());
+        }
+
+        if (executorRequirementOptional.isPresent()) {
+            resourceIds.addAll(executorRequirementOptional.get().getResourceIds());
+        }
+
+        return resourceIds;
+    }
+
+    public Collection<String> getPersistenceIds() {
+        Collection<String> persistenceIds = new ArrayList<String>();
+
+        for (TaskRequirement taskReq : taskRequirements) {
+            persistenceIds.addAll(taskReq.getPersistenceIds());
+        }
+
+        if (executorRequirementOptional.isPresent())    {
+            persistenceIds.addAll(executorRequirementOptional.get().getPersistenceIds());
+        }
+
+        return persistenceIds;
+    }
+
+    private static Collection<TaskRequirement> getTaskRequirementsInternal(
+            Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
+        Collection<TaskRequirement> taskRequirements = new ArrayList<TaskRequirement>();
+        for (TaskInfo taskInfo : taskInfos) {
+            taskRequirements.add(new TaskRequirement(taskInfo));
+        }
+        return taskRequirements;
+    }
+
+    @Override
+    public String toString() {
+            return ToStringBuilder.reflectionToString(this);
+    }
 }

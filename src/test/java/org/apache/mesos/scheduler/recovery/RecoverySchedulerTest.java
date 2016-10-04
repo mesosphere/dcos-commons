@@ -6,7 +6,9 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.OfferAccepter;
+import org.apache.mesos.offer.OfferRecommendation;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
@@ -19,6 +21,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,9 +68,13 @@ public class RecoverySchedulerTest {
                         ResourceTestUtils.getUnreservedMem(mem)));
     }
 
+    @Captor
+    private ArgumentCaptor<List<OfferRecommendation>> recommendationCaptor;
+
     @Before
     public void setupTest() {
-        failureMonitor = new TestingFailureMonitor();
+        MockitoAnnotations.initMocks(this);
+        failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         recoveryStatusRef = new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
         taskFailureListener = mock(TaskFailureListener.class);
@@ -98,9 +106,8 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         launchConstrainer.setCanLaunch(false);
 
@@ -114,7 +121,7 @@ public class RecoverySchedulerTest {
         for (int i = 0; i < 10; i++) {
             recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
             //verify the UI
-            assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getStoppedNames());
+            assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getStoppedNames());
             assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getFailedNames());
         }
     }
@@ -126,13 +133,13 @@ public class RecoverySchedulerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
 
-        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, offers, null);
+        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, offers, Optional.empty());
         assertEquals(1, acceptedOffers.size());
 
         // Verify launchConstrainer was checked before launch
@@ -151,8 +158,8 @@ public class RecoverySchedulerTest {
         launchConstrainer.setCanLaunch(true);
 
         Block block = mock(Block.class);
-        when(block.getName()).thenReturn(TestConstants.taskName);
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        when(block.getName()).thenReturn(TestConstants.TASK_NAME);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
 
         List<Protos.OfferID> acceptedOffers =
                 recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.of(block));
@@ -169,12 +176,12 @@ public class RecoverySchedulerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
         launchConstrainer.setCanLaunch(true);
 
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
 
         Block block = mock(Block.class);
         when(block.getName()).thenReturn("different-name");
@@ -189,21 +196,21 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(false);
 
         recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
 
         // Verify we performed the failed task callback.
-        verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
+        verify(taskFailureListener, times(2)).taskFailed(TestConstants.TASK_ID);
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
             recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
             // verify the transition to stopped
             assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-            assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+            assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
         }
     }
 
@@ -212,31 +219,29 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         List<Offer> offers = getOffers(1.0, 1.0);
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
 
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(true);
 
-        List<Protos.OfferID> accepteOffers = recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
-        assertEquals(1, accepteOffers.size());
+        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+        assertEquals(1, acceptedOffers.size());
 
         // Verify we launched the task
-        ArgumentCaptor<List> operationCaptor = ArgumentCaptor.forClass(List.class);
-        verify(offerAccepter, times(1)).accept(any(), operationCaptor.capture());
-        assertEquals(3, operationCaptor.getValue().size());
+        verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
+        assertEquals(3, recommendationCaptor.getValue().size());
         verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
 
         // Verify the appropriate task was checked for failure.
-        verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
+        verify(taskFailureListener, times(2)).taskFailed(TestConstants.TASK_ID);
 
         // Verify the Task is reported as failed.
         assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-        assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+        assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
     }
 
     @Test
@@ -249,11 +254,11 @@ public class RecoverySchedulerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(desiredCpu);
         Resource mem = ResourceTestUtils.getDesiredMem(desiredMem);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos, Optional.empty(), Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
 
         List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
 
-        when(stateStore.fetchTerminatedTasks()).thenReturn(infos);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(true);
@@ -262,14 +267,47 @@ public class RecoverySchedulerTest {
         assertEquals(0, acceptedOffers.size());
 
         // Verify the appropriate task was checked for failure.
-        verify(taskFailureListener, times(2)).taskFailed(TestConstants.taskId);
+        verify(taskFailureListener, times(2)).taskFailed(TestConstants.TASK_ID);
 
         // Verify we transitioned the task to failed
         assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
-        assertEquals(Collections.singletonList(TestConstants.taskName), recoveryStatusRef.get().getFailedNames());
+        assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
 
         // Verify we didn't launch the task
         verify(offerAccepter, times(1)).accept(any(), eq(Collections.EMPTY_LIST));
         verify(launchConstrainer, never()).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
+    }
+
+    @Test
+    public void permanentlyFailedTasksAreRescheduled() throws Exception {
+        // Prepare permanently failed task with some reserved resources
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
+        List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+
+        List<Offer> offers = getOffers(1.0, 1.0);
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
+                new OfferRequirement(Collections.singletonList(ResourceUtils.clearResourceIds(taskInfo))));
+        when(recoveryRequirementProvider.getPermanentRecoveryRequirements(eq(infos)))
+                .thenReturn(Arrays.asList(recoveryRequirement));
+        when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
+        launchConstrainer.setCanLaunch(true);
+
+        List<Protos.OfferID> acceptedOffers = recoveryScheduler.resourceOffers(schedulerDriver, getOffers(1.0, 1.0), Optional.empty());
+        assertEquals(1, acceptedOffers.size());
+
+        // Verify we launched the task
+        verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
+        assertEquals(2, recommendationCaptor.getValue().size());
+        verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
+
+        // Verify the Task is reported as failed.
+        assertEquals(Collections.EMPTY_LIST, recoveryStatusRef.get().getStopped());
+        assertEquals(Collections.singletonList(TestConstants.TASK_NAME), recoveryStatusRef.get().getFailedNames());
+
+        // Verify the appropriate task was not checked for failure with failure monitor.
+        verify(failureMonitor, never()).hasFailed(any());
     }
 }

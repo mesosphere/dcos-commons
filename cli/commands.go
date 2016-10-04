@@ -168,19 +168,19 @@ func (cmd *PlanHandler) RunActive(c *kingpin.ParseContext) error {
 	return nil
 }
 func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/plan/continue"))
+	PrintJSON(HTTPPost("v1/plan/continue"))
 	return nil
 }
 func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/plan/forceComplete"))
+	PrintJSON(HTTPPost("v1/plan/forceComplete"))
 	return nil
 }
 func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/plan/interrupt"))
+	PrintJSON(HTTPPost("v1/plan/interrupt"))
 	return nil
 }
 func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/plan/restart"))
+	PrintJSON(HTTPPost("v1/plan/restart"))
 	return nil
 }
 func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {

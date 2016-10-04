@@ -10,7 +10,7 @@ import java.util.Collection;
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
  */
-public class TestTaskSpecificationFactory {
+public class TestTaskSetFactory {
     public static final String NAME = "test-task-type";
     public static final int COUNT = 1;
     public static final double CPU = 1.0;
@@ -18,8 +18,8 @@ public class TestTaskSpecificationFactory {
     public static final double DISK = 2000.0;
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
 
-    public static TaskTypeSpecification getTaskTypeSpecification() {
-        return getTaskTypeSpecification(
+    public static TaskSet getTaskSet() {
+        return getTaskSet(
                 NAME,
                 COUNT,
                 CMD.getValue(),
@@ -28,7 +28,7 @@ public class TestTaskSpecificationFactory {
                 DISK);
     }
 
-    public static TaskTypeSpecification getTaskTypeSpecification(
+    public static TaskSet getTaskSet(
             String name,
             Integer count,
             String cmd,
@@ -36,12 +36,12 @@ public class TestTaskSpecificationFactory {
             double mem,
             double disk) {
 
-        return new DefaultTaskTypeSpecification(
+        return DefaultTaskSet.create(
                 count,
                 name,
                 getCommand(cmd),
-                getResources(cpu, mem, TestConstants.role, TestConstants.principal),
-                getVolumes(disk, TestConstants.role, TestConstants.principal));
+                getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL));
     }
 
     public static TaskSpecification getTaskSpecification() {
@@ -63,8 +63,8 @@ public class TestTaskSpecificationFactory {
         return new DefaultTaskSpecification(
                 name,
                 getCommand(cmd),
-                getResources(cpu, mem, TestConstants.role, TestConstants.principal),
-                getVolumes(disk, TestConstants.role, TestConstants.principal));
+                getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL));
     }
 
 
@@ -103,7 +103,7 @@ public class TestTaskSpecificationFactory {
                 new DefaultVolumeSpecification(
                         diskSize,
                         VolumeSpecification.Type.ROOT,
-                        TestConstants.containerPath,
+                        TestConstants.CONTAINER_PATH,
                         role,
                         principal));
     }

@@ -16,8 +16,6 @@ import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
-import org.apache.mesos.specification.DefaultPlanSpecificationFactory;
-import org.apache.mesos.specification.PlanSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
@@ -83,17 +81,15 @@ public class DefaultScheduler implements Scheduler {
         executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 
-    Plan getDeployPlan() {
+    Plan getPlan() {
         return deployPlan;
     }
 
-    private void initialize() throws InterruptedException {
+    private void initialize(SchedulerDriver driver) throws InterruptedException {
         logger.info("Initializing...");
-        initializeGlobals();
-        final PlanSpecification planSpecification = new DefaultPlanSpecificationFactory()
-                .getPlanSpecification(serviceSpecification);
-        initializeDeploymentPlan(planSpecification);
+        initializeGlobals(driver);
         initializeRecoveryPlanManager();
+        initializeDeploymentPlan();
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
                 deployPlanManager,
@@ -103,11 +99,11 @@ public class DefaultScheduler implements Scheduler {
         logger.info("Done initializing.");
     }
 
-    private void initializeGlobals() {
+    private void initializeGlobals(SchedulerDriver driver) {
         logger.info("Initializing globals...");
         stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener);
+        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
         logger.info("Done initializing globals.");
@@ -131,13 +127,13 @@ public class DefaultScheduler implements Scheduler {
         logger.info("Done initializing recovery plan.");
     }
 
-    private void initializeDeploymentPlan(PlanSpecification deployPlanSpecification) {
+    private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan...");
         planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
 
         try {
-            deployPlan = new DefaultPlanFactory(stateStore).getPlan(deployPlanSpecification);
-            logger.info("Generated deployPlan: " + deployPlan);
+            deployPlan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
+            logger.info("Generated plan: " + deployPlan);
             deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
         } catch (InvalidRequirementException e) {
             logger.error("Failed to generate deployPlan with exception: ", e);
@@ -218,7 +214,7 @@ public class DefaultScheduler implements Scheduler {
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         logger.info("Registered framework with frameworkId: " + frameworkId.getValue());
         try {
-            initialize();
+            initialize(driver);
         } catch (InterruptedException e) {
             logger.error("Initialization failed with exception: ", e);
             hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -293,12 +289,6 @@ public class DefaultScheduler implements Scheduler {
 //            }
 
             declineOffers(driver, acceptedOffers, offers);
-
-            // Kill tasks (for configuration update, or user requested Task restart or replace):
-            // It is the normal state of affairs, that in order to update the configuration of a Task it must be
-            // restarted.  In order to drive the restart process, it is necessary to give some component, the
-            // TaskKiller, an opportunity to kill Tasks so that they may be redeployed with a new configuration.
-            taskKiller.process(driver);
         });
     }
 

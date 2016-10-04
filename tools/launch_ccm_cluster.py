@@ -210,7 +210,8 @@ class CCMLauncher(object):
             hostrepo = 's3-us-west-2.amazonaws.com/downloads.dcos.io/dcos'
         template_url = 'https://{}/{}/cloudformation/{}'.format(
             hostrepo, config.ccm_channel, config.cf_template)
-
+        if config.template_url:
+            template_url = config.template_url
         cluster_name = config.name_prefix + self._rand_str(8)
         payload = {
             'template_url': template_url,
@@ -308,13 +309,13 @@ class StartConfig(object):
             self,
             name_prefix = 'test-cluster-',
             description = '',
-            duration_mins = 60,
+            duration_mins = 120,
             ccm_channel = 'testing/master',
             cf_template = 'ee.single-master.cloudformation.json',
             start_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS,
             public_agents = 0,
             private_agents = 1,
-            aws_region = 'us-west-2',
+            aws_region = 'eu-central-1',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
             mount_volumes = False):
@@ -329,6 +330,7 @@ class StartConfig(object):
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
         self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
+        self.template_url = os.environ.get('DCOS_TEMPLATE_URL', None)
         if not description:
             description = 'A test cluster with {} private/{} public agents'.format(
                 self.private_agents, self.public_agents)
