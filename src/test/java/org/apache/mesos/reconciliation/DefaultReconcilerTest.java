@@ -15,7 +15,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,6 +31,8 @@ public class DefaultReconcilerTest {
             .setTaskId(Protos.TaskID.newBuilder().setValue("task-2").build())
             .setState(Protos.TaskState.TASK_LOST)
             .build();
+    private static final Collection<Protos.TaskStatus> TASK_STATUSES =
+            Arrays.asList(TASK_STATUS_1, TASK_STATUS_2);
     private static final long DEFAULT_TIME_MS = 12345L;
 
     @Mock private SchedulerDriver mockDriver;
@@ -49,7 +51,7 @@ public class DefaultReconcilerTest {
     public void testStartEmpty() throws Exception {
         assertTrue(reconciler.isReconciled());
 
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>());
+        when(mockStateStore.fetchStatuses()).thenReturn(Collections.emptyList());
         reconciler.start();
 
         assertTrue(reconciler.isReconciled());
@@ -64,7 +66,7 @@ public class DefaultReconcilerTest {
     @Test
     public void testStart() throws Exception {
         assertTrue(reconciler.isReconciled());
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(getTaskStatuses())));
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
 
         reconciler.start();
 
@@ -77,19 +79,19 @@ public class DefaultReconcilerTest {
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(TASK_STATUS_1)));
+        when(mockStateStore.fetchStatuses()).thenReturn(Arrays.asList(TASK_STATUS_1));
         reconciler.start();
 
         assertFalse(reconciler.isReconciled());
         assertEquals(1, reconciler.remaining().size());
 
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(TASK_STATUS_2)));
+        when(mockStateStore.fetchStatuses()).thenReturn(Arrays.asList(TASK_STATUS_2));
         reconciler.start(); // append
 
         assertFalse(reconciler.isReconciled());
         assertEquals(2, reconciler.remaining().size());
 
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(getTaskStatuses())));
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         reconciler.start(); // merge
 
         assertFalse(reconciler.isReconciled());
@@ -98,7 +100,7 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testUpdatesBeforeReconcile() throws Exception {
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(getTaskStatuses())));
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         reconciler.start();
 
         // update() called before requested via reconcile():
@@ -132,7 +134,7 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testReconcileSequence() throws Exception {
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(getTaskStatuses())));
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         reconciler.start();
 
         reconciler.reconcile(mockDriver); // first call to reconcileTasks: 2 values
@@ -191,7 +193,7 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testForceCompleteReconciler() throws Exception {
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(getTaskStatuses())));
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         reconciler.start();
 
         assertFalse(reconciler.isReconciled());
@@ -207,7 +209,7 @@ public class DefaultReconcilerTest {
 
     @Test
     public void testTaskLostToTaskRunningTransition() throws Exception {
-        when(mockStateStore.getTaskStatuses()).thenReturn(new HashSet<>(Arrays.asList(TASK_STATUS_2)));
+        when(mockStateStore.fetchStatuses()).thenReturn(Arrays.asList(TASK_STATUS_2));
         reconciler.start();
 
         assertFalse(reconciler.isReconciled());
@@ -230,11 +232,6 @@ public class DefaultReconcilerTest {
         assertEquals(2, allCalls.size());
         assertEquals(1, allCalls.get(0).size());
         assertEquals(0, allCalls.get(1).size());
-    }
-
-    private static Protos.TaskStatus[] getTaskStatuses() {
-        Protos.TaskStatus[] taskStatuses = {TASK_STATUS_1, TASK_STATUS_2};
-        return taskStatuses;
     }
 
     /**

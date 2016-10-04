@@ -373,7 +373,6 @@ public class StateStoreCacheTest {
         }
         assertFalse(mockedCache.fetchStatus(TASK_NAME2).isPresent());
         assertEquals(1, mockedCache.fetchStatuses().size());
-        assertEquals(1, mockedCache.getTaskStatuses().size());
 
         // with the TaskInfo provided first, it should now succeed:
         doNothing().when(mockStore).storeTasks(Arrays.asList(TASK2));
@@ -382,7 +381,6 @@ public class StateStoreCacheTest {
         mockedCache.storeStatus(STATUS2);
         assertEquals(STATUS2, mockedCache.fetchStatus(TASK_NAME2).get());
         assertEquals(2, mockedCache.fetchStatuses().size());
-        assertEquals(2, mockedCache.getTaskStatuses().size());
     }
 
     private static class TestStateStoreCache extends StateStoreCache {

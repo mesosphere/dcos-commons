@@ -2,10 +2,8 @@ package org.apache.mesos.state;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -214,11 +212,6 @@ public class StateStoreCache implements StateStore {
         } finally {
             RLOCK.unlock();
         }
-    }
-
-    @Override
-    public Set<TaskStatus> getTaskStatuses() throws Exception {
-        return new HashSet<>(fetchStatuses());
     }
 
     @Override

@@ -310,11 +310,6 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Set<Protos.TaskStatus> getTaskStatuses() throws StateStoreException {
-        return new HashSet<>(fetchStatuses());
-    }
-
-    @Override
     public Optional<Protos.TaskStatus> fetchStatus(String taskName) throws StateStoreException {
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Fetching status for '{}' in '{}'", taskName, path);
