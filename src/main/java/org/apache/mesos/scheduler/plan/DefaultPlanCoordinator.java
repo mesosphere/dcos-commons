@@ -27,28 +27,32 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         this.planScheduler = planScheduler;
     }
 
-    /**
-     * @return List of dirtied offers.
-     */
     @Override
     public Collection<Protos.OfferID> processOffers(final SchedulerDriver driver, final List<Protos.Offer> offers) {
         final Set<Protos.OfferID> dirtiedOffers = new HashSet<>();
+        final List<Block> dirtiedAssets = new ArrayList<>();
         for (final PlanManager planManager : planManagers) {
-            // TODO(mohit): Fix dirtied assets
-            final Optional<Block> currentBlock = planManager.getCurrentBlock(Arrays.asList());
-            if (currentBlock.isPresent()) {
-                final Block blockToSchedule = currentBlock.get();
-                LOGGER.info("Current block to schedule: {}", blockToSchedule.getName());
-                try {
-                    dirtiedOffers.addAll(planScheduler.resourceOffers(driver, offers, blockToSchedule));
-                } catch (Throwable t) {
-                    LOGGER.error("Error scheduling block: {}. Reason: {}", blockToSchedule.getName(), t);
-                    // Continue processing offers for other plan managers.
-                }
-            } else {
-                LOGGER.info("Current block to schedule: No block");
+            try {
                 LOGGER.info("Current plan {} interrupted.", planManager.isInterrupted() ? "is" : "is not");
+                final Optional<Block> currentBlock = planManager.getCurrentBlock(dirtiedAssets);
+                if (currentBlock.isPresent()) {
+                    final Block blockToSchedule = currentBlock.get();
+                    LOGGER.info("Current block to schedule: {}", blockToSchedule.getName());
+                    List<Protos.OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, blockToSchedule);
+                    dirtiedOffers.addAll(usedOffers);
+
+                    // If an offer was used, the block was also scheduled, so let's mark it dirty.
+                    if (CollectionUtils.isNotEmpty(usedOffers)) {
+                        dirtiedAssets.add(blockToSchedule);
+                    }
+                } else {
+                    LOGGER.info("Current block to schedule: No block");
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Error with plan manager: {}. Reason: {}", planManager, t);
             }
+
+            // Filter dirtied offers.
             final List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(
                     offers,
                     dirtiedOffers);

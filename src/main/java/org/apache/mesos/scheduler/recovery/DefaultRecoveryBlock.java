@@ -13,8 +13,6 @@ import java.util.Collection;
  * DefaultRecoveryBlock.
  */
 public class DefaultRecoveryBlock extends DefaultBlock {
-    public static final String RECOVERY = "__recovery";
-
     private LaunchConstrainer launchConstrainer;
     private RecoveryRequirement recoveryRequirement;
 
@@ -24,7 +22,7 @@ public class DefaultRecoveryBlock extends DefaultBlock {
             Status status,
             RecoveryRequirement recoveryRequirement,
             LaunchConstrainer launchConstrainer) {
-        super(name + RECOVERY, offerRequirement, status);
+        super(name, offerRequirement, status);
         this.launchConstrainer = launchConstrainer;
         this.recoveryRequirement = recoveryRequirement;
     }

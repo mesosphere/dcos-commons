@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
- * SimpleRecoveryPlanManager.
+ * An implementation of {@code PlanManager} that performs task recovery using dynamically generated {@code Plan}.
  */
 public class SimpleRecoveryPlanManager implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleRecoveryPlanManager.class);
@@ -79,6 +79,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
                 } else {
                     recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
                 }
+
                 newRecoveryPhaseBuilder.addBlock(new DefaultRecoveryBlock(
                         taskSpecification.getName(),
                         offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification),
@@ -98,7 +99,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
                 // Simple plan only deals with a single recovery phase. This makes it explicit.
                 final Phase phase = phases.get(0);
                 for (Block block : phase.getBlocks()) {
-                    final String taskName = getTaskNameFromRecoveryBlock(block.getName());
+                    final String taskName = block.getName();
                     // Ignore blocks already added to the new plan.
                     if (!recoveryCandidates.containsKey(taskName)) {
                         final Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskName);
@@ -333,10 +334,5 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         }
 
         recoveryStatusRef.set(new RecoveryStatus(stopped, failed));
-    }
-
-    @VisibleForTesting
-    protected static String getTaskNameFromRecoveryBlock(String blockName) {
-        return blockName.split(DefaultRecoveryBlock.RECOVERY)[0];
     }
 }
