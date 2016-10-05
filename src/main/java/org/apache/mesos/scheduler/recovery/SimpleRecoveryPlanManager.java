@@ -35,6 +35,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
     private final AtomicReference<RecoveryStatus> recoveryStatusRef;
+    private final UUID phaseId = UUID.randomUUID();
 
     public SimpleRecoveryPlanManager(
             StateStore stateStore,
@@ -61,6 +62,8 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         failed.stream().forEach(taskInfo -> recoveryCandidates.put(taskInfo.getName(), taskInfo));
 
         final DefaultPhase.Builder newRecoveryPhaseBuilder = DefaultPhase.builder();
+        newRecoveryPhaseBuilder.setId(phaseId);
+
         final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
 
         // If recovery candidates are not part of plan, generate a recovery block for them and mark it as pending.
@@ -101,12 +104,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
                         final Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskName);
                         if (taskStatus.isPresent()) {
                             block.update(taskStatus.get());
-                            if (!block.isComplete()) {
-                                newRecoveryPhaseBuilder.addBlock(block);
-                            } else {
-                                // Remove all the completed blocks from the plan
-                                LOGGER.info("Block {} already complete", block.getName());
-                            }
+                            newRecoveryPhaseBuilder.addBlock(block);
                         }
                     }
                 }

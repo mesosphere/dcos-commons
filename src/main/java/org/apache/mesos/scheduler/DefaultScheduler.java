@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -11,6 +12,7 @@ import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.api.PlanResource;
+import org.apache.mesos.scheduler.plan.api.PlansResource;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
@@ -144,6 +146,9 @@ public class DefaultScheduler implements Scheduler {
         logger.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
         resources.add(new PlanResource(deployPlanManager));
+        resources.add(new PlansResource(ImmutableMap.of(
+                "deploy", deployPlanManager,
+                "recovery", recoveryPlanManager)));
         resources.add(new RecoveryResource(recoveryStatusRef));
         resources.add(new StateResource(stateStore));
         resourcesQueue.put(resources);
