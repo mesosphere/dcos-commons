@@ -65,8 +65,16 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer)
             throws StateStoreException {
-        return evaluateInternal(
-                offerRequirement, offer, getPlacementRule(offerRequirement, stateStore));
+        List<OfferRecommendation> recommendations =
+                evaluateInternal(offerRequirement, offer, getPlacementRule(offerRequirement, stateStore));
+        if (!recommendations.isEmpty()) {
+            logger.info("Offer passed resource requirements, produced {} recommendations: {}",
+                    recommendations.size(), TextFormat.shortDebugString(offer));
+        } else {
+            logger.info("Offer did not pass resource requirements: {}",
+                    TextFormat.shortDebugString(offer));
+        }
+        return recommendations;
     }
 
     private List<OfferRecommendation> evaluateInternal(
@@ -82,7 +90,8 @@ public class OfferEvaluator {
                 logger.info("Offer: '{}' partially passed placement constraints, evaluating {} of {} resources",
                         offer.getId().getValue(), filteredCount, originalCount);
             } else {
-                logger.info("Offer: '{}' didn't pass placement constraints, short-circuiting {} resources",
+                logger.info("Offer: '{}' all {} resources didn't pass placement constraints, "
+                        + "skipping offer resource evaluation and declining offer.",
                         offer.getId().getValue(), originalCount);
                 return Collections.emptyList(); // short-circuit
             }

@@ -11,7 +11,7 @@ import java.util.Optional;
  */
 public interface TaskSpecification {
     /**
-     * Returns the name of this task. Eg "index-3" for the fourth index node or "data-0" for the
+     * Returns the name of this task. E.g. "index-3" for the fourth index node or "data-0" for the
      * first data node.
      */
     String getName();
@@ -22,7 +22,7 @@ public interface TaskSpecification {
     Protos.CommandInfo getCommand();
 
     /**
-     * Returns the contanier resources required by tasks of this type, or an empty list if no
+     * Returns the container resources required by tasks of this type, or an empty list if no
      * container resources are necessary. In practice you probably want something here.
      *
      * See the documentation for {@link ResourceSpecification} for more information.
@@ -31,7 +31,7 @@ public interface TaskSpecification {
 
     /**
      * Returns the persistent volumes required for this task, or an empty list if no persistent
-     * volumes are necessary, eg when not using persistent volumes.
+     * volumes are necessary, e.g. when not using persistent volumes.
      *
      * See the documentation for {@link VolumeSpecification} for more information.
      */

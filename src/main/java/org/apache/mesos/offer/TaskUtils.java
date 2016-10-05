@@ -154,11 +154,11 @@ public class TaskUtils {
      * @throws TaskException if the type could not be found.
      */
     public static String getTaskType(TaskInfo taskInfo) throws TaskException {
-        String taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_KEY);
-        if (taskType == null) {
+        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_KEY);
+        if (!taskType.isPresent()) {
             throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_KEY);
         }
-        return taskType;
+        return taskType.get();
     }
 
     /**
@@ -177,11 +177,11 @@ public class TaskUtils {
      * embedded in the provided {@link TaskInfo}.
      */
     public static List<String> getOfferAttributeStrings(TaskInfo taskInfo) {
-        String joinedAttributes = findLabelValue(taskInfo.getLabels(), OFFER_ATTRIBUTES_KEY);
-        if (joinedAttributes == null) {
+        Optional<String> joinedAttributes = findLabelValue(taskInfo.getLabels(), OFFER_ATTRIBUTES_KEY);
+        if (!joinedAttributes.isPresent()) {
             return new ArrayList<>();
         }
-        return AttributeStringUtils.toStringList(joinedAttributes);
+        return AttributeStringUtils.toStringList(joinedAttributes.get());
     }
 
     /**
@@ -207,11 +207,11 @@ public class TaskUtils {
      * configuration
      */
     public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
-        String value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
-        if (value == null) {
+        Optional<String> value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
+        if (!value.isPresent()) {
             throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
         }
-        return UUID.fromString(value);
+        return UUID.fromString(value.get());
     }
 
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
@@ -371,13 +371,13 @@ public class TaskUtils {
      * Returns the value of a {@link Label} named {@code key}, or returns {@code null} if no
      * matching {@link Label} is found.
      */
-    private static String findLabelValue(Labels labels, String key) {
+    private static Optional<String> findLabelValue(Labels labels, String key) {
         for (Label label : labels.getLabelsList()) {
             if (label.getKey().equals(key)) {
-                return label.getValue();
+                return Optional.of(label.getValue());
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**

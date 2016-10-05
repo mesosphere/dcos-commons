@@ -11,7 +11,6 @@ import java.util.Collections;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.Value;
 import org.apache.mesos.testutils.OfferTestUtils;
 
 /**
@@ -19,175 +18,142 @@ import org.apache.mesos.testutils.OfferTestUtils;
  */
 public class OrRuleTest {
 
-    private static final Resource RESOURCE_1;
-    private static final Resource RESOURCE_2;
-    private static final Resource RESOURCE_3;
-    private static final Resource RESOURCE_4;
-
-    private static final Collection<Resource> RESOURCES;
-
-    static {
-        Resource.Builder b = Resource.newBuilder().setName("1").setType(Value.Type.RANGES);
-        b.getRangesBuilder().addRangeBuilder().setBegin(5).setEnd(6);
-        b.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
-        RESOURCE_1 = b.build();
-
-        b = Resource.newBuilder().setName("2").setType(Value.Type.SCALAR);
-        b.getScalarBuilder().setValue(123.456);
-        RESOURCE_2 = b.build();
-
-        b = Resource.newBuilder().setName("3").setType(Value.Type.SET);
-        b.getSetBuilder().addItem("foo").addItem("bar").addItem("baz");
-        RESOURCE_3 = b.build();
-
-        b = Resource.newBuilder().setName("4").setType(Value.Type.RANGES);
-        b.getRangesBuilder().addRangeBuilder().setBegin(7).setEnd(8);
-        b.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
-        RESOURCE_4 = b.build();
-
-        RESOURCES = Arrays.asList(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4);
-    }
-
-    private static final PlacementRule ALL = new PlacementRule() {
-        @Override
-        public Offer filter(Offer offer) {
-            return offer;
-        }
-    };
-    private static final PlacementRule NONE = new PlacementRule() {
-        @Override
-        public Offer filter(Offer offer) {
-            return offer.toBuilder().clearResources().build();
-        }
-    };
-    private static final PlacementRule REMOVE_FIRST = new PlacementRule() {
-        @Override
-        public Offer filter(Offer offer) {
-            if (offer.getResourcesCount() == 0) {
-                return offer;
-            }
-            return offer.toBuilder().removeResources(0).build();
-        }
-    };
-    private static final PlacementRule REMOVE_LAST = new PlacementRule() {
-        @Override
-        public Offer filter(Offer offer) {
-            int count = offer.getResourcesCount();
-            if (count == 0) {
-                return offer;
-            }
-            return offer.toBuilder().removeResources(count - 1).build();
-        }
-    };
-
     @Test
     public void testEmpty() {
-        Offer o = new OrRule().filter(offerWith(RESOURCES));
+        Offer o = new OrRule()
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
         assertTrue(o.getResourcesList().isEmpty());
     }
 
     @Test
     public void testAllPass() {
-        Offer o = new OrRule(ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCES), o);
+        Offer o = new OrRule(TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCES), o);
 
-        o = new OrRule(ALL, ALL, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCES), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.ALL, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCES), o);
     }
 
     @Test
     public void testAllFail() {
-        Offer o = new OrRule(NONE).filter(offerWith(RESOURCES));
+        Offer o = new OrRule(TestPlacementUtils.NONE)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
         assertTrue(o.getResourcesList().isEmpty());
 
-        o = new OrRule(NONE, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCES), o);
+        o = new OrRule(TestPlacementUtils.NONE, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCES), o);
 
-        o = new OrRule(ALL, NONE).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCES), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.NONE)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCES), o);
 
-        o = new OrRule(NONE, NONE).filter(offerWith(RESOURCES));
+        o = new OrRule(TestPlacementUtils.NONE, TestPlacementUtils.NONE)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
         assertTrue(o.getResourcesList().isEmpty());
 
-        o = new OrRule(NONE, ALL, NONE).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCES), o);
+        o = new OrRule(TestPlacementUtils.NONE, TestPlacementUtils.ALL, TestPlacementUtils.NONE)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCES), o);
 
-        o = new OrRule(ALL, NONE, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCES), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.NONE, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCES), o);
 
-        o = new OrRule(NONE, NONE, NONE).filter(offerWith(RESOURCES));
+        o = new OrRule(TestPlacementUtils.NONE, TestPlacementUtils.NONE, TestPlacementUtils.NONE)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
         assertTrue(o.getResourcesList().isEmpty());
     }
 
     @Test
-    public void testFirstRemoved() {
-        Offer o = new OrRule(REMOVE_FIRST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+    public void testRemoveFirstPermutations() {
+        Offer o = new OrRule(TestPlacementUtils.REMOVE_FIRST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_FIRST, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(ALL, REMOVE_FIRST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_FIRST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_FIRST, REMOVE_FIRST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.REMOVE_FIRST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_FIRST, ALL, REMOVE_FIRST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_FIRST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(ALL, REMOVE_FIRST, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_FIRST, REMOVE_FIRST, REMOVE_FIRST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.REMOVE_FIRST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
     }
 
     @Test
-    public void testLastRemoved() {
-        Offer o = new OrRule(REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3), o);
+    public void testRemoveLastPermutations() {
+        Offer o = new OrRule(TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3), o);
 
-        o = new OrRule(REMOVE_LAST, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(ALL, REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_LAST, REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3), o);
 
-        o = new OrRule(REMOVE_LAST, ALL, REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(ALL, REMOVE_LAST, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_LAST, REMOVE_LAST, REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3), o);
     }
 
     @Test
-    public void testFirstLastRemoved() {
-        Offer o = new OrRule(REMOVE_LAST, REMOVE_FIRST, ALL).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+    public void testRemoveFirstOrRemoveLastPermutations() {
+        Offer o = new OrRule(TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.ALL)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_FIRST, ALL, REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.ALL, TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_LAST, REMOVE_FIRST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.REMOVE_FIRST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
 
-        o = new OrRule(REMOVE_FIRST, REMOVE_LAST, REMOVE_FIRST, REMOVE_LAST).filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4), o);
+        o = new OrRule(TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.REMOVE_LAST, TestPlacementUtils.REMOVE_FIRST, TestPlacementUtils.REMOVE_LAST)
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3, TestPlacementUtils.RESOURCE_4), o);
     }
 
     @Test
     public void testGenerator() {
-        Offer o = new OrRule.Generator(new PassthroughGenerator(REMOVE_LAST))
+        Offer o = new OrRule.Generator(new PassthroughGenerator(TestPlacementUtils.REMOVE_LAST))
                 .generate(Collections.emptyList())
-                .filter(offerWith(RESOURCES));
-        assertEquals(offerWith(RESOURCE_1, RESOURCE_2, RESOURCE_3), o);
+                .filter(offerWith(TestPlacementUtils.RESOURCES));
+        assertEquals(offerWith(TestPlacementUtils.RESOURCE_1, TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3), o);
     }
 
     private static Offer offerWith(Collection<Resource> resources) {
