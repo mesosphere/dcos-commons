@@ -12,7 +12,7 @@ import java.util.*;
  * This scheduler performs UNRESERVE and DESTROY operations on resources which are identified
  * as unexpected by the ResourceCleaner.
  */
-public class ResourceCleanerScheduler implements PlanManager {
+public class ResourceCleanerScheduler {
   private ResourceCleaner resourceCleaner;
   private OfferAccepter offerAccepter;
 
@@ -61,85 +61,5 @@ public class ResourceCleanerScheduler implements PlanManager {
     }
 
     return recommendationsGroupedByAgents;
-  }
-
-  @Override
-  public Plan getPlan() {
-    return null;
-  }
-
-  @Override
-  public void setPlan(Plan plan) {
-
-  }
-
-  @Override
-  public Optional<Phase> getCurrentPhase() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<Block> getCurrentBlock(List<Block> dirtiedAssets) {
-    return Optional.empty();
-  }
-
-  @Override
-  public boolean isComplete() {
-    return false;
-  }
-
-  @Override
-  public void proceed() {
-
-  }
-
-  @Override
-  public void interrupt() {
-
-  }
-
-  @Override
-  public boolean isInterrupted() {
-    return false;
-  }
-
-  @Override
-  public void restart(UUID phaseId, UUID blockId) {
-
-  }
-
-  @Override
-  public void forceComplete(UUID phaseId, UUID blockId) {
-
-  }
-
-  @Override
-  public void update(Protos.TaskStatus status) {
-
-  }
-
-  @Override
-  public boolean hasDecisionPoint(Block block) {
-    return false;
-  }
-
-  @Override
-  public Status getStatus() {
-    return null;
-  }
-
-  @Override
-  public Status getPhaseStatus(UUID phaseId) {
-    return null;
-  }
-
-  @Override
-  public List<String> getErrors() {
-    return null;
-  }
-
-  @Override
-  public void update(Observable o, Object arg) {
-
   }
 }

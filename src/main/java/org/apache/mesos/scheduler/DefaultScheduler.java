@@ -93,8 +93,7 @@ public class DefaultScheduler implements Scheduler {
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
                 deployPlanManager,
-                recoveryPlanManager,
-                getCleanerScheduler());
+                recoveryPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
         logger.info("Done initializing.");
     }
@@ -120,7 +119,6 @@ public class DefaultScheduler implements Scheduler {
                 stateStore,
                 taskFailureListener,
                 recoveryRequirementProvider,
-                offerAccepter,
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
                 recoveryStatusRef);
@@ -174,13 +172,13 @@ public class DefaultScheduler implements Scheduler {
         }
     }
 
-    private ResourceCleanerScheduler getCleanerScheduler() {
+    private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
         try {
             ResourceCleaner cleaner = new ResourceCleaner(stateStore);
-            return new ResourceCleanerScheduler(cleaner, offerAccepter);
+            return Optional.of(new ResourceCleanerScheduler(cleaner, offerAccepter));
         } catch (Exception ex) {
             logger.error("Failed to construct ResourceCleaner", ex);
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -252,30 +250,9 @@ public class DefaultScheduler implements Scheduler {
                 return;
             }
 
-            List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+            // Coordinate amongst all the plans via PlanCoordinator.
+            final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
             acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
-            // Deployment:
-            // The PlanManager provides blocks of work usually representing a Task to a PlanScheduler to be
-            // evaluated against the Offer stream.  The PlanScheduler launches Tasks and reserves Resources and
-            // Creates volumes where appropriate.  It's work is complete once all Tasks have been deployed to the
-            // current target configuration.
-//            Optional<Block> block = deployPlanManager.getCurrentBlock(Arrays.asList());
-//            if (block.isPresent()) {
-//                acceptedOffers = planScheduler.resourceOffers(driver, offers, block.get());
-//                logger.info(String.format("Accepted %d of %d offers: %s",
-//                        acceptedOffers.size(), offers.size(), acceptedOffers));
-//            }
-//            List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(offers, acceptedOffers);
-
-            // Recovery:
-            // Post deployment it is the role of a RecoveryScheduler to monitor service state for failed task and
-            // restart them appropriately.  It restarts tasks destructively or not depending upon the configuration
-            // of the TaskFailureMonitor.
-//            try {
-//                acceptedOffers.addAll(recoveryPlanScheduler.resourceOffers(driver, unacceptedOffers, block.get()));
-//            } catch (Exception e) {
-//                logger.error("Error recovering block: " + block + " Reason: " + e);
-//            }
 
             // Resource Cleaning:
             // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
@@ -283,11 +260,12 @@ public class DefaultScheduler implements Scheduler {
             // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
             // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
             // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
-//            ResourceCleanerScheduler cleanerScheduler = getCleanerScheduler();
-//            if (cleanerScheduler != null) {
-//                acceptedOffers.addAll(getCleanerScheduler().resourceOffers(driver, offers));
-//            }
+            final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
+            if (cleanerScheduler.isPresent()) {
+                acceptedOffers.addAll(cleanerScheduler.get().resourceOffers(driver, offers));
+            }
 
+            // Decline remaining offers.
             declineOffers(driver, acceptedOffers, offers);
         });
     }

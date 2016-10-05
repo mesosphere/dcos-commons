@@ -6,7 +6,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -29,9 +27,9 @@ public class SimpleRecoveryPlanManager implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleRecoveryPlanManager.class);
 
     protected volatile Plan plan;
+    protected volatile PhaseStrategy phaseStrategy;
 
     private final StateStore stateStore;
-    private final OfferAccepter offerAccepter;
     private final TaskFailureListener failureListener;
     private final RecoveryRequirementProvider offerReqProvider;
     private final FailureMonitor failureMonitor;
@@ -42,13 +40,11 @@ public class SimpleRecoveryPlanManager implements PlanManager {
             StateStore stateStore,
             TaskFailureListener failureListener,
             RecoveryRequirementProvider offerReqProvider,
-            OfferAccepter offerAccepter,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
             AtomicReference<RecoveryStatus> recoveryStatusRef) {
         this.stateStore = stateStore;
         this.offerReqProvider = offerReqProvider;
-        this.offerAccepter = offerAccepter;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
         this.recoveryStatusRef = recoveryStatusRef;
@@ -66,8 +62,8 @@ public class SimpleRecoveryPlanManager implements PlanManager {
 
         final DefaultPhase.Builder newRecoveryPhaseBuilder = DefaultPhase.builder();
         final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
-        // If recovery candidates are not part of plan, generate a recovery block for them and mark it as pending.
 
+        // If recovery candidates are not part of plan, generate a recovery block for them and mark it as pending.
         // Tasks that are still in terminal state, add them to plan directly
         for (Map.Entry<String, Protos.TaskInfo> candidate : recoveryCandidates.entrySet()) {
             final String name = candidate.getKey();
@@ -117,7 +113,9 @@ public class SimpleRecoveryPlanManager implements PlanManager {
             }
         }
 
-        plan = DefaultPlan.fromArgs(newRecoveryPhaseBuilder.build());
+        final DefaultPhase recoveryPhase = newRecoveryPhaseBuilder.build();
+        plan = DefaultPlan.fromArgs(recoveryPhase);
+        phaseStrategy = new RandomRecoveryStrategy(recoveryPhase);
     }
 
     @Override
@@ -154,13 +152,14 @@ public class SimpleRecoveryPlanManager implements PlanManager {
     public Optional<Block> getCurrentBlock(List<Block> dirtiedAssets) {
         refreshPlan(dirtiedAssets);
 
-        // TODO(gabriel): Allow for pluggable recovery candidate selection strategies.
-        final List<? extends Block> blocks = plan.getPhases().get(0).getBlocks();
-        final Block chosenBlock = blocks.get(new Random().nextInt(blocks.size()));
-        if (launchConstrainer.canLaunch(((DefaultRecoveryBlock) chosenBlock).getRecoveryRequirement())) {
-            return Optional.of(chosenBlock);
+        if (phaseStrategy != null) {
+            final Optional<Block> chosenBlock = phaseStrategy.getCurrentBlock();
+            if (chosenBlock.isPresent() &&
+                    launchConstrainer.canLaunch(((DefaultRecoveryBlock) chosenBlock.get()).getRecoveryRequirement())) {
+                return Optional.of(chosenBlock.get());
+            }
         }
-        // TODO(mohit, gabriel): Handle launch constrainer w.r.t. different task types, Permanent v/s Transient
+
         return Optional.empty();
     }
 
@@ -171,42 +170,53 @@ public class SimpleRecoveryPlanManager implements PlanManager {
 
     @Override
     public void proceed() {
-        // TODO: Do we need to support interrupt for Recovery scheduler ?
-        LOGGER.info("Staged execution is unsupported");
+        LOGGER.info("Resuming recovery...");
+        if (phaseStrategy != null) {
+            phaseStrategy.proceed();
+            LOGGER.info("Done resuming recovery for phase: {}", phaseStrategy.getPhase());
+        } else {
+            LOGGER.info("No phase to resume");
+        }
     }
 
     @Override
     public void interrupt() {
-        // TODO: Do we need to support interrupt for Recovery scheduler ?
-        LOGGER.info("Staged execution is unsupported");
+        LOGGER.info("Interrupting recovery");
+        if (phaseStrategy != null) {
+            phaseStrategy.interrupt();
+            LOGGER.info("Interrupted current phase: phase = {}", phaseStrategy.getPhase());
+        } else {
+            LOGGER.info("No phase to interrupt");
+        }
     }
 
     @Override
     public boolean isInterrupted() {
-        // TODO: Do we need to support interrupt for Recovery scheduler ?
-        return false;
+        return getStatus() == Status.WAITING;
     }
 
     @Override
     public void restart(UUID phaseId, UUID blockId) {
-        // TODO(mohit): Implementation pending.
-        // NOOP
+        if (phaseStrategy != null) {
+            phaseStrategy.restart(blockId);
+        }
     }
 
     @Override
     public void forceComplete(UUID phaseId, UUID blockId) {
-        // TODO(mohit): Implementation pending.
-        // NOOP
+        if (phaseStrategy != null) {
+            phaseStrategy.forceComplete(blockId);
+        }
     }
 
     @Override
     public void update(Protos.TaskStatus status) {
-        // NOOP
+        LOGGER.info("Ignoring status: {}", TextFormat.shortDebugString(status));
     }
 
     @Override
     public boolean hasDecisionPoint(Block block) {
-        return false;
+        return phaseStrategy != null && phaseStrategy.hasDecisionPoint(block);
     }
 
     @Override
@@ -220,16 +230,19 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         } else if (plan.getPhases().isEmpty()) {
             result = Status.COMPLETE;
             LOGGER.warn("(status={}) Plan doesn't have any phases", result);
-        } else if (anyMatch(block -> block.isInProgress(), plan)) {
+        } else if (anyHaveStatus(Status.IN_PROGRESS, plan)) {
             result = Status.IN_PROGRESS;
             LOGGER.info("(status={}) At least one phase has status: {}", result, Status.IN_PROGRESS);
-        } else if (allMatch(block -> block.isComplete(), plan)) {
+        } else if (anyHaveStatus(Status.WAITING, plan)) {
+            result = Status.WAITING;
+            LOGGER.info("(status={}) At least one phase has status: {}", result, Status.WAITING);
+        } else if (allHaveStatus(Status.COMPLETE, plan)) {
             result = Status.COMPLETE;
             LOGGER.info("(status={}) All phases have status: {}", result, Status.COMPLETE);
-        } else if (allMatch(block -> block.isPending(), plan)) {
+        } else if (allHaveStatus(Status.PENDING, plan)) {
             result = Status.PENDING;
             LOGGER.info("(status={}) All phases have status: {}", result, Status.PENDING);
-        } else if (anyMatch(block -> block.isComplete(), plan) && anyMatch(block -> block.isPending(), plan)) {
+        } else if (anyHaveStatus(Status.COMPLETE, plan) && anyHaveStatus(Status.PENDING, plan)) {
             result = Status.IN_PROGRESS;
             LOGGER.info("(status={}) At least one phase has status '{}' and one has status '{}'",
                     result, Status.COMPLETE, Status.PENDING);
@@ -240,17 +253,25 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         return result;
     }
 
-    public boolean allMatch(final Predicate<Block> predicate, Plan plan) {
-        return plan.getPhases().stream().allMatch(phase -> phase.getBlocks().stream().allMatch(predicate));
+    public boolean allHaveStatus(Status status, Plan plan) {
+        final List<? extends Phase> phases = plan.getPhases();
+        return phaseStrategy != null &&
+                phases
+                        .stream()
+                        .allMatch(phase -> phaseStrategy.getStatus() == status);
     }
 
-    public boolean anyMatch(final Predicate<Block> predicate, Plan plan) {
-        return plan.getPhases().stream().anyMatch(phase -> phase.getBlocks().stream().anyMatch(predicate));
+    public boolean anyHaveStatus(Status status, Plan plan) {
+        final List<? extends Phase> phases = plan.getPhases();
+        return phaseStrategy != null &&
+                phases
+                        .stream()
+                        .anyMatch(phase -> phaseStrategy.getStatus() == status);
     }
 
     @Override
     public Status getPhaseStatus(UUID phaseId) {
-        return null;
+        return phaseStrategy != null ? phaseStrategy.getStatus() : Status.COMPLETE;
     }
 
     @Override
@@ -260,7 +281,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
 
     @Override
     public void update(Observable o, Object arg) {
-        // NOOP
+        LOGGER.info("Ignoring update: {}", arg);
     }
 
     /**
