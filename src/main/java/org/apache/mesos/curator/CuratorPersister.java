@@ -1,0 +1,141 @@
+package org.apache.mesos.curator;
+
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.transaction.CuratorTransaction;
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
+import org.apache.mesos.storage.Persister;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * The CuratorPersistor implementation of the {@link Persister} interface
+ * provides for persistence and retrieval of data from Zookeeper.
+ */
+public class CuratorPersister implements Persister {
+
+    private static final Logger logger = LoggerFactory.getLogger(CuratorPersister.class);
+
+    /**
+     * Number of times to attempt an atomic write transaction in storeMany().
+     * This transaction should only fail if other parties are modifying the data.
+     */
+    private static final int ATOMIC_WRITE_ATTEMPTS = 3;
+
+    private final String connectionString;
+    private final RetryPolicy retryPolicy;
+    private final CuratorFramework client;
+
+    public CuratorPersister(String connectionString, RetryPolicy retryPolicy) {
+        this.connectionString = connectionString;
+        this.retryPolicy = retryPolicy;
+        this.client = startClient();
+    }
+
+    @Override
+    public void storeMany(Map<String, byte[]> pathBytesMap) throws Exception {
+        if (pathBytesMap.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
+            // Phase 1: Determine which nodes already exist. This determination can be rendered
+            //          invalid by an out-of-band change to the data.
+            Set<String> pathsWhichExist = new HashSet<>();
+            List<String> parentPathsToCreate = new ArrayList<>();
+            for (String path : pathBytesMap.keySet()) {
+                if (client.checkExists().forPath(path) != null) {
+                    pathsWhichExist.add(path);
+                    continue;
+                }
+                // Transaction interface doesn't support creatingParentsIfNeeded(), so go manual.
+                List<String> parentPaths = CuratorUtils.getParentPaths(path);
+                for (String parentPath : parentPaths) {
+                    if (client.checkExists().forPath(parentPath) == null
+                            && !parentPathsToCreate.contains(parentPath)) {
+                        parentPathsToCreate.add(parentPath);
+                    }
+                }
+            }
+
+            logger.debug("Atomic write attempt {}/{}:\n-Parent paths: {}\n-All paths: {}\n-Paths which exist: {}",
+                    i + 1, ATOMIC_WRITE_ATTEMPTS, parentPathsToCreate, pathBytesMap.keySet(), pathsWhichExist);
+
+            // Phase 2: Compose a single transaction that updates and/or creates nodes according to
+            //          the above determinations (retry if there's an out-of-band modification)
+            CuratorTransactionFinal transactionFinal = null;
+            CuratorTransaction transaction = client.inTransaction();
+            for (String parentPath : parentPathsToCreate) {
+                transactionFinal = transaction.create().forPath(parentPath).and();
+                transaction = transactionFinal;
+            }
+            for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
+                if (pathsWhichExist.contains(entry.getKey())) {
+                    transactionFinal = transaction.setData().forPath(entry.getKey(), entry.getValue()).and();
+                } else {
+                    transactionFinal = transaction.create().forPath(entry.getKey(), entry.getValue()).and();
+                }
+                transaction = transactionFinal;
+            }
+            if (transactionFinal != null) {
+                if (i + 1 < ATOMIC_WRITE_ATTEMPTS) {
+                    try {
+                        transactionFinal.commit();
+                        break; // Success!
+                    } catch (Exception e) {
+                        // Transaction failed! Bad connection? Existence check rendered invalid?
+                        // Swallow exception and try again
+                        logger.error(String.format("Failed to complete transaction attempt %d/%d: %s",
+                                i + 1, ATOMIC_WRITE_ATTEMPTS, transactionFinal), e);
+                    }
+                } else {
+                    // Last try: Any exception should be forwarded upstream
+                    transactionFinal.commit();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void store(String path, byte[] bytes) throws Exception {
+        try {
+            client.create().creatingParentsIfNeeded().forPath(path, bytes);
+        } catch (KeeperException.NodeExistsException e) {
+            client.setData().forPath(path, bytes);
+        }
+    }
+
+    @Override
+    public byte[] fetch(String path) throws Exception {
+        return client.getData().forPath(path);
+    }
+
+    @Override
+    public void clear(String path) throws Exception {
+        client.delete().deletingChildrenIfNeeded().forPath(path);
+    }
+
+    @Override
+    public Collection<String> getChildren(String path) throws Exception {
+        return client.getChildren().forPath(path);
+    }
+
+    @Override
+    public void close() {
+        client.close();
+    }
+
+    private CuratorFramework startClient() {
+        CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
+        client.start();
+        return client;
+    }
+}

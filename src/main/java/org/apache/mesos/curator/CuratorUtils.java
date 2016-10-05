@@ -4,6 +4,8 @@ import org.apache.mesos.dcos.DcosConstants;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
@@ -54,6 +56,21 @@ class CuratorUtils {
                     .append(second)
                     .toString();
         }
+    }
+
+    static List<String> getParentPaths(final String path) {
+        // /path/to/thing => ["/path", "/path/to"] (skip "/" and "/path/to/thing")
+        List<String> paths = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
+        String[] elements = path.split(PATH_DELIM);
+        for (int i = 0; i + 1 < elements.length; ++i) { // skip last element, if any
+            if (elements[i].isEmpty()) {
+                continue;
+            }
+            builder.append(PATH_DELIM).append(elements[i]);
+            paths.add(builder.toString());
+        }
+        return paths;
     }
 
     static byte[] serialize(final Object str) {

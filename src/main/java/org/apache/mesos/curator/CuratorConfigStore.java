@@ -8,7 +8,6 @@ import org.apache.mesos.config.Configuration;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.state.SchemaVersionStore;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

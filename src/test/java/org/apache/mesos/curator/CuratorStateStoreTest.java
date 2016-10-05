@@ -7,7 +7,6 @@ import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.junit.*;
 

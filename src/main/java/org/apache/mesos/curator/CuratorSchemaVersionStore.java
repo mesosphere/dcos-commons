@@ -2,7 +2,7 @@ package org.apache.mesos.curator;
 
 import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.storage.CuratorPersister;
+import org.apache.mesos.storage.Persister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,14 +36,14 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
      */
     static final String SCHEMA_VERSION_NAME = "SchemaVersion";
 
-    private final CuratorPersister curator;
+    private final Persister curator;
     private final String schemaVersionPath;
 
     /**
      * Creates a new version store against the provided Framework Name, as would be provided to
      * {@link CuratorConfigStore} or {@link CuratorStateStore}.
      */
-    CuratorSchemaVersionStore(CuratorPersister curator, String frameworkName) {
+    CuratorSchemaVersionStore(Persister curator, String frameworkName) {
         this.curator = curator;
         this.schemaVersionPath = CuratorUtils.join(
                 CuratorUtils.toServiceRootPath(frameworkName), SCHEMA_VERSION_NAME);

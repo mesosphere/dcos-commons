@@ -10,7 +10,7 @@ import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.state.StateStoreUtils;
-import org.apache.mesos.storage.CuratorPersister;
+import org.apache.mesos.storage.Persister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class CuratorStateStore implements StateStore {
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
-    private final CuratorPersister curator;
+    private final Persister curator;
     private final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
@@ -159,16 +159,17 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
+        Map<String, byte[]> taskBytesMap = new HashMap<>();
         for (Protos.TaskInfo taskInfo : tasks) {
             String path = taskPathMapper.getTaskInfoPath(taskInfo.getName());
             logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), path);
-            try {
-                curator.store(path, taskInfo.toByteArray());
-            } catch (Exception e) {
-                // exit early, without proceeding to other tasks:
-                throw new StateStoreException(String.format(
-                        "Failed to store TaskInfo in '%s'", path), e);
-            }
+            taskBytesMap.put(path, taskInfo.toByteArray());
+        }
+        try {
+            curator.storeMany(taskBytesMap);
+        } catch (Exception e) {
+            throw new StateStoreException(String.format(
+                    "Failed to store %d TaskInfos", tasks.size()), e);
         }
     }
 

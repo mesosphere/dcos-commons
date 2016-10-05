@@ -4,7 +4,6 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;

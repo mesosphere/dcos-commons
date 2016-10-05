@@ -58,7 +58,8 @@ public interface StateStore extends TaskStatusProvider {
 
     /**
      * Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before {@link
-     * #storeStatus(TaskStatus)} for any given task id.
+     * #storeStatus(TaskStatus)} for any given task id, and it must behave as an atomic transaction: On success,
+     * everything is written, while on failure nothing is written.
      *
      * @param tasks Tasks to be stored, which each meet the above requirements
      * @throws StateStoreException when persisting TaskInfo information fails, or if its TaskId is malformed
