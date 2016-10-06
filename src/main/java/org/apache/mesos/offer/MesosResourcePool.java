@@ -183,7 +183,7 @@ public class MesosResourcePool {
             }
         }
 
-        return Optional.of(mesosResource);
+        return Optional.ofNullable(mesosResource);
     }
 
     private Optional<MesosResource> consumeAtomic(ResourceRequirement resourceRequirement) {
