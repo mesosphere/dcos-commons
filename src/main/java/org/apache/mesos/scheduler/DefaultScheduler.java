@@ -138,7 +138,7 @@ public class DefaultScheduler implements Scheduler {
         Collection<Object> resources = new ArrayList<>();
         resources.add(new PlanResource(planManager));
         resources.add(new RecoveryResource(recoveryStatusRef));
-        resources.add(new StateResource(stateStore));
+        resources.add(new StateResource(stateStore, serviceSpecification.getName()));
         resourcesQueue.put(resources);
     }
 
