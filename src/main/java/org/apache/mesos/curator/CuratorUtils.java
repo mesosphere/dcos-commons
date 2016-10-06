@@ -67,7 +67,15 @@ class CuratorUtils {
             if (elements[i].isEmpty()) {
                 continue;
             }
-            builder.append(PATH_DELIM).append(elements[i]);
+            if (i == 0) {
+                // Only include a "/" prefix if the input had a "/" prefix:
+                if (path.startsWith("/")) {
+                    builder.append(PATH_DELIM);
+                }
+            } else {
+                builder.append(PATH_DELIM);
+            }
+            builder.append(elements[i]);
             paths.add(builder.toString());
         }
         return paths;

@@ -52,7 +52,7 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
     public int fetch() throws StateStoreException {
         try {
             logger.debug("Fetching schema version from '{}'", schemaVersionPath);
-            byte[] bytes = curator.fetch(schemaVersionPath);
+            byte[] bytes = curator.get(schemaVersionPath);
             if (bytes.length == 0) {
                 throw new StateStoreException(String.format(
                         "Invalid data when fetching schema version in '%s'", schemaVersionPath));
@@ -83,7 +83,7 @@ public class CuratorSchemaVersionStore implements SchemaVersionStore {
             String versionStr = String.valueOf(version);
             logger.debug("Storing schema version: '{}' into path: {}",
                     versionStr, schemaVersionPath);
-            curator.store(schemaVersionPath, CuratorUtils.serialize(versionStr));
+            curator.set(schemaVersionPath, CuratorUtils.serialize(versionStr));
         } catch (Exception e) {
             throw new StateStoreException(String.format(
                     "Storage error when storing schema version %d", version), e);
