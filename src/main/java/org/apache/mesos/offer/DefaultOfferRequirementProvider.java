@@ -2,6 +2,7 @@ package org.apache.mesos.offer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.config.TaskConfigRouter;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,20 +13,28 @@ import java.util.*;
  * A default implementation of the OfferRequirementProvider interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger logger = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
+
+    private final TaskConfigRouter configRouter;
+
+    public DefaultOfferRequirementProvider() {
+        configRouter = new TaskConfigRouter();
+    }
 
     @Override
     public OfferRequirement getNewOfferRequirement(String taskType, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+        Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
+                .addMissingToEnvironment(taskSpecification.getCommand());
+        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
-                .setCommand(taskSpecification.getCommand())
+                .setCommand(updatedCommand)
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId())
-                .addAllResources(getNewResources(taskSpecification))
-                .build();
+                .addAllResources(getNewResources(taskSpecification));
+        TaskUtils.setConfigFiles(taskBuilder, taskSpecification.getConfigFiles());
 
-        return new OfferRequirement(taskType, Arrays.asList(taskInfo));
+        return new OfferRequirement(taskType, Arrays.asList(taskBuilder.build()));
     }
 
     @Override
@@ -51,14 +60,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
-
+        String taskType;
+        try {
+            taskType = TaskUtils.getTaskType(taskInfo);
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
+        Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
+                .addMissingToEnvironment(taskSpecification.getCommand());
         Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
-                .setCommand(taskSpecification.getCommand())
+                .setCommand(updatedCommand)
                 .addAllResources(updatedResources)
                 .addAllResources(getVolumes(taskInfo.getResourcesList()))
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
+        TaskUtils.setConfigFiles(taskBuilder, taskSpecification.getConfigFiles());
 
         try {
             return new OfferRequirement(
@@ -69,7 +86,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
     }
 
-    private void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
+    private static void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
 
         try {
@@ -93,7 +110,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
     }
 
-    private Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {
+    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {
         Collection<Protos.Resource> resources = new ArrayList<>();
 
         for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
@@ -128,7 +145,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return resources;
     }
 
-    private Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
+    private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
         Map<String, Protos.Resource> resourceMap = new HashMap<>();
         for (Protos.Resource resource : resources) {
             if (!resource.hasDisk()) {
@@ -139,7 +156,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return resourceMap;
     }
 
-    private Collection<Protos.Resource> getVolumes(Collection<Protos.Resource> resources) {
+    private static Collection<Protos.Resource> getVolumes(Collection<Protos.Resource> resources) {
         List<Protos.Resource> volumes = new ArrayList<>();
         for (Protos.Resource resource : resources) {
             if (resource.hasDisk()) {

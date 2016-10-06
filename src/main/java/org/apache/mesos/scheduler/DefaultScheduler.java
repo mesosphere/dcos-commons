@@ -39,6 +39,7 @@ public class DefaultScheduler implements Scheduler {
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ServiceSpecification serviceSpecification;
+    private final OfferRequirementProvider offerRequirementProvider;
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final AtomicReference<RecoveryStatus> recoveryStatusRef;
@@ -61,6 +62,7 @@ public class DefaultScheduler implements Scheduler {
 
     public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
+        this.offerRequirementProvider = new DefaultOfferRequirementProvider();
         this.zkConnectionString = zkConnectionString;
         this.recoveryStatusRef =
                 new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
@@ -104,7 +106,7 @@ public class DefaultScheduler implements Scheduler {
     private void initializeRecoveryScheduler() {
         logger.info("Initializing recovery scheduler");
         RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider);
         LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
         recoveryScheduler = new DefaultRecoveryScheduler(
@@ -123,7 +125,7 @@ public class DefaultScheduler implements Scheduler {
                 offerAccepter, new OfferEvaluator(stateStore), taskKiller);
 
         try {
-            plan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
+            plan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
             logger.info("Generated plan: " + plan);
             planManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());
         } catch (InvalidRequirementException e) {

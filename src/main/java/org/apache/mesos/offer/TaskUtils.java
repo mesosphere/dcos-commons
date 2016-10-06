@@ -2,10 +2,13 @@ package org.apache.mesos.offer;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.DefaultConfigFileSpecification;
+import org.apache.mesos.specification.ConfigFileSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
 import org.slf4j.Logger;
@@ -214,6 +217,38 @@ public class TaskUtils {
         return UUID.fromString(value.get());
     }
 
+    /**
+     * Stores the provided config file data in the TaskInfo.
+     */
+    public static void setConfigFiles(
+            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpecification> configs) {
+        // Use the Labels protobuf for serialization.
+        Labels.Builder labelsBuilder = Labels.newBuilder();
+        for (ConfigFileSpecification config : configs) {
+            labelsBuilder.addLabelsBuilder()
+                .setKey(config.getRelativePath())
+                .setValue(config.getTemplateContent());
+        }
+        taskBuilder.setData(labelsBuilder.build().toByteString());
+    }
+
+    /**
+     * Retrieves the config file data, if any, from the provided TaskInfo. If no data is found,
+     * returns an empty collection.
+     */
+    public static Collection<ConfigFileSpecification> getConfigFiles(TaskInfo taskInfo)
+            throws InvalidProtocolBufferException {
+        if (!taskInfo.hasData()) {
+            return Collections.emptyList();
+        }
+        Labels labels = Labels.parseFrom(taskInfo.getData());
+        List<ConfigFileSpecification> configs = new ArrayList<>();
+        for (Label label : labels.getLabelsList()) {
+            configs.add(new DefaultConfigFileSpecification(label.getKey(), label.getValue()));
+        }
+        return configs;
+    }
+
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
         Map<String, String> map = new HashMap<>();
 
@@ -263,14 +298,14 @@ public class TaskUtils {
         String oldTaskName = oldTaskSpecification.getName();
         String newTaskName = newTaskSpecification.getName();
         if (!Objects.equals(oldTaskName, newTaskName)) {
-            LOGGER.info(String.format("Task names '%s' and '%s' are different.", oldTaskName, newTaskName));
+            LOGGER.info("Task names '{}' and '{}' are different.", oldTaskName, newTaskName);
             return true;
         }
 
         CommandInfo oldCommand = oldTaskSpecification.getCommand();
         CommandInfo newCommand = newTaskSpecification.getCommand();
         if (!Objects.equals(oldCommand, newCommand)) {
-            LOGGER.info(String.format("Task commands '%s' and '%s' are different.", oldCommand, newCommand));
+            LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
             return true;
         }
 
@@ -278,20 +313,42 @@ public class TaskUtils {
         Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
-            LOGGER.info(String.format("Resource lengths are different for old resources: '%s' and new resources: '%s'",
-                    oldResourceMap, newResourceMap));
+            LOGGER.info("Resource lengths are different for old resources: '{}' and new resources: '{}'",
+                    oldResourceMap, newResourceMap);
             return true;
         }
 
         for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
             String resourceName = newEntry.getKey();
-            LOGGER.info("Checking resource difference for: " + resourceName);
+            LOGGER.info("Checking resource difference for: {}", resourceName);
             ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
-                LOGGER.info("Resource not found: " + resourceName);
+                LOGGER.info("Resource not found: {}", resourceName);
                 return true;
             } else if (ResourceUtils.areDifferent(oldResourceSpec, newEntry.getValue())) {
                 LOGGER.info("Resources are different.");
+                return true;
+            }
+        }
+
+        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
+        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
+
+        if (oldConfigMap.size() != newConfigMap.size()) {
+            LOGGER.info("Config lengths are different for old configs: '{}' and new configs: '{}'",
+                    oldConfigMap, newConfigMap);
+            return true;
+        }
+
+        for (Map.Entry<String, String> newEntry : newConfigMap.entrySet()) {
+            String configPath = newEntry.getKey();
+            LOGGER.info("Checking config file difference for: {}", configPath);
+            String oldConfigTemplate = oldConfigMap.get(configPath);
+            if (oldConfigTemplate == null) {
+                LOGGER.info("Config file path not found: {}", configPath);
+                return true;
+            } else if (!newEntry.getValue().equals(oldConfigTemplate)) { // simple string comparison
+                LOGGER.info("Config templates are different.");
                 return true;
             }
         }
@@ -412,13 +469,46 @@ public class TaskUtils {
         return labelsBuilder;
     }
 
+    /**
+     * Returns a name=>resourcespecification mapping of the provided list.
+     *
+     * @throws IllegalArgumentException if multiple resource specifications have matching names
+     */
     private static Map<String, ResourceSpecification> getResourceSpecMap(
-            Collection<ResourceSpecification> resourceSpecifications) {
+            Collection<ResourceSpecification> resourceSpecifications) throws IllegalArgumentException {
         Map<String, ResourceSpecification> resourceMap = new HashMap<>();
         for (ResourceSpecification resourceSpecification : resourceSpecifications) {
-            resourceMap.put(resourceSpecification.getName(), resourceSpecification);
+            ResourceSpecification prevValue = resourceMap.put(resourceSpecification.getName(), resourceSpecification);
+            if (prevValue != null) {
+                throw new IllegalArgumentException(String.format(
+                        "Resources for a given task may not share the same name. " +
+                        "name:'%s' oldResource:'%s' newResource:'%s'",
+                        resourceSpecification.getName(), prevValue, resourceSpecification));
+            }
         }
 
         return resourceMap;
+    }
+
+    /**
+     * Returns a path=>template mapping of the provided {@link ConfigFileSpecification}s. Assumes
+     * that each config file is given a distinct path.
+     *
+     * @throws IllegalArgumentException if multiple config specifications have matching relative path strings
+     */
+    private static Map<String, String> getConfigTemplateMap(
+            Collection<ConfigFileSpecification> configSpecifications) throws IllegalArgumentException {
+        Map<String, String> configMap = new HashMap<>();
+        for (ConfigFileSpecification configSpecification : configSpecifications) {
+            String prevValue =
+                    configMap.put(configSpecification.getRelativePath(), configSpecification.getTemplateContent());
+            if (prevValue != null) {
+                throw new IllegalArgumentException(String.format(
+                        "Config templates for a given task may not share the same path. " +
+                        "path:'%s' oldContent:'%s' newContent:'%s'",
+                        configSpecification.getRelativePath(), prevValue, configSpecification.getTemplateContent()));
+            }
+        }
+        return configMap;
     }
 }
