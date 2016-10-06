@@ -5,6 +5,7 @@ import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.TaskKiller;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -76,7 +77,7 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testEvaluateNoRecommendations() throws InvalidRequirementException {
-        OfferRequirement requirement = new OfferRequirement(TASKINFOS);
+        OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
@@ -88,7 +89,7 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
-        OfferRequirement requirement = new OfferRequirement(TASKINFOS);
+        OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(new ArrayList<>());
@@ -101,7 +102,7 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
-        OfferRequirement requirement = new OfferRequirement(TASKINFOS);
+        OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
         TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(ACCEPTED_IDS);

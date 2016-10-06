@@ -2,10 +2,12 @@ package org.apache.mesos.specification;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class provides a default implementation of the TaskSet interface.
@@ -19,11 +21,17 @@ public class DefaultTaskSet implements TaskSet {
             String name,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
-            Collection<VolumeSpecification> volumes) {
+            Collection<VolumeSpecification> volumes,
+            Optional<PlacementRuleGenerator> placementOptional) {
 
         List<TaskSpecification> taskSpecifications = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            taskSpecifications.add(new DefaultTaskSpecification(name + "-" + i, command, resources, volumes));
+            taskSpecifications.add(new DefaultTaskSpecification(
+                    name + "-" + i,
+                    command,
+                    resources,
+                    volumes,
+                    placementOptional));
         }
 
         return new DefaultTaskSet(name, taskSpecifications);

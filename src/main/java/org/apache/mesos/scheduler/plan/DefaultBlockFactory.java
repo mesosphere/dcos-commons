@@ -28,14 +28,14 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     @Override
-    public Block getBlock(TaskSpecification taskSpecification) throws InvalidRequirementException {
+    public Block getBlock(String taskType, TaskSpecification taskSpecification) throws InvalidRequirementException {
         logger.info("Generating block for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
         if (!taskInfoOptional.isPresent()) {
             logger.info("Generating new block for: " + taskSpecification.getName());
             return new DefaultBlock(
                     taskSpecification.getName(),
-                    offerRequirementProvider.getNewOfferRequirement(taskSpecification),
+                    offerRequirementProvider.getNewOfferRequirement(taskType, taskSpecification),
                     Status.PENDING);
         } else {
             try {
