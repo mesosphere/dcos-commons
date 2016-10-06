@@ -226,7 +226,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         if (!getErrors().isEmpty()) {
             result = Status.ERROR;
             LOGGER.warn("(status={}) Plan contains errors", result);
-        } else if (plan.getPhases().isEmpty()) {
+        } else if (plan == null || CollectionUtils.isEmpty(plan.getPhases())) {
             result = Status.COMPLETE;
             LOGGER.warn("(status={}) Plan doesn't have any phases", result);
         } else if (anyHaveStatus(Status.IN_PROGRESS, plan)) {
