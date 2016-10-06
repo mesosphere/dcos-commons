@@ -30,7 +30,7 @@ public class DefaultPhaseFactory {
         List<Block> blocks = new ArrayList<>();
 
         for (TaskSpecification taskSpecification : taskSet.getTaskSpecifications()) {
-            blocks.add(blockFactory.getBlock(taskSpecification));
+            blocks.add(blockFactory.getBlock(taskSet.getName(), taskSpecification));
         }
 
         return blocks;
