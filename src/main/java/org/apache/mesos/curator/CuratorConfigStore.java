@@ -8,7 +8,6 @@ import org.apache.mesos.config.Configuration;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.state.SchemaVersionStore;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +100,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
         UUID id = UUID.randomUUID();
         String path = getConfigPath(id);
         try {
-            curator.store(path, config.getBytes());
+            curator.set(path, config.getBytes());
         } catch (Exception e) {
             throw new ConfigStoreException(String.format(
                     "Failed to serialize or store configuration to path '%s': %s",
@@ -115,7 +114,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     public T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
-            return factory.parse(curator.fetch(path));
+            return factory.parse(curator.get(path));
         } catch (Exception e) {
             throw new ConfigStoreException(String.format(
                     "Failed to retrieve or deserialize configuration '%s' from path '%s'",
@@ -127,7 +126,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     public void clear(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
-            curator.clear(path);
+            curator.delete(path);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Configuration should not
             // result in an exception.
@@ -163,7 +162,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     @Override
     public void setTargetConfig(UUID id) throws ConfigStoreException {
         try {
-            curator.store(targetPath, CuratorUtils.serialize(id));
+            curator.set(targetPath, CuratorUtils.serialize(id));
         } catch (Exception e) {
             throw new ConfigStoreException(String.format(
                     "Failed to assign current target configuration to '%s' at path '%s'",
@@ -174,7 +173,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     @Override
     public UUID getTargetConfig() throws ConfigStoreException {
         try {
-            return UUID.fromString(CuratorUtils.deserialize(curator.fetch(targetPath)));
+            return UUID.fromString(CuratorUtils.deserialize(curator.get(targetPath)));
         } catch (Exception e) {
             throw new ConfigStoreException(String.format(
                     "Failed to retrieve current target configuration from path '%s'",

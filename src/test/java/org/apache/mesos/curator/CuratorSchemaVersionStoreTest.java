@@ -4,7 +4,6 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
@@ -55,7 +54,7 @@ public class CuratorSchemaVersionStoreTest {
         store.fetch();
         CuratorPersister curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
+        assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
     }
 
     @Test
@@ -111,7 +110,7 @@ public class CuratorSchemaVersionStoreTest {
 
     @Test(expected=StateStoreException.class)
     public void testFetchOtherFailure() throws Exception {
-        when(mockCurator.fetch(NODE_PATH)).thenThrow(new Exception("hey"));
+        when(mockCurator.get(NODE_PATH)).thenThrow(new Exception("hey"));
         storeWithMock.fetch();
     }
 
@@ -119,13 +118,13 @@ public class CuratorSchemaVersionStoreTest {
     public void testStoreOtherFailure() throws Exception {
         final int val = 3;
         doThrow(Exception.class)
-            .when(mockCurator).store(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
+            .when(mockCurator).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
         storeWithMock.store(3);
     }
 
     private boolean directHasVersion() throws Exception {
         try {
-            curator.fetch(NODE_PATH);
+            curator.get(NODE_PATH);
             return true;
         } catch (KeeperException.NoNodeException e) {
             return false;
@@ -133,12 +132,12 @@ public class CuratorSchemaVersionStoreTest {
     }
 
     private int getDirectVersion() throws Exception {
-        byte[] bytes = curator.fetch(NODE_PATH);
+        byte[] bytes = curator.get(NODE_PATH);
         String str = new String(bytes, CHARSET);
         return Integer.parseInt(str);
     }
 
     private void storeDirectVersion(String data) throws Exception {
-        curator.store(NODE_PATH, data.getBytes(CHARSET));
+        curator.set(NODE_PATH, data.getBytes(CHARSET));
     }
 }
