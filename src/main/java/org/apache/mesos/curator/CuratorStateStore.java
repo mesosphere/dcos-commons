@@ -15,6 +15,8 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.*;
 
 /**
@@ -309,11 +311,6 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Set<Protos.TaskStatus> getTaskStatuses() throws StateStoreException {
-        return new HashSet<>(fetchStatuses());
-    }
-
-    @Override
     public Optional<Protos.TaskStatus> fetchStatus(String taskName) throws StateStoreException {
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Fetching status for '{}' in '{}'", taskName, path);
@@ -387,7 +384,8 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    void close() {
+    @VisibleForTesting
+    public void closeForTesting() {
         curator.close();
     }
 

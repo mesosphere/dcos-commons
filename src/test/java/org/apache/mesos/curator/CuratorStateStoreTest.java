@@ -53,7 +53,7 @@ public class CuratorStateStoreTest {
 
     @After
     public void afterEach() {
-        ((CuratorStateStore) store).close();
+        ((CuratorStateStore) store).closeForTesting();
     }
 
     @Test
