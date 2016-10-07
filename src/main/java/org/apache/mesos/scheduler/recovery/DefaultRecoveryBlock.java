@@ -38,4 +38,9 @@ public class DefaultRecoveryBlock extends DefaultBlock {
     public RecoveryRequirement getRecoveryRequirement() {
         return recoveryRequirement;
     }
+
+    @Override
+    public String getMessage() {
+        return super.getMessage() + " RecoveryType: " + recoveryRequirement.getRecoveryType().name();
+    }
 }

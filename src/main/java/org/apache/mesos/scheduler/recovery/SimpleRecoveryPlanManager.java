@@ -17,8 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * An implementation of {@code PlanManager} that performs task recovery using dynamically generated {@code Plan}.
@@ -34,7 +32,6 @@ public class SimpleRecoveryPlanManager implements PlanManager {
     private final RecoveryRequirementProvider offerReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
-    private final AtomicReference<RecoveryStatus> recoveryStatusRef;
     private final UUID phaseId = UUID.randomUUID();
 
     public SimpleRecoveryPlanManager(
@@ -42,24 +39,17 @@ public class SimpleRecoveryPlanManager implements PlanManager {
             TaskFailureListener failureListener,
             RecoveryRequirementProvider offerReqProvider,
             LaunchConstrainer launchConstrainer,
-            FailureMonitor failureMonitor,
-            AtomicReference<RecoveryStatus> recoveryStatusRef) {
+            FailureMonitor failureMonitor) {
         this.stateStore = stateStore;
         this.offerReqProvider = offerReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        this.recoveryStatusRef = recoveryStatusRef;
         this.failureListener = failureListener;
     }
 
     @VisibleForTesting
     protected synchronized void refreshPlan(List<Block> dirtiedAssets) {
-        updateRecoveryStatus(getTerminatedTasks(dirtiedAssets));
-        final List<Protos.TaskInfo> stopped = recoveryStatusRef.get().getStopped();
-        final List<Protos.TaskInfo> failed = recoveryStatusRef.get().getFailed();
-        final Map<String, Protos.TaskInfo> recoveryCandidates = new HashMap<>();
-        stopped.stream().forEach(taskInfo -> recoveryCandidates.put(taskInfo.getName(), taskInfo));
-        failed.stream().forEach(taskInfo -> recoveryCandidates.put(taskInfo.getName(), taskInfo));
+        Map<String, Protos.TaskInfo> recoveryCandidates = getRecoveryCandidates(getTerminatedTasks(dirtiedAssets));
 
         final DefaultPhase.Builder newRecoveryPhaseBuilder = DefaultPhase.builder();
         newRecoveryPhaseBuilder.setId(phaseId);
@@ -74,7 +64,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
             try {
                 final DefaultTaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
                 final List<RecoveryRequirement> recoveryRequirements;
-                if (failureMonitor.hasFailed(taskInfo)) {
+                if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
                     recoveryRequirements = offerReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
                 } else {
                     recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
@@ -314,25 +304,18 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         return filteredTerminatedTasks;
     }
 
-    private void updateRecoveryStatus(Collection<Protos.TaskInfo> terminatedTasks) {
-        List<Protos.TaskInfo> failed = new ArrayList<>(terminatedTasks.stream()
-                .filter(failureMonitor::hasFailed)
-                .collect(Collectors.toList()));
-        failed = failed.stream().distinct().collect(Collectors.toList());
+    private Map<String, Protos.TaskInfo> getRecoveryCandidates(Collection<Protos.TaskInfo> terminatedTasks) {
+        final Map<String, Protos.TaskInfo> recoveryCandidates = new HashMap<>();
 
-        failed.stream().forEach(it -> failureListener.taskFailed(it.getTaskId()));
-
-        List<Protos.TaskInfo> stopped = terminatedTasks.stream()
-                .filter(it -> !failureMonitor.hasFailed(it))
-                .collect(Collectors.toList());
-
-        for (Protos.TaskInfo terminatedTask : stateStore.fetchTasksNeedingRecovery()) {
+        for (Protos.TaskInfo terminatedTask : terminatedTasks) {
             LOGGER.info("Found stopped task: {}", TextFormat.shortDebugString(terminatedTask));
-            if (failureMonitor.hasFailed(terminatedTask)) {
+            if (FailureUtils.isLabeledAsFailed(terminatedTask) || failureMonitor.hasFailed(terminatedTask)) {
                 LOGGER.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(terminatedTask));
+                failureListener.taskFailed(terminatedTask.getTaskId());
             }
+            recoveryCandidates.put(terminatedTask.getName(), terminatedTask);
         }
 
-        recoveryStatusRef.set(new RecoveryStatus(stopped, failed));
+        return recoveryCandidates;
     }
 }

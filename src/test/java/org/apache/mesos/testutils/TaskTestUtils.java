@@ -49,4 +49,13 @@ public class TaskTestUtils {
                 .setName(TestConstants.EXECUTOR_NAME)
                 .setCommand(cmd);
     }
+
+    public static Protos.TaskStatus generateStatus(
+            Protos.TaskID taskID,
+            Protos.TaskState taskState) {
+        return Protos.TaskStatus.newBuilder()
+                .setTaskId(taskID)
+                .setState(taskState)
+                .build();
+    }
 }

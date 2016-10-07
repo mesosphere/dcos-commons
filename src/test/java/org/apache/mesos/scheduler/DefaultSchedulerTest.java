@@ -429,8 +429,8 @@ public class DefaultSchedulerTest {
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
         defaultScheduler.awaitTermination();
 
-        // Verify scheduler accepted resources only once
-        verify(mockSchedulerDriver, times(1)).acceptOffers(any(), any(), any());
+        // Verify scheduler accepted resources twice, once for scheduling and once for recovery.
+        verify(mockSchedulerDriver, times(2)).acceptOffers(any(), any(), any());
     }
 
     private int countOperationType(

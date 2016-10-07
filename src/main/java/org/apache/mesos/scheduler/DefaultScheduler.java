@@ -14,7 +14,6 @@ import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
 import org.apache.mesos.scheduler.recovery.*;
-import org.apache.mesos.scheduler.recovery.api.RecoveryResource;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This scheduler when provided with a ServiceSpecification will deploy the service and recover from encountered faults
@@ -43,7 +41,6 @@ public class DefaultScheduler implements Scheduler {
     private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
-    private final AtomicReference<RecoveryStatus> recoveryStatusRef;
     private final BlockingQueue<Collection<Object>> resourcesQueue;
 
     private Reconciler reconciler;
@@ -65,8 +62,6 @@ public class DefaultScheduler implements Scheduler {
     public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this.serviceSpecification = serviceSpecification;
         this.zkConnectionString = zkConnectionString;
-        this.recoveryStatusRef =
-                new AtomicReference<>(new RecoveryStatus(Collections.emptyList(), Collections.emptyList()));
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
     }
 
@@ -122,8 +117,7 @@ public class DefaultScheduler implements Scheduler {
                 taskFailureListener,
                 recoveryRequirementProvider,
                 constrainer,
-                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)),
-                recoveryStatusRef);
+                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
         logger.info("Done initializing recovery plan.");
     }
 
@@ -149,7 +143,6 @@ public class DefaultScheduler implements Scheduler {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
-        resources.add(new RecoveryResource(recoveryStatusRef));
         resources.add(new StateResource(stateStore));
         resourcesQueue.put(resources);
         logger.info("Done initializing resources.");

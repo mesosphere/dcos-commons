@@ -28,9 +28,11 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     }
 
     @Override
-    public Collection<Protos.OfferID> processOffers(final SchedulerDriver driver, final List<Protos.Offer> offers) {
+    public Collection<Protos.OfferID> processOffers(final SchedulerDriver driver,
+                                                    final List<Protos.Offer> offersToProcess) {
         final Set<Protos.OfferID> dirtiedOffers = new HashSet<>();
         final List<Block> dirtiedAssets = new ArrayList<>();
+        final List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         for (final PlanManager planManager : planManagers) {
             try {
                 LOGGER.info("Current plan {} interrupted.", planManager.isInterrupted() ? "is" : "is not");
