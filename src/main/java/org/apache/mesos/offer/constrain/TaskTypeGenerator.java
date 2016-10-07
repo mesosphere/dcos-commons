@@ -54,20 +54,19 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
      * (self-avoidance). Note that this rule is unidirectional; mutual avoidance requires
      * creating separate colocate rules for each direction.
      *
-     * Unlike with {@link #createColocate(String, TaskTypeConverter)}, this will NOT throw a
-     * {@link StuckDeploymentException} if the task to avoid is missing from the cluster, as this
-     * may be expected in certain situations (eg mutual avoidance).
+     * Note that if the avoided task does not already exist in the cluster, this will just pick a
+     * random node, as there will be nothing to avoid.
      */
     public static PlacementRuleGenerator createAvoid(
-            String typeToColocateWith, TaskTypeConverter typeConverter) {
-        return new TaskTypeGenerator(typeToColocateWith, typeConverter, BehaviorType.AVOID);
+            String typeToAvoid, TaskTypeConverter typeConverter) {
+        return new TaskTypeGenerator(typeToAvoid, typeConverter, BehaviorType.AVOID);
     }
 
     /**
      * Calls {@link #createAvoid(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.
      */
-    public static PlacementRuleGenerator createAvoid(String typeToColocateWith) {
-        return createAvoid(typeToColocateWith, new TaskTypeLabelConverter());
+    public static PlacementRuleGenerator createAvoid(String typeToAvoid) {
+        return createAvoid(typeToAvoid, new TaskTypeLabelConverter());
     }
 
     /**
