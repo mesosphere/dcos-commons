@@ -7,7 +7,6 @@ import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.junit.*;
 
@@ -49,7 +48,7 @@ public class CuratorStateStoreTest {
         // Check that schema version was created in the correct location:
         CuratorPersister curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
+        assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
     }
 
     @After
@@ -68,7 +67,7 @@ public class CuratorStateStoreTest {
         store.storeFrameworkId(FRAMEWORK_ID);
         CuratorPersister curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/FrameworkID").length);
+        assertNotEquals(0, curator.get("/dcos-service-test-root-path/FrameworkID").length);
     }
 
     @Test

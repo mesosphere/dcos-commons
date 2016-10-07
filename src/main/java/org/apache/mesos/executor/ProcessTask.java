@@ -4,6 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,13 @@ public class ProcessTask implements ExecutorTask {
             boolean exitOnTermination) throws InvalidProtocolBufferException {
         this.driver = executorDriver;
         this.taskInfo = taskInfo;
-        this.taskType = TaskUtils.getTaskType(taskInfo);
+        String taskTypeTest;
+        try {
+            taskTypeTest = TaskUtils.getTaskType(taskInfo);
+        } catch (TaskException e) {
+            taskTypeTest = ""; // not found
+        }
+        this.taskType = taskTypeTest;
         this.processBuilder = processBuilder;
         this.exitOnTermination = exitOnTermination;
     }

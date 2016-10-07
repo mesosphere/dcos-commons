@@ -11,5 +11,6 @@ import org.apache.mesos.specification.TaskSpecification;
  * detected for a Task.
  */
 public interface BlockFactory {
-    Block getBlock(TaskSpecification taskSpecification) throws InvalidRequirementException;
+    Block getBlock(String taskType, TaskSpecification taskSpecification)
+            throws InvalidRequirementException;
 }

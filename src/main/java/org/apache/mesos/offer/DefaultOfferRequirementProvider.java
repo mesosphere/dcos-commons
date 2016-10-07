@@ -15,7 +15,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    public OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
+    public OfferRequirement getNewOfferRequirement(String taskType, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
@@ -25,7 +25,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addAllResources(getNewResources(taskSpecification))
                 .build();
 
-        return new OfferRequirement(Arrays.asList(taskInfo));
+        return new OfferRequirement(taskType, Arrays.asList(taskInfo));
     }
 
     @Override
@@ -60,7 +60,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
 
-        return new OfferRequirement(Arrays.asList(taskBuilder.build()));
+        try {
+            return new OfferRequirement(
+                    TaskUtils.getTaskType(taskInfo),
+                    Arrays.asList(taskBuilder.build()));
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
     }
 
     private void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)

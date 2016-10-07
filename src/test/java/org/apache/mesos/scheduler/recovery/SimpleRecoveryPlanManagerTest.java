@@ -6,10 +6,7 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.offer.OfferAccepter;
-import org.apache.mesos.offer.OfferRecommendation;
-import org.apache.mesos.offer.OfferRequirement;
-import org.apache.mesos.offer.ResourceUtils;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
@@ -93,8 +90,9 @@ public class SimpleRecoveryPlanManagerTest {
         mockDeployManager = mock(PlanManager.class);
         when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
         when(mockDeployManager.isInterrupted()).thenReturn(false);
-        final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
-                offerAccepter, new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver));
+        final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(offerAccepter,
+                new OfferEvaluator(stateStore),
+                new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
                 planScheduler);
     }
@@ -112,7 +110,7 @@ public class SimpleRecoveryPlanManagerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos),
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos),
                 RecoveryRequirement.RecoveryType.TRANSIENT);
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
@@ -152,7 +150,7 @@ public class SimpleRecoveryPlanManagerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         final TaskInfo taskInfo = infos.get(0);
         when(stateStore.fetchTask(taskInfo.getName()))
@@ -182,7 +180,7 @@ public class SimpleRecoveryPlanManagerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
         launchConstrainer.setCanLaunch(true);
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
                 .thenReturn(Arrays.asList(recoveryRequirement));
         Block block = mock(Block.class);
@@ -214,7 +212,7 @@ public class SimpleRecoveryPlanManagerTest {
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         List<Offer> offers = getOffers(1.0, 1.0);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos));
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
         launchConstrainer.setCanLaunch(true);
         final TaskInfo taskInfo = infos.get(0);
         when(stateStore.fetchTask(taskInfo.getName())).thenReturn(Optional.of(taskInfo));
@@ -245,7 +243,7 @@ public class SimpleRecoveryPlanManagerTest {
         when(stateStore.fetchTask(taskInfo.getName())).thenReturn(Optional.of(taskInfo));
         Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
         when(stateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.of(status));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos),
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos),
                 RecoveryRequirement.RecoveryType.PERMANENT);
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         failureMonitor.setFailedList(taskInfo);
@@ -281,7 +279,7 @@ public class SimpleRecoveryPlanManagerTest {
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         List<Offer> offers = getOffers(1.0, 1.0);
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos),
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos),
                 RecoveryRequirement.RecoveryType.PERMANENT);
         final TaskInfo taskInfo = infos.get(0);
         when(stateStore.fetchTask(taskInfo.getName())).thenReturn(Optional.of(taskInfo));
@@ -327,7 +325,7 @@ public class SimpleRecoveryPlanManagerTest {
         Resource cpus = ResourceTestUtils.getDesiredCpu(desiredCpu);
         Resource mem = ResourceTestUtils.getDesiredMem(desiredMem);
         List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(infos),
+        RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos),
                 RecoveryRequirement.RecoveryType.PERMANENT);
 
         List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
@@ -378,7 +376,7 @@ public class SimpleRecoveryPlanManagerTest {
 
         List<Offer> offers = getOffers(1.0, 1.0);
         RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(Collections.singletonList(ResourceUtils.clearResourceIds(taskInfo))));
+                new OfferRequirement(TestConstants.TASK_TYPE, Collections.singletonList(ResourceUtils.clearResourceIds(taskInfo))));
 
         failureMonitor.setFailedList(failedTaskInfo);
         when(stateStore.fetchTask(failedTaskInfo.getName())).thenReturn(Optional.of(failedTaskInfo));

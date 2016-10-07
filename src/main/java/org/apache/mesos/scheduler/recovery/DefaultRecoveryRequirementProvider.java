@@ -3,6 +3,8 @@ package org.apache.mesos.scheduler.recovery;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
@@ -53,9 +55,11 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
                 TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
                 transientRecoveryRequirements.add(
                         new DefaultRecoveryRequirement(
-                                offerRequirementProvider.getNewOfferRequirement(taskSpecification),
+                                offerRequirementProvider.getNewOfferRequirement(
+                                        TaskUtils.getTaskType(taskInfo),
+                                        taskSpecification),
                                 RecoveryRequirement.RecoveryType.PERMANENT));
-            } catch (InvalidTaskSpecificationException e) {
+            } catch (InvalidTaskSpecificationException | TaskException e) {
                 logger.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
             }
         }

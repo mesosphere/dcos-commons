@@ -1,6 +1,7 @@
 package org.apache.mesos.testutils;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.TaskUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +20,7 @@ public class TaskTestUtils {
                 .setName(TestConstants.TASK_NAME)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setCommand(TestConstants.COMMAND_INFO);
-
+        builder = TaskUtils.setTaskType(builder, TestConstants.TASK_TYPE);
         return builder.addAllResources(resources).build();
     }
 

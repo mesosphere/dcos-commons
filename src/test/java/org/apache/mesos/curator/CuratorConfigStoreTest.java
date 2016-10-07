@@ -5,7 +5,6 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.StringConfiguration;
-import org.apache.mesos.storage.CuratorPersister;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -43,7 +42,7 @@ public class CuratorConfigStoreTest {
         // Check that schema version was created in the correct location:
         CuratorPersister curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/SchemaVersion").length);
+        assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
 
         testConfig = new StringConfiguration("test-config");
         configFactory = new StringConfiguration.Factory();
@@ -66,8 +65,8 @@ public class CuratorConfigStoreTest {
         store.setTargetConfig(id);
         CuratorPersister curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
-        assertNotEquals(0, curator.fetch("/dcos-service-test-root-path/ConfigTarget").length);
-        assertNotEquals(0, curator.fetch(
+        assertNotEquals(0, curator.get("/dcos-service-test-root-path/ConfigTarget").length);
+        assertNotEquals(0, curator.get(
                 "/dcos-service-test-root-path/Configurations/" + id.toString()).length);
     }
 

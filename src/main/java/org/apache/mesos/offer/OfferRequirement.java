@@ -2,12 +2,11 @@ package org.apache.mesos.offer;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -20,42 +19,63 @@ import java.util.Optional;
  * an Offer will already have the indicated persistence ID.
  */
 public class OfferRequirement {
-    private final Collection<SlaveID> avoidAgents;
-    private final Collection<SlaveID> colocateAgents;
+    private final String taskType;
     private final Collection<TaskRequirement> taskRequirements;
     private final Optional<ExecutorRequirement> executorRequirementOptional;
+    private final Optional<PlacementRuleGenerator> placementRuleGeneratorOptional;
 
+    /**
+     * Creates a new OfferRequirement.
+     *
+     * @param taskType the task type name from the TaskSet, used for placement filtering
+     * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
+     * @param executorInfoOptional the executor from which an executor requirement should be
+     *     generated, if any
+     * @param placementRuleGeneratorOptional the placement constraints which should be applied to the
+     *     tasks, if any
+     * @throws InvalidRequirementException if task or executor requirements could not be generated
+     *     from the provided information
+     */
     public OfferRequirement(
-        Collection<TaskInfo> taskInfos,
-        Optional<ExecutorInfo> executorInfoOptional,
-        Collection<SlaveID> avoidAgents,
-        Collection<SlaveID> colocateAgents)
-        throws InvalidRequirementException {
+            String taskType,
+            Collection<TaskInfo> taskInfos,
+            Optional<ExecutorInfo> executorInfoOptional,
+            Optional<PlacementRuleGenerator> placementRuleGeneratorOptional)
+                    throws InvalidRequirementException {
+        this.taskType = taskType;
         this.taskRequirements = getTaskRequirementsInternal(taskInfos);
         this.executorRequirementOptional = executorInfoOptional.isPresent() ?
                 Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
                 Optional.empty();
-
-        if (avoidAgents == null) {
-            this.avoidAgents = Collections.emptyList();
-        } else {
-            this.avoidAgents = avoidAgents;
-        }
-
-        if (colocateAgents == null) {
-            this.colocateAgents = Collections.emptyList();
-        } else {
-            this.colocateAgents = colocateAgents;
-        }
+        this.placementRuleGeneratorOptional = placementRuleGeneratorOptional;
     }
 
-    public OfferRequirement(Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
-        this(taskInfos, Optional.empty(), Collections.emptyList(), Collections.emptyList());
+    /**
+     * Creates a new OfferRequirement with provided executor requirement and empty placement
+     * constraints.
+     *
+     * @see #OfferRequirement(String, Collection, Optional, Optional)
+     */
+    public OfferRequirement(
+            String taskType,
+            Collection<TaskInfo> taskInfos,
+            Optional<ExecutorInfo> executorInfoOptional)
+                    throws InvalidRequirementException {
+        this(taskType, taskInfos, executorInfoOptional, Optional.empty());
     }
 
-    public OfferRequirement(Collection<TaskInfo> taskInfos, Optional<ExecutorInfo> executorInfoOptional)
+    /**
+     * Creates a new OfferRequirement with empty executor requirement and empty placement constraints.
+     *
+     * @see #OfferRequirement(String, Collection, Optional, Optional)
+     */
+    public OfferRequirement(String taskType, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
-        this(taskInfos, executorInfoOptional, Collections.emptyList(), Collections.emptyList());
+        this(taskType, taskInfos, Optional.empty());
+    }
+
+    public String getTaskType() {
+        return taskType;
     }
 
     public Collection<TaskRequirement> getTaskRequirements() {
@@ -66,12 +86,8 @@ public class OfferRequirement {
         return executorRequirementOptional;
     }
 
-    public Collection<SlaveID> getAvoidAgents() {
-        return avoidAgents;
-    }
-
-    public Collection<SlaveID> getColocateAgents() {
-        return colocateAgents;
+    public Optional<PlacementRuleGenerator> getPlacementRuleGeneratorOptional() {
+        return placementRuleGeneratorOptional;
     }
 
     public Collection<String> getResourceIds() {
@@ -95,7 +111,7 @@ public class OfferRequirement {
             persistenceIds.addAll(taskReq.getPersistenceIds());
         }
 
-        if (executorRequirementOptional.isPresent())    {
+        if (executorRequirementOptional.isPresent()) {
             persistenceIds.addAll(executorRequirementOptional.get().getPersistenceIds());
         }
 
@@ -113,6 +129,6 @@ public class OfferRequirement {
 
     @Override
     public String toString() {
-            return ToStringBuilder.reflectionToString(this);
+        return ToStringBuilder.reflectionToString(this);
     }
 }
