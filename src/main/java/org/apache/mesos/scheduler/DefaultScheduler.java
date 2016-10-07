@@ -102,6 +102,7 @@ public class DefaultScheduler implements Scheduler {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         logger.info("Done initializing globals.");
     }
 
@@ -123,7 +124,6 @@ public class DefaultScheduler implements Scheduler {
 
     private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan...");
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
 
         try {
             deployPlan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);

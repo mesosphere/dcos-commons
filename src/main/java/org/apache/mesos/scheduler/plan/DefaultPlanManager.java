@@ -1,10 +1,9 @@
 package org.apache.mesos.scheduler.plan;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.protobuf.TextFormat;
 
 import java.util.*;
 

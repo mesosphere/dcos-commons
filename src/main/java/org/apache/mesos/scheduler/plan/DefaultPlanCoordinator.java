@@ -66,7 +66,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     }
 
     @VisibleForTesting
-    protected List<Protos.Offer> filterAcceptedOffers(List<Protos.Offer> offers,
+    protected static List<Protos.Offer> filterAcceptedOffers(List<Protos.Offer> offers,
                                                       Collection<Protos.OfferID> acceptedOfferIds) {
         return offers.stream()
                 .filter(offer -> !offerAccepted(offer, acceptedOfferIds))
@@ -74,7 +74,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     }
 
     @VisibleForTesting
-    protected boolean offerAccepted(Protos.Offer offer,
+    protected static boolean offerAccepted(Protos.Offer offer,
                                     Collection<Protos.OfferID> acceptedOfferIds) {
         return acceptedOfferIds.stream()
                 .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
