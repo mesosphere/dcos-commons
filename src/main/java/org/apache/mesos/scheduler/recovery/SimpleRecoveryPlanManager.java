@@ -122,8 +122,6 @@ public class SimpleRecoveryPlanManager implements PlanManager {
      */
     @Override
     public Optional<Phase> getCurrentPhase() {
-        // TODO: Is this necessary ?
-        refreshPlan(Arrays.asList());
         for (final Phase phase : plan.getPhases()) {
             if (!phase.isComplete()) {
                 LOGGER.debug("Phase {} ({}) is NOT complete. This is the current phase.",
@@ -280,7 +278,8 @@ public class SimpleRecoveryPlanManager implements PlanManager {
      * @param dirtiedAssets Blocks with tasks to exclude, empty if no tasks should be excluded
      * @return Terminated tasks, excluding those corresponding to {@code block}
      */
-    private Collection<Protos.TaskInfo> getTerminatedTasks(List<Block> dirtiedAssets) {
+    @VisibleForTesting
+    protected Collection<Protos.TaskInfo> getTerminatedTasks(List<Block> dirtiedAssets) {
         final List<Protos.TaskInfo> filteredTerminatedTasks = new ArrayList<>();
 
         try {
@@ -304,7 +303,8 @@ public class SimpleRecoveryPlanManager implements PlanManager {
         return filteredTerminatedTasks;
     }
 
-    private Map<String, Protos.TaskInfo> getRecoveryCandidates(Collection<Protos.TaskInfo> terminatedTasks) {
+    @VisibleForTesting
+    protected Map<String, Protos.TaskInfo> getRecoveryCandidates(Collection<Protos.TaskInfo> terminatedTasks) {
         final Map<String, Protos.TaskInfo> recoveryCandidates = new HashMap<>();
 
         for (Protos.TaskInfo terminatedTask : terminatedTasks) {

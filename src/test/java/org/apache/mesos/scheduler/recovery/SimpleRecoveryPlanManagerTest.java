@@ -30,17 +30,20 @@ import static org.mockito.Mockito.*;
 
 /**
  * Our goal is verify the following pieces of functionality:
- * <p>
- * - If it has failed tasks, it will not attempt to launch stopped tasks. - If a block is currently running with the
- * same name as a terminated task, it will not appear as terminated. - If a task is failed, it can transition to stopped
- * when the failure detector decides - If a task is stopped, it can be restarted (or maybe not, depending on offer) -
- * Launches will only occur when the constrainer allows it - When a task is failed, it shows up as failed for multiple
- * cycles if nothing changes - When a task is stopped, it shows up as stopped for multiple cycles if nothing changes -
- * When a stopped task launches, it no longer shows up as stopped - When a failed task launches, it no longer shows up
- * as failed
+ * <ul>
+ * <li>If it has failed tasks, it will not attempt to launch stopped tasks.</li>
+ * <li> If a block is currently running with the same name as a terminated task, it will not appear as terminated.</li>
+ * <li>If a task is failed, it can transition to stopped when the failure detector decides </li>
+ * <li>If a task is stopped, it can be restarted (or maybe not, depending on offer)</li>
+ * <li>Launches will only occur when the constrainer allows it</li>
+ * <li>When a task is failed, it shows up as failed for multiple cycles if nothing changes</li>
+ * <li>When a task is stopped, it shows up as stopped for multiple cycles if nothing changes</li>
+ * <li>When a stopped task launches, it no longer shows up as stopped</li>
+ * <li>When a failed task launches, it no longer shows up as failed</li>
+ * </ul>
  */
 public class SimpleRecoveryPlanManagerTest {
-    private PlanManager recoveryManager;
+    private SimpleRecoveryPlanManager recoveryManager;
     private TaskFailureListener taskFailureListener;
     private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
@@ -399,5 +402,67 @@ public class SimpleRecoveryPlanManagerTest {
         // Verify the appropriate task was not checked for failure with failure monitor.
         verify(failureMonitor, never()).hasFailed(any());
         reset(mockDeployManager);
+    }
+
+    @Test
+    public void testGetTerminatedTasksNoDirtyAssets() {
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfoA = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(TestConstants.TASK_NAME + "-B"))
+                .setName(TestConstants.TASK_NAME + "-B").build();
+        List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList());
+        assertEquals(2, terminatedTasks.size());
+    }
+
+    @Test
+    public void testGetTerminatedTasksWithDirtyTerminatedAsset() {
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfoA = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        final String taskNameB = TestConstants.TASK_NAME + "-B";
+        TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(taskNameB))
+                .setName(taskNameB).build();
+        List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+        Block block = mock(Block.class);
+        when(block.getName()).thenReturn(TestConstants.TASK_NAME);
+        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block));
+        assertEquals(1, terminatedTasks.size());
+        assertEquals(taskNameB, terminatedTasks.iterator().next().getName());
+    }
+
+    @Test
+    public void testGetTerminatedTasksWithDirtyNonTerminatedAsset() {
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfoA = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        final String taskNameB = TestConstants.TASK_NAME + "-B";
+        TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(taskNameB))
+                .setName(taskNameB).build();
+        List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+        Block block = mock(Block.class);
+        when(block.getName()).thenReturn(TestConstants.TASK_NAME + "-C");
+        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block));
+        assertEquals(2, terminatedTasks.size());
+    }
+
+    @Test
+    public void testGetRecoveryCandidates() {
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfoA = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        final String taskNameB = TestConstants.TASK_NAME + "-B";
+        TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(taskNameB))
+                .setName(taskNameB).build();
+        List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        final Map<String, TaskInfo> recoveryCandidates = recoveryManager.getRecoveryCandidates(infos);
+        assertNotNull(recoveryCandidates);
+        assertEquals(2, recoveryCandidates.size());
+        assertTrue(recoveryCandidates.containsKey(TestConstants.TASK_NAME));
+        assertTrue(recoveryCandidates.containsKey(taskNameB));
     }
 }
