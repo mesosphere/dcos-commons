@@ -346,7 +346,7 @@ public class CuratorPersisterTest {
 
         @Override
         public String toString() {
-            return String.format("%s %s: %s", mode, path, data);
+            return String.format("%s %s", mode, path);
         }
     }
 

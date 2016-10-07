@@ -57,20 +57,21 @@ public class CuratorPersister implements Persister {
 
             // Phase 2: Compose a single transaction that updates and/or creates nodes according to
             //          the above determinations (retry if there's an out-of-band modification)
-            CuratorTransactionFinal transactionFinal = getTransaction(pathBytesMap, pathsWhichExist, parentPathsToCreate);
+            final CuratorTransactionFinal transaction =
+                    getTransaction(pathBytesMap, pathsWhichExist, parentPathsToCreate);
             if (i + 1 < ATOMIC_WRITE_ATTEMPTS) {
                 try {
-                    transactionFinal.commit();
+                    transaction.commit();
                     break; // Success!
                 } catch (Exception e) {
                     // Transaction failed! Bad connection? Existence check rendered invalid?
                     // Swallow exception and try again
                     logger.error(String.format("Failed to complete transaction attempt %d/%d: %s",
-                            i + 1, ATOMIC_WRITE_ATTEMPTS, transactionFinal), e);
+                            i + 1, ATOMIC_WRITE_ATTEMPTS, transaction), e);
                 }
             } else {
                 // Last try: Any exception should be forwarded upstream
-                transactionFinal.commit();
+                transaction.commit();
             }
         }
     }
