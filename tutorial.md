@@ -50,7 +50,7 @@ these different requirements.
 For any framework, at least two components must be configured: the
 scheduler and the service.  Scheduler configuration includes things
 like node count, deployment strategies, and security parameters.
-Service configuration includes task properties such memory, cpu,
+Service configuration includes resource settings such memory, cpu,
 ports, etc., as well as any configuration passed on to the underlying
 service.
 
@@ -58,9 +58,34 @@ The DC/OS Stateful Services SDK includes logic for reading
 configuration from an external source (default: environment
 variables), detecting changes to the configuration, and redeploying
 any affected tasks.  It also supports marking certain configuration
-parameters as "unmodifiable", so they user can't change them after
-install time.  This is for instance for disk size, because persistent
-volume size is static.
+parameters as "unmodifiable", so that the user can't change them after
+install time.  For example, the disk size of permanent volumes cannot
+be modified because volume size is static.
+
+(Note: As of this writing, the following is still a work in progress, 
+but should be available in the next week or two.)
+
+To simplify the common task of getting user-facing configuration to
+service tasks, the developer may follow the following convention in
+naming the environment variables for these configuration options:
+`CONFIG_<TASK_TYPE>_<NAME>`
+
+For example, an option for tasks of type `index-mgr` could be named
+`CONFIG_INDEX_MGR_FOO`, while an option for tasks of type `data`
+could be named `CONFIG_DATA_FOO`. These configuration options will
+automatically be forwarded to the environments of the matching tasks
+as environment variables, with the `CONFIG_<TASK_TYPE>_` prefixes
+removed. A special prefix of `CONFIG_ANY_<NAME>` may be used for
+any options that should be passed to *every* task type.
+
+A common need for service developers is an easy way to write
+configuration files before launching tasks. To fulfill this need,
+the developer may provide configuration file template(s) in their
+TaskSet(s). These templates follow the [mustache](https://mustache.github.io/)
+templating format, similar to what's used in DC/OS packaging. The
+templates will be automatically rendered against the task's
+environment (which is customized as described above), and then
+each written to relative file paths specified by the developer.
 
 ## Upgrade support
 From time to time, services must be upgraded from version N to version N+1.
@@ -375,7 +400,28 @@ The `DefaultScheduler` makes no intelligent placement decisions.  It
 will run a task on first offer it gets which satisfies the resource
 constraints for that task.
 
-// TODO placement constraints
+This behavior may be customized using *Placement Constraints*, which
+are rules on how tasks should be placed in the cluster. These rules
+are enforced by filtering the resource Offers returned by Mesos,
+removing resources from the list when they don't pass the rules.
+
+In practice, the developer can define placement constraints on a
+per-task basis by customizing the return value of
+`TaskSpecification.getPlacement()`:
+
+```
+public Optional<PlacementRuleGenerator> getPlacement() {
+    // avoid systems which are running an "index" task:
+    return Optional.of(TaskTypeGenerator.createAvoid("index"));
+}
+```
+
+The developer can either use some of the common `PlacementRule`s
+and/or `PlacementRuleGenerator`s implementations provided in the
+[offer.constrain](https://github.com/mesosphere/dcos-commons/tree/master/src/main/java/org/apache/mesos/offer/constrain)
+package, or implement their own to provide custom constraints
+which can take advantage of anything present in the Mesos `Offers`
+or in the other running `TaskInfo`s.
 
 # Logs
 
@@ -419,13 +465,40 @@ out the tests for DC/OS Kafka
 
 # Metrics
 
-This section is only relevant to DC/OS Enterprise Edition.
+As of DC/OS 1.8, this section is only relevant to DC/OS Enterprise
+Edition, but support has recently been [open-sourced](http://github.com/dcos/dcos-metrics)
+and should soon be available in Open DC/OS. For more information,
+see the [dcos-metrics](http://github.com/dcos/dcos-metrics) repository,
+and stop by the #day2ops channel on [DC/OS Slack](https://chat.dcos.io).
 
-DC/OS Enterprise Edition starts all tasks with two environment
-variables: STATSD_UDP_HOST and STATSD_UDP_PORT.
+DC/OS Metrics automatically provides all Mesos containers with a unique
+UDP endpoint for outputting `statsd`-formatted metrics. The endpoint
+is advertised via two container environment variables: `STATSD_UDP_HOST`
+and `STATSD_UDP_PORT`. Any metrics sent to this advertised endpoint
+will automatically be tagged with the originating container and
+forwarded upstream to the cluster's metrics infrastructure. A
+developer may take advantage of this endpoint both for their service
+Scheduler as well as for the underlying service tasks themselves, i.e.
+configuring them to emit to the locally-advertised endpoint as they are
+launched. Keep in mind that the environment-advertised endpoint is
+unique to each container and cannot be reused across containers.
 
-? Why is the statsd server running in a module?  Why not run it in
-marathon?
+The data sent to this endpoint should follow the standard `statsd`
+text format, optionally with multiple newline-separated values
+per UDP packet. [http://docs.datadoghq.com/guides/dogstatsd/#datagram-format](Datadog-extension)
+tags are also supported, so the application may also include its own
+custom tags:
+
+```
+memory.usage_mb:5|g
+frontend.query.latency_ms:46|g|#shard_id:6,section:frontpage
+```
+
+See also:
+- [dcos-metrics repo](https://github.com/dcos/dcos-metrics)
+- [Sample StatsD emitter process](https://github.com/dcos/dcos-metrics/tree/master/examples/statsd-emitter)
+- [Metrics configuration for Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/30acc60676ba9362ddb9b74f208b36d257a78f93/kafka-config-overrider/src/main/java/com/mesosphere/dcos/kafka/config/Overrider.java#L163)
+- [Metrics configuration for Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/38360f9f78d7063824ad77f9871108fe5609e54d/cassandra-executor/src/main/java/com/mesosphere/dcos/cassandra/executor/metrics/MetricsConfig.java#L68)
 
 # Networking/Service Discovery
 
