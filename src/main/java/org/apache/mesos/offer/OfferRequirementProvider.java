@@ -14,7 +14,8 @@ public interface OfferRequirementProvider {
      * @return An OfferRequirement whose satisfaction will result in the launching of the indicated Task.
      * @throws InvalidRequirementException when a failure in requirement creation is encountered.
      */
-    OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification) throws InvalidRequirementException;
+    OfferRequirement getNewOfferRequirement(String taskType, TaskSpecification taskSpecification)
+            throws InvalidRequirementException;
 
     /**
      * Provides an OfferRequirement encapsulating the needs of a Task undergoing an update.  The previous incarnation of

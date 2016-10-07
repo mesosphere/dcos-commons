@@ -119,7 +119,8 @@ public class DefaultScheduler implements Scheduler {
 
     private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan");
-        planScheduler = new DefaultPlanScheduler(offerAccepter, taskKiller);
+        planScheduler = new DefaultPlanScheduler(
+                offerAccepter, new OfferEvaluator(stateStore), taskKiller);
 
         try {
             plan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);

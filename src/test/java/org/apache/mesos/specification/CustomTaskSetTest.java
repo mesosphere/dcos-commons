@@ -7,6 +7,7 @@ import org.testng.Assert;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class tests the ability to customize TaskTypeSpecifications.
@@ -34,7 +35,8 @@ public class CustomTaskSetTest {
                                 .setValue(name + " " + i)
                                 .build(),
                         Collections.emptyList(),
-                        Collections.emptyList()));
+                        Collections.emptyList(),
+                        Optional.empty()));
             }
 
             return new CustomTaskSet(name, taskSpecifications);
