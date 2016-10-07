@@ -62,20 +62,20 @@ parameters as "unmodifiable", so that the user can't change them after
 install time.  For example, the disk size of permanent volumes cannot
 be modified because volume size is static.
 
-(Note: As of this writing, the following is still a work in progress, 
+(Note: As of this writing, the following is still a work in progress,
 but should be available in the next week or two.)
 
 To simplify the common task of getting user-facing configuration to
 service tasks, the developer may follow the following convention in
 naming the environment variables for these configuration options:
-`CONFIG_<TASK_TYPE>_<NAME>`
+`TASKCFG_<TASK_TYPE>_<NAME>`
 
 For example, an option for tasks of type `index-mgr` could be named
-`CONFIG_INDEX_MGR_FOO`, while an option for tasks of type `data`
-could be named `CONFIG_DATA_FOO`. These configuration options will
+`TASKCFG_INDEX_MGR_FOO`, while an option for tasks of type `data`
+could be named `TASKCFG_DATA_FOO`. These configuration options will
 automatically be forwarded to the environments of the matching tasks
-as environment variables, with the `CONFIG_<TASK_TYPE>_` prefixes
-removed. A special prefix of `CONFIG_ANY_<NAME>` may be used for
+as environment variables, with the `TASKCFG_<TASK_TYPE>_` prefixes
+removed. A special prefix of `TASKCFG_ALL_<NAME>` may be used for
 any options that should be passed to *every* task type.
 
 A common need for service developers is an easy way to write
