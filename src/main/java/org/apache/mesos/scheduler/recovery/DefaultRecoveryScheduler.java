@@ -58,7 +58,7 @@ public class DefaultRecoveryScheduler {
      * @return true if this scheduler has operations to perform.
      */
     public boolean hasOperations(Optional<Block> block) {
-        updateRecoveryStatus(getTerminatedTasks(block));
+        updateRecoveryStatus(block);
 
         return recoveryStatusRef.get().getStopped().size() > 0 ||
                 recoveryStatusRef.get().getFailed().size() > 0;
@@ -81,7 +81,7 @@ public class DefaultRecoveryScheduler {
     public synchronized List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Optional<Block> block)
             throws Exception {
         List<OfferID> acceptedOffers = new ArrayList<>();
-        updateRecoveryStatus(getTerminatedTasks(block));
+        updateRecoveryStatus(block);
 
         List<TaskInfo> stopped = recoveryStatusRef.get().getStopped();
         List<TaskInfo> failed = recoveryStatusRef.get().getFailed();
@@ -98,24 +98,30 @@ public class DefaultRecoveryScheduler {
             recoveryRequirement = Optional.of(recoveryCandidates.get(new Random().nextInt(recoveryCandidates.size())));
         }
 
-        if (recoveryRequirement.isPresent() && launchConstrainer.canLaunch(recoveryRequirement.get())) {
-            log.info("Preparing to launch task");
-            OfferEvaluator offerEvaluator = new OfferEvaluator(stateStore);
-            List<OfferRecommendation> recommendations =
-                    offerEvaluator.evaluate(recoveryRequirement.get().getOfferRequirement(), offers);
-            List<Operation> launchOperations = recommendations.stream()
-                    .map(OfferRecommendation::getOperation)
-                    .filter(Operation::hasLaunch)
-                    .collect(Collectors.toList());
+        if (recoveryRequirement.isPresent()) {
+            if (launchConstrainer.canLaunch(recoveryRequirement.get())) {
+                log.info("Preparing to launch task");
+                OfferEvaluator offerEvaluator = new OfferEvaluator(stateStore);
+                List<OfferRecommendation> recommendations =
+                        offerEvaluator.evaluate(recoveryRequirement.get().getOfferRequirement(), offers);
+                List<Operation> launchOperations = recommendations.stream()
+                        .map(OfferRecommendation::getOperation)
+                        .filter(Operation::hasLaunch)
+                        .collect(Collectors.toList());
 
-            acceptedOffers = offerAccepter.accept(driver, recommendations);
-            if (launchOperations.size() == 1) {
-                // We could've launched nothing if the offer didn't fit
-                launchConstrainer.launchHappened(launchOperations.get(0), recoveryRequirement.get().getRecoveryType());
+                acceptedOffers = offerAccepter.accept(driver, recommendations);
+                if (launchOperations.size() == 1) {
+                    // We could've launched nothing if the offer didn't fit
+                    launchConstrainer.launchHappened(
+                            launchOperations.get(0),
+                            recoveryRequirement.get().getRecoveryType());
+                }
+            } else {
+                log.info("Refusing to launch task due to launch constraints.");
             }
         }
 
-        updateRecoveryStatus(getTerminatedTasks(block));
+        updateRecoveryStatus(block);
         return acceptedOffers;
     }
 
@@ -132,12 +138,12 @@ public class DefaultRecoveryScheduler {
         try {
             if (!block.isPresent()) {
                 return stateStore.fetchTasksNeedingRecovery();
-            }
-
-            String blockName = block.get().getName();
-            for (TaskInfo taskInfo : stateStore.fetchTasksNeedingRecovery()) {
-                if (!taskInfo.getName().equals(blockName)) {
-                    filteredTerminatedTasks.add(taskInfo);
+            } else {
+                String blockName = block.get().getName();
+                for (TaskInfo taskInfo : stateStore.fetchTasksNeedingRecovery()) {
+                    if (!taskInfo.getName().equals(blockName)) {
+                        filteredTerminatedTasks.add(taskInfo);
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -147,7 +153,9 @@ public class DefaultRecoveryScheduler {
         return filteredTerminatedTasks;
     }
 
-    private void updateRecoveryStatus(Collection<TaskInfo> terminatedTasks) {
+    /** Updates {@code recoveryStatusRef) with the latest state of terminated tasks. */
+    private void updateRecoveryStatus(Optional<Block> block) {
+        Collection<TaskInfo> terminatedTasks = getTerminatedTasks(block);
         List<TaskInfo> failed = new ArrayList<>();
         List<TaskInfo> stopped = new ArrayList<>();
 
