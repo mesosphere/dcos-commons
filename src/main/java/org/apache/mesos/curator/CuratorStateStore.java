@@ -10,7 +10,7 @@ import org.apache.mesos.state.SchemaVersionStore;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
 import org.apache.mesos.state.StateStoreUtils;
-import org.apache.mesos.storage.CuratorPersister;
+import org.apache.mesos.storage.Persister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public class CuratorStateStore implements StateStore {
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
-    private final CuratorPersister curator;
+    private final Persister curator;
     private final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
@@ -117,7 +117,7 @@ public class CuratorStateStore implements StateStore {
     public void storeFrameworkId(Protos.FrameworkID fwkId) throws StateStoreException {
         try {
             logger.debug("Storing FrameworkID in '{}'", fwkIdPath);
-            curator.store(fwkIdPath, fwkId.toByteArray());
+            curator.set(fwkIdPath, fwkId.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(String.format(
                     "Failed to store FrameworkID in '%s'", fwkIdPath), e);
@@ -128,7 +128,7 @@ public class CuratorStateStore implements StateStore {
     public void clearFrameworkId() throws StateStoreException {
         try {
             logger.debug("Clearing FrameworkID at '{}'", fwkIdPath);
-            curator.clear(fwkIdPath);
+            curator.delete(fwkIdPath);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent FrameworkID should not result in an exception from us.
             logger.warn("Cleared unset FrameworkID, continuing silently", e);
@@ -142,7 +142,7 @@ public class CuratorStateStore implements StateStore {
     public Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException {
         try {
             logger.debug("Fetching FrameworkID from '{}'", fwkIdPath);
-            byte[] bytes = curator.fetch(fwkIdPath);
+            byte[] bytes = curator.get(fwkIdPath);
             if (bytes.length > 0) {
                 return Optional.of(Protos.FrameworkID.parseFrom(bytes));
             } else {
@@ -161,16 +161,17 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
+        Map<String, byte[]> taskBytesMap = new HashMap<>();
         for (Protos.TaskInfo taskInfo : tasks) {
             String path = taskPathMapper.getTaskInfoPath(taskInfo.getName());
             logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), path);
-            try {
-                curator.store(path, taskInfo.toByteArray());
-            } catch (Exception e) {
-                // exit early, without proceeding to other tasks:
-                throw new StateStoreException(String.format(
-                        "Failed to store TaskInfo in '%s'", path), e);
-            }
+            taskBytesMap.put(path, taskInfo.toByteArray());
+        }
+        try {
+            curator.setMany(taskBytesMap);
+        } catch (Exception e) {
+            throw new StateStoreException(String.format(
+                    "Failed to store %d TaskInfos", tasks.size()), e);
         }
     }
 
@@ -214,7 +215,7 @@ public class CuratorStateStore implements StateStore {
         logger.debug("Storing status for '{}' in '{}'", taskName, path);
 
         try {
-            curator.store(path, status.toByteArray());
+            curator.set(path, status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
@@ -225,7 +226,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTaskPath(taskName);
         logger.debug("Clearing Task at '{}'", path);
         try {
-            curator.clear(path);
+            curator.delete(path);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Task should not result in an exception from us.
             logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
@@ -261,7 +262,7 @@ public class CuratorStateStore implements StateStore {
         Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
             try {
-                byte[] bytes = curator.fetch(taskPathMapper.getTaskInfoPath(taskName));
+                byte[] bytes = curator.get(taskPathMapper.getTaskInfoPath(taskName));
                 taskInfos.add(Protos.TaskInfo.parseFrom(bytes));
             } catch (Exception e) {
                 // Throw even for NoNodeException: We should always have a TaskInfo for every entry
@@ -276,7 +277,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTaskInfoPath(taskName);
         logger.debug("Fetching TaskInfo {} from '{}'", taskName, path);
         try {
-            byte[] bytes = curator.fetch(path);
+            byte[] bytes = curator.get(path);
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskInfo.parseFrom(bytes));
             } else {
@@ -296,7 +297,7 @@ public class CuratorStateStore implements StateStore {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
             try {
-                byte[] bytes = curator.fetch(taskPathMapper.getTaskStatusPath(taskName));
+                byte[] bytes = curator.get(taskPathMapper.getTaskStatusPath(taskName));
                 taskStatuses.add(Protos.TaskStatus.parseFrom(bytes));
             } catch (KeeperException.NoNodeException e) {
                 // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
@@ -314,7 +315,7 @@ public class CuratorStateStore implements StateStore {
         String path = taskPathMapper.getTaskStatusPath(taskName);
         logger.debug("Fetching status for '{}' in '{}'", taskName, path);
         try {
-            byte[] bytes = curator.fetch(path);
+            byte[] bytes = curator.get(path);
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskStatus.parseFrom(bytes));
             } else {
@@ -336,7 +337,7 @@ public class CuratorStateStore implements StateStore {
         try {
             final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Storing property key: {} into path: {}", key, path);
-            curator.store(path, value);
+            curator.set(path, value);
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
@@ -348,7 +349,7 @@ public class CuratorStateStore implements StateStore {
         try {
             final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
-            return curator.fetch(path);
+            return curator.get(path);
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
@@ -373,7 +374,7 @@ public class CuratorStateStore implements StateStore {
         try {
             final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
-            curator.clear(path);
+            curator.delete(path);
         } catch (KeeperException.NoNodeException e) {
             // Clearing a non-existent Property should not result in an exception from us.
             logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
