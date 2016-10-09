@@ -21,6 +21,15 @@ public class DefaultTaskSet implements TaskSet {
             String name,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
+            Collection<VolumeSpecification> volumes) {
+        return create(count, name, command, resources, volumes, Optional.empty());
+    }
+
+    public static DefaultTaskSet create(
+            int count,
+            String name,
+            Protos.CommandInfo command,
+            Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Optional<PlacementRuleGenerator> placementOptional) {
 
