@@ -34,7 +34,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
             final SchedulerDriver driver,
             final List<Protos.Offer> offersToProcess) {
         final Set<Protos.OfferID> dirtiedOffers = new HashSet<>();
-        final List<Block> dirtiedAssets = new ArrayList<>();
+        final Set<String> dirtiedAssets = new HashSet<>();
         final List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         for (final PlanManager planManager : planManagers) {
             try {
@@ -50,7 +50,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
 
                     // If an offer was used, the block was also scheduled, so let's mark it dirty.
                     if (CollectionUtils.isNotEmpty(usedOffers)) {
-                        dirtiedAssets.add(blockToSchedule);
+                        dirtiedAssets.add(blockToSchedule.getName());
                     }
                 } else {
                     LOGGER.info("Current block to schedule: No block");

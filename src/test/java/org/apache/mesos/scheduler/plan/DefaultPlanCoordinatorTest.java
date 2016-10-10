@@ -225,13 +225,11 @@ public class DefaultPlanCoordinatorTest {
         }
 
         @Override
-        public Optional<Block> getCurrentBlock(List<Block> dirtiedAssets) {
+        public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
             final List<? extends Block> blocks = plan.getPhases().get(0).getBlocks();
-            Set<String> dirtyNames = new HashSet<>();
-            dirtiedAssets.stream().forEach(b -> dirtyNames.add(b.getName()));
             List<Block> filtered = new ArrayList<>();
             for (Block block: blocks) {
-                if (!dirtyNames.contains(block.getName())) {
+                if (!dirtiedAssets.contains(block.getName())) {
                     filtered.add(block);
                 }
             }

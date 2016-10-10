@@ -2,10 +2,7 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
 
-import java.util.List;
-import java.util.Observer;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * PlanManager is the management interface for {@link Plan}s.
@@ -26,7 +23,7 @@ public interface PlanManager extends Observer {
      * @return An Optional Block that can be scheduled or an empty Optional when there is no block to schedule. For ex:
      *          the chosen block to schedule is being worked on by other PlanManager(s), etc.
      */
-    Optional<Block> getCurrentBlock(List<Block> dirtiedAssets);
+    Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets);
 
     boolean isComplete();
 

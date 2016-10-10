@@ -57,15 +57,15 @@ public class DefaultPlanManager implements PlanManager {
     }
 
     @Override
-    public Optional<Block> getCurrentBlock(List<Block> dirtiedAssets) {
+    public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
         Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
         if (currPhaseOptional.isPresent()) {
             final Optional<Block> currentBlock = currPhaseOptional.get().getCurrentBlock();
             if (currentBlock.isPresent()) {
                 if (CollectionUtils.isNotEmpty(dirtiedAssets)) {
                     final Block block = currentBlock.get();
-                    for (Block dirtyBlock : dirtiedAssets) {
-                        if (Objects.equals(dirtyBlock.getName(), block.getName())) {
+                    for (String dirtyAsset : dirtiedAssets) {
+                        if (Objects.equals(dirtyAsset, block.getName())) {
                             LOGGER.info("Chosen block is already dirtied by other PlanManager. No block to schedule.");
                             return Optional.empty();
                         }

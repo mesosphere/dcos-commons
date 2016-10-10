@@ -53,7 +53,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     }
 
     @VisibleForTesting
-    protected synchronized void refreshPlan(List<Block> dirtiedAssets) {
+    protected synchronized void refreshPlan(Collection<String> dirtiedAssets) {
         Map<String, Protos.TaskInfo> recoveryCandidates = getRecoveryCandidates(getTerminatedTasks(dirtiedAssets));
 
         final DefaultPhase.Builder newRecoveryPhaseBuilder = DefaultPhase.builder();
@@ -143,7 +143,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     }
 
     @Override
-    public Optional<Block> getCurrentBlock(List<Block> dirtiedAssets) {
+    public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
         refreshPlan(dirtiedAssets);
 
         if (phaseStrategy != null) {
@@ -241,7 +241,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
      * @return Terminated tasks, excluding those corresponding to {@code block}
      */
     @VisibleForTesting
-    protected Collection<Protos.TaskInfo> getTerminatedTasks(List<Block> dirtiedAssets) {
+    protected Collection<Protos.TaskInfo> getTerminatedTasks(Collection<String> dirtiedAssets) {
         final List<Protos.TaskInfo> filteredTerminatedTasks = new ArrayList<>();
 
         try {
@@ -250,10 +250,9 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 return terminatedTasks;
             }
 
-            for (Block blockToIgnore : dirtiedAssets) {
-                final String blockNameToIgnore = blockToIgnore.getName();
+            for (String assetToIgnore : dirtiedAssets) {
                 for (Protos.TaskInfo taskForRepair : terminatedTasks) {
-                    if (!Objects.equals(taskForRepair.getName(), blockNameToIgnore)) {
+                    if (!Objects.equals(taskForRepair.getName(), assetToIgnore)) {
                         filteredTerminatedTasks.add(taskForRepair);
                     }
                 }

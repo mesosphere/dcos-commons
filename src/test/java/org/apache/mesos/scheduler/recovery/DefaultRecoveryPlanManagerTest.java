@@ -425,7 +425,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         Block block = mock(Block.class);
         when(block.getName()).thenReturn(TestConstants.TASK_NAME);
-        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block));
+        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block.getName()));
         assertEquals(1, terminatedTasks.size());
         assertEquals(taskNameB, terminatedTasks.iterator().next().getName());
     }
@@ -442,7 +442,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
         Block block = mock(Block.class);
         when(block.getName()).thenReturn(TestConstants.TASK_NAME + "-C");
-        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block));
+        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block.getName()));
         assertEquals(2, terminatedTasks.size());
     }
 
