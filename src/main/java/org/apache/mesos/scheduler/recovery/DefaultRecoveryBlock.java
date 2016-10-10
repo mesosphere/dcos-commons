@@ -10,7 +10,10 @@ import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import java.util.Collection;
 
 /**
- * DefaultRecoveryBlock.
+ * {@code DefaultRecoveryBlock} is an extension of {@link DefaultBlock} meant for use with
+ * {@link SimpleRecoveryPlanManager}. It is responsible for following:
+ * 1. Encapsulating {@link RecoveryRequirement}
+ * 2. Updating launchHappened event.
  */
 public class DefaultRecoveryBlock extends DefaultBlock {
     private LaunchConstrainer launchConstrainer;

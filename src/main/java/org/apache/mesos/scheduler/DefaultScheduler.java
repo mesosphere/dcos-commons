@@ -103,7 +103,6 @@ public class DefaultScheduler implements Scheduler {
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
-        logger.info("Done initializing globals.");
     }
 
     private void initializeRecoveryPlanManager() {
@@ -119,7 +118,6 @@ public class DefaultScheduler implements Scheduler {
                 recoveryRequirementProvider,
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
-        logger.info("Done initializing recovery plan.");
     }
 
     private void initializeDeploymentPlan() {
@@ -133,7 +131,6 @@ public class DefaultScheduler implements Scheduler {
             logger.error("Failed to generate deployPlan with exception: ", e);
             hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
         }
-        logger.info("Done initializing deployment plan.");
     }
 
     private void initializeResources() throws InterruptedException {
@@ -145,7 +142,6 @@ public class DefaultScheduler implements Scheduler {
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore));
         resourcesQueue.put(resources);
-        logger.info("Done initializing resources.");
     }
 
     private void logOffers(List<Protos.Offer> offers) {

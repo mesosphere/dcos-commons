@@ -7,7 +7,8 @@ import java.util.Optional;
 import java.util.Random;
 
 /**
- * RandomRecoveryStrategy.
+ * {@code RandomRecoveryStrategy} extends {@link DefaultInstallStrategy}, by providing a random block selection
+ * strategy.
  */
 public class RandomRecoveryStrategy extends DefaultInstallStrategy {
     public RandomRecoveryStrategy(Phase phase) {

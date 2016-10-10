@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Interface for PlanManagers.
+ * PlanManager is the management interface for {@code Plan}s.
  */
 public interface PlanManager extends Observer {
 
@@ -18,6 +18,13 @@ public interface PlanManager extends Observer {
 
     Optional<Phase> getCurrentPhase();
 
+    /**
+     * Determines the next block that should be considered for scheduling. Blocks that are being selected by other
+     * PlanManager are provided as {@code dirtiedAssets} as a hint to this PlanManager to assist with scheduling.
+     *
+     * @param dirtiedAssets Other blocks/assets that are already selected for scheduling.
+     * @return An Optional Block that can be scheduled.
+     */
     Optional<Block> getCurrentBlock(List<Block> dirtiedAssets);
 
     boolean isComplete();

@@ -35,6 +35,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         final List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         for (final PlanManager planManager : planManagers) {
             try {
+                LOGGER.info("Current PlanManager: {}", planManager.getClass().getSimpleName());
                 LOGGER.info("Current plan {} interrupted.", planManager.isInterrupted() ? "is" : "is not");
                 final Optional<Block> currentBlock = planManager.getCurrentBlock(dirtiedAssets);
                 if (currentBlock.isPresent()) {

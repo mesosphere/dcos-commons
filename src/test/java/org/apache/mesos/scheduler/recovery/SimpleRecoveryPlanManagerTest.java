@@ -91,6 +91,8 @@ public class SimpleRecoveryPlanManagerTest {
                         failureMonitor));
         schedulerDriver = mock(SchedulerDriver.class);
         mockDeployManager = mock(PlanManager.class);
+        final Plan mockDeployPlan = mock(Plan.class);
+        when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
         when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
         when(mockDeployManager.isInterrupted()).thenReturn(false);
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(offerAccepter,
@@ -240,9 +242,11 @@ public class SimpleRecoveryPlanManagerTest {
     public void stoppedTaskTransitionsToFailed() throws Exception {
         Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+        List<TaskInfo> infos = Collections.singletonList(FailureUtils
+                .markFailed(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem))));
         final TaskInfo taskInfo = infos.get(0);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+
         when(stateStore.fetchTask(taskInfo.getName())).thenReturn(Optional.of(taskInfo));
         Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
         when(stateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.of(status));

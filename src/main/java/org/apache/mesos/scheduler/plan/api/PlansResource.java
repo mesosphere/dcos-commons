@@ -32,9 +32,10 @@ public class PlansResource {
     @GET
     @Path("/{planName}/status")
     public Response getStatus(@PathParam("planName") String planName) {
-        if (planManagers.containsKey(planName)) {
+        final PlanManager manager = planManagers.get(planName);
+        if (manager != null) {
             return Response.status(Response.Status.OK)
-                    .entity(CurrentlyActiveInfo.forPlan(planManagers.get(planName)))
+                    .entity(CurrentlyActiveInfo.forPlan(manager))
                     .build();
         } else {
             return PLAN_NOT_FOUND_RESPONSE;
@@ -58,8 +59,8 @@ public class PlansResource {
     @GET
     @Path("/{planName}")
     public Response getPlanInfo(@PathParam("planName") String planName) {
-        if (planManagers.containsKey(planName)) {
-            final PlanManager manager = planManagers.get(planName);
+        final PlanManager manager = planManagers.get(planName);
+        if (manager != null) {
             return Response
                     .status(manager.isComplete() ? 200 : 503)
                     .entity(StageInfo.forStage(manager))
@@ -72,8 +73,8 @@ public class PlansResource {
     @POST
     @Path("/{planName}/continue")
     public Response continueCommand(@PathParam("planName") String planName) {
-        if (planManagers.containsKey(planName)) {
-            final PlanManager manager = planManagers.get(planName);
+        final PlanManager manager = planManagers.get(planName);
+        if (manager != null) {
             manager.proceed();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: continue"))
@@ -86,8 +87,8 @@ public class PlansResource {
     @POST
     @Path("/{planName}/interrupt")
     public Response interruptCommand(@PathParam("planName") String planName) {
-        if (planManagers.containsKey(planName)) {
-            final PlanManager manager = planManagers.get(planName);
+        final PlanManager manager = planManagers.get(planName);
+        if (manager != null) {
             manager.interrupt();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: interrupt"))
@@ -103,8 +104,8 @@ public class PlansResource {
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
             @QueryParam("block") String blockId) {
-        if (planManagers.containsKey(planName)) {
-            final PlanManager manager = planManagers.get(planName);
+        final PlanManager manager = planManagers.get(planName);
+        if (manager != null) {
             manager.forceComplete(UUID.fromString(phaseId), UUID.fromString(blockId));
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: forceComplete"))
@@ -120,8 +121,8 @@ public class PlansResource {
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
             @QueryParam("block") String blockId) {
-        if (planManagers.containsKey(planName)) {
-            final PlanManager manager = planManagers.get(planName);
+        final PlanManager manager = planManagers.get(planName);
+        if (manager != null) {
             manager.restart(UUID.fromString(phaseId), UUID.fromString(blockId));
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: restart"))

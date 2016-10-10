@@ -19,7 +19,11 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * An implementation of {@code PlanManager} that performs task recovery using dynamically generated {@code Plan}.
+ * {@link SimpleRecoveryPlanManager} enables monitoring and management of recovery plan.
+ *
+ * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
+ * {@code Plan}. {@link SimpleRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
+ * generates a new {@link DefaultRecoveryBlock} for them and adds them to the recovery Plan, if not already added.
  */
 public class SimpleRecoveryPlanManager implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleRecoveryPlanManager.class);
