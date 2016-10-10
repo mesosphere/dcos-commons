@@ -180,7 +180,7 @@ until you register a `ServiceSpecification`.
 
 # Service Specification
 
-A `ServiceSpecification` is mostly a list of `TaskTypeSpecification`s.
+A `ServiceSpecification` is mostly a list of `TaskSet`s.
 The tasks defined in this list are launched in order.  You can use
 this ordering to define tiers of services.  In this example, we want
 all `meta-data` nodes to come up before any `data` node:
