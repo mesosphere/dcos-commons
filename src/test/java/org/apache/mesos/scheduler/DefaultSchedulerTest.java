@@ -377,7 +377,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testOfferAcceptedOnce() throws Exception {
+    public void testLaunchAndRecovery() throws Exception {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
         Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);

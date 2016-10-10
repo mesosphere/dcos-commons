@@ -16,7 +16,6 @@ import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,8 +41,8 @@ import static org.mockito.Mockito.*;
  * <li>When a failed task launches, it no longer shows up as failed</li>
  * </ul>
  */
-public class SimpleRecoveryPlanManagerTest {
-    private SimpleRecoveryPlanManager recoveryManager;
+public class DefaultRecoveryPlanManagerTest {
+    private DefaultRecoveryPlanManager recoveryManager;
     private TaskFailureListener taskFailureListener;
     private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
@@ -83,7 +82,7 @@ public class SimpleRecoveryPlanManagerTest {
         recoveryRequirementProvider = mock(RecoveryRequirementProvider.class);
         stateStore = mock(StateStore.class);
         recoveryManager = spy(
-                new SimpleRecoveryPlanManager(
+                new DefaultRecoveryPlanManager(
                         stateStore,
                         taskFailureListener,
                         recoveryRequirementProvider,
@@ -100,13 +99,6 @@ public class SimpleRecoveryPlanManagerTest {
                 new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
                 planScheduler);
-    }
-
-    @After
-    public void teardownTest() {
-        taskFailureListener = null;
-        recoveryRequirementProvider = null;
-        offerAccepter = null;
     }
 
     @Test

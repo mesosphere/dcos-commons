@@ -70,7 +70,7 @@ public class DefaultPlanManager implements PlanManager {
                     final Block block = currentBlock.get();
                     for (Block dirtyBlock : dirtiedAssets) {
                         if (Objects.equals(dirtyBlock.getName(), block.getName())) {
-                            LOGGER.info("Chosen block is already dirtied by other PlanManager. Returning empty block.");
+                            LOGGER.info("Chosen block is already dirtied by other PlanManager. No block to schedule.");
                             return Optional.empty();
                         }
                     }

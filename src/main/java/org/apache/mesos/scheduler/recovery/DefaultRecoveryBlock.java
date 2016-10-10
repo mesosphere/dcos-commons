@@ -11,7 +11,7 @@ import java.util.Collection;
 
 /**
  * {@code DefaultRecoveryBlock} is an extension of {@link DefaultBlock} meant for use with
- * {@link SimpleRecoveryPlanManager}. It is responsible for following:
+ * {@link DefaultRecoveryPlanManager}. It is responsible for following:
  * 1. Encapsulating {@link RecoveryRequirement}
  * 2. Updating launchHappened event.
  */

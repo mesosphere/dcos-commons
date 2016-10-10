@@ -30,6 +30,6 @@ public class RandomRecoveryStrategyTest {
         final List<? extends Block> blocks = Arrays.asList(mock);
         Mockito.doReturn(blocks).when(phase).getBlocks();
         final RandomRecoveryStrategy randomRecoveryStrategy = new RandomRecoveryStrategy(phase);
-        Assert.assertEquals(true, randomRecoveryStrategy.getCurrentBlock().isPresent());
+        Assert.assertTrue(randomRecoveryStrategy.getCurrentBlock().isPresent());
     }
 }

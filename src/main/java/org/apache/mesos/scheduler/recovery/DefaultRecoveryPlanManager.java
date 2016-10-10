@@ -19,14 +19,14 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * {@link SimpleRecoveryPlanManager} enables monitoring and management of recovery plan.
+ * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
  *
  * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
- * {@code Plan}. {@link SimpleRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
+ * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link DefaultRecoveryBlock} for them and adds them to the recovery Plan, if not already added.
  */
-public class SimpleRecoveryPlanManager implements PlanManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleRecoveryPlanManager.class);
+public class DefaultRecoveryPlanManager implements PlanManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryPlanManager.class);
 
     protected volatile Plan plan;
     protected volatile PhaseStrategy phaseStrategy;
@@ -38,7 +38,7 @@ public class SimpleRecoveryPlanManager implements PlanManager {
     private final LaunchConstrainer launchConstrainer;
     private final UUID phaseId = UUID.randomUUID();
 
-    public SimpleRecoveryPlanManager(
+    public DefaultRecoveryPlanManager(
             StateStore stateStore,
             TaskFailureListener failureListener,
             RecoveryRequirementProvider offerReqProvider,

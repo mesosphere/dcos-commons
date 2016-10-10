@@ -113,7 +113,7 @@ public class DefaultScheduler implements Scheduler {
         final LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
 
-        recoveryPlanManager = new SimpleRecoveryPlanManager(
+        recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 taskFailureListener,
                 recoveryRequirementProvider,
