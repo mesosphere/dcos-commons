@@ -180,7 +180,7 @@ until you register a `ServiceSpecification`.
 
 # Service Specification
 
-A `ServiceSpecification` is mostly a list of `TaskTypeSpecification`s.
+A `ServiceSpecification` is mostly a list of `TaskSet`s.
 The tasks defined in this list are launched in order.  You can use
 this ordering to define tiers of services.  In this example, we want
 all `meta-data` nodes to come up before any `data` node:
@@ -211,15 +211,15 @@ private static ServiceSpecification getServiceSpecification() {
         }
 
         @Override
-        public List<TaskTypeSpecification> getTaskSpecifications() {
+        public List<TaskSet> getTaskSets() {
             return Arrays.asList(
-                    new DefaultTaskTypeSpecification(
+                    DefaultTaskSet.create(
                             TASK_METADATA_COUNT,
                             TASK_METADATA_NAME,
                             getCommand(TASK_METADATA_CMD, TASK_METADATA_URI),
                             getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
                             getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME)),
-                    new DefaultTaskTypeSpecification(
+                    DefaultTaskSet.create(
                             TASK_DATA_COUNT,
                             TASK_DATA_NAME,
                             getCommand(TASK_DATA_CMD, TASK_DATA_URI),
@@ -230,7 +230,7 @@ private static ServiceSpecification getServiceSpecification() {
 }
 ```
 
-A `TaskTypeSpecification` contains the bulk of the definition.  It
+A `TaskSet` contains the bulk of the definition.  It
 contains the command to run, the resources to run with, and the number
 of tasks.
 
