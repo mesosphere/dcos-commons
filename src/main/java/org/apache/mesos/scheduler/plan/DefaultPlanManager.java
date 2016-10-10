@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +63,32 @@ public class DefaultPlanManager implements PlanManager {
     @Override
     public Optional<Block> getCurrentBlock(List<Block> dirtiedAssets) {
         Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
-        return currPhaseOptional.isPresent() ?
-                currPhaseOptional.get().getCurrentBlock() : Optional.empty();
+        if (currPhaseOptional.isPresent()) {
+            final Optional<Block> currentBlock = currPhaseOptional.get().getCurrentBlock();
+            if (currentBlock.isPresent()) {
+                if (CollectionUtils.isNotEmpty(dirtiedAssets)) {
+                    final Block block = currentBlock.get();
+                    for (Block dirtyBlock : dirtiedAssets) {
+                        if (Objects.equals(dirtyBlock.getName(), block.getName())) {
+                            LOGGER.info("Chosen block is already dirtied by other PlanManager. Returning empty block.");
+                            return Optional.empty();
+                        }
+                    }
+                    LOGGER.info("Chosen block is not dirtied by other PlanManager. Returning block: {}",
+                            currentBlock.get().getName());
+                    return currentBlock;
+                } else {
+                    LOGGER.info("There are no dirty assets. Returning block: {}", currentBlock.get().getName());
+                    return currentBlock;
+                }
+            } else {
+                LOGGER.info("No block to schedule.");
+                return Optional.empty();
+            }
+        } else {
+            LOGGER.info("No phase to schedule.");
+            return Optional.empty();
+        }
     }
 
     @Override

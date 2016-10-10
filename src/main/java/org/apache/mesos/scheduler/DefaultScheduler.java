@@ -87,11 +87,11 @@ public class DefaultScheduler implements Scheduler {
         logger.info("Initializing...");
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
-        initializeDeploymentPlan();
+        initializeDeploymentPlanManager();
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
-                deployPlanManager,
-                recoveryPlanManager);
+                recoveryPlanManager,
+                deployPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
         logger.info("Done initializing.");
     }
@@ -121,13 +121,17 @@ public class DefaultScheduler implements Scheduler {
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
     }
 
+    private void initializeDeploymentPlanManager() {
+        logger.info("Initializing deployment PlanManager...");
+        initializeDeploymentPlan();
+        deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
+    }
+
     private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan...");
-
         try {
+            logger.info("Deploy plan: {}", deployPlan);
             deployPlan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
-            logger.info("Generated plan: " + deployPlan);
-            deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
         } catch (InvalidRequirementException e) {
             logger.error("Failed to generate deployPlan with exception: ", e);
             hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
@@ -242,7 +246,7 @@ public class DefaultScheduler implements Scheduler {
             // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
-                logger.info("Accepting no offers: Reconciler is still in progress");
+                logger.info("Reconciliation is still in progress.");
                 return;
             }
 

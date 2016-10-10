@@ -30,7 +30,9 @@ public class DefaultPlanCoordinatorTest {
     private static final String SERVICE_NAME = "test-service-name";
 
     List<TaskSet> taskSets;
+    List<TaskSet> taskSetsB;
     DefaultServiceSpecification serviceSpecification;
+    DefaultServiceSpecification serviceSpecificationB;
     OfferAccepter offerAccepter;
     StateStore stateStore;
     TaskKiller taskKiller;
@@ -48,9 +50,19 @@ public class DefaultPlanCoordinatorTest {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
+        taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
+                TestTaskSetFactory.NAME + "-B",
+                TestTaskSetFactory.COUNT,
+                TestTaskSetFactory.CMD.getValue(),
+                TestTaskSetFactory.CPU,
+                TestTaskSetFactory.MEM,
+                TestTaskSetFactory.DISK));
         serviceSpecification = new DefaultServiceSpecification(
                 SERVICE_NAME,
                 taskSets);
+        serviceSpecificationB = new DefaultServiceSpecification(
+                SERVICE_NAME + "-B",
+                taskSetsB);
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
@@ -111,7 +123,7 @@ public class DefaultPlanCoordinatorTest {
     public void testTwoPlanManagersPendingPlansDisjointAssets() throws Exception {
         when(stateStore.fetchTask(anyString())).thenReturn(Optional.empty());
         final Plan planA = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
+        final Plan planB = new DefaultPlanFactory(stateStore).getPlan(serviceSpecificationB);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA, new DefaultStrategyFactory());
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB, new DefaultStrategyFactory());
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(

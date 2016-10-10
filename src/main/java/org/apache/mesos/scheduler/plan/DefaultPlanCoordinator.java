@@ -19,7 +19,9 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     private List<PlanManager> planManagers = new LinkedList<>();
     private PlanScheduler planScheduler;
 
-    public DefaultPlanCoordinator(List<PlanManager> planManagers, PlanScheduler planScheduler) {
+    public DefaultPlanCoordinator(
+            List<PlanManager> planManagers,
+            PlanScheduler planScheduler) {
         if (CollectionUtils.isEmpty(planManagers)) {
             throw new IllegalArgumentException("Atleast one plan manager is required");
         }
@@ -28,15 +30,17 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     }
 
     @Override
-    public Collection<Protos.OfferID> processOffers(final SchedulerDriver driver,
-                                                    final List<Protos.Offer> offersToProcess) {
+    public Collection<Protos.OfferID> processOffers(
+            final SchedulerDriver driver,
+            final List<Protos.Offer> offersToProcess) {
         final Set<Protos.OfferID> dirtiedOffers = new HashSet<>();
         final List<Block> dirtiedAssets = new ArrayList<>();
         final List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         for (final PlanManager planManager : planManagers) {
             try {
-                LOGGER.info("Current PlanManager: {}", planManager.getClass().getSimpleName());
-                LOGGER.info("Current plan {} interrupted.", planManager.isInterrupted() ? "is" : "is not");
+                LOGGER.info("Current PlanManager: {}. Current plan {} interrupted.",
+                        planManager.getClass().getSimpleName(),
+                        planManager.isInterrupted() ? "is" : "is not");
                 final Optional<Block> currentBlock = planManager.getCurrentBlock(dirtiedAssets);
                 if (currentBlock.isPresent()) {
                     final Block blockToSchedule = currentBlock.get();
@@ -67,16 +71,18 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     }
 
     @VisibleForTesting
-    protected static List<Protos.Offer> filterAcceptedOffers(List<Protos.Offer> offers,
-                                                      Collection<Protos.OfferID> acceptedOfferIds) {
+    protected static List<Protos.Offer> filterAcceptedOffers(
+            List<Protos.Offer> offers,
+            Collection<Protos.OfferID> acceptedOfferIds) {
         return offers.stream()
                 .filter(offer -> !offerAccepted(offer, acceptedOfferIds))
                 .collect(Collectors.toList());
     }
 
     @VisibleForTesting
-    protected static boolean offerAccepted(Protos.Offer offer,
-                                    Collection<Protos.OfferID> acceptedOfferIds) {
+    protected static boolean offerAccepted(
+            Protos.Offer offer,
+            Collection<Protos.OfferID> acceptedOfferIds) {
         return acceptedOfferIds.stream()
                 .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
     }
