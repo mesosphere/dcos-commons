@@ -12,8 +12,8 @@ import org.apache.mesos.offer.TaskUtils;
 
 
 /**
- * This rule ensures that the given Offer is colocated with the specified task 'type', whose
- * retrieval from the TaskInfo is defined by the developer's implementation of a
+ * This rule ensures that the given Offer is colocated with (or never colocated with) the specified
+ * task 'type', whose retrieval from the TaskInfo is defined by the developer's implementation of a
  * {@link TaskTypeConverter}.
  *
  * For example, this can be used to colocate 'data' nodes with 'index' nodes, or to ensure that the
@@ -116,7 +116,7 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
         Set<String> agentsWithMatchingType = new HashSet<>();
         for (TaskInfo task : tasks) {
             if (typeToFind.equals(typeConverter.getTaskType(task))) {
-                // Matching task type found. Colocate with it on this agent.
+                // Matching task type found. Target (or avoid) this agent.
                 agentsWithMatchingType.add(task.getSlaveId().getValue());
             }
         }
@@ -128,7 +128,7 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
         switch (behaviorType) {
         case COLOCATE:
             if (agentRules.isEmpty()) {
-                // nothing to colocate with! fall back to picking whatever offer looks good.
+                // nothing to colocate with! fall back to allowing any location.
                 // this is expected when the developer has configured bidirectional rules
                 // (A colocates with B + B colocates with A)
                 return new PassthroughRule(
