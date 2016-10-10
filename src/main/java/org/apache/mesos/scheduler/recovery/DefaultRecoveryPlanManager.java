@@ -30,6 +30,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     protected volatile Plan plan;
     protected volatile PhaseStrategy phaseStrategy;
+    protected volatile Map<UUID, PhaseStrategy> phaseStrategies;
 
     private final StateStore stateStore;
     private final TaskFailureListener failureListener;
@@ -109,6 +110,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         final DefaultPhase recoveryPhase = newRecoveryPhaseBuilder.build();
         plan = DefaultPlan.fromArgs(recoveryPhase);
         phaseStrategy = new RandomRecoveryStrategy(recoveryPhase);
+        phaseStrategies = new HashMap<>();
+        phaseStrategies.put(recoveryPhase.getId(), phaseStrategy);
     }
 
     @Override
@@ -212,52 +215,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     @Override
     public Status getStatus() {
-        // Ordering matters throughout this method.  Modify with care.
-
-        Status result;
-        if (!getErrors().isEmpty()) {
-            result = Status.ERROR;
-            LOGGER.warn("(status={}) Plan contains errors", result);
-        } else if (plan == null || CollectionUtils.isEmpty(plan.getPhases())) {
-            result = Status.COMPLETE;
-            LOGGER.warn("(status={}) Plan doesn't have any phases", result);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, plan)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.info("(status={}) At least one phase has status: {}", result, Status.IN_PROGRESS);
-        } else if (anyHaveStatus(Status.WAITING, plan)) {
-            result = Status.WAITING;
-            LOGGER.info("(status={}) At least one phase has status: {}", result, Status.WAITING);
-        } else if (allHaveStatus(Status.COMPLETE, plan)) {
-            result = Status.COMPLETE;
-            LOGGER.info("(status={}) All phases have status: {}", result, Status.COMPLETE);
-        } else if (allHaveStatus(Status.PENDING, plan)) {
-            result = Status.PENDING;
-            LOGGER.info("(status={}) All phases have status: {}", result, Status.PENDING);
-        } else if (anyHaveStatus(Status.COMPLETE, plan) && anyHaveStatus(Status.PENDING, plan)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.info("(status={}) At least one phase has status '{}' and one has status '{}'",
-                    result, Status.COMPLETE, Status.PENDING);
-        } else {
-            result = null;
-            LOGGER.error("(status={}) Unexpected state. Plan: {}", result, plan);
-        }
-        return result;
-    }
-
-    public boolean allHaveStatus(Status status, Plan plan) {
-        final List<? extends Phase> phases = plan.getPhases();
-        return phaseStrategy != null &&
-                phases
-                        .stream()
-                        .allMatch(phase -> phaseStrategy.getStatus() == status);
-    }
-
-    public boolean anyHaveStatus(Status status, Plan plan) {
-        final List<? extends Phase> phases = plan.getPhases();
-        return phaseStrategy != null &&
-                phases
-                        .stream()
-                        .anyMatch(phase -> phaseStrategy.getStatus() == status);
+        return PlanManagerUtils.getStatus(getPlan(), phaseStrategies);
     }
 
     @Override
