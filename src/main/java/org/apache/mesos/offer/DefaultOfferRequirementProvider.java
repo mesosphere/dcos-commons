@@ -25,7 +25,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addAllResources(getNewResources(taskSpecification))
                 .build();
 
-        return new OfferRequirement(taskType, Arrays.asList(taskInfo));
+        return new OfferRequirement(
+                taskType,
+                Arrays.asList(taskInfo),
+                Optional.empty(),
+                taskSpecification.getPlacement());
     }
 
     @Override
@@ -63,7 +67,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         try {
             return new OfferRequirement(
                     TaskUtils.getTaskType(taskInfo),
-                    Arrays.asList(taskBuilder.build()));
+                    Arrays.asList(taskBuilder.build()),
+                    Optional.empty(),
+                    taskSpecification.getPlacement());
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
