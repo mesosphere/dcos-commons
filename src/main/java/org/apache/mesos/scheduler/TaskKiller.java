@@ -14,6 +14,7 @@ public interface TaskKiller {
      * @param taskName The name of the Task to be killed.
      * @param destructive A flag indicating whether the Task should be killed permanently and destructively or
      *                    anticipates a future restart.
+     * @return true if the task exists, false otherwise
      */
-    void killTask(String taskName, boolean destructive);
+    boolean killTask(String taskName, boolean destructive);
 }

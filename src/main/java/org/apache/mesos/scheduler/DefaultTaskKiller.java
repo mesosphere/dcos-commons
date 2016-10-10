@@ -25,23 +25,23 @@ public class DefaultTaskKiller implements TaskKiller {
     }
 
     @Override
-    public void killTask(String taskName, boolean destructive) {
+    public boolean killTask(String taskName, boolean destructive) {
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
         if (!taskInfoOptional.isPresent()) {
             logger.warn("Attempted to kill unknown task: " + taskName);
-            return;
+            return false;
         }
 
         Protos.TaskInfo taskInfo = taskInfoOptional.get();
         if (taskInfo == null) {
             logger.warn("Encountered unexpected 'null' TaskInfo. NOT scheduling kill operation.");
-            return;
+            return false;
         }
 
         Optional<Protos.TaskStatus> taskState = stateStore.fetchStatus(taskName);
         if (!taskState.isPresent()) {
             logger.warn("Attempted to kill unknown task: " + taskName);
-            return;
+            return false;
         }
 
         if (destructive) {
@@ -54,5 +54,6 @@ public class DefaultTaskKiller implements TaskKiller {
                 taskInfo));
 
         driver.killTask(taskInfo.getTaskId());
+        return true;
     }
 }
