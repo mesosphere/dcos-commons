@@ -461,4 +461,75 @@ public class DefaultRecoveryPlanManagerTest {
         assertTrue(recoveryCandidates.containsKey(TestConstants.TASK_NAME));
         assertTrue(recoveryCandidates.containsKey(taskNameB));
     }
+
+    @Test
+    public void testRefreshPlanNoTasks() {
+        recoveryManager.refreshPlan(Arrays.asList());
+        assertNotNull(recoveryManager.getPlan());
+        assertNotNull(recoveryManager.getPlan().getPhases());
+        assertEquals(1, recoveryManager.getPlan().getPhases().size());
+        assertEquals(0, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+    }
+
+    @Test
+    public void testRefreshPlanNoTasksToRecover() {
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(Arrays.asList());
+        recoveryManager.refreshPlan(Arrays.asList());
+        assertNotNull(recoveryManager.getPlan());
+        assertNotNull(recoveryManager.getPlan().getPhases());
+        assertEquals(1, recoveryManager.getPlan().getPhases().size());
+        assertEquals(0, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+    }
+
+    @Test
+    public void testRefreshPlanTasksToRecoverNoDirty() throws Exception {
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfoA = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        final String taskNameB = TestConstants.TASK_NAME + "-B";
+        TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(taskNameB))
+                .setName(taskNameB).build();
+        final List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+
+        RecoveryRequirement recoveryRequirementA = getRecoveryRequirement(
+                new OfferRequirement(TestConstants.TASK_TYPE, Collections.singletonList(ResourceUtils.clearResourceIds(taskInfoA))));
+        RecoveryRequirement recoveryRequirementB = getRecoveryRequirement(
+                new OfferRequirement(TestConstants.TASK_TYPE, Collections.singletonList(ResourceUtils.clearResourceIds(taskInfoB))));
+
+        when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
+                .thenReturn(Arrays.asList(recoveryRequirementA, recoveryRequirementB));
+
+        recoveryManager.refreshPlan(Arrays.asList());
+        assertNotNull(recoveryManager.getPlan());
+        assertNotNull(recoveryManager.getPlan().getPhases());
+        assertEquals(1, recoveryManager.getPlan().getPhases().size());
+        assertEquals(2, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+    }
+
+    @Test
+    public void testRefreshPlanTasksToRecoverDirty() throws Exception {
+        Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        TaskInfo taskInfoA = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
+        final String taskNameB = TestConstants.TASK_NAME + "-B";
+        TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(taskNameB))
+                .setName(taskNameB).build();
+        final List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
+
+        RecoveryRequirement recoveryRequirementA = getRecoveryRequirement(
+                new OfferRequirement(TestConstants.TASK_TYPE, Collections.singletonList(ResourceUtils.clearResourceIds(taskInfoA))));
+        RecoveryRequirement recoveryRequirementB = getRecoveryRequirement(
+                new OfferRequirement(TestConstants.TASK_TYPE, Collections.singletonList(ResourceUtils.clearResourceIds(taskInfoB))));
+
+        when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
+                .thenReturn(Arrays.asList(recoveryRequirementA, recoveryRequirementB));
+
+        recoveryManager.refreshPlan(Arrays.asList(taskNameB));
+        assertNotNull(recoveryManager.getPlan());
+        assertNotNull(recoveryManager.getPlan().getPhases());
+        assertEquals(1, recoveryManager.getPlan().getPhases().size());
+        assertEquals(1, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+    }
 }
