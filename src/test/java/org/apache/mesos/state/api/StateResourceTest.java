@@ -1,17 +1,21 @@
 package org.apache.mesos.state.api;
 
 import com.googlecode.protobuf.format.JsonFormat;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
+import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class StateResourceTest {
+    private static final String FRAMEWORK_NAME = "test-framework";
 
     @Mock private StateStore mockStateStore;
 
@@ -28,7 +33,7 @@ public class StateResourceTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new StateResource(mockStateStore);
+        resource = new StateResource(mockStateStore, FRAMEWORK_NAME);
     }
 
     @Test
@@ -110,6 +115,49 @@ public class StateResourceTest {
         String taskName = "task1";
         when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.empty());
         Response response = resource.getTaskStatus(taskName);
-        assertEquals(500, response.getStatus());
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    public void testGetConnection() {
+        String taskName = "task1";
+
+        Value.Range range1 = Protos.Value.Range.newBuilder()
+                .setBegin(2000)
+                .setEnd(3000)
+                .build();
+        Value.Range range2 = Protos.Value.Range.newBuilder()
+                .setBegin(8080)
+                .setEnd(8080)
+                .build();
+        List<Value.Range> ranges = new ArrayList<>();
+        ranges.add(range1);
+        ranges.add(range2);
+        Resource rangeResource = ResourceUtils.getUnreservedRanges("ports", ranges);
+
+        TaskInfo taskInfo = TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(TaskUtils.toTaskId(taskName))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
+                .addResources(rangeResource)
+                .build();
+
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
+
+        Response response = resource.getConnection(taskName);
+        assertEquals(200, response.getStatus());
+
+        JSONObject obj = new JSONObject((String) response.getEntity());
+        assertEquals(taskName + "." + FRAMEWORK_NAME + ".mesos", obj.get("dns"));
+        assertEquals("2000-3000,8080", obj.get("ports"));
+    }
+
+    @Test
+    public void testGetConnectionFails() {
+        String taskName = "task1";
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.empty());
+
+        Response response = resource.getConnection(taskName);
+        assertEquals(404, response.getStatus());
     }
 }

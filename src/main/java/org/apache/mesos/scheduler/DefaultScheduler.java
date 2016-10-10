@@ -140,7 +140,7 @@ public class DefaultScheduler implements Scheduler {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
-        resources.add(new StateResource(stateStore));
+        resources.add(new StateResource(stateStore, serviceSpecification.getName()));
         resourcesQueue.put(resources);
     }
 

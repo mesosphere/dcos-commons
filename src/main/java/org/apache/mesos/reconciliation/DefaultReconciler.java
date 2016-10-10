@@ -2,11 +2,13 @@ package org.apache.mesos.reconciliation;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +31,14 @@ public class DefaultReconciler implements Reconciler {
     private final AtomicBoolean isImplicitReconciliationTriggered = new AtomicBoolean(false);
     // NOTE: Access to 'unreconciled' must be protected by a lock against 'unreconciled'.
     private final Map<String, TaskStatus> unreconciled = new HashMap<>();
-    private TaskStatusProvider statuses;
+    private final StateStore stateStore;
 
     private long lastRequestTimeMs;
     private long backOffMs;
 
-    public DefaultReconciler(TaskStatusProvider statuses) {
-        this.statuses = statuses;
+    @Inject
+    public DefaultReconciler(StateStore stateStore) {
+        this.stateStore = stateStore;
         resetTimerValues();
     }
 
@@ -43,7 +46,7 @@ public class DefaultReconciler implements Reconciler {
     public void start() {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         try {
-            taskStatuses.addAll(statuses.getTaskStatuses());
+            taskStatuses.addAll(stateStore.fetchStatuses());
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize TaskStatuses for reconciliation with exception: ", e);
         }

@@ -5,6 +5,7 @@ import com.googlecode.protobuf.format.JsonFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.state.StateStore;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,6 +29,7 @@ public class StateResource {
 
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
+    private final String frameworkName;
 
     /**
      * Creates a new StateResource which cannot deserialize Properties. Callers will receive a
@@ -33,8 +37,8 @@ public class StateResource {
      *
      * @param stateStore the source of data to be returned to callers
      */
-    public StateResource(StateStore stateStore) {
-        this(stateStore, null /*propertyDeserializer*/);
+    public StateResource(StateStore stateStore, String frameworkName) {
+        this(stateStore, null, frameworkName);
     }
 
     /**
@@ -46,9 +50,10 @@ public class StateResource {
      *                             {@code stateStore} to valid JSON
      */
     @Inject
-    public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
+    public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer, String frameworkName) {
         this.stateStore = stateStore;
         this.propertyDeserializer = propertyDeserializer;
+        this.frameworkName = frameworkName;
     }
 
     /**
@@ -98,14 +103,15 @@ public class StateResource {
             if (taskInfoOptional.isPresent()) {
                 return Response.ok(new JsonFormat().printToString(taskInfoOptional.get()),
                         MediaType.APPLICATION_JSON).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
         } catch (Exception ex) {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format(
                     "Failed to fetch requested TaskInfo for task '%s'", taskName), ex);
+            return Response.serverError().build();
         }
-
-        return Response.serverError().build();
     }
 
     /**
@@ -125,9 +131,62 @@ public class StateResource {
         } else {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format("Failed to fetch requested TaskStatus for task '%s'", taskName));
-            return Response.serverError().build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
+
+    /**
+     * Returns connection information for the given task.  The response has the following format:
+     *
+     * {
+     *     "dns": "task-name.framework-name.mesos"
+     *     "ports": "8080,2000-3000"
+     * }
+     *
+     * @param taskName Name of the task
+     * @return 200 or 404
+     */
+    @Path("/tasks/connection/{taskName}")
+    @GET
+    public Response getConnection(@PathParam("taskName") String taskName) {
+        Optional<Protos.TaskInfo> info = stateStore.fetchTask(taskName);
+        if (info.isPresent()) {
+            return Response.ok(
+                    getTaskConnection(info.get()).toString(),
+                    MediaType.APPLICATION_JSON)
+                    .build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    private JSONObject getTaskConnection(Protos.TaskInfo taskInfo) {
+        String dns = taskInfo.getName() + "." + frameworkName + ".mesos";
+
+        JSONObject conn = new JSONObject();
+        conn.put("dns", dns);
+        conn.put("ports", getPortString(taskInfo));
+        return conn;
+    }
+
+    private String getPortString(Protos.TaskInfo taskInfo) {
+        List<String> ports = new ArrayList<>();
+        for (Protos.Resource resource : taskInfo.getResourcesList()) {
+            if (resource.getName() == "ports" && resource.getType() == Protos.Value.Type.RANGES) {
+                for (Protos.Value.Range range : resource.getRanges().getRangeList()) {
+                    Long begin = range.getBegin();
+                    Long end = range.getEnd();
+                    if (begin.equals(end)) {
+                        ports.add(begin.toString());
+                    } else {
+                        ports.add(begin + "-" + end);
+                    }
+                }
+            }
+        }
+        return String.join(",", ports);
+    }
+
 
     /**
      * Produces a listing of the names of all stored tasks.
