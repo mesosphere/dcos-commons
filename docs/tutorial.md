@@ -708,7 +708,7 @@ more](#deployment-strategies).
 read
 configuration from an external source, detect configuration
 modifications, and control which configurations can be modified by the
-user. [Learn more](#configuration-managment).
+user. [Learn more](#configuration-management).
 
 - **Interactive upgrade support** - You can pause, continue, or abort
 an upgrade interactively in order to upgrade tasks safely. [Learn
