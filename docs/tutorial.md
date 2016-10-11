@@ -8,8 +8,8 @@ complete with
 persistent volumes, fault tolerance, and configuration management in
 about 100 lines of code.  This SDK is the product of Mesosphere's
 experience writing production stateful services such as [DC/OS Apache
-Kafka](link), [DC/OS Apache Cassandra](link), and [DC/OS Apache
-HDFS](link).
+Kafka](https://docs.mesosphere.com/latest/usage/service-guides/kafka/), [DC/OS Apache Cassandra](https://docs.mesosphere.com/latest/usage/service-guides/cassandra/), and [DC/OS Apache
+HDFS](https://docs.mesosphere.com/latest/usage/service-guides/hdfs/).
 
 Read about the [features](#Features-at-a-glance) to learn more about the DC/OS
 Stateful Service SDK.
@@ -262,7 +262,7 @@ first thing we'll need is a DC/OS cluster.
 
 ## Start cluster
  
-Go to https://dcos.io/install/ to install a DC/OS cluster.
+Go to [https://dcos.io/install/](https://dcos.io/install/) to install a DC/OS cluster.
 
 ## Install the DC/OS CLI
 
@@ -392,7 +392,7 @@ https://github.com/mesosphere/framework-cleaner.
 
 # Update configuration
 
-We saw in the [Service Specification section](link) that the service's
+We saw in the [Service Specification section](#create-a-service-specification) that the service's
 configuration is read in through environment variables.  You can use
 any source of configuration, but DC/OS Services are typically
 configured through environment variables.  To make a configuration
@@ -693,38 +693,37 @@ forthcoming.
 # Features at-a-glance
 
 - **Simple service definitions** - A simple, declarative API to
-simplify resource offer configuration. [Learn more](#Simple service
-definitions).
+simplify resource offer configuration. [Learn more](#simple-service-definitions).
 
 - **Multi-tier service support** - A scheduler created with the DC/OS
 Stateful Services SDK is aware of dependencies between tiers of
 processes, enabling one-click install and safe failure recovery.
-[Learn more](#Multi-tier service support).
+[Learn more](#multi-tier-service-support).
 
 - **Deployment strategies** - The DC/OS Stateful Services SDK supports
 diverse deployment strategies to fit the needs of schedulers. [Learn
-more](#Deployment strategies).
+more](#deployment-strategies).
 
 - **Configuration management** - The DC/OS Stateful Services SDK can
 read
 configuration from an external source, detect configuration
 modifications, and control which configurations can be modified by the
-user. [Learn more](Configuration managment).
+user. [Learn more](#configuration-managment).
 
 - **Interactive upgrade support** - You can pause, continue, or abort
 an upgrade interactively in order to upgrade tasks safely. [Learn
-more](#Interactive-upgrade-support).
+more](#interactive-upgrade-support).
 
 - **Fault tolerance** - Schedulers built with the SDK are
 automatically configured to detect and
 restart failed tasks on the same node (to preserve state) and, if the
 node fails, restart it on a different node. [Learn
-more](Fault-tolerance).
+more](#fault-tolerance).
 
 - **Persistent volumes** - The SDK automatically configures your
 scheduler to
 create persistent volumes, enabling stateful tasks. [Learn
-more](Persistent-volumes).
+more](#persistent-volumes).
 
 # Features in-depth
 
