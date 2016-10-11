@@ -15,8 +15,14 @@ func RunCLICommand(arg ...string) (string, error) {
 	}
 	outBytes, err := exec.Command("dcos", arg...).CombinedOutput()
 	if err != nil {
-		if Verbose {
-			log.Printf("CLI command returned error, PATH is: %s", os.Getenv("PATH"))
+		execErr, ok := err.(*exec.Error)
+		if ok && execErr.Err == exec.ErrNotFound {
+			// special case: 'dcos' not in PATH. provide special instructions
+			log.Printf("Unable to run DC/OS CLI command: dcos %s", strings.Join(arg, " "))
+			log.Printf("Please perform one of the following fixes, then try again:")
+			log.Printf("- Update your PATH environment to include the path to the 'dcos' executable, or...")
+			log.Printf("- Move the 'dcos' executable into a directory listed in your current PATH (see below).")
+			log.Fatalf("Current PATH is: %s", os.Getenv("PATH"))
 		}
 		return string(outBytes), err
 	}
