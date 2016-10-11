@@ -376,6 +376,45 @@ the scheduler starts up, it detects that it is already running 3
 `data` tasks, and starts 2 more in order to reach the goal state of 5.
 We should observe two more tasks starting, `data-3` and `data-4`.
 
+## Task Configuration management
+
+While the above describes configuration of the scheduler itself via
+environment variables, there's also a need for configuration of the
+underlying service tasks themselves in a flexible way.
+
+The DC/OS Stateful Services SDK includes logic for reading
+configuration from an external source (default: environment
+variables), detecting changes to the configuration, and redeploying
+any affected tasks.  It also supports marking certain configuration
+parameters as "unmodifiable", so that the user can't change them after
+install time.  For example, the disk size of permanent volumes cannot
+be modified because volume size is static.
+
+(Note: As of this writing, the following is still a work in progress,
+but should be available in the next week or two.)
+
+To simplify the common task of getting user-facing configuration to
+service tasks, the developer may follow the following convention in
+naming the environment variables for these configuration options:
+`TASKCFG_<TASK_TYPE>_<NAME>`
+
+For example, an option for tasks of type `index-mgr` could be named
+`TASKCFG_INDEX_MGR_FOO`, while an option for tasks of type `data`
+could be named `TASKCFG_DATA_FOO`. These configuration options will
+automatically be forwarded to the environments of the matching tasks
+as environment variables, with the `TASKCFG_<TASK_TYPE>_` prefixes
+removed. A special prefix of `TASKCFG_ALL_<NAME>` may be used for
+any options that should be passed to *every* task type.
+
+A common need for service developers is an easy way to write
+configuration files before launching tasks. To fulfill this need,
+the developer may provide configuration file template(s) in their
+TaskSet(s). These templates follow the [mustache](https://mustache.github.io/)
+templating format, similar to what's used in DC/OS packaging. The
+templates will be automatically rendered against the task's
+environment (which is customized as described above), and then
+each written to relative file paths specified by the developer.
+
 # Restart tasks
 
 When a task fails, the scheduler will attempt to restart the on the
@@ -648,47 +687,6 @@ including for instance Apache Cassandra, require nodes to be added to
 the cluster one at at time.  Others may permit parallel deployment.
 The DC/OS Stateful Services SDK includes deployment strategies supporting
 these different requirements.
-
-## Configuration management
-For any framework, at least two components must be configured: the
-scheduler and the service.  Scheduler configuration includes things
-like node count, deployment strategies, and security parameters.
-Service configuration includes resource settings such memory, cpu,
-ports, etc., as well as any configuration passed on to the underlying
-service.
-
-The DC/OS Stateful Services SDK includes logic for reading
-configuration from an external source (default: environment
-variables), detecting changes to the configuration, and redeploying
-any affected tasks.  It also supports marking certain configuration
-parameters as "unmodifiable", so that the user can't change them after
-install time.  For example, the disk size of permanent volumes cannot
-be modified because volume size is static.
-
-(Note: As of this writing, the following is still a work in progress,
-but should be available in the next week or two.)
-
-To simplify the common task of getting user-facing configuration to
-service tasks, the developer may follow the following convention in
-naming the environment variables for these configuration options:
-`TASKCFG_<TASK_TYPE>_<NAME>`
-
-For example, an option for tasks of type `index-mgr` could be named
-`TASKCFG_INDEX_MGR_FOO`, while an option for tasks of type `data`
-could be named `TASKCFG_DATA_FOO`. These configuration options will
-automatically be forwarded to the environments of the matching tasks
-as environment variables, with the `TASKCFG_<TASK_TYPE>_` prefixes
-removed. A special prefix of `TASKCFG_ALL_<NAME>` may be used for
-any options that should be passed to *every* task type.
-
-A common need for service developers is an easy way to write
-configuration files before launching tasks. To fulfill this need,
-the developer may provide configuration file template(s) in their
-TaskSet(s). These templates follow the [mustache](https://mustache.github.io/)
-templating format, similar to what's used in DC/OS packaging. The
-templates will be automatically rendered against the task's
-environment (which is customized as described above), and then
-each written to relative file paths specified by the developer.
 
 ## Upgrade support
 From time to time, services must be upgraded from version N to version N+1.
