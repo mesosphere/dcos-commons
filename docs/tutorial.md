@@ -681,6 +681,13 @@ The DC/OS Stateful Services SDK includes deployment strategies supporting
 these different requirements.
 
 ## Configuration management
+For any framework, at least two components must be configured: the
+scheduler and the service.  Scheduler configuration includes things
+like node count, deployment strategies, and security parameters.
+Service configuration includes resource settings such memory, cpu,
+ports, etc., as well as any configuration passed on to the underlying
+service.
+
 The DC/OS Stateful Services SDK includes logic for reading
 configuration from an external source (default: environment
 variables), detecting changes to the configuration, and redeploying
