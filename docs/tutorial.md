@@ -382,14 +382,6 @@ While the above describes configuration of the scheduler itself via
 environment variables, there's also a need for configuration of the
 underlying service tasks themselves in a flexible way.
 
-The DC/OS Stateful Services SDK includes logic for reading
-configuration from an external source (default: environment
-variables), detecting changes to the configuration, and redeploying
-any affected tasks.  It also supports marking certain configuration
-parameters as "unmodifiable", so that the user can't change them after
-install time.  For example, the disk size of permanent volumes cannot
-be modified because volume size is static.
-
 (Note: As of this writing, the following is still a work in progress,
 but should be available in the next week or two.)
 
@@ -687,6 +679,15 @@ including for instance Apache Cassandra, require nodes to be added to
 the cluster one at at time.  Others may permit parallel deployment.
 The DC/OS Stateful Services SDK includes deployment strategies supporting
 these different requirements.
+
+## Configuration management
+The DC/OS Stateful Services SDK includes logic for reading
+configuration from an external source (default: environment
+variables), detecting changes to the configuration, and redeploying
+any affected tasks.  It also supports marking certain configuration
+parameters as "unmodifiable", so that the user can't change them after
+install time.  For example, the disk size of permanent volumes cannot
+be modified because volume size is static.
 
 ## Upgrade support
 From time to time, services must be upgraded from version N to version N+1.
