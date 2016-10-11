@@ -307,7 +307,8 @@ If we visit "Services | data-store" in the DC/OS UI, we can
 observe `data-store` deploying.
 
 To verify that `data-store` has completed deploying, make the
-following request:
+following request.  To learn how to make requests to the HTTP API,
+please read the [HTTP API](#http-api) section:
 
 ```
 GET /v1/plan/status
@@ -666,7 +667,6 @@ be modified because volume size is static.
 
 (Note: As of this writing, the following is still a work in progress,
 but should be available in the next week or two.)
-
 
 To simplify the common task of getting user-facing configuration to
 service tasks, the developer may follow the following convention in
