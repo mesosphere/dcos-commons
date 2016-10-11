@@ -37,7 +37,7 @@ import java.util.concurrent.*;
 public class DefaultScheduler implements Scheduler {
     private static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
     private static final String UNINSTALL_INSTRUCTIONS_URI =
-            "https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/";
+            "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
