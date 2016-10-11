@@ -35,6 +35,10 @@ import java.util.concurrent.*;
  * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler {
+    private static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
+    private static final String UNINSTALL_INSTRUCTIONS_URI =
+            "https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/";
+
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
@@ -329,6 +333,23 @@ public class DefaultScheduler implements Scheduler {
     @Override
     public void error(SchedulerDriver driver, String message) {
         logger.error("SchedulerDriver failed with message: " + message);
+
+        // Update or remove this when uninstall is solved:
+        if (message.contains(UNINSTALL_INCOMPLETE_ERROR_MESSAGE)) {
+            // Scenario:
+            // - User installs service X
+            // - X registers against a new framework ID, then stores that ID in ZK
+            // - User uninstalls service X without wiping ZK and/or resources
+            // - User reinstalls service X
+            // - X sees previous framework ID in ZK and attempts to register against it
+            // - Mesos returns this error because that framework ID is no longer available for use
+            logger.error("This error is usually the result of an incomplete cleanup of Zookeeper "
+                    + "and/or reserved resources following a previous uninstall of the service.");
+            logger.error("Please uninstall this service, read and perform the steps described at "
+                    + UNINSTALL_INSTRUCTIONS_URI + " to delete the reserved resources, and then "
+                    + "install this service once more.");
+        }
+
         hardExit(SchedulerErrorCode.ERROR);
     }
 }
