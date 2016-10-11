@@ -1,6 +1,9 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.constrain.PassthroughGenerator;
+import org.apache.mesos.offer.constrain.PassthroughRule;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
@@ -12,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This class tests the DefaultOfferRequirementProvider.
@@ -20,6 +24,7 @@ public class DefaultOfferRequirementProviderTest {
     private static final int DISK_SIZE_MB = 1000;
     private static final double CPU = 1.0;
     private static final double MEM = 1024.0;
+    private static final PlacementRuleGenerator ALLOW_ALL = new PassthroughGenerator(new PassthroughRule("test"));
     private DefaultOfferRequirementProvider defaultOfferRequirementProvider;
 
     @Before
@@ -73,10 +78,26 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertNotNull(offerRequirement);
         Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
         Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
+        Assert.assertFalse(offerRequirement.getPlacementRuleGeneratorOptional().isPresent());
     }
 
     @Test
-    public void addNewDesiredResource() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testPlacementPassthru() throws InvalidTaskSpecificationException, InvalidRequirementException {
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+
+        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo, Optional.of(ALLOW_ALL));
+
+        OfferRequirement offerRequirement =
+                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
+        Assert.assertTrue(offerRequirement.getPlacementRuleGeneratorOptional().isPresent());
+    }
+
+    @Test
+    public void testAddNewDesiredResource() throws InvalidTaskSpecificationException, InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));

@@ -24,6 +24,11 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private final Optional<PlacementRuleGenerator> placementOptional;
 
     public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo) throws InvalidTaskSpecificationException {
+        return create(taskInfo, Optional.empty());
+    }
+
+    public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo, Optional<PlacementRuleGenerator> placement)
+            throws InvalidTaskSpecificationException {
         //TODO(nick): Is the original placement constraint needed here?
         //  If this is just for relaunching a task in the same place then it's probably a moot point..
         //  Otherwise we'll need to implement serializing/deserializing the configured placement
@@ -34,7 +39,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
                 taskInfo.getCommand(),
                 getResources(taskInfo),
                 getVolumes(taskInfo),
-                Optional.empty());
+                placement);
     }
 
     protected DefaultTaskSpecification(
