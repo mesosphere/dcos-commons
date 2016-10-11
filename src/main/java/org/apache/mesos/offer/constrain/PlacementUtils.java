@@ -24,14 +24,14 @@ public class PlacementUtils {
                 // avoid and collocate enforcement
                 placement = Optional.of(new AndRule.Generator(
                         new AgentRule.AvoidAgentsGenerator(avoidAgents),
-                        new AgentRule.ColocateAgentsGenerator(collocateAgents)));
+                        new AgentRule.RequireAgentsGenerator(collocateAgents)));
             } else {
                 // avoid enforcement only
                 placement = Optional.of(new AgentRule.AvoidAgentsGenerator(avoidAgents));
             }
         } else if (!collocateAgents.isEmpty()) {
             // collocate enforcement only
-            placement = Optional.of(new AgentRule.ColocateAgentsGenerator(collocateAgents));
+            placement = Optional.of(new AgentRule.RequireAgentsGenerator(collocateAgents));
         } else {
             // no collocate/avoid enforcement
             placement = Optional.empty();
