@@ -8,10 +8,14 @@ complete with
 persistent volumes, fault tolerance, and configuration management in
 about 100 lines of code.  This SDK is the product of Mesosphere's
 experience writing production stateful services such as [DC/OS Apache
-Kafka](https://docs.mesosphere.com/latest/usage/service-guides/kafka/), [DC/OS Apache Cassandra](https://docs.mesosphere.com/latest/usage/service-guides/cassandra/), and [DC/OS Apache
+Kafka](https://docs.mesosphere.com/latest/usage/service-guides/kafka/)
+, [DC/OS Apache
+Cassandra](https://docs.mesosphere.com/latest/usage/service-guides/
+cassandra/), and [DC/OS Apache
 HDFS](https://docs.mesosphere.com/latest/usage/service-guides/hdfs/).
 
-Read about the [features](#Features-at-a-glance) to learn more about the DC/OS
+Read about the [features](#Features-at-a-glance) to learn more about
+the DC/OS
 Stateful Service SDK.
 
 # Introduction
@@ -44,8 +48,8 @@ supervises the executors.  If specified in the `ServiceSpecification`,
 the
 executors will contain a **persistent volume**, which is a folder or
 mount point on the agent that persists even after a task fails. This
-allows a stateful service to recover with its data intact after node
-or task failure.
+allows a stateful service to recover with its data intactafter task
+failure or temporary node failure. 
 
 In this tutorial, `data-store` is the scheduler, and `meta-data-{0,1}`
 and `data-{0-1}` are the executors.
@@ -77,24 +81,24 @@ repositories {
     maven {
         url "http://downloads.mesosphere.com/maven/"
     }
-    }    }    }}
-    }    }    }}    }    }}    }}
+}
+
 dependencies {
     compile "mesosphere:dcos-commons:0.7.10-SNAPSHOT"
     compile "org.slf4j:slf4j-simple:1.7.21"
 }
-}}}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
 }
-}}}
+
 mainClassName = 'com.mesosphere.sdk.reference.scheduler.Main'
 ```
 
 # Define a Service
 
 ## Create a Service Specification
- 
+
 The first step to running a service is to create a
 `ServiceSpecification`, which defines the behavior of the service.
 
@@ -105,27 +109,18 @@ ordering to define tiers of services.  In this example, we want all
 
 ```java
 private static final String TASK_METADATA_NAME = "meta-data";
-private static final int TASK_METADATA_COUNT =
-Integer.valueOf(System.getenv("METADATA_COUNT"));
-private static final double TASK_METADATA_CPU =
-Double.valueOf(System.getenv("METADATA_CPU"));
-private static final double TASK_METADATA_MEM_MB =
-Double.valueOf(System.getenv("METADATA_MEM"));
-private static final double TASK_METADATA_DISK_MB =
-Double.valueOf(System.getenv("METADATA_DISK"));
-private static final String TASK_METADATA_URI =
-System.getenv("METADATA_URI");
+private static final int TASK_METADATA_COUNT = Integer.valueOf(System.getenv("METADATA_COUNT"));
+private static final double TASK_METADATA_CPU = Double.valueOf(System.getenv("METADATA_CPU"));
+private static final double TASK_METADATA_MEM_MB = Double.valueOf(System.getenv("METADATA_MEM"));
+private static final double TASK_METADATA_DISK_MB = Double.valueOf(System.getenv("METADATA_DISK"));
+private static final String TASK_METADATA_URI = System.getenv("METADATA_URI");
 private static final String TASK_METADATA_CMD = "bash meta-data";
 
 private static final String TASK_DATA_NAME = "data";
-private static final int TASK_DATA_COUNT =
-Integer.valueOf(System.getenv("DATA_COUNT"));
-private static final double TASK_DATA_CPU =
-Double.valueOf(System.getenv("DATA_CPU"));
-private static final double TASK_DATA_MEM_MB =
-Double.valueOf(System.getenv("DATA_MEM"));
-private static final double TASK_DATA_DISK_MB =
-Double.valueOf(System.getenv("DATA_DISK"));
+private static final int TASK_DATA_COUNT = Integer.valueOf(System.getenv("DATA_COUNT"));
+private static final double TASK_DATA_CPU = Double.valueOf(System.getenv("DATA_CPU"));
+private static final double TASK_DATA_MEM_MB = Double.valueOf(System.getenv("DATA_MEM"));
+private static final double TASK_DATA_DISK_MB = Double.valueOf(System.getenv("DATA_DISK"));
 private static final String TASK_DATA_URI = System.getenv("DATA_URI");
 private static final String TASK_DATA_CMD = "bash data";
 
@@ -135,32 +130,27 @@ private static ServiceSpecification getServiceSpecification() {
         public String getName() {
             return SERVICE_NAME;
         }
-        }        }        }
+
         @Override
         public List<TaskSet> getTaskSets() {
             return Arrays.asList(
                     DefaultTaskSet.create(
                             TASK_METADATA_COUNT,
                             TASK_METADATA_NAME,
-                            getCommand(TASK_METADATA_CMD,
-TASK_METADATA_URI),
-                            getResources(TASK_METADATA_CPU,
-TASK_METADATA_MEM_MB),
-                            getVolumes(TASK_METADATA_DISK_MB,
-TASK_METADATA_NAME),
+                            getCommand(TASK_METADATA_CMD, TASK_METADATA_URI),
+                            getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
+                            getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
                             Optional.empty()),
                     DefaultTaskSet.create(
                             TASK_DATA_COUNT,
                             TASK_DATA_NAME,
                             getCommand(TASK_DATA_CMD, TASK_DATA_URI),
-                            getResources(TASK_DATA_CPU,
-TASK_DATA_MEM_MB),
-                            getVolumes(TASK_DATA_DISK_MB,
-TASK_DATA_NAME),
+                            getResources(TASK_DATA_CPU, TASK_DATA_MEM_MB),
+                            getVolumes(TASK_DATA_DISK_MB, TASK_DATA_NAME),
                             Optional.empty()));
         }
     };
-    }    }    }}
+}
 ```
 
 A `TaskSet` contains the bulk of the definition.  It
@@ -177,8 +167,7 @@ server:
 ```java
 private static Protos.CommandInfo getCommand(String cmd, String uri) {
     return Protos.CommandInfo.newBuilder()
-              .addUris(Protos.CommandInfo.URI.newBuilder().setValue(
-uri))
+              .addUris(Protos.CommandInfo.URI.newBuilder().setValue(uri))
               .setValue(cmd)
               .build();
 }
@@ -189,19 +178,16 @@ with at least `cpus` and `mem` resources, though we may specify any
 Mesos resource, including `ports`:
 
 ```java
-private static Collection<ResourceSpecification> getResources(double
-cpu, double memMb) {
+private static Collection<ResourceSpecification> getResources(double cpu, double memMb) {
     return Arrays.asList(
             new DefaultResourceSpecification(
                     "cpus",
-                    ValueUtils.getValue(ResourceUtils.
-getUnreservedScalar("cpus", cpu)),
+                    ValueUtils.getValue(ResourceUtils.getUnreservedScalar("cpus", cpu)),
                     ROLE,
                     PRINCIPAL),
             new DefaultResourceSpecification(
                     "mem",
-                    ValueUtils.getValue(ResourceUtils.
-getUnreservedScalar("mem", memMb)),
+                    ValueUtils.getValue(ResourceUtils.getUnreservedScalar("mem", memMb)),
                     ROLE,
                     PRINCIPAL));
 }
@@ -218,10 +204,8 @@ task.  The `VolumeSpecification` is a high-level interface that
 handles this for us:
 
 ```java
-private static Collection<VolumeSpecification> getVolumes(double
-diskMb, String taskName) {
-    VolumeSpecification volumeSpecification = new
-DefaultVolumeSpecification(
+private static Collection<VolumeSpecification> getVolumes(double diskMb, String taskName) {
+    VolumeSpecification volumeSpecification = new DefaultVolumeSpecification(
             diskMb,
             VolumeSpecification.Type.ROOT,
             taskName + CONTAINER_PATH_SUFFIX,
@@ -240,13 +224,11 @@ that runs it.  To do this, create a `Service` object, and register the
 
 ```java
 public class Main {
-    private static final int API_PORT =
-Integer.valueOf(System.getenv("PORT0"));
+    private static final int API_PORT = Integer.valueOf(System.getenv("PORT0"));
     public static void main(String[] args) throws Exception {
-        new
-DefaultService(API_PORT).register(getServiceSpecification());
+        new DefaultService(API_PORT).register(getServiceSpecification());
     }
-    }    }    }}
+}
 ```
 
 `DefaultService` takes a single parameter, `apiPort`. `apiPort`
@@ -261,8 +243,9 @@ Now that we've defined our service, let's build and install it.  The
 first thing we'll need is a DC/OS cluster.
 
 ## Start cluster
- 
-Go to [https://dcos.io/install/](https://dcos.io/install/) to install a DC/OS cluster.
+
+Go to [https://dcos.io/install/](https://dcos.io/install/) to install
+a DC/OS cluster.
 
 ## Install the DC/OS CLI
 
@@ -319,7 +302,7 @@ repo containing our single package.
   be released in December 2016, will introduce the ability to install
   a package directly, rather than forcing you to wrap it in a repo.
 
-```
+```bash
 ~ $ cd /path/to/dcos-commons
 dcos-commons $ ./tools/ci_upload.py \
       data-store \
@@ -392,7 +375,8 @@ https://github.com/mesosphere/framework-cleaner.
 
 # Update configuration
 
-We saw in the [Service Specification section](#create-a-service-specification) that the service's
+We saw in the [Service Specification
+section](#create-a-service-specification) that the service's
 configuration is read in through environment variables.  You can use
 any source of configuration, but DC/OS Services are typically
 configured through environment variables.  To make a configuration
@@ -492,15 +476,13 @@ All code in `dcos-commons`, including the `DefaultScheduler`, uses
 first create a `LOGGER`:
 
 ```java
-private static final Logger LOGGER =
-LoggerFactory.getLogger(Main.class);
+private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 ```
 
 Then write to it:
 
 ```java
-LOGGER.info("Starting reference scheduler with args: " +
-Arrays.asList(args));
+LOGGER.info("Starting reference scheduler with args: " + Arrays.asList(args));
 ```
 
 The contents of `stdout` and `stderr` for the executors is entirely
@@ -578,7 +560,7 @@ java/com/mesosphere/dcos/cassandra/executor/metrics/MetricsConfig.java
 #L68)
 
 # Service Discovery
-
+ 
 Mesos-DNS assigns every Mesos task a DNS address of the form
 `<task-name>.<framework-name>.mesos`.  In our example (running 3 data
 nodes), Mesos-DNS creates the following addresses:
@@ -586,9 +568,9 @@ nodes), Mesos-DNS creates the following addresses:
 ```
 meta-data-0.data-store.mesos
 meta-data-1.data-store.mesos
+meta-data-2.data-store.mesos
 data-0.data-store.mesos
 data-1.data-store.mesos
-data-2.data-store.mesos
 ```
 
 It also creates a DNS entry for the scheduler:
@@ -644,8 +626,8 @@ Marathon's DC/OS secret support:
     "serviceCredential": {
       "source": <secret_name>
     }
-    }    }    }  }
-    }    }    }  }    }    }  }    }  }}
+  }
+}
 ```
 
 This causes Marathon to launch the task with the
@@ -663,10 +645,8 @@ The first is from clients running outside of DC/OS, such as from your
 local machine.  These clients must authenticate.  For example:
 
 ```bash
-curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)"
-\
-    "$(dcos config show
-core.dcos_url)service/data-store/v1/plan/status"
+curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
+    "$(dcos config show core.dcos_url)service/data-store/v1/plan/status"
 ```
 
 To learn more about DC/OS Authentication, visit the
@@ -693,7 +673,8 @@ forthcoming.
 # Features at-a-glance
 
 - **Simple service definitions** - A simple, declarative API to
-simplify resource offer configuration. [Learn more](#simple-service-definitions).
+simplify resource offer configuration. [Learn
+more](#simple-service-definitions).
 
 - **Multi-tier service support** - A scheduler created with the DC/OS
 Stateful Services SDK is aware of dependencies between tiers of
@@ -821,7 +802,13 @@ tolerance for your scheduler automatically.
 The SDK abstracts away task reconciliation with the Mesos master in
 the case of task failure. In the case of service failure, the SDK
 configures your scheduler to restart the task on the same node or, if
-the node has failed, restarts the task on a different node. 
+the node has failed, restarts the task on a different node. The
+scheduler's persistent volume is reused on restart. A new persistent
+volume is created when a node fails.
+
+
+We should emphasize that the persistent volume is reused on a restart,
+and a new one is created when the node fails.
 
 ## Persistent volumes
 Schedulers must create persistent volumes that will
