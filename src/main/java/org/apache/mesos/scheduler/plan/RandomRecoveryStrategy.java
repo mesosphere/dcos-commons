@@ -3,7 +3,10 @@ package org.apache.mesos.scheduler.plan;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -17,7 +20,7 @@ public class RandomRecoveryStrategy extends DefaultInstallStrategy {
 
     @Override
     public Optional<Block> getCurrentBlock() {
-        final List<? extends Block> blocks = filterOutCompletedBlocks(getPhase().getBlocks());
+        final List<? extends Block> blocks = filterOnlyPendingBlocks(getPhase().getBlocks());
         if (isInterrupted() || CollectionUtils.isEmpty(blocks)) {
             return Optional.empty();
         } else {
@@ -26,13 +29,13 @@ public class RandomRecoveryStrategy extends DefaultInstallStrategy {
     }
 
     /**
-     * Filters blocks that are already COMPLETE.
+     * Filters blocks that are PENDING.
      */
     @VisibleForTesting
-    protected static List<Block> filterOutCompletedBlocks(List<? extends Block> blocks) {
+    protected static List<Block> filterOnlyPendingBlocks(List<? extends Block> blocks) {
         if (blocks == null) {
             return Arrays.asList();
         }
-        return blocks.stream().filter(block -> !block.isComplete()).collect(Collectors.toList());
+        return blocks.stream().filter(block -> block.isPending()).collect(Collectors.toList());
     }
 }
