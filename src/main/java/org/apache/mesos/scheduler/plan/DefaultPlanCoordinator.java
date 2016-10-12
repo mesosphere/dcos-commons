@@ -1,14 +1,13 @@
 package org.apache.mesos.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.offer.OfferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of PlanCoordinator.
@@ -60,7 +59,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
             }
 
             // Filter dirtied offers.
-            final List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(
+            final List<Protos.Offer> unacceptedOffers = OfferUtils.filterOutAcceptedOffers(
                     offers,
                     dirtiedOffers);
             offers.clear();
@@ -68,22 +67,5 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         }
 
         return dirtiedOffers;
-    }
-
-    @VisibleForTesting
-    protected static List<Protos.Offer> filterAcceptedOffers(
-            List<Protos.Offer> offers,
-            Collection<Protos.OfferID> acceptedOfferIds) {
-        return offers.stream()
-                .filter(offer -> !offerAccepted(offer, acceptedOfferIds))
-                .collect(Collectors.toList());
-    }
-
-    @VisibleForTesting
-    protected static boolean offerAccepted(
-            Protos.Offer offer,
-            Collection<Protos.OfferID> acceptedOfferIds) {
-        return acceptedOfferIds.stream()
-                .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
     }
 }

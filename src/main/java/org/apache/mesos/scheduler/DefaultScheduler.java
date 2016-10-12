@@ -10,6 +10,7 @@ import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.scheduler.api.TaskResource;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
@@ -21,7 +22,6 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.api.StateResource;
-import org.apache.mesos.scheduler.api.TaskResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,13 +167,12 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
-        for (Protos.Offer offer : offers) {
-            Protos.OfferID offerId = offer.getId();
-            if (!acceptedOffers.contains(offerId)) {
-                logger.info("Declining offer: " + offerId.getValue());
-                driver.declineOffer(offerId);
-            }
-        }
+        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+        unusedOffers.stream().forEach(offer -> {
+            final Protos.OfferID offerId = offer.getId();
+            logger.info("Declining offer: " + offerId.getValue());
+            driver.declineOffer(offerId);
+        });
     }
 
     private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
@@ -184,27 +183,6 @@ public class DefaultScheduler implements Scheduler {
             logger.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
         }
-    }
-
-    private List<Protos.Offer> filterAcceptedOffers(List<Protos.Offer> offers, List<Protos.OfferID> acceptedOfferIds) {
-        List<Protos.Offer> filteredOffers = new ArrayList<>();
-
-        for (Protos.Offer offer : offers) {
-            if (!offerAccepted(offer, acceptedOfferIds)) {
-                filteredOffers.add(offer);
-            }
-        }
-
-        return filteredOffers;
-    }
-
-    private boolean offerAccepted(Protos.Offer offer, List<Protos.OfferID> acceptedOfferIds) {
-        for (Protos.OfferID acceptedOfferId : acceptedOfferIds) {
-            if (acceptedOfferId.equals(offer.getId())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @SuppressWarnings({"DM_EXIT"})
@@ -240,7 +218,8 @@ public class DefaultScheduler implements Scheduler {
     }
 
     @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
+        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
             logOffers(offers);
 
@@ -258,16 +237,26 @@ public class DefaultScheduler implements Scheduler {
             final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
             acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
 
+            List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+            offers.clear();
+            offers.addAll(unusedOffers);
+
             // Resource Cleaning:
             // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
             // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
             // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
             // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
             // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
+            // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
+            // offer cycle.
             final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
             if (cleanerScheduler.isPresent()) {
                 acceptedOffers.addAll(cleanerScheduler.get().resourceOffers(driver, offers));
             }
+
+            unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+            offers.clear();
+            offers.addAll(unusedOffers);
 
             // Decline remaining offers.
             declineOffers(driver, acceptedOffers, offers);
