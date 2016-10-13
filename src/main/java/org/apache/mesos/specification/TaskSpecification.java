@@ -21,6 +21,8 @@ public interface TaskSpecification {
      */
     Protos.CommandInfo getCommand();
 
+    Optional<Protos.HealthCheck> getHealthCheck();
+
     /**
      * Returns the container resources required by tasks of this type, or an empty list if no
      * container resources are necessary. In practice you probably want something here.
