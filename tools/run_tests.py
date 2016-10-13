@@ -205,8 +205,8 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
 
 def print_help(argv):
     logger.info('Syntax: TEST_TYPES="sanity or recovery" CLUSTER_URL="yourcluster.com" {} <"shakedown"|"dcos-tests"> <path/to/tests/> </path/to/requirements.txt | /path/to/dcos-tests>'.format(argv[0]))
-    logger.info('  Example (shakedown): $ {} shakedown /path/to/your/tests/ /path/to/requirements.txt')
-    logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests /path/to/your/tests/ /path/to/dcos-tests/')
+    logger.info('  Example (shakedown): $ {} shakedown /path/to/your/tests/ /path/to/requirements.txt'.format(argv[0]))
+    logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests /path/to/your/tests/ /path/to/dcos-tests/'.format(argv[0]))
 
 
 def _rand_str(size):
