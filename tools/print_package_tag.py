@@ -65,8 +65,9 @@ class PackageVersion(object):
 
 
 def main(argv):
-    if len(argv) < 2:
+    if len(argv) != 2 and len(argv) != 3:
         logger.error('Syntax: {} <package> [/local/repo/path or git@host.com:remote/repo]'.format(argv[0]))
+        logger.error('Received arguments {}'.format(str(argv)))
         return 1
     if len(argv) == 2:
         print(PackageVersion(argv[1]).get_version())
@@ -75,8 +76,8 @@ def main(argv):
             print(PackageVersion(argv[1]).get_version_sha_for_path(argv[2]))
         else:
             print(PackageVersion(argv[1]).get_version_sha_for_url(argv[2]))
-    return 0
 
+    return 0
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
