@@ -28,7 +28,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return new OfferRequirement(
                 taskType,
                 Arrays.asList(taskInfo),
-                Optional.empty(),
+                Optional.of(getExecutorInfo(taskSpecification)),
                 taskSpecification.getPlacement());
     }
 
@@ -58,17 +58,19 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
+                .clearExecutor()
                 .setCommand(taskSpecification.getCommand())
                 .addAllResources(updatedResources)
                 .addAllResources(getVolumes(taskInfo.getResourcesList()))
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
 
+
         try {
             return new OfferRequirement(
                     TaskUtils.getTaskType(taskInfo),
                     Arrays.asList(taskBuilder.build()),
-                    Optional.empty(),
+                    Optional.of(getExecutorInfo(taskSpecification)),
                     taskSpecification.getPlacement());
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
@@ -154,5 +156,24 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return volumes;
+    }
+
+    private Protos.ExecutorInfo getExecutorInfo(TaskSpecification taskSpecification) {
+
+        Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
+                .setName(taskSpecification.getName())
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
+
+        Protos.CommandInfo.Builder commandInfoOrBuilder = Protos.CommandInfo.newBuilder()
+                .setValue("./custom-executor/bin/custom-executor")
+                .addUris(TaskUtils.uri("https://s3-us-west-2.amazonaws.com/infinity-artifacts/custom-executor.zip"))
+                .setEnvironment(taskSpecification.getCommand().getEnvironment());
+
+        for (Protos.CommandInfo.URI uri : taskSpecification.getCommand().getUrisList()) {
+            commandInfoOrBuilder.addUris(uri);
+        }
+
+        executorInfoBuilder.setCommand(commandInfoOrBuilder.build());
+        return executorInfoBuilder.build();
     }
 }

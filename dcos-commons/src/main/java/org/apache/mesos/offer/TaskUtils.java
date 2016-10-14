@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
@@ -226,6 +227,18 @@ public class TaskUtils {
         return map;
     }
 
+    public static Protos.Environment fromMapToEnvironment(Map<String, String> environmentMap) {
+        Collection<Protos.Environment.Variable> vars = environmentMap
+                .entrySet()
+                .stream()
+                .map(entrySet -> Protos.Environment.Variable.newBuilder()
+                        .setName(entrySet.getKey())
+                        .setValue(entrySet.getValue()).build())
+                .collect(Collectors.toList());
+
+        return Protos.Environment.newBuilder().addAllVariables(vars).build();
+    }
+
     public static void sendStatus(ExecutorDriver driver,
                                   Protos.TaskState state,
                                   Protos.TaskID taskID,
@@ -420,5 +433,9 @@ public class TaskUtils {
         }
 
         return resourceMap;
+    }
+
+    public static CommandInfo.URI uri(String uri) {
+        return CommandInfo.URI.newBuilder().setValue(uri).build();
     }
 }

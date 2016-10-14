@@ -245,7 +245,7 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING)));
+        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING)));
     }
 
     @Test
@@ -287,7 +287,7 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING)));
     }
 
     @Test
@@ -329,7 +329,7 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING)));
     }
 
     @Test
@@ -373,7 +373,7 @@ public class DefaultSchedulerTest {
         Plan plan = defaultScheduler.getPlan();
         Assert.assertTrue(inExpectedState(
                 plan,
-                Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING)));
+                Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING)));
     }
 
     @Test
