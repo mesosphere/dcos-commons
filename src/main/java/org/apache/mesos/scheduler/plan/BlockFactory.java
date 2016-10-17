@@ -1,6 +1,5 @@
 package org.apache.mesos.scheduler.plan;
 
-import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.specification.TaskSpecification;
 
 /**
@@ -11,6 +10,5 @@ import org.apache.mesos.specification.TaskSpecification;
  * detected for a Task.
  */
 public interface BlockFactory {
-    Block getBlock(String taskType, TaskSpecification taskSpecification)
-            throws InvalidRequirementException;
+    Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidException;
 }

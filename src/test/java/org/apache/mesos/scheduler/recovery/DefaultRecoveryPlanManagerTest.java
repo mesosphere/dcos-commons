@@ -9,6 +9,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
 import org.apache.mesos.state.StateStore;
@@ -84,6 +85,7 @@ public class DefaultRecoveryPlanManagerTest {
         recoveryManager = spy(
                 new DefaultRecoveryPlanManager(
                         stateStore,
+                        new SerialStrategy(),
                         taskFailureListener,
                         recoveryRequirementProvider,
                         launchConstrainer,
@@ -92,8 +94,7 @@ public class DefaultRecoveryPlanManagerTest {
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
-        when(mockDeployManager.isInterrupted()).thenReturn(false);
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(offerAccepter,
                 new OfferEvaluator(stateStore),
                 new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver));
@@ -128,13 +129,18 @@ public class DefaultRecoveryPlanManagerTest {
             planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
             //verify the UI
             assertNotNull(recoveryManager.getPlan());
-            assertNotNull(recoveryManager.getPlan().getPhases());
-            assertNotNull(recoveryManager.getPlan().getPhases().get(0).getBlocks());
-            assertTrue(recoveryManager.getPlan().getPhases().get(0).getBlocks().size() == 1);
-            assertEquals(TestConstants.TASK_NAME,
-                    recoveryManager.getPlan().getPhases().get(0).getBlocks().get(0).getName());
-            final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
-                    .getPhases().get(0).getBlocks().get(0)).getRecoveryRequirement().getRecoveryType();
+            assertNotNull(recoveryManager.getPlan().getChildren());
+            assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
+            assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
+            assertEquals(
+                    TestConstants.TASK_NAME,
+                    ((Block) recoveryManager.getPlan().getChildren().get(0).getChildren().get(0)).getName());
+            final RecoveryRequirement.RecoveryType recoveryType =
+                    ((DefaultRecoveryBlock) recoveryManager.getPlan()
+                            .getChildren().get(0)
+                            .getChildren().get(0))
+                            .getRecoveryRequirement()
+                            .getRecoveryType();
             assertTrue(recoveryType == RecoveryRequirement.RecoveryType.TRANSIENT);
         }
         reset(mockDeployManager);
@@ -188,18 +194,18 @@ public class DefaultRecoveryPlanManagerTest {
         Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
         when(stateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.of(status));
         // 1 dirty
-        when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.of(block));
-        Collection<Protos.OfferID> acceptedOffers =
-                planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(block));
+        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
         assertEquals(0, acceptedOffers.size());
 
         // Verify the RecoveryStatus has empty pools.
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertTrue(CollectionUtils.isNotEmpty(recoveryManager.getPlan().getPhases()));
-        assertNotNull(recoveryManager.getPlan().getPhases().get(0));
-        assertTrue(CollectionUtils.isNotEmpty(recoveryManager.getPlan().getPhases().get(0).getBlocks()));
-        assertTrue(recoveryManager.getPlan().getPhases().get(0).getBlocks().stream().allMatch(b -> b.isPending()));
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertTrue(CollectionUtils.isNotEmpty(recoveryManager.getPlan().getChildren()));
+        assertNotNull(recoveryManager.getPlan().getChildren().get(0));
+        assertTrue(CollectionUtils.isNotEmpty(recoveryManager.getPlan().getChildren().get(0).getChildren()));
+        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().stream()
+                .allMatch(b -> ((Block) b).isPending()));
         reset(mockDeployManager);
     }
 
@@ -223,7 +229,7 @@ public class DefaultRecoveryPlanManagerTest {
         Block block = mock(Block.class);
         when(block.getName()).thenReturn("different-name");
 
-        when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.of(block));
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(block));
         Collection<Protos.OfferID> acceptedOffers =
                 planCoordinator.processOffers(schedulerDriver, offers);
         assertEquals(1, acceptedOffers.size());
@@ -247,7 +253,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         failureMonitor.setFailedList(taskInfo);
         launchConstrainer.setCanLaunch(false);
-        when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
         planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
 
         // Verify we performed the failed task callback.
@@ -259,13 +265,17 @@ public class DefaultRecoveryPlanManagerTest {
 
             // verify the transition to stopped
             assertNotNull(recoveryManager.getPlan());
-            assertNotNull(recoveryManager.getPlan().getPhases());
-            assertNotNull(recoveryManager.getPlan().getPhases().get(0).getBlocks());
-            assertTrue(recoveryManager.getPlan().getPhases().get(0).getBlocks().size() == 1);
+            assertNotNull(recoveryManager.getPlan().getChildren());
+            assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
+            assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
             assertEquals(TestConstants.TASK_NAME,
-                    recoveryManager.getPlan().getPhases().get(0).getBlocks().get(0).getName());
-            final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
-                    .getPhases().get(0).getBlocks().get(0)).getRecoveryRequirement().getRecoveryType();
+                    ((Block) recoveryManager.getPlan().getChildren().get(0).getChildren().get(0)).getName());
+            final RecoveryRequirement.RecoveryType recoveryType =
+                    ((DefaultRecoveryBlock) recoveryManager.getPlan()
+                            .getChildren().get(0)
+                            .getChildren().get(0))
+                            .getRecoveryRequirement()
+                            .getRecoveryType();
             assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
         }
         reset(mockDeployManager);
@@ -303,13 +313,17 @@ public class DefaultRecoveryPlanManagerTest {
 
         // Verify the Task is reported as failed.
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertNotNull(recoveryManager.getPlan().getPhases().get(0).getBlocks());
-        assertTrue(recoveryManager.getPlan().getPhases().get(0).getBlocks().size() == 1);
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
+        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
         assertEquals(TestConstants.TASK_NAME,
-                recoveryManager.getPlan().getPhases().get(0).getBlocks().get(0).getName());
-        final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
-                .getPhases().get(0).getBlocks().get(0)).getRecoveryRequirement().getRecoveryType();
+                ((Block) recoveryManager.getPlan().getChildren().get(0).getChildren().get(0)).getName());
+        final RecoveryRequirement.RecoveryType recoveryType =
+                ((DefaultRecoveryBlock) recoveryManager.getPlan()
+                        .getChildren().get(0)
+                        .getChildren().get(0))
+                        .getRecoveryRequirement()
+                        .getRecoveryType();
         assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
         reset(mockDeployManager);
     }
@@ -339,7 +353,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(stateStore.fetchStatus(failedTaskInfo.getName())).thenReturn(Optional.of(status));
         launchConstrainer.setCanLaunch(true);
 
-        when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, insufficientOffers);
         assertEquals(0, acceptedOffers.size());
 
@@ -349,13 +363,17 @@ public class DefaultRecoveryPlanManagerTest {
         // Verify we transitioned the task to failed
         // Verify the Task is reported as failed.
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertNotNull(recoveryManager.getPlan().getPhases().get(0).getBlocks());
-        assertTrue(recoveryManager.getPlan().getPhases().get(0).getBlocks().size() == 1);
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
+        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
         assertEquals(TestConstants.TASK_NAME,
-                recoveryManager.getPlan().getPhases().get(0).getBlocks().get(0).getName());
-        final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
-                .getPhases().get(0).getBlocks().get(0)).getRecoveryRequirement().getRecoveryType();
+                ((Block) recoveryManager.getPlan().getChildren().get(0).getChildren().get(0)).getName());
+        final RecoveryRequirement.RecoveryType recoveryType =
+                ((DefaultRecoveryBlock) recoveryManager.getPlan()
+                        .getChildren().get(0)
+                        .getChildren().get(0))
+                        .getRecoveryRequirement()
+                        .getRecoveryType();
         assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
 
         // Verify we didn't launch the task
@@ -386,7 +404,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
 
-        when(mockDeployManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
         assertEquals(1, acceptedOffers.size());
 
@@ -466,9 +484,9 @@ public class DefaultRecoveryPlanManagerTest {
     public void testRefreshPlanNoTasks() {
         recoveryManager.refreshPlan(Arrays.asList());
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertEquals(1, recoveryManager.getPlan().getPhases().size());
-        assertEquals(0, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertEquals(1, recoveryManager.getPlan().getChildren().size());
+        assertEquals(0, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
     }
 
     @Test
@@ -476,9 +494,9 @@ public class DefaultRecoveryPlanManagerTest {
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(Arrays.asList());
         recoveryManager.refreshPlan(Arrays.asList());
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertEquals(1, recoveryManager.getPlan().getPhases().size());
-        assertEquals(0, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertEquals(1, recoveryManager.getPlan().getChildren().size());
+        assertEquals(0, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
     }
 
     @Test
@@ -502,9 +520,9 @@ public class DefaultRecoveryPlanManagerTest {
 
         recoveryManager.refreshPlan(Arrays.asList());
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertEquals(1, recoveryManager.getPlan().getPhases().size());
-        assertEquals(2, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertEquals(1, recoveryManager.getPlan().getChildren().size());
+        assertEquals(2, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
     }
 
     @Test
@@ -528,8 +546,8 @@ public class DefaultRecoveryPlanManagerTest {
 
         recoveryManager.refreshPlan(Arrays.asList(taskNameB));
         assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getPhases());
-        assertEquals(1, recoveryManager.getPlan().getPhases().size());
-        assertEquals(1, recoveryManager.getPlan().getPhases().get(0).getBlocks().size());
+        assertNotNull(recoveryManager.getPlan().getChildren());
+        assertEquals(1, recoveryManager.getPlan().getChildren().size());
+        assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
     }
 }

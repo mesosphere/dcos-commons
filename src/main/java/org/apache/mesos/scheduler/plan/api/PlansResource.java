@@ -1,13 +1,16 @@
 package org.apache.mesos.scheduler.plan.api;
 
+import org.apache.mesos.scheduler.plan.Block;
+import org.apache.mesos.scheduler.plan.Element;
 import org.apache.mesos.scheduler.plan.PlanManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * API for management of Plan(s).
@@ -16,30 +19,15 @@ import java.util.UUID;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PlansResource {
-    private static final Response PLAN_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
-            .entity("Plan not found")
+    static final Response PLAN_ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
+            .entity("Element not found")
             .build();
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private Map<String, PlanManager> planManagers = new HashMap<>();
 
     public PlansResource(final Map<String, PlanManager> planManagers) {
         this.planManagers.putAll(planManagers);
-    }
-
-    /**
-     * Returns the status of the currently active Phase/Block.
-     */
-    @GET
-    @Path("/{planName}/status")
-    public Response getStatus(@PathParam("planName") String planName) {
-        final PlanManager manager = planManagers.get(planName);
-        if (manager != null) {
-            return Response.status(Response.Status.OK)
-                    .entity(CurrentlyActiveInfo.forPlan(manager))
-                    .build();
-        } else {
-            return PLAN_NOT_FOUND_RESPONSE;
-        }
     }
 
     /**
@@ -62,11 +50,11 @@ public class PlansResource {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
             return Response
-                    .status(manager.isComplete() ? 200 : 503)
-                    .entity(StageInfo.forStage(manager))
+                    .status(manager.getPlan().isComplete() ? 200 : 503)
+                    .entity(PlanInfo.forPlan(manager))
                     .build();
         } else {
-            return PLAN_NOT_FOUND_RESPONSE;
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
         }
     }
 
@@ -75,12 +63,12 @@ public class PlansResource {
     public Response continueCommand(@PathParam("planName") String planName) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            manager.proceed();
+            manager.getPlan().getStrategy().proceed();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: continue"))
                     .build();
         } else {
-            return PLAN_NOT_FOUND_RESPONSE;
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
         }
     }
 
@@ -89,12 +77,12 @@ public class PlansResource {
     public Response interruptCommand(@PathParam("planName") String planName) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            manager.interrupt();
+            manager.getPlan().getStrategy().interrupt();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: interrupt"))
                     .build();
         } else {
-            return PLAN_NOT_FOUND_RESPONSE;
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
         }
     }
 
@@ -106,12 +94,17 @@ public class PlansResource {
             @QueryParam("block") String blockId) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            manager.forceComplete(UUID.fromString(phaseId), UUID.fromString(blockId));
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: forceComplete"))
-                    .build();
+            Optional<Element> block = getBlock(manager, phaseId, blockId);
+            if (block.isPresent()) {
+                block.get().forceComplete();
+                return Response.status(Response.Status.OK)
+                        .entity(new CommandResultInfo("Received cmd: forceComplete"))
+                        .build();
+            } else {
+                return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+            }
         } else {
-            return PLAN_NOT_FOUND_RESPONSE;
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
         }
     }
 
@@ -123,12 +116,42 @@ public class PlansResource {
             @QueryParam("block") String blockId) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            manager.restart(UUID.fromString(phaseId), UUID.fromString(blockId));
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: restart"))
-                    .build();
+            Optional<Element> block = getBlock(manager, phaseId, blockId);
+            if (block.isPresent()) {
+                block.get().restart();
+                return Response.status(Response.Status.OK)
+                        .entity(new CommandResultInfo("Received cmd: restart"))
+                        .build();
+            } else {
+
+                return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+            }
         } else {
-            return PLAN_NOT_FOUND_RESPONSE;
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+        }
+    }
+
+    private Optional<Element> getBlock(PlanManager manager, String phaseId, String blockId) {
+        List<Element> phases = manager.getPlan().getChildren().stream()
+                .filter(phase -> phase.getId().equals(UUID.fromString(phaseId)))
+                .collect(Collectors.toList());
+
+        if (phases.size() == 1) {
+            Element<Block> phase = phases.stream().findFirst().get();
+
+            List<Element> blocks = phase.getChildren().stream()
+                    .filter(block -> block.getId().equals(UUID.fromString(blockId)))
+                    .collect(Collectors.toList());
+
+            if (blocks.size() == 1) {
+                return blocks.stream().findFirst();
+            } else {
+                logger.error("Found non-one blocks: " + blocks);
+                return Optional.empty();
+            }
+        } else {
+            logger.error("Found non-one phases: " + phases);
+            return Optional.empty();
         }
     }
 }

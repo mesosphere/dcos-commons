@@ -61,7 +61,7 @@ public class TaskUtilsTest {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
                 TestTaskSetFactory.getTaskSpecification(
-                        "new" + TestTaskSetFactory.NAME,
+                        "new" + TestTaskSetFactory.TYPE,
                         TestTaskSetFactory.CMD.getValue(),
                         TestTaskSetFactory.CPU,
                         TestTaskSetFactory.MEM,
@@ -75,7 +75,7 @@ public class TaskUtilsTest {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
                 TestTaskSetFactory.getTaskSpecification(
-                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.TYPE,
                         TestTaskSetFactory.CMD.getValue() + " && echo foo",
                         TestTaskSetFactory.CPU,
                         TestTaskSetFactory.MEM,
@@ -89,7 +89,7 @@ public class TaskUtilsTest {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification tmpTaskSpecification =
                 TestTaskSetFactory.getTaskSpecification(
-                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.TYPE,
                         TestTaskSetFactory.CMD.getValue(),
                         TestTaskSetFactory.CPU,
                         TestTaskSetFactory.MEM,
@@ -122,7 +122,7 @@ public class TaskUtilsTest {
 
         TaskSpecification tmpNewTaskSpecification =
                 TestTaskSetFactory.getTaskSpecification(
-                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.TYPE,
                         TestTaskSetFactory.CMD.getValue(),
                         TestTaskSetFactory.CPU,
                         TestTaskSetFactory.MEM,

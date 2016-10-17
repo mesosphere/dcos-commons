@@ -37,11 +37,10 @@ public class ReconciliationBlockTest {
     public void testStartsPending() {
         assertTrue(block.isPending());
         assertTrue(block.getMessage().contains("pending"));
-        verifyZeroInteractions(mockReconciler);
     }
 
     @Test
-    public void testStart_statusProviderFailure() throws Exception {
+    public void testStartStatusProviderFailure() throws Exception {
         doThrow(new RuntimeException("hello")).when(mockReconciler).start();
         assertFalse(block.start().isPresent());
         assertTrue(block.isPending());
@@ -78,6 +77,7 @@ public class ReconciliationBlockTest {
         when(mockReconciler.isReconciled()).thenReturn(true);
         assertTrue(block.isComplete());
         block.restart();
+        when(mockReconciler.isReconciled()).thenReturn(false);
         assertTrue(block.isPending());
     }
 

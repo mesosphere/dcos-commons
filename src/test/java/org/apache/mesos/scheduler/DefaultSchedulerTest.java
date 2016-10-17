@@ -4,10 +4,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.ResourceUtils;
-import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.Plan;
-import org.apache.mesos.scheduler.plan.Status;
+import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TestTaskSetFactory;
@@ -15,10 +12,10 @@ import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
-import org.junit.*;
-import org.junit.rules.DisableOnDebug;
-import org.junit.rules.TestRule;
-import org.junit.rules.Timeout;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
@@ -42,7 +39,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
+    //@Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     private static final String SERVICE_NAME = "test-service";
@@ -122,7 +119,7 @@ public class DefaultSchedulerTest {
     public void testLaunchA() throws InterruptedException {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Block blockTaskA0 = (Block) plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -158,11 +155,13 @@ public class DefaultSchedulerTest {
 
         // Launch A-0
         testLaunchA();
-        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Phase phase0 = (Phase) plan.getChildren().get(0);
+        Block blockTaskA0 = (Block) phase0.getChildren().get(0);
         Assert.assertTrue(blockTaskA0.isComplete());
+        Assert.assertTrue(phase0.isComplete());
 
         // Get first Block of the second Phase associated with Task B-0
-        Block blockTaskB0 = plan.getPhases().get(1).getBlock(0);
+        Block blockTaskB0 = (Block) plan.getChildren().get(1).getChildren().get(0);
         Assert.assertTrue(blockTaskB0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -196,7 +195,7 @@ public class DefaultSchedulerTest {
     public void testFailLaunchA() throws InterruptedException {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Block blockTaskA0 = (Block) plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -380,7 +379,7 @@ public class DefaultSchedulerTest {
     public void testLaunchAndRecovery() throws Exception {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Block blockTaskA0 = (Block) plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -517,8 +516,10 @@ public class DefaultSchedulerTest {
         }
 
         int i = 0;
-        for (Phase phase : plan.getPhases()) {
-            for (Block block : phase.getBlocks()) {
+        for (Element phaseElement : plan.getChildren()) {
+            Phase phase = (Phase) phaseElement;
+            for (Element blockElement : phase.getChildren()) {
+                Block block = (Block) blockElement;
                 switch (statuses.get(i)) {
                     case PENDING:
                         if (!block.isPending()) {
@@ -548,8 +549,9 @@ public class DefaultSchedulerTest {
 
     private int countBlocks(Plan plan) {
         int i = 0;
-        for (Phase phase : plan.getPhases()) {
-            i += phase.getBlocks().size();
+
+        for (Element element : plan.getChildren()) {
+            i += element.getChildren().size();
         }
 
         return i;

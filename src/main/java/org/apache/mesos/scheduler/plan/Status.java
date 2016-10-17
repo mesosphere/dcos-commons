@@ -1,12 +1,12 @@
 package org.apache.mesos.scheduler.plan;
 
 /**
- * Status of the block. Useful for reporting
+ * Status of a {@link Element}.
  */
 public enum Status {
-  ERROR,
-  WAITING,
   PENDING,
   IN_PROGRESS,
-  COMPLETE
+  COMPLETE,
+  WAITING,
+  ERROR
 }

@@ -13,6 +13,7 @@ import java.util.Optional;
  */
 public class TestTaskSpecification implements TaskSpecification {
     private final String name;
+    private final String type;
     private final Protos.CommandInfo command;
     private final Collection<VolumeSpecification> volumes;
     private Collection<ResourceSpecification> resources;
@@ -20,6 +21,7 @@ public class TestTaskSpecification implements TaskSpecification {
 
     public TestTaskSpecification(TaskSpecification taskSpecification) {
         this.name = taskSpecification.getName();
+        this.type = taskSpecification.getType();
         this.command = taskSpecification.getCommand();
         this.resources = taskSpecification.getResources();
         this.volumes = taskSpecification.getVolumes();
@@ -29,6 +31,11 @@ public class TestTaskSpecification implements TaskSpecification {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     @Override

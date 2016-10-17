@@ -4,12 +4,12 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.DefaultObservable;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
 /**
@@ -23,7 +23,7 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
 
     private final Reconciler reconciler;
     private final UUID id = UUID.randomUUID();
-    private boolean isPending = true; // reconciler hasn't start()ed yet
+    private Status status;
 
     /**
      * Factory method.
@@ -36,36 +36,16 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
 
     private ReconciliationBlock(final Reconciler reconciler) {
         this.reconciler = reconciler;
-    }
-
-    @Override
-    public boolean isPending() {
-        return isPending;
-    }
-
-    @Override
-    public boolean isInProgress() {
-        if (isPending()) {
-            return false;
-        }
-        return !reconciler.isReconciled();
-    }
-
-    @Override
-    public boolean isComplete() {
-        if (isPending()) {
-            return false;
-        }
-        return reconciler.isReconciled();
+        setStatus(Status.PENDING);
     }
 
     @Override
     public Optional<OfferRequirement> start() {
         try {
             reconciler.start();
-            isPending = false;
+            setStatus(Status.IN_PROGRESS);
         } catch (Exception ex) {
-            isPending = true; // try again later
+            setStatus(Status.PENDING);
             logger.error("Failed to retrieve TaskStatus Set to proceed with reconciliation.", ex);
         }
         return Optional.empty();
@@ -82,13 +62,14 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
     @Override
     public void restart() {
         // reset state, while silently allowing the reconciler continue any pending work
-        isPending = true;
+        setStatus(Status.PENDING);
+        reconciler.start();
     }
 
     @Override
     public void forceComplete() {
-        isPending = false;
         reconciler.forceComplete();
+        setStatus(Status.COMPLETE);
     }
 
     @Override
@@ -107,13 +88,42 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
     }
 
     @Override
+    public Status getStatus() {
+        if (reconciler.isReconciled()) {
+            setStatus(Status.COMPLETE);
+        }
+
+        return status;
+    }
+
+    @Override
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    @Override
+    public List<Element> getChildren() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Strategy getStrategy() {
+        return new SerialStrategy();
+    }
+
+    @Override
     public String getMessage() {
-        if (isPending) {
+        if (isPending()) {
             return "Reconciliation pending";
         } else if (!reconciler.isReconciled()) {
             return "Reconciliation in progress unreconciled tasks = " + reconciler.remaining();
         } else {
             return "Reconciliation complete";
         }
+    }
+
+    @Override
+    public List<String> getErrors() {
+        return Collections.emptyList();
     }
 }

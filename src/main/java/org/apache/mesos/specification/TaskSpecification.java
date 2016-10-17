@@ -16,6 +16,8 @@ public interface TaskSpecification {
      */
     String getName();
 
+    String getType();
+
     /**
      * Returns the Mesos {@code CommandInfo} to be used for the starting task.
      */

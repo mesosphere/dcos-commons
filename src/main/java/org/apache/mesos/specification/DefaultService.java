@@ -18,9 +18,6 @@ import java.util.Optional;
  * This class is a default implementation of the Service interface.  It serves mainly as an example
  * with hard-coded values for "user", and "master-uri", and failover timeouts.  More sophisticated
  * services may want to implement the Service interface directly.
- *
- * Customizing the runtime user for individual tasks may be accomplished by customizing the 'user'
- * field on CommandInfos returned by {@link TaskSet#getCommand(int)}.
  */
 public class DefaultService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;

@@ -1,14 +1,13 @@
 package org.apache.mesos.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of PlanCoordinator.
@@ -30,60 +29,32 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     }
 
     @Override
-    public Collection<Protos.OfferID> processOffers(
+    public Collection<OfferID> processOffers(
             final SchedulerDriver driver,
-            final List<Protos.Offer> offersToProcess) {
-        final Set<Protos.OfferID> dirtiedOffers = new HashSet<>();
+            final List<Offer> offersToProcess) {
+
+        final Set<OfferID> dirtiedOffers = new HashSet<>();
         final Set<String> dirtiedAssets = new HashSet<>();
-        final List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
+        final List<Offer> offers = new ArrayList<>(offersToProcess);
+
         for (final PlanManager planManager : planManagers) {
             try {
-                LOGGER.info("Current PlanManager: {}. Current plan {} interrupted.",
-                        planManager.getClass().getSimpleName(),
-                        planManager.isInterrupted() ? "is" : "is not");
-                final Optional<Block> currentBlock = planManager.getCurrentBlock(dirtiedAssets);
-                if (currentBlock.isPresent()) {
-                    final Block blockToSchedule = currentBlock.get();
-                    LOGGER.info("Current block to schedule: {}", blockToSchedule.getName());
-                    List<Protos.OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, blockToSchedule);
-                    dirtiedOffers.addAll(usedOffers);
+                Collection<? extends Block> candidateBlocks = planManager.getCandidates(dirtiedAssets);
+                Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateBlocks);
+                dirtiedOffers.addAll(usedOffers);
 
-                    // If an offer was used, the block was also scheduled, so let's mark it dirty.
-                    if (CollectionUtils.isNotEmpty(usedOffers)) {
-                        dirtiedAssets.add(blockToSchedule.getName());
-                    }
-                } else {
-                    LOGGER.info("Current block to schedule: No block");
-                }
+                // If a Block is InProgress let's mark it dirty.
+                candidateBlocks.forEach(block -> dirtiedAssets.add(block.getName()));
             } catch (Throwable t) {
                 LOGGER.error("Error with plan manager: {}. Reason: {}", planManager, t);
             }
 
             // Filter dirtied offers.
-            final List<Protos.Offer> unacceptedOffers = filterAcceptedOffers(
-                    offers,
-                    dirtiedOffers);
+            final List<Offer> unacceptedOffers = PlanUtils.filterAcceptedOffers(offers, dirtiedOffers);
             offers.clear();
             offers.addAll(unacceptedOffers);
         }
 
         return dirtiedOffers;
-    }
-
-    @VisibleForTesting
-    protected static List<Protos.Offer> filterAcceptedOffers(
-            List<Protos.Offer> offers,
-            Collection<Protos.OfferID> acceptedOfferIds) {
-        return offers.stream()
-                .filter(offer -> !offerAccepted(offer, acceptedOfferIds))
-                .collect(Collectors.toList());
-    }
-
-    @VisibleForTesting
-    protected static boolean offerAccepted(
-            Protos.Offer offer,
-            Collection<Protos.OfferID> acceptedOfferIds) {
-        return acceptedOfferIds.stream()
-                .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
     }
 }

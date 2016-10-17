@@ -1,38 +1,43 @@
 package org.apache.mesos.scheduler.plan;
 
-import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TaskSpecification;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class generates Phases given PhaseSpecifications.
  */
-public class DefaultPhaseFactory {
+public class DefaultPhaseFactory implements PhaseFactory {
 
     private final BlockFactory blockFactory;
 
     public DefaultPhaseFactory(BlockFactory blockFactory) {
-       this.blockFactory = blockFactory;
+        this.blockFactory = blockFactory;
     }
 
-    public Phase getPhase(TaskSet taskSet) throws InvalidRequirementException {
-        return DefaultPhase.create(
-                UUID.randomUUID(),
-                taskSet.getName(),
-                getBlocks(taskSet));
+    public Phase getPhase(TaskSet taskSet) {
+        return new DefaultPhase(taskSet.getName(), getBlocks(taskSet), new SerialStrategy<>(), Collections.emptyList());
     }
 
-    private List<Block> getBlocks(TaskSet taskSet) throws InvalidRequirementException {
-        List<Block> blocks = new ArrayList<>();
-
-        for (TaskSpecification taskSpecification : taskSet.getTaskSpecifications()) {
-            blocks.add(blockFactory.getBlock(taskSet.getName(), taskSpecification));
-        }
-
-        return blocks;
+    private List<Element> getBlocks(TaskSet taskSet) {
+        return taskSet.getTaskSpecifications().stream()
+                .map(taskSpec -> {
+                    try {
+                        return blockFactory.getBlock(taskSpec);
+                    } catch (Block.InvalidException e) {
+                        return new DefaultBlock(
+                                taskSpec.getName(),
+                                Optional.empty(),
+                                Status.ERROR,
+                                Arrays.asList(ExceptionUtils.getStackTrace(e)));
+                    }
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -31,6 +31,7 @@ public class CustomTaskSetTest {
             for (int i = 0; i < count; i++) {
                 taskSpecifications.add(new DefaultTaskSpecification(
                         name + "_" + i,
+                        name,
                         Protos.CommandInfo.newBuilder()
                                 .setValue(name + " " + i)
                                 .build(),

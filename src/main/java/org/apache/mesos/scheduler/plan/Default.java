@@ -5,36 +5,50 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Default Phase implementation tracks Blocks both by their UUID and by
- * their ordering. It is an immutable class that can be constructed either
- * directly, or using a fluent style builder.
+ * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
+ * optionally contain a List of errors associated with the phase.
  */
-public class DefaultPhase extends ChainedObserver implements Phase {
+public class Default extends ChainedObserver implements Plan {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final UUID id = UUID.randomUUID();
-    private final String name;
-    private final Strategy<Block> strategy;
+    private final Strategy<? extends Phase> strategy;
+    private final List<Element> phases;
     private final List<String> errors;
-    private final List<Element> blocks;
+    private final String name;
+    private Status status;
 
-    public DefaultPhase(String name, List<Element> blocks, Strategy<Block> strategy, List<String> errors) {
+    public Default(
+            final String name,
+            final Strategy<? extends Phase> strategy,
+            final List<Element> phases,
+            final List<String> errors) {
+
         this.name = name;
-        this.blocks = blocks;
         this.strategy = strategy;
+        this.phases = phases;
         this.errors = errors;
+
+        // Initialize to non-null
+        this.status = Status.PENDING;
+        // then initialize to aggregate status of children
+        this.status = getStatus();
+
+        getChildren().forEach(phase -> phase.subscribe(this));
     }
 
     @Override
-    public Strategy<Block> getStrategy() {
+    public List<Element> getChildren() {
+        return phases;
+    }
+
+    @Override
+    public Strategy getStrategy() {
         return strategy;
     }
 
@@ -50,16 +64,13 @@ public class DefaultPhase extends ChainedObserver implements Phase {
 
     @Override
     public Status getStatus() {
-        if (getStrategy().isInterrupted()) {
-            return Status.WAITING;
-        }
-
-        return PlanUtils.getStatus(getChildren());
+        status = PlanUtils.getStatus(getChildren());
+        return status;
     }
 
     @Override
     public void setStatus(Status status) {
-        logger.warn("Setting status does not effect status. Status is derived from Strategy and child statuses.");
+        this.status = status;
     }
 
     @Override
@@ -85,11 +96,6 @@ public class DefaultPhase extends ChainedObserver implements Phase {
     @Override
     public List<String> getErrors() {
         return PlanUtils.getErrors(errors, getChildren());
-    }
-
-    @Override
-    public List<Element> getChildren() {
-        return blocks;
     }
 
     @Override

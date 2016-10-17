@@ -33,7 +33,8 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
-    public void testUnchangedVolumes() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testUnchangedVolumes()
+            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
         Protos.Resource volume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(volume));
         TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
@@ -46,7 +47,8 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test(expected=InvalidRequirementException.class)
-    public void testChangedVolumes() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testChangedVolumes()
+            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
         Protos.Resource oldVolume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB);
         Protos.Resource newVolume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB + 500);
         Protos.TaskInfo oldTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(oldVolume));
@@ -57,7 +59,7 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test(expected=InvalidRequirementException.class)
-    public void testEmptyVolume() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testEmptyVolume() throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.Resource oldVolume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB);
         Protos.TaskInfo oldTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(oldVolume));
@@ -68,7 +70,7 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
-    public void testNoVolumes() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testNoVolumes() throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
         TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
@@ -82,7 +84,8 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
-    public void testPlacementPassthru() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testPlacementPassthru()
+            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
 
@@ -97,7 +100,8 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
-    public void testAddNewDesiredResource() throws InvalidTaskSpecificationException, InvalidRequirementException {
+    public void testAddNewDesiredResource()
+            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));

@@ -11,8 +11,8 @@ import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
+import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
@@ -119,6 +119,7 @@ public class DefaultScheduler implements Scheduler {
 
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
+                new RandomStrategy(),
                 taskFailureListener,
                 recoveryRequirementProvider,
                 constrainer,
@@ -128,24 +129,20 @@ public class DefaultScheduler implements Scheduler {
     private void initializeDeploymentPlanManager() {
         logger.info("Initializing deployment PlanManager...");
         initializeDeploymentPlan();
-        deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
+        deployPlanManager = new DefaultPlanManager(deployPlan);
     }
 
     private void initializeDeploymentPlan() {
         logger.info("Initializing deployment plan...");
-        try {
-            logger.info("Deploy plan: {}", deployPlan);
-            deployPlan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
-        } catch (InvalidRequirementException e) {
-            logger.error("Failed to generate deployPlan with exception: ", e);
-            hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
-        }
+        logger.info("Deploy plan: {}", deployPlan);
+        BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
+        PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
+        deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
     }
 
     private void initializeResources() throws InterruptedException {
         logger.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
-        resources.add(new PlanResource(deployPlanManager));
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
@@ -184,27 +181,6 @@ public class DefaultScheduler implements Scheduler {
             logger.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
         }
-    }
-
-    private List<Protos.Offer> filterAcceptedOffers(List<Protos.Offer> offers, List<Protos.OfferID> acceptedOfferIds) {
-        List<Protos.Offer> filteredOffers = new ArrayList<>();
-
-        for (Protos.Offer offer : offers) {
-            if (!offerAccepted(offer, acceptedOfferIds)) {
-                filteredOffers.add(offer);
-            }
-        }
-
-        return filteredOffers;
-    }
-
-    private boolean offerAccepted(Protos.Offer offer, List<Protos.OfferID> acceptedOfferIds) {
-        for (Protos.OfferID acceptedOfferId : acceptedOfferIds) {
-            if (acceptedOfferId.equals(offer.getId())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @SuppressWarnings({"DM_EXIT"})
@@ -294,7 +270,8 @@ public class DefaultScheduler implements Scheduler {
                 // Store status, then pass status to PlanManager => Plan => Blocks
                 try {
                     stateStore.storeStatus(status);
-                    deployPlanManager.update(status);
+                    deployPlanManager.getPlan().update(status);
+                    reconciler.update(status);
                 } catch (Exception e) {
                     logger.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);

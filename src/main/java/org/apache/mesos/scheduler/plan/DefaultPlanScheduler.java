@@ -1,7 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
 import com.google.inject.Inject;
-import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.TaskKiller;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Default deployment scheduler. See docs in {@link PlanScheduler} interface.
@@ -29,8 +31,39 @@ public class DefaultPlanScheduler implements PlanScheduler {
     }
 
     @Override
-    public List<Protos.OfferID> resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers, Block block) {
-        List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+    public Collection<OfferID> resourceOffers(
+            final SchedulerDriver driver,
+            final List<Offer> offers,
+            final Collection<? extends Block> blocks) {
+
+        if (driver == null) {
+            logger.error("driver was null");
+            return Collections.emptyList();
+        } else if (offers == null) {
+            logger.error("offers was null");
+            return Collections.emptyList();
+        } else if (blocks == null) {
+            logger.error("blocks was null");
+            return Collections.emptyList();
+        }
+
+        List<OfferID> acceptedOfferIds = new ArrayList<>();
+        List<Offer> availableOffers = new ArrayList<>(offers);
+
+        for (Block block : blocks) {
+            acceptedOfferIds.addAll(resourceOffers(driver, availableOffers, block));
+            availableOffers = PlanUtils.filterAcceptedOffers(availableOffers, acceptedOfferIds);
+        }
+
+        return  acceptedOfferIds;
+    }
+
+    private Collection<OfferID> resourceOffers(
+            SchedulerDriver driver,
+            List<Offer> offers,
+            Block block) {
+
+        List<OfferID> acceptedOffers = new ArrayList<>();
 
         if (driver == null || offers == null) {
             logger.error("Unexpected null argument encountered: driver='{}' offers='{}'", driver, offers);
@@ -43,7 +76,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         }
 
         if (!block.isPending()) {
-            logger.info("Ignoring resource offers for block: {} status: {}", block.getName(), Block.getStatus(block));
+            logger.info("Ignoring resource offers for block: {} status: {}", block.getName(), block.getStatus());
             return acceptedOffers;
         }
 
@@ -68,7 +101,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by block {}: {}",
-                    block.getName(), offerRequirementOptional.get());
+                    block.getName(), offerRequirement);
             block.updateOfferStatus(Collections.emptyList());
             return acceptedOffers;
         }
@@ -93,18 +126,9 @@ public class DefaultPlanScheduler implements PlanScheduler {
         }
     }
 
-    private Collection<Protos.Offer.Operation> getOperations(
-            Collection<OfferRecommendation> recommendations) {
-
-        if (recommendations.size() == 0) {
-            return Collections.emptyList();
-        }
-
-        List<Protos.Offer.Operation> operations = new ArrayList<>();
-        for (OfferRecommendation recommendation : recommendations) {
-            operations.add(recommendation.getOperation());
-        }
-
-        return operations;
+    private Collection<Offer.Operation> getOperations(Collection<OfferRecommendation> recommendations) {
+        return recommendations.stream()
+                .map(OfferRecommendation::getOperation)
+                .collect(Collectors.toList());
     }
 }
