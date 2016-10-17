@@ -447,8 +447,10 @@ serially.  Each Block must reach a `COMPLETE` state before the
 next Block may be started.  Beyond this automatic behavior, it is often 
 desirable to manually pause/resume a deployment.  For example, in a
 production setting multiple uncoordinated deployments may cause
-unexpected effects.  The ability to pause individual deployments while
-others continue without performing a full rollback can be helpful.
+unexpected effects, including causing unavailability or severely
+degraded performance.  In thes cases and others, the ability to pause
+individual deployments while others continue without performing a full
+rollback can be helpful.
 
 The `has_decision_point` fields above indicate whether a user has indicated 
 a desire to pause a deployment at a particular Block.
