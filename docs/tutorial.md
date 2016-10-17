@@ -373,6 +373,153 @@ For more information on the janitor image, see
 https://github.com/mesosphere/framework-cleaner.
 
 
+# Plan management
+As noted earlier, stateful services often have particular deployment 
+requirements.  These deployments may involve the initial creation of 
+Tasks or a change in Task configuration or the scaling of a
+particular kind of task or an upgrade to a new version of a Task.  Each 
+of these scenarios comes with attendant risks and benefits.  In some
+cases (as in initial install) you may be happy to have a service rollout
+without intervention.  In others, as in a configuration update, one may
+wish to deploy some portion of a service and check stability before
+completing a deployment.
+
+In order to provide the necessary flexibility and control necessary to 
+achieve these outcomes, the SDK organizes deployment of tasks by means 
+of Plans. Plans are composed of Phases which are composed of Blocks.  
+A Block encapsulates the smallest element of work executed in a Plan and
+is the plan element which encapsulates the launching of Mesos Tasks.  
+
+Phases are groups of Blocks which have some semantic relationship.  At 
+least two plans are generated automatically by the SDK when presented 
+with a `ServiceSpecification`.  These are the deployment and recovery
+plans.  The deployment plan is concerned with deploying Tasks.  It
+deploys Tasks for the first time, and when configuration updates are
+indicated by a user.  The recovery plan is concerned with defining the
+necessary operations which must be performed when transient or permanent
+failures are encountered.
+
+Let us examine the deployment plan of the example data-store service
+after its initial installation has completed.
+
+Executing the following command:
+
+```
+GET /v1/plan"
+```
+
+generates the following output:
+
+```json
+{
+	"phases": [{
+		"id": "31a3ca99-bdbd-45dd-a8f0-cc93feade61e",
+		"name": "meta-data",
+		"blocks": [{
+			"id": "2a0db529-095b-4b63-8c56-075aa442c898",
+			"status": "COMPLETE",
+			"name": "meta-data-0",
+			"message": "Block: meta-data-0",
+			"has_decision_point": false
+		}, {
+			"id": "99210582-cdfb-4b63-95e9-19600f117dc7",
+			"status": "COMPLETE",
+			"name": "meta-data-1",
+			"message": "Block: meta-data-1",
+			"has_decision_point": false
+		}],
+		"status": "COMPLETE"
+	}, {
+		"id": "927ac279-b969-4106-9089-40264ae15dc4",
+		"name": "data",
+		"blocks": [{
+			"id": "efcf9dc0-488f-4f9e-ae0c-1ac16c401e0a",
+			"status": "COMPLETE",
+			"name": "data-0",
+			"message": "Block: data-0",
+			"has_decision_point": false
+		}, {
+			"id": "a0e0905b-d4da-4cec-84b9-461a60a92818",
+			"status": "COMPLETE",
+			"name": "data-1",
+			"message": "Block: data-1",
+			"has_decision_point": false
+		}, {
+			"id": "fa85a843-e6eb-4074-b353-875197a18adb",
+			"status": "COMPLETE",
+			"name": "data-2",
+			"message": "Block: data-2",
+			"has_decision_point": false
+		}],
+		"status": "COMPLETE"
+	}],
+	"errors": [],
+	"status": "COMPLETE"
+}
+```
+
+The first thing to notice is that the `TaskSet`s defined in a
+`ServiceSpecification` are mapped to deployment Phases. The data-store
+example service has `TaskSet`s encapsulating `meta-data` and `data`
+Tasks in that order.  The deployment plan above has the respective
+`meta-data` and `data` Phases.
+
+In its default configuration, the two `data` Tasks and three `meta-data`
+Tasks are launched.  We can see that a Block has been created
+encapsulating each of those tasks.  The names of Blocks map to the names
+of the `TaskSpecification` objects within a `TaskSet`.  The status of a 
+Block can be in one of 3 states.  It may be `PENDING`, `IN_PROGRESS`, or 
+`COMPLETE`.
+
+By default all Phases and the Blocks within them are rolled out
+serially.  Each Block must reach a `COMPLETE` state before the
+next Block may be started.  Beyond this automatic behavior, it is often 
+desirable to manually pause/resume a deployment.  For example, in a
+production setting multiple uncoordinated deployments may cause
+unexpected effects, including causing unavailability or severely
+degraded performance.  In thes cases and others, the ability to pause
+individual deployments while others continue without performing a full
+rollback can be helpful.
+
+The `has_decision_point` fields above indicate whether a user has indicated 
+a desire to pause a deployment at a particular Block.
+
+A Plan's execution may be paused or continued by POST commands executed
+against the HTTP endpoints at the [`/v1/plan/interrupt`](https://github.com/mesosphere/dcos-commons/blob/master/src/main/java/org/apache/mesos/scheduler/plan/api/PlanResource.java#L53)
+and [`/v1/plan/continue`](https://github.com/mesosphere/dcos-commons/blob/master/src/main/java/org/apache/mesos/scheduler/plan/api/PlanResource.java#L46)
+respectively.  For example:
+
+```
+POST /v1/plan/interrupt"
+```
+
+```
+POST /v1/plan/continue"
+```
+
+Finally, beyond manual control of Plan execution behavior it may be
+desirable in certain failure scenarios to either restart the execution
+of a Block or force its completion.  Restarting a Block in default 
+implementations simply sets a Block's status to `PENDING` and allows the
+normal Block processing system to do the necessary work to drive a Block
+to completion.  This can be accomplished by issuing a POST command to
+the [`/v1/plan/restart`](https://github.com/mesosphere/dcos-commons/blob/master/src/main/java/org/apache/mesos/scheduler/plan/api/PlanResource.java#L69)
+endpoint.  For example to restart the Block associated with the first
+data task `data-0` one would issue the following command:
+
+```bash
+POST /v1/plan/restart?phase=927ac279-b969-4106-9089-40264ae15dc4&block=efcf9dc0-488f-4f9e-ae0c-1ac16c401e0a"
+```
+
+Forcing the completion of a block can be accomplished in a similar
+manner by issuing a POST command against the [`/v1/plan/forceComplete`](https://github.com/mesosphere/dcos-commons/blob/master/src/main/java/org/apache/mesos/scheduler/plan/api/PlanResource.java#L69)
+endpoint. For example to force the completion of the second `meta-data`
+block one would issue the following command:
+
+```bash
+POST /v1/plan/forceComplete?phase=31a3ca99-bdbd-45dd-a8f0-cc93feade61&block=99210582-cdfb-4b63-95e9-19600f117dc7"
+```
+
 # Update configuration
 
 We saw in the [Service Specification
