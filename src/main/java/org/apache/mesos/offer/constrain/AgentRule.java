@@ -35,17 +35,17 @@ public class AgentRule implements PlacementRule {
     }
 
     /**
-     * Ensures that the given Offer is colocated with the specified agent ID.
+     * Ensures that the given Offer is located on the specified agent ID.
      */
-    public static class ColocateAgentGenerator extends PassthroughGenerator {
+    public static class RequireAgentGenerator extends PassthroughGenerator {
 
-        public ColocateAgentGenerator(String agentId) {
+        public RequireAgentGenerator(String agentId) {
             super(new AgentRule(agentId));
         }
     }
 
     /**
-     * Ensures that the given Offer is NOT colocated with the specified agent ID.
+     * Ensures that the given Offer is NOT located on the specified agent ID.
      */
     public static class AvoidAgentGenerator extends PassthroughGenerator {
 
@@ -55,21 +55,21 @@ public class AgentRule implements PlacementRule {
     }
 
     /**
-     * Ensures that the given Offer is colocated with one of the specified agent IDs.
+     * Ensures that the given Offer is located on one of the specified agent IDs.
      */
-    public static class ColocateAgentsGenerator extends PassthroughGenerator {
+    public static class RequireAgentsGenerator extends PassthroughGenerator {
 
-        public ColocateAgentsGenerator(Collection<String> agentIds) {
+        public RequireAgentsGenerator(Collection<String> agentIds) {
             super(new OrRule(toAgentRules(agentIds)));
         }
 
-        public ColocateAgentsGenerator(String... agentIds) {
+        public RequireAgentsGenerator(String... agentIds) {
             this(Arrays.asList(agentIds));
         }
     }
 
     /**
-     * Ensures that the given Offer is NOT colocated with any of the specified agent IDs.
+     * Ensures that the given Offer is NOT located on any of the specified agent IDs.
      */
     public static class AvoidAgentsGenerator extends PassthroughGenerator {
 
