@@ -3,10 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -19,12 +16,16 @@ public class RandomRecoveryStrategy extends DefaultInstallStrategy {
     }
 
     @Override
-    public Optional<Block> getCurrentBlock() {
+    public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
         final List<? extends Block> blocks = filterOnlyPendingBlocks(getPhase().getBlocks());
-        if (isInterrupted() || CollectionUtils.isEmpty(blocks)) {
+        if (isInterrupted() || CollectionUtils.isEmpty(blocks) || blocks.size() <= dirtiedAssets.size()) {
             return Optional.empty();
         } else {
-            return Optional.of(blocks.get(new Random().nextInt(blocks.size())));
+            List<Block> cleanBlocks = blocks.stream()
+                    .filter(block -> !dirtiedAssets.contains(block.getName()))
+                    .collect(Collectors.toList());
+
+            return Optional.of(cleanBlocks.get(new Random().nextInt(cleanBlocks.size())));
         }
     }
 

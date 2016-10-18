@@ -35,7 +35,7 @@ import java.util.concurrent.*;
  * when possible.  Changes to the ServiceSpecification will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler implements Scheduler {
+public class DefaultScheduler implements Scheduler, Observer {
     private static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
     private static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
@@ -49,6 +49,7 @@ public class DefaultScheduler implements Scheduler {
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
 
+    private SchedulerDriver driver;
     private Reconciler reconciler;
     private StateStore stateStore;
     private TaskFailureListener taskFailureListener;
@@ -67,8 +68,18 @@ public class DefaultScheduler implements Scheduler {
     }
 
     public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
+        this(serviceSpecification,
+                zkConnectionString,
+                new CuratorStateStore(serviceSpecification.getName(), zkConnectionString));
+    }
+
+    public DefaultScheduler(
+            ServiceSpecification serviceSpecification,
+            String zkConnectionString,
+            StateStore stateStore) {
         this.serviceSpecification = serviceSpecification;
         this.zkConnectionString = zkConnectionString;
+        this.stateStore = stateStore;
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
     }
 
@@ -99,12 +110,12 @@ public class DefaultScheduler implements Scheduler {
                 recoveryPlanManager,
                 deployPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
+        planCoordinator.subscribe(this);
         logger.info("Done initializing.");
     }
 
     private void initializeGlobals(SchedulerDriver driver) {
         logger.info("Initializing globals...");
-        stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
@@ -122,7 +133,6 @@ public class DefaultScheduler implements Scheduler {
 
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
-                taskFailureListener,
                 recoveryRequirementProvider,
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
@@ -211,13 +221,16 @@ public class DefaultScheduler implements Scheduler {
             hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
 
+        this.driver = driver;
         reconciler.reconcile(driver);
+        suppressOrRevive();
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         logger.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        suppressOrRevive();
     }
 
     @Override
@@ -287,6 +300,7 @@ public class DefaultScheduler implements Scheduler {
                 try {
                     stateStore.storeStatus(status);
                     deployPlanManager.update(status);
+                    recoveryPlanManager.update(status);
                 } catch (Exception e) {
                     logger.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -343,5 +357,36 @@ public class DefaultScheduler implements Scheduler {
         }
 
         hardExit(SchedulerErrorCode.ERROR);
+    }
+
+    private boolean hasOperations() {
+        return planCoordinator.hasOperations();
+    }
+
+    private void suppressOrRevive() {
+        if (hasOperations()) {
+            reviveOffers();
+        } else {
+            suppressOffers();
+        }
+    }
+
+    private void reviveOffers() {
+        logger.info("Reviving offers.");
+        driver.reviveOffers();
+        stateStore.setSuppressed(false);
+    }
+
+    private void suppressOffers() {
+        logger.info("Suppressing offers.");
+        driver.suppressOffers();
+        stateStore.setSuppressed(true);
+    }
+
+    @Override
+    public void update(Observable observable) {
+        if (observable == planCoordinator) {
+            suppressOrRevive();
+        }
     }
 }

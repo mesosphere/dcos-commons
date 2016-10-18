@@ -10,6 +10,8 @@ import java.util.List;
 /**
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
  * optionally contain a List of errors associated with the phase.
+ *
+ * A {@DefaultPlan} is an {@Observable} and will forward updates from its {@Phase}s.
  */
 public class DefaultPlan extends ChainedObserver implements Plan {
 

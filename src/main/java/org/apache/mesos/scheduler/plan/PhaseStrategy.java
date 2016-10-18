@@ -1,22 +1,22 @@
 package org.apache.mesos.scheduler.plan;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A Phase PhaseStrategy governs when Blocks should be returned for procesing.
+ * A {@PhaseStrategy} governs which {@Block} should be executed next.
  */
 public interface PhaseStrategy {
 
     /**
-     *
      * @return The current Block selected by the strategy for execution.
+     * @param dirtiedAssets The assets to exclude.
      */
-    Optional<Block> getCurrentBlock();
+    Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets);
 
     /**
-     * If the current Plan is interrupted at this Phase. This phase should
-     * now proceed with execution.
+     * Continue executing the phase.  This method only has an effect if the phase is currently interrupted.
      */
     void proceed();
 
@@ -27,7 +27,7 @@ public interface PhaseStrategy {
     void interrupt();
 
     /**
-     * Restart phase execution at the current block.
+     * Restart phase execution at the given block.
      * @param blockId The unique id of the block to be restarted.
      */
     void restart(UUID blockId);

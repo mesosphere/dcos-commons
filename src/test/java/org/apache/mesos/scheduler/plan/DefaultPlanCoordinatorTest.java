@@ -6,6 +6,7 @@ import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.scheduler.ChainedObserver;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
@@ -171,7 +172,7 @@ public class DefaultPlanCoordinatorTest {
                 SUFFICIENT_MEM, SUFFICIENT_DISK)).size());
     }
 
-    public static class TestingPlanManager implements PlanManager {
+    public static class TestingPlanManager extends ChainedObserver implements PlanManager {
         Plan plan;
 
         @Override
@@ -254,11 +255,6 @@ public class DefaultPlanCoordinatorTest {
         @Override
         public List<String> getErrors() {
             return Arrays.asList();
-        }
-
-        @Override
-        public void update(Observable o, Object arg) {
-
         }
     }
 }

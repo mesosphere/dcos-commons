@@ -12,6 +12,8 @@ import java.util.*;
  * Default Phase implementation tracks Blocks both by their UUID and by
  * their ordering. It is an immutable class that can be constructed either
  * directly, or using a fluent style builder.
+ *
+ * A {@DefaultPhase} is an {@Observable} and will forward updates from its blocks.
  */
 public class DefaultPhase extends ChainedObserver implements Phase {
 

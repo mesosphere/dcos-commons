@@ -6,10 +6,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.state.SchemaVersionStore;
-import org.apache.mesos.state.StateStore;
-import org.apache.mesos.state.StateStoreException;
-import org.apache.mesos.state.StateStoreUtils;
+import org.apache.mesos.state.*;
 import org.apache.mesos.storage.Persister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -17,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -56,6 +54,7 @@ public class CuratorStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
+    private static final String SUPPRESSED_KEY = "suppressed";
 
     private final Persister curator;
     private final TaskPathMapper taskPathMapper;
@@ -413,5 +412,34 @@ public class CuratorStateStore implements StateStore {
         private String getTasksRootPath() {
             return tasksRootPath;
         }
+    }
+
+    public boolean isSuppressed() throws StateStoreException {
+        byte[] bytes = StateStoreUtils.fetchPropertyOrEmptyArray(this, SUPPRESSED_KEY);
+        Serializer serializer = new JsonSerializer();
+
+        boolean suppressed;
+        try {
+            suppressed = serializer.deserialize(bytes, Boolean.class);
+        } catch (IOException e){
+            logger.error("Error converting property " + SUPPRESSED_KEY + " to boolean.", e);
+            throw new StateStoreException(e);
+        }
+
+        return suppressed;
+    }
+
+    public void setSuppressed(final boolean isSuppressed) {
+        byte[] bytes;
+        Serializer serializer = new JsonSerializer();
+
+        try {
+            bytes = serializer.serialize(isSuppressed);
+        } catch (IOException e) {
+            logger.error("Error serializing property " + SUPPRESSED_KEY + ": " + isSuppressed + ".", e);
+            throw new StateStoreException(e);
+        }
+
+        storeProperty(SUPPRESSED_KEY, bytes);
     }
 }

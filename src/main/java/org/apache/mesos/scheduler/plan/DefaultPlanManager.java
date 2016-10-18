@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import com.google.protobuf.TextFormat;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.scheduler.ChainedObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,7 @@ import java.util.*;
  * Provides the default implementation of a {@link PlanManager}.
  * Encapsulates the plan and a strategy for executing that plan.
  */
-public class DefaultPlanManager implements PlanManager {
+public class DefaultPlanManager extends ChainedObserver implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanManager.class);
 
     protected final Map<UUID, PhaseStrategy> phaseStrategies = new HashMap<>();
@@ -31,6 +32,7 @@ public class DefaultPlanManager implements PlanManager {
     public void setPlan(final Plan plan) {
         LOGGER.info("Setting plan : state = {}", plan);
         this.plan = plan;
+        this.plan.subscribe(this);
     }
 
     @Override
@@ -60,7 +62,7 @@ public class DefaultPlanManager implements PlanManager {
     public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
         Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
         if (currPhaseOptional.isPresent()) {
-            final Optional<Block> currentBlock = currPhaseOptional.get().getCurrentBlock();
+            final Optional<Block> currentBlock = currPhaseOptional.get().getCurrentBlock(dirtiedAssets);
             if (currentBlock.isPresent()) {
                 if (CollectionUtils.isNotEmpty(dirtiedAssets)) {
                     final Block block = currentBlock.get();
@@ -199,13 +201,6 @@ public class DefaultPlanManager implements PlanManager {
     @Override
     public List<String> getErrors() {
         return plan.getErrors();
-    }
-
-    @Override
-    public void update(Observable o, Object obj) {
-        if (obj instanceof Protos.TaskStatus) {
-            update((Protos.TaskStatus) obj);
-        }
     }
 
     private Optional<PhaseStrategy> getCurrentPhaseStrategy() {

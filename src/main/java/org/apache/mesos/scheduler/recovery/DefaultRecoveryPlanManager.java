@@ -1,22 +1,20 @@
 package org.apache.mesos.scheduler.recovery;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.*;
+import org.apache.mesos.scheduler.*;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.InvalidTaskSpecificationException;
+import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
@@ -25,7 +23,7 @@ import java.util.*;
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link DefaultRecoveryBlock} for them and adds them to the recovery Plan, if not already added.
  */
-public class DefaultRecoveryPlanManager implements PlanManager {
+public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryPlanManager.class);
 
     protected volatile Plan plan;
@@ -33,7 +31,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     protected volatile Map<UUID, PhaseStrategy> phaseStrategies;
 
     private final StateStore stateStore;
-    private final TaskFailureListener failureListener;
     private final RecoveryRequirementProvider offerReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
@@ -41,7 +38,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
-            TaskFailureListener failureListener,
             RecoveryRequirementProvider offerReqProvider,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
@@ -49,69 +45,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         this.offerReqProvider = offerReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        this.failureListener = failureListener;
-    }
-
-    @VisibleForTesting
-    protected synchronized void refreshPlan(Collection<String> dirtiedAssets) {
-        Map<String, Protos.TaskInfo> recoveryCandidates = getRecoveryCandidates(getTerminatedTasks(dirtiedAssets));
-
-        final DefaultPhase.Builder newRecoveryPhaseBuilder = DefaultPhase.builder();
-        newRecoveryPhaseBuilder.setId(phaseId);
-
-        final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
-
-        // If recovery candidates are not part of a different PlanManager's plan, generate a recovery block for them
-        // and mark it as pending. Tasks that are still in terminal state, add them to plan directly
-        for (Map.Entry<String, Protos.TaskInfo> candidate : recoveryCandidates.entrySet()) {
-            final String name = candidate.getKey();
-            final Protos.TaskInfo taskInfo = candidate.getValue();
-            try {
-                final DefaultTaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
-                final List<RecoveryRequirement> recoveryRequirements;
-                if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
-                    recoveryRequirements = offerReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
-                } else {
-                    recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
-                }
-
-                newRecoveryPhaseBuilder.addBlock(new DefaultRecoveryBlock(
-                        taskSpecification.getName(),
-                        offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification),
-                        Status.PENDING,
-                        recoveryRequirements.get(0),
-                        launchConstrainer));
-            } catch (InvalidTaskSpecificationException | InvalidRequirementException e) {
-                LOGGER.error("Error adding recovery plan for task: " + name, e);
-            }
-        }
-
-        // For blocks in plan, that are not part of recovery candidates, determine their status,
-        // using the taskInfo status
-        if (plan != null) {
-            final List<? extends Phase> phases = plan.getPhases();
-            if (CollectionUtils.isNotEmpty(phases)) {
-                // Simple plan only deals with a single recovery phase. This makes it explicit.
-                final Phase phase = phases.get(0);
-                for (Block block : phase.getBlocks()) {
-                    final String taskName = block.getName();
-                    // Ignore blocks already added to the new plan.
-                    if (!recoveryCandidates.containsKey(taskName)) {
-                        final Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskName);
-                        if (taskStatus.isPresent()) {
-                            block.update(taskStatus.get());
-                            newRecoveryPhaseBuilder.addBlock(block);
-                        }
-                    }
-                }
-            }
-        }
-
-        final DefaultPhase recoveryPhase = newRecoveryPhaseBuilder.build();
-        plan = DefaultPlan.fromArgs(recoveryPhase);
-        phaseStrategy = new RandomRecoveryStrategy(recoveryPhase);
-        phaseStrategies = new HashMap<>();
-        phaseStrategies.put(recoveryPhase.getId(), phaseStrategy);
+        updatePlan(Collections.emptyList());
     }
 
     @Override
@@ -144,13 +78,11 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     @Override
     public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
-        refreshPlan(dirtiedAssets);
-
         if (phaseStrategy != null) {
-            final Optional<Block> chosenBlock = phaseStrategy.getCurrentBlock();
+            final Optional<Block> chosenBlock = phaseStrategy.getCurrentBlock(dirtiedAssets);
             if (chosenBlock.isPresent() &&
                     launchConstrainer.canLaunch(((DefaultRecoveryBlock) chosenBlock.get()).getRecoveryRequirement())) {
-                return Optional.of(chosenBlock.get());
+                return chosenBlock;
             }
         }
 
@@ -203,9 +135,57 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         }
     }
 
+    /**
+     * Updates the recovery plan if necessary.
+     *
+     * 1. Updates existing blocks.
+     * 2. If the needs recovery and doesn't yet have a block in the plan, removes any COMPLETED blocks for this task
+     *    (at most one block for a given task can exist) and creates a new PENDING block.
+     *
+     * @param status task status
+     */
     @Override
     public void update(Protos.TaskStatus status) {
-        LOGGER.info("Ignoring status: {}", TextFormat.shortDebugString(status));
+        try {
+            String taskName = TaskUtils.toTaskName(status.getTaskId());
+
+            Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskName);
+            if (!taskInfo.isPresent()) {
+                LOGGER.error("Failed to fetch TaskInfo for task (name={})", taskName);
+                return;
+            }
+
+            // 1. Update existing blocks.
+            this.plan.getPhases().forEach(
+                    phase -> phase.getBlocks().forEach(
+                            block -> block.update(status)));
+
+            boolean blockExists = this.plan.getPhases().stream()
+                    .filter(phase -> phase.getBlocks().stream()
+                            .filter(block -> block.getName().equals(taskName)).findAny().isPresent())
+                    .findAny().isPresent();
+
+            if (!blockExists && TaskUtils.needsRecovery(status)) {
+                Optional<Block> newBlock = createBlock(taskInfo.get());
+                if (newBlock.isPresent()) {
+                    Collection<Block> blocks = new ArrayList<>();
+
+                    // 2. remove any COMPLETED blocks for this task.
+                    for (Phase phase : this.plan.getPhases()) {
+                        blocks.addAll(phase.getBlocks().stream()
+                                .filter(block -> !(block.isComplete() && block.getName().equals(taskName)))
+                                .collect(Collectors.toList()));
+                    }
+
+                    // 3. Add new PENDING block.
+                    blocks.add(newBlock.get());
+
+                    updatePlan(blocks);
+                }
+            }
+        } catch (TaskException ex) {
+            LOGGER.error("Error updating status for task (id={})", status.getTaskId().toString(), ex);
+        }
     }
 
     @Override
@@ -228,53 +208,42 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         return plan != null ? plan.getErrors() : Arrays.asList();
     }
 
-    @Override
-    public void update(Observable o, Object arg) {
-        LOGGER.info("Ignoring update: {}", arg);
+    private void updatePlan(Collection<Block> blocks) {
+        Phase phase = DefaultPhase.builder()
+                .setId(phaseId)
+                .addBlocks(blocks)
+                .build();
+
+        plan = DefaultPlan.fromArgs(phase);
+        plan.subscribe(this);
+
+        phaseStrategy = new RandomRecoveryStrategy(phase);
+        phaseStrategies = new HashMap<>();
+        phaseStrategies.put(phase.getId(), phaseStrategy);
+        this.notifyObservers();
     }
 
-    /**
-     * Returns all terminated tasks, excluding those corresponding to {@code block}.  This allows for mutual exclusion
-     * with another scheduler.
-     *
-     * @param dirtiedAssets Blocks with tasks to exclude, empty if no tasks should be excluded
-     * @return Terminated tasks, excluding those corresponding to {@code block}
-     */
-    @VisibleForTesting
-    protected Collection<Protos.TaskInfo> getTerminatedTasks(Collection<String> dirtiedAssets) {
-        final List<Protos.TaskInfo> filteredTerminatedTasks = new ArrayList<>();
-
+    private Optional<Block> createBlock(Protos.TaskInfo taskInfo) {
         try {
-            final Collection<Protos.TaskInfo> terminatedTasks = stateStore.fetchTasksNeedingRecovery();
-            if (CollectionUtils.isEmpty(dirtiedAssets)) {
-                return terminatedTasks;
+            final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
+            final TaskSpecification taskSpec = DefaultTaskSpecification.create(taskInfo);
+            final List<RecoveryRequirement> recoveryRequirements;
+
+            if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
+                recoveryRequirements = offerReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
+            } else {
+                recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
             }
 
-            for (Protos.TaskInfo taskForRepair : terminatedTasks) {
-                if (!dirtiedAssets.contains(taskForRepair.getName())) {
-                    filteredTerminatedTasks.add(taskForRepair);
-                }
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Failed to fetch terminated tasks.", ex);
+            return Optional.of(new DefaultRecoveryBlock(
+                    taskSpec.getName(),
+                    offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpec),
+                    Status.PENDING,
+                    recoveryRequirements.get(0),
+                    launchConstrainer));
+        } catch (InvalidTaskSpecificationException | InvalidRequirementException ex) {
+            LOGGER.error("Error creating recovery block.", ex);
+            return Optional.empty();
         }
-
-        return filteredTerminatedTasks;
-    }
-
-    @VisibleForTesting
-    protected Map<String, Protos.TaskInfo> getRecoveryCandidates(Collection<Protos.TaskInfo> terminatedTasks) {
-        final Map<String, Protos.TaskInfo> recoveryCandidates = new HashMap<>();
-
-        for (Protos.TaskInfo terminatedTask : terminatedTasks) {
-            LOGGER.info("Found stopped task: {}", TextFormat.shortDebugString(terminatedTask));
-            if (FailureUtils.isLabeledAsFailed(terminatedTask) || failureMonitor.hasFailed(terminatedTask)) {
-                LOGGER.info("Marking stopped task as failed: {}", TextFormat.shortDebugString(terminatedTask));
-                failureListener.taskFailed(terminatedTask.getTaskId());
-            }
-            recoveryCandidates.put(terminatedTask.getName(), terminatedTask);
-        }
-
-        return recoveryCandidates;
     }
 }
