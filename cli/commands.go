@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -161,26 +162,12 @@ func HandleConnectionSection(app *kingpin.Application, connectionTypes []string)
 // Plan section
 
 type PlanHandler struct {
+	PhaseId string
+	BlockId string
 }
 
 func (cmd *PlanHandler) RunActive(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/plan/status"))
-	return nil
-}
-func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPPost("v1/plan/continue"))
-	return nil
-}
-func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPPost("v1/plan/forceComplete"))
-	return nil
-}
-func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPPost("v1/plan/interrupt"))
-	return nil
-}
-func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPPost("v1/plan/restart"))
 	return nil
 }
 func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
@@ -193,17 +180,48 @@ func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
 	return nil
 }
 
+func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPPost("v1/plan/continue"))
+	return nil
+}
+func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPPost("v1/plan/interrupt"))
+	return nil
+}
+
+func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
+	query := url.Values{}
+	query.Set("phase", cmd.PhaseId)
+	query.Set("block", cmd.BlockId)
+	PrintJSON(HTTPPostQuery("v1/plan/forceComplete", query.Encode()))
+	return nil
+}
+func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
+	query := url.Values{}
+	query.Set("phase", cmd.PhaseId)
+	query.Set("block", cmd.BlockId)
+	PrintJSON(HTTPPostQuery("v1/plan/restart", query.Encode()))
+	return nil
+}
+
 func HandlePlanSection(app *kingpin.Application) {
 	// plan <active, continue, force, interrupt, restart, show>
 	cmd := &PlanHandler{}
 	plan := app.Command("plan", "Query service plans")
 
 	plan.Command("active", "Display the active operation chain, if any").Action(cmd.RunActive)
-	plan.Command("continue", "Continue a currently Waiting operation").Action(cmd.RunContinue)
-	plan.Command("force", "Force the current operation to complete").Action(cmd.RunForce)
-	plan.Command("interrupt", "Interrupt the current InProgress operation").Action(cmd.RunInterrupt)
-	plan.Command("restart", "Restart the current operation").Action(cmd.RunRestart)
 	plan.Command("show", "Display the full plan").Action(cmd.RunShow)
+
+	plan.Command("continue", "Continue a currently Waiting operation").Action(cmd.RunContinue)
+	plan.Command("interrupt", "Interrupt the current InProgress operation").Action(cmd.RunInterrupt)
+
+	force := plan.Command("force", "Force the current operation to complete").Action(cmd.RunForce)
+	force.Arg("phase", "UUID of the Phase containing the provided Block").Required().StringVar(&cmd.PhaseId)
+	force.Arg("block", "UUID of Block to be restarted").Required().StringVar(&cmd.BlockId)
+
+	restart := plan.Command("restart", "Restart the current operation").Action(cmd.RunRestart)
+	restart.Arg("phase", "UUID of the Phase containing the provided Block").Required().StringVar(&cmd.PhaseId)
+	restart.Arg("block", "UUID of Block to be restarted").Required().StringVar(&cmd.BlockId)
 }
 
 // State section
