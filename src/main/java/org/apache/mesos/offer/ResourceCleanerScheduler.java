@@ -4,12 +4,13 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.scheduler.plan.*;
 
 import java.util.*;
 
 /**
  * This scheduler performs UNRESERVE and DESTROY operations on resources which are identified
- * as unexpected by the ResourceCleaner. 
+ * as unexpected by the ResourceCleaner.
  */
 public class ResourceCleanerScheduler {
   private ResourceCleaner resourceCleaner;

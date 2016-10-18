@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,11 +33,11 @@ public class PlanResourceTest {
     @Test
     public void testGetStatus() {
         // just do the bare minimum. see CurrentlyActiveInfoTests for more thorough tests.
-        when(mockPlanManager.getCurrentBlock()).thenReturn(null);
+        when(mockPlanManager.getCurrentBlock(Arrays.asList())).thenReturn(null);
         when(mockPlanManager.getCurrentPhase()).thenReturn(null);
         when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlanManager.getStatus()).thenReturn(Status.COMPLETE);
-        when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.empty());
+        when(mockPlanManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
         when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.empty());
         when(mockPlan.getPhases()).thenReturn(new ArrayList<>());
         when(mockPlan.getErrors()).thenReturn(new ArrayList<>());
