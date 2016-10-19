@@ -363,7 +363,7 @@ Docker image to remove persistent state:
 local $ AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
 local $ dcos node ssh --master-proxy --leader
 cluster $ docker run mesosphere/janitor /janitor.py \
-    -r data-store-role
+    -r data-store-role \
     -p data-store-principal \
     -z dcos-service-data-store \
     --auth_token=$AUTH_TOKEN
