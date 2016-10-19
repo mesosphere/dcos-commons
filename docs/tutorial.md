@@ -793,7 +793,7 @@ local machine.  These clients must authenticate.  For example:
 
 ```bash
 curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
-    "$(dcos config show core.dcos_url)service/data-store/v1/plan/status"
+    "$(dcos config show core.dcos_url)/service/data-store/v1/plan/status"
 ```
 
 To learn more about DC/OS Authentication, visit the
