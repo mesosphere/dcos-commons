@@ -98,13 +98,12 @@ public class TaskConfigRouterTest {
     @Test
     public void testTypeMapping() {
         TaskConfigRouter router = new TaskConfigRouter(TEST_MAP);
-        ImmutableMap<String, ConfigValue> values = router.getConfig("a-b").getAll();
-        assertEquals(values.toString(), 3, values.size());
-        assertEquals("SIX", values.get("FIVE").requiredString());
-        assertEquals("TASKCFG_A_B_FIVE=SIX", values.get("FIVE").toString());
-        assertEquals("BAR", values.get("FOO").requiredString());
-        assertEquals("TASKCFG_ALL_FOO=BAR", values.get("FOO").toString());
-        assertEquals("BAZ", values.get("BAR").requiredString());
-        assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
+        ImmutableMap<String, ConfigValue> valuesUpperUnderscore = router.getConfig("A_B").getAll();
+        assertEquals(3, valuesUpperUnderscore.size());
+        assertEquals(valuesUpperUnderscore, router.getConfig("A-B").getAll());
+        assertEquals(valuesUpperUnderscore, router.getConfig("A.B").getAll());
+        assertEquals(valuesUpperUnderscore, router.getConfig("a_b").getAll());
+        assertEquals(valuesUpperUnderscore, router.getConfig("a.b").getAll());
+        assertEquals(valuesUpperUnderscore, router.getConfig("A-B").getAll());
     }
 }

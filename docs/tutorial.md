@@ -559,15 +559,22 @@ underlying service tasks themselves in a flexible way.
 To simplify the common task of getting user-facing configuration to
 service tasks, the developer may follow the following convention in
 naming the environment variables for these configuration options:
-`TASKCFG_<TASK_TYPE>_<NAME>`
+`TASKCFG_<TASK_TYPE>_<CFGNAME>`, where `<TASK_TYPE>` has been
+converted from the task type to fit the requirements of environment
+variables:
 
-For example, an option for tasks of type `index-mgr` should be named
-`TASKCFG_INDEX_MGR_FOO`, while an option for tasks of type `data`
-should be named `TASKCFG_DATA_FOO`. These configuration options will
-automatically be forwarded to the environments of the matching tasks
-as environment variables, with the `TASKCFG_<TASK_TYPE>_` prefixes
-removed. A special prefix of `TASKCFG_ALL_<NAME>` may be used for
-any options that should be passed to *every* task type.
+- Uppercased
+- Non-alphanumeric characters (punctuation, whitespace) converted
+  to underscores
+
+For example, an option named `FOO` for tasks of type `index.mgr`
+should be named `TASKCFG_INDEX_MGR_FOO`, while an option `BAR` for
+tasks of type `data-node` should be named `TASKCFG_DATA_NODE_BAR`.
+These configuration options will automatically be forwarded to the
+environments of the matching tasks as environment variables, with
+the `TASKCFG_<TASK_TYPE>_` prefixes removed. A special prefix of
+`TASKCFG_ALL_<NAME>` may be used for any options that should be
+passed to *every* task type.
 
 A common need for service developers is an easy way to write
 configuration files before launching tasks. To fulfill this need,
