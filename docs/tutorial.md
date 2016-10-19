@@ -645,11 +645,10 @@ unit tests.
 
 ## Integration Tests
 
-The [shakedown](http://github.com/shakedown) library is a tool for
+The [shakedown](https://github.com/dcos/shakedown) library is a tool for
 writing integration tests for DC/OS services.  For an example, see
 [the tests for DC/OS
-Kafka](https://github.com/mesosphere/dcos-kafka-service/tree/master/
-integration/tests).
+Kafka](https://github.com/mesosphere/dcos-kafka-service/tree/master/integration/tests).
 
 # Metrics
 
