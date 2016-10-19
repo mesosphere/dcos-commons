@@ -1,4 +1,4 @@
 rootProject.name = 'dcos-commons'
 
-include "dcos-commons"
-include "custom-executor"
+include "core"
+include "executor"
