@@ -364,7 +364,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testOfferAcceptedOnce() throws Exception {
+    public void testLaunchAndRecovery() throws Exception {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
         Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
@@ -415,8 +415,8 @@ public class DefaultSchedulerTest {
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
         defaultScheduler.awaitTermination();
 
-        // Verify scheduler accepted resources only once
-        verify(mockSchedulerDriver, times(1)).acceptOffers(any(), any(), any());
+        // Verify scheduler accepted resources twice, once for scheduling and once for recovery.
+        verify(mockSchedulerDriver, times(2)).acceptOffers(any(), any(), any());
     }
 
     private int countOperationType(

@@ -1,10 +1,10 @@
 package org.apache.mesos.scheduler.plan;
 
+import com.google.protobuf.TextFormat;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.protobuf.TextFormat;
 
 import java.util.*;
 
@@ -15,20 +15,16 @@ import java.util.*;
 public class DefaultPlanManager implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanManager.class);
 
-    /**
-     * Access to {@code phaseStrategies} MUST be locked/synchronized against
-     * {@code phaseStrategies}.
-     */
     protected final Map<UUID, PhaseStrategy> phaseStrategies = new HashMap<>();
     protected volatile Plan plan;
 
-    private final PhaseStrategyFactory strategyFactory;
-
     public DefaultPlanManager(final Plan plan,
-                              final PhaseStrategyFactory
-                                      strategyFactory) {
-        this.strategyFactory = strategyFactory;
+                              final PhaseStrategyFactory strategyFactory) {
         setPlan(plan);
+        final List<? extends Phase> phases = plan.getPhases();
+        for (Phase phase : phases) {
+            phaseStrategies.put(phase.getId(), strategyFactory.getStrategy(phase));
+        }
     }
 
     @Override
@@ -61,10 +57,34 @@ public class DefaultPlanManager implements PlanManager {
     }
 
     @Override
-    public Optional<Block> getCurrentBlock() {
+    public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
         Optional<PhaseStrategy> currPhaseOptional = getCurrentPhaseStrategy();
-        return currPhaseOptional.isPresent() ?
-                currPhaseOptional.get().getCurrentBlock() : Optional.empty();
+        if (currPhaseOptional.isPresent()) {
+            final Optional<Block> currentBlock = currPhaseOptional.get().getCurrentBlock();
+            if (currentBlock.isPresent()) {
+                if (CollectionUtils.isNotEmpty(dirtiedAssets)) {
+                    final Block block = currentBlock.get();
+                    for (String dirtyAsset : dirtiedAssets) {
+                        if (Objects.equals(dirtyAsset, block.getName())) {
+                            LOGGER.info("Chosen block is already dirtied by other PlanManager. No block to schedule.");
+                            return Optional.empty();
+                        }
+                    }
+                    LOGGER.info("Chosen block is not dirtied by other PlanManager. Returning block: {}",
+                            currentBlock.get().getName());
+                    return currentBlock;
+                } else {
+                    LOGGER.info("There are no dirty assets. Returning block: {}", currentBlock.get().getName());
+                    return currentBlock;
+                }
+            } else {
+                LOGGER.info("No block to schedule.");
+                return Optional.empty();
+            }
+        } else {
+            LOGGER.info("No phase to schedule.");
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -167,50 +187,7 @@ public class DefaultPlanManager implements PlanManager {
 
     @Override
     public Status getStatus() {
-        // Ordering matters throughout this method.  Modify with care.
-
-        Status result;
-        if (!getErrors().isEmpty()) {
-            result = Status.ERROR;
-            LOGGER.warn("(status={}) Plan contains errors", result);
-        } else if (plan.getPhases().isEmpty()) {
-            result = Status.COMPLETE;
-            LOGGER.warn("(status={}) Plan doesn't have any phases", result);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, plan)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.info("(status={}) At least one phase has status: {}", result, Status.IN_PROGRESS);
-        } else if (anyHaveStatus(Status.WAITING, plan)) {
-            result = Status.WAITING;
-            LOGGER.info("(status={}) At least one phase has status: {}", result, Status.WAITING);
-        } else if (allHaveStatus(Status.COMPLETE, plan)) {
-            result = Status.COMPLETE;
-            LOGGER.info("(status={}) All phases have status: {}", result, Status.COMPLETE);
-        } else if (allHaveStatus(Status.PENDING, plan)) {
-            result = Status.PENDING;
-            LOGGER.info("(status={}) All phases have status: {}", result, Status.PENDING);
-        } else if (anyHaveStatus(Status.COMPLETE, plan) && anyHaveStatus(Status.PENDING, plan)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.info("(status={}) At least one phase has status '{}' and one has status '{}'",
-                    result, Status.COMPLETE, Status.PENDING);
-        } else {
-            result = null;
-            LOGGER.error("(status={}) Unexpected state. Plan: {}", result, plan);
-        }
-        return result;
-    }
-
-    public boolean allHaveStatus(Status status, Plan plan) {
-        final List<? extends Phase> phases = plan.getPhases();
-        return phases
-                .stream()
-                .allMatch(phase -> getStrategy(phase).getStatus() == status);
-    }
-
-    public boolean anyHaveStatus(Status status, Plan plan) {
-        final List<? extends Phase> phases = plan.getPhases();
-        return phases
-                .stream()
-                .anyMatch(phase -> getStrategy(phase).getStatus() == status);
+        return PlanManagerUtils.getStatus(getPlan(), phaseStrategies);
     }
 
     @Override
@@ -271,14 +248,7 @@ public class DefaultPlanManager implements PlanManager {
             LOGGER.warn("null phase");
             return null;
         }
-        synchronized (phaseStrategies) {
-            if (!phaseStrategies.containsKey(phase.getId())) {
-                phaseStrategies.put(
-                        phase.getId(),
-                        strategyFactory.getStrategy(phase));
-            }
-            return phaseStrategies.get(phase.getId());
-        }
+        return phaseStrategies.get(phase.getId());
     }
 
     /**

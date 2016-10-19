@@ -5,9 +5,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.executor.ExecutorUtils;
-import org.apache.mesos.offer.constrain.AgentRule;
-import org.apache.mesos.offer.constrain.AndRule;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.*;
 import org.junit.Assert;
@@ -912,26 +911,9 @@ public class OfferEvaluatorTest {
     }
 
     private static OfferRequirement getOfferRequirement(
-            Protos.Resource resource, List<String> avoidAgents, List<String> colocateAgents)
+            Protos.Resource resource, List<String> avoidAgents, List<String> collocateAgents)
                     throws InvalidRequirementException {
-        Optional<PlacementRuleGenerator> placement;
-        if (!avoidAgents.isEmpty()) {
-            if (!colocateAgents.isEmpty()) {
-                // avoid and colocate enforcement
-                placement = Optional.of(new AndRule.Generator(
-                        new AgentRule.AvoidAgentsGenerator(avoidAgents),
-                        new AgentRule.ColocateAgentsGenerator(colocateAgents)));
-            } else {
-                // avoid enforcement only
-                placement = Optional.of(new AgentRule.AvoidAgentsGenerator(avoidAgents));
-            }
-        } else if (!colocateAgents.isEmpty()) {
-            // colocate enforcement only
-            placement = Optional.of(new AgentRule.ColocateAgentsGenerator(colocateAgents));
-        } else {
-            // no colocate/avoid enforcement
-            placement = Optional.empty();
-        }
+        Optional<PlacementRuleGenerator> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
         return new OfferRequirement(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(TaskTestUtils.getTaskInfo(resource)),

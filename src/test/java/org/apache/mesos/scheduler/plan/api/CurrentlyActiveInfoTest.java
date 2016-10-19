@@ -47,7 +47,7 @@ public class CurrentlyActiveInfoTest {
 
         when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);
-        when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.empty());
+        when(mockPlanManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.empty());
         when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.empty());
 
         CurrentlyActiveInfo activeInfo = CurrentlyActiveInfo.forPlan(mockPlanManager);
@@ -108,7 +108,7 @@ public class CurrentlyActiveInfoTest {
         List<String> stageErrors = Arrays.asList("err0", "err1");
         when(mockPlan.getErrors()).thenReturn(stageErrors);
 
-        when(mockPlanManager.getCurrentBlock()).thenReturn(Optional.of(mockBlock0));
+        when(mockPlanManager.getCurrentBlock(Arrays.asList())).thenReturn(Optional.of(mockBlock0));
         when(mockPlanManager.getCurrentPhase()).thenReturn(Optional.of(mockPhase0));
         when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlanManager.getStatus()).thenReturn(Status.WAITING);

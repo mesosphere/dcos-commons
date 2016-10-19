@@ -34,7 +34,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addAllResources(getNewResources(taskSpecification));
         TaskUtils.setConfigFiles(taskBuilder, taskSpecification.getConfigFiles());
 
-        return new OfferRequirement(taskType, Arrays.asList(taskBuilder.build()));
+        return new OfferRequirement(
+                taskType,
+                Arrays.asList(taskBuilder.build()),
+                Optional.empty(),
+                taskSpecification.getPlacement());
     }
 
     @Override
@@ -80,7 +84,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         try {
             return new OfferRequirement(
                     TaskUtils.getTaskType(taskInfo),
-                    Arrays.asList(taskBuilder.build()));
+                    Arrays.asList(taskBuilder.build()),
+                    Optional.empty(),
+                    taskSpecification.getPlacement());
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }

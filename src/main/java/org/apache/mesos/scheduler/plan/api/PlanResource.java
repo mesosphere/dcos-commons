@@ -11,6 +11,7 @@ import java.util.UUID;
 /**
  * API for plan display and control.
  */
+@Deprecated
 @Path("/v1/plan")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

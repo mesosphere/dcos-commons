@@ -9,6 +9,7 @@ import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.PlanManager;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ class CurrentlyActiveInfo {
     }
 
     public static CurrentlyActiveInfo forPlan(final PlanManager manager) {
-        Optional<Block> activeBlockOptional = manager.getCurrentBlock();
+        Optional<Block> activeBlockOptional = manager.getCurrentBlock(Arrays.asList());
         Optional<Phase> activePhaseOptional = manager.getCurrentPhase();
         return create(
             activeBlockOptional.isPresent() ? BlockInfo.forBlock(activeBlockOptional.get(), manager) : null,
