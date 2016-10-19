@@ -22,7 +22,7 @@ public class TestBlock extends DefaultObservable implements Block {
     }
 
     @Override
-    public Strategy getStrategy() {
+    public Strategy<? extends Block> getStrategy() {
         return new SerialStrategy();
     }
 

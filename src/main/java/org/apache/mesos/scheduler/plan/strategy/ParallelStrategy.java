@@ -15,4 +15,21 @@ public class ParallelStrategy<C extends Element> extends InterruptableStrategy<C
         DependencyStrategyHelper helper = new DependencyStrategyHelper(parentElement);
         return helper.getCandidates(dirtyAssets);
     }
+
+    @Override
+    public StrategyGenerator<C> getGenerator() {
+        return new Generator<>();
+    }
+
+    /**
+     * This class generates Strategy objects of the appropriate type.
+     *
+     * @param <C> is the type of {@link Element}s to which the Strategy applies.
+     */
+    public static class Generator<C extends Element> implements StrategyGenerator<C> {
+        @Override
+        public Strategy<C> generate() {
+            return new RandomStrategy<>();
+        }
+    }
 }

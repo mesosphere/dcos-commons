@@ -24,6 +24,11 @@ public class SerialStrategy<C extends Element> extends InterruptableStrategy<C> 
        return getDependencyStrategyHelper(parentElement).getCandidates(dirtyAssets);
     }
 
+    @Override
+    public StrategyGenerator<C> getGenerator() {
+        return new Generator<>();
+    }
+
     private DependencyStrategyHelper getDependencyStrategyHelper(Element element) {
         if (dependencyStrategyHelper == null) {
             dependencyStrategyHelper = new DependencyStrategyHelper(element);
@@ -38,5 +43,17 @@ public class SerialStrategy<C extends Element> extends InterruptableStrategy<C> 
         }
 
         return dependencyStrategyHelper;
+    }
+
+    /**
+     * This class generates Strategy objects of the appropriate type.
+     *
+     * @param <C> is the type of {@link Element}s to which the Strategy applies.
+     */
+    public static class Generator<C extends Element> implements StrategyGenerator<C> {
+        @Override
+        public Strategy<C> generate() {
+            return new SerialStrategy<>();
+        }
     }
 }

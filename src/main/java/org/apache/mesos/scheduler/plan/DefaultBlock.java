@@ -114,7 +114,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
     }
 
     @Override
-    public Strategy getStrategy() {
+    public Strategy<? extends Block> getStrategy() {
         return strategy;
     }
 

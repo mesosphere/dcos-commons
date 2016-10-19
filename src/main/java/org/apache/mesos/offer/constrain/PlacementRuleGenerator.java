@@ -17,5 +17,5 @@ public interface PlacementRuleGenerator {
      *
      * @param tasks all currently deployed tasks, against which the returned value is generated
      */
-    public PlacementRule generate(Collection<TaskInfo> tasks);
+    PlacementRule generate(Collection<TaskInfo> tasks);
 }

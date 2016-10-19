@@ -1,7 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
-import org.apache.mesos.scheduler.plan.strategy.Strategy;
+import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.ServiceSpecification;
 
 import java.util.Collections;
@@ -12,23 +12,23 @@ import java.util.stream.Collectors;
  * Given a StateStore and a PlanSpecification the DefaultPlanFactory can generate a Plan.
  */
 public class DefaultPlanFactory implements PlanFactory {
-    private final Strategy<? extends Phase> strategy;
+    private final StrategyGenerator<Phase> strategyGenerator;
     private final PhaseFactory phaseFactory;
 
     public DefaultPlanFactory(PhaseFactory phaseFactory) {
-        this(phaseFactory, new SerialStrategy());
+        this(phaseFactory, new SerialStrategy.Generator<>());
     }
 
-    public DefaultPlanFactory(PhaseFactory phaseFactory, Strategy<? extends Phase> strategy) {
-        this.strategy = strategy;
+    public DefaultPlanFactory(PhaseFactory phaseFactory, StrategyGenerator<Phase> strategyGenerator) {
         this.phaseFactory = phaseFactory;
+        this.strategyGenerator = strategyGenerator;
     }
 
     @Override
     public Plan getPlan(ServiceSpecification serviceSpecification) {
         return new Default(
                 serviceSpecification.getName(),
-                strategy,
+                strategyGenerator.generate(),
                 getPhases(serviceSpecification),
                 Collections.emptyList());
     }

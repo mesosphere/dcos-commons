@@ -13,6 +13,8 @@ import java.util.Collection;
 public interface Strategy<C extends Element> {
     Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets);
 
+    StrategyGenerator<C> getGenerator();
+
     void interrupt();
 
     void proceed();

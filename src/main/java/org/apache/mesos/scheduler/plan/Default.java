@@ -17,7 +17,7 @@ import java.util.UUID;
 public class Default extends ChainedObserver implements Plan {
 
     private final UUID id = UUID.randomUUID();
-    private final Strategy<? extends Phase> strategy;
+    private final Strategy<Phase> strategy;
     private final List<Element> phases;
     private final List<String> errors;
     private final String name;
@@ -25,7 +25,7 @@ public class Default extends ChainedObserver implements Plan {
 
     public Default(
             final String name,
-            final Strategy<? extends Phase> strategy,
+            final Strategy<Phase> strategy,
             final List<Element> phases,
             final List<String> errors) {
 
@@ -48,7 +48,7 @@ public class Default extends ChainedObserver implements Plan {
     }
 
     @Override
-    public Strategy getStrategy() {
+    public Strategy<Phase> getStrategy() {
         return strategy;
     }
 
