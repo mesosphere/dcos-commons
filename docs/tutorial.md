@@ -363,7 +363,7 @@ Docker image to remove persistent state:
 local $ AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
 local $ dcos node ssh --master-proxy --leader
 cluster $ docker run mesosphere/janitor /janitor.py \
-    -r data-store-role
+    -r data-store-role \
     -p data-store-principal \
     -z dcos-service-data-store \
     --auth_token=$AUTH_TOKEN
@@ -793,7 +793,7 @@ local machine.  These clients must authenticate.  For example:
 
 ```bash
 curl -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
-    "$(dcos config show core.dcos_url)service/data-store/v1/plan/status"
+    "$(dcos config show core.dcos_url)/service/data-store/v1/plan/status"
 ```
 
 To learn more about DC/OS Authentication, visit the
