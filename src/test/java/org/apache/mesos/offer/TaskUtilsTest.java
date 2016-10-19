@@ -8,7 +8,11 @@ import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -215,6 +219,30 @@ public class TaskUtilsTest {
                         "this is a second config template"));
 
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testSetGetConfigTemplates() throws InvalidProtocolBufferException {
+        Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
+        Collection<ConfigFileSpecification> configs = Arrays.asList(
+                new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
+                new DefaultConfigFileSpecification("../relative/path/to/config2", "this is a second config template"));
+        TaskUtils.setConfigFiles(taskBuilder, configs);
+        Assert.assertEquals(configs, TaskUtils.getConfigFiles(taskBuilder.build()));
+    }
+
+    @Test(expected=IllegalStateException.class)
+    public void testSetTemplatesTooBig() throws InvalidProtocolBufferException {
+        Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 100 * 1024; ++i) {
+            sb.append('a');
+        }
+        Collection<ConfigFileSpecification> configs = Arrays.asList(
+                new DefaultConfigFileSpecification("../relative/path/to/config", sb.toString()),
+                new DefaultConfigFileSpecification("../relative/path/to/config2", sb.toString()),
+                new DefaultConfigFileSpecification("../relative/path/to/config3", "a"));
+        TaskUtils.setConfigFiles(taskBuilder, configs);
     }
 
     @Test

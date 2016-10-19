@@ -58,8 +58,10 @@ public class TaskConfigRouter {
 
     private static Set<String> getPrefixesForTaskType(String taskType) {
         Set<String> set = new HashSet<>();
-        set.add(String.format(TASKCFG_ENV_FORMAT, taskType.toUpperCase())); // TASKCFG_<TASKTYPE>_* for this type
-        set.add(ALL_TASKS_PREFIX); // TASKCFG_ALL_* for all types
+        // convert eg "index-mgr" to "TASKCFG_INDEX_MGR_":
+        String taskTypePrefix = String.format(TASKCFG_ENV_FORMAT, taskType.toUpperCase().replace('-', '_'));
+        set.add(taskTypePrefix); // TASKCFG_<TASK_TYPE>_* for items matching this type
+        set.add(ALL_TASKS_PREFIX); // TASKCFG_ALL_* for items matching all types
         return set;
     }
 }
