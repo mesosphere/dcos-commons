@@ -2,7 +2,9 @@ package org.apache.mesos.scheduler.plan;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.*;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
@@ -20,9 +22,9 @@ public class DefaultBlockFactory implements BlockFactory {
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
 
-    public DefaultBlockFactory(StateStore stateStore) {
+    public DefaultBlockFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
         this.stateStore = stateStore;
-        this.offerRequirementProvider = new DefaultOfferRequirementProvider();
+        this.offerRequirementProvider = offerRequirementProvider;
     }
 
     @Override

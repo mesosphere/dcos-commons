@@ -17,7 +17,7 @@ public interface TaskSpecification {
     String getName();
 
     /**
-     * Returns the Mesos {@code CommandInfo} to be used for the starting task.
+     * Returns the Mesos {@link Protos.CommandInfo} to be used for the starting task.
      */
     Protos.CommandInfo getCommand();
 
@@ -38,8 +38,17 @@ public interface TaskSpecification {
     Collection<VolumeSpecification> getVolumes();
 
     /**
-     * Returns the placement constraint for this task type. This can be anything from "colocate with
-     * another type", "ensure instances are only launched on nodes with attribute X", etc. This may
+     * Returns the Configuration Files to be written for this task, or an empty list if no custom
+     * configurations should be written.
+     *
+     * Note: There is a limit of 100KB (102,400B) across all template data for a given task. If you
+     * need to exceed this limit, consider using resource files.
+     */
+    Collection<ConfigFileSpecification> getConfigFiles();
+
+    /**
+     * Returns the placement constraint for this task. This can be anything from "colocate with
+     * another task", "ensure instances are only launched on nodes with attribute X", etc. This may
      * return an empty {@code Optional} if no specific placement rules are applicable.
      *
      * See the documentation for {@link PlacementRuleGenerator} and {@link PlacementRule} for more

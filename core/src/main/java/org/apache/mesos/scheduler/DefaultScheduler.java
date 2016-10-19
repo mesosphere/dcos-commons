@@ -53,6 +53,7 @@ public class DefaultScheduler implements Scheduler {
     private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
+    private OfferRequirementProvider offerRequirementProvider;
     private Plan deployPlan;
     private PlanManager deployPlanManager;
     private PlanScheduler planScheduler;
@@ -107,13 +108,14 @@ public class DefaultScheduler implements Scheduler {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        offerRequirementProvider = new DefaultOfferRequirementProvider();
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
     }
 
     private void initializeRecoveryPlanManager() {
         LOGGER.info("Initializing recovery plan...");
         final RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider);
         final LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
 
@@ -135,7 +137,7 @@ public class DefaultScheduler implements Scheduler {
         LOGGER.info("Initializing deployment plan...");
         try {
             LOGGER.info("Deploy plan: {}", deployPlan);
-            deployPlan = new DefaultPlanFactory(stateStore).getPlan(serviceSpecification);
+            deployPlan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
         } catch (InvalidRequirementException e) {
             LOGGER.error("Failed to generate deployPlan with exception: ", e);
             hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);

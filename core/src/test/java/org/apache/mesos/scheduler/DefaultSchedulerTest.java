@@ -15,12 +15,13 @@ import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.rules.DisableOnDebug;
-import org.junit.rules.TestRule;
-import org.junit.rules.Timeout;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -34,7 +35,7 @@ import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.*;
 
 /**
@@ -42,9 +43,8 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
     @Mock private SchedulerDriver mockSchedulerDriver;
+    @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -62,7 +62,6 @@ public class DefaultSchedulerTest {
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
     private static TestingServer testingServer;
-    private ServiceSpecification serviceSpecification;
     private DefaultScheduler defaultScheduler;
     private EnvironmentVariables environmentVariables;
 
@@ -77,7 +76,7 @@ public class DefaultSchedulerTest {
         CuratorTestUtils.clear(testingServer);
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
-        serviceSpecification = new ServiceSpecification() {
+        ServiceSpecification serviceSpecification = new ServiceSpecification() {
             @Override
             public String getName() {
                 return SERVICE_NAME;
@@ -118,7 +117,7 @@ public class DefaultSchedulerTest {
     public void testEmptyOffers() {
         defaultScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
         verify(mockSchedulerDriver, times(1)).reconcileTasks(any());
-        verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollection(), any());
+        verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
     }
 
@@ -132,9 +131,8 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resource and wait for its acceptance
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA(offerId)));
-        ArgumentCaptor<Collection> operationsCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
-                (Collection<Protos.OfferID>) Matchers.argThat(contains(getOfferId(offerId))),
+                collectionThat(contains(getOfferId(offerId))),
                 operationsCaptor.capture(),
                 any());
 
@@ -153,7 +151,7 @@ public class DefaultSchedulerTest {
 
         // Wait for the Block to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskA0).isComplete(), equalTo(true));
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -172,9 +170,8 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resource and wait for its acceptance
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskB(offerId)));
-        ArgumentCaptor<Collection> operationsCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
-                (Collection<Protos.OfferID>) Matchers.argThat(contains(getOfferId(offerId))),
+                collectionThat(contains(getOfferId(offerId))),
                 operationsCaptor.capture(),
                 any());
 
@@ -193,7 +190,7 @@ public class DefaultSchedulerTest {
 
         // Wait for the Block to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskB0).isComplete(), equalTo(true));
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -207,7 +204,7 @@ public class DefaultSchedulerTest {
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         defaultScheduler.awaitTermination();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -217,7 +214,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskA cpu and mem requirements
-        serviceSpecification = new ServiceSpecification() {
+        ServiceSpecification serviceSpecification = new ServiceSpecification() {
             @Override
             public String getName() {
                 return SERVICE_NAME;
@@ -243,13 +240,11 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -259,7 +254,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskB cpu and mem requirements
-        serviceSpecification = new ServiceSpecification() {
+        ServiceSpecification serviceSpecification = new ServiceSpecification() {
             @Override
             public String getName() {
                 return SERVICE_NAME;
@@ -285,13 +280,11 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -301,7 +294,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskB cpu and mem requirements
-        serviceSpecification = new ServiceSpecification() {
+        ServiceSpecification serviceSpecification = new ServiceSpecification() {
             @Override
             public String getName() {
                 return SERVICE_NAME;
@@ -327,13 +320,11 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -343,7 +334,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Increase count of TaskA tasks.
-        serviceSpecification = new ServiceSpecification() {
+        ServiceSpecification serviceSpecification = new ServiceSpecification() {
             @Override
             public String getName() {
                 return SERVICE_NAME;
@@ -369,15 +360,11 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertTrue(inExpectedState(
-                plan,
-                Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING), getBlockStatuses(plan));
     }
 
     @Test
@@ -390,11 +377,10 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resource and wait for its acceptance
         UUID offerId1 = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA(offerId1)));
-        ArgumentCaptor<Collection> operationsCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
-            (Collection<Protos.OfferID>) Matchers.argThat(contains(getOfferId(offerId1))),
-            operationsCaptor.capture(),
-            any());
+                collectionThat(contains(getOfferId(offerId1))),
+                operationsCaptor.capture(),
+                any());
 
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
 
@@ -405,7 +391,7 @@ public class DefaultSchedulerTest {
 
         // Wait for the Block to become Complete
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskA0).isComplete(), equalTo(true));
-        Assert.assertTrue(inExpectedState(plan, Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING)));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
 
         // Sent TASK_KILLED status
         runningStatus = getTaskStatus(launchedTaskId, Protos.TaskState.TASK_KILLED);
@@ -511,51 +497,31 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private Protos.OfferID getOfferId(UUID id) {
+    private static Protos.OfferID getOfferId(UUID id) {
         return Protos.OfferID.newBuilder().setValue(id.toString()).build();
     }
 
-    private boolean inExpectedState(Plan plan, List<Status> statuses) {
-        if (countBlocks(plan) != statuses.size()) {
-            return false;
-        }
-
-        int i = 0;
+    private static List<Status> getBlockStatuses(Plan plan) {
+        List<Status> statuses = new ArrayList<>();
         for (Phase phase : plan.getPhases()) {
             for (Block block : phase.getBlocks()) {
-                switch (statuses.get(i)) {
-                    case PENDING:
-                        if (!block.isPending()) {
-                            return false;
-                        }
-                        break;
-                    case IN_PROGRESS:
-                        if (!block.isInProgress()) {
-                            return false;
-                        }
-                        break;
-                    case COMPLETE:
-                        if (!block.isComplete()) {
-                            return false;
-                        }
-                        break;
-                    default:
-                        return false;
-                }
-
-                i++;
+                statuses.add(Block.getStatus(block));
             }
         }
-
-        return true;
+        return statuses;
     }
 
-    private int countBlocks(Plan plan) {
-        int i = 0;
-        for (Phase phase : plan.getPhases()) {
-            i += phase.getBlocks().size();
-        }
+    private static <T> Collection<T> collectionThat(final Matcher<Iterable<? extends T>> matcher) {
+        return Matchers.argThat(new BaseMatcher<Collection<T>>() {
+            @Override
+            public boolean matches(Object item) {
+                return matcher.matches(item);
+            }
 
-        return i;
+            @Override
+            public void describeTo(Description description) {
+                matcher.describeTo(description);
+            }
+        });
     }
 }

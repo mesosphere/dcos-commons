@@ -22,7 +22,7 @@ public class DefaultTaskSet implements TaskSet {
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes) {
-        return create(count, name, command, resources, volumes, Optional.empty());
+        return create(count, name, command, resources, volumes, new ArrayList<>(), Optional.empty());
     }
 
     public static DefaultTaskSet create(
@@ -31,6 +31,7 @@ public class DefaultTaskSet implements TaskSet {
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
+            Collection<ConfigFileSpecification> configs,
             Optional<PlacementRuleGenerator> placementOptional) {
 
         List<TaskSpecification> taskSpecifications = new ArrayList<>();
@@ -40,10 +41,11 @@ public class DefaultTaskSet implements TaskSet {
                     command,
                     resources,
                     volumes,
+                    configs,
                     placementOptional));
         }
 
-        return new DefaultTaskSet(name, taskSpecifications);
+        return create(name, taskSpecifications);
     }
 
     public static DefaultTaskSet create(String name, List<TaskSpecification> taskSpecifications) {
@@ -64,7 +66,6 @@ public class DefaultTaskSet implements TaskSet {
     public List<TaskSpecification> getTaskSpecifications() {
         return taskSpecifications;
     }
-
 
     @Override
     public String toString() {
