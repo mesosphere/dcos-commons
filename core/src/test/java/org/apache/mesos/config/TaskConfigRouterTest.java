@@ -18,10 +18,10 @@ import static org.junit.Assert.assertTrue;
  */
 public class TaskConfigRouterTest {
 
-    private static final TaskSet TASK_SET_A = DefaultTaskSet.create("A", new ArrayList<>());
-    private static final TaskSet TASK_SET_B = DefaultTaskSet.create("B", new ArrayList<>());
-    private static final TaskSet TASK_SET_C = DefaultTaskSet.create("C", new ArrayList<>());
-    private static final TaskSet TASK_SET_D = DefaultTaskSet.create("D", new ArrayList<>());
+    private static final TaskSet TASK_SET_A = DefaultTaskSet.create("a", new ArrayList<>());
+    private static final TaskSet TASK_SET_B = DefaultTaskSet.create("b", new ArrayList<>());
+    private static final TaskSet TASK_SET_C = DefaultTaskSet.create("c", new ArrayList<>());
+    private static final TaskSet TASK_SET_D = DefaultTaskSet.create("d", new ArrayList<>());
 
     private static final Map<String, String> TEST_MAP = new HashMap<>();
     static {
@@ -89,6 +89,19 @@ public class TaskConfigRouterTest {
 
         values = router.getConfig("E").getAll();
         assertEquals(2, values.size());
+        assertEquals("BAR", values.get("FOO").requiredString());
+        assertEquals("TASKCFG_ALL_FOO=BAR", values.get("FOO").toString());
+        assertEquals("BAZ", values.get("BAR").requiredString());
+        assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
+    }
+
+    @Test
+    public void testTypeMapping() {
+        TaskConfigRouter router = new TaskConfigRouter(TEST_MAP);
+        ImmutableMap<String, ConfigValue> values = router.getConfig("a-b").getAll();
+        assertEquals(values.toString(), 3, values.size());
+        assertEquals("SIX", values.get("FIVE").requiredString());
+        assertEquals("TASKCFG_A_B_FIVE=SIX", values.get("FIVE").toString());
         assertEquals("BAR", values.get("FOO").requiredString());
         assertEquals("TASKCFG_ALL_FOO=BAR", values.get("FOO").toString());
         assertEquals("BAZ", values.get("BAR").requiredString());

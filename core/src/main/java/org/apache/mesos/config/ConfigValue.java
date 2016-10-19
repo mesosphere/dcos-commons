@@ -1,5 +1,8 @@
 package org.apache.mesos.config;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
  * Wrapper around a string value, providing convenience functions for converting the string to
  * various types.
@@ -188,6 +191,16 @@ public class ConfigValue {
     @Override
     public String toString() {
         return String.format("%s=%s", debugName, value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     private NumberFormatException formatException(String typeName) {

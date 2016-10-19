@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
  */
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
+    private static final int CONFIG_TEMPLATE_LIMIT_BYTES = 100 * 1024; // 100KB
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
     private static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
@@ -219,23 +220,39 @@ public class TaskUtils {
     }
 
     /**
-     * Stores the provided config file data in the TaskInfo.
+     * Stores the provided config file data in the provided {@link TaskInfo}'s {@code data} field.
+     * Any existing content in the {@code data} field will be overwritten.
+     *
+     * @throws IllegalStateException if the provided TaskInfo already has {@code data} populated, or
+     *                               if the sum total of the provided template content exceeds 100KB
+     *                               (102,400B)
      */
-    public static void setConfigFiles(
-            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpecification> configs) {
+    public static TaskInfo.Builder setConfigFiles(
+            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpecification> configs)
+            throws IllegalStateException {
         // Use the Labels protobuf for serialization.
         Labels.Builder labelsBuilder = Labels.newBuilder();
+        int totalSize = 0;
         for (ConfigFileSpecification config : configs) {
+            totalSize += config.getTemplateContent().length();
             labelsBuilder.addLabelsBuilder()
                 .setKey(config.getRelativePath())
                 .setValue(config.getTemplateContent());
         }
+        if (totalSize > CONFIG_TEMPLATE_LIMIT_BYTES) {
+            throw new IllegalStateException(String.format(
+                    "Provided config template content of %dB across %d files exceeds limit of %dB. "
+                    + "Reduce the size of your config templates by at least %dB.",
+                    totalSize, configs.size(), CONFIG_TEMPLATE_LIMIT_BYTES,
+                    totalSize - CONFIG_TEMPLATE_LIMIT_BYTES));
+        }
         taskBuilder.setData(labelsBuilder.build().toByteString());
+        return taskBuilder;
     }
 
     /**
-     * Retrieves the config file data, if any, from the provided TaskInfo. If no data is found,
-     * returns an empty collection.
+     * Retrieves the config file data, if any, from the provided {@link TaskInfo}'s {@code data}
+     * field. If no data is found, returns an empty collection.
      */
     public static Collection<ConfigFileSpecification> getConfigFiles(TaskInfo taskInfo)
             throws InvalidProtocolBufferException {
