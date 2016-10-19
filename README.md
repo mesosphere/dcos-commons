@@ -1,7 +1,7 @@
 Mesosphere DCOS Commons
 ======================
 
-[![Build Status](http://jenkins.mesosphere.com/service/jenkins/buildStatus/icon?job=infinity-dcos-commons)](http://jenkins.mesosphere.com/service/jenkins/job/infinity-dcos-commons/)
+[![Build Status](https://jenkins.mesosphere.com/service/jenkins/buildStatus/icon?job=dcos-commons/infinity-dcos-commons-master)](https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons/job/infinity-dcos-commons-master/)
 
 This project is a collection of classes and utilities necessary for building a DCOS service.  It is written in Java and
 is Java 1.7 compatible. 
