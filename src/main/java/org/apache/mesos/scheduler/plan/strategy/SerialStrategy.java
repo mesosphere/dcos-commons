@@ -24,7 +24,6 @@ public class SerialStrategy<C extends Element> extends InterruptableStrategy<C> 
        return getDependencyStrategyHelper(parentElement).getCandidates(dirtyAssets);
     }
 
-    @Override
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }

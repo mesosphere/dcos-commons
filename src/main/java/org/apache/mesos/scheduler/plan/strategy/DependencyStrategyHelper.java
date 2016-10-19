@@ -13,25 +13,42 @@ import java.util.stream.Collectors;
  */
 public class DependencyStrategyHelper<C extends Element> {
     private final Map<C, Set<C>> dependencies;
-    private final Element parentElement;
+    private final Collection<? extends Element> elements;
 
-    public DependencyStrategyHelper(Element parentElement) {
-        this.parentElement = parentElement;
-        this.dependencies = new HashMap<>();
-
-        parentElement.getChildren().forEach(child -> dependencies.put((C) child, new HashSet<>()));
+    public DependencyStrategyHelper() {
+        this(Collections.emptyList());
     }
 
-    public void addDependency(C parent, C child) {
-        Set<C> deps = dependencies.get(parent);
-        if (deps == null) {
-            throw new RuntimeException(
-                    String.format("Attempted to add dependency to unknown element. parent: %s, child: %s",
-                            parent, child));
+    public DependencyStrategyHelper(Collection<? extends Element> elements) {
+        this.elements = elements;
+        this.dependencies = new HashMap<>();
+        elements.forEach(child -> dependencies.put((C) child, new HashSet<>()));
+    }
+
+    public DependencyStrategyHelper(Element parentElement) {
+        this(parentElement.getChildren());
+    }
+
+    public void addElement(C element) throws InvalidDependencyException {
+        if (dependencies.get(element) != null) {
+            throw new InvalidDependencyException("Attempted to overwrite previously added element.");
         }
 
-        deps.add(child);
-        dependencies.put(parent, deps);
+        dependencies.put(element, new HashSet<C>());
+    }
+
+    public void addDependency(C child, C parent) {
+        Set<C> deps = dependencies.get(child);
+        if (deps == null) {
+            deps = new HashSet<>();
+        }
+
+        if (dependencies.get(parent) == null) {
+            dependencies.put(parent, new HashSet<>());
+        }
+
+        deps.add(parent);
+        dependencies.put(child, deps);
     }
 
     public Collection<C> getCandidates(Collection<String> dirtyAssets) {
@@ -46,11 +63,24 @@ public class DependencyStrategyHelper<C extends Element> {
         return candidates;
     }
 
+    public Map<C, Set<C>> getDependencies() {
+        return dependencies;
+    }
+
     private boolean dependenciesFulfilled(Set<C> deps) {
         if (deps.isEmpty()) {
             return true;
         } else {
             return deps.stream().allMatch(c -> c.isComplete());
+        }
+    }
+
+    /**
+     * An {@link InvalidDependencyException} is thrown when an attempt generate an invalid dependency occurs.
+     */
+    public static class InvalidDependencyException extends Exception {
+        public InvalidDependencyException(String message) {
+            super(message);
         }
     }
 }

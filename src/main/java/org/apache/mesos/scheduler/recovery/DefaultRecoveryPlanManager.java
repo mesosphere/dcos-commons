@@ -126,10 +126,10 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 strategy,
                 Collections.emptyList());
 
-        Default recoveryPlan = new Default(
+        DefaultPlan recoveryPlan = new DefaultPlan(
                 "Recovery",
-                new SerialStrategy(),
                 Arrays.asList(recoveryPhase),
+                new SerialStrategy(),
                 Collections.emptyList());
 
         plan = recoveryPlan;

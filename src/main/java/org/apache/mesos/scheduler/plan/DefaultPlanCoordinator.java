@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Default implementation of PlanCoordinator.
+ * DefaultPlan implementation of PlanCoordinator.
  */
 public class DefaultPlanCoordinator implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);

@@ -16,7 +16,6 @@ public class ParallelStrategy<C extends Element> extends InterruptableStrategy<C
         return helper.getCandidates(dirtyAssets);
     }
 
-    @Override
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }

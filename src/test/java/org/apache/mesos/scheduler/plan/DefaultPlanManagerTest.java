@@ -104,10 +104,10 @@ public class DefaultPlanManagerTest {
                 new SerialStrategy(),
                 Collections.emptyList());
 
-        Plan inProgressPlan = new Default(
+        Plan inProgressPlan = new DefaultPlan(
                 "test-plan",
-                new SerialStrategy(),
                 Arrays.asList(reconciliationPhase, phase0),
+                new SerialStrategy(),
                 Collections.emptyList());
 
         Block reconciliationBlock = (Block) reconciliationPhase.getChildren().get(0);
@@ -191,10 +191,10 @@ public class DefaultPlanManagerTest {
                 new SerialStrategy(),
                 Collections.emptyList());
 
-        Default plan = new Default(
+        DefaultPlan plan = new DefaultPlan(
                 "test-plan",
-                new SerialStrategy(),
                 Arrays.asList(phase0),
+                new SerialStrategy(),
                 Collections.emptyList());
 
         verify(mockBlock, times(0)).update(any());
@@ -213,7 +213,7 @@ public class DefaultPlanManagerTest {
     }
 
     private static Plan getEmptyPlan() {
-        return new Default("test-plan", new SerialStrategy(), Collections.emptyList(), Collections.emptyList());
+        return new DefaultPlan("test-plan", Collections.emptyList(), new SerialStrategy(), Collections.emptyList());
     }
 
     private static Plan getTestPlan(Block phase0Block, Block phase1Block) {
@@ -229,10 +229,10 @@ public class DefaultPlanManagerTest {
                 new SerialStrategy(),
                 Collections.emptyList());
 
-        return new Default(
+        return new DefaultPlan(
                 "test-plan",
-                new SerialStrategy(),
                 Arrays.asList(phase0, phase1),
+                new SerialStrategy(),
                 Collections.emptyList());
     }
 }

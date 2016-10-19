@@ -22,7 +22,6 @@ public class RandomStrategy<C extends Element> extends InterruptableStrategy<C> 
         return candidateOptional.isPresent() ? Arrays.asList(candidateOptional.get()) : Collections.emptyList();
     }
 
-    @Override
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }

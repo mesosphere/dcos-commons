@@ -14,7 +14,7 @@ import java.util.UUID;
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
  * optionally contain a List of errors associated with the phase.
  */
-public class Default extends ChainedObserver implements Plan {
+public class DefaultPlan extends ChainedObserver implements Plan {
 
     private final UUID id = UUID.randomUUID();
     private final Strategy<Phase> strategy;
@@ -23,10 +23,10 @@ public class Default extends ChainedObserver implements Plan {
     private final String name;
     private Status status;
 
-    public Default(
+    public DefaultPlan(
             final String name,
-            final Strategy<Phase> strategy,
             final List<Element> phases,
+            final Strategy<Phase> strategy,
             final List<String> errors) {
 
         this.name = name;

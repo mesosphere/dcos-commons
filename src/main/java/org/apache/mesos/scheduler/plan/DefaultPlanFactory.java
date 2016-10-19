@@ -26,10 +26,10 @@ public class DefaultPlanFactory implements PlanFactory {
 
     @Override
     public Plan getPlan(ServiceSpecification serviceSpecification) {
-        return new Default(
+        return new DefaultPlan(
                 serviceSpecification.getName(),
-                strategyGenerator.generate(),
                 getPhases(serviceSpecification),
+                strategyGenerator.generate(),
                 Collections.emptyList());
     }
 

@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Default Phase implementation tracks Blocks both by their UUID and by
+ * DefaultPlan Phase implementation tracks Blocks both by their UUID and by
  * their ordering. It is an immutable class that can be constructed either
  * directly, or using a fluent style builder.
  */
