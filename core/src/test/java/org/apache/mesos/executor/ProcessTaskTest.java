@@ -1,6 +1,5 @@
 package org.apache.mesos.executor;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -10,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -101,7 +101,7 @@ public class ProcessTaskTest {
                 ExecutorDriver executorDriver,
                 Protos.TaskInfo taskInfo,
                 ProcessBuilder processBuilder,
-                boolean exitOnTermination) throws InvalidProtocolBufferException {
+                boolean exitOnTermination) throws IOException {
             super(executorDriver, taskInfo, processBuilder, exitOnTermination);
         }
 

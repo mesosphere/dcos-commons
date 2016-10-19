@@ -73,7 +73,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
         Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
                 .addMissingToEnvironment(taskSpecification.getCommand());
-        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfo)
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
                 .clearExecutor()
                 .setCommand(updatedCommand)
@@ -81,7 +81,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addAllResources(getVolumes(taskInfo.getResourcesList()))
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
-        TaskUtils.setConfigFiles(taskBuilder, taskSpecification.getConfigFiles());
+        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
 
         try {
             return new OfferRequirement(

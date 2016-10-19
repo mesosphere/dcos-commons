@@ -28,6 +28,7 @@ ext {
     jettyServletVer = "9.2.3.v20140905"
     jerseyVer = "2.23.2";
     jsonProviderVer = "2.2.3"
+    mustacheVer = "0.9.2"
 }
 
 group = "mesosphere"
@@ -69,6 +70,7 @@ dependencies {
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.eclipse.jetty:jetty-servlet:${jettyServletVer}"
+    compile "com.github.spullara.mustache.java:compiler:${mustacheVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
     testCompile "org.mockito:mockito-all:${mockitoVer}"

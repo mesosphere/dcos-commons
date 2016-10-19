@@ -1,5 +1,8 @@
 package org.apache.mesos.offer;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -14,6 +17,7 @@ import org.apache.mesos.specification.TaskSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -520,8 +524,14 @@ public class TaskUtils {
         return resourceMap;
     }
 
+    /**
+     * Returns a {@link CommandInfo.URI} that wraps the given URI string.
+     * @param uri The URI to be encapsulated
+     * @return The {@link CommandInfo.org.apache.mesos.Protos.CommandInfo.URI} that wraps the given URI
+     */
     public static CommandInfo.URI uri(String uri) {
         return CommandInfo.URI.newBuilder().setValue(uri).build();
+    }
 
     /**
      * Returns a path=>template mapping of the provided {@link ConfigFileSpecification}s. Assumes
@@ -543,5 +553,64 @@ public class TaskUtils {
             }
         }
         return configMap;
+    }
+
+    /**
+     * Sets up the config files on the executor side.
+     * @param taskInfo The {@link TaskInfo} to extract the config file data from
+     * @throws IOException if the data in the taskInfo is not valid or the config can't be written to disk
+     */
+    public static void setupConfigFiles(TaskInfo taskInfo) throws IOException {
+
+        LOGGER.info("Setting up config files");
+        final Map<String, String> environment = fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Collection<ConfigFileSpecification> configFileSpecifications = getConfigFiles(taskInfo);
+
+        for (ConfigFileSpecification configFileSpecification : configFileSpecifications) {
+            writeConfigFile(
+                    configFileSpecification.getRelativePath(),
+                    configFileSpecification.getTemplateContent(),
+                    environment
+            );
+        }
+    }
+
+    /**
+     * Injects the proper data into the given config template and writes the populated template to disk.
+     * @param relativePath The path to write the file
+     * @param templateContent The content of the config template
+     * @param environment The environment from which to extract the injection data
+     * @throws IOException if the data can't be written to disk
+     */
+    private static void writeConfigFile(
+            String relativePath,
+            String templateContent,
+            Map<String, String> environment) throws IOException {
+
+        LOGGER.info("Writing config file: {}", relativePath);
+
+        File configFile = new File(relativePath);
+        Writer writer = null;
+
+        if (!configFile.exists()) {
+            try {
+                configFile.createNewFile();
+            } catch (IOException e) {
+                throw new IOException(String.format("Can't create config file %s: %s", relativePath, e));
+            }
+        }
+
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(relativePath), "utf-8"));
+            MustacheFactory mf = new DefaultMustacheFactory();
+            Mustache mustache = mf.compile(new StringReader(templateContent), "configTemplate");
+            mustache.execute(writer, environment);
+            writer.close();
+        } catch (IOException e) {
+            if (writer != null) {
+                writer.close();
+            }
+            throw new IOException(String.format("Can't write to file %s: %s", relativePath, e));
+        }
     }
 }

@@ -1,6 +1,5 @@
 package org.apache.mesos.executor;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -9,6 +8,7 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.*;
 
@@ -33,19 +33,19 @@ public class ProcessTask implements ExecutorTask {
     private static final Duration TERMINATE_TIMEOUT = Duration.ofSeconds(10);
 
     public static ProcessTask create(ExecutorDriver executorDriver, Protos.TaskInfo taskInfo)
-            throws InvalidProtocolBufferException {
+            throws IOException {
         return create(executorDriver, taskInfo, true);
     }
 
     public static ProcessTask create(ExecutorDriver executorDriver, Protos.TaskInfo taskInfo, boolean exitOnTermination)
-            throws InvalidProtocolBufferException {
+            throws IOException {
         return create(executorDriver, taskInfo, TaskUtils.getProcess(taskInfo), exitOnTermination);
     }
 
     public static ProcessTask create(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
-            ProcessBuilder processBuilder) throws InvalidProtocolBufferException {
+            ProcessBuilder processBuilder) throws IOException {
         return create(executorDriver, taskInfo, processBuilder, true);
     }
 
@@ -53,7 +53,7 @@ public class ProcessTask implements ExecutorTask {
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             ProcessBuilder processBuilder,
-            boolean exitOnTermination) throws InvalidProtocolBufferException {
+            boolean exitOnTermination) throws IOException {
         return new ProcessTask(executorDriver, taskInfo, processBuilder, exitOnTermination);
     }
 
@@ -65,7 +65,7 @@ public class ProcessTask implements ExecutorTask {
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
             ProcessBuilder processBuilder,
-            boolean exitOnTermination) throws InvalidProtocolBufferException {
+            boolean exitOnTermination) throws IOException {
         this.driver = executorDriver;
         this.taskInfo = taskInfo;
         String taskTypeTest;
@@ -77,6 +77,8 @@ public class ProcessTask implements ExecutorTask {
         this.taskType = taskTypeTest;
         this.processBuilder = processBuilder;
         this.exitOnTermination = exitOnTermination;
+
+        TaskUtils.setupConfigFiles(taskInfo);
     }
 
     public void preStart() {
