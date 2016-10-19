@@ -561,9 +561,9 @@ service tasks, the developer may follow the following convention in
 naming the environment variables for these configuration options:
 `TASKCFG_<TASK_TYPE>_<NAME>`
 
-For example, an option for tasks of type `index-mgr` could be named
+For example, an option for tasks of type `index-mgr` should be named
 `TASKCFG_INDEX_MGR_FOO`, while an option for tasks of type `data`
-could be named `TASKCFG_DATA_FOO`. These configuration options will
+should be named `TASKCFG_DATA_FOO`. These configuration options will
 automatically be forwarded to the environments of the matching tasks
 as environment variables, with the `TASKCFG_<TASK_TYPE>_` prefixes
 removed. A special prefix of `TASKCFG_ALL_<NAME>` may be used for
