@@ -1,8 +1,8 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
+import org.junit.Assert;
 import org.junit.Test;
-import org.testng.Assert;
 
 import java.util.ArrayList;
 import java.util.Collections;

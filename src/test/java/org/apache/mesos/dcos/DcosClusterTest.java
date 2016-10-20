@@ -1,9 +1,9 @@
 package org.apache.mesos.dcos;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.testng.Assert;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
