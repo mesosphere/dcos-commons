@@ -1,13 +1,13 @@
 package org.apache.mesos.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.mesos.Protos.Value.Range;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link Algorithms}.
@@ -73,6 +73,7 @@ public class AlgorithmsTest {
 
         assertTrue(difference.isEmpty());
     }
+
     private static Range getRange(int begin, int end) {
         Range.Builder builder = Range.newBuilder();
         builder.setBegin(begin);
