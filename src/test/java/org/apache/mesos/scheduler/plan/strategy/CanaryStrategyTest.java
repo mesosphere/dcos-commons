@@ -1,34 +1,34 @@
 package org.apache.mesos.scheduler.plan.strategy;
 
 import org.apache.mesos.scheduler.plan.Element;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.testng.Assert;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
- * Created by gabriel on 10/19/16.
+ * Created by gabriel on 10/20/16.
  */
-public class SerialStrategyTest {
+public class CanaryStrategyTest {
     @Mock Element parentElement;
     @Mock Element el0;
     @Mock Element el1;
     @Mock Element el2;
 
-    private SerialStrategy strategy;
+    private CanaryStrategy strategy;
     private List<Element> elements;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        strategy = new SerialStrategy();
+        strategy = new CanaryStrategy();
 
         when(el0.getStrategy()).thenReturn(new SerialStrategy<>());
         when(el1.getStrategy()).thenReturn(new SerialStrategy<>());
@@ -47,15 +47,25 @@ public class SerialStrategyTest {
     }
 
     @Test
-    public void testSerialExecution() {
+    public void testCanaryExecution() {
+        // Initially no candidates should be returned
+        Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
+
+        // Proceed the first time.
+        strategy.proceed();
         Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
         Assert.assertEquals(el0, strategy.getCandidates(parentElement, Collections.emptyList()).iterator().next());
 
         when(el0.isComplete()).thenReturn(true);
         when(el0.isPending()).thenReturn(false);
+        Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
+
+        // Proceed the second time.
+        strategy.proceed();
         Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
         Assert.assertEquals(el1, strategy.getCandidates(parentElement, Collections.emptyList()).iterator().next());
 
+        // After el1 completes the rest should roll out without intervention.
         when(el1.isComplete()).thenReturn(true);
         when(el1.isPending()).thenReturn(false);
         Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
@@ -64,28 +74,5 @@ public class SerialStrategyTest {
         when(el2.isComplete()).thenReturn(true);
         when(el2.isPending()).thenReturn(false);
         Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
-    }
-
-    @Test
-    public void testDirtyAssetAvoidance() {
-        // Can't launch because asset is dirty
-        Assert.assertEquals(0, strategy.getCandidates(parentElement, Arrays.asList(el0.getName())).size());
-        // Can launch now
-        Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
-        Assert.assertEquals(el0, strategy.getCandidates(parentElement, Collections.emptyList()).iterator().next());
-
-        when(el0.isComplete()).thenReturn(true);
-        when(el0.isPending()).thenReturn(false);
-        // Can launch because element 0 is dirty, but it's complete now.
-        Assert.assertEquals(1, strategy.getCandidates(parentElement, Arrays.asList(el0.getName())).size());
-        // Can't launch because asset is dirty
-        Assert.assertEquals(0, strategy.getCandidates(parentElement, Arrays.asList(el1.getName())).size());
-        // Can't launch because asset is dirty
-        Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
-
-        when(el1.isComplete()).thenReturn(true);
-        when(el1.isPending()).thenReturn(false);
-        Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
-        Assert.assertEquals(el2, strategy.getCandidates(parentElement, Collections.emptyList()).iterator().next());
     }
 }
