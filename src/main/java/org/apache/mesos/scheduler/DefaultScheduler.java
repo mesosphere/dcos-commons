@@ -43,29 +43,45 @@ public class DefaultScheduler implements Scheduler {
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
+    private final String name;
 
     private Reconciler reconciler;
     private StateStore stateStore;
     private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
-    private Plan deployPlan;
     private PlanManager deployPlanManager;
     private PlanScheduler planScheduler;
     private PlanManager recoveryPlanManager;
     private PlanCoordinator planCoordinator;
     private Collection<Object> resources;
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification) {
-        this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
+        return create(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
-        this.serviceSpecification = serviceSpecification;
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification, String zkConnectionString) {
+        StateStore stateStore = new CuratorStateStore(serviceSpecification.getName());
+        BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
+        PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
+        Plan deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        return create(serviceSpecification.getName(), new DefaultPlanManager(deployPlan), zkConnectionString);
+    }
+
+    public static DefaultScheduler create(String name, PlanManager deploymentPlanManager) {
+        return create(name, deploymentPlanManager, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    }
+
+    public static DefaultScheduler create(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
+        return new DefaultScheduler(name, deploymentPlanManager, zkConnectionString);
+    }
+
+    protected DefaultScheduler(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
+        this.name = name;
+        this.deployPlanManager = deploymentPlanManager;
         this.zkConnectionString = zkConnectionString;
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
     }
@@ -84,14 +100,13 @@ public class DefaultScheduler implements Scheduler {
     }
 
     Plan getPlan() {
-        return deployPlan;
+        return deployPlanManager.getPlan();
     }
 
     private void initialize(SchedulerDriver driver) throws InterruptedException {
         logger.info("Initializing...");
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
-        initializeDeploymentPlanManager();
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
                 recoveryPlanManager,
@@ -102,7 +117,7 @@ public class DefaultScheduler implements Scheduler {
 
     private void initializeGlobals(SchedulerDriver driver) {
         logger.info("Initializing globals...");
-        stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
+        stateStore = new CuratorStateStore(name, zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
@@ -126,19 +141,6 @@ public class DefaultScheduler implements Scheduler {
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
     }
 
-    private void initializeDeploymentPlanManager() {
-        logger.info("Initializing deployment PlanManager...");
-        initializeDeploymentPlan();
-        deployPlanManager = new DefaultPlanManager(deployPlan);
-    }
-
-    private void initializeDeploymentPlan() {
-        logger.info("Initializing deployment plan...");
-        logger.info("Deploy plan: {}", deployPlan);
-        BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
-        PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
-        deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-    }
 
     private void initializeResources() throws InterruptedException {
         logger.info("Initializing resources...");
@@ -147,7 +149,7 @@ public class DefaultScheduler implements Scheduler {
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore));
-        resources.add(new TaskResource(stateStore, taskKiller, serviceSpecification.getName()));
+        resources.add(new TaskResource(stateStore, taskKiller, name));
         resourcesQueue.put(resources);
     }
 

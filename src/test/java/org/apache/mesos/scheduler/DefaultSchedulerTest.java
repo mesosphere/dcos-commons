@@ -96,9 +96,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
     }
 
@@ -238,9 +236,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -280,9 +276,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -322,9 +316,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -364,9 +356,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();

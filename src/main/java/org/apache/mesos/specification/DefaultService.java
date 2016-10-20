@@ -49,7 +49,9 @@ public class DefaultService implements Service {
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
         this.stateStore = new CuratorStateStore(serviceSpecification.getName());
-        DefaultScheduler defaultScheduler = new DefaultScheduler(serviceSpecification);
+
+        DefaultScheduler defaultScheduler = DefaultScheduler.create(serviceSpecification);
+
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), MASTER_URI);
     }
