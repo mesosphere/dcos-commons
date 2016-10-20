@@ -32,10 +32,10 @@ public class DefaultPlanBuilderTest {
         when(phase2.getStrategy()).thenReturn(new SerialStrategy<>());
         when(phase3.getStrategy()).thenReturn(new SerialStrategy<>());
 
-        when(phase0.getName()).thenReturn("phase0");
-        when(phase1.getName()).thenReturn("phase1");
-        when(phase2.getName()).thenReturn("phase2");
-        when(phase2.getName()).thenReturn("phase3");
+        when(phase0.getName()).thenReturn("block0");
+        when(phase1.getName()).thenReturn("block1");
+        when(phase2.getName()).thenReturn("block2");
+        when(phase3.getName()).thenReturn("block3");
 
         when(phase0.isPending()).thenReturn(true);
         when(phase1.isPending()).thenReturn(true);
@@ -51,17 +51,21 @@ public class DefaultPlanBuilderTest {
         planBuilder.addDependency(phase1, phase0);
         DefaultPlan plan = planBuilder.build();
 
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase0, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         when(phase0.isComplete()).thenReturn(true);
         when(phase0.isPending()).thenReturn(false);
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         // Try again, shouldn't change.
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         when(phase1.isComplete()).thenReturn(true);
         when(phase1.isPending()).thenReturn(false);
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase2, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         when(phase2.isComplete()).thenReturn(true);
@@ -103,6 +107,7 @@ public class DefaultPlanBuilderTest {
         planBuilder.addDependency(phase2, phase0);
         DefaultPlan plan = planBuilder.build();
 
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase0, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         when(phase0.isComplete()).thenReturn(true);
@@ -111,13 +116,16 @@ public class DefaultPlanBuilderTest {
 
         when(phase1.isComplete()).thenReturn(true);
         when(phase1.isPending()).thenReturn(false);
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase2, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         // Try again, shouldn't change.
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase2, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         when(phase2.isComplete()).thenReturn(true);
         when(phase2.isPending()).thenReturn(false);
+        Assert.assertEquals(1, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());
         Assert.assertEquals(phase3, plan.getStrategy().getCandidates(plan, Collections.emptyList()).iterator().next());
 
         when(phase3.isComplete()).thenReturn(true);

@@ -10,6 +10,7 @@ import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.scheduler.api.TaskResource;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
 import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
@@ -21,7 +22,6 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.api.StateResource;
-import org.apache.mesos.scheduler.api.TaskResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
