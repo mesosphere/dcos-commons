@@ -42,8 +42,10 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
-    @Mock private SchedulerDriver mockSchedulerDriver;
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    @Mock
+    private SchedulerDriver mockSchedulerDriver;
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -388,9 +390,9 @@ public class DefaultSchedulerTest {
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA(offerId1)));
         ArgumentCaptor<Collection> operationsCaptor = ArgumentCaptor.forClass(Collection.class);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
-            (Collection<Protos.OfferID>) Matchers.argThat(contains(getOfferId(offerId1))),
-            operationsCaptor.capture(),
-            any());
+                (Collection<Protos.OfferID>) Matchers.argThat(contains(getOfferId(offerId1))),
+                operationsCaptor.capture(),
+                any());
 
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
 
@@ -409,15 +411,33 @@ public class DefaultSchedulerTest {
 
         reset(mockSchedulerDriver);
 
-        // Make an offer sufficient to recover Task A-0 and launch Task B-0,
-        // and also have some unused reserved resources for cleaning
+        // Make offers sufficient to recover Task A-0 and launch Task B-0,
+        // and also have some unused reserved resources for cleaning, and verify that only one of those three happens.
         Protos.Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         cpus = ResourceUtils.setResourceId(cpus, UUID.randomUUID().toString());
         Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         mem = ResourceUtils.setResourceId(mem, UUID.randomUUID().toString());
 
-        UUID offerId2 = UUID.randomUUID();
-        Protos.Offer offer = Protos.Offer.newBuilder(getSufficientOfferForTaskB(offerId2))
+        UUID offerIdA = UUID.randomUUID();
+        Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA(offerIdA))
+                .addAllResources(operations.stream()
+                        .filter(Protos.Offer.Operation::hasReserve)
+                        .flatMap(operation -> operation.getReserve().getResourcesList().stream())
+                        .collect(Collectors.toList()))
+                .addResources(cpus)
+                .addResources(mem)
+                .build();
+        UUID offerIdB = UUID.randomUUID();
+        Protos.Offer offerB = Protos.Offer.newBuilder(getSufficientOfferForTaskB(offerIdB))
+                .addAllResources(operations.stream()
+                        .filter(Protos.Offer.Operation::hasReserve)
+                        .flatMap(operation -> operation.getReserve().getResourcesList().stream())
+                        .collect(Collectors.toList()))
+                .addResources(cpus)
+                .addResources(mem)
+                .build();
+        UUID offerIdC = UUID.randomUUID();
+        Protos.Offer offerC = Protos.Offer.newBuilder(getSufficientOfferForTaskB(offerIdC))
                 .addAllResources(operations.stream()
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
@@ -426,11 +446,65 @@ public class DefaultSchedulerTest {
                 .addResources(mem)
                 .build();
 
-        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offerA, offerB, offerC));
         defaultScheduler.awaitTermination();
 
-        // Verify scheduler accepted resources twice, once for scheduling and once for recovery.
-        verify(mockSchedulerDriver, times(2)).acceptOffers(any(), any(), any());
+        // Verify that acceptOffer is called thrice, once each for recovery, launch, and cleanup.
+        operationsCaptor = ArgumentCaptor.forClass(Collection.class);
+        verify(mockSchedulerDriver, times(3)).acceptOffers(
+                any(),
+                operationsCaptor.capture(),
+                any());
+        final List<Collection> allOperations = operationsCaptor.getAllValues();
+        Assert.assertEquals(3, allOperations.size());
+        boolean recovery = false;
+        boolean launch = false;
+        boolean unreserve = false;
+
+        for (Collection operationSet : allOperations) {
+            final int size = operationSet.size();
+            switch (size) {
+                case 1:
+                    // One LAUNCH operation
+                    if (((Protos.Offer.Operation) operationSet.iterator().next()).getType()
+                            == Protos.Offer.Operation.Type.LAUNCH) {
+                        recovery = true;
+                    }
+                    break;
+                case 2:
+                    // Two UNRESERVE operations
+                    if (operationSet.stream().allMatch(object -> ((Protos.Offer.Operation) object).getType()
+                            == Protos.Offer.Operation.Type.UNRESERVE)) {
+                        recovery = true;
+                    }
+                    unreserve = true;
+                    break;
+                case 5:
+                    // Three RESERVE, One CREATE and One LAUNCH operation
+                    int reserveOp = 0;
+                    int createOp = 0;
+                    int launchOp = 0;
+                    for (Object object : operationSet) {
+                        if (((Protos.Offer.Operation) object).getType() == Protos.Offer.Operation.Type.RESERVE) {
+                            reserveOp++;
+                        } else if (((Protos.Offer.Operation) object).getType() == Protos.Offer.Operation.Type.CREATE) {
+                            createOp++;
+                        } else if (((Protos.Offer.Operation) object).getType() == Protos.Offer.Operation.Type.LAUNCH) {
+                            launchOp++;
+                        }
+                    }
+                    if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
+                        launch = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        Assert.assertTrue(recovery);
+        Assert.assertTrue(launch);
+        Assert.assertTrue(unreserve);
     }
 
     private int countOperationType(

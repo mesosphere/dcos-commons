@@ -167,45 +167,6 @@ public class DefaultPlanCoordinatorTest {
                 SUFFICIENT_MEM, SUFFICIENT_DISK)).size());
     }
 
-    @Test
-    public void testFilterAcceptedOffers() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final Protos.Offer acceptedOffer = offers.get(0);
-        final Protos.Offer unAcceptedOffer = offers.get(1);
-        final List<Protos.Offer> unacceptedOffers = DefaultPlanCoordinator
-                .filterAcceptedOffers(offers, Arrays.asList(acceptedOffer.getId()));
-        Assert.assertNotNull(unacceptedOffers);
-        Assert.assertEquals(1, unacceptedOffers.size());
-        Assert.assertEquals(unAcceptedOffer.getId(), unacceptedOffers.get(0).getId());
-    }
-
-    @Test
-    public void testFilterAcceptedOffersNoAccepted() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.Offer> unacceptedOffers = DefaultPlanCoordinator
-                .filterAcceptedOffers(offers, Arrays.asList());
-        Assert.assertNotNull(unacceptedOffers);
-        Assert.assertEquals(2, unacceptedOffers.size());
-    }
-
-    @Test
-    public void testFilterAcceptedOffersAllAccepted() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.Offer> unacceptedOffers = DefaultPlanCoordinator
-                .filterAcceptedOffers(offers, Arrays.asList(offers.get(0).getId(), offers.get(1).getId()));
-        Assert.assertNotNull(unacceptedOffers);
-        Assert.assertEquals(0, unacceptedOffers.size());
-    }
-
-    @Test
-    public void testFilterAcceptedOffersAcceptedInvalidId() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.Offer> unacceptedOffers = DefaultPlanCoordinator
-                .filterAcceptedOffers(offers, Arrays.asList(Protos.OfferID.newBuilder().setValue("abc").build()));
-        Assert.assertNotNull(unacceptedOffers);
-        Assert.assertEquals(2, unacceptedOffers.size());
-    }
-
     public static class TestingPlanManager implements PlanManager {
         Plan plan;
 
