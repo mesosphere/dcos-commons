@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
  */
 public class DefaultPhaseBuilderTest {
     private static final String phaseName = "test-phase";
-    private DefaultPhaseBuilder planBuilder;
+    private DefaultPhaseBuilder phaseBuilder;
 
     @Mock Block block0;
     @Mock Block block1;
@@ -42,14 +42,14 @@ public class DefaultPhaseBuilderTest {
         when(block2.isPending()).thenReturn(true);
         when(block3.isPending()).thenReturn(true);
 
-        planBuilder = new DefaultPhaseBuilder(phaseName);
+        phaseBuilder = new DefaultPhaseBuilder(phaseName);
     }
 
     @Test
     public void testBuildSerialPlan() {
-        planBuilder.addDependency(block2, block1);
-        planBuilder.addDependency(block1, block0);
-        DefaultPhase phase = planBuilder.build();
+        phaseBuilder.addDependency(block2, block1);
+        phaseBuilder.addDependency(block1, block0);
+        DefaultPhase phase = phaseBuilder.build();
 
         Assert.assertEquals(block0, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
 
@@ -71,10 +71,10 @@ public class DefaultPhaseBuilderTest {
 
     @Test
     public void testBuildParallelPlan() throws DependencyStrategyHelper.InvalidDependencyException {
-        planBuilder.add(block0);
-        planBuilder.add(block1);
-        planBuilder.add(block2);
-        DefaultPhase phase = planBuilder.build();
+        phaseBuilder.add(block0);
+        phaseBuilder.add(block1);
+        phaseBuilder.add(block2);
+        DefaultPhase phase = phaseBuilder.build();
 
         Assert.assertEquals(3, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
 
@@ -97,11 +97,11 @@ public class DefaultPhaseBuilderTest {
 
     @Test
     public void testBuildDiamondPlan() {
-        planBuilder.addDependency(block3, block1);
-        planBuilder.addDependency(block3, block2);
-        planBuilder.addDependency(block1, block0);
-        planBuilder.addDependency(block2, block0);
-        DefaultPhase phase = planBuilder.build();
+        phaseBuilder.addDependency(block3, block1);
+        phaseBuilder.addDependency(block3, block2);
+        phaseBuilder.addDependency(block1, block0);
+        phaseBuilder.addDependency(block2, block0);
+        DefaultPhase phase = phaseBuilder.build();
 
         Assert.assertEquals(1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
         Assert.assertEquals(block0, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());

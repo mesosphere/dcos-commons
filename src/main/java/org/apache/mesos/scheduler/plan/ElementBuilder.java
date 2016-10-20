@@ -2,6 +2,8 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.scheduler.plan.strategy.DependencyStrategyHelper;
 
+import java.util.Collection;
+
 /**
  * Created by gabriel on 10/19/16.
  *
@@ -17,6 +19,14 @@ public abstract class ElementBuilder<C extends Element> {
 
     public ElementBuilder add(C element) throws DependencyStrategyHelper.InvalidDependencyException {
         dependencyStrategyHelper.addElement(element);
+        return this;
+    }
+
+    public ElementBuilder add(Collection<C> elements) throws DependencyStrategyHelper.InvalidDependencyException {
+        for (C element : elements) {
+            add(element);
+        }
+
         return this;
     }
 

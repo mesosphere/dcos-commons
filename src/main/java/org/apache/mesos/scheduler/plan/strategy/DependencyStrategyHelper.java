@@ -31,7 +31,7 @@ public class DependencyStrategyHelper<C extends Element> {
 
     public void addElement(C element) throws InvalidDependencyException {
         if (dependencies.get(element) != null) {
-            throw new InvalidDependencyException("Attempted to overwrite previously added element.");
+            throw new InvalidDependencyException("Attempted to overwrite previously added element: " + element);
         }
 
         dependencies.put(element, new HashSet<C>());
