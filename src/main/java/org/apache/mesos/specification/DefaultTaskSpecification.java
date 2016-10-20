@@ -1,14 +1,17 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
-import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import java.util.Optional;
  * This class provides a default implementation of the TaskSpecification interface.
  */
 public class DefaultTaskSpecification implements TaskSpecification {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskSpecification.class);
     private final String name;
     private final Protos.CommandInfo commandInfo;
@@ -53,13 +57,14 @@ public class DefaultTaskSpecification implements TaskSpecification {
                 placement);
     }
 
+    @JsonCreator
     protected DefaultTaskSpecification(
-            String name,
-            Protos.CommandInfo commandInfo,
-            Collection<ResourceSpecification> resourceSpecifications,
-            Collection<VolumeSpecification> volumeSpecifications,
-            Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional) {
+            @JsonProperty("name") String name,
+            @JsonProperty("command") Protos.CommandInfo commandInfo,
+            @JsonProperty("resources") Collection<ResourceSpecification> resourceSpecifications,
+            @JsonProperty("volumes") Collection<VolumeSpecification> volumeSpecifications,
+            @JsonProperty("config_files") Collection<ConfigFileSpecification> configFileSpecifications,
+            @JsonProperty("placement") Optional<PlacementRuleGenerator> placementOptional) {
         this.name = name;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
@@ -171,5 +176,15 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

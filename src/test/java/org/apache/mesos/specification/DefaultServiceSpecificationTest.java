@@ -1,26 +1,58 @@
 package org.apache.mesos.specification;
 
+import org.apache.mesos.offer.constrain.AgentRule;
+import org.apache.mesos.offer.constrain.AndRule;
+import org.apache.mesos.offer.constrain.AttributeRule;
+import org.apache.mesos.offer.constrain.AttributeSelector;
+import org.apache.mesos.offer.constrain.HostnameRule;
+import org.apache.mesos.offer.constrain.MaxPerAttributeGenerator;
+import org.apache.mesos.offer.constrain.NotRule;
+import org.apache.mesos.offer.constrain.OrRule;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.TaskTypeGenerator;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.testng.Assert;
-
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class tests the DefaultServiceSpecification class.
  */
 public class DefaultServiceSpecificationTest {
-    private List<TaskSet> taskSets;
-    private DefaultServiceSpecification serviceSpecification;
     private static final String SERVICE_NAME = "test-service-name";
+    private static final PlacementRuleGenerator HUGE_GENERATOR = new AndRule.Generator(Arrays.asList(
+            new MaxPerAttributeGenerator(3, AttributeSelector.createRegexSelector(".+")),
+            new HostnameRule.AvoidHostnameGenerator("avoidhost"),
+            new HostnameRule.RequireHostnamesGenerator("requirehost1", "requirehost2"),
+            new AgentRule.RequireAgentsGenerator("requireagent1", "requireagent2"),
+            new AgentRule.AvoidAgentGenerator("avoidagent"),
+            new AttributeRule.Generator(AttributeSelector.createStringSelector("hello")),
+            new OrRule.Generator(Arrays.asList(
+                    new MaxPerAttributeGenerator(3, AttributeSelector.createStringSelector("hi")),
+                    new HostnameRule.AvoidHostnamesGenerator("avoidhost1", "avoidhost2"),
+                    new HostnameRule.RequireHostnameGenerator("requirehost"),
+                    new AgentRule.RequireAgentGenerator("requireagent"),
+                    new AgentRule.AvoidAgentsGenerator("avoidagent1", "avoidagent2"),
+                    TaskTypeGenerator.createAvoid("avoidme"),
+                    new NotRule.Generator(TaskTypeGenerator.createColocate("colocateme"))))));
+    private static final List<TaskSet> TASK_SETS = Arrays.asList(
+            TestTaskSetFactory.getTaskSet(),
+            TestTaskSetFactory.getTaskSet(Arrays.asList(
+                    new DefaultConfigFileSpecification(
+                            "../different/path/to/config",
+                            "different path to a different template"),
+                    new DefaultConfigFileSpecification(
+                            "../relative/path/to/config2",
+                            "this is a second config template")),
+                    Optional.empty()));
+
+    private DefaultServiceSpecification serviceSpecification;
 
     @Before
     public void beforeEach() {
-        taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
-        serviceSpecification = new DefaultServiceSpecification(
-                SERVICE_NAME,
-                taskSets);
+        serviceSpecification = new DefaultServiceSpecification(SERVICE_NAME, TASK_SETS);
     }
 
     @Test
@@ -30,9 +62,18 @@ public class DefaultServiceSpecificationTest {
 
     @Test
     public void testGetTaskSpecifications() {
-        Assert.assertEquals(1, serviceSpecification.getTaskSets().size());
-        Assert.assertEquals(
-                taskSets,
-                serviceSpecification.getTaskSets());
+        Assert.assertEquals(TASK_SETS, serviceSpecification.getTaskSets());
+    }
+
+    @Test
+    public void testSerializeDeserializeDefault() throws Exception {
+        Assert.assertEquals(serviceSpecification,
+                DefaultServiceSpecification.getFactoryInstance().parse(serviceSpecification.getBytes()));
+    }
+
+    @Test
+    public void testSerializeDeserializeWithConfigsAndPlacement() throws Exception {
+        Assert.assertEquals(serviceSpecification,
+                DefaultServiceSpecification.getFactoryInstance().parse(serviceSpecification.getBytes()));
     }
 }

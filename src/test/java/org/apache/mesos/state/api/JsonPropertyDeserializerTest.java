@@ -1,6 +1,6 @@
 package org.apache.mesos.state.api;
 
-import org.apache.mesos.config.JsonUtils;
+import org.apache.mesos.config.SerializationUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,7 +17,7 @@ public class JsonPropertyDeserializerTest {
     @Test
     public void testToJsonString() throws Exception {
         boolean b = false;
-        String bstr = JsonUtils.toJsonString(b);
+        String bstr = SerializationUtils.toJsonString(b);
         byte[] barr = bstr.getBytes("UTF-8");
         String bjson = deserializer.toJsonString("key", barr);
         assertEquals(bjson, "false");

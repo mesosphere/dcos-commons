@@ -1,8 +1,13 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +53,10 @@ public class DefaultTaskSet implements TaskSet {
         return create(name, taskSpecifications);
     }
 
-    public static DefaultTaskSet create(String name, List<TaskSpecification> taskSpecifications) {
+    @JsonCreator
+    public static DefaultTaskSet create(
+            @JsonProperty("name") String name,
+            @JsonProperty("tasks") List<TaskSpecification> taskSpecifications) {
         return new DefaultTaskSet(name, taskSpecifications);
     }
 
@@ -70,5 +78,15 @@ public class DefaultTaskSet implements TaskSet {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

@@ -1,7 +1,7 @@
 package org.apache.mesos.state;
 
 
-import org.apache.mesos.config.JsonUtils;
+import org.apache.mesos.config.SerializationUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -23,13 +23,17 @@ public class JsonSerializer implements Serializer {
 
     @Override
     public <T> byte[] serialize(T value) {
-        String json = JsonUtils.toJsonString(value);
-        return json.getBytes(charset);
+        try {
+            String json = SerializationUtils.toJsonString(value);
+            return json.getBytes(charset);
+        } catch (IOException e) {
+            return new byte[0];
+        }
     }
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) throws IOException {
         String json = new String(bytes, charset);
-        return JsonUtils.fromJsonString(json, clazz);
+        return SerializationUtils.fromJsonString(json, clazz);
     }
 }

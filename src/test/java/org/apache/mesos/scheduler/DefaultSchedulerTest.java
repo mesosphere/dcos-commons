@@ -8,8 +8,8 @@ import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
+import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
@@ -72,15 +72,9 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        ServiceSpecification serviceSpecification = new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
@@ -94,9 +88,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_CMD,
                                 TASK_B_CPU,
                                 TASK_B_MEM,
-                                TASK_B_DISK));
-            }
-        };
+                                TASK_B_DISK)));
 
         defaultScheduler = new DefaultScheduler(
                 serviceSpecification,
@@ -210,15 +202,9 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskA cpu and mem requirements
-        ServiceSpecification serviceSpecification = new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
@@ -232,9 +218,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_CMD,
                                 TASK_B_CPU,
                                 TASK_B_MEM,
-                                TASK_B_DISK));
-            }
-        };
+                                TASK_B_DISK)));
 
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
@@ -250,15 +234,9 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskB cpu and mem requirements
-        ServiceSpecification serviceSpecification = new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
@@ -272,9 +250,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_CMD,
                                 TASK_B_CPU * 2.0,
                                 TASK_B_MEM * 2.0,
-                                TASK_B_DISK));
-            }
-        };
+                                TASK_B_DISK)));
 
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
@@ -290,15 +266,9 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskB cpu and mem requirements
-        ServiceSpecification serviceSpecification = new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT,
@@ -312,9 +282,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_CMD,
                                 TASK_B_CPU * 2.0,
                                 TASK_B_MEM,
-                                TASK_B_DISK));
-            }
-        };
+                                TASK_B_DISK)));
 
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();
@@ -330,15 +298,9 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Increase count of TaskA tasks.
-        ServiceSpecification serviceSpecification = new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
                                 TASK_A_NAME,
                                 TASK_A_COUNT + 1,
@@ -352,9 +314,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_CMD,
                                 TASK_B_CPU,
                                 TASK_B_MEM,
-                                TASK_B_DISK));
-            }
-        };
+                                TASK_B_DISK)));
 
         defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
         register();

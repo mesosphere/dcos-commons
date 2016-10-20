@@ -1,7 +1,6 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.DefaultConfigFileSpecification;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TestConstants;
