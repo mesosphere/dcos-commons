@@ -1,13 +1,17 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.scheduler.Observable;
+import org.apache.mesos.scheduler.Observer;
 
 import java.util.*;
 
 /**
  * PlanManager is the management interface for {@link Plan}s.
+ *
+ * A {@PlanManager} is an {@Observable}.  It notifies its observers when its plan changes.
  */
-public interface PlanManager extends Observer {
+public interface PlanManager extends Observer, Observable {
 
     Plan getPlan();
 

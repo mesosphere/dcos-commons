@@ -99,7 +99,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
     @Override
     public void update(Protos.TaskStatus status) {
         if (!tasks.containsKey(status.getTaskId())) {
-            logger.warn(getName() + " ignoring irrelevant TaskStatus: " + status);
+            logger.info(getName() + " ignoring irrelevant TaskStatus: " + status);
             return;
         }
 

@@ -8,11 +8,11 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
- * This class tests the {@link DefaultStageStrategy}.
+ * This class tests the {@link DefaultPhaseStrategy}.
  */
 public class DefaultPlanStrategyTest {
     private Phase phase;
-    private DefaultStageStrategy strategy;
+    private DefaultPhaseStrategy strategy;
 
     @Before
     public void beforeEach() {
@@ -21,7 +21,7 @@ public class DefaultPlanStrategyTest {
                 "phase-0",
                 Arrays.asList(new TestBlock(), new TestBlock()));
 
-        strategy = new DefaultStageStrategy(phase);
+        strategy = new DefaultPhaseStrategy(phase);
     }
 
     @Test
@@ -29,19 +29,19 @@ public class DefaultPlanStrategyTest {
         TestBlock block0 = (TestBlock)phase.getBlock(0);
         TestBlock block1 = (TestBlock)phase.getBlock(1);
 
-        Assert.assertTrue(!strategy.getCurrentBlock().isPresent());
+        Assert.assertTrue(!strategy.getCurrentBlock(Arrays.asList()).isPresent());
         strategy.proceed();
-        Assert.assertEquals(block0, strategy.getCurrentBlock().get());
+        Assert.assertEquals(block0, strategy.getCurrentBlock(Arrays.asList()).get());
         strategy.interrupt();
-        Assert.assertEquals(block0, strategy.getCurrentBlock().get());
+        Assert.assertEquals(block0, strategy.getCurrentBlock(Arrays.asList()).get());
 
         block0.setStatus(Status.COMPLETE);
-        Assert.assertTrue(!strategy.getCurrentBlock().isPresent());
+        Assert.assertTrue(!strategy.getCurrentBlock(Arrays.asList()).isPresent());
         strategy.proceed();
-        Assert.assertEquals(block1, strategy.getCurrentBlock().get());
+        Assert.assertEquals(block1, strategy.getCurrentBlock(Arrays.asList()).get());
 
         block1.setStatus(Status.COMPLETE);
-        Assert.assertEquals(block1, strategy.getCurrentBlock().get());
+        Assert.assertEquals(block1, strategy.getCurrentBlock(Arrays.asList()).get());
     }
 
     @Test

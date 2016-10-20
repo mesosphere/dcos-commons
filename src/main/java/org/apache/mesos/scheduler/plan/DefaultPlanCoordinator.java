@@ -4,6 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.offer.OfferUtils;
+import org.apache.mesos.scheduler.ChainedObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +12,10 @@ import java.util.*;
 
 /**
  * Default implementation of PlanCoordinator.
+ *
+ * A {@DefaultPlanCoordinator} is an {@Observable} and will forward updates from its plans.
  */
-public class DefaultPlanCoordinator implements PlanCoordinator {
+public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
     private List<PlanManager> planManagers = new LinkedList<>();
@@ -25,6 +28,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
             throw new IllegalArgumentException("Atleast one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
+        this.planManagers.stream().forEach(manager -> manager.subscribe(this));
         this.planScheduler = planScheduler;
     }
 
@@ -67,5 +71,10 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         }
 
         return dirtiedOffers;
+    }
+
+    @Override
+    public boolean hasOperations() {
+        return planManagers.stream().anyMatch(manager -> !manager.getPlan().isComplete());
     }
 }
