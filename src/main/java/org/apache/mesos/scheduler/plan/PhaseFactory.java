@@ -1,10 +1,16 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
+import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.TaskSet;
 
+import java.util.List;
+
 /**
- * Created by gabriel on 10/15/16.
+ * A PhaseFactory transforms {@link TaskSet}s into {@link Phase}s.
  */
 public interface PhaseFactory {
     Phase getPhase(TaskSet taskSet);
+    Phase getPhase(TaskSet taskSet, Strategy strategy);
+    List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator strategyGenerator);
 }

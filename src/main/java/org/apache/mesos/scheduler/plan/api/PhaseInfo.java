@@ -6,7 +6,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.Element;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.ArrayList;
@@ -34,8 +33,8 @@ class PhaseInfo {
 
     public static PhaseInfo forPhase(final Phase phase) {
         List<BlockInfo> info = new ArrayList<>();
-        List<Element> blocks = phase.getChildren();
-        blocks.forEach(block -> info.add(BlockInfo.forBlock((Block) block)));
+        List<Block> blocks = phase.getChildren();
+        blocks.forEach(block -> info.add(BlockInfo.forBlock(block)));
 
         return create(phase.getId().toString(),
                 phase.getName(),

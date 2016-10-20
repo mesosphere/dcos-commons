@@ -19,17 +19,15 @@ public class DefaultTaskSet implements TaskSet {
     public static DefaultTaskSet create(
             int count,
             String name,
-            String type,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes) {
-        return create(count, name, type, command, resources, volumes, Optional.empty());
+        return create(count, name, command, resources, volumes, Optional.empty());
     }
 
     public static DefaultTaskSet create(
             int count,
             String name,
-            String type,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
@@ -39,7 +37,7 @@ public class DefaultTaskSet implements TaskSet {
         for (int i = 0; i < count; i++) {
             taskSpecifications.add(new DefaultTaskSpecification(
                     name + "-" + i,
-                    type,
+                    name,
                     command,
                     resources,
                     volumes,

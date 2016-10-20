@@ -2,6 +2,7 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.TaskSet;
 
@@ -28,15 +29,28 @@ public class DefaultPhaseFactory implements PhaseFactory {
         this.strategyGenerator = strategyGenerator;
     }
 
+    @Override
     public Phase getPhase(TaskSet taskSet) {
+        return getPhase(taskSet, strategyGenerator.generate());
+    }
+
+    @Override
+    public Phase getPhase(TaskSet taskSet, Strategy strategy) {
         return new DefaultPhase(
                 taskSet.getName(),
                 getBlocks(taskSet),
-                strategyGenerator.generate(),
+                strategy,
                 Collections.emptyList());
     }
 
-    private List<Element> getBlocks(TaskSet taskSet) {
+    @Override
+    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator strategyGenerator) {
+        return taskSets.stream()
+                .map(taskSet -> getPhase(taskSet, strategyGenerator.generate()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Block> getBlocks(TaskSet taskSet) {
         return taskSet.getTaskSpecifications().stream()
                 .map(taskSpec -> {
                     try {

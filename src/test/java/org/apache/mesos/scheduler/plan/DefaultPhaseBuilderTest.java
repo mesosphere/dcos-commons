@@ -13,7 +13,7 @@ import java.util.Collections;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by gabriel on 10/19/16.
+ * This class tests the DefaultPhaseBuilder.
  */
 public class DefaultPhaseBuilderTest {
     private static final String phaseName = "test-phase";

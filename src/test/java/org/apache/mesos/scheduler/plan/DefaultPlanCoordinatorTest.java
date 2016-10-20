@@ -60,7 +60,7 @@ public class DefaultPlanCoordinatorTest {
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
         taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
-                TestTaskSetFactory.TYPE + "-B",
+                TestTaskSetFactory.NAME + "-B",
                 TestTaskSetFactory.COUNT,
                 TestTaskSetFactory.CMD.getValue(),
                 TestTaskSetFactory.CPU,
@@ -144,9 +144,17 @@ public class DefaultPlanCoordinatorTest {
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
-                Arrays.asList(planManagerA, planManagerB), planScheduler);
-        Assert.assertEquals(1, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
-                SUFFICIENT_MEM, SUFFICIENT_DISK)).size());
+                Arrays.asList(planManagerA, planManagerB),
+                planScheduler);
+
+        Assert.assertEquals(
+                1,
+                coordinator.processOffers(
+                        schedulerDriver,
+                        getOffers(
+                                SUFFICIENT_CPUS,
+                                SUFFICIENT_MEM,
+                                SUFFICIENT_DISK)).size());
     }
 
     @Test

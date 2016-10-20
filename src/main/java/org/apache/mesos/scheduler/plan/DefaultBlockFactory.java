@@ -9,7 +9,9 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -54,6 +56,16 @@ public class DefaultBlockFactory implements BlockFactory {
             logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
             throw new Block.InvalidException(e);
         }
+    }
+
+    @Override
+    public List<Block> getBlocks(List<TaskSpecification> taskSpecifications) throws Block.InvalidException {
+        List<Block> blocks = new ArrayList<>();
+        for (TaskSpecification taskSpecification : taskSpecifications) {
+            blocks.add(getBlock(taskSpecification));
+        }
+
+        return blocks;
     }
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {

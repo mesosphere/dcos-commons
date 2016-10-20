@@ -146,11 +146,11 @@ public class PlansResource {
             if (blocks.size() == 1) {
                 return blocks.stream().findFirst();
             } else {
-                logger.error("Found non-one blocks: " + blocks);
+                logger.error("Expected 1 Block, found: " + blocks);
                 return Optional.empty();
             }
         } else {
-            logger.error("Found non-one phases: " + phases);
+            logger.error("Expected 1 Phase, found: " + phases);
             return Optional.empty();
         }
     }

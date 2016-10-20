@@ -72,7 +72,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         Map<String, Protos.TaskInfo> recoveryCandidates = getRecoveryCandidates(getTerminatedTasks(dirtiedAssets));
 
         final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
-        List<Element> blocks = new ArrayList<>();
+        List<Block> blocks = new ArrayList<>();
 
         // If recovery candidates are not part of a different PlanManager's plan, generate a recovery block for them
         // and mark it as pending. Tasks that are still in terminal state, add them to plan directly
@@ -106,7 +106,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
             if (CollectionUtils.isNotEmpty(phases)) {
                 // Simple plan only deals with a single recovery phase. This makes it explicit.
                 final Element<Block> phase = phases.get(0);
-                for (Element block : phase.getChildren()) {
+                for (Block block : phase.getChildren()) {
                     final String taskName = block.getName();
                     // Ignore blocks already added to the new plan.
                     if (!recoveryCandidates.containsKey(taskName)) {

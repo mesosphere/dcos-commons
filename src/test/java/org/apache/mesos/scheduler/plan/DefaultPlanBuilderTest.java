@@ -13,7 +13,7 @@ import java.util.Collections;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by gabriel on 10/19/16.
+ * This class tests the DefaultPlanBuilder.
  */
 public class DefaultPlanBuilderTest {
     private static final String planName = "test-plan";

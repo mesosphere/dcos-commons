@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * DefaultPlan deployment scheduler. See docs in {@link PlanScheduler} interface.
+ * Default deployment scheduler. See docs in {@link PlanScheduler} interface.
  */
 public class DefaultPlanScheduler implements PlanScheduler {
 

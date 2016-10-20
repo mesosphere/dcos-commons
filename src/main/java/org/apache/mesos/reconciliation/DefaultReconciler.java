@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * DefaultPlan implementation of {@link Reconciler}. See {@link Reconciler} for docs.
+ * Default implementation of {@link Reconciler}. See {@link Reconciler} for docs.
  */
 @Singleton
 public class DefaultReconciler implements Reconciler {

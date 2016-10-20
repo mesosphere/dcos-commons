@@ -6,8 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * The {@link DependencyStrategyHelper} exists to aid in the construction of {@link Strategy} objects which wish to
- * describe a set of dependencies between constituent elements.
+ * The {@link DependencyStrategyHelper} exists to aid in the construction of {@link Strategy} objects which describe a
+ * set of dependencies between constituent elements.
  *
  * @param <C> is the type of {@link Element}s to which the dependencies captured here apply.
  */

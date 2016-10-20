@@ -12,10 +12,10 @@ import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.DisableOnDebug;
+import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
     @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    //@Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
+    @Rule public TestRule globalTimeout= new DisableOnDebug(new Timeout(10,TimeUnit.SECONDS));
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     private static final String SERVICE_NAME = "test-service";

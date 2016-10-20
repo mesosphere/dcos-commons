@@ -12,7 +12,7 @@ import java.util.Optional;
  * This class provides TaskTypeSpecifications for testing purposes.
  */
 public class TestTaskSetFactory {
-    public static final String TYPE = "test-task-type";
+    public static final String NAME = "test-task-type";
     public static final int COUNT = 1;
     public static final double CPU = 1.0;
     public static final double MEM = 1000.0;
@@ -21,7 +21,7 @@ public class TestTaskSetFactory {
 
     public static TaskSet getTaskSet() {
         return getTaskSet(
-                TYPE,
+                NAME,
                 COUNT,
                 CMD.getValue(),
                 CPU,
@@ -40,7 +40,6 @@ public class TestTaskSetFactory {
         return DefaultTaskSet.create(
                 count,
                 name,
-                TYPE,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
@@ -49,7 +48,7 @@ public class TestTaskSetFactory {
 
     public static TaskSpecification getTaskSpecification() {
         return getTaskSpecification(
-                TYPE,
+                NAME,
                 CMD.getValue(),
                 CPU,
                 MEM,
@@ -65,7 +64,7 @@ public class TestTaskSetFactory {
 
         return new DefaultTaskSpecification(
                 name,
-                TYPE,
+                NAME,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),

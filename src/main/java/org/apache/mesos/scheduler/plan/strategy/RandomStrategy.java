@@ -10,7 +10,6 @@ import java.util.*;
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
 public class RandomStrategy<C extends Element> extends InterruptableStrategy<C> {
-    // TODO: RandomStrategy should only return a Block if nothing is InProgress.
 
     @Override
     public Collection getCandidates(Element parentElement, Collection dirtyAssets) {

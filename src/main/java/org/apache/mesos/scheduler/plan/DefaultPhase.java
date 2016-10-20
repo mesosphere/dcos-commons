@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * DefaultPlan Phase implementation tracks Blocks both by their UUID and by
+ * Default Phase implementation tracks Blocks both by their UUID and by
  * their ordering. It is an immutable class that can be constructed either
  * directly, or using a fluent style builder.
  */
@@ -24,9 +24,9 @@ public class DefaultPhase extends ChainedObserver implements Phase {
     private final String name;
     private final Strategy<Block> strategy;
     private final List<String> errors;
-    private final List<Element> blocks;
+    private final List<Block> blocks;
 
-    public DefaultPhase(String name, List<Element> blocks, Strategy<Block> strategy, List<String> errors) {
+    public DefaultPhase(String name, List<Block> blocks, Strategy<Block> strategy, List<String> errors) {
         this.name = name;
         this.blocks = blocks;
         this.strategy = strategy;
@@ -88,7 +88,7 @@ public class DefaultPhase extends ChainedObserver implements Phase {
     }
 
     @Override
-    public List<Element> getChildren() {
+    public List<Block> getChildren() {
         return blocks;
     }
 

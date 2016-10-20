@@ -2,6 +2,8 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.specification.TaskSpecification;
 
+import java.util.List;
+
 /**
  * An implementation of this interface should provide Blocks based on TaskSpecifications.  This should include logic
  * detecting that a previously launched Task's specification has changed and so a relaunch of the Task is needed.  In
@@ -11,4 +13,5 @@ import org.apache.mesos.specification.TaskSpecification;
  */
 public interface BlockFactory {
     Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidException;
+    List<Block> getBlocks(List<TaskSpecification> taskSpecifications) throws Block.InvalidException;
 }

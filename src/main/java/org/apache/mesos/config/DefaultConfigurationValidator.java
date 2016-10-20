@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * DefaultPlan Configuration validator, which validates a given new {@code Configuration} w.r.t.
+ * Default Configuration validator, which validates a given new {@code Configuration} w.r.t.
  * an old {@code Configuration}.
  */
 public class DefaultConfigurationValidator {

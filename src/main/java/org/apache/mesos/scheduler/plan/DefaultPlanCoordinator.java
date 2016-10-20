@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * DefaultPlan implementation of PlanCoordinator.
+ * Default implementation of PlanCoordinator.
  */
 public class DefaultPlanCoordinator implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
@@ -44,7 +44,11 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
                 dirtiedOffers.addAll(usedOffers);
 
                 // If a Block is InProgress let's mark it dirty.
-                candidateBlocks.forEach(block -> dirtiedAssets.add(block.getName()));
+                for (Block block : candidateBlocks) {
+                    if (block.isInProgress()) {
+                        dirtiedAssets.add(block.getName());
+                    }
+                }
             } catch (Throwable t) {
                 LOGGER.error("Error with plan manager: {}. Reason: {}", planManager, t);
             }

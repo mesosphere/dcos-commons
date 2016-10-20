@@ -4,8 +4,10 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -18,14 +20,14 @@ public class DefaultPlan extends ChainedObserver implements Plan {
 
     private final UUID id = UUID.randomUUID();
     private final Strategy<Phase> strategy;
-    private final List<Element> phases;
+    private final List<Phase> phases;
     private final List<String> errors;
     private final String name;
     private Status status;
 
     public DefaultPlan(
             final String name,
-            final List<Element> phases,
+            final List<Phase> phases,
             final Strategy<Phase> strategy,
             final List<String> errors) {
 
@@ -33,17 +35,21 @@ public class DefaultPlan extends ChainedObserver implements Plan {
         this.strategy = strategy;
         this.phases = phases;
         this.errors = errors;
-
-        // Initialize to non-null
-        this.status = Status.PENDING;
-        // then initialize to aggregate status of children
         this.status = getStatus();
 
         getChildren().forEach(phase -> phase.subscribe(this));
     }
 
+    public DefaultPlan(String name, List<Phase> phases) {
+        this(name, phases, new SerialStrategy<>());
+    }
+
+    public DefaultPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
+        this(name, phases, strategy, Collections.emptyList());
+    }
+
     @Override
-    public List<Element> getChildren() {
+    public List<Phase> getChildren() {
         return phases;
     }
 

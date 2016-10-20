@@ -4,7 +4,6 @@ import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.ServiceSpecification;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,11 +28,10 @@ public class DefaultPlanFactory implements PlanFactory {
         return new DefaultPlan(
                 serviceSpecification.getName(),
                 getPhases(serviceSpecification),
-                strategyGenerator.generate(),
-                Collections.emptyList());
+                strategyGenerator.generate());
     }
 
-    private List<Element> getPhases(ServiceSpecification serviceSpecification) {
+    private List<Phase> getPhases(ServiceSpecification serviceSpecification) {
         return serviceSpecification.getTaskSets().stream()
                 .map(phaseFactory::getPhase)
                 .collect(Collectors.toList());

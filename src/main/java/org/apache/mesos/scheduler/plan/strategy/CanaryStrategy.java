@@ -12,8 +12,7 @@ import java.util.stream.Collectors;
  * After a single {@link #proceed()} call it again blocks until human intervention.  Any further calls to
  * {@link #proceed()} will indicate the strategy should continue without further intervention.
  *
- * @param <C> is the type of the child elements of the provided parent {@link Element} when calling
- * {@link CanaryStrategy#getCandidates(Element, Collection)}.
+ * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
 public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
     AtomicBoolean initialized = new AtomicBoolean(false);
