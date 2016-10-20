@@ -2,6 +2,7 @@ package org.apache.mesos.offer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.config.TaskConfigRouter;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
@@ -13,19 +14,23 @@ import java.util.*;
  * A default implementation of the OfferRequirementProvider interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
-    private static final Logger logger = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
 
-    private final TaskConfigRouter configRouter;
+    private final TaskConfigRouter taskConfigRouter;
 
     public DefaultOfferRequirementProvider() {
-        configRouter = new TaskConfigRouter();
+        this(new DefaultTaskConfigRouter());
+    }
+
+    public DefaultOfferRequirementProvider(TaskConfigRouter taskConfigRouter) {
+        this.taskConfigRouter = taskConfigRouter;
     }
 
     @Override
     public OfferRequirement getNewOfferRequirement(String taskType, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
-        Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
-                .addMissingToEnvironment(taskSpecification.getCommand());
+        Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
+                .updateEnvironment(taskSpecification.getCommand());
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
                 .setCommand(updatedCommand)
@@ -60,7 +65,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 try {
                     updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
                 } catch (IllegalArgumentException e) {
-                    logger.error("Failed to update Resources with exception: ", e);
+                    LOGGER.error("Failed to update Resources with exception: ", e);
                     // On failure to update resources keep the old resources.
                     updatedResources.add(oldResource);
                 }
@@ -75,8 +80,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
-        Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
-                .addMissingToEnvironment(taskSpecification.getCommand());
+        Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
+                .updateEnvironment(taskSpecification.getCommand());
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
                 .setCommand(updatedCommand)
@@ -153,7 +158,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                                         volumeSpecification.getContainerPath()));
                         break;
                     default:
-                        logger.error("Encountered unsupported disk type: " + volumeSpecification.getType());
+                        LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
                 }
             }
         }

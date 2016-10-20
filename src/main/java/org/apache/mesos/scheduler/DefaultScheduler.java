@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
@@ -108,7 +109,7 @@ public class DefaultScheduler implements Scheduler {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        offerRequirementProvider = new DefaultOfferRequirementProvider();
+        offerRequirementProvider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter());
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
     }
 

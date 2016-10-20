@@ -16,6 +16,9 @@ public interface ConfigFileSpecification {
      * Content may either be static, or may follow the Moustache template format, where all
      * parameters must map to environment variables present in the task's environment.
      *
+     * This content MUST be parseable by Protobuf as a string type -- arbitrary binary data is not
+     * supported. Binaries should instead be passed as resource files.
+     *
      * Example input:
      * - Task env: {"FOO":"BAR", "BAR":"BAZ"}
      * - Template content: "# config.ini\nFOO={{FOO}}\nBAR={{BAR}}"

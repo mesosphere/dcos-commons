@@ -48,8 +48,9 @@ public interface TaskSpecification {
      * Returns the Configuration Files to be written for this task, or an empty list if no custom
      * configurations should be written.
      *
-     * Note: There is a limit of 100KB (102,400B) across all template data for a given task. If you
-     * need to exceed this limit, consider using resource files.
+     * Note: There is a 512KB limit for all template data for a given task, to keep the resulting
+     * Mesos TaskInfo message from growing too large. If you need to exceed this limit, consider
+     * using resource files.
      */
     Collection<ConfigFileSpecification> getConfigFiles();
 
