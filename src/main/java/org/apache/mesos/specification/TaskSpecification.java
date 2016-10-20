@@ -12,7 +12,7 @@ import java.util.Optional;
 /**
  * A TaskSpecification is a simplified description of a Mesos Task.
  */
-@JsonDeserialize(as=DefaultTaskSpecification.class)
+@JsonDeserialize(as = DefaultTaskSpecification.class)
 public interface TaskSpecification {
     /**
      * Returns the name of this task. E.g. "index-3" for the fourth index node or "data-0" for the
@@ -26,6 +26,14 @@ public interface TaskSpecification {
      */
     @JsonProperty("command")
     Protos.CommandInfo getCommand();
+
+    /**
+     * Returns the health check operation to be performed against this task while it's running, or
+     * an empty {@link Optional} if no additional health checks should be performed beyond Mesos
+     * task status.
+     */
+    @JsonProperty("health_check")
+    Optional<Protos.HealthCheck> getHealthCheck();
 
     /**
      * Returns the container resources required by tasks of this type, or an empty list if no
@@ -49,8 +57,9 @@ public interface TaskSpecification {
      * Returns the Configuration Files to be written for this task, or an empty list if no custom
      * configurations should be written.
      *
-     * Note: There is a limit of 100KB (102,400B) across all template data for a given task. If you
-     * need to exceed this limit, consider using resource files.
+     * Note: There is a 512KB limit for all template data for a given task, to keep the resulting
+     * Mesos TaskInfo message from growing too large. If you need to exceed this limit, consider
+     * using resource files.
      */
     @JsonProperty("config_files")
     Collection<ConfigFileSpecification> getConfigFiles();

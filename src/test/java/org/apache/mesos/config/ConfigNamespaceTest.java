@@ -109,14 +109,14 @@ public class ConfigNamespaceTest {
     public void testAddEmptyToEmptyEnv() {
         ConfigNamespace cn = new ConfigNamespace(setOf(), new HashMap<>());
         assertTrue(cn.getAll().isEmpty());
-        CommandInfo cmd = cn.addMissingToEnvironment(CommandInfo.newBuilder().build());
+        CommandInfo cmd = cn.updateEnvironment(CommandInfo.newBuilder().build());
         assertFalse(cmd.hasEnvironment());
     }
 
     @Test
     public void testAddConfigToEmptyEnv() {
         ConfigNamespace cn = new ConfigNamespace(setOf("A_", "C_"), TEST_MAP);
-        CommandInfo cmd = cn.addMissingToEnvironment(CommandInfo.newBuilder().build());
+        CommandInfo cmd = cn.updateEnvironment(CommandInfo.newBuilder().build());
         assertEquals(5, cmd.getEnvironment().getVariablesCount());
         Environment env = cmd.getEnvironment();
 
@@ -140,7 +140,6 @@ public class ConfigNamespaceTest {
 
     @Test
     public void testAddConfigToPreexistingEnvFullOverlap() {
-        ConfigNamespace cn = new ConfigNamespace(setOf("A_", "C_"), TEST_MAP);
         Environment.Builder envBuilder = Environment.newBuilder();
         envBuilder.addVariablesBuilder().setName("ONE").setValue("TEST");
         envBuilder.addVariablesBuilder().setName("THREE").setValue("TEST");
@@ -148,61 +147,70 @@ public class ConfigNamespaceTest {
         envBuilder.addVariablesBuilder().setName("NINE").setValue("TEST");
         envBuilder.addVariablesBuilder().setName("").setValue("TEST");
         envBuilder.addVariablesBuilder().setName("TESTA").setValue("TESTB");
-        CommandInfo cmd = cn.addMissingToEnvironment(CommandInfo.newBuilder().setEnvironment(envBuilder).build());
+
+        ConfigNamespace cn = new ConfigNamespace(setOf("A_", "C_"), TEST_MAP);
+        CommandInfo cmd = cn.updateEnvironment(CommandInfo.newBuilder().setEnvironment(envBuilder).build());
         assertEquals(6, cmd.getEnvironment().getVariablesCount());
         Environment env = cmd.getEnvironment();
 
-        // preexisting entries remain in original order:
+        // matching preexisting entries removed, new values added to end in alphabetical order:
 
-        assertEquals("ONE", env.getVariables(0).getName());
-        assertEquals("TEST", env.getVariables(0).getValue());
+        // not present in TEST_MAP:
 
-        assertEquals("THREE", env.getVariables(1).getName());
-        assertEquals("TEST", env.getVariables(1).getValue());
+        assertEquals("TESTA", env.getVariables(0).getName());
+        assertEquals("TESTB", env.getVariables(0).getValue());
+
+        // from TEST_MAP:
+
+        assertEquals("", env.getVariables(1).getName());
+        assertEquals("EMPTY", env.getVariables(1).getValue());
 
         assertEquals("B_FIVE", env.getVariables(2).getName());
-        assertEquals("TEST", env.getVariables(2).getValue());
+        assertEquals("SIX", env.getVariables(2).getValue());
 
         assertEquals("NINE", env.getVariables(3).getName());
-        assertEquals("TEST", env.getVariables(3).getValue());
+        assertEquals("TEN", env.getVariables(3).getValue());
 
-        assertEquals("", env.getVariables(4).getName());
-        assertEquals("TEST", env.getVariables(4).getValue());
+        assertEquals("ONE", env.getVariables(4).getName());
+        assertEquals("TWO", env.getVariables(4).getValue());
 
-        assertEquals("TESTA", env.getVariables(5).getName());
-        assertEquals("TESTB", env.getVariables(5).getValue());
+        assertEquals("THREE", env.getVariables(5).getName());
+        assertEquals("FOUR", env.getVariables(5).getValue());
     }
 
     @Test
     public void testAddConfigToPreexistingEnvPartialOverlap() {
-        ConfigNamespace cn = new ConfigNamespace(setOf("A_", "C_"), TEST_MAP);
         Environment.Builder envBuilder = Environment.newBuilder();
         envBuilder.addVariablesBuilder().setName("ONE").setValue("TEST");
         envBuilder.addVariablesBuilder().setName("B_FIVE").setValue("TEST");
         envBuilder.addVariablesBuilder().setName("").setValue("TEST");
         envBuilder.addVariablesBuilder().setName("TESTA").setValue("TESTB");
-        CommandInfo cmd = cn.addMissingToEnvironment(CommandInfo.newBuilder().setEnvironment(envBuilder).build());
+
+        ConfigNamespace cn = new ConfigNamespace(setOf("A_", "C_"), TEST_MAP);
+        CommandInfo cmd = cn.updateEnvironment(CommandInfo.newBuilder().setEnvironment(envBuilder).build());
         assertEquals(6, cmd.getEnvironment().getVariablesCount());
         Environment env = cmd.getEnvironment();
 
-        // preexisting entries remain in original order:
+        // matching preexisting entries removed, new values added to end in alphabetical order:
 
-        assertEquals("ONE", env.getVariables(0).getName());
-        assertEquals("TEST", env.getVariables(0).getValue());
+        // not present in TEST_MAP:
 
-        assertEquals("B_FIVE", env.getVariables(1).getName());
-        assertEquals("TEST", env.getVariables(1).getValue());
+        assertEquals("TESTA", env.getVariables(0).getName());
+        assertEquals("TESTB", env.getVariables(0).getValue());
 
-        assertEquals("", env.getVariables(2).getName());
-        assertEquals("TEST", env.getVariables(2).getValue());
+        // from TEST_MAP:
 
-        assertEquals("TESTA", env.getVariables(3).getName());
-        assertEquals("TESTB", env.getVariables(3).getValue());
+        assertEquals("", env.getVariables(1).getName());
+        assertEquals("EMPTY", env.getVariables(1).getValue());
 
-        // newly added entries in alphabetical order:
+        assertEquals("B_FIVE", env.getVariables(2).getName());
+        assertEquals("SIX", env.getVariables(2).getValue());
 
-        assertEquals("NINE", env.getVariables(4).getName());
-        assertEquals("TEN", env.getVariables(4).getValue());
+        assertEquals("NINE", env.getVariables(3).getName());
+        assertEquals("TEN", env.getVariables(3).getValue());
+
+        assertEquals("ONE", env.getVariables(4).getName());
+        assertEquals("TWO", env.getVariables(4).getValue());
 
         assertEquals("THREE", env.getVariables(5).getName());
         assertEquals("FOUR", env.getVariables(5).getValue());

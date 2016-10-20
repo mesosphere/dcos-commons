@@ -18,6 +18,7 @@ public class TestTaskSpecification implements TaskSpecification {
     private Collection<ResourceSpecification> resources;
     private Collection<ConfigFileSpecification> configs;
     private final Optional<PlacementRuleGenerator> placement;
+    private Optional<Protos.HealthCheck> healthCheck;
 
     public TestTaskSpecification(TaskSpecification taskSpecification) {
         this.name = taskSpecification.getName();
@@ -26,6 +27,7 @@ public class TestTaskSpecification implements TaskSpecification {
         this.volumes = taskSpecification.getVolumes();
         this.configs = taskSpecification.getConfigFiles();
         this.placement = taskSpecification.getPlacement();
+        this.healthCheck = taskSpecification.getHealthCheck();
     }
 
     @Override
@@ -37,6 +39,9 @@ public class TestTaskSpecification implements TaskSpecification {
     public Protos.CommandInfo getCommand() {
         return command;
     }
+
+    @Override
+    public Optional<Protos.HealthCheck> getHealthCheck() { return healthCheck; }
 
     @Override
     public Collection<ResourceSpecification> getResources() {

@@ -1,6 +1,5 @@
 package org.apache.mesos.config;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -69,28 +68,20 @@ public class ConfigNamespace {
     }
 
     /**
-     * Appends the internal state as strings onto the provided list of environment variables. Any
-     * variables already present in the provided list are NOT overwritten, allowing the developer
-     * to manually override these values.
+     * Returns a new {@link CommandInfo} whose environment variables includes any values from this
+     * instance. Any matching entries already present in the provided {@link CommandInfo} will be
+     * overwritten.
      */
-    public CommandInfo addMissingToEnvironment(CommandInfo command) {
-        // Avoid overwriting existing values which would have been manually provided by the developer:
-        Set<String> preexistingKeys = new HashSet<>();
-        for (Environment.Variable preexistingVar : command.getEnvironment().getVariablesList()) {
-            preexistingKeys.add(preexistingVar.getName());
-        }
+    public CommandInfo updateEnvironment(CommandInfo command) {
         Environment.Builder envBuilder = command.getEnvironment().toBuilder();
         for (Map.Entry<String, ConfigValue> entry : config.entrySet()) {
-            if (preexistingKeys.contains(entry.getKey())) {
-                continue;
-            }
-            envBuilder.addVariablesBuilder()
-                .setName(entry.getKey())
-                .setValue(entry.getValue().requiredString());
+            envBuilder = withEntrySet(envBuilder, entry.getKey(), entry.getValue().requiredString());
         }
         if (!command.hasEnvironment() && envBuilder.getVariablesCount() == 0) {
-            // Avoid false positives on task changes: If environment was unset before, avoid setting
-            // an empty environment list. Should only come up in tests, but good to check regardless.
+            // Avoid changing the CommandInfo if we don't have anything to add: avoid creating false
+            // positives for changes to the task. If environment was unset before, avoid populating
+            // an empty environment list. This should really only come up in tests, but good to
+            // check regardless.
             return command;
         }
         return command.toBuilder().setEnvironment(envBuilder).build();
@@ -109,5 +100,25 @@ public class ConfigNamespace {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Returns a new {@link Environment.Builder} with the provided entry set. Any matching entries
+     * already present will have been removed before adding the new entry to the end.
+     */
+    private static Environment.Builder withEntrySet(
+            Environment.Builder envBuilder, String name, String value) {
+        // Remove matching entry/entries, if any:
+        Environment.Builder filteredEnvBuilder = Environment.newBuilder();
+        for (Environment.Variable entry : envBuilder.getVariablesList()) {
+            if (!entry.getName().equals(name)) {
+                filteredEnvBuilder.addVariables(entry);
+            }
+        }
+        // Append new entry to end:
+        filteredEnvBuilder.addVariablesBuilder()
+                .setName(name)
+                .setValue(value);
+        return filteredEnvBuilder;
     }
 }

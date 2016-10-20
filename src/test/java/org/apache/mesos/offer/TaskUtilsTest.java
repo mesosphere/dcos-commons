@@ -234,7 +234,7 @@ public class TaskUtilsTest {
     public void testSetTemplatesTooBig() throws InvalidProtocolBufferException {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 100 * 1024; ++i) {
+        for (int i = 0; i < 256 * 1024; ++i) {
             sb.append('a');
         }
         Collection<ConfigFileSpecification> configs = Arrays.asList(

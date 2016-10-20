@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  * {@link org.apache.mesos.scheduler.plan.Phase}, with each Task represented as a
  * {@link org.apache.mesos.scheduler.plan.Block} within that Phase.
  */
-@JsonDeserialize(as=DefaultTaskSet.class)
+@JsonDeserialize(as = DefaultTaskSet.class)
 public interface TaskSet {
     /**
      * Returns the name of this task type. Eg "index" for an index node type or "data" for a data

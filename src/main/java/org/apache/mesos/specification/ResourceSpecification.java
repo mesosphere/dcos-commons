@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  * A ResourceSpecification encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
  * TaskSpecification.
  */
-@JsonDeserialize(as=DefaultResourceSpecification.class)
+@JsonDeserialize(as = DefaultResourceSpecification.class)
 public interface ResourceSpecification {
 
     @JsonProperty("value")

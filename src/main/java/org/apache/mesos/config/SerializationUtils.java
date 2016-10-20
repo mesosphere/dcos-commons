@@ -48,7 +48,7 @@ public class SerializationUtils {
     /**
      * Returns a new {@link ObjectMapper} with default modules against the provided factory.
      *
-     * @param factory a custom factory, or {@code null} to use the default
+     * @param mapper the instance to register default modules with
      */
     public static ObjectMapper withDefaultModules(ObjectMapper mapper) {
         return mapper.registerModules(

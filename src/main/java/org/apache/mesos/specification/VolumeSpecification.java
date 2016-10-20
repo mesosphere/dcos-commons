@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 /**
  * A VolumeSpecification defines the features of a Volume.
  */
-@JsonDeserialize(as=DefaultVolumeSpecification.class)
+@JsonDeserialize(as = DefaultVolumeSpecification.class)
 public interface VolumeSpecification extends ResourceSpecification {
 
     /**

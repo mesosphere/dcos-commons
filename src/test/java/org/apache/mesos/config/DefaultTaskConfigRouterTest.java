@@ -14,9 +14,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link TaskConfigRouter}.
+ * Tests for {@link DefaultTaskConfigRouter}.
  */
-public class TaskConfigRouterTest {
+public class DefaultTaskConfigRouterTest {
 
     private static final TaskSet TASK_SET_A = DefaultTaskSet.create("a", new ArrayList<>());
     private static final TaskSet TASK_SET_B = DefaultTaskSet.create("b", new ArrayList<>());
@@ -38,18 +38,18 @@ public class TaskConfigRouterTest {
 
     @Test
     public void testEmptyConfig() {
-        TaskConfigRouter router = new TaskConfigRouter(new HashMap<>());
-        assertTrue(router.getConfig(TASK_SET_A).getAll().isEmpty());
-        assertTrue(router.getConfig(TASK_SET_B).getAll().isEmpty());
-        assertTrue(router.getConfig(TASK_SET_C).getAll().isEmpty());
-        assertTrue(router.getConfig(TASK_SET_D).getAll().isEmpty());
+        TaskConfigRouter router = new DefaultTaskConfigRouter(new HashMap<>());
+        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_A).getAll().isEmpty());
+        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_B).getAll().isEmpty());
+        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_C).getAll().isEmpty());
+        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_D).getAll().isEmpty());
         assertTrue(router.getConfig("E").getAll().isEmpty());
     }
 
     @Test
     public void testMixedConfig() {
-        TaskConfigRouter router = new TaskConfigRouter(TEST_MAP);
-        ImmutableMap<String, ConfigValue> values = router.getConfig(TASK_SET_A).getAll();
+        TaskConfigRouter router = new DefaultTaskConfigRouter(TEST_MAP);
+        ImmutableMap<String, ConfigValue> values = TaskConfigRouter.getConfig(router, TASK_SET_A).getAll();
         assertEquals(5, values.size());
         assertEquals("TWO", values.get("ONE").requiredString());
         assertEquals("TASKCFG_A_ONE=TWO", values.get("ONE").toString());
@@ -62,7 +62,7 @@ public class TaskConfigRouterTest {
         assertEquals("BAZ", values.get("BAR").requiredString());
         assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
 
-        values = router.getConfig(TASK_SET_B).getAll();
+        values = TaskConfigRouter.getConfig(router, TASK_SET_B).getAll();
         assertEquals(3, values.size());
         assertEquals("EIGHT", values.get("SEVEN").requiredString());
         assertEquals("TASKCFG_B_SEVEN=EIGHT", values.get("SEVEN").toString());
@@ -71,7 +71,7 @@ public class TaskConfigRouterTest {
         assertEquals("BAZ", values.get("BAR").requiredString());
         assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
 
-        values = router.getConfig(TASK_SET_C).getAll();
+        values = TaskConfigRouter.getConfig(router, TASK_SET_C).getAll();
         assertEquals(3, values.size());
         assertEquals("TEN", values.get("NINE").requiredString());
         assertEquals("TASKCFG_C_NINE=TEN", values.get("NINE").toString());
@@ -80,7 +80,7 @@ public class TaskConfigRouterTest {
         assertEquals("BAZ", values.get("BAR").requiredString());
         assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
 
-        values = router.getConfig(TASK_SET_D).getAll();
+        values = TaskConfigRouter.getConfig(router, TASK_SET_D).getAll();
         assertEquals(2, values.size());
         assertEquals("BAR", values.get("FOO").requiredString());
         assertEquals("TASKCFG_ALL_FOO=BAR", values.get("FOO").toString());
@@ -97,7 +97,7 @@ public class TaskConfigRouterTest {
 
     @Test
     public void testTypeMapping() {
-        TaskConfigRouter router = new TaskConfigRouter(TEST_MAP);
+        TaskConfigRouter router = new DefaultTaskConfigRouter(TEST_MAP);
         ImmutableMap<String, ConfigValue> valuesUpperUnderscore = router.getConfig("A_B").getAll();
         assertEquals(3, valuesUpperUnderscore.size());
         assertEquals(valuesUpperUnderscore, router.getConfig("A-B").getAll());

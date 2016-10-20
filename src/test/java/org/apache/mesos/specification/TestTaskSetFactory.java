@@ -57,7 +57,8 @@ public class TestTaskSetFactory {
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 configs,
-                placement);
+                placement,
+                Optional.empty());
     }
 
     public static TaskSpecification getTaskSpecification() {
@@ -82,6 +83,7 @@ public class TestTaskSetFactory {
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 Collections.emptyList(),
+                Optional.empty(),
                 Optional.empty());
     }
 

@@ -21,7 +21,7 @@ import java.util.*;
  */
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
-    private static final int CONFIG_TEMPLATE_LIMIT_BYTES = 100 * 1024; // 100KB
+    private static final int CONFIG_TEMPLATE_LIMIT_BYTES = 512 * 1024; // 512KB
     private static final String CONFIG_TEMPLATE_KEY_PREFIX = "config_template:";
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
