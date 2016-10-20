@@ -9,15 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * The main entry point for the custom executor program.
+ * The main entry point for the custom executor.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private ExecutorService executorService = null;
-
-    public Main() {
-        super();
-    }
 
     public static void main(String[] args) throws Exception {
         new Main().run();

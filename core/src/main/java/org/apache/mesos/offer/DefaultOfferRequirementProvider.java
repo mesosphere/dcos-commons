@@ -163,20 +163,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
      * @param taskSpecification The {@link TaskSpecification} used to setup relevant environment for the executor.
      * @return The {@link org.apache.mesos.Protos.ExecutorInfo} to run
      * the {@link org.apache.mesos.executor.CustomExecutor}
-     * @throws NullPointerException
+     * @throws IllegalStateException
      */
-    private Protos.ExecutorInfo getExecutorInfo(TaskSpecification taskSpecification) throws NullPointerException {
+    private Protos.ExecutorInfo getExecutorInfo(TaskSpecification taskSpecification) throws IllegalStateException {
 
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(taskSpecification.getName())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
-        try {
-            executorURI = TaskUtils.uri(System.getenv(EXECUTOR_URI));
-        } catch (NullPointerException e) {
-            throw new NullPointerException(String.format("Failed at setting the URI for the executor: %s", e));
+        String executorStr = System.getenv(EXECUTOR_URI);
+        if (executorStr == null) {
+            throw new IllegalStateException("Missing environment variable: " + EXECUTOR_URI);
         }
+        executorURI = TaskUtils.uri(executorStr);
 
         Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
                 .setValue("./executor/bin/executor")

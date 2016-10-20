@@ -51,9 +51,9 @@ public class DefaultBlockFactory implements BlockFactory {
                 logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
                 throw new InvalidRequirementException(e);
             } catch (InvalidProtocolBufferException e) {
-                logger.error("Failed to unpack taskInfo: {}", e);
-                throw new InvalidRequirementException(
-                        "Failed to generate correct TaskSpecification for existing Task with exception: ", e);
+                String errorMessage = "Failed to unpack taskInfo: {}";
+                logger.error(errorMessage, e);
+                throw new InvalidRequirementException(errorMessage, e);
             }
         }
     }
