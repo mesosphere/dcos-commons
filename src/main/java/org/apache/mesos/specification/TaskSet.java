@@ -3,8 +3,10 @@ package org.apache.mesos.specification;
 import java.util.List;
 
 /**
- * A TaskSet groups a set of Tasks that should be deployed using the same deployment strategy.
- * In particular a TaskSet is deployed as part of a Phase.
+ * A {@code TaskSet} groups a set of Tasks that should be deployed using the same deployment
+ * strategy. In particular a TaskSet is deployed as part of a
+ * {@link org.apache.mesos.scheduler.plan.Phase}, with each Task represented as a
+ * {@link org.apache.mesos.scheduler.plan.Block} within that Phase.
  */
 public interface TaskSet {
     /**

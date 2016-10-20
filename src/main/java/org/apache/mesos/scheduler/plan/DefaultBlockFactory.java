@@ -23,8 +23,12 @@ public class DefaultBlockFactory implements BlockFactory {
     private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultBlockFactory(StateStore stateStore) {
+        this(stateStore, new DefaultOfferRequirementProvider());
+    }
+
+    public DefaultBlockFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
         this.stateStore = stateStore;
-        this.offerRequirementProvider = new DefaultOfferRequirementProvider();
+        this.offerRequirementProvider = offerRequirementProvider;
     }
 
     @Override

@@ -567,6 +567,41 @@ the scheduler starts up, it detects that it is already running 3
 `data` tasks and starts 2 more in order to reach the goal state of 5.
 We should observe two more tasks starting, `data-3` and `data-4`.
 
+## Task Configuration management
+
+While the above describes configuration of the scheduler itself via
+environment variables, there's also a need for configuration of the
+underlying service tasks themselves in a flexible way.
+
+To simplify the common task of getting user-facing configuration to
+service tasks, the developer may follow the following convention in
+naming the environment variables for these configuration options:
+`TASKCFG_<TASK_TYPE>_<CFGNAME>`, where `<TASK_TYPE>` has been
+converted from the task type to fit the requirements of environment
+variables:
+
+- Uppercased
+- Non-alphanumeric characters (punctuation, whitespace) converted
+  to underscores
+
+For example, an option named `FOO` for tasks of type `index.mgr`
+should be named `TASKCFG_INDEX_MGR_FOO`, while an option `BAR` for
+tasks of type `data-node` should be named `TASKCFG_DATA_NODE_BAR`.
+These configuration options will automatically be forwarded to the
+environments of the matching tasks as environment variables, with
+the `TASKCFG_<TASK_TYPE>_` prefixes removed. A special prefix of
+`TASKCFG_ALL_<NAME>` may be used for any options that should be
+passed to *every* task type.
+
+A common need for service developers is an easy way to write
+configuration files before launching tasks. To fulfill this need,
+the developer may provide configuration file template(s) in their
+TaskSet(s). These templates follow the [mustache](https://mustache.github.io/)
+templating format, similar to what's used in DC/OS packaging. The
+templates will be automatically rendered against the task's
+environment (which is customized as described above), and then
+each written to relative file paths specified by the developer.
+
 # Restart tasks
 
 When a task fails, the scheduler will attempt to restart the on the
@@ -925,32 +960,6 @@ any affected tasks.  It also supports marking certain configuration
 parameters as "unmodifiable," so that the user can't change them after
 install time.  For example, the disk size of permanent volumes cannot
 be modified because volume size is static.
-
-(Note: As of this writing, the following is still a work in progress,
-but should be available in the next week or two.)
-
-To simplify the common task of getting user-facing configuration to
-service tasks, you can follow the following naming convention for
-environment variables that specify configuration options:
-`TASKCFG_<TASK_TYPE>_<NAME>`.
-
-For example, an option for tasks of type `index-mgr` could be named
-`TASKCFG_INDEX_MGR_FOO`, while an option for tasks of type `data`
-could be named `TASKCFG_DATA_FOO`. These configuration options are
-automatically forwarded to the environments of the matching tasks
-as environment variables, with the `TASKCFG_<TASK_TYPE>_` prefixes
-removed. A special prefix of `TASKCFG_ALL_<NAME>` may be used for
-any options that should be passed to *every* task type.
-
-You can provide configuration file template(s) in your
-`TaskSet`(s), an easy way to write configuration files before
-launching tasks. These templates follow the
-[mustache](https://mustache.github.io/)
-templating format, similar to what's used in DC/OS packaging. The
-templates will be automatically rendered against the task's
-environment (which is customized as described above) and then
-each template is written to relative file paths specified by the
-developer.
 
 ## Interactive upgrade support
 Tasks must often be updated one at a time, and often depend on certain

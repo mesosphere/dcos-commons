@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
@@ -20,6 +21,10 @@ import java.util.List;
 public class DefaultRecoveryRequirementProvider implements RecoveryRequirementProvider {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final OfferRequirementProvider offerRequirementProvider;
+
+    public DefaultRecoveryRequirementProvider() {
+        this(new DefaultOfferRequirementProvider());
+    }
 
     public DefaultRecoveryRequirementProvider(OfferRequirementProvider offerRequirementProvider) {
         this.offerRequirementProvider = offerRequirementProvider;

@@ -1,6 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.state.StateStore;
@@ -15,7 +17,11 @@ public class DefaultPlanFactory {
     private final DefaultPhaseFactory phaseFactory;
 
     public DefaultPlanFactory(StateStore stateStore) {
-        this.phaseFactory = new DefaultPhaseFactory(new DefaultBlockFactory(stateStore));
+        this(stateStore, new DefaultOfferRequirementProvider());
+    }
+
+    public DefaultPlanFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
+        this.phaseFactory = new DefaultPhaseFactory(new DefaultBlockFactory(stateStore, offerRequirementProvider));
     }
 
     public Plan getPlan(ServiceSpecification serviceSpecification) throws InvalidRequirementException {

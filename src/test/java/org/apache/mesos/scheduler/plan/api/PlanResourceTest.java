@@ -22,8 +22,10 @@ public class PlanResourceTest {
     @Mock private Plan mockPlan;
     @Mock private PlanManager mockPlanManager;
 
+    @SuppressWarnings("deprecation")
     private PlanResource resource;
 
+    @SuppressWarnings("deprecation")
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);

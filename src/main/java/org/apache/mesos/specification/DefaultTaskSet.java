@@ -22,7 +22,15 @@ public class DefaultTaskSet implements TaskSet {
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes) {
-        return create(count, name, command, resources, volumes, Optional.empty(), Optional.empty());
+        return create(
+                count,
+                name,
+                command,
+                resources,
+                volumes,
+                new ArrayList<>() /* configs */,
+                Optional.empty() /* placement */,
+                Optional.empty() /* healthcheck */);
     }
 
     public static DefaultTaskSet create(
@@ -31,6 +39,7 @@ public class DefaultTaskSet implements TaskSet {
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
+            Collection<ConfigFileSpecification> configs,
             Optional<PlacementRuleGenerator> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
@@ -41,11 +50,12 @@ public class DefaultTaskSet implements TaskSet {
                     command,
                     resources,
                     volumes,
+                    configs,
                     placementOptional,
                     healthCheck));
         }
 
-        return new DefaultTaskSet(name, taskSpecifications);
+        return create(name, taskSpecifications);
     }
 
     public static DefaultTaskSet create(String name, List<TaskSpecification> taskSpecifications) {

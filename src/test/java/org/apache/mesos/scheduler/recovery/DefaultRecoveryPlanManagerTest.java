@@ -359,7 +359,7 @@ public class DefaultRecoveryPlanManagerTest {
         assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
 
         // Verify we didn't launch the task
-        verify(offerAccepter, times(0)).accept(any(), eq(Collections.EMPTY_LIST));
+        verify(offerAccepter, times(0)).accept(any(), eq(new ArrayList<>()));
         verify(launchConstrainer, never()).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
         reset(mockDeployManager);
     }
