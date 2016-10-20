@@ -250,11 +250,9 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 return terminatedTasks;
             }
 
-            for (String assetToIgnore : dirtiedAssets) {
-                for (Protos.TaskInfo taskForRepair : terminatedTasks) {
-                    if (!Objects.equals(taskForRepair.getName(), assetToIgnore)) {
-                        filteredTerminatedTasks.add(taskForRepair);
-                    }
+            for (Protos.TaskInfo taskForRepair : terminatedTasks) {
+                if (!dirtiedAssets.contains(taskForRepair.getName())) {
+                    filteredTerminatedTasks.add(taskForRepair);
                 }
             }
         } catch (Exception ex) {

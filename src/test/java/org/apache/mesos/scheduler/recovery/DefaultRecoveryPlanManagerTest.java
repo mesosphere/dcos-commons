@@ -421,11 +421,18 @@ public class DefaultRecoveryPlanManagerTest {
         TaskInfo taskInfoB = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
                 .setTaskId(TaskUtils.toTaskId(taskNameB))
                 .setName(taskNameB).build();
-        List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB);
+        final String taskNameC = TestConstants.TASK_NAME + "-C";
+        TaskInfo taskInfoC = TaskInfo.newBuilder(TaskTestUtils.getTaskInfo(Arrays.asList(cpus)))
+                .setTaskId(TaskUtils.toTaskId(taskNameC))
+                .setName(taskNameC).build();
+        List<TaskInfo> infos = Arrays.asList(taskInfoA, taskInfoB, taskInfoC);
         when(stateStore.fetchTasksNeedingRecovery()).thenReturn(infos);
-        Block block = mock(Block.class);
-        when(block.getName()).thenReturn(TestConstants.TASK_NAME);
-        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(Arrays.asList(block.getName()));
+        Block blockA = mock(Block.class);
+        when(blockA.getName()).thenReturn(taskInfoA.getName());
+        Block blockC = mock(Block.class);
+        when(blockC.getName()).thenReturn(taskInfoC.getName());
+        final Collection<TaskInfo> terminatedTasks = recoveryManager.getTerminatedTasks(
+                Arrays.asList(blockA.getName(), blockC.getName()));
         assertEquals(1, terminatedTasks.size());
         assertEquals(taskNameB, terminatedTasks.iterator().next().getName());
     }
