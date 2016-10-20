@@ -43,6 +43,7 @@ public class TestTaskSetFactory {
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -67,6 +68,7 @@ public class TestTaskSetFactory {
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                Optional.empty(),
                 Optional.empty());
     }
 

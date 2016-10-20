@@ -19,6 +19,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskSpecification.class);
     private final String name;
     private final Protos.CommandInfo commandInfo;
+    private final Optional<Protos.HealthCheck> healthCheck;
     private final Collection<ResourceSpecification> resourceSpecifications;
     private final Collection<VolumeSpecification> volumeSpecifications;
     private final Optional<PlacementRuleGenerator> placementOptional;
@@ -39,7 +40,8 @@ public class DefaultTaskSpecification implements TaskSpecification {
                 taskInfo.getCommand(),
                 getResources(taskInfo),
                 getVolumes(taskInfo),
-                placement);
+                placement,
+                Optional.empty());
     }
 
     protected DefaultTaskSpecification(
@@ -47,13 +49,18 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Protos.CommandInfo commandInfo,
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional) {
+            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
         this.volumeSpecifications = volumeSpecifications;
         this.placementOptional = placementOptional;
+        this.healthCheck = healthCheck;
     }
+
+    @Override
+    public Optional<Protos.HealthCheck> getHealthCheck() { return healthCheck; }
 
     @Override
     public String getName() {

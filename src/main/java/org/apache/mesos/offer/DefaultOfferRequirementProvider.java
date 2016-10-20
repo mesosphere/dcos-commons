@@ -17,17 +17,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     @Override
     public OfferRequirement getNewOfferRequirement(String taskType, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
                 .setCommand(taskSpecification.getCommand())
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId())
-                .addAllResources(getNewResources(taskSpecification))
-                .build();
+                .addAllResources(getNewResources(taskSpecification));
+
+        if (taskSpecification.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
+        }
 
         return new OfferRequirement(
                 taskType,
-                Arrays.asList(taskInfo),
+                Arrays.asList(taskInfoBuilder.build()),
                 Optional.empty(),
                 taskSpecification.getPlacement());
     }

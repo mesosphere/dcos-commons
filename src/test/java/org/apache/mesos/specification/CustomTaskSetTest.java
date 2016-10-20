@@ -36,6 +36,7 @@ public class CustomTaskSetTest {
                                 .build(),
                         Collections.emptyList(),
                         Collections.emptyList(),
+                        Optional.empty(),
                         Optional.empty()));
             }
 
