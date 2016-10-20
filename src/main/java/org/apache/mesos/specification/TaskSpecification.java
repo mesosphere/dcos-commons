@@ -22,6 +22,13 @@ public interface TaskSpecification {
     Protos.CommandInfo getCommand();
 
     /**
+     * Returns the health check operation to be performed against this task while it's running, or
+     * an empty {@link Optional} if no additional health checks should be performed beyond Mesos
+     * task status.
+     */
+    Optional<Protos.HealthCheck> getHealthCheck();
+
+    /**
      * Returns the container resources required by tasks of this type, or an empty list if no
      * container resources are necessary. In practice you probably want something here.
      *

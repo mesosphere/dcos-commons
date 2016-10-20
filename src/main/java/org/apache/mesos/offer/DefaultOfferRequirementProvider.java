@@ -26,17 +26,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             throws InvalidRequirementException {
         Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
                 .addMissingToEnvironment(taskSpecification.getCommand());
-        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder()
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
                 .setCommand(updatedCommand)
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId())
                 .addAllResources(getNewResources(taskSpecification));
-        TaskUtils.setConfigFiles(taskBuilder, taskSpecification.getConfigFiles());
+
+        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
+
+        if (taskSpecification.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
+        }
 
         return new OfferRequirement(
                 taskType,
-                Arrays.asList(taskBuilder.build()),
+                Arrays.asList(taskInfoBuilder.build()),
                 Optional.empty(),
                 taskSpecification.getPlacement());
     }
@@ -72,19 +77,24 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
         Protos.CommandInfo updatedCommand = configRouter.getConfig(taskType)
                 .addMissingToEnvironment(taskSpecification.getCommand());
-        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder(taskInfo)
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
                 .setCommand(updatedCommand)
                 .addAllResources(updatedResources)
                 .addAllResources(getVolumes(taskInfo.getResourcesList()))
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
-        TaskUtils.setConfigFiles(taskBuilder, taskSpecification.getConfigFiles());
+
+        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
+
+        if (taskSpecification.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
+        }
 
         try {
             return new OfferRequirement(
                     TaskUtils.getTaskType(taskInfo),
-                    Arrays.asList(taskBuilder.build()),
+                    Arrays.asList(taskInfoBuilder.build()),
                     Optional.empty(),
                     taskSpecification.getPlacement());
         } catch (TaskException e) {

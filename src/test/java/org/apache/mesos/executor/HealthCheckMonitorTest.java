@@ -1,10 +1,10 @@
 package org.apache.mesos.executor;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.testng.Assert;
 
 import java.util.Optional;
 import java.util.concurrent.*;

@@ -45,6 +45,7 @@ public class TestTaskSetFactory {
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 Collections.emptyList(),
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -70,6 +71,7 @@ public class TestTaskSetFactory {
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 Collections.emptyList(),
+                Optional.empty(),
                 Optional.empty());
     }
 
