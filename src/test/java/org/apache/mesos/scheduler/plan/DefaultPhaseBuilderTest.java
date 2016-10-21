@@ -71,9 +71,9 @@ public class DefaultPhaseBuilderTest {
 
     @Test
     public void testBuildParallelPlan() throws DependencyStrategyHelper.InvalidDependencyException {
-        phaseBuilder.add(block0);
-        phaseBuilder.add(block1);
-        phaseBuilder.add(block2);
+        phaseBuilder.addAll(block0);
+        phaseBuilder.addAll(block1);
+        phaseBuilder.addAll(block2);
         DefaultPhase phase = phaseBuilder.build();
 
         Assert.assertEquals(3, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());

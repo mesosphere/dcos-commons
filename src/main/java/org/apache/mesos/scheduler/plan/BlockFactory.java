@@ -12,6 +12,6 @@ import java.util.List;
  * detected for a Task.
  */
 public interface BlockFactory {
-    Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidException;
-    List<Block> getBlocks(List<TaskSpecification> taskSpecifications) throws Block.InvalidException;
+    Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidBlockException;
+    List<Block> getBlocks(List<TaskSpecification> taskSpecifications) throws Block.InvalidBlockException;
 }

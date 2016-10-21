@@ -18,14 +18,17 @@ public class PlanUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlanUtils.class);
 
     public static final void update(TaskStatus taskStatus, Collection<? extends Element> elements) {
+        LOGGER.info("Updated with TaskStatus: {}", taskStatus);
         elements.forEach(element -> element.update(taskStatus));
     }
 
     public static final void restart(Collection<? extends Element> elements) {
+        LOGGER.info("Restarting elements: {}", elements);
         elements.forEach(element -> element.restart());
     }
 
     public static final void forceComplete(Collection<? extends Element> elements) {
+        LOGGER.info("Forcing completion of elements: {}", elements);
         elements.forEach(element -> element.forceComplete());
     }
 
@@ -79,15 +82,19 @@ public class PlanUtils {
         return result;
     }
 
-    public static boolean allHaveStatus(Status status, Collection<? extends Element> planElements) {
-        return planElements.stream().allMatch(element -> element.getStatus() == status);
+    public static boolean allHaveStatus(Status status, Collection<? extends Element> elements) {
+        return elements.stream().allMatch(element -> element.getStatus() == status);
     }
 
-    public static boolean anyHaveStatus(Status status, Collection<? extends Element> planElements) {
-        return planElements.stream().anyMatch(element -> element.getStatus() == status);
+    public static boolean anyHaveStatus(Status status, Collection<? extends Element> elements) {
+        return elements.stream().anyMatch(element -> element.getStatus() == status);
     }
 
     public static List<Offer> filterAcceptedOffers(List<Offer> offers, Collection<OfferID> acceptedOfferIds) {
         return offers.stream().filter(offer -> !acceptedOfferIds.contains(offer.getId())).collect(Collectors.toList());
+    }
+
+    public static void setStatus(List<? extends Element> elements, Status status) {
+        elements.forEach(element -> element.setStatus(status));
     }
 }

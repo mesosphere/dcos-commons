@@ -46,7 +46,7 @@ public class DefaultScheduler implements Scheduler {
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
-    private final String name;
+    private final String frameworkName;
 
     private Reconciler reconciler;
     private StateStore stateStore;
@@ -64,23 +64,23 @@ public class DefaultScheduler implements Scheduler {
     }
 
     public static DefaultScheduler create(ServiceSpecification serviceSpecification, String zkConnectionString) {
-        StateStore stateStore = new CuratorStateStore(serviceSpecification.getName());
+        StateStore stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
         BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
         PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
         Plan deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
         return create(serviceSpecification.getName(), new DefaultPlanManager(deployPlan), zkConnectionString);
     }
 
-    public static DefaultScheduler create(String name, PlanManager deploymentPlanManager) {
-        return create(name, deploymentPlanManager, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static DefaultScheduler create(String frameworkName, PlanManager deploymentPlanManager) {
+        return create(frameworkName, deploymentPlanManager, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     public static DefaultScheduler create(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
         return new DefaultScheduler(name, deploymentPlanManager, zkConnectionString);
     }
 
-    protected DefaultScheduler(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
-        this.name = name;
+    protected DefaultScheduler(String frameworkName, PlanManager deploymentPlanManager, String zkConnectionString) {
+        this.frameworkName = frameworkName;
         this.deployPlanManager = deploymentPlanManager;
         this.zkConnectionString = zkConnectionString;
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
@@ -117,7 +117,7 @@ public class DefaultScheduler implements Scheduler {
 
     private void initializeGlobals(SchedulerDriver driver) {
         logger.info("Initializing globals...");
-        stateStore = new CuratorStateStore(name, zkConnectionString);
+        stateStore = new CuratorStateStore(frameworkName, zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
@@ -149,7 +149,7 @@ public class DefaultScheduler implements Scheduler {
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore));
-        resources.add(new TaskResource(stateStore, taskKiller, name));
+        resources.add(new TaskResource(stateStore, taskKiller, frameworkName));
         resourcesQueue.put(resources);
     }
 

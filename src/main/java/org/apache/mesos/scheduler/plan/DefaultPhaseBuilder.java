@@ -7,9 +7,10 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Created by gabriel on 10/19/16.
+ * The DefaultPhaseBuilder allows the construction of a {@link Phase} with a custom @{link Strategy} defined by the
+ * expressed dependencies.
  */
-public class DefaultPhaseBuilder extends ElementBuilder<Block> {
+public class DefaultPhaseBuilder extends ElementBuilder<Phase, Block> {
     public DefaultPhaseBuilder(String name) {
         super(name);
     }

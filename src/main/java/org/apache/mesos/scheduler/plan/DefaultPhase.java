@@ -59,7 +59,7 @@ public class DefaultPhase extends ChainedObserver implements Phase {
 
     @Override
     public void setStatus(Status status) {
-        logger.warn("Setting status does not effect status. Status is derived from Strategy and child statuses.");
+        PlanUtils.setStatus(getChildren(), status);
     }
 
     @Override

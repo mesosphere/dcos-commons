@@ -55,7 +55,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
                 .map(taskSpec -> {
                     try {
                         return blockFactory.getBlock(taskSpec);
-                    } catch (Block.InvalidException e) {
+                    } catch (Block.InvalidBlockException e) {
                         return new DefaultBlock(
                                 taskSpec.getName(),
                                 Optional.empty(),

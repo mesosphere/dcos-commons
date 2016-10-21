@@ -1,4 +1,3 @@
-SERVICE_ACCOUNT_NAME=service-acct
 SECRET_NAME=secret
 LINUX_USER=$1
 ROLE=$2

@@ -17,13 +17,17 @@ import static org.mockito.Mockito.when;
  * Created by gabriel on 10/19/16.
  */
 public class SerialStrategyTest {
-    @Mock Element parentElement;
-    @Mock Element el0;
-    @Mock Element el1;
-    @Mock Element el2;
+    @Mock
+    Element parentElement;
+    @Mock
+    Element el0;
+    @Mock
+    Element el1;
+    @Mock
+    Element el2;
 
     private SerialStrategy strategy;
-    private List<Element> elements;
+    private List<Element> Elements;
 
     @Before
     public void beforeEach() {
@@ -42,8 +46,8 @@ public class SerialStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        elements = Arrays.asList(el0, el1, el2);
-        when(parentElement.getChildren()).thenReturn(elements);
+        Elements = Arrays.asList(el0, el1, el2);
+        when(parentElement.getChildren()).thenReturn(Elements);
     }
 
     @Test

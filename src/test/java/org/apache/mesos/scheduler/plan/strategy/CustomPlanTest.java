@@ -7,7 +7,6 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -113,7 +112,7 @@ public class CustomPlanTest {
     }
 
     @Test
-    public void testCustomPlanFromPhases() throws DependencyStrategyHelper.InvalidDependencyException {
+    public void testCustomPlanFromPhasesDoesntThrow() throws DependencyStrategyHelper.InvalidDependencyException {
         Phase parallelPhase = getParallelPhase();
         Phase serialPhase = getSerialPhase();
         Phase diamondPhase = getDiamondPhase();
@@ -122,12 +121,11 @@ public class CustomPlanTest {
         planBuilder.addDependency(serialPhase, diamondPhase);
         planBuilder.addDependency(diamondPhase, parallelPhase);
 
-        Plan plan = planBuilder.build();
-        Assert.assertNotNull(plan);
+        planBuilder.build();
     }
 
     @Test
-    public void testCustomPlanFromServiceSpec() throws Block.InvalidException {
+    public void testCustomPlanFromServiceSpecDoesntThrow() throws Block.InvalidBlockException {
         DefaultBlockFactory blockFactory = new DefaultBlockFactory(stateStore);
         DefaultPhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
         Iterator<TaskSet> taskSetIterator = serviceSpecification.getTaskSets().iterator();
@@ -150,16 +148,15 @@ public class CustomPlanTest {
         phaseBuilder.addDependency(blocks.get(2), blocks.get(0));
         Phase diamondPhase = phaseBuilder.build();
 
-        Plan plan = new DefaultPlan(
+        new DefaultPlan(
                 "plan",
                 Arrays.asList(parallelPhase, serialPhase, diamondPhase),
                 new SerialStrategy<>());
-        Assert.assertNotNull(plan);
     }
 
     private Phase getParallelPhase() throws DependencyStrategyHelper.InvalidDependencyException {
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("parallel");
-        phaseBuilder.add(blocks);
+        phaseBuilder.addAll(blocks);
         return phaseBuilder.build();
     }
 

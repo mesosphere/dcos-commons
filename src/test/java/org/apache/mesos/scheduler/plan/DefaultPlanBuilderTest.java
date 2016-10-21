@@ -75,9 +75,9 @@ public class DefaultPlanBuilderTest {
 
     @Test
     public void testBuildParallelPlan() throws DependencyStrategyHelper.InvalidDependencyException {
-        planBuilder.add(phase0);
-        planBuilder.add(phase1);
-        planBuilder.add(phase2);
+        planBuilder.addAll(phase0);
+        planBuilder.addAll(phase1);
+        planBuilder.addAll(phase2);
         DefaultPlan plan = planBuilder.build();
 
         Assert.assertEquals(3, plan.getStrategy().getCandidates(plan, Collections.emptyList()).size());

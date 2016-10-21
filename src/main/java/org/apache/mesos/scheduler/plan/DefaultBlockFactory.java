@@ -28,7 +28,7 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     @Override
-    public Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidException {
+    public Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidBlockException {
         logger.info("Generating block for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
 
@@ -54,12 +54,12 @@ public class DefaultBlockFactory implements BlockFactory {
             }
         } catch (InvalidTaskSpecificationException | InvalidRequirementException | TaskException e) {
             logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
-            throw new Block.InvalidException(e);
+            throw new Block.InvalidBlockException(e);
         }
     }
 
     @Override
-    public List<Block> getBlocks(List<TaskSpecification> taskSpecifications) throws Block.InvalidException {
+    public List<Block> getBlocks(List<TaskSpecification> taskSpecifications) throws Block.InvalidBlockException {
         List<Block> blocks = new ArrayList<>();
         for (TaskSpecification taskSpecification : taskSpecifications) {
             blocks.add(getBlock(taskSpecification));

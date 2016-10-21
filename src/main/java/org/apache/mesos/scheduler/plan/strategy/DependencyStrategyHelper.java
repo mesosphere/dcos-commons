@@ -13,14 +13,12 @@ import java.util.stream.Collectors;
  */
 public class DependencyStrategyHelper<C extends Element> {
     private final Map<C, Set<C>> dependencies;
-    private final Collection<? extends Element> elements;
 
     public DependencyStrategyHelper() {
         this(Collections.emptyList());
     }
 
     public DependencyStrategyHelper(Collection<? extends Element> elements) {
-        this.elements = elements;
         this.dependencies = new HashMap<>();
         elements.forEach(child -> dependencies.put((C) child, new HashSet<>()));
     }

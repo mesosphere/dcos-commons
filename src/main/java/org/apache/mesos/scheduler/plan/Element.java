@@ -42,7 +42,7 @@ public interface Element<C extends Element> extends Observable {
     List<C> getChildren();
 
     /**
-     * Gets the Strategy of an Element.
+     * Gets the Strategy applied to the deployment of child elements.
      */
     Strategy<C> getStrategy();
 

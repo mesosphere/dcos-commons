@@ -540,8 +540,8 @@ public class DefaultSchedulerTest {
     private int countBlocks(Plan plan) {
         int i = 0;
 
-        for (Element element : plan.getChildren()) {
-            i += element.getChildren().size();
+        for (Element Element : plan.getChildren()) {
+            i += Element.getChildren().size();
         }
 
         return i;

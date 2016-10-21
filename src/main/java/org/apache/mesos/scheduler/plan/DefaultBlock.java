@@ -27,11 +27,11 @@ public class DefaultBlock extends DefaultObservable implements Block {
 
     public DefaultBlock(
             String name,
-            Optional<OfferRequirement> offerRequirement,
+            Optional<OfferRequirement> offerRequirementOptional,
             Status status,
             List<String> errors) {
         this.name = name;
-        this.offerRequirementOptional = offerRequirement;
+        this.offerRequirementOptional = offerRequirementOptional;
         this.status = status;
         this.errors = errors;
     }
@@ -114,7 +114,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
     }
 
     @Override
-    public Strategy<? extends Block> getStrategy() {
+    public Strategy<? extends Element> getStrategy() {
         return strategy;
     }
 

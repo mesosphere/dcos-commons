@@ -37,8 +37,8 @@ public interface Block extends Element {
     /**
      * Thrown on invalid Block construction attempt.
      */
-    class InvalidException extends Exception {
-        public InvalidException(Exception e) {
+    class InvalidBlockException extends Exception {
+        public InvalidBlockException(Exception e) {
             super(e);
         }
     }

@@ -75,7 +75,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         List<Block> blocks = new ArrayList<>();
 
         // If recovery candidates are not part of a different PlanManager's plan, generate a recovery block for them
-        // and mark it as pending. Tasks that are still in terminal state, add them to plan directly
+        // and mark it as pending. Tasks that are still in terminal state, addAll them to plan directly
         for (Map.Entry<String, Protos.TaskInfo> candidate : recoveryCandidates.entrySet()) {
             final String name = candidate.getKey();
             final Protos.TaskInfo taskInfo = candidate.getValue();

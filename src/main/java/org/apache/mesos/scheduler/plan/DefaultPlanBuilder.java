@@ -7,9 +7,10 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Created by gabriel on 10/19/16.
+ * The DefaultPlanBuilder allows the construction of a {@link Plan} with a custom @{link Strategy} defined by the
+ * expressed dependencies.
  */
-public class DefaultPlanBuilder extends ElementBuilder<Phase> {
+public class DefaultPlanBuilder extends ElementBuilder<Plan, Phase> {
     public DefaultPlanBuilder(String name) {
         super(name);
     }
