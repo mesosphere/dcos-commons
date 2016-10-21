@@ -4,6 +4,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockSingleNonPendingBlock() {
         Phase phase = mock(Phase.class);
         final Block nonPendingBlock = mock(Block.class);
@@ -35,7 +37,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockSinglePendingBlock() {
         Phase phase = mock(Phase.class);
         final Block pendingBlock = mock(Block.class);
@@ -47,7 +49,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockAllNonPendingBlock() {
         Phase phase = mock(Phase.class);
         final Block notPendingA = mock(Block.class);
@@ -61,7 +63,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockAllPendingBlock() {
         Phase phase = mock(Phase.class);
         final Block pendingA = mock(Block.class);
