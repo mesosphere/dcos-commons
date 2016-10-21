@@ -5,8 +5,10 @@ import java.util.List;
 /**
  * The {@code ConfigurationValidation} interface should be implemented by any class
  * which intend to validate a new {@code Configuration} w.r.t. an old {@code Configuration}.
+ *
+ * @param <C> the type of configuration to be validated
  */
-public interface ConfigurationValidation {
+public interface ConfigurationValidation<C extends Configuration> {
     /**
      * Returns {@code List} of {@code ConfigurationValidationError} for the newly supplied
      * {@code Configuration} object.
@@ -20,5 +22,5 @@ public interface ConfigurationValidation {
      * @param newConfig Proposed new Configuration
      * @return List of errors, or an empty list if validation passed
      */
-    List<ConfigurationValidationError> validate(Configuration oldConfig, Configuration newConfig);
+    List<ConfigurationValidationError> validate(C oldConfig, C newConfig);
 }

@@ -1,34 +1,80 @@
 package org.apache.mesos.config;
 
 /**
- * Signals a certain configurationField is incorrectly configured.
+ * Signals a certain configurationField is incorrectly configured, or has
  */
 public class ConfigurationValidationError {
-    private final String configurationField;
-    private final String configurationValue;
+    private final String configField;
+    private final String oldConfigValue; // Nullable
+    private final String newConfignValue;
     private final String message;
 
-    public ConfigurationValidationError(String configField, String configValue, String message) {
-        this.configurationField = configField;
-        this.configurationValue = configValue;
+    /**
+     * Returns a new validation error which indicates that a configuration field has an invalid
+     * value. This is equivalent to a transition error, except with no prior value.
+     */
+    public static ConfigurationValidationError valueError(
+            String configField, String configValue, String message) {
+        // Set oldValue to null
+        return new ConfigurationValidationError(configField, null, configValue, message);
+    }
+
+    /**
+     * Returns a new validation error which indicates that a configuration field has an invalid
+     * transition from its previous value to the current value.
+     */
+    public static ConfigurationValidationError transitionError(
+            String configField, String oldConfigValue, String newConfigValue, String message) {
+        return new ConfigurationValidationError(configField, oldConfigValue, newConfigValue, message);
+    }
+
+    private ConfigurationValidationError(String configField, String oldConfigValue, String newConfigValue, String message) {
+        this.configField = configField;
+        this.oldConfigValue = oldConfigValue;
+        this.newConfignValue = newConfigValue;
         this.message = message;
     }
 
+    /**
+     * Returns the name of the field which had the error.
+     */
     public String getConfigurationField() {
-        return configurationField;
+        return configField;
     }
 
+    /**
+     * Returns the current value which triggered the error.
+     */
     public String getConfigurationValue() {
-        return configurationValue;
+        return newConfignValue;
     }
 
+    /**
+     * Returns the previous value which failed to transition to the current value, or {@code null}
+     * if this is not a transition error.
+     */
+    public String getPreviousConfigurationValue() {
+        return oldConfigValue;
+    }
+
+    /**
+     * Returns the provided error message for this error.
+     */
     public String getMessage() {
         return message;
     }
 
+    /**
+     * Returns a complete user-facing string representation providing the error and its source.
+     */
     @Override
     public String toString() {
-        return String.format("Validation error. Field: '%s'; Value: '%s'; Message: '%s'",
-                configurationField, configurationValue, message);
+        if (oldConfigValue != null) {
+            return String.format("Field: '%s'; Transition: '%s' => '%s'; Message: '%s'",
+                    configField, oldConfigValue, newConfignValue, message);
+        } else {
+            return String.format("Field: '%s'; Value: '%s'; Message: '%s'",
+                    configField, newConfignValue, message);
+        }
     }
 }

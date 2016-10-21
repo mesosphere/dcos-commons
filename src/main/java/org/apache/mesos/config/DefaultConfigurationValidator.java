@@ -6,25 +6,26 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Default Configuration validator, which validates a given new {@code Configuration} w.r.t.
- * an old {@code Configuration}.
+ * Default {@link Configuration} validator, which validates the transition from an old
+ * {@code Configuration} to a new {@code Configuration}.
+ *
+ * @param <C> the type of configuration to be validated
  */
-public class DefaultConfigurationValidator {
-    private final Collection<ConfigurationValidation> validations = new ArrayList<>();
+public class DefaultConfigurationValidator<C extends Configuration> {
+    private final Collection<ConfigurationValidation<C>> validations = new ArrayList<>();
 
-    public DefaultConfigurationValidator(final ConfigurationValidation... validations) {
+    @SafeVarargs
+    public DefaultConfigurationValidator(final ConfigurationValidation<C>... validations) {
         this(Arrays.asList(validations));
     }
 
-    public DefaultConfigurationValidator(final Collection<ConfigurationValidation> validations) {
-        if (validations != null && !validations.isEmpty()) {
-            this.validations.addAll(validations);
-        }
+    public DefaultConfigurationValidator(final Collection<ConfigurationValidation<C>> validations) {
+        this.validations.addAll(validations);
     }
 
-    public Collection<ConfigurationValidationError> validate(Configuration oldConfig, Configuration newConfig) {
+    public Collection<ConfigurationValidationError> validate(C oldConfig, C newConfig) {
         final List<ConfigurationValidationError> errors = new ArrayList<>();
-        for (ConfigurationValidation validation : validations) {
+        for (ConfigurationValidation<C> validation : validations) {
             errors.addAll(validation.validate(oldConfig, newConfig));
         }
         return errors;

@@ -30,14 +30,10 @@ public class DefaultConfigurationValidatorTest {
         }
     }
 
-    ConfigurationValidation test = (oldConfig, newConfig) -> {
-        final TestConfig oConfig = (TestConfig) oldConfig;
-        final TestConfig nConfig = (TestConfig) newConfig;
-
+    ConfigurationValidation<TestConfig> test = (oConfig, nConfig) -> {
         if (oConfig.getA() != nConfig.getA()) {
-            return Arrays.asList(new ConfigurationValidationError("a", "" + nConfig.getA(), "not equal"));
+            return Arrays.asList(ConfigurationValidationError.valueError("a", "" + nConfig.getA(), "not equal"));
         }
-
         return Collections.emptyList();
     };
 
@@ -46,7 +42,8 @@ public class DefaultConfigurationValidatorTest {
         final TestConfig oldConfig = new TestConfig(1);
         final TestConfig newConfig = new TestConfig(2);
 
-        final DefaultConfigurationValidator configurationValidator = new DefaultConfigurationValidator();
+        final DefaultConfigurationValidator<TestConfig> configurationValidator
+                = new DefaultConfigurationValidator<>(Arrays.asList());
         final Collection<ConfigurationValidationError> validate = configurationValidator.validate(oldConfig, newConfig);
 
         Assert.assertNotNull(validate);
@@ -58,8 +55,8 @@ public class DefaultConfigurationValidatorTest {
         final TestConfig oldConfig = new TestConfig(1);
         final TestConfig newConfig = new TestConfig(1);
 
-        final DefaultConfigurationValidator configurationValidator
-                = new DefaultConfigurationValidator(Arrays.asList(test));
+        final DefaultConfigurationValidator<TestConfig> configurationValidator
+                = new DefaultConfigurationValidator<>(Arrays.asList(test));
         final Collection<ConfigurationValidationError> validate = configurationValidator.validate(oldConfig, newConfig);
 
         Assert.assertNotNull(validate);
@@ -71,8 +68,8 @@ public class DefaultConfigurationValidatorTest {
         final TestConfig oldConfig = new TestConfig(1);
         final TestConfig newConfig = new TestConfig(2);
 
-        final DefaultConfigurationValidator configurationValidator
-                = new DefaultConfigurationValidator(Arrays.asList(test));
+        final DefaultConfigurationValidator<TestConfig> configurationValidator
+                = new DefaultConfigurationValidator<>(Arrays.asList(test));
         final Collection<ConfigurationValidationError> validate = configurationValidator.validate(oldConfig, newConfig);
 
         Assert.assertNotNull(validate);
