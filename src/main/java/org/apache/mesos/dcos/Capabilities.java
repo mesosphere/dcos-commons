@@ -2,6 +2,7 @@ package org.apache.mesos.dcos;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,17 +20,20 @@ public class Capabilities {
     }
 
     public boolean supportsNamedVips() throws IOException, URISyntaxException {
-        DcosVersion.Elements versionElements = dcosCluster.getDcosVersion().getElements();
-        try {
-            // Named Vips are supported by DC/OS 1.8 upwards.
-            if (versionElements.getFirstElement() == 1) {
-                return versionElements.getSecondElement() >= 8;
+        final Optional<DcosVersion> dcosVersion = dcosCluster.getDcosVersion();
+        if (dcosVersion.isPresent()) {
+            DcosVersion.Elements versionElements = dcosVersion.get().getElements();
+            try {
+                // Named Vips are supported by DC/OS 1.8 upwards.
+                if (versionElements.getFirstElement() == 1) {
+                    return versionElements.getSecondElement() >= 8;
+                }
+                return versionElements.getFirstElement() > 1;
+            } catch (NumberFormatException ex) {
+                // incorrect version string. Todo(joerg84): Consider throwing an exception here.
+                LOGGER.warn("Unable to parse version string for Named Vip", ex);
             }
-            return versionElements.getFirstElement() > 1;
-        } catch (NumberFormatException ex) {
-            // incorrect version string. Todo(joerg84): Consider throwing an exception here.
-            LOGGER.warn("Unable to parse version string for Named Vip", ex);
-            return false;
         }
+        return false;
     }
 }

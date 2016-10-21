@@ -60,7 +60,9 @@ public class DefaultTaskSpecification implements TaskSpecification {
     }
 
     @Override
-    public Optional<Protos.HealthCheck> getHealthCheck() { return healthCheck; }
+    public Optional<Protos.HealthCheck> getHealthCheck() {
+        return healthCheck;
+    }
 
     @Override
     public String getName() {
