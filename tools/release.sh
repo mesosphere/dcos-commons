@@ -19,7 +19,7 @@ fi
 rm -rf dcos-commons-tools/
 mkdir -p dcos-commons-tools/
 echo "$(git rev-parse HEAD)" > dcos-commons-tools/.commit
-cp *.py dcos-commons-tools/
+cp *.sh *.py dcos-commons-tools/
 tar czvf dcos-commons-tools.tgz dcos-commons-tools/
 rm -rf dcos-commons-tools/
 aws s3 cp --acl public-read ./dcos-commons-tools.tgz s3://infinity-artifacts/dcos-commons-tools.tgz
