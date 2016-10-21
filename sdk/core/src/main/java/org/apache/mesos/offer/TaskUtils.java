@@ -349,11 +349,42 @@ public class TaskUtils {
             return true;
         }
 
-        CommandInfo oldCommand = oldTaskSpecification.getCommand();
-        CommandInfo newCommand = newTaskSpecification.getCommand();
-        if (!Objects.equals(oldCommand, newCommand)) {
-            LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
+        boolean oldCommandPresent = oldTaskSpecification.getCommand().isPresent();
+        boolean newCommandPresent = newTaskSpecification.getCommand().isPresent();
+
+        if (oldCommandPresent != newCommandPresent) {
+            LOGGER.info(String.format("Task commands '%s' and '%s' are different.",
+                    (oldCommandPresent ? oldTaskSpecification.getCommand().get() : "NULL"),
+                    (newCommandPresent ? newTaskSpecification.getCommand().get() : "NULL")));
             return true;
+        }
+
+        if (oldCommandPresent && newCommandPresent) {
+            CommandInfo oldCommand = oldTaskSpecification.getCommand().get();
+            CommandInfo newCommand = newTaskSpecification.getCommand().get();
+            if (!Objects.equals(oldCommand, newCommand)) {
+                LOGGER.info(String.format("Task commands '%s' and '%s' are different.", oldCommand, newCommand));
+                return true;
+            }
+        }
+
+        boolean oldContainerPresent = oldTaskSpecification.getContainer().isPresent();
+        boolean newContainerPresent = newTaskSpecification.getContainer().isPresent();
+
+        if (oldContainerPresent != newContainerPresent) {
+            LOGGER.info(String.format("Task containers '%s' and '%s' are different.",
+                    (oldContainerPresent ? oldTaskSpecification.getContainer().get() : "NULL"),
+                    (newContainerPresent ? newTaskSpecification.getContainer().get() : "NULL")));
+            return true;
+        }
+
+        if (oldContainerPresent && newContainerPresent) {
+            ContainerInfo oldContainer = oldTaskSpecification.getContainer().get();
+            ContainerInfo newContainer = newTaskSpecification.getContainer().get();
+            if (!Objects.equals(oldContainer, newContainer)) {
+                LOGGER.info(String.format("Task containers '%s' and '%s' are different.", oldContainer, newContainer));
+                return true;
+            }
         }
 
         Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());

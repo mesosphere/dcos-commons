@@ -24,9 +24,14 @@ public interface TaskSpecification {
     String getType();
 
     /**
-     * Returns the Mesos {@link Protos.CommandInfo} to be used for the starting task.
+     * Returns the Mesos {@code ContainerInfo} to be used for the starting task.
      */
-    Protos.CommandInfo getCommand();
+    Optional<Protos.ContainerInfo> getContainer();
+
+    /**
+     * Returns the Mesos {@code CommandInfo} to be used for the starting task.
+     */
+    Optional<Protos.CommandInfo> getCommand();
 
     /**
      * Returns the health check operation to be performed against this task while it's running, or

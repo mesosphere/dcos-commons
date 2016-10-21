@@ -19,13 +19,16 @@ public class DefaultTaskSet implements TaskSet {
     public static DefaultTaskSet create(
             int count,
             String name,
+            String type,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes) {
-        return create(
-                count,
+
+        return create(count,
                 name,
-                command,
+                type,
+                Optional.empty(),
+                Optional.of(command),
                 resources,
                 volumes,
                 new ArrayList<>() /* configs */,
@@ -36,7 +39,79 @@ public class DefaultTaskSet implements TaskSet {
     public static DefaultTaskSet create(
             int count,
             String name,
+            String type,
             Protos.CommandInfo command,
+            Collection<ResourceSpecification> resources,
+            Collection<VolumeSpecification> volumes,
+            Collection<ConfigFileSpecification> configs,
+            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        return create(count,
+                name,
+                type,
+                Optional.empty(),
+                Optional.of(command),
+                resources,
+                volumes,
+                configs,
+                placementOptional,
+                healthCheck);
+    }
+
+    public static DefaultTaskSet create(
+            int count,
+            String name,
+            String type,
+            Protos.ContainerInfo container,
+            Collection<ResourceSpecification> resources,
+            Collection<VolumeSpecification> volumes,
+            Collection<ConfigFileSpecification> configs,
+            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        return create(count,
+                name,
+                type,
+                Optional.of(container),
+                Optional.empty(),
+                resources,
+                volumes,
+                configs,
+                placementOptional,
+                healthCheck);
+    }
+
+    public static DefaultTaskSet create(
+            int count,
+            String name,
+            String type,
+            Protos.ContainerInfo container,
+            Protos.CommandInfo command,
+            Collection<ResourceSpecification> resources,
+            Collection<VolumeSpecification> volumes,
+            Collection<ConfigFileSpecification> configs,
+            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        return create(count,
+            name,
+            type,
+            Optional.of(container),
+            Optional.of(command),
+            resources,
+            volumes,
+            configs,
+            placementOptional,
+            healthCheck);
+    }
+
+    private static DefaultTaskSet create(
+            int count,
+            String name,
+            String type,
+            Optional<Protos.ContainerInfo> container,
+            Optional<Protos.CommandInfo> command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
@@ -47,7 +122,8 @@ public class DefaultTaskSet implements TaskSet {
         for (int i = 0; i < count; i++) {
             taskSpecifications.add(new DefaultTaskSpecification(
                     name + "-" + i,
-                    name,
+                    type,
+                    container,
                     command,
                     resources,
                     volumes,

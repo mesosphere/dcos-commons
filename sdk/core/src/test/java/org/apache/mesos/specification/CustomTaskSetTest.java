@@ -17,8 +17,8 @@ public class CustomTaskSetTest {
     @Test
     public void testCustomCommand() {
         TaskSet taskSet = CustomTaskSet.create("custom", 3);
-        Assert.assertEquals("custom 0", taskSet.getTaskSpecifications().get(0).getCommand().getValue());
-        Assert.assertEquals("custom 2", taskSet.getTaskSpecifications().get(2).getCommand().getValue());
+        Assert.assertEquals("custom 0", taskSet.getTaskSpecifications().get(0).getCommand().get().getValue());
+        Assert.assertEquals("custom 2", taskSet.getTaskSpecifications().get(2).getCommand().get().getValue());
 
         Assert.assertEquals("custom_0", taskSet.getTaskSpecifications().get(0).getName());
         Assert.assertEquals("custom_2", taskSet.getTaskSpecifications().get(2).getName());

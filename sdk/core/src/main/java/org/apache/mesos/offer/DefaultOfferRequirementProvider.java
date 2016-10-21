@@ -34,19 +34,26 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     public OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
             throws InvalidRequirementException {
 
-        Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpecification.getType())
-                .updateEnvironment(taskSpecification.getCommand());
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
-                .setCommand(updatedCommand)
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId())
                 .addAllResources(getNewResources(taskSpecification));
 
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
 
+        if (taskSpecification.getCommand().isPresent()) {
+            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpecification.getType())
+                    .updateEnvironment(taskSpecification.getCommand().get());
+            taskInfoBuilder.setCommand(updatedCommand);
+        }
+
         if (taskSpecification.getHealthCheck().isPresent()) {
             taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
+        }
+
+        if (taskSpecification.getContainer().isPresent()) {
+            taskInfoBuilder.setContainer(taskSpecification.getContainer().get());
         }
 
         return new OfferRequirement(
@@ -86,12 +93,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
-        Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
-                .updateEnvironment(taskSpecification.getCommand());
+
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
                 .clearExecutor()
-                .setCommand(updatedCommand)
                 .addAllResources(updatedResources)
                 .addAllResources(getVolumes(taskInfo.getResourcesList()))
                 .setTaskId(TaskUtils.emptyTaskId())
@@ -99,8 +104,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
 
+        if (taskSpecification.getCommand().isPresent()) {
+            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
+                    .updateEnvironment(taskSpecification.getCommand().get());
+            taskInfoBuilder.setCommand(updatedCommand);
+        }
+
         if (taskSpecification.getHealthCheck().isPresent()) {
             taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
+        }
+
+        if (taskSpecification.getContainer().isPresent()) {
+            taskInfoBuilder.setContainer(taskSpecification.getContainer().get());
         }
 
         try {
