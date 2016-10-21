@@ -205,7 +205,7 @@ public class OfferEvaluator {
 
         public static Optional<FulfilledRequirement> fulfillRequirement(
                 Collection<ResourceRequirement> resourceRequirements,
-                Collection<DynamicPortRequirement> dynamicPortRequirements,
+                Collection<DynamicPortRequirement> dynamicPortRequirements,   ///why it is different for port
                 Offer offer,
                 MesosResourcePool pool) {
 
@@ -286,7 +286,7 @@ public class OfferEvaluator {
                 logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
                 fulfilledResources.add(fulfilledResource);
             }
-
+//!!!
             for (DynamicPortRequirement dynamicPortRequirement : dynamicPortRequirements) {
                 Optional<MesosResource> mesResOptional = pool.consume(dynamicPortRequirement);
                 if (!mesResOptional.isPresent()) {
@@ -296,19 +296,22 @@ public class OfferEvaluator {
                 }
                 final MesosResource mesRes = mesResOptional.get();
                 logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                        TextFormat.shortDebugString(dynamicPortRequirement.getResource()),
-                        TextFormat.shortDebugString(mesRes.getResource()));
+                        TextFormat.shortDebugString(dynamicPortRequirement.getResource()),  //should be 0
+                        TextFormat.shortDebugString(mesRes.getResource()));                 // should be set to a value
 
-                Resource fulfilledResource = getFulfilledResource(dynamicPortRequirement, mesRes);
-                if (dynamicPortRequirement.reservesResource()) {
+                Resource fulfilledResource = getFulfilledResource(dynamicPortRequirement, mesRes);  ///what is this
+                if (dynamicPortRequirement.reservesResource()) {                                    // if so
                     logger.info("Reserves Resource");
                     reserveRecommendations.add(new ReserveOfferRecommendation(offer, fulfilledResource));
+                    //here we should add the port value and replace it with 0
+
+                        dynamicPortRequirement.updatePort(mesRes.getValue());
                 }
 
                 logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
                 fulfilledResources.add(fulfilledResource);
             }
-
+//!!!
             return Optional.of(new FulfilledRequirement(
                     fulfilledResources,
                     unreserveRecommendations,
@@ -370,7 +373,12 @@ public class OfferEvaluator {
         if (diskInfo.isPresent()) {
             builder.setDisk(diskInfo.get());
         }
-
+//!!
+        Optional<PortInfo> portinfo = getFulfilledPortInfo(resReq, mesRes);
+        if (portInfo.isPresent())
+            builder.setPort(portInfo.get());
+        }
+//!!!
         return builder.build();
     }
 
