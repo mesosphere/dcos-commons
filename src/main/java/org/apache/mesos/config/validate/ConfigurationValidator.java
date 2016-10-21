@@ -1,14 +1,16 @@
-package org.apache.mesos.config;
+package org.apache.mesos.config.validate;
 
-import java.util.List;
+import java.util.Collection;
+
+import org.apache.mesos.config.Configuration;
 
 /**
- * The {@code ConfigurationValidation} interface should be implemented by any class
- * which intend to validate a new {@code Configuration} w.r.t. an old {@code Configuration}.
+ * The {@code ConfigurationValidation} interface should be implemented by any class which intends to
+ * validate a new {@code Configuration}, either on its own, or w.r.t. a prior {@code Configuration}.
  *
  * @param <C> the type of configuration to be validated
  */
-public interface ConfigurationValidation<C extends Configuration> {
+public interface ConfigurationValidator<C extends Configuration> {
     /**
      * Returns {@code List} of {@code ConfigurationValidationError} for the newly supplied
      * {@code Configuration} object.
@@ -18,9 +20,10 @@ public interface ConfigurationValidation<C extends Configuration> {
      * Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
      * 2. Validate just newConfig parameter(s). Ex: CPU value > 0
      *
-     * @param oldConfig Currently persisted Configuration.
+     * @param oldConfig Currently persisted Configuration, or {@code null} if none is available
+     *                  (first launch of service)
      * @param newConfig Proposed new Configuration
      * @return List of errors, or an empty list if validation passed
      */
-    List<ConfigurationValidationError> validate(C oldConfig, C newConfig);
+    Collection<ConfigurationValidationError> validate(/* Nullable */ C oldConfig, C newConfig);
 }

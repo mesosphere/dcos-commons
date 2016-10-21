@@ -1,7 +1,8 @@
-package org.apache.mesos.config;
+package org.apache.mesos.config.validate;
 
 /**
- * Signals a certain configurationField is incorrectly configured, or has
+ * Signals that a certain configuration value, or transition between two configurations, did not
+ * pass validation.
  */
 public class ConfigurationValidationError {
     private final String configField;
@@ -28,7 +29,8 @@ public class ConfigurationValidationError {
         return new ConfigurationValidationError(configField, oldConfigValue, newConfigValue, message);
     }
 
-    private ConfigurationValidationError(String configField, String oldConfigValue, String newConfigValue, String message) {
+    private ConfigurationValidationError(
+            String configField, String oldConfigValue, String newConfigValue, String message) {
         this.configField = configField;
         this.oldConfigValue = oldConfigValue;
         this.newConfignValue = newConfigValue;
