@@ -4,6 +4,7 @@ target/
 # leftovers from running tools directly
 tools/env/
 tools/cluster-*.properties
+tools/*.pem
 
 # idea
 *.i??

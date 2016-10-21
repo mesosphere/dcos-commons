@@ -49,7 +49,7 @@ public class RandomRecoveryStrategyTest {
 
     @Test
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void testGetCurrentBlockSingleNonCompleteBlock() {
+    public void testGetCurrentBlockSingleNonPendingBlock() {
         Phase phase = mock(Phase.class);
         final List<? extends Block> blocks = Arrays.asList(pendingBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
@@ -60,7 +60,7 @@ public class RandomRecoveryStrategyTest {
 
     @Test
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void testGetCurrentBlockSingleCompleteBlock() {
+    public void testGetCurrentBlockSinglePendingBlock() {
         Phase phase = mock(Phase.class);
         final List<? extends Block> blocks = Arrays.asList(completeBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
@@ -71,7 +71,7 @@ public class RandomRecoveryStrategyTest {
 
     @Test
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void testGetCurrentBlockAllNonCompleteBlock() {
+    public void testGetCurrentBlockAllNonPendingBlock() {
         Phase phase = mock(Phase.class);
         final List<Block> blocks = Arrays.asList(pendingBlock, pendingBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
@@ -82,7 +82,7 @@ public class RandomRecoveryStrategyTest {
 
     @Test
     @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void testGetCurrentBlockAllCompleteBlock() {
+    public void testGetCurrentBlockAllPendingBlock() {
         Phase phase = mock(Phase.class);
         final List<Block> blocks = Arrays.asList(completeBlock, completeBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();

@@ -291,4 +291,24 @@ public class StateStoreCache implements StateStore {
             RWLOCK.unlock();
         }
     }
+
+    @Override
+    public boolean isSuppressed() {
+        RLOCK.lock();
+        try {
+            return store.isSuppressed();
+        } finally {
+            RLOCK.unlock();
+        }
+    }
+
+    @Override
+    public void setSuppressed(boolean suppressed) {
+        RWLOCK.lock();
+        try {
+            store.setSuppressed(suppressed);
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
 }

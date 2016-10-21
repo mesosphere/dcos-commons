@@ -10,6 +10,8 @@ import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -22,8 +24,10 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private final String name;
     private final String type;
     private final Protos.CommandInfo commandInfo;
+    private final Optional<Protos.HealthCheck> healthCheck;
     private final Collection<ResourceSpecification> resourceSpecifications;
     private final Collection<VolumeSpecification> volumeSpecifications;
+    private final Collection<ConfigFileSpecification> configFileSpecifications;
     private final Optional<PlacementRuleGenerator> placementOptional;
 
     public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo)
@@ -38,13 +42,21 @@ public class DefaultTaskSpecification implements TaskSpecification {
         //  Otherwise we'll need to implement serializing/deserializing the configured placement
         //  constraints in the TaskInfo itself. But from looking at the callers, it doesn't look like
         //  anything needs the placement constraints anyway.
+        Collection<ConfigFileSpecification> configFiles;
+        try {
+            configFiles = TaskUtils.getConfigFiles(taskInfo);
+        } catch (InvalidProtocolBufferException e) {
+            throw new InvalidTaskSpecificationException("Failed to deserialize config files: " + e.getMessage());
+        }
         return new DefaultTaskSpecification(
                 taskInfo.getName(),
                 TaskUtils.getTaskType(taskInfo),
                 taskInfo.getCommand(),
                 getResources(taskInfo),
                 getVolumes(taskInfo),
-                placement);
+                configFiles,
+                placement,
+                Optional.empty());
     }
 
     protected DefaultTaskSpecification(
@@ -53,13 +65,22 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Protos.CommandInfo commandInfo,
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional) {
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
         this.type = type;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
         this.volumeSpecifications = volumeSpecifications;
+        this.configFileSpecifications = configFileSpecifications;
         this.placementOptional = placementOptional;
+        this.healthCheck = healthCheck;
+    }
+
+    @Override
+    public Optional<Protos.HealthCheck> getHealthCheck() {
+        return healthCheck;
     }
 
     @Override
@@ -85,6 +106,11 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public Collection<VolumeSpecification> getVolumes() {
         return volumeSpecifications;
+    }
+
+    @Override
+    public Collection<ConfigFileSpecification> getConfigFiles() {
+        return configFileSpecifications;
     }
 
     @Override
@@ -161,7 +187,6 @@ public class DefaultTaskSpecification implements TaskSpecification {
             return VolumeSpecification.Type.ROOT;
         }
     }
-
 
     @Override
     public String toString() {

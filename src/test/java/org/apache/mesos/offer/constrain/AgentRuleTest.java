@@ -17,8 +17,8 @@ public class AgentRuleTest {
     private static final String AGENT_3 = "agent-3-uuid";
 
     @Test
-    public void testColocateAgent() {
-        PlacementRule rule = new AgentRule.ColocateAgentGenerator(AGENT_1).generate(Collections.emptyList());
+    public void testRequireAgent() {
+        PlacementRule rule = new AgentRule.RequireAgentGenerator(AGENT_1).generate(Collections.emptyList());
         Offer filtered = rule.filter(offerWithAgent(AGENT_1));
         assertEquals(3, filtered.getResourcesCount());
         filtered = rule.filter(offerWithAgent(AGENT_2));
@@ -26,7 +26,7 @@ public class AgentRuleTest {
         filtered = rule.filter(offerWithAgent(AGENT_3));
         assertEquals(0, filtered.getResourcesCount());
 
-        rule = new AgentRule.ColocateAgentGenerator(AGENT_2).generate(Collections.emptyList());
+        rule = new AgentRule.RequireAgentGenerator(AGENT_2).generate(Collections.emptyList());
         filtered = rule.filter(offerWithAgent(AGENT_1));
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithAgent(AGENT_2));
@@ -55,8 +55,8 @@ public class AgentRuleTest {
     }
 
     @Test
-    public void testColocateAgents() {
-        PlacementRule rule = new AgentRule.ColocateAgentsGenerator(AGENT_1, AGENT_3).generate(Collections.emptyList());
+    public void testRequireAgents() {
+        PlacementRule rule = new AgentRule.RequireAgentsGenerator(AGENT_1, AGENT_3).generate(Collections.emptyList());
         Offer filtered = rule.filter(offerWithAgent(AGENT_1));
         assertEquals(3, filtered.getResourcesCount());
         filtered = rule.filter(offerWithAgent(AGENT_2));
@@ -64,7 +64,7 @@ public class AgentRuleTest {
         filtered = rule.filter(offerWithAgent(AGENT_3));
         assertEquals(3, filtered.getResourcesCount());
 
-        rule = new AgentRule.ColocateAgentsGenerator(AGENT_2, AGENT_3).generate(Collections.emptyList());
+        rule = new AgentRule.RequireAgentsGenerator(AGENT_2, AGENT_3).generate(Collections.emptyList());
         filtered = rule.filter(offerWithAgent(AGENT_1));
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithAgent(AGENT_2));

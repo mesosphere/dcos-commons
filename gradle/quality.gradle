@@ -1,19 +1,12 @@
 apply plugin: 'findbugs'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
-apply plugin: "jacoco"
+apply plugin: 'jacoco'
 
 
 tasks.withType(FindBugs) {
   excludeFilter = file("$rootProject.projectDir/gradle/findbugs/excludeFilter.xml")
   maxHeapSize = '1024m'
-}
-
-tasks.withType(GroovyCompile) {
-  configure(groovyOptions.forkOptions) {
-    memoryMaximumSize = '1g'
-    jvmArgs = ['-Xms512m', '-Xmx1g']
-  }
 }
 
 checkstyle {
@@ -29,14 +22,4 @@ pmd {
     'java-finalizers',
     'java-imports'
   ]
-}
-
-ext {
-  junitVer = "4.11"
-  mockitoVer = "1.9.5"
-}
-
-dependencies {
-  testCompile "junit:junit:${junitVer}"
-  testCompile "org.mockito:mockito-all:${mockitoVer}"
 }

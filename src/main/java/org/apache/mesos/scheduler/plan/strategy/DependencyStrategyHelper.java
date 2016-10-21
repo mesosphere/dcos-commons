@@ -53,7 +53,7 @@ public class DependencyStrategyHelper<C extends Element> {
         Collection<C> candidates = dependencies.entrySet().stream()
                 .filter(entry -> !entry.getKey().getStrategy().isInterrupted())
                 .filter(entry -> !dirtyAssets.contains(entry.getKey().getName()))
-                .filter(entry -> entry.getKey().isPending())
+                .filter(entry -> !entry.getKey().isComplete())
                 .filter(entry -> dependenciesFulfilled(entry.getValue()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());

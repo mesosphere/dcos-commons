@@ -6,6 +6,7 @@ import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -43,6 +44,8 @@ public class TestTaskSetFactory {
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                Collections.emptyList(),
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -68,6 +71,8 @@ public class TestTaskSetFactory {
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
+                Collections.emptyList(),
+                Optional.empty(),
                 Optional.empty());
     }
 

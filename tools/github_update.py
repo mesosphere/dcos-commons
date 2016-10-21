@@ -172,6 +172,10 @@ class GithubStatusUpdater(object):
         if os.environ.get('GITHUB_DISABLE', ''):
             # environment has notifications disabled. skip actually sending anything to GitHub
             return True
+        if not (os.environ.get('GITHUB_COMMIT_STATUS_URL') or os.environ.get('BUILD_URL')):
+            # CI job did not come from GITHUB
+            return True
+
 
         request = self._build_request(state, message, details_url)
         response = self._send_request(request)

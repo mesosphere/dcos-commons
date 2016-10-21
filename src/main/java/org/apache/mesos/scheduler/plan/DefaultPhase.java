@@ -5,8 +5,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,10 +14,11 @@ import java.util.UUID;
  * Default Phase implementation tracks Blocks both by their UUID and by
  * their ordering. It is an immutable class that can be constructed either
  * directly, or using a fluent style builder.
+ *
+ * A {@DefaultPhase} is an {@Observable} and will forward updates from its blocks.
  */
 public class DefaultPhase extends ChainedObserver implements Phase {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final UUID id = UUID.randomUUID();
     private final String name;
     private final Strategy<Block> strategy;
@@ -31,6 +30,8 @@ public class DefaultPhase extends ChainedObserver implements Phase {
         this.blocks = blocks;
         this.strategy = strategy;
         this.errors = errors;
+
+        getChildren().forEach(block -> block.subscribe(this));
     }
 
     @Override

@@ -1,11 +1,11 @@
 package org.apache.mesos.scheduler.plan.strategy;
 
 import org.apache.mesos.scheduler.plan.Element;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.testng.Assert;
 
 import java.util.Arrays;
 import java.util.Collections;

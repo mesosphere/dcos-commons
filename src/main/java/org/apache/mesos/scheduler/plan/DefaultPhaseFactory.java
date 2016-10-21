@@ -29,6 +29,14 @@ public class DefaultPhaseFactory implements PhaseFactory {
         this.strategyGenerator = strategyGenerator;
     }
 
+    public static Phase getPhase(String name, List<Block> blocks, Strategy<Block> strategy) {
+        return new DefaultPhase(
+                name,
+                blocks,
+                strategy,
+                Collections.emptyList());
+    }
+
     @Override
     public Phase getPhase(TaskSet taskSet) {
         return getPhase(taskSet, strategyGenerator.generate());

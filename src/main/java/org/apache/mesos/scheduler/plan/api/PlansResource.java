@@ -132,9 +132,6 @@ public class PlansResource {
         }
     }
 
-    /**
-     * Returns a full list of the Plan's contents (incl all Phases/Blocks).
-     */
     @GET
     @Deprecated
     @Path("/plan")

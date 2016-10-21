@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.ServiceSpecification;
 
@@ -21,6 +22,10 @@ public class DefaultPlanFactory implements PlanFactory {
     public DefaultPlanFactory(PhaseFactory phaseFactory, StrategyGenerator<Phase> strategyGenerator) {
         this.phaseFactory = phaseFactory;
         this.strategyGenerator = strategyGenerator;
+    }
+
+    public static Plan getPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
+        return new DefaultPlan(name, phases, strategy);
     }
 
     @Override

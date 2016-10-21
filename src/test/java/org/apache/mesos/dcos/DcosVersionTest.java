@@ -1,7 +1,7 @@
 package org.apache.mesos.dcos;
 
+import org.junit.Assert;
 import org.junit.Test;
-import org.testng.Assert;
 
 /**
  * This class tests the DcosVersion class.

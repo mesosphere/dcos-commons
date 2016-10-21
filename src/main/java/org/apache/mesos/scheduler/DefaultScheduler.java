@@ -13,7 +13,6 @@ import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.api.TaskResource;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
-import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
@@ -34,7 +33,7 @@ import java.util.concurrent.*;
  * when possible.  Changes to the ServiceSpecification will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler implements Scheduler {
+public class DefaultScheduler implements Scheduler, Observer {
     private static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
     private static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
@@ -48,6 +47,7 @@ public class DefaultScheduler implements Scheduler {
     private final BlockingQueue<Collection<Object>> resourcesQueue;
     private final String frameworkName;
 
+    private SchedulerDriver driver;
     private Reconciler reconciler;
     private StateStore stateStore;
     private TaskFailureListener taskFailureListener;
@@ -112,6 +112,7 @@ public class DefaultScheduler implements Scheduler {
                 recoveryPlanManager,
                 deployPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
+        planCoordinator.subscribe(this);
         logger.info("Done initializing.");
     }
 
@@ -134,8 +135,6 @@ public class DefaultScheduler implements Scheduler {
 
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
-                new RandomStrategy(),
-                taskFailureListener,
                 recoveryRequirementProvider,
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
@@ -166,13 +165,12 @@ public class DefaultScheduler implements Scheduler {
     }
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
-        for (Protos.Offer offer : offers) {
-            Protos.OfferID offerId = offer.getId();
-            if (!acceptedOffers.contains(offerId)) {
-                logger.info("Declining offer: " + offerId.getValue());
-                driver.declineOffer(offerId);
-            }
-        }
+        final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+        unusedOffers.stream().forEach(offer -> {
+            final Protos.OfferID offerId = offer.getId();
+            logger.info("Declining offer: " + offerId.getValue());
+            driver.declineOffer(offerId);
+        });
     }
 
     private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
@@ -208,17 +206,21 @@ public class DefaultScheduler implements Scheduler {
             hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
 
+        this.driver = driver;
         reconciler.reconcile(driver);
+        suppressOrRevive();
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         logger.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        suppressOrRevive();
     }
 
     @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
+        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
             logOffers(offers);
 
@@ -236,16 +238,26 @@ public class DefaultScheduler implements Scheduler {
             final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
             acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
 
+            List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+            offers.clear();
+            offers.addAll(unusedOffers);
+
             // Resource Cleaning:
             // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
             // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
             // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
             // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
             // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
+            // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
+            // offer cycle.
             final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
             if (cleanerScheduler.isPresent()) {
                 acceptedOffers.addAll(cleanerScheduler.get().resourceOffers(driver, offers));
             }
+
+            unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+            offers.clear();
+            offers.addAll(unusedOffers);
 
             // Decline remaining offers.
             declineOffers(driver, acceptedOffers, offers);
@@ -272,7 +284,8 @@ public class DefaultScheduler implements Scheduler {
                 // Store status, then pass status to PlanManager => Plan => Blocks
                 try {
                     stateStore.storeStatus(status);
-                    deployPlanManager.getPlan().update(status);
+                    deployPlanManager.update(status);
+                    recoveryPlanManager.update(status);
                     reconciler.update(status);
                 } catch (Exception e) {
                     logger.warn("Failed to update TaskStatus received from Mesos. "
@@ -330,5 +343,36 @@ public class DefaultScheduler implements Scheduler {
         }
 
         hardExit(SchedulerErrorCode.ERROR);
+    }
+
+    private boolean hasOperations() {
+        return planCoordinator.hasOperations();
+    }
+
+    private void suppressOrRevive() {
+        if (hasOperations()) {
+            reviveOffers();
+        } else {
+            suppressOffers();
+        }
+    }
+
+    private void reviveOffers() {
+        logger.info("Reviving offers.");
+        driver.reviveOffers();
+        stateStore.setSuppressed(false);
+    }
+
+    private void suppressOffers() {
+        logger.info("Suppressing offers.");
+        driver.suppressOffers();
+        stateStore.setSuppressed(true);
+    }
+
+    @Override
+    public void update(Observable observable) {
+        if (observable == planCoordinator) {
+            suppressOrRevive();
+        }
     }
 }

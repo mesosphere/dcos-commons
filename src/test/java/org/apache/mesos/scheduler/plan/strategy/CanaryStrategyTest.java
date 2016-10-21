@@ -11,20 +11,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by gabriel on 10/20/16.
  */
 public class CanaryStrategyTest {
-    @Mock
-    Element parentElement;
-    @Mock
-    Element el0;
-    @Mock
-    Element el1;
-    @Mock
-    Element el2;
+    @Mock Element parentElement;
+    @Mock Element el0;
+    @Mock Element el1;
+    @Mock Element el2;
 
     private CanaryStrategy strategy;
     private List<Element> Elements;

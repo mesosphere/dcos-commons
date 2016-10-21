@@ -17,7 +17,9 @@ public class TestTaskSpecification implements TaskSpecification {
     private final Protos.CommandInfo command;
     private final Collection<VolumeSpecification> volumes;
     private Collection<ResourceSpecification> resources;
-    private Optional<PlacementRuleGenerator> placement;
+    private Collection<ConfigFileSpecification> configs;
+    private final Optional<PlacementRuleGenerator> placement;
+    private Optional<Protos.HealthCheck> healthCheck;
 
     public TestTaskSpecification(TaskSpecification taskSpecification) {
         this.name = taskSpecification.getName();
@@ -25,7 +27,9 @@ public class TestTaskSpecification implements TaskSpecification {
         this.command = taskSpecification.getCommand();
         this.resources = taskSpecification.getResources();
         this.volumes = taskSpecification.getVolumes();
+        this.configs = taskSpecification.getConfigFiles();
         this.placement = taskSpecification.getPlacement();
+        this.healthCheck = taskSpecification.getHealthCheck();
     }
 
     @Override
@@ -44,6 +48,9 @@ public class TestTaskSpecification implements TaskSpecification {
     }
 
     @Override
+    public Optional<Protos.HealthCheck> getHealthCheck() { return healthCheck; }
+
+    @Override
     public Collection<ResourceSpecification> getResources() {
         return resources;
     }
@@ -54,12 +61,24 @@ public class TestTaskSpecification implements TaskSpecification {
     }
 
     @Override
+    public Collection<ConfigFileSpecification> getConfigFiles() {
+        return configs;
+    }
+
+    @Override
     public Optional<PlacementRuleGenerator> getPlacement() {
         return placement;
     }
 
-    public void addResource(ResourceSpecification resourceSpecification) {
-        resources = new ArrayList<>(resources);
+    public TestTaskSpecification addResource(ResourceSpecification resourceSpecification) {
+        resources = new ArrayList<>(resources); // ensure that we can add()
         resources.add(resourceSpecification);
+        return this;
+    }
+
+    public TestTaskSpecification addConfigFile(ConfigFileSpecification configFileSpecification) {
+        configs = new ArrayList<>(configs); // ensure that we can add()
+        configs.add(configFileSpecification);
+        return this;
     }
 }
