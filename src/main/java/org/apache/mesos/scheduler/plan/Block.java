@@ -11,6 +11,8 @@ import java.util.UUID;
  * Defines the interface for a Block of a {@link Phase}. The block is the base unit of a set of
  * tasks to perform, such as launching a Task, updating a Task, or reconciling Mesos state with
  * Framework state. A Block may be in one of four states: PENDING, IN_PROGRESS, COMPLETE, or ERROR.
+ *
+ * A {@Block} is an {@Observable}, and will notify its observers when its state changes.
  * <p>
  * See {@Stage} docs for more background.
  */

@@ -15,8 +15,7 @@ cassandra/), and [DC/OS Apache
 HDFS](https://docs.mesosphere.com/latest/usage/service-guides/hdfs/).
 
 Read about the [features](#Features-at-a-glance) to learn more about
-the DC/OS
-Stateful Service SDK.
+the DC/OS Stateful Service SDK.
 
 # Introduction
 
@@ -49,7 +48,7 @@ the
 executors will contain a **persistent volume**, which is a folder or
 mount point on the agent that persists even after a task fails. This
 allows a stateful service to recover with its data intactafter task
-failure or temporary node failure. 
+failure or temporary node failure.
 
 In this tutorial, `data-store` is the scheduler, and `meta-data-{0,1}`
 and `data-{0-1}` are the executors.
@@ -140,14 +139,16 @@ private static ServiceSpecification getServiceSpecification() {
                             getCommand(TASK_METADATA_CMD, TASK_METADATA_URI),
                             getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
                             getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
-                            Optional.empty()),
+                            Optional.of(TaskTypeGenerator.createAvoid(TASK_METADATA_NAME)),
+                            Optional.of(getHealthCheck(TASK_METADATA_NAME))),
                     DefaultTaskSet.create(
                             TASK_DATA_COUNT,
                             TASK_DATA_NAME,
                             getCommand(TASK_DATA_CMD, TASK_DATA_URI),
                             getResources(TASK_DATA_CPU, TASK_DATA_MEM_MB),
                             getVolumes(TASK_DATA_DISK_MB, TASK_DATA_NAME),
-                            Optional.empty()));
+                            Optional.of(TaskTypeGenerator.createAvoid(TASK_DATA_NAME)),
+                            Optional.of(getHealthCheck(TASK_DATA_NAME))));
         }
     };
 }
@@ -213,6 +214,22 @@ private static Collection<VolumeSpecification> getVolumes(double diskMb, String 
             PRINCIPAL);
 
     return Arrays.asList(volumeSpecification);
+}
+```
+
+Finally, we can attach a health check to our tasks.  If the check
+fails, the Mesos agent will kill the task, and the scheduler will
+restart it.
+
+```java
+private static Protos.HealthCheck getHealthCheck(String name) {
+    Protos.CommandInfo commandInfo = Protos.CommandInfo.newBuilder()
+        .setValue("stat %s%s/output".format(name, CONTAINER_PATH_SUFFIX))
+        .build()
+
+    return Protos.HealthCheck.newBuilder()
+        .setCommand(commandInfo)
+        .build();
 }
 ```
 
@@ -374,24 +391,24 @@ https://github.com/mesosphere/framework-cleaner.
 
 
 # Plan management
-As noted earlier, stateful services often have particular deployment 
-requirements.  These deployments may involve the initial creation of 
+As noted earlier, stateful services often have particular deployment
+requirements.  These deployments may involve the initial creation of
 Tasks or a change in Task configuration or the scaling of a
-particular kind of task or an upgrade to a new version of a Task.  Each 
+particular kind of task or an upgrade to a new version of a Task.  Each
 of these scenarios comes with attendant risks and benefits.  In some
 cases (as in initial install) you may be happy to have a service rollout
 without intervention.  In others, as in a configuration update, one may
 wish to deploy some portion of a service and check stability before
 completing a deployment.
 
-In order to provide the necessary flexibility and control necessary to 
-achieve these outcomes, the SDK organizes deployment of tasks by means 
-of Plans. Plans are composed of Phases which are composed of Blocks.  
+In order to provide the necessary flexibility and control necessary to
+achieve these outcomes, the SDK organizes deployment of tasks by means
+of Plans. Plans are composed of Phases which are composed of Blocks.
 A Block encapsulates the smallest element of work executed in a Plan and
-is the plan element which encapsulates the launching of Mesos Tasks.  
+is the plan element which encapsulates the launching of Mesos Tasks.
 
-Phases are groups of Blocks which have some semantic relationship.  At 
-least two plans are generated automatically by the SDK when presented 
+Phases are groups of Blocks which have some semantic relationship.  At
+least two plans are generated automatically by the SDK when presented
 with a `ServiceSpecification`.  These are the deployment and recovery
 plans.  The deployment plan is concerned with deploying Tasks.  It
 deploys Tasks for the first time, and when configuration updates are
@@ -467,13 +484,13 @@ Tasks in that order.  The deployment plan above has the respective
 In its default configuration, the two `data` Tasks and three `meta-data`
 Tasks are launched.  We can see that a Block has been created
 encapsulating each of those tasks.  The names of Blocks map to the names
-of the `TaskSpecification` objects within a `TaskSet`.  The status of a 
-Block can be in one of 3 states.  It may be `PENDING`, `IN_PROGRESS`, or 
+of the `TaskSpecification` objects within a `TaskSet`.  The status of a
+Block can be in one of 3 states.  It may be `PENDING`, `IN_PROGRESS`, or
 `COMPLETE`.
 
 By default all Phases and the Blocks within them are rolled out
 serially.  Each Block must reach a `COMPLETE` state before the
-next Block may be started.  Beyond this automatic behavior, it is often 
+next Block may be started.  Beyond this automatic behavior, it is often
 desirable to manually pause/resume a deployment.  For example, in a
 production setting multiple uncoordinated deployments may cause
 unexpected effects, including causing unavailability or severely
@@ -481,7 +498,7 @@ degraded performance.  In thes cases and others, the ability to pause
 individual deployments while others continue without performing a full
 rollback can be helpful.
 
-The `has_decision_point` fields above indicate whether a user has indicated 
+The `has_decision_point` fields above indicate whether a user has indicated
 a desire to pause a deployment at a particular Block.
 
 A Plan's execution may be paused or continued by POST commands executed
@@ -499,7 +516,7 @@ POST /v1/plan/continue"
 
 Finally, beyond manual control of Plan execution behavior it may be
 desirable in certain failure scenarios to either restart the execution
-of a Block or force its completion.  Restarting a Block in default 
+of a Block or force its completion.  Restarting a Block in default
 implementations simply sets a Block's status to `PENDING` and allows the
 normal Block processing system to do the necessary work to drive a Block
 to completion.  This can be accomplished by issuing a POST command to
@@ -741,7 +758,7 @@ java/com/mesosphere/dcos/cassandra/executor/metrics/MetricsConfig.java
 #L68)
 
 # Service Discovery
- 
+
 Mesos-DNS assigns every Mesos task a DNS address of the form
 `<task-name>.<framework-name>.mesos`.  In our example (running 3 data
 nodes), Mesos-DNS creates the following addresses:

@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,21 +11,20 @@ import org.slf4j.LoggerFactory;
 /**
  * Provides the default strategy for executing a phase where there is a pause after the first block.
  */
-public class DefaultStageStrategy implements PhaseStrategy {
-  private static final Logger logger = LoggerFactory.getLogger(DefaultStageStrategy.class);
+public class DefaultPhaseStrategy implements PhaseStrategy {
+  private static final Logger logger = LoggerFactory.getLogger(DefaultPhaseStrategy.class);
 
   protected final Phase phase;
-
   private boolean[] shouldStart;
   private int currPos = 0;
 
-  public DefaultStageStrategy(Phase phase) {
+  public DefaultPhaseStrategy(Phase phase) {
     this.phase = phase;
-    this.shouldStart = initializeDecisionMap(phase.getBlocks());
+    this.shouldStart = getShouldStart(phase.getBlocks());
     advancePosition();
   }
 
-  private static boolean[] initializeDecisionMap(List<? extends Block> blocks) {
+  private static boolean[] getShouldStart(List<? extends Block> blocks) {
     int blockCount = blocks.size();
     boolean[] shouldStart = new boolean[blockCount];
 
@@ -63,15 +63,19 @@ public class DefaultStageStrategy implements PhaseStrategy {
   }
 
   @Override
-  public Optional<Block> getCurrentBlock() {
+  public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
     //TODO(nick) the returned Block is not guaranteed to stay in a consistent state.
     //alternative: instead provide a thread-safe wrapper for viewing/changing current block state
     synchronized (this) {
       advancePosition();
       if (shouldStart[currPos]) {
         Block block = phase.getBlocks().get(currPos);
-        logger.info(String.format("Returning block '%s' at position: %d", block.getName(), currPos));
-        return Optional.of(block);
+        if (!dirtiedAssets.contains(block.getName())) {
+          logger.info(String.format("Returning block '%s' at position: %d", block.getName(), currPos));
+          return Optional.of(block);
+        } else {
+          return Optional.empty();
+        }
       } else {
         // WAITING for input, don't continue to next block
         return Optional.empty();

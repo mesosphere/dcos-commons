@@ -111,7 +111,7 @@ public class DefaultPlanManagerTest {
         reconciliationBlock.start();
         Assert.assertTrue(reconciliationBlock.isInProgress());
 
-        PlanManager waitingManager = new DefaultPlanManager(waitingPlan, new StageStrategyFactory());
+        PlanManager waitingManager = new DefaultPlanManager(waitingPlan, new DefaultPhaseStrategyFactory());
         Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getStatus());
     }
 
@@ -211,30 +211,10 @@ public class DefaultPlanManagerTest {
     }
 
     @Test
-    public void testUpdateObserver() {
-        when(mockBlock.getId()).thenReturn(UUID.randomUUID());
-
-        Plan mockPlan = DefaultPlan.fromArgs(
-                DefaultPhase.create(
-                        UUID.randomUUID(),
-                        "phase-0",
-                        Arrays.asList(mockBlock)));
-        Protos.TaskStatus testStatus = Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.TASK_ID)
-                .setState(Protos.TaskState.TASK_RUNNING)
-                .build();
-        PlanManager mockPlanManager = new DefaultPlanManager(mockPlan, stratFactory);
-
-        verify(mockBlock, times(0)).update(any());
-        mockPlanManager.update(null, testStatus);
-        verify(mockBlock, times(1)).update(any());
-    }
-
-    @Test
     public void testHasDecisionPoint() {
         Block firstBlock = plan.getPhases().get(0).getBlock(0);
 
-        PlanManager decisionPointManager = new DefaultPlanManager(plan, new StageStrategyFactory());
+        PlanManager decisionPointManager = new DefaultPlanManager(plan, new DefaultPhaseStrategyFactory());
         Assert.assertTrue(decisionPointManager.hasDecisionPoint(firstBlock));
 
         decisionPointManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());

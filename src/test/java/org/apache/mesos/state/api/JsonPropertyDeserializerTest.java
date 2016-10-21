@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.nio.charset.StandardCharsets;
+
 public class JsonPropertyDeserializerTest {
     private JsonPropertyDeserializer deserializer;
 
@@ -17,8 +19,7 @@ public class JsonPropertyDeserializerTest {
     @Test
     public void testToJsonString() throws Exception {
         boolean b = false;
-        String bstr = SerializationUtils.toJsonString(b);
-        byte[] barr = bstr.getBytes("UTF-8");
+        byte[] barr = SerializationUtils.toJsonString(b).getBytes(StandardCharsets.UTF_8);
         String bjson = deserializer.toJsonString("key", barr);
         assertEquals(bjson, "false");
     }

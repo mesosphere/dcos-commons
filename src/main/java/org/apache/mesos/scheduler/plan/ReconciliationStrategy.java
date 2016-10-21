@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,9 +24,14 @@ public class ReconciliationStrategy implements PhaseStrategy {
     }
 
     @Override
-    public Optional<Block> getCurrentBlock() {
+    public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
         // ReconciliationPhases only have a single Block
-        return Optional.of(phase.getBlock(0));
+        for (Block block : phase.getBlocks()) {
+            if (!dirtiedAssets.contains(block.getName())) {
+                return Optional.of(block);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
@@ -40,17 +46,31 @@ public class ReconciliationStrategy implements PhaseStrategy {
 
     @Override
     public void restart(UUID blockId) {
-        getCurrentBlock().get().restart();
+        for (Block block: phase.getBlocks()) {
+            if (block.getId().equals(blockId)) {
+                block.restart();
+            }
+        }
     }
 
     @Override
     public void forceComplete(UUID blockId) {
-        getCurrentBlock().get().forceComplete();
+        for (Block block: phase.getBlocks()) {
+            if (block.getId().equals(blockId)) {
+                block.forceComplete();
+            }
+        }
     }
 
     @Override
     public Status getStatus() {
-        return Block.getStatus(getCurrentBlock().get());
+        for (Block block : phase.getBlocks()) {
+            if (!block.isComplete()) {
+                return Block.getStatus(block);
+            }
+        }
+
+        return Status.COMPLETE;
     }
 
     @Override

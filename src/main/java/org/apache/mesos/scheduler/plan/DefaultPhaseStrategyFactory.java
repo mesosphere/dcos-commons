@@ -3,7 +3,7 @@ package org.apache.mesos.scheduler.plan;
 /**
  * Generates DefaultPhaseStrategy objects when provided Phases.
  */
-public class StageStrategyFactory implements PhaseStrategyFactory {
+public class DefaultPhaseStrategyFactory implements PhaseStrategyFactory {
 
   @Override
   public PhaseStrategy getStrategy(Phase phase) {
@@ -13,7 +13,7 @@ public class StageStrategyFactory implements PhaseStrategyFactory {
       return ReconciliationStrategy.create(
           (ReconciliationPhase) phase);
     } else {
-      return new DefaultStageStrategy(phase);
+      return new DefaultPhaseStrategy(phase);
     }
   }
 }

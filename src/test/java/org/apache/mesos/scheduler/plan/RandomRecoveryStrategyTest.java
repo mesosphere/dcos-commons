@@ -19,7 +19,7 @@ public class RandomRecoveryStrategyTest {
         Phase phase = mock(Phase.class);
         when(phase.getBlocks()).thenReturn(Arrays.asList());
         final RandomRecoveryStrategy randomRecoveryStrategy = new RandomRecoveryStrategy(phase);
-        Assert.assertFalse(randomRecoveryStrategy.getCurrentBlock().isPresent());
+        Assert.assertFalse(randomRecoveryStrategy.getCurrentBlock(Arrays.asList()).isPresent());
     }
 
     @Test
@@ -31,7 +31,7 @@ public class RandomRecoveryStrategyTest {
         final List<? extends Block> blocks = Arrays.asList(nonPendingBlock);
         Mockito.doReturn(blocks).when(phase).getBlocks();
         final RandomRecoveryStrategy randomRecoveryStrategy = new RandomRecoveryStrategy(phase);
-        Assert.assertFalse(randomRecoveryStrategy.getCurrentBlock().isPresent());
+        Assert.assertFalse(randomRecoveryStrategy.getCurrentBlock(Arrays.asList()).isPresent());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class RandomRecoveryStrategyTest {
         final List<? extends Block> blocks = Arrays.asList(pendingBlock);
         Mockito.doReturn(blocks).when(phase).getBlocks();
         final RandomRecoveryStrategy randomRecoveryStrategy = new RandomRecoveryStrategy(phase);
-        Assert.assertTrue(randomRecoveryStrategy.getCurrentBlock().isPresent());
+        Assert.assertTrue(randomRecoveryStrategy.getCurrentBlock(Arrays.asList()).isPresent());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class RandomRecoveryStrategyTest {
         final List<Block> blocks = Arrays.asList(notPendingA, notPendingB);
         Mockito.doReturn(blocks).when(phase).getBlocks();
         final RandomRecoveryStrategy randomRecoveryStrategy = new RandomRecoveryStrategy(phase);
-        Assert.assertFalse(randomRecoveryStrategy.getCurrentBlock().isPresent());
+        Assert.assertFalse(randomRecoveryStrategy.getCurrentBlock(Arrays.asList()).isPresent());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class RandomRecoveryStrategyTest {
         final List<Block> blocks = Arrays.asList(pendingA, pendingB);
         Mockito.doReturn(blocks).when(phase).getBlocks();
         final RandomRecoveryStrategy randomRecoveryStrategy = new RandomRecoveryStrategy(phase);
-        Assert.assertTrue(randomRecoveryStrategy.getCurrentBlock().isPresent());
+        Assert.assertTrue(randomRecoveryStrategy.getCurrentBlock(Arrays.asList()).isPresent());
     }
 
     @Test

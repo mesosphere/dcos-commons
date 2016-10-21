@@ -5,12 +5,13 @@ import org.apache.mesos.config.SerializationUtils;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Implementation of {@link Serializer} for JSON input/output.
  */
 public class JsonSerializer implements Serializer {
-    private static final Charset DEFAULT_CHAR_SET = Charset.forName("UTF-8");
+    private static final Charset DEFAULT_CHAR_SET = StandardCharsets.UTF_8;
     private final Charset charset;
 
     public JsonSerializer() {
@@ -24,8 +25,7 @@ public class JsonSerializer implements Serializer {
     @Override
     public <T> byte[] serialize(T value) {
         try {
-            String json = SerializationUtils.toJsonString(value);
-            return json.getBytes(charset);
+            return SerializationUtils.toJsonString(value).getBytes(charset);
         } catch (IOException e) {
             return new byte[0];
         }
@@ -33,7 +33,6 @@ public class JsonSerializer implements Serializer {
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) throws IOException {
-        String json = new String(bytes, charset);
-        return SerializationUtils.fromJsonString(json, clazz);
+        return SerializationUtils.fromJsonString(new String(bytes, charset), clazz);
     }
 }

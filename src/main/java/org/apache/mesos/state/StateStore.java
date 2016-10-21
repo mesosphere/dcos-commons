@@ -8,8 +8,8 @@ import org.apache.mesos.offer.TaskUtils;
 import java.util.*;
 
 /**
- * This interface should be implemented in order to store and fetch TaskInfo and TaskStatus information on a per Task
- * basis. Each distinct Task is expected to have a unique Task Name, determined by the framework developer.
+ * A {@code StateStore} stores the state of the frameworks, including tasks' TaskInfo and TaskStatus objects. Each
+ * distinct Task is expected to have a unique Task Name, determined by the framework developer.
  * <p>
  * TaskInfo objects should be persisted when a Task is launched or when reserved resources associated with a potential
  * future Task launch should be recorded.
@@ -110,7 +110,7 @@ public interface StateStore {
     Collection<TaskInfo> fetchTasks() throws StateStoreException;
 
     /**
-     * Fetches and returns all {@link TaskInfo}s from underlying storage that are currently in a terminal state.
+     * Fetches and returns all {@link TaskInfo}s for tasks needing recovery.
      *
      * @return Terminated TaskInfos
      * @throws StateStoreException
@@ -174,7 +174,7 @@ public interface StateStore {
     /**
      * Stores an arbitrary key/value pair.
      *
-     * @param key   must be a non-blank String without any forward slashes ('/')
+     * @param key must be a non-blank String without any forward slashes ('/')
      * @param value The value should be a byte array no larger than 1MB (1024 * 1024 bytes)
      * @throw StateStoreException if the key or value fail validation, or if storing the data otherwise fails
      * @see StateStoreUtils#validateKey(String)
@@ -206,4 +206,18 @@ public interface StateStore {
      * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
+
+    /**
+     * @return true if the offers are suppressed.
+     * @throws StateStoreException
+     */
+    boolean isSuppressed() throws StateStoreException;
+
+    /**
+     * Sets the suppression state of the framework.
+     *
+     * @param suppressed
+     * @throws StateStoreException
+     */
+    void setSuppressed(final boolean suppressed) throws StateStoreException;
 }

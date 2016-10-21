@@ -1,15 +1,6 @@
 package org.apache.mesos.specification;
 
-import org.apache.mesos.offer.constrain.AgentRule;
-import org.apache.mesos.offer.constrain.AndRule;
-import org.apache.mesos.offer.constrain.AttributeRule;
-import org.apache.mesos.offer.constrain.AttributeSelector;
-import org.apache.mesos.offer.constrain.HostnameRule;
-import org.apache.mesos.offer.constrain.MaxPerAttributeGenerator;
-import org.apache.mesos.offer.constrain.NotRule;
-import org.apache.mesos.offer.constrain.OrRule;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
-import org.apache.mesos.offer.constrain.TaskTypeGenerator;
+import org.apache.mesos.offer.constrain.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
