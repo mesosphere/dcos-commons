@@ -70,7 +70,7 @@ public class MesosResourcePool {
      * available resources meet the requirement.
      */
     public Optional<MesosResource> consume(ResourceRequirement resourceRequirement) {
-        if (resourceRequirement.expectsResource()) {
+        if(resourceRequirement.expectsResource()) {
             logger.info("Retrieving reserved resource");
             return consumeReserved(resourceRequirement);
         } else if (resourceRequirement.isAtomic()) {
@@ -79,7 +79,10 @@ public class MesosResourcePool {
         } else if (resourceRequirement.reservesResource()) {
             logger.info("Retrieving resource for reservation");
             return consumeUnreservedMerged(resourceRequirement);
-        } else if (resourceRequirement.consumesUnreservedResource()) {
+        }  if (resourceRequirement.isDynamicPort()){
+            logger.info("Retrieving resource for a dynamic port");
+            return consumeDynamicPort(resourceRequirement);
+        }else if (resourceRequirement.consumesUnreservedResource()) {
             logger.info("Retrieving resource for unreserved resource requirement.");
             return consumeUnreservedMerged(resourceRequirement);
         }
@@ -89,12 +92,13 @@ public class MesosResourcePool {
         return Optional.empty();
     }
 
-    /**
+/**
+
      * Consumes and returns a {@link MesosResource} which meets the provided
      * {@link DynamicPortRequirement}, or does nothing and returns an empty {@link Optional} if no
      * available resources meet the requirement.
      */
-    public Optional<MesosResource> consume(DPortRequirement dynamicPortRequirement) {
+/*    public Optional<MesosResource> consume(DPortRequirement dynamicPortRequirement) {
         Value availableValue = unreservedMergedPool.get("ports");
 
         if (availableValue == null) {
@@ -120,6 +124,24 @@ public class MesosResourcePool {
 
         return Optional.empty();
     }
+*/
+    public Optional<MesosResource> consumeDynamicPort(ResourceRequirement resReq){
+        Value availableValue = unreservedMergedPool.get("ports");
+
+        if (availableValue == null) {
+            return Optional.empty();
+        }
+
+        // Choose first available port
+        if (availableValue.getRanges().getRangeCount() > 0) {
+            Value.Range range = availableValue.getRanges().getRange(0);
+            resReq.addPort((int) range.getBegin());
+            return consumeUnreservedMerged(resReq);
+        }
+
+        return Optional.empty();
+    }
+
 
     /**
      * Marks the provided resource as available for consumption.

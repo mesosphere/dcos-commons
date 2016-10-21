@@ -41,9 +41,7 @@ public class RequirementUtils {
     Collection<ResourceRequirement> resourceRequirements = new ArrayList<>();
 
     for (Resource resource : resources) {
-      if (!isDynamicPort(resource)) {
         resourceRequirements.add(new ResourceRequirement(resource));
-      }
     }
 
     return resourceRequirements;
@@ -61,6 +59,7 @@ public class RequirementUtils {
 
     return portRequirements;
   }*/
+  /*
   static boolean isDynamicPort(Resource resource) {
     if (resource.getName().equals("ports"))
     //  return true;  // why not returning true here!
@@ -71,4 +70,5 @@ public class RequirementUtils {
 
     return false;
   }
+  */
 }

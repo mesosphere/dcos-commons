@@ -249,20 +249,15 @@ public class ResourceUtils {
     }
 
     public static Resource getResourceAddLabel(Resource resource, Label label) {
-        Resource resource = getResource();
         Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
                 .newBuilder(resource.getReservation());
         Resource.Builder resourceBuilder = Resource.newBuilder(resource);
 
-        List<Label> labels = resource.getReservation().getLabels().getLabelsList();
-
-        Resource.Builder resourceBuilder = Resource.newBuilder(resource);
-        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
-                .newBuilder(resource.getReservation());
+        List<Label> labelList = resource.getReservation().getLabels().getLabelsList();
 
         Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
-        for (Label label : labels) {
-            labelsBuilder.addLabels(label);
+        for (Label label_in : labelList) {
+            labelsBuilder.addLabels(label_in);
         }
         labelsBuilder.addLabels(label);
 

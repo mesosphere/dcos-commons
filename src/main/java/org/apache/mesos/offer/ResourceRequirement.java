@@ -41,7 +41,13 @@ public class ResourceRequirement {
         ResourceUtils.setVIPLabel(this);
 
     }
-
+/* till I make this resource as reserved, I do not put any info to the label "
+do do after a resource is assigned and reserved, if not what will happen?
+ */
+    public void sync2Resource(){
+        syncEnvName();
+        syncVIPLabel();
+    }
     public boolean hasEnvName() {
         return envName.isPresent();
     }
@@ -56,6 +62,10 @@ public class ResourceRequirement {
     public void setEnvName(String envName) {
 
         this.envName = Optional.of(envName);
+    }
+
+    private void syncEnvName(){
+        if (! this.envName.isPresent()){ return;}
         this.mesosResource = new MesosResource(
                 ResourceUtils.getResourceAddLabel(getResource(),
                         Label.newBuilder()
@@ -80,9 +90,11 @@ public class ResourceRequirement {
 
 
     /* set vip_ket and vip value  - also add to the Label */
-    public void setVIPLabel(Label label){
-
-        this.vipLabel=Optional.of(label);
+    public void setVIPLabel(Label label) {
+        this.vipLabel = Optional.of(label);
+    }
+    private void syncVIPLabel(){
+        if (! this.vipLabel.isPresent()){ return;}
         this.mesosResource=new MesosResource(
                 ResourceUtils.getResourceAddLabel(this.getResource(),
                         Label.newBuilder()
@@ -115,7 +127,25 @@ public class ResourceRequirement {
         );
         */
     }
+    /* If "ports" and value is set to 0 */
+    public boolean isDynamicPort() {
+        if (getResource().getName().equals("ports")){
+            List<Protos.Value.Range> ranges = getResource().getRanges().getRangeList();
+            return ranges.size() == 1 && ranges.get(0).getBegin() == 0 && ranges.get(0).getEnd() == 0;
+        }
+        return false;
+    }
+    /* if there is a reservation we are loosing it */
+    /* is there a way to udpate a resource without creating a new one ??*/
+    public void addPort (int port){
+        if (isDynamicPort()){
+            Value.Range range=Value.Range.newBuilder().setBegin(port).setEnd(port).build();
+            Value value=Value.newBuilder().setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder().addRange(range).build()).build();
+            Resource resource=ResourceUtils.getUnreservedResource("ports", value);
+            this.mesosResource=new MesosResource(resource);
+        }//!!! THROW EXCEPTION HERE
 
+    }
     public Resource getResource() {
         return mesosResource.getResource();
     }
