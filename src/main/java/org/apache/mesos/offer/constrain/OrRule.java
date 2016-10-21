@@ -7,9 +7,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Wrapper for one or more another rules which returns the OR/union of those rules.
@@ -58,6 +63,16 @@ public class OrRule implements PlacementRule {
         return String.format("OrRule{rules=%s}", rules);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
     /**
      * Wraps the result of the provided {@link PlacementRuleGenerator}s in an {@link OrRule}.
      */
@@ -65,7 +80,8 @@ public class OrRule implements PlacementRule {
 
         private final Collection<PlacementRuleGenerator> generators;
 
-        public Generator(Collection<PlacementRuleGenerator> ruleGenerators) {
+        @JsonCreator
+        public Generator(@JsonProperty("generators") Collection<PlacementRuleGenerator> ruleGenerators) {
             this.generators = ruleGenerators;
         }
 
@@ -80,6 +96,26 @@ public class OrRule implements PlacementRule {
                 rules.add(ruleGenerator.generate(tasks));
             }
             return new OrRule(rules);
+        }
+
+        @JsonProperty("generators")
+        private Collection<PlacementRuleGenerator> getGenerators() {
+            return generators;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("OrRuleGenerator{generators=%s}", generators);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
         }
     }
 }

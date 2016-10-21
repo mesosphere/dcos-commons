@@ -1,11 +1,13 @@
 package org.apache.mesos.offer.constrain;
 
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -90,6 +92,21 @@ public class AgentRuleTest {
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithAgent(AGENT_3));
         assertEquals(0, filtered.getResourcesCount());
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = new AgentRule.AvoidAgentsGenerator(AGENT_1, AGENT_3);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new AgentRule.AvoidAgentGenerator(AGENT_1);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new AgentRule.RequireAgentsGenerator(AGENT_1, AGENT_3);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new AgentRule.RequireAgentGenerator(AGENT_1);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static Offer offerWithAgent(String agentId) {

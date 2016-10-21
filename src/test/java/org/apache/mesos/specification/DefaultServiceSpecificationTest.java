@@ -1,5 +1,6 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.offer.constrain.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,7 +31,7 @@ public class DefaultServiceSpecificationTest {
                     TaskTypeGenerator.createAvoid("avoidme"),
                     new NotRule.Generator(TaskTypeGenerator.createColocate("colocateme"))))));
     private static final List<TaskSet> TASK_SETS = Arrays.asList(
-            TestTaskSetFactory.getTaskSet(),
+            //TestTaskSetFactory.getTaskSet(),
             TestTaskSetFactory.getTaskSet(Arrays.asList(
                     new DefaultConfigFileSpecification(
                             "../different/path/to/config",
@@ -38,7 +39,7 @@ public class DefaultServiceSpecificationTest {
                     new DefaultConfigFileSpecification(
                             "../relative/path/to/config2",
                             "this is a second config template")),
-                    Optional.empty()));
+                    Optional.of(HUGE_GENERATOR)));
 
     private DefaultServiceSpecification serviceSpecification;
 
@@ -58,14 +59,8 @@ public class DefaultServiceSpecificationTest {
     }
 
     @Test
-    public void testSerializeDeserializeDefault() throws Exception {
-        Assert.assertEquals(serviceSpecification,
-                DefaultServiceSpecification.getFactoryInstance().parse(serviceSpecification.getBytes()));
-    }
-
-    @Test
-    public void testSerializeDeserializeWithConfigsAndPlacement() throws Exception {
-        Assert.assertEquals(serviceSpecification,
+    public void testSerializeDeserialize() throws Exception {
+        Assert.assertEquals(ReflectionToStringBuilder.toString(serviceSpecification), serviceSpecification,
                 DefaultServiceSpecification.getFactoryInstance().parse(serviceSpecification.getBytes()));
     }
 }

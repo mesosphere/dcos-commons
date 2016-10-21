@@ -4,10 +4,14 @@ import java.util.Collection;
 
 import org.apache.mesos.Protos.TaskInfo;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+//import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 /**
  * Dynamically creates {@link PlacementRule}s which depend on the current deployed state of the
  * system.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public interface PlacementRuleGenerator {
 
     /**

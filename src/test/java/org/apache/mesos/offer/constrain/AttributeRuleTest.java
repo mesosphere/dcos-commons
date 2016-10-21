@@ -4,11 +4,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Value;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.AttributeStringUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 
@@ -187,6 +189,17 @@ public class AttributeRuleTest {
                 ATTR_RANGES_REGEX)).filter(o));
         assertEquals(0, new AttributeRule(AttributeSelector.createRegexSelector(
                 ATTR_SET_REGEX)).filter(o).getResourcesCount());
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = new AttributeRule.Generator(
+                AttributeSelector.createStringSelector(AttributeStringUtils.toString(ATTR_SCALAR)));
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new AttributeRule.Generator(
+                AttributeSelector.createRegexSelector(ATTR_RANGES_REGEX));
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static Offer.Builder getOfferWithResources() {

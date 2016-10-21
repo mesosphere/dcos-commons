@@ -37,25 +37,26 @@ public class SerializationUtils {
      * An Object mapper that can be used for mapping Objects to and from YAML. Includes support for
      * serializing/deserializing Protobuf objects.
      */
-    private static final ObjectMapper DEFAULT_YAML_MAPPER = withDefaultModules(new ObjectMapper(new YAMLFactory()));
+    private static final ObjectMapper DEFAULT_YAML_MAPPER = setDefaults(new ObjectMapper(new YAMLFactory()));
 
     /**
      * An Object mapper that can be used for mapping Objects to and from JSON. Includes support for
      * serializing/deserializing Protobuf objects.
      */
-    private static final ObjectMapper DEFAULT_JSON_MAPPER = withDefaultModules(new ObjectMapper());
+    private static final ObjectMapper DEFAULT_JSON_MAPPER = setDefaults(new ObjectMapper());
 
     /**
      * Returns a new {@link ObjectMapper} with default modules against the provided factory.
      *
      * @param mapper the instance to register default modules with
      */
-    public static ObjectMapper withDefaultModules(ObjectMapper mapper) {
+    public static ObjectMapper setDefaults(ObjectMapper mapper) {
+        // enable support for ...
         return mapper.registerModules(
-                new GuavaModule(), // support for Guava types
-                new JavaTimeModule(), // support for java.time.* types
-                new Jdk8Module(), // support for Optionals
-                new ProtobufModule()); // support for Protobuf objects
+                new GuavaModule(),     // Guava types
+                new JavaTimeModule(),  // java.time.* types
+                new Jdk8Module(),      // Optional<>s
+                new ProtobufModule()); // Protobuf objects
     }
 
     /**

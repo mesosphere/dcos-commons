@@ -6,9 +6,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 
 /**
@@ -26,6 +32,7 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
      * the developer, or see {@link TaskIDDashConverter} for a sample implementation which expects
      * task ids of the form "tasktypehere-0__uuid".
      */
+    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
     public interface TaskTypeConverter {
         public String getTaskType(TaskInfo taskInfo);
     }
@@ -44,6 +51,21 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
                 throw new IllegalArgumentException(String.format(
                         "Unable to extract task type label from provided TaskInfo: %s", taskInfo), e);
             }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("TaskTypeLabelConverter{}");
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
         }
     }
 
@@ -104,8 +126,11 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     private final TaskTypeConverter typeConverter;
     private final BehaviorType behaviorType;
 
+    @JsonCreator
     private TaskTypeGenerator(
-            String typeToFind, TaskTypeConverter typeConverter, BehaviorType behaviorType) {
+            @JsonProperty("type") String typeToFind,
+            @JsonProperty("converter") TaskTypeConverter typeConverter,
+            @JsonProperty("behavior") BehaviorType behaviorType) {
         this.typeToFind = typeToFind;
         this.typeConverter = typeConverter;
         this.behaviorType = behaviorType;
@@ -149,5 +174,36 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
         default:
             throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
         }
+    }
+
+    @JsonProperty("type")
+    private String getType() {
+        return typeToFind;
+    }
+
+    @JsonProperty("converter")
+    private TaskTypeConverter getTypeConverter() {
+        return typeConverter;
+    }
+
+    @JsonProperty("behavior")
+    private BehaviorType getBehavior() {
+        return behaviorType;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TaskTypeGenerator{type=%s, converter=%s, behavior=%s}",
+            typeToFind, typeConverter, behaviorType);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

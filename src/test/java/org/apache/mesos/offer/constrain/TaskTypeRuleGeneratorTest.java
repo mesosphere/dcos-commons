@@ -4,12 +4,14 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.constrain.TaskTypeGenerator.TaskTypeLabelConverter;
 import org.apache.mesos.testutils.OfferTestUtils;
@@ -84,6 +86,15 @@ public class TaskTypeRuleGeneratorTest {
         assertEquals(rule.toString(), 2, rule.filter(OFFER_1).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_2).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_3).getResourcesCount());
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = TaskTypeGenerator.createAvoid("match");
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = TaskTypeGenerator.createColocate("match");
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static TaskInfo getTask(String type, String id, String agent) {

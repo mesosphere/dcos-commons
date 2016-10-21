@@ -5,12 +5,14 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 
 /**
@@ -52,6 +54,15 @@ public class NotRuleTest {
                 .generate(Collections.emptyList())
                 .filter(offerWith(TestPlacementUtils.RESOURCES));
         assertEquals(offerWith(TestPlacementUtils.RESOURCE_4), o);
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = new NotRule.Generator(new PassthroughGenerator(TestPlacementUtils.REMOVE_LAST));
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new NotRule.Generator(new HostnameRule.RequireHostnamesGenerator("foo", "bar"));
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static Offer offerWith(Collection<Resource> resources) {
