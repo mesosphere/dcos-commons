@@ -19,7 +19,8 @@ public class TaskTestUtils {
                 .setTaskId(TestConstants.TASK_ID)
                 .setName(TestConstants.TASK_NAME)
                 .setSlaveId(TestConstants.AGENT_ID)
-                .setCommand(TestConstants.COMMAND_INFO);
+                .setCommand(TestConstants.COMMAND_INFO)
+                .setContainer(TestConstants.CONTAINER_INFO);
         builder = TaskUtils.setTaskType(builder, TestConstants.TASK_TYPE);
         return builder.addAllResources(resources).build();
     }
