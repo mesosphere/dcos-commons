@@ -49,7 +49,7 @@ public class RequirementUtils {
     return resourceRequirements;
   }
 
-  public static Collection<PortRequirement> getDynamicPortRequirements(List<Resource> resources)
+  /*public static Collection<PortRequirement> getDynamicPortRequirements(List<Resource> resources)
           throws DynamicPortRequirement.DynamicPortException {
     Collection<DynamicPortRequirement> portRequirements = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public class RequirementUtils {
     }
 
     return portRequirements;
-  }
+  }*/
   static boolean isDynamicPort(Resource resource) {
     if (resource.getName().equals("ports"))
     //  return true;  // why not returning true here!

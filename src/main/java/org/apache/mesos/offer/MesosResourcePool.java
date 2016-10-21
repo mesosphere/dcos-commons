@@ -94,8 +94,8 @@ public class MesosResourcePool {
      * {@link DynamicPortRequirement}, or does nothing and returns an empty {@link Optional} if no
      * available resources meet the requirement.
      */
-    public Optional<MesosResource> consume(DynamicPortRequirement dynamicPortRequirement) {
-        Value availableValue = unreservedMergedPool.get(dynamicPortRequirement.getName());
+    public Optional<MesosResource> consume(DPortRequirement dynamicPortRequirement) {
+        Value availableValue = unreservedMergedPool.get("ports");
 
         if (availableValue == null) {
             return Optional.empty();
@@ -105,7 +105,7 @@ public class MesosResourcePool {
         if (availableValue.getRanges().getRangeCount() > 0) {
             Value.Range range = availableValue.getRanges().getRange(0);
             Resource resource = ResourceUtils.getUnreservedResource(
-                    dynamicPortRequirement.getName(),
+                    "ports",
                     Value.newBuilder()
                         .setType(Value.Type.RANGES)
                         .setRanges(Value.Ranges.newBuilder()
@@ -115,7 +115,7 @@ public class MesosResourcePool {
                                         .setEnd(range.getBegin())))
                         .build());
 
-            return consumeUnreservedMerged(new ResourceRequirement(resource));
+            return consumeUnreservedMerged(DPortRequirement.getPortResource(resource))RESOURCE_ID_KEY;
         }
 
         return Optional.empty();

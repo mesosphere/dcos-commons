@@ -203,11 +203,72 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
-    private static Protos.Environment updateEnvironment(Protos.Environment env, List<Resource> resources) {
-        Protos.Environment resEnv = PortRequirement.updateEnvironment(env,resources);
+    //* if there is env in the resource */
+    public static Protos.Environment updateEnvironment(Protos.Environment env, List<Protos.Resource> resources) {
+        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
+        for (Protos.Resource resource : resources) {
+            ResourceRequirement resReq= new ResourceRequirement(resource);
+            if (resReq.hasEnvName()) {
+                envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
+                        .setName(resReq.getEnvName())
+                        .setValue(resReq.getEnvValue()));
+            }
+        }
         return Protos.Environment.newBuilder(env)
-                .addAllVariables(resEnv.getVariablesList())
+                .addAllVariables(envBuilder.build().getVariablesList())
                 .build();
+    }
+
+    public static void setEnvName(ResourceRequirement resReq) {
+        if ( resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels() ) {
+            for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+                if (label.getKey().equals(ResourceRequirement.ENV_KEY)) {
+                    resReq.setEnvName(label.getValue());
+                    return;
+                }
+            }
+        }
+    }
+
+    public static void setVIPLabel(ResourceRequirement resReq) {
+        String key=null;
+        String value=null;
+        if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
+            for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+                if (label.getKey().equals(ResourceRequirement.VIP_KEY)) {
+                    key = label.getValue();
+                }
+                if (label.getKey().equals(ResourceRequirement.VIP_VALUE)) {
+                    value = label.getValue();
+                }
+            }
+        }
+        if (key != null && value != null ) {
+            resReq.setVIPLabel(Label.newBuilder().setKey(key).setValue(value).build());
+        }
+    }
+
+    public static Resource getResourceAddLabel(Resource resource, Label label) {
+        Resource resource = getResource();
+        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
+                .newBuilder(resource.getReservation());
+        Resource.Builder resourceBuilder = Resource.newBuilder(resource);
+
+        List<Label> labels = resource.getReservation().getLabels().getLabelsList();
+
+        Resource.Builder resourceBuilder = Resource.newBuilder(resource);
+        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
+                .newBuilder(resource.getReservation());
+
+        Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
+        for (Label label : labels) {
+            labelsBuilder.addLabels(label);
+        }
+        labelsBuilder.addLabels(label);
+
+        reservationBuilder.setLabels(labelsBuilder.build());
+        resourceBuilder.setReservation(reservationBuilder.build());
+        return resourceBuilder.build();
     }
 
     public static TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
@@ -233,10 +294,9 @@ public class ResourceUtils {
         }
     }
 
-    public static Resource setValue(Resource resource, Value value) {
+    /*public static Resource setValue(Resource resource, Value value) {
         return setResource(Resource.newBuilder(resource), resource.getName(), value);
-    }
-
+    }*/
     public static Resource setResourceId(Resource resource, String resourceId) {
         return Resource.newBuilder(resource)
                 .setReservation(setResourceId(resource.getReservation(), resourceId))

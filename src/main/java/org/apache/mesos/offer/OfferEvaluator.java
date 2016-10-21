@@ -205,7 +205,7 @@ public class OfferEvaluator {
 
         public static Optional<FulfilledRequirement> fulfillRequirement(
                 Collection<ResourceRequirement> resourceRequirements,
-                Collection<DynamicPortRequirement> dynamicPortRequirements,   ///why it is different for port
+                Collection<DPortRequirement> dynamicPortRequirements,   ///why it is different for port
                 Offer offer,
                 MesosResourcePool pool) {
 
@@ -287,7 +287,7 @@ public class OfferEvaluator {
                 fulfilledResources.add(fulfilledResource);
             }
 //!!!
-            for (DynamicPortRequirement dynamicPortRequirement : dynamicPortRequirements) {
+            for (DPortRequirement dynamicPortRequirement : dynamicPortRequirements) {
                 Optional<MesosResource> mesResOptional = pool.consume(dynamicPortRequirement);
                 if (!mesResOptional.isPresent()) {
                     logger.warn("Failed to satisfy resource requirement: {}",
