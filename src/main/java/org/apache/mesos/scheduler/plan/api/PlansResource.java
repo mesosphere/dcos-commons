@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * API for management of Plan(s).
  */
-@Path("/v1/plans")
+@Path("/v1")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PlansResource {
@@ -34,6 +34,7 @@ public class PlansResource {
      * Returns list of all configured plans.
      */
     @GET
+    @Path("/plans")
     public Response getPlansInfo() {
         return Response
                 .status(200)
@@ -45,7 +46,7 @@ public class PlansResource {
      * Returns a full list of the Plan's contents (incl all Phases/Blocks).
      */
     @GET
-    @Path("/{planName}")
+    @Path("/plans/{planName}")
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
@@ -59,7 +60,7 @@ public class PlansResource {
     }
 
     @POST
-    @Path("/{planName}/continue")
+    @Path("/plans/{planName}/continue")
     public Response continueCommand(@PathParam("planName") String planName) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
@@ -73,7 +74,7 @@ public class PlansResource {
     }
 
     @POST
-    @Path("/{planName}/interrupt")
+    @Path("/plans/{planName}/interrupt")
     public Response interruptCommand(@PathParam("planName") String planName) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
@@ -87,7 +88,7 @@ public class PlansResource {
     }
 
     @POST
-    @Path("/{planName}/forceComplete")
+    @Path("/plans/{planName}/forceComplete")
     public Response forceCompleteCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
@@ -109,7 +110,7 @@ public class PlansResource {
     }
 
     @POST
-    @Path("/{planName}/restart")
+    @Path("/plans/{planName}/restart")
     public Response restartCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
@@ -129,6 +130,49 @@ public class PlansResource {
         } else {
             return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
         }
+    }
+
+    /**
+     * Returns a full list of the Plan's contents (incl all Phases/Blocks).
+     */
+    @GET
+    @Deprecated
+    @Path("/plan")
+    public Response getFullInfo() {
+        return getPlanInfo("deploy");
+    }
+
+    @POST
+    @Deprecated
+    @Path("/plan/continue")
+    public Response continueCommand() {
+        return continueCommand("deploy");
+    }
+
+    @POST
+    @Deprecated
+    @Path("/plan/interrupt")
+    public Response interruptCommand() {
+        return interruptCommand("deploy");
+    }
+
+    @POST
+    @Deprecated
+    @Path("/plan/forceComplete")
+    public Response forceCompleteCommand(
+            @QueryParam("phase") String phaseId,
+            @QueryParam("block") String blockId) {
+
+        return forceCompleteCommand("deploy", phaseId, blockId);
+    }
+
+    @POST
+    @Deprecated
+    @Path("/plan/restart")
+    public Response restartCommand(
+            @QueryParam("phase") String phaseId,
+            @QueryParam("block") String blockId) {
+        return restartCommand("deploy", phaseId, blockId);
     }
 
     private Optional<Element> getBlock(PlanManager manager, String phaseId, String blockId) {
