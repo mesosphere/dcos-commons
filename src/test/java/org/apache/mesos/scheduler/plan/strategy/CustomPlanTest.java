@@ -5,6 +5,7 @@ import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
+import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
 import org.junit.Before;
@@ -13,10 +14,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.Mockito.when;
 
@@ -140,7 +138,7 @@ public class CustomPlanTest {
 
         TaskSet taskSet = taskSetIterator.next();
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("diamond");
-        List<Block> blocks = blockFactory.getBlocks(taskSet.getTaskSpecifications());
+        List<Block> blocks = getBlocks(taskSet.getTaskSpecifications(), blockFactory);
 
         phaseBuilder.addDependency(blocks.get(3), blocks.get(1));
         phaseBuilder.addDependency(blocks.get(3), blocks.get(2));
@@ -152,6 +150,17 @@ public class CustomPlanTest {
                 "plan",
                 Arrays.asList(parallelPhase, serialPhase, diamondPhase),
                 new SerialStrategy<>());
+    }
+
+    private List<Block> getBlocks(List<TaskSpecification> taskSpecifications, BlockFactory blockFactory)
+            throws Block.InvalidBlockException {
+
+        List<Block> blocks = new ArrayList<>();
+        for (TaskSpecification taskSpecification : taskSpecifications) {
+            blocks.add(blockFactory.getBlock(taskSpecification));
+        }
+
+        return blocks;
     }
 
     private Phase getParallelPhase() throws DependencyStrategyHelper.InvalidDependencyException {

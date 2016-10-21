@@ -36,6 +36,13 @@ public class DefaultBlock extends DefaultObservable implements Block {
         this.errors = errors;
     }
 
+    /**
+     * This method may be triggered by external components via the {@link #updateOfferStatus(Collection)} method in
+     * particular, so it is synchronized to avoid inconsistent expectations regarding what TaskIDs are relevant to it.
+     *
+     * @param operations The Operations which were performed in response to the OfferRequirement provided by
+     * {@link #start()}
+     */
     private synchronized void setTaskIds(Collection <Protos.Offer.Operation> operations) {
         tasks.clear();
 
