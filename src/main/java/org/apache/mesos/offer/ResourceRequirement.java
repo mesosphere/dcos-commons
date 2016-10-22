@@ -41,13 +41,7 @@ public class ResourceRequirement {
         ResourceUtils.setVIPLabel(this);
 
     }
-/* till I make this resource as reserved, I do not put any info to the label "
-do do after a resource is assigned and reserved, if not what will happen?
- */
-    public void sync2Resource(){
-        syncEnvName();
-        syncVIPLabel();
-    }
+
     public boolean hasEnvName() {
         return envName.isPresent();
     }
@@ -57,77 +51,33 @@ do do after a resource is assigned and reserved, if not what will happen?
         return null;
     }
 
-
-    /* set envName - also add to the Label */
     public void setEnvName(String envName) {
-
         this.envName = Optional.of(envName);
-    }
-
-    private void syncEnvName(){
-        if (! this.envName.isPresent()){ return;}
+        if (! this.envName.isPresent()) return;
         this.mesosResource = new MesosResource(
                 ResourceUtils.getResourceAddLabel(getResource(),
                         Label.newBuilder()
                                 .setKey(ENV_KEY)
                                 .setValue(getEnvName())
                                 .build()));
-     /*   Protos.Labels.Builder labelBuilder = Protos.Labels.newBuilder(resource.getReservation().getLabels());
-        labelBuilder.addLabelsBuilder()
-                .setKey(ENV_KEY)
-                .setValue(envName)
-                .build();
-        this.mesosResource=new MesosResource(
-                Resource.newBuilder(resource)
-                    .setReservation(
-                        Resource.ReservationInfo.newBuilder(resource.getReservation())
-                                .clearLabels()
-                                .setLabels(labelBuilder.build()))
-                     .build()
-        );
-        */
+
     }
-
-
-    /* set vip_ket and vip value  - also add to the Label */
     public void setVIPLabel(Label label) {
-        this.vipLabel = Optional.of(label);
-    }
-    private void syncVIPLabel(){
-        if (! this.vipLabel.isPresent()){ return;}
-        this.mesosResource=new MesosResource(
-                ResourceUtils.getResourceAddLabel(this.getResource(),
+        vipLabel = Optional.of(label);
+        if  (!vipLabel.isPresent()) return;
+        mesosResource=new MesosResource(
+                ResourceUtils.getResourceAddLabel(getResource(),
                         Label.newBuilder()
                                 .setKey(ENV_KEY)
-                                .setValue(this.vipLabel.get().getKey())
+                                .setValue(vipLabel.get().getKey())
                                 .build() ));
-        this.mesosResource=new MesosResource(
-                ResourceUtils.getResourceAddLabel(this.getResource(),
+        mesosResource=new MesosResource(
+                ResourceUtils.getResourceAddLabel(getResource(),
                         Label.newBuilder()
                                 .setKey(VIP_VALUE)
-                                .setValue(this.vipLabel.get().getValue())
+                                .setValue(vipLabel.get().getValue())
                                 .build() ));
-/*
-        Resource resource=getResource();
-        Protos.Labels.Builder labelBuilder = Protos.Labels.newBuilder(resource.getReservation().getLabels());
-        labelBuilder.addLabelsBuilder()
-                .setKey(VIP_KEY)
-                .setValue(this.vipLabel.get().getKey());
-        labelBuilder.addLabelsBuilder()
-                .setKey(VIP_VALUE)
-                .setValue(this.vipLabel.get().getValue())
-                .build();
-        this.mesosResource=new MesosResource(
-                Resource.newBuilder(resource)
-                        .setReservation(
-                                Resource.ReservationInfo.newBuilder(resource.getReservation())
-                                        .clearLabels()
-                                        .setLabels(labelBuilder.build()))
-                        .build()
-        );
-        */
     }
-    /* If "ports" and value is set to 0 */
     public boolean isDynamicPort() {
         if (getResource().getName().equals("ports")){
             List<Protos.Value.Range> ranges = getResource().getRanges().getRangeList();
@@ -135,16 +85,13 @@ do do after a resource is assigned and reserved, if not what will happen?
         }
         return false;
     }
-    /* if there is a reservation we are loosing it */
-    /* is there a way to udpate a resource without creating a new one ??*/
     public void addPort (int port){
         if (isDynamicPort()){
             Value.Range range=Value.Range.newBuilder().setBegin(port).setEnd(port).build();
-            Value value=Value.newBuilder().setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder().addRange(range).build()).build();
-            Resource resource=ResourceUtils.getUnreservedResource("ports", value);
+            //Value value=Value.newBuilder().setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder().addRange(range).build()).build();
+            Resource resource=Resource.newBuilder(this.getResource()).setRanges(Value.Ranges.newBuilder().addRange(range).build()).build();
             this.mesosResource=new MesosResource(resource);
-        }//!!! THROW EXCEPTION HERE
-
+        }//isDynamicPort()
     }
     public Resource getResource() {
         return mesosResource.getResource();
