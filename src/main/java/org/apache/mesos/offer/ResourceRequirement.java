@@ -30,9 +30,8 @@ public class ResourceRequirement {
     private MesosResource mesosResource;
     private DiskInfo diskInfo;
 
-    /* keep those in Labels */
-    private Optional<String> envName;
-    private Optional<Label> vipLabel;
+    private Optional<String> envName= Optional.empty();
+    private Optional<Label> vipLabel= Optional.empty();
 
     public ResourceRequirement(Resource resource) {
         this.mesosResource = new MesosResource(resource);
@@ -43,7 +42,9 @@ public class ResourceRequirement {
     }
 
     public boolean hasEnvName() {
-        return envName.isPresent();
+        if ( envName.isPresent() )
+            return true;
+        return false;
     }
 
     public boolean hasVIPLabel() {
