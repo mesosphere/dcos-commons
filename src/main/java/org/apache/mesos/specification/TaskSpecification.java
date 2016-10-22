@@ -16,6 +16,11 @@ public interface TaskSpecification {
      */
     String getName();
 
+    /**
+     * The type of a TaskSpecification should be the name of the {@link TaskSet} to which it belongs.
+     *
+     * @return the type of the TaskSpecification
+     */
     String getType();
 
     /**

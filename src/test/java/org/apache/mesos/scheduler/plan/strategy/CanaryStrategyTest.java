@@ -74,5 +74,37 @@ public class CanaryStrategyTest {
         when(el2.isComplete()).thenReturn(true);
         when(el2.isPending()).thenReturn(false);
         Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
+
+        parentElement.getChildren().forEach(element -> Assert.assertTrue(((Element) element).isComplete()));
+    }
+
+    @Test
+    public void testSingleElementCanaryExecution() {
+        when(parentElement.getChildren()).thenReturn(Arrays.asList(el0));
+
+        // Initially no candidates should be returned
+        Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
+
+        // Proceed the first time.
+        strategy.proceed();
+        Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
+        Assert.assertEquals(el0, strategy.getCandidates(parentElement, Collections.emptyList()).iterator().next());
+
+        when(el0.isComplete()).thenReturn(true);
+        when(el0.isPending()).thenReturn(false);
+        Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
+
+        parentElement.getChildren().forEach(element -> Assert.assertTrue(((Element) element).isComplete()));
+    }
+
+    @Test
+    public void testEmptyCanaryExecution() {
+        when(parentElement.getChildren()).thenReturn(Collections.emptyList());
+
+        // Initially no candidates should be returned
+        Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
+
+        strategy.proceed();
+        Assert.assertTrue(strategy.getCandidates(parentElement, Collections.emptyList()).isEmpty());
     }
 }

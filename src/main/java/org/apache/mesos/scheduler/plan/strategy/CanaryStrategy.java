@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * A CanaryStrategy blocks employment entirely by default until human intervention through the {@link #proceed()} call.
+ * A CanaryStrategy blocks deployment entirely by default until human intervention through the {@link #proceed()} call.
  * After a single {@link #proceed()} call it again blocks until human intervention.  Any further calls to
  * {@link #proceed()} will indicate the strategy should continue without further intervention.
  *
@@ -29,7 +29,7 @@ public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
                     .filter(element -> element.isPending())
                     .collect(Collectors.toList());
 
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 2 && i < parentElement.getChildren().size(); i++) {
                 children.get(i).getStrategy().interrupt();
             }
 
