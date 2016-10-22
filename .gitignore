@@ -23,6 +23,11 @@ bin/
 .gradle
 build/
 
+# gradle subprojects
+sdk/core/build
+sdk/executor/build
+examples/*/build
+
 # vim swap files
 *.swp
 
