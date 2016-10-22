@@ -46,10 +46,20 @@ public class ResourceRequirement {
         return envName.isPresent();
     }
 
+    public boolean hasVIPLabel() {
+        return vipLabel.isPresent();
+    }
+
+
     public String getEnvName() {
         if (hasEnvName()) return envName.get();
         return null;
     }
+    public Label getVIPLabel() {
+        if (hasVIPLabel()) return vipLabel.get();
+        return null;
+    }
+
 
     public void setEnvName(String envName) {
         this.envName = Optional.of(envName);

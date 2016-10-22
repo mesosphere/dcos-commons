@@ -266,6 +266,46 @@ public class ResourceUtils {
         return resourceBuilder.build();
     }
 
+    public static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName, List<Resource> resourceList) {
+        TaskInfo.Builder taskBuilder=builder;
+
+        for(Resource resource : resourceList){
+            ResourceRequirement resReq=new ResourceRequirement(resource);
+            taskBuilder=setVIPDiscovery(taskBuilder,execName, resReq);
+        }
+        return taskBuilder;
+    }
+    public static TaskInfo.Builder setVIPDiscovery2(Protos.TaskInfo.Builder builder, String execName, List<ResourceRequirement> resReqList) {
+        TaskInfo.Builder taskBuilder=builder;
+
+        for(ResourceRequirement resReq : resReqList){
+            taskBuilder=setVIPDiscovery(taskBuilder, execName,resReq);
+        }
+        return taskBuilder;
+    }
+/* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
+    private static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName, ResourceRequirement resReq){
+            if (! resReq.hasVIPLabel()) return builder;
+        try {
+            int port = new Integer(resReq.getEnvValue());
+            DiscoveryInfo discoveryInfo = DiscoveryInfo.newBuilder(builder.getDiscovery())
+                    .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                    .setName(execName)
+                    .setPorts(Ports.newBuilder()
+                            .addPorts(Port.newBuilder()
+                                    .setNumber((int) (long) port)
+                                    .setProtocol("tcp")
+                                    .setLabels(Labels.newBuilder().addLabels(resReq.getVIPLabel()).build())))
+                                    .build();
+            builder.setDiscovery(discoveryInfo);
+        }catch(Exception e) {
+         //FIX later
+        }
+
+        return builder;
+    }
+
+
     public static TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
         Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
                 builder.getCommand().getEnvironment(), resources);
