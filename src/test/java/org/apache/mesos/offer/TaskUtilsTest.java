@@ -1,18 +1,13 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.DefaultConfigFileSpecification;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -92,157 +87,57 @@ public class TaskUtilsTest {
     @Test
     public void testAreDifferentTaskSpecificationsResourcesLength() {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addResource(new DefaultResourceSpecification(
-                        "foo",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
+        TaskSpecification tmpTaskSpecification =
+                TestTaskSetFactory.getTaskSpecification(
+                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.CMD.getValue(),
+                        TestTaskSetFactory.CPU,
+                        TestTaskSetFactory.MEM,
+                        TestTaskSetFactory.DISK);
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpTaskSpecification);
+        newTaskSpecification.addResource(new DefaultResourceSpecification(
+                "foo",
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
+                .build(),
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsNoResourceOverlap() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addResource(new DefaultResourceSpecification(
-                        "bar",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
+        TaskSpecification tmpOldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
+        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(tmpOldTaskSpecification);
+        oldTaskSpecification.addResource(new DefaultResourceSpecification(
+                "bar",
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
+                        .build(),
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL));
 
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addResource(new DefaultResourceSpecification(
-                        "foo",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreNotDifferentTaskSpecificationsResourcesMatch() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addResource(new DefaultResourceSpecification(
-                        "bar",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addResource(new DefaultResourceSpecification(
-                        "bar",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void testAreDifferentTaskSpecificationsConfigsSamePathFailsValidation() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config",
-                        "two configs with same path should fail validation"));
-        TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification);
-    }
-
-    @Test
-    public void testAreDifferentTaskSpecificationsConfigsLength() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config",
-                        "this is a config template"));
+        TaskSpecification tmpNewTaskSpecification =
+                TestTaskSetFactory.getTaskSpecification(
+                        TestTaskSetFactory.NAME,
+                        TestTaskSetFactory.CMD.getValue(),
+                        TestTaskSetFactory.CPU,
+                        TestTaskSetFactory.MEM,
+                        TestTaskSetFactory.DISK);
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(tmpNewTaskSpecification);
+        newTaskSpecification.addResource(new DefaultResourceSpecification(
+                "foo",
+                Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
+                        .build(),
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreDifferentTaskSpecificationsNoConfigOverlap() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../different/path/to/config",
-                        "different path to a different template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreNotDifferentTaskSpecificationsConfigMatch() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpecification())
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testSetGetConfigTemplates() throws InvalidProtocolBufferException {
-        Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        Collection<ConfigFileSpecification> configs = Arrays.asList(
-                new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                new DefaultConfigFileSpecification("../relative/path/to/config2", "this is a second config template"));
-        TaskUtils.setConfigFiles(taskBuilder, configs);
-        Assert.assertEquals(configs, TaskUtils.getConfigFiles(taskBuilder.build()));
-    }
-
-    @Test(expected=IllegalStateException.class)
-    public void testSetTemplatesTooBig() throws InvalidProtocolBufferException {
-        Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 256 * 1024; ++i) {
-            sb.append('a');
-        }
-        Collection<ConfigFileSpecification> configs = Arrays.asList(
-                new DefaultConfigFileSpecification("../relative/path/to/config", sb.toString()),
-                new DefaultConfigFileSpecification("../relative/path/to/config2", sb.toString()),
-                new DefaultConfigFileSpecification("../relative/path/to/config3", "a"));
-        TaskUtils.setConfigFiles(taskBuilder, configs);
     }
 
     @Test
