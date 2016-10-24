@@ -30,6 +30,8 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +49,7 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings("PMD.TooManyStaticImports")
 public class DefaultSchedulerTest {
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
+    @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;

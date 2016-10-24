@@ -294,6 +294,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public Protos.Status launchTasks(Protos.OfferID offerId,
                                    Collection<Protos.TaskInfo> tasks,
                                    Protos.Filters filters) {
@@ -301,6 +302,7 @@ public class QueuedSchedulerDriver implements SchedulerDriver {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public Protos.Status launchTasks(Protos.OfferID offerId,
                                    Collection<Protos.TaskInfo> tasks) {
     return launchTasks(offerId, tasks, Protos.Filters.getDefaultInstance());

@@ -25,6 +25,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -115,7 +117,7 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedTryConstrainedlaunch() throws Exception {
         final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
@@ -158,7 +160,7 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppededDoRelaunch() throws Exception {
         final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
