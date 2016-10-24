@@ -1,9 +1,12 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.DefaultObservable;
+import org.apache.mesos.scheduler.plan.strategy.ParallelStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,24 +20,30 @@ public class DefaultBlock extends DefaultObservable implements Block {
     private final String name;
     private final Optional<OfferRequirement> offerRequirementOptional;
     private final UUID id = UUID.randomUUID();
+    private final List<String> errors;
+    private final Strategy strategy = new ParallelStrategy();
     private Status status;
     private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
-    public DefaultBlock(String name, OfferRequirement offerRequirement, Status status) {
-        this(name, Optional.of(offerRequirement), status);
-    }
-
-    private DefaultBlock(String name, Optional<OfferRequirement> offerRequirementOptional, Status status) {
+    public DefaultBlock(
+            String name,
+            Optional<OfferRequirement> offerRequirementOptional,
+            Status status,
+            List<String> errors) {
         this.name = name;
         this.offerRequirementOptional = offerRequirementOptional;
         this.status = status;
+        this.errors = errors;
     }
 
-    private boolean isStatus(Status status) {
-        return status.equals(this.status);
-    }
-
-    private void setTaskIds(Collection <Protos.Offer.Operation> operations) {
+    /**
+     * This method may be triggered by external components via the {@link #updateOfferStatus(Collection)} method in
+     * particular, so it is synchronized to avoid inconsistent expectations regarding what TaskIDs are relevant to it.
+     *
+     * @param operations The Operations which were performed in response to the OfferRequirement provided by
+     * {@link #start()}
+     */
+    private synchronized void setTaskIds(Collection <Protos.Offer.Operation> operations) {
         tasks.clear();
 
         for (Protos.Offer.Operation operation : operations) {
@@ -46,7 +55,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
         }
     }
 
-    private void setStatus(Status newStatus) {
+    public synchronized void setStatus(Status newStatus) {
         Status oldStatus = status;
         status = newStatus;
         logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
@@ -54,21 +63,6 @@ public class DefaultBlock extends DefaultObservable implements Block {
         if (!oldStatus.equals(newStatus)) {
             notifyObservers();
         }
-    }
-
-    @Override
-    public boolean isComplete() {
-        return isStatus(Status.COMPLETE);
-    }
-
-    @Override
-    public boolean isPending() {
-        return isStatus(Status.PENDING);
-    }
-
-    @Override
-    public boolean isInProgress() {
-        return isStatus(Status.IN_PROGRESS);
     }
 
     @Override
@@ -86,18 +80,54 @@ public class DefaultBlock extends DefaultObservable implements Block {
 
     @Override
     public void restart() {
-        logger.warn("Restarting block: " + getName());
+        logger.warn("Restarting block: '{} [{}]'", getName(), getId());
         setStatus(Status.PENDING);
     }
 
     @Override
     public void forceComplete() {
-        logger.warn("Forcing completion of block: " + getName());
+        logger.warn("Forcing completion of block: '{} [{}]'", getName(), getId());
         setStatus(Status.COMPLETE);
     }
 
     @Override
-    public void update(Protos.TaskStatus status) {
+    public String getMessage() {
+        return PlanUtils.getMessage(this);
+    }
+
+    @Override
+    public List<String> getErrors() {
+        return errors;
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public synchronized Status getStatus() {
+        return status;
+    }
+
+    @Override
+    public List<Element> getChildren() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Strategy<? extends Element> getStrategy() {
+        return strategy;
+    }
+
+    @Override
+    public synchronized void update(Protos.TaskStatus status) {
         if (!tasks.containsKey(status.getTaskId())) {
             logger.info(getName() + " ignoring irrelevant TaskStatus: " + status);
             return;
@@ -141,22 +171,17 @@ public class DefaultBlock extends DefaultObservable implements Block {
     }
 
     @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public String getMessage() {
-        return "Block: " + name;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

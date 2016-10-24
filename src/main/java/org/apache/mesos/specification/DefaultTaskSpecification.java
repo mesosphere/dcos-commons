@@ -2,6 +2,7 @@ package org.apache.mesos.specification;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class DefaultTaskSpecification implements TaskSpecification {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskSpecification.class);
     private final String name;
+    private final String type;
     private final Protos.CommandInfo commandInfo;
     private final Optional<Protos.HealthCheck> healthCheck;
     private final Collection<ResourceSpecification> resourceSpecifications;
@@ -28,12 +30,13 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private final Collection<ConfigFileSpecification> configFileSpecifications;
     private final Optional<PlacementRuleGenerator> placementOptional;
 
-    public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo) throws InvalidTaskSpecificationException {
+    public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo)
+            throws InvalidTaskSpecificationException, TaskException {
         return create(taskInfo, Optional.empty());
     }
 
     public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo, Optional<PlacementRuleGenerator> placement)
-            throws InvalidTaskSpecificationException {
+            throws InvalidTaskSpecificationException, TaskException {
         //TODO(nick): Is the original placement constraint needed here?
         //  If this is just for relaunching a task in the same place then it's probably a moot point..
         //  Otherwise we'll need to implement serializing/deserializing the configured placement
@@ -47,6 +50,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
         }
         return new DefaultTaskSpecification(
                 taskInfo.getName(),
+                TaskUtils.getTaskType(taskInfo),
                 taskInfo.getCommand(),
                 getResources(taskInfo),
                 getVolumes(taskInfo),
@@ -57,6 +61,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
 
     protected DefaultTaskSpecification(
             String name,
+            String type,
             Protos.CommandInfo commandInfo,
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
@@ -64,6 +69,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Optional<PlacementRuleGenerator> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
+        this.type = type;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
         this.volumeSpecifications = volumeSpecifications;
@@ -80,6 +86,11 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     @Override

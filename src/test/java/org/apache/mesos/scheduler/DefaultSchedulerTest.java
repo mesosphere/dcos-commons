@@ -1,12 +1,12 @@
 package org.apache.mesos.scheduler;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.specification.ServiceSpecification;
@@ -21,16 +21,8 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.*;
-import org.junit.rules.DisableOnDebug;
-import org.junit.rules.TestRule;
-import org.junit.rules.Timeout;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.junit.rules.*;
+import org.mockito.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -47,7 +39,7 @@ import static org.mockito.Mockito.*;
 /**
  * This class tests the DefaultScheduler class.
  */
-@SuppressWarnings("PMD.TooManyStaticImports")
+@SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
@@ -109,13 +101,8 @@ public class DefaultSchedulerTest {
             }
         };
 
-        stateStore = new CuratorStateStore(
-                serviceSpecification.getName(),
-                testingServer.getConnectString());
-        defaultScheduler = new DefaultScheduler(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                stateStore);
+        stateStore = new CuratorStateStore(serviceSpecification.getName(), testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
     }
 
@@ -154,7 +141,7 @@ public class DefaultSchedulerTest {
     public void testFailLaunchA() throws InterruptedException {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Block blockTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -197,7 +184,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -237,7 +224,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -277,7 +264,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -317,7 +304,7 @@ public class DefaultSchedulerTest {
             }
         };
 
-        defaultScheduler = new DefaultScheduler(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -328,7 +315,7 @@ public class DefaultSchedulerTest {
     public void testLaunchAndRecovery() throws Exception {
         // Get first Block associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getPhases().get(0).getBlock(0);
+        Block blockTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(blockTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -426,17 +413,17 @@ public class DefaultSchedulerTest {
                     int launchOp = 0;
                     for (Protos.Offer.Operation operation : operationSet) {
                         switch (operation.getType()) {
-                        case RESERVE:
-                            ++reserveOp;
-                            break;
-                        case CREATE:
-                            ++createOp;
-                            break;
-                        case LAUNCH:
-                            ++launchOp;
-                            break;
-                        default:
-                            Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
+                            case RESERVE:
+                                ++reserveOp;
+                                break;
+                            case CREATE:
+                                ++createOp;
+                                break;
+                            case LAUNCH:
+                                ++launchOp;
+                                break;
+                            default:
+                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
                         }
                     }
                     if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
@@ -545,13 +532,10 @@ public class DefaultSchedulerTest {
     }
 
     private static List<Status> getBlockStatuses(Plan plan) {
-        List<Status> statuses = new ArrayList<>();
-        for (Phase phase : plan.getPhases()) {
-            for (Block block : phase.getBlocks()) {
-                statuses.add(Block.getStatus(block));
-            }
-        }
-        return statuses;
+        return plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .map(block -> block.getStatus())
+                .collect(Collectors.toList());
     }
 
     private static <T> Collection<T> collectionThat(final Matcher<Iterable<? extends T>> matcher) {
@@ -573,7 +557,7 @@ public class DefaultSchedulerTest {
         Plan plan = defaultScheduler.getPlan();
         List<Protos.Offer> offers = Arrays.asList(offer);
         Protos.OfferID offerId = offer.getId();
-        Block block = plan.getPhases().get(phaseIndex).getBlock(blockIndex);
+        Block block = plan.getChildren().get(phaseIndex).getChildren().get(blockIndex);
         Assert.assertTrue(block.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
@@ -612,11 +596,11 @@ public class DefaultSchedulerTest {
     private List<Protos.TaskID> install() {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
+        Plan plan = defaultScheduler.getPlan();
         taskIds.add(installBlock(0, 0, getSufficientOfferForTaskA()));
         taskIds.add(installBlock(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installBlock(1, 1, getSufficientOfferForTaskB()));
 
-        Plan plan = defaultScheduler.getPlan();
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getBlockStatuses(plan));
         Assert.assertTrue(stateStore.isSuppressed());
 

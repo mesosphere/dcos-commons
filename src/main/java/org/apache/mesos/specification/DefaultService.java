@@ -20,7 +20,7 @@ import java.util.Optional;
  * services may want to implement the Service interface directly.
  *
  * Customizing the runtime user for individual tasks may be accomplished by customizing the 'user'
- * field on CommandInfos returned by {@link TaskSet#getCommand(int)}.
+ * field on CommandInfo returned by {@link TaskSpecification#getCommand()}.
  */
 public class DefaultService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
@@ -49,7 +49,9 @@ public class DefaultService implements Service {
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
         this.stateStore = new CuratorStateStore(serviceSpecification.getName());
-        DefaultScheduler defaultScheduler = new DefaultScheduler(serviceSpecification);
+
+        DefaultScheduler defaultScheduler = DefaultScheduler.create(serviceSpecification);
+
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), MASTER_URI);
     }

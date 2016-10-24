@@ -27,9 +27,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getNewOfferRequirement(String taskType, TaskSpecification taskSpecification)
+    public OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
             throws InvalidRequirementException {
-        Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
+
+        Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpecification.getType())
                 .updateEnvironment(taskSpecification.getCommand());
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpecification.getName())
@@ -45,11 +46,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return new OfferRequirement(
-                taskType,
+                taskSpecification.getType(),
                 Arrays.asList(taskInfoBuilder.build()),
                 Optional.empty(),
                 taskSpecification.getPlacement());
     }
+
 
     @Override
     public OfferRequirement getExistingOfferRequirement(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
@@ -126,7 +128,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
                                 oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
             }
-        } catch (InvalidTaskSpecificationException e) {
+        } catch (InvalidTaskSpecificationException | TaskException e) {
             throw new InvalidRequirementException(e);
         }
     }

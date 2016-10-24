@@ -8,6 +8,8 @@ import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * {@code DefaultRecoveryBlock} is an extension of {@link DefaultBlock} meant for use with
@@ -15,6 +17,7 @@ import java.util.Collection;
  * 1. Encapsulating {@link RecoveryRequirement}
  * 2. Updating launchHappened event.
  */
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
 public class DefaultRecoveryBlock extends DefaultBlock {
     private LaunchConstrainer launchConstrainer;
     private RecoveryRequirement recoveryRequirement;
@@ -25,7 +28,7 @@ public class DefaultRecoveryBlock extends DefaultBlock {
             Status status,
             RecoveryRequirement recoveryRequirement,
             LaunchConstrainer launchConstrainer) {
-        super(name, offerRequirement, status);
+        super(name, Optional.of(offerRequirement), status, Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.recoveryRequirement = recoveryRequirement;
     }

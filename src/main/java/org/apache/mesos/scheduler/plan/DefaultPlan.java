@@ -1,11 +1,16 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
@@ -15,76 +20,104 @@ import java.util.List;
  */
 public class DefaultPlan extends ChainedObserver implements Plan {
 
-    private final List<? extends Phase> phases;
+    private final UUID id = UUID.randomUUID();
+    private final Strategy<Phase> strategy;
+    private final List<Phase> phases;
     private final List<String> errors;
+    private final String name;
+    private Status status;
 
-    /**
-     * Convenience function for constructing a {@link Plan} from a variable
-     * list of arguments.
-     * @return A new Plan constructed from the argument phases.
-     */
-    public static DefaultPlan fromArgs(Phase... phases) {
-        return fromList(Arrays.asList(phases));
-    }
+    public DefaultPlan(
+            final String name,
+            final List<Phase> phases,
+            final Strategy<Phase> strategy,
+            final List<String> errors) {
 
-    /**
-     * @return {@link Plan} composed of the provided list of {@link Phase}s.
-     */
-    public static DefaultPlan fromList(List<? extends Phase> phases) {
-        return new DefaultPlan(phases, Collections.<String>emptyList());
-    }
-
-    /**
-     * @param phases The {@link Phase}s for the plan.
-     * @param errors The errors associated with the plan.
-     * @return A new Plan containing phases with the associated errors.
-     */
-    public static DefaultPlan withErrors(List<? extends  Phase> phases,
-                                         List<String> errors) {
-        return new DefaultPlan(phases, errors);
-    }
-
-    /**
-     * Call above helper methods.
-     */
-    private DefaultPlan(final List<? extends Phase> phases,
-                        final List<String> errors) {
+        this.name = name;
+        this.strategy = strategy;
         this.phases = phases;
         this.errors = errors;
+        this.status = getStatus();
 
-        for (Phase phase : phases) {
-            phase.subscribe(this);
-        }
+        getChildren().forEach(phase -> phase.subscribe(this));
     }
 
-    /**
-     * @return The contained list of {@link Phase}s.
-     */
+    public DefaultPlan(String name, List<Phase> phases) {
+        this(name, phases, new SerialStrategy<>());
+    }
+
+    public DefaultPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
+        this(name, phases, strategy, Collections.emptyList());
+    }
+
     @Override
-    public List<? extends Phase> getPhases() {
+    public List<Phase> getChildren() {
         return phases;
     }
 
     @Override
-    public List<String> getErrors() {
-        return errors;
+    public Strategy<Phase> getStrategy() {
+        return strategy;
     }
 
-    /**
-     * @return True if all {@link Block}s in all {@link Phase}s are complete.
-     */
     @Override
-    public boolean isComplete() {
-        for (Phase phase : getPhases()) {
-            if (!phase.isComplete()) {
-                return false;
-            }
-        }
-        return true;
+    public UUID getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public Status getStatus() {
+        status = PlanUtils.getStatus(getChildren());
+        return status;
+    }
+
+    @Override
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    @Override
+    public void update(Protos.TaskStatus status) {
+        PlanUtils.update(status, getChildren());
+    }
+
+    @Override
+    public void restart() {
+        PlanUtils.restart(getChildren());
+    }
+
+    @Override
+    public void forceComplete() {
+        PlanUtils.forceComplete(getChildren());
+    }
+
+    @Override
+    public String getMessage() {
+        return PlanUtils.getMessage(this);
+    }
+
+    @Override
+    public List<String> getErrors() {
+        return PlanUtils.getErrors(errors, getChildren());
     }
 
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }

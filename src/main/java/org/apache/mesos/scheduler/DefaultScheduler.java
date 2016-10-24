@@ -5,7 +5,6 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
@@ -13,7 +12,6 @@ import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.api.TaskResource;
 import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
@@ -44,10 +42,10 @@ public class DefaultScheduler implements Scheduler, Observer {
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final ServiceSpecification serviceSpecification;
     private final String zkConnectionString;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
+    private final String frameworkName;
 
     private SchedulerDriver driver;
     private Reconciler reconciler;
@@ -55,31 +53,36 @@ public class DefaultScheduler implements Scheduler, Observer {
     private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
-    private OfferRequirementProvider offerRequirementProvider;
-    private Plan deployPlan;
     private PlanManager deployPlanManager;
     private PlanScheduler planScheduler;
     private PlanManager recoveryPlanManager;
     private PlanCoordinator planCoordinator;
     private Collection<Object> resources;
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification) {
-        this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
+        return create(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
-        this(serviceSpecification,
-                zkConnectionString,
-                new CuratorStateStore(serviceSpecification.getName(), zkConnectionString));
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification, String zkConnectionString) {
+        StateStore stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
+        BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
+        PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
+        Plan deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        return create(serviceSpecification.getName(), new DefaultPlanManager(deployPlan), zkConnectionString);
     }
 
-    public DefaultScheduler(
-            ServiceSpecification serviceSpecification,
-            String zkConnectionString,
-            StateStore stateStore) {
-        this.serviceSpecification = serviceSpecification;
+    public static DefaultScheduler create(String frameworkName, PlanManager deploymentPlanManager) {
+        return create(frameworkName, deploymentPlanManager, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    }
+
+    public static DefaultScheduler create(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
+        return new DefaultScheduler(name, deploymentPlanManager, zkConnectionString);
+    }
+
+    protected DefaultScheduler(String frameworkName, PlanManager deploymentPlanManager, String zkConnectionString) {
+        this.frameworkName = frameworkName;
+        this.deployPlanManager = deploymentPlanManager;
         this.zkConnectionString = zkConnectionString;
-        this.stateStore = stateStore;
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
     }
 
@@ -97,14 +100,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     Plan getPlan() {
-        return deployPlan;
+        return deployPlanManager.getPlan();
     }
 
     private void initialize(SchedulerDriver driver) throws InterruptedException {
         logger.info("Initializing...");
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
-        initializeDeploymentPlanManager();
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
                 recoveryPlanManager,
@@ -116,18 +118,18 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void initializeGlobals(SchedulerDriver driver) {
         logger.info("Initializing globals...");
+        stateStore = new CuratorStateStore(frameworkName, zkConnectionString);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        offerRequirementProvider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter());
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
     }
 
     private void initializeRecoveryPlanManager() {
         logger.info("Initializing recovery plan...");
         final RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider);
+                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
         final LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
 
@@ -138,32 +140,15 @@ public class DefaultScheduler implements Scheduler, Observer {
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
     }
 
-    private void initializeDeploymentPlanManager() {
-        logger.info("Initializing deployment PlanManager...");
-        initializeDeploymentPlan();
-        deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
-    }
-
-    private void initializeDeploymentPlan() {
-        logger.info("Initializing deployment plan...");
-        try {
-            logger.info("Deploy plan: {}", deployPlan);
-            deployPlan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
-        } catch (InvalidRequirementException e) {
-            logger.error("Failed to generate deployPlan with exception: ", e);
-            hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
-        }
-    }
 
     private void initializeResources() throws InterruptedException {
         logger.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
-        resources.add(new PlanResource(deployPlanManager));
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore));
-        resources.add(new TaskResource(stateStore, taskKiller, serviceSpecification.getName()));
+        resources.add(new TaskResource(stateStore, taskKiller, frameworkName));
         resourcesQueue.put(resources);
     }
 
@@ -301,6 +286,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                     stateStore.storeStatus(status);
                     deployPlanManager.update(status);
                     recoveryPlanManager.update(status);
+                    reconciler.update(status);
                 } catch (Exception e) {
                     logger.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);

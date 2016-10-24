@@ -1,7 +1,9 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
@@ -10,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -21,7 +25,6 @@ public class DefaultPlanManagerTest {
 
     private TestBlock firstBlock, secondBlock;
     private Plan plan;
-    private PhaseStrategyFactory stratFactory;
     private PlanManager planManager;
 
     @Mock
@@ -34,159 +37,147 @@ public class DefaultPlanManagerTest {
     public void beforeEach() {
         firstBlock = new TestBlock();
         secondBlock = new TestBlock();
-        plan = getTestStage(firstBlock, secondBlock);
-        stratFactory = new DefaultStrategyFactory();
-        planManager = new DefaultPlanManager(plan, stratFactory);
+        plan = getTestPlan(firstBlock, secondBlock);
+        planManager = new DefaultPlanManager(plan);
         MockitoAnnotations.initMocks(this);
     }
 
     @Test
-    public void testSetStage() {
-        Assert.assertEquals(2, planManager.getPlan().getPhases().size());
-        planManager.setPlan(getEmptyStage());
-        Assert.assertEquals(0, planManager.getPlan().getPhases().size());
-        planManager.setPlan(getTestStage(firstBlock, secondBlock));
-        Assert.assertEquals(2, planManager.getPlan().getPhases().size());
-    }
-
-    @Test
     public void testGetCurrentPhase() {
-        Phase firstPhase = plan.getPhases().get(0);
-        Phase secondPhase = plan.getPhases().get(1);
-        Assert.assertEquals(firstPhase, planManager.getCurrentPhase().get());
+        Phase firstPhase = (Phase) plan.getChildren().get(0);
+        Phase secondPhase = (Phase) plan.getChildren().get(1);
+        Assert.assertEquals(firstPhase.getChildren().get(0), planManager.getCandidates(Collections.emptyList()).iterator().next());
 
         completePhase(firstPhase);
-        Assert.assertEquals(secondPhase, planManager.getCurrentPhase().get());
+        Assert.assertEquals(secondPhase.getChildren().get(0), planManager.getCandidates(Collections.emptyList()).iterator().next());
 
         completePhase(secondPhase);
-        Assert.assertFalse(planManager.getCurrentPhase().isPresent());
+        Assert.assertTrue(CollectionUtils.isEmpty(planManager.getCandidates(Collections.emptyList())));
     }
 
     @Test
-    public void testGetPhaseStatus() {
-        Phase firstPhase = plan.getPhases().get(0);
-        Assert.assertEquals(Status.PENDING, planManager.getPhaseStatus(firstPhase.getId()));
+    public void testSetGetPhaseStatus() {
+        Phase firstPhase = (Phase) plan.getChildren().get(0);
+        Assert.assertEquals(Status.PENDING, firstPhase.getStatus());
+
         firstBlock.setStatus(Status.IN_PROGRESS);
-        Assert.assertEquals(Status.IN_PROGRESS, planManager.getPhaseStatus(firstPhase.getId()));
+        Assert.assertEquals(Status.IN_PROGRESS, firstPhase.getStatus());
+
         firstBlock.setStatus(Status.COMPLETE);
-        Assert.assertEquals(Status.COMPLETE, planManager.getPhaseStatus(firstPhase.getId()));
-        // bad id:
-        Assert.assertEquals(Status.ERROR, planManager.getPhaseStatus(UUID.randomUUID()));
+        Assert.assertEquals(Status.COMPLETE, firstPhase.getStatus());
     }
 
 
     @Test
     public void testEmptyStageStatus() {
-        PlanManager emptyManager = new DefaultPlanManager(getEmptyStage(), stratFactory);
-        Assert.assertEquals(Status.COMPLETE, emptyManager.getStatus());
+        PlanManager emptyManager = new DefaultPlanManager(getEmptyPlan());
+        Assert.assertEquals(Status.COMPLETE, emptyManager.getPlan().getStatus());
     }
 
     @Test
     public void testGetStatus() {
-        Assert.assertEquals(Status.PENDING, planManager.getStatus());
+        Assert.assertEquals(Status.PENDING, planManager.getPlan().getStatus());
+
         firstBlock.setStatus(Status.ERROR);
-        Assert.assertNull(planManager.getStatus());
+        Assert.assertEquals(Status.ERROR, planManager.getPlan().getStatus());
+
         firstBlock.setStatus(Status.WAITING);
-        Assert.assertNull(planManager.getStatus()); // error state: Blocks shouldn't be WAITING
+        Assert.assertEquals(Status.WAITING, planManager.getPlan().getStatus());
+
         firstBlock.setStatus(Status.IN_PROGRESS);
-        Assert.assertEquals(Status.IN_PROGRESS, planManager.getStatus());
-        completePhase(plan.getPhases().get(0));
-        Assert.assertEquals(Status.IN_PROGRESS, planManager.getStatus());
-        completePhase(plan.getPhases().get(1));
-        Assert.assertEquals(Status.COMPLETE, planManager.getStatus());
+        Assert.assertEquals(Status.IN_PROGRESS, planManager.getPlan().getStatus());
+
+        completePhase((Phase) plan.getChildren().get(0));
+        Assert.assertEquals(Status.IN_PROGRESS, planManager.getPlan().getStatus());
+
+        completePhase((Phase) plan.getChildren().get(1));
+        Assert.assertEquals(Status.COMPLETE, planManager.getPlan().getStatus());
     }
 
     @Test
     public void testInProgressStatus() {
         when(reconciler.isReconciled()).thenReturn(false);
         ReconciliationPhase reconciliationPhase = ReconciliationPhase.create(reconciler);
-        Plan waitingPlan = DefaultPlan.fromArgs(
-                reconciliationPhase,
-                DefaultPhase.create(
-                        UUID.randomUUID(),
-                        "phase-1",
-                        Arrays.asList(secondBlock)));
+        DefaultPhase phase0 = new DefaultPhase(
+                "phase-0",
+                Arrays.asList(secondBlock),
+                new SerialStrategy<>(),
+                Collections.emptyList());
 
-        Block reconciliationBlock = reconciliationPhase.getBlock(0);
+        Plan inProgressPlan = new DefaultPlan(
+                "test-plan",
+                Arrays.asList(reconciliationPhase, phase0),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        Block reconciliationBlock = (Block) reconciliationPhase.getChildren().get(0);
         reconciliationBlock.start();
         Assert.assertTrue(reconciliationBlock.isInProgress());
 
-        PlanManager waitingManager = new DefaultPlanManager(waitingPlan, new DefaultPhaseStrategyFactory());
-        Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getStatus());
+        PlanManager manager = new DefaultPlanManager(inProgressPlan);
+        Assert.assertEquals(Status.IN_PROGRESS, manager.getPlan().getStatus());
     }
 
     @Test
     public void testGetCurrentBlock() {
-        Assert.assertEquals(plan.getPhases().get(0).getBlock(0), planManager.getCurrentBlock(Arrays.asList()).get());
+        Collection<? extends Block> candidates = planManager.getCandidates(Arrays.asList());
+
+        Block firstBlock = (Block) plan.getChildren().get(0).getChildren().get(0);
+        Block firstCandidate = candidates.iterator().next();
+
+        Assert.assertEquals(firstBlock, firstCandidate);
     }
 
     @Test
     public void testIsComplete() {
-        Assert.assertFalse(planManager.isComplete());
-        completePhase(plan.getPhases().get(0));
-        Assert.assertFalse(planManager.isComplete());
-        completePhase(plan.getPhases().get(1));
-        Assert.assertTrue(planManager.isComplete());
+        Assert.assertFalse(planManager.getPlan().isComplete());
+
+        completePhase((Phase) plan.getChildren().get(0));
+        Assert.assertFalse(planManager.getPlan().isComplete());
+
+        completePhase((Phase) plan.getChildren().get(1));
+        Assert.assertTrue(planManager.getPlan().isComplete());
     }
 
     @Test
     public void testInterruptProceed() {
-        Assert.assertFalse(planManager.isInterrupted());
-        planManager.interrupt();
-        Assert.assertTrue(planManager.isInterrupted());
-        planManager.proceed();
-        Assert.assertFalse(planManager.isInterrupted());
+        Assert.assertFalse(plan.getStrategy().isInterrupted());
+
+        plan.getStrategy().interrupt();
+        Assert.assertTrue(plan.getStrategy().isInterrupted());
+
+        plan.getStrategy().proceed();
+        Assert.assertFalse(plan.getStrategy().isInterrupted());
     }
 
     @Test
     public void testRestart() {
-        Phase firstPhase = plan.getPhases().get(0);
         Assert.assertTrue(firstBlock.isPending());
+
         firstBlock.setStatus(Status.COMPLETE);
         Assert.assertTrue(firstBlock.isComplete());
-        planManager.restart(firstPhase.getId(), firstBlock.getId());
+
+        firstBlock.restart();
         Assert.assertTrue(firstBlock.isPending());
+
         firstBlock.setStatus(Status.IN_PROGRESS);
         Assert.assertTrue(firstBlock.isInProgress());
-        planManager.restart(firstPhase.getId(), firstBlock.getId());
-        Assert.assertTrue(firstBlock.isPending());
-    }
 
-    @Test
-    public void testRestartBadIds() {
-        Phase firstPhase = plan.getPhases().get(0);
-        Assert.assertTrue(firstBlock.isPending());
-        firstBlock.setStatus(Status.COMPLETE);
-        Assert.assertTrue(firstBlock.isComplete());
-        planManager.restart(firstPhase.getId(), UUID.randomUUID()); // bad block
-        Assert.assertTrue(firstBlock.isComplete()); // no change
-        planManager.restart(UUID.randomUUID(), firstBlock.getId()); // bad phase
-        Assert.assertTrue(firstBlock.isComplete()); // no change
-        planManager.restart(firstPhase.getId(), firstBlock.getId()); // correct
+        firstBlock.restart();
         Assert.assertTrue(firstBlock.isPending());
     }
 
     @Test
     public void testForceComplete() {
-        Phase firstPhase = plan.getPhases().get(0);
         Assert.assertTrue(firstBlock.isPending());
-        planManager.forceComplete(firstPhase.getId(), firstBlock.getId());
+
+        firstBlock.forceComplete();
         Assert.assertTrue(firstBlock.isComplete());
+
         firstBlock.setStatus(Status.IN_PROGRESS);
         Assert.assertTrue(firstBlock.isInProgress());
-        planManager.forceComplete(firstPhase.getId(), firstBlock.getId());
-        Assert.assertTrue(firstBlock.isComplete());
-    }
 
-    @Test
-    public void testForceCompleteBadIds() {
-        Phase firstPhase = plan.getPhases().get(0);
-        Assert.assertTrue(firstBlock.isPending());
-        planManager.forceComplete(firstPhase.getId(), UUID.randomUUID()); // bad block
-        Assert.assertTrue(firstBlock.isPending()); // no change
-        planManager.forceComplete(UUID.randomUUID(), firstBlock.getId()); // bad phase
-        Assert.assertTrue(firstBlock.isPending()); // no change
-        planManager.forceComplete(firstPhase.getId(), firstBlock.getId()); // correct
+        firstBlock.forceComplete();
         Assert.assertTrue(firstBlock.isComplete());
     }
 
@@ -194,52 +185,54 @@ public class DefaultPlanManagerTest {
     public void testUpdate() {
         when(mockBlock.getId()).thenReturn(UUID.randomUUID());
 
-        Plan mockPlan = DefaultPlan.fromArgs(
-                DefaultPhase.create(
-                        UUID.randomUUID(),
-                        "phase-0",
-                        Arrays.asList(mockBlock)));
-        PlanManager mockPlanManager = new DefaultPlanManager(mockPlan, stratFactory);
-        Protos.TaskStatus testStatus = Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.TASK_ID)
-                .setState(Protos.TaskState.TASK_RUNNING)
-                .build();
+        DefaultPhase phase0 = new DefaultPhase(
+                "phase-0",
+                Arrays.asList(mockBlock),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        DefaultPlan plan = new DefaultPlan(
+                "test-plan",
+                Arrays.asList(phase0),
+                new SerialStrategy<>(),
+                Collections.emptyList());
 
         verify(mockBlock, times(0)).update(any());
-        mockPlanManager.update(testStatus);
+
+        plan.update(
+                Protos.TaskStatus.newBuilder()
+                        .setTaskId(TestConstants.TASK_ID)
+                        .setState(Protos.TaskState.TASK_RUNNING)
+                        .build());
+
         verify(mockBlock, times(1)).update(any());
     }
 
-    @Test
-    public void testHasDecisionPoint() {
-        Block firstBlock = plan.getPhases().get(0).getBlock(0);
-
-        PlanManager decisionPointManager = new DefaultPlanManager(plan, new DefaultPhaseStrategyFactory());
-        Assert.assertTrue(decisionPointManager.hasDecisionPoint(firstBlock));
-
-        decisionPointManager = new DefaultPlanManager(plan, new DefaultStrategyFactory());
-        Assert.assertFalse(decisionPointManager.hasDecisionPoint(firstBlock));
-    }
-
     private static void completePhase(Phase phase) {
-        for (Block block : phase.getBlocks()) {
-            ((TestBlock)block).setStatus(Status.COMPLETE);
-        }
+        phase.getChildren().forEach(block -> block.forceComplete());
     }
 
-    private static Plan getEmptyStage() {
-        return DefaultPlan.fromArgs();
+    private static Plan getEmptyPlan() {
+        return new DefaultPlan("test-plan", Collections.emptyList(), new SerialStrategy<>(), Collections.emptyList());
     }
 
-    private static Plan getTestStage(Block phase0Block, Block phase1Block) {
-        return DefaultPlan.fromArgs(
-                DefaultPhase.create(
-                        UUID.randomUUID(),
-                        "phase-0",
-                        Arrays.asList(phase0Block)),
-                DefaultPhase.create(
-                        UUID.randomUUID(),
-                        "phase-1",
-                        Arrays.asList(phase1Block)));
+    private static Plan getTestPlan(Block phase0Block, Block phase1Block) {
+        DefaultPhase phase0 = new DefaultPhase(
+                "phase-0",
+                Arrays.asList(phase0Block),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        DefaultPhase phase1 = new DefaultPhase(
+                "phase-1",
+                Arrays.asList(phase1Block),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        return new DefaultPlan(
+                "test-plan",
+                Arrays.asList(phase0, phase1),
+                new SerialStrategy<>(),
+                Collections.emptyList());
     }
 }

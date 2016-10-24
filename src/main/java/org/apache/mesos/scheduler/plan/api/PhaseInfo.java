@@ -2,12 +2,10 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 import java.util.ArrayList;
@@ -33,16 +31,15 @@ class PhaseInfo {
         return new PhaseInfo(id, name, blocks, status);
     }
 
-    public static PhaseInfo forPhase(
-            final Phase phase, final PlanManager planManager) {
-        List<BlockInfo> info = new ArrayList<>(phase.getBlocks().size());
-        for (Block block : phase.getBlocks()) {
-            info.add(BlockInfo.forBlock(block, planManager));
-        }
+    public static PhaseInfo forPhase(final Phase phase) {
+        List<BlockInfo> info = new ArrayList<>();
+        List<Block> blocks = phase.getChildren();
+        blocks.forEach(block -> info.add(BlockInfo.forBlock(block)));
+
         return create(phase.getId().toString(),
                 phase.getName(),
                 info,
-                planManager.getPhaseStatus(phase.getId()));
+                phase.getStatus());
     }
 
     private PhaseInfo(

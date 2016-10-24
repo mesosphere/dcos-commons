@@ -2,12 +2,10 @@ package org.apache.mesos.scheduler.plan.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.PlanManager;
 import org.apache.mesos.scheduler.plan.Status;
 
 /**
@@ -19,44 +17,33 @@ class BlockInfo {
     private final Status status;
     private final String name;
     private final String message;
-    private final Boolean hasDecisionPoint;
 
     @JsonCreator
     public static BlockInfo create(
             @JsonProperty("id") final String id,
             @JsonProperty("status") final Status status,
             @JsonProperty("name") final String name,
-            @JsonProperty("message") final String message,
-            @JsonProperty("has_decision_point") final boolean hasDecisionPoint) {
-        return new BlockInfo(id, status, name, message, hasDecisionPoint);
+            @JsonProperty("message") final String message) {
+        return new BlockInfo(id, status, name, message);
     }
 
-    public static BlockInfo forBlock(final Block block,
-                                     final PlanManager planManager) {
+    public static BlockInfo forBlock(final Block block) {
         return create(
                 block.getId().toString(),
-                Block.getStatus(block),
+                block.getStatus(),
                 block.getName(),
-                block.getMessage(),
-                planManager.hasDecisionPoint(block));
+                block.getMessage());
     }
 
     private BlockInfo(
             final String id,
             final Status status,
             final String name,
-            final String message,
-            final boolean hasDecisionPoint) {
+            final String message) {
         this.id = id;
         this.status = status;
         this.name = name;
         this.message = message;
-        this.hasDecisionPoint = hasDecisionPoint;
-    }
-
-    @JsonProperty("has_decision_point")
-    public Boolean getHasDecisionPoint() {
-        return hasDecisionPoint;
     }
 
     @JsonProperty("id")
