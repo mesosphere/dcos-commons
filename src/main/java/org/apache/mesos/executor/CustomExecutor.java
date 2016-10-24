@@ -7,6 +7,8 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -202,7 +204,7 @@ public class CustomExecutor implements Executor {
         this.executorService = executorService;
     }
 
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("DM_EXIT")
+    @SuppressFBWarnings("DM_EXIT")
     private void hardExit(ExecutorErrorCode errorCode) {
         System.exit(errorCode.ordinal());
     }

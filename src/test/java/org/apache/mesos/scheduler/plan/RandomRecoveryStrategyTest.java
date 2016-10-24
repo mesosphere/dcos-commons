@@ -9,6 +9,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +50,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockSingleNonPendingBlock() {
         Phase phase = mock(Phase.class);
         final List<? extends Block> blocks = Arrays.asList(pendingBlock);
@@ -59,7 +61,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockSinglePendingBlock() {
         Phase phase = mock(Phase.class);
         final List<? extends Block> blocks = Arrays.asList(completeBlock);
@@ -70,7 +72,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockAllNonPendingBlock() {
         Phase phase = mock(Phase.class);
         final List<Block> blocks = Arrays.asList(pendingBlock, pendingBlock);
@@ -81,7 +83,7 @@ public class RandomRecoveryStrategyTest {
     }
 
     @Test
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void testGetCurrentBlockAllPendingBlock() {
         Phase phase = mock(Phase.class);
         final List<Block> blocks = Arrays.asList(completeBlock, completeBlock);
