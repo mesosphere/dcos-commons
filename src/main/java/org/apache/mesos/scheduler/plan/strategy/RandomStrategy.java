@@ -12,11 +12,11 @@ import java.util.*;
 public class RandomStrategy<C extends Element> extends InterruptableStrategy<C> {
 
     @Override
-    public Collection getCandidates(Element parentElement, Collection dirtyAssets) {
-        DependencyStrategyHelper strategyHelper = new DependencyStrategyHelper(parentElement);
-        List candidates = new ArrayList(strategyHelper.getCandidates(dirtyAssets));
+    public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
+        DependencyStrategyHelper<C> strategyHelper = new DependencyStrategyHelper<>(parentElement);
+        List<C> candidates = new ArrayList<>(strategyHelper.getCandidates(dirtyAssets));
         Collections.shuffle(candidates);
-        Optional candidateOptional = candidates.stream().findFirst();
+        Optional<C> candidateOptional = candidates.stream().findFirst();
 
         return candidateOptional.isPresent() ? Arrays.asList(candidateOptional.get()) : Collections.emptyList();
     }

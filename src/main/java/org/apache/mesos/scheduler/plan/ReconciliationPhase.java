@@ -19,7 +19,7 @@ public final class ReconciliationPhase extends DefaultPhase {
     private ReconciliationPhase(Reconciler reconciler) {
         super("Reconciliation",
                 Arrays.asList(ReconciliationBlock.create(reconciler)),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
     }
 }

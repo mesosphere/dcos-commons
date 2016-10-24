@@ -101,13 +101,13 @@ public class DefaultPlanManagerTest {
         DefaultPhase phase0 = new DefaultPhase(
                 "phase-0",
                 Arrays.asList(secondBlock),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
 
         Plan inProgressPlan = new DefaultPlan(
                 "test-plan",
                 Arrays.asList(reconciliationPhase, phase0),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
 
         Block reconciliationBlock = (Block) reconciliationPhase.getChildren().get(0);
@@ -188,13 +188,13 @@ public class DefaultPlanManagerTest {
         DefaultPhase phase0 = new DefaultPhase(
                 "phase-0",
                 Arrays.asList(mockBlock),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
 
         DefaultPlan plan = new DefaultPlan(
                 "test-plan",
                 Arrays.asList(phase0),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
 
         verify(mockBlock, times(0)).update(any());
@@ -213,26 +213,26 @@ public class DefaultPlanManagerTest {
     }
 
     private static Plan getEmptyPlan() {
-        return new DefaultPlan("test-plan", Collections.emptyList(), new SerialStrategy(), Collections.emptyList());
+        return new DefaultPlan("test-plan", Collections.emptyList(), new SerialStrategy<>(), Collections.emptyList());
     }
 
     private static Plan getTestPlan(Block phase0Block, Block phase1Block) {
         DefaultPhase phase0 = new DefaultPhase(
                 "phase-0",
                 Arrays.asList(phase0Block),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
 
         DefaultPhase phase1 = new DefaultPhase(
                 "phase-1",
                 Arrays.asList(phase1Block),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
 
         return new DefaultPlan(
                 "test-plan",
                 Arrays.asList(phase0, phase1),
-                new SerialStrategy(),
+                new SerialStrategy<>(),
                 Collections.emptyList());
     }
 }

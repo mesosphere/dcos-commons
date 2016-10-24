@@ -13,7 +13,7 @@ import java.util.List;
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
 public class SerialStrategy<C extends Element> extends InterruptableStrategy<C> {
-    protected DependencyStrategyHelper dependencyStrategyHelper;
+    protected DependencyStrategyHelper<C> dependencyStrategyHelper;
 
     @Override
     public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
@@ -28,15 +28,15 @@ public class SerialStrategy<C extends Element> extends InterruptableStrategy<C> 
         return new Generator<>();
     }
 
-    private DependencyStrategyHelper getDependencyStrategyHelper(Element element) {
+    private DependencyStrategyHelper<C> getDependencyStrategyHelper(Element<C> element) {
         if (dependencyStrategyHelper == null) {
-            dependencyStrategyHelper = new DependencyStrategyHelper(element);
-            List<? extends Element> planElements = new LinkedList<>(element.getChildren());
+            dependencyStrategyHelper = new DependencyStrategyHelper<>(element);
+            List<C> planElements = new LinkedList<>(element.getChildren());
             Collections.reverse(planElements);
 
             for (int i = 1; i < planElements.size(); i++) {
-                Element previous = planElements.get(i - 1);
-                Element current = planElements.get(i);
+                C previous = planElements.get(i - 1);
+                C current = planElements.get(i);
                 dependencyStrategyHelper.addDependency(previous, current);
             }
         }

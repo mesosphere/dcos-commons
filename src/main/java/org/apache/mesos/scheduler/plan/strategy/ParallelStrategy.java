@@ -12,7 +12,7 @@ import java.util.Collection;
 public class ParallelStrategy<C extends Element> extends InterruptableStrategy<C> {
     @Override
     public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
-        DependencyStrategyHelper helper = new DependencyStrategyHelper(parentElement);
+        DependencyStrategyHelper<C> helper = new DependencyStrategyHelper<C>(parentElement);
         return helper.getCandidates(dirtyAssets);
     }
 

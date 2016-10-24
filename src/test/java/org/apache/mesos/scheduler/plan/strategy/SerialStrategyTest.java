@@ -1,6 +1,6 @@
 package org.apache.mesos.scheduler.plan.strategy;
 
-import org.apache.mesos.scheduler.plan.Element;
+import org.apache.mesos.scheduler.plan.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,17 +14,15 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by gabriel on 10/19/16.
+ * This class tests the {@link SerialStrategy}.
  */
+@SuppressWarnings("unchecked")
 public class SerialStrategyTest {
-    @Mock
-    Element parentElement;
-    @Mock
-    Element el0;
-    @Mock
-    Element el1;
-    @Mock
-    Element el2;
+    @Mock Element parentElement;
+    @Mock Element el0;
+    @Mock Element el1;
+    @Mock Element el2;
+    private Phase phase;
 
     private SerialStrategy strategy;
     private List<Element> Elements;
@@ -48,6 +46,12 @@ public class SerialStrategyTest {
 
         Elements = Arrays.asList(el0, el1, el2);
         when(parentElement.getChildren()).thenReturn(Elements);
+
+        phase = new DefaultPhase(
+                "phase-0",
+                Arrays.asList(new TestBlock(), new TestBlock()),
+                strategy,
+                Collections.emptyList());
     }
 
     @Test
@@ -91,5 +95,29 @@ public class SerialStrategyTest {
         when(el1.isPending()).thenReturn(false);
         Assert.assertEquals(1, strategy.getCandidates(parentElement, Collections.emptyList()).size());
         Assert.assertEquals(el2, strategy.getCandidates(parentElement, Collections.emptyList()).iterator().next());
+    }
+
+    @Test
+    public void testProceedInterrupt() {
+        TestBlock block0 = (TestBlock)phase.getChildren().get(0);
+        TestBlock block1 = (TestBlock)phase.getChildren().get(1);
+
+        phase.getStrategy().interrupt();
+        Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
+
+        phase.getStrategy().proceed();
+        Assert.assertEquals(block0, strategy.getCandidates(phase, Collections.emptyList()).iterator().next());
+
+        phase.getStrategy().interrupt();
+        Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
+
+        block0.setStatus(Status.COMPLETE);
+        Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
+
+        phase.getStrategy().proceed();
+        Assert.assertEquals(block1, strategy.getCandidates(phase, Collections.emptyList()).iterator().next());
+
+        block1.setStatus(Status.COMPLETE);
+        Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
     }
 }

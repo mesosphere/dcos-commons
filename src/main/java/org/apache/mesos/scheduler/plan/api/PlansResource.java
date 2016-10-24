@@ -2,6 +2,7 @@ package org.apache.mesos.scheduler.plan.api;
 
 import org.apache.mesos.scheduler.plan.Block;
 import org.apache.mesos.scheduler.plan.Element;
+import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.PlanManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +96,7 @@ public class PlansResource {
             @QueryParam("block") String blockId) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            Optional<Element> block = getBlock(manager, phaseId, blockId);
+            Optional<Block> block = getBlock(manager, phaseId, blockId);
             if (block.isPresent()) {
                 block.get().forceComplete();
                 return Response.status(Response.Status.OK)
@@ -117,7 +118,7 @@ public class PlansResource {
             @QueryParam("block") String blockId) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            Optional<Element> block = getBlock(manager, phaseId, blockId);
+            Optional<Block> block = getBlock(manager, phaseId, blockId);
             if (block.isPresent()) {
                 block.get().restart();
                 return Response.status(Response.Status.OK)
@@ -172,15 +173,15 @@ public class PlansResource {
         return restartCommand("deploy", phaseId, blockId);
     }
 
-    private Optional<Element> getBlock(PlanManager manager, String phaseId, String blockId) {
-        List<Element> phases = manager.getPlan().getChildren().stream()
+    private Optional<Block> getBlock(PlanManager manager, String phaseId, String blockId) {
+        List<Phase> phases = manager.getPlan().getChildren().stream()
                 .filter(phase -> phase.getId().equals(UUID.fromString(phaseId)))
                 .collect(Collectors.toList());
 
         if (phases.size() == 1) {
             Element<Block> phase = phases.stream().findFirst().get();
 
-            List<Element> blocks = phase.getChildren().stream()
+            List<Block> blocks = phase.getChildren().stream()
                     .filter(block -> block.getId().equals(UUID.fromString(blockId)))
                     .collect(Collectors.toList());
 

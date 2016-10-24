@@ -17,7 +17,7 @@ import java.util.Optional;
  * 1. Encapsulating {@link RecoveryRequirement}
  * 2. Updating launchHappened event.
  */
-@edu.umd.cs.findbugs.annotations.SuppressWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
 public class DefaultRecoveryBlock extends DefaultBlock {
     private LaunchConstrainer launchConstrainer;
     private RecoveryRequirement recoveryRequirement;

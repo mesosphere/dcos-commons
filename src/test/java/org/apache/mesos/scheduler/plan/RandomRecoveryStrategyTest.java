@@ -19,13 +19,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests for {@link RandomRecoveryStrategy}.
+ * Tests for {@link RandomStrategy}.
  */
 public class RandomRecoveryStrategyTest {
     @Mock private Block pendingBlock;
     @Mock private Block completeBlock;
 
-    private static final Strategy strategy = new RandomStrategy();
+    private static final Strategy<Block> strategy = new RandomStrategy<>();
 
     @Before
     public void beforeEach() {
@@ -45,7 +45,7 @@ public class RandomRecoveryStrategyTest {
     public void testGetCurrentBlockNoBlocks() {
         Phase phase = mock(Phase.class);
         when(phase.getChildren()).thenReturn(Arrays.asList());
-        final Strategy strategy = new RandomStrategy();
+        final Strategy<Block> strategy = new RandomStrategy<>();
         Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
     }
 
@@ -56,7 +56,7 @@ public class RandomRecoveryStrategyTest {
         final List<? extends Block> blocks = Arrays.asList(pendingBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
 
-        final Strategy strategy = new RandomStrategy();
+        final Strategy<Block> strategy = new RandomStrategy<>();
         Assert.assertFalse(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
     }
 
@@ -67,7 +67,7 @@ public class RandomRecoveryStrategyTest {
         final List<? extends Block> blocks = Arrays.asList(completeBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
 
-        final Strategy strategy = new RandomStrategy();
+        final Strategy<Block> strategy = new RandomStrategy<>();
         Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
     }
 
@@ -78,7 +78,7 @@ public class RandomRecoveryStrategyTest {
         final List<Block> blocks = Arrays.asList(pendingBlock, pendingBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
 
-        final Strategy strategy = new RandomStrategy();
+        final Strategy<Block> strategy = new RandomStrategy<>();
         Assert.assertFalse(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
     }
 
@@ -88,7 +88,7 @@ public class RandomRecoveryStrategyTest {
         Phase phase = mock(Phase.class);
         final List<Block> blocks = Arrays.asList(completeBlock, completeBlock);
         Mockito.doReturn(blocks).when(phase).getChildren();
-        final Strategy strategy = new RandomStrategy();
+        final Strategy<Block> strategy = new RandomStrategy<>();
         Assert.assertTrue(strategy.getCandidates(phase, Collections.emptyList()).isEmpty());
     }
 }

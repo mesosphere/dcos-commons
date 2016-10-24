@@ -18,12 +18,12 @@ public class DependencyStrategyHelper<C extends Element> {
         this(Collections.emptyList());
     }
 
-    public DependencyStrategyHelper(Collection<? extends Element> elements) {
+    public DependencyStrategyHelper(Collection<C> elements) {
         this.dependencies = new HashMap<>();
-        elements.forEach(child -> dependencies.put((C) child, new HashSet<>()));
+        elements.forEach(child -> dependencies.put(child, new HashSet<>()));
     }
 
-    public DependencyStrategyHelper(Element parentElement) {
+    public DependencyStrategyHelper(Element<C> parentElement) {
         this(parentElement.getChildren());
     }
 
@@ -32,7 +32,7 @@ public class DependencyStrategyHelper<C extends Element> {
             throw new InvalidDependencyException("Attempted to overwrite previously added element: " + element);
         }
 
-        dependencies.put(element, new HashSet<C>());
+        dependencies.put(element, new HashSet<>());
     }
 
     public void addDependency(C child, C parent) {

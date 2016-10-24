@@ -11,6 +11,6 @@ import java.util.List;
  */
 public interface PhaseFactory {
     Phase getPhase(TaskSet taskSet);
-    Phase getPhase(TaskSet taskSet, Strategy strategy);
-    List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator strategyGenerator);
+    Phase getPhase(TaskSet taskSet, Strategy<Block> strategy);
+    List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator<Block> strategyGenerator);
 }

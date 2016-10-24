@@ -121,6 +121,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Strategy<? extends Element> getStrategy() {
         return strategy;
     }

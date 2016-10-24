@@ -11,9 +11,9 @@ import java.util.Collection;
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
 public class DependencyStrategy<C extends Element> extends InterruptableStrategy<C> {
-    private final DependencyStrategyHelper helper;
+    private final DependencyStrategyHelper<C> helper;
 
-    public DependencyStrategy(DependencyStrategyHelper helper) {
+    public DependencyStrategy(DependencyStrategyHelper<C> helper) {
         this.helper = helper;
     }
 

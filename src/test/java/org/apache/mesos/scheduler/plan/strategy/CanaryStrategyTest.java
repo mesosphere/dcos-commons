@@ -14,8 +14,9 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by gabriel on 10/20/16.
+ * This class tests the {@link CanaryStrategy}.
  */
+@SuppressWarnings("unchecked")
 public class CanaryStrategyTest {
     @Mock Element parentElement;
     @Mock Element el0;

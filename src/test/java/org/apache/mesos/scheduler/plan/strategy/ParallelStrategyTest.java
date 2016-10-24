@@ -14,17 +14,14 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by gabriel on 10/20/16.
+ * This class tests the {@link ParallelStrategy}.
  */
+@SuppressWarnings("unchecked")
 public class ParallelStrategyTest {
-    @Mock
-    Element parentElement;
-    @Mock
-    Element el0;
-    @Mock
-    Element el1;
-    @Mock
-    Element el2;
+    @Mock Element parentElement;
+    @Mock Element el0;
+    @Mock Element el1;
+    @Mock Element el2;
 
     private ParallelStrategy strategy;
     private List<Element> Elements;

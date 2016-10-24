@@ -193,6 +193,7 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void blockWithSameNameNoLaunch() throws Exception {
         final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
@@ -226,6 +227,7 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void blockWithDifferentNameLaunches() throws Exception {
         final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         final Resource mem = ResourceTestUtils.getDesiredMem(1.0);

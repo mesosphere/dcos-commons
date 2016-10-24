@@ -130,11 +130,11 @@ public class CustomPlanTest {
 
         Phase parallelPhase = phaseFactory.getPhase(
                 taskSetIterator.next(),
-                new ParallelStrategy());
+                new ParallelStrategy<>());
 
         Phase serialPhase = phaseFactory.getPhase(
                 taskSetIterator.next(),
-                new SerialStrategy());
+                new SerialStrategy<>());
 
         TaskSet taskSet = taskSetIterator.next();
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("diamond");

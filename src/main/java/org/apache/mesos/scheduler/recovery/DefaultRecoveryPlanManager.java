@@ -112,8 +112,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     private void updatePlan(List<Block> blocks) {
-        Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, blocks, new RandomStrategy());
-        plan = DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy());
+        Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, blocks, new RandomStrategy<>());
+        plan = DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
         plan.subscribe(this);
         this.notifyObservers();
     }

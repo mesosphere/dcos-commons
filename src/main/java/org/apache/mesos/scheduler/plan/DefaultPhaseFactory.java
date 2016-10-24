@@ -43,7 +43,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
     }
 
     @Override
-    public Phase getPhase(TaskSet taskSet, Strategy strategy) {
+    public Phase getPhase(TaskSet taskSet, Strategy<Block> strategy) {
         return new DefaultPhase(
                 taskSet.getName(),
                 getBlocks(taskSet),
@@ -52,7 +52,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
     }
 
     @Override
-    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator strategyGenerator) {
+    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator<Block> strategyGenerator) {
         return taskSets.stream()
                 .map(taskSet -> getPhase(taskSet, strategyGenerator.generate()))
                 .collect(Collectors.toList());

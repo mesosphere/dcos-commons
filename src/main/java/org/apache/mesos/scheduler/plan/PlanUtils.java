@@ -48,6 +48,7 @@ public class PlanUtils {
                 element.getClass().getName(), element.getName(), element.getId(), element.getStatus());
     }
 
+    @SuppressWarnings("unchecked")
     public static final List<String> getErrors(List<String> errors, Collection<? extends Element> elements) {
         elements.forEach(element -> errors.addAll(element.getErrors()));
         return errors;

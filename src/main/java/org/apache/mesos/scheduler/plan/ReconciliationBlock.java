@@ -108,7 +108,7 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
 
     @Override
     public Strategy<? extends Block> getStrategy() {
-        return new SerialStrategy();
+        return new SerialStrategy<>();
     }
 
     @Override
