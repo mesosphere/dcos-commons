@@ -11,6 +11,7 @@ import java.util.Arrays;
 public class DynamicPortRequirement extends ResourceRequirement {
     private static final String DYNAMIC_PORT_KEY = "dynamic_port";
     private String name;
+    private int port=0;
 
     public DynamicPortRequirement(Protos.Resource resource) throws DynamicPortException {
         super(resource);

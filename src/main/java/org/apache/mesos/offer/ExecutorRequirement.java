@@ -13,7 +13,6 @@ import org.apache.mesos.executor.ExecutorUtils;
  * have.
  */
 public class ExecutorRequirement {
-    private final Collection<DynamicPortRequirement> dynamicPortRequirements;
     private ExecutorInfo executorInfo;
     private Collection<ResourceRequirement> resourceRequirements;
 
@@ -58,9 +57,6 @@ public class ExecutorRequirement {
         this.executorInfo = executorInfo;
         this.resourceRequirements =
                 RequirementUtils.getResourceRequirements(executorInfo.getResourcesList());
-        // These are managed in a separate collection, since the actual ports can only be fulfilled at offer time.
-        this.dynamicPortRequirements =
-                RequirementUtils.getDynamicPortRequirements(executorInfo.getResourcesList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -71,9 +67,7 @@ public class ExecutorRequirement {
         return resourceRequirements;
     }
 
-    public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
-        return dynamicPortRequirements;
-    }
+
 
     public Collection<String> getResourceIds() {
         return RequirementUtils.getResourceIds(getResourceRequirements());
