@@ -66,7 +66,7 @@ public class ResourceRequirement {
         this.envName = Optional.of(envName);
         if (! this.envName.isPresent()) return;
         this.mesosResource = new MesosResource(
-                ResourceUtils.getResourceAddLabel(getResource(),
+                ResourceUtils.getResourceAddLabelUnique(getResource(),
                         Label.newBuilder()
                                 .setKey(ENV_KEY)
                                 .setValue(getEnvName())
@@ -77,13 +77,13 @@ public class ResourceRequirement {
         vipLabel = Optional.of(label);
         if  (!vipLabel.isPresent()) return;
         mesosResource=new MesosResource(
-                ResourceUtils.getResourceAddLabel(getResource(),
+                ResourceUtils.getResourceAddLabelUnique(getResource(),
                         Label.newBuilder()
-                                .setKey(ENV_KEY)
+                                .setKey(VIP_KEY)
                                 .setValue(vipLabel.get().getKey())
                                 .build() ));
         mesosResource=new MesosResource(
-                ResourceUtils.getResourceAddLabel(getResource(),
+                ResourceUtils.getResourceAddLabelUnique(getResource(),
                         Label.newBuilder()
                                 .setKey(VIP_VALUE)
                                 .setValue(vipLabel.get().getValue())

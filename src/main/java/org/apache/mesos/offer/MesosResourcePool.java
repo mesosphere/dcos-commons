@@ -209,6 +209,7 @@ public class MesosResourcePool {
 
         if (sufficientValue(desiredValue, availableValue)) {
             unreservedMergedPool.put(resourceRequirement.getName(), ValueUtils.subtract(availableValue, desiredValue));
+            //// !!!! HERE We OVERWRITE THE RESOURCE AND ITS RESERVATION  /// TODO
             Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
             return Optional.of(new MesosResource(resource));
         } else {

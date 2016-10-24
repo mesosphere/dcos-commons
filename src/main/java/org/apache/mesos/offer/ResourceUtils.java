@@ -248,7 +248,7 @@ public class ResourceUtils {
         }
     }
 
-    public static Resource getResourceAddLabel(Resource resource, Label label) {
+    public static Resource getResourceAddLabelUnique(Resource resource, Label label) {
         Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
                 .newBuilder(resource.getReservation());
         Resource.Builder resourceBuilder = Resource.newBuilder(resource);
@@ -257,7 +257,7 @@ public class ResourceUtils {
 
         Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
         for (Label label_in : labelList) {
-            labelsBuilder.addLabels(label_in);
+            if (label_in.getKey() != label.getKey() ) labelsBuilder.addLabels(label_in);
         }
         labelsBuilder.addLabels(label);
 

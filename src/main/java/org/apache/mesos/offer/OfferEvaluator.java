@@ -404,7 +404,6 @@ public class OfferEvaluator {
                 .newBuilder(taskReq.getTaskInfo())
                 .clearResources()
                 .addAllResources(fulfilledTaskResources);
-        //taskBuilder=ResourceUtils.setVIPDiscovery2(taskBuilder, fulfilledTaskRequirement);
 
 
         if (execInfo.isPresent()) {
@@ -415,8 +414,10 @@ public class OfferEvaluator {
                     .newBuilder(execInfo.get())
                     .clearResources()
                     .addAllResources(selectedResources);
+
             execBuilder = ResourceUtils.updateEnvironment(execBuilder, selectedResources);
             //execBuilder = ResourceUtils.updateEnvironment2(execBuilder, fulfilledTaskRequirement);
+
             taskBuilder.setExecutor(execBuilder);
             taskBuilder.setExecutor(execBuilder);
 
