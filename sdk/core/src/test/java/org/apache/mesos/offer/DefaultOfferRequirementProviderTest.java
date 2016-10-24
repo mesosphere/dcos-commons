@@ -36,6 +36,15 @@ public class DefaultOfferRequirementProviderTest {
         environmentVariables.set("EXECUTOR_URI", "");
     }
 
+    @Test(expected=InvalidTaskSpecificationException.class)
+    public void testEmptyTaskInfo() throws InvalidTaskSpecificationException, TaskException {
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
+                .setTaskId(TestConstants.TASK_ID)
+                .setName(TestConstants.TASK_NAME)
+                .setSlaveId(TestConstants.AGENT_ID);
+        DefaultTaskSpecification.create(taskInfoBuilder.build());
+    }
+
     @Test
     public void testUnchangedVolumes()
             throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {

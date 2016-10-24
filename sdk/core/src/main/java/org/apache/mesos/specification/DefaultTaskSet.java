@@ -24,7 +24,8 @@ public class DefaultTaskSet implements TaskSet {
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes) {
 
-        return create(count,
+        return create(
+                count,
                 name,
                 type,
                 Optional.empty(),
@@ -47,7 +48,8 @@ public class DefaultTaskSet implements TaskSet {
             Optional<PlacementRuleGenerator> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
-        return create(count,
+        return create(
+                count,
                 name,
                 type,
                 Optional.empty(),
@@ -70,7 +72,8 @@ public class DefaultTaskSet implements TaskSet {
             Optional<PlacementRuleGenerator> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
-        return create(count,
+        return create(
+                count,
                 name,
                 type,
                 Optional.of(container),
@@ -94,16 +97,17 @@ public class DefaultTaskSet implements TaskSet {
             Optional<PlacementRuleGenerator> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
-        return create(count,
-            name,
-            type,
-            Optional.of(container),
-            Optional.of(command),
-            resources,
-            volumes,
-            configs,
-            placementOptional,
-            healthCheck);
+        return create(
+                count,
+                name,
+                type,
+                Optional.of(container),
+                Optional.of(command),
+                resources,
+                volumes,
+                configs,
+                placementOptional,
+                healthCheck);
     }
 
     private static DefaultTaskSet create(

@@ -60,7 +60,7 @@ public class CustomTaskSetTest {
             for (int i = 0; i < count; i++) {
                 taskSpecifications.add(new DefaultTaskSpecification(
                         name + "_" + i,
-                        name,
+                        TestConstants.TASK_TYPE,
                         Protos.CommandInfo.newBuilder()
                                 .setValue(name + " " + i)
                                 .build(),
@@ -80,6 +80,7 @@ public class CustomTaskSetTest {
             for (int i = 0; i < count; i++) {
                 taskSpecifications.add(new DefaultTaskSpecification(
                         name + "_" + i,
+                        TestConstants.TASK_TYPE,
                         container,
                         Collections.emptyList(),
                         Collections.emptyList(),
@@ -97,6 +98,7 @@ public class CustomTaskSetTest {
             for (int i = 0; i < count; i++) {
                 taskSpecifications.add(new DefaultTaskSpecification(
                         name + "_" + i,
+                        TestConstants.TASK_TYPE,
                         container,
                         command,
                         Collections.emptyList(),

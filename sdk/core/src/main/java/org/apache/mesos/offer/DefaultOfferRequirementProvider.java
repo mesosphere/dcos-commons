@@ -48,12 +48,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setCommand(updatedCommand);
         }
 
-        if (taskSpecification.getHealthCheck().isPresent()) {
-            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
-        }
-
         if (taskSpecification.getContainer().isPresent()) {
             taskInfoBuilder.setContainer(taskSpecification.getContainer().get());
+        }
+
+        if (taskSpecification.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
         }
 
         return new OfferRequirement(
@@ -110,12 +110,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setCommand(updatedCommand);
         }
 
-        if (taskSpecification.getHealthCheck().isPresent()) {
-            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
-        }
-
         if (taskSpecification.getContainer().isPresent()) {
             taskInfoBuilder.setContainer(taskSpecification.getContainer().get());
+        }
+
+        if (taskSpecification.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
         }
 
         try {
