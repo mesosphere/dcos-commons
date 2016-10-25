@@ -1,7 +1,6 @@
 package org.apache.mesos.offer;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.twitter.logging.Logger;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -15,8 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger.*;
-import org.slf4j.LoggerFactory;
+
 
 
 import java.util.*;

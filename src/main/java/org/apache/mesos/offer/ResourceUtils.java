@@ -1,6 +1,5 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
@@ -204,24 +203,24 @@ public class ResourceUtils {
     }
 
     //* if there is env in the resource */
-    public static Protos.Environment updateEnvironment(Protos.Environment env, List<Protos.Resource> resources) {
-        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
-        for (Protos.Resource resource : resources) {
+    public static Environment updateEnvironment(Environment env, List<Resource> resources) {
+        Environment.Builder envBuilder = Environment.newBuilder();
+        for (Resource resource : resources) {
             ResourceRequirement resReq = new ResourceRequirement(resource);
             if (resReq.hasEnvName()) {
-                envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
+                envBuilder.addVariables(Environment.Variable.newBuilder()
                         .setName(resReq.getEnvName())
                         .setValue(resReq.getEnvValue()));
             }
         }
-        return Protos.Environment.newBuilder(env)
+        return Environment.newBuilder(env)
                 .addAllVariables(envBuilder.build().getVariablesList())
                 .build();
     }
 
     public static void setEnvName(ResourceRequirement resReq) {
         if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
-            for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+            for (Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(ResourceRequirement.ENV_KEY)) {
                     resReq.setEnvName(label.getValue());
                     return;
@@ -234,7 +233,7 @@ public class ResourceUtils {
         String key = null;
         String value = null;
         if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
-            for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+            for (Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(ResourceRequirement.VIP_KEY)) {
                     key = label.getValue();
                 }
@@ -255,9 +254,11 @@ public class ResourceUtils {
 
         List<Label> labelList = resource.getReservation().getLabels().getLabelsList();
 
-        Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
+        Labels.Builder labelsBuilder = Labels.newBuilder();
         for (Label labelIn : labelList) {
-            if (labelIn.getKey() != label.getKey()) labelsBuilder.addLabels(labelIn);
+            if (!labelIn.getKey().equals(label.getKey())) {
+                labelsBuilder.addLabels(labelIn);
+            }
         }
         labelsBuilder.addLabels(label);
 
@@ -266,7 +267,7 @@ public class ResourceUtils {
         return resourceBuilder.build();
     }
 
-    public static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName,
+    public static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builder, String execName,
                                                    List<Resource> resourceList) {
         TaskInfo.Builder taskBuilder = builder;
 
@@ -277,7 +278,7 @@ public class ResourceUtils {
         return taskBuilder;
     }
 
-    public static TaskInfo.Builder setVIPDiscovery2(Protos.TaskInfo.Builder builder, String execName,
+    public static TaskInfo.Builder setVIPDiscovery2(TaskInfo.Builder builder, String execName,
                                                     List<ResourceRequirement> resReqList) {
         TaskInfo.Builder taskBuilder = builder;
 
@@ -288,12 +289,14 @@ public class ResourceUtils {
     }
 
     /* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
-    private static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName,
+    private static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builderArg, String execName,
                                                     ResourceRequirement resReq) {
-        if (!resReq.hasVIPLabel()) return builder;
+        if (!resReq.hasVIPLabel()) {
+            return builderArg;
+        }
         try {
-            int port = new Integer(resReq.getEnvValue());
-            DiscoveryInfo discoveryInfo = DiscoveryInfo.newBuilder(builder.getDiscovery())
+            int port = Integer.parseInt(resReq.getEnvValue());
+            DiscoveryInfo discoveryInfo = DiscoveryInfo.newBuilder(builderArg.getDiscovery())
                     .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                     .setName(execName)
                     .setPorts(Ports.newBuilder()
@@ -302,20 +305,20 @@ public class ResourceUtils {
                                     .setProtocol("tcp")
                                     .setLabels(Labels.newBuilder().addLabels(resReq.getVIPLabel()).build())))
                     .build();
-            builder.setDiscovery(discoveryInfo);
+            builderArg.setDiscovery(discoveryInfo);
         } catch (Exception e) {
+            return builderArg;
             //FIX later
         }
 
-        return builder;
+        return builderArg;
     }
 
 
-    public static TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
-        Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
-                builder.getCommand().getEnvironment(), resources);
+    public static TaskInfo.Builder updateEnvironment( TaskInfo.Builder builder, List<Resource> resources) {
+        Environment updateEnv = ResourceUtils.updateEnvironment(builder.getCommand().getEnvironment(), resources);
         if (updateEnv.getVariablesCount() > 0) {
-            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
+            return builder.setCommand(CommandInfo.newBuilder(builder.getCommand())
                     .setEnvironment(updateEnv));
         } else {
             return builder;
@@ -323,11 +326,10 @@ public class ResourceUtils {
     }
 
     public static ExecutorInfo.Builder updateEnvironment(
-            Protos.ExecutorInfo.Builder builder, List<Resource> resources) {
-        Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
-                builder.getCommand().getEnvironment(), resources);
+            ExecutorInfo.Builder builder, List<Resource> resources) {
+            Environment updateEnv = ResourceUtils.updateEnvironment(builder.getCommand().getEnvironment(), resources);
         if (updateEnv.getVariablesCount() > 0) {
-            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
+            return builder.setCommand(CommandInfo.newBuilder(builder.getCommand())
                     .setEnvironment(updateEnv));
         } else {
             return builder;
@@ -384,24 +386,24 @@ public class ResourceUtils {
     }
 
     public static TaskInfo clearPersistence(TaskInfo taskInfo) {
-        List<Protos.Resource> resources = new ArrayList<>();
-        for (Protos.Resource resource : taskInfo.getResourcesList()) {
+        List<Resource> resources = new ArrayList<>();
+        for (Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
-                resource = Protos.Resource.newBuilder(resource).setDisk(
-                        Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
+                resource = Resource.newBuilder(resource).setDisk(
+                        Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
                 ).build();
             }
             resources.add(resource);
         }
-        return Protos.TaskInfo.newBuilder(taskInfo).clearResources().addAllResources(resources).build();
+        return TaskInfo.newBuilder(taskInfo).clearResources().addAllResources(resources).build();
     }
 
     public static boolean areDifferent(
             ResourceSpecification oldResourceSpecification,
             ResourceSpecification newResourceSpecification) {
 
-        Protos.Value oldValue = oldResourceSpecification.getValue();
-        Protos.Value newValue = newResourceSpecification.getValue();
+        Value oldValue = oldResourceSpecification.getValue();
+        Value newValue = newResourceSpecification.getValue();
         if (!ValueUtils.equal(oldValue, newValue)) {
             LOGGER.info(String.format("Values '%s' and '%s' are different.", oldValue, newValue));
             return true;
@@ -424,9 +426,9 @@ public class ResourceUtils {
         return false;
     }
 
-    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification)
+    public static Resource updateResource(Resource resource, ResourceSpecification resourceSpecification)
             throws IllegalArgumentException {
-        Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
+        Resource.Builder builder = Resource.newBuilder(resource);
         switch (resource.getType()) {
             case SCALAR:
                 return builder.setScalar(resourceSpecification.getValue().getScalar()).build();

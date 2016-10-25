@@ -158,7 +158,7 @@ public class MesosResourcePoolTest {
         offer = OfferTestUtils.getOffer(offeredPorts);
         pool = new MesosResourcePool(offer);
         Optional<MesosResource> mesosResource3 = pool.consume(dynamicPortRequirement3);
-        Assert.assertEquals(false, mesosResource1.isPresent());
+        Assert.assertEquals(false, mesosResource3.isPresent());
 
     }
 

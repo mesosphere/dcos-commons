@@ -1,6 +1,5 @@
 package org.apache.mesos.offer;
 
-import jdk.nashorn.internal.ir.Labels;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
@@ -42,8 +41,9 @@ public class ResourceRequirement {
     }
 
     public boolean hasEnvName() {
-        if (envName.isPresent())
+        if (envName.isPresent()) {
             return true;
+        }
         return false;
     }
 
@@ -53,19 +53,25 @@ public class ResourceRequirement {
 
 
     public String getEnvName() {
-        if (hasEnvName()) return envName.get();
+        if (hasEnvName()) {
+            return envName.get();
+        }
         return null;
     }
 
     public Label getVIPLabel() {
-        if (hasVIPLabel()) return vipLabel.get();
+        if (hasVIPLabel()) {
+            return vipLabel.get();
+        }
         return null;
     }
 
 
     public void setEnvName(String envName) {
         this.envName = Optional.of(envName);
-        if (!this.envName.isPresent()) return;
+        if (!this.envName.isPresent()) {
+            return;
+        }
         this.mesosResource = new MesosResource(
                 ResourceUtils.getResourceAddLabelUnique(getResource(),
                         Label.newBuilder()
@@ -77,7 +83,9 @@ public class ResourceRequirement {
 
     public void setVIPLabel(Label label) {
         vipLabel = Optional.of(label);
-        if (!vipLabel.isPresent()) return;
+        if (!vipLabel.isPresent()) {
+            return;
+        }
         mesosResource = new MesosResource(
                 ResourceUtils.getResourceAddLabelUnique(getResource(),
                         Label.newBuilder()

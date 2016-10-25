@@ -1,11 +1,9 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Implementations for common operations on Task/Executor/Resource requirements.
