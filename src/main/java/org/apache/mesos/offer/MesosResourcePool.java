@@ -76,7 +76,7 @@ public class MesosResourcePool {
         } else if (resourceRequirement.isAtomic()) {
             logger.info("Retrieving atomic resource");
             return consumeAtomic(resourceRequirement);
-        } if (resourceRequirement.isDynamicPort()){
+        } else if (resourceRequirement.isDynamicPort()) {
             logger.info("Retrieving resource for a dynamic port");
             return consumeDynamicPort(resourceRequirement);
         } else if (resourceRequirement.reservesResource()) {
