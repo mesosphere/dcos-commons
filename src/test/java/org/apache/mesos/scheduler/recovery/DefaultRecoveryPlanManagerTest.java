@@ -14,6 +14,7 @@ import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
@@ -86,8 +87,9 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     @Before
-    public void setupTest() {
+    public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
+        CuratorTestUtils.clear(testingServer);
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
@@ -460,11 +462,58 @@ public class DefaultRecoveryPlanManagerTest {
         recoveryManager.update(runningStatus);
 
         // TASK_FAILED
+        stateStore.storeStatus(failedStatus);
         recoveryManager.update(failedStatus);
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
+        stateStore.storeStatus(failedStatus);
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
+    }
+
+    @Test
+    public void testMultipleFailuresSingleTask() throws Exception {
+        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
+        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
+        final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem));
+        final List<TaskInfo> taskInfos = Collections.singletonList(taskInfo);
+        final List<Offer> offers = getOffers(1.0, 1.0);
+        final Protos.TaskStatus runningStatus = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_RUNNING);
+        final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_FAILED);
+        final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
+                new OfferRequirement(TestConstants.TASK_TYPE, taskInfos));
+
+        launchConstrainer.setCanLaunch(true);
+        when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
+                .thenReturn(Arrays.asList(recoveryRequirement));
+        when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
+
+        // TASK_RUNNING
+        stateStore.storeTasks(taskInfos);
+        stateStore.storeStatus(runningStatus);
+        recoveryManager.update(runningStatus);
+        assertEquals(0, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
+
+
+        // TASK_FAILED
+        stateStore.storeStatus(failedStatus);
+        recoveryManager.update(failedStatus);
+        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
+
+        // TASK_RUNNING
+        stateStore.storeTasks(taskInfos);
+        stateStore.storeStatus(runningStatus);
+        recoveryManager.update(runningStatus);
+
+        // TASK_FAILED
+        stateStore.storeStatus(failedStatus);
+        recoveryManager.update(failedStatus);
+        assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
+        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
     }
 }
