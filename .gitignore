@@ -29,3 +29,5 @@ build/
 # OS X
 .DS_Store
 
+# Ignore keys
+*.pem

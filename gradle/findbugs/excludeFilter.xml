@@ -21,4 +21,8 @@
         <Class name="org.apache.mesos.executor.ProcessTask" />
         <Bug pattern="DM_EXIT"/>
     </Match>
+    <Match>
+        <Class name="org.apache.mesos.dcos.DcosCluster" />
+        <Bug pattern="DMI_HARDCODED_ABSOLUTE_FILENAME"/>
+    </Match>
 </FindBugsFilter>
