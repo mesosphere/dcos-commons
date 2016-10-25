@@ -107,14 +107,15 @@ public class MesosResourcePoolTest {
 
         Assert.assertFalse(pool.consume(resReq).isPresent());
     }
+
     @Test
-    public void testConsumeDynamicPort()  {
+    public void testConsumeDynamicPort() {
         Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
         Protos.Value.Range range2 = Protos.Value.Range.newBuilder().setBegin(1003).setEnd(1003).build();
         Protos.Value.Range range3 = Protos.Value.Range.newBuilder().setBegin(2003).setEnd(2003).build();
 
         Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
-                        "ports", Arrays.asList(range));
+                "ports", Arrays.asList(range));
 
         Resource desiredPort2 = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
                 "ports", Arrays.asList(range2));
@@ -160,25 +161,26 @@ public class MesosResourcePoolTest {
         Assert.assertEquals(false, mesosResource1.isPresent());
 
     }
-       /* @Test
-        public void testConsumeDynamicPort() throws DynamicPortRequirement.DynamicPortException {
-            Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
-                    TestConstants.PORT_NAME,
-                    TestConstants.ROLE,
-                    TestConstants.PRINCIPAL);
 
-            DynamicPortRequirement dynamicPortRequirement = new DynamicPortRequirement(desiredDynamicPort);
-            Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10005);
-            Offer offer = OfferTestUtils.getOffer(offeredPorts);
-            MesosResourcePool pool = new MesosResourcePool(offer);
+    /* @Test
+     public void testConsumeDynamicPort() throws DynamicPortRequirement.DynamicPortException {
+         Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
+                 TestConstants.PORT_NAME,
+                 TestConstants.ROLE,
+                 TestConstants.PRINCIPAL);
 
-            MesosResource mesosResource = pool.consume(dynamicPortRequirement).get();
-            Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
-            Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
-            Assert.assertEquals(10000, range.getBegin());
-            Assert.assertEquals(10000, range.getEnd());
-        }
-    */
+         DynamicPortRequirement dynamicPortRequirement = new DynamicPortRequirement(desiredDynamicPort);
+         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10005);
+         Offer offer = OfferTestUtils.getOffer(offeredPorts);
+         MesosResourcePool pool = new MesosResourcePool(offer);
+
+         MesosResource mesosResource = pool.consume(dynamicPortRequirement).get();
+         Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
+         Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
+         Assert.assertEquals(10000, range.getBegin());
+         Assert.assertEquals(10000, range.getEnd());
+     }
+ */
     @Test
     public void testReleaseAtomicResource() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);

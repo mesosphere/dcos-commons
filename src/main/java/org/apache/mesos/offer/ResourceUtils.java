@@ -207,7 +207,7 @@ public class ResourceUtils {
     public static Protos.Environment updateEnvironment(Protos.Environment env, List<Protos.Resource> resources) {
         Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
         for (Protos.Resource resource : resources) {
-            ResourceRequirement resReq= new ResourceRequirement(resource);
+            ResourceRequirement resReq = new ResourceRequirement(resource);
             if (resReq.hasEnvName()) {
                 envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
                         .setName(resReq.getEnvName())
@@ -220,7 +220,7 @@ public class ResourceUtils {
     }
 
     public static void setEnvName(ResourceRequirement resReq) {
-        if ( resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels() ) {
+        if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
             for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(ResourceRequirement.ENV_KEY)) {
                     resReq.setEnvName(label.getValue());
@@ -231,8 +231,8 @@ public class ResourceUtils {
     }
 
     public static void setVIPLabel(ResourceRequirement resReq) {
-        String key=null;
-        String value=null;
+        String key = null;
+        String value = null;
         if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
             for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(ResourceRequirement.VIP_KEY)) {
@@ -243,7 +243,7 @@ public class ResourceUtils {
                 }
             }
         }
-        if (key != null && value != null ) {
+        if (key != null && value != null) {
             resReq.setVIPLabel(Label.newBuilder().setKey(key).setValue(value).build());
         }
     }
@@ -256,8 +256,8 @@ public class ResourceUtils {
         List<Label> labelList = resource.getReservation().getLabels().getLabelsList();
 
         Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
-        for (Label label_in : labelList) {
-            if (label_in.getKey() != label.getKey() ) labelsBuilder.addLabels(label_in);
+        for (Label labelIn : labelList) {
+            if (labelIn.getKey() != label.getKey()) labelsBuilder.addLabels(labelIn);
         }
         labelsBuilder.addLabels(label);
 
@@ -266,26 +266,31 @@ public class ResourceUtils {
         return resourceBuilder.build();
     }
 
-    public static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName, List<Resource> resourceList) {
-        TaskInfo.Builder taskBuilder=builder;
+    public static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName,
+                                                   List<Resource> resourceList) {
+        TaskInfo.Builder taskBuilder = builder;
 
-        for(Resource resource : resourceList){
-            ResourceRequirement resReq=new ResourceRequirement(resource);
-            taskBuilder=setVIPDiscovery(taskBuilder,execName, resReq);
+        for (Resource resource : resourceList) {
+            ResourceRequirement resReq = new ResourceRequirement(resource);
+            taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
         }
         return taskBuilder;
     }
-    public static TaskInfo.Builder setVIPDiscovery2(Protos.TaskInfo.Builder builder, String execName, List<ResourceRequirement> resReqList) {
-        TaskInfo.Builder taskBuilder=builder;
 
-        for(ResourceRequirement resReq : resReqList){
-            taskBuilder=setVIPDiscovery(taskBuilder, execName,resReq);
+    public static TaskInfo.Builder setVIPDiscovery2(Protos.TaskInfo.Builder builder, String execName,
+                                                    List<ResourceRequirement> resReqList) {
+        TaskInfo.Builder taskBuilder = builder;
+
+        for (ResourceRequirement resReq : resReqList) {
+            taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
         }
         return taskBuilder;
     }
-/* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
-    private static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName, ResourceRequirement resReq){
-            if (! resReq.hasVIPLabel()) return builder;
+
+    /* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
+    private static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName,
+                                                    ResourceRequirement resReq) {
+        if (!resReq.hasVIPLabel()) return builder;
         try {
             int port = new Integer(resReq.getEnvValue());
             DiscoveryInfo discoveryInfo = DiscoveryInfo.newBuilder(builder.getDiscovery())
@@ -296,10 +301,10 @@ public class ResourceUtils {
                                     .setNumber((int) (long) port)
                                     .setProtocol("tcp")
                                     .setLabels(Labels.newBuilder().addLabels(resReq.getVIPLabel()).build())))
-                                    .build();
+                    .build();
             builder.setDiscovery(discoveryInfo);
-        }catch(Exception e) {
-         //FIX later
+        } catch (Exception e) {
+            //FIX later
         }
 
         return builder;
@@ -383,7 +388,7 @@ public class ResourceUtils {
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
                 resource = Protos.Resource.newBuilder(resource).setDisk(
-                    Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
+                        Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
                 ).build();
             }
             resources.add(resource);

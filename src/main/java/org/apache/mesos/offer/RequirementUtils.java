@@ -12,40 +12,40 @@ import java.util.List;
  */
 public class RequirementUtils {
 
-  public static Collection<String> getResourceIds(Collection<ResourceRequirement> resourceRequirements) {
-    Collection<String> resourceIds = new ArrayList<String>();
+    public static Collection<String> getResourceIds(Collection<ResourceRequirement> resourceRequirements) {
+        Collection<String> resourceIds = new ArrayList<String>();
 
-    for (ResourceRequirement resReq : resourceRequirements) {
-      if (resReq.expectsResource()) {
-        resourceIds.add(resReq.getResourceId());
-      }
+        for (ResourceRequirement resReq : resourceRequirements) {
+            if (resReq.expectsResource()) {
+                resourceIds.add(resReq.getResourceId());
+            }
+        }
+
+        return resourceIds;
     }
 
-    return resourceIds;
-  }
+    public static Collection<String> getPersistenceIds(Collection<ResourceRequirement> resourceRequirements) {
+        Collection<String> persistenceIds = new ArrayList<String>();
 
-  public static Collection<String> getPersistenceIds(Collection<ResourceRequirement> resourceRequirements) {
-    Collection<String> persistenceIds = new ArrayList<String>();
+        for (ResourceRequirement resReq : resourceRequirements) {
+            String persistenceId = resReq.getPersistenceId();
+            if (persistenceId != null) {
+                persistenceIds.add(persistenceId);
+            }
+        }
 
-    for (ResourceRequirement resReq : resourceRequirements) {
-      String persistenceId = resReq.getPersistenceId();
-      if (persistenceId != null) {
-        persistenceIds.add(persistenceId);
-      }
+        return persistenceIds;
     }
 
-    return persistenceIds;
-  }
+    public static Collection<ResourceRequirement> getResourceRequirements(Collection<Resource> resources) {
+        Collection<ResourceRequirement> resourceRequirements = new ArrayList<>();
 
-  public static Collection<ResourceRequirement> getResourceRequirements(Collection<Resource> resources) {
-    Collection<ResourceRequirement> resourceRequirements = new ArrayList<>();
+        for (Resource resource : resources) {
+            resourceRequirements.add(new ResourceRequirement(resource));
+        }
 
-    for (Resource resource : resources) {
-        resourceRequirements.add(new ResourceRequirement(resource));
+        return resourceRequirements;
     }
-
-    return resourceRequirements;
-  }
 
   /*public static Collection<PortRequirement> getDynamicPortRequirements(List<Resource> resources)
           throws DynamicPortRequirement.DynamicPortException {

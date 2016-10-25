@@ -91,7 +91,7 @@ public class OfferEvaluator {
                         offer.getId().getValue(), filteredCount, originalCount);
             } else {
                 logger.info("Offer: '{}' all {} resources didn't pass placement constraints, "
-                        + "skipping offer resource evaluation and declining offer.",
+                                + "skipping offer resource evaluation and declining offer.",
                         offer.getId().getValue(), originalCount);
                 return Collections.emptyList(); // short-circuit
             }
@@ -310,12 +310,12 @@ public class OfferEvaluator {
 
     private static Optional<PlacementRule> getPlacementRule(
             OfferRequirement offerRequirement, StateStore stateStore)
-                    throws StateStoreException {
+            throws StateStoreException {
         Optional<PlacementRuleGenerator> placementRuleGenerator =
                 offerRequirement.getPlacementRuleGeneratorOptional();
         return placementRuleGenerator.isPresent()
-            ? Optional.of(placementRuleGenerator.get().generate(stateStore.fetchTasks()))
-            : Optional.empty();
+                ? Optional.of(placementRuleGenerator.get().generate(stateStore.fetchTasks()))
+                : Optional.empty();
     }
 
     private static boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
@@ -421,7 +421,7 @@ public class OfferEvaluator {
             taskBuilder.setExecutor(execBuilder);
             taskBuilder.setExecutor(execBuilder);
 
-            taskBuilder=ResourceUtils.setVIPDiscovery(taskBuilder, execInfo.get().getName(),fulfilledTaskResources);
+            taskBuilder = ResourceUtils.setVIPDiscovery(taskBuilder, execInfo.get().getName(), fulfilledTaskResources);
 
         }
 
@@ -429,7 +429,7 @@ public class OfferEvaluator {
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
         taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
 
-        taskBuilder=ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources);
+        taskBuilder = ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources);
         //taskBuilder=ResourceUtils.updateEnvironment2(taskBuilder, fulfilledTaskRequirement);
 
         return TaskUtils.packTaskInfo(taskBuilder.build());

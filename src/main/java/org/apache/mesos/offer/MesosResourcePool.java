@@ -70,19 +70,19 @@ public class MesosResourcePool {
      * available resources meet the requirement.
      */
     public Optional<MesosResource> consume(ResourceRequirement resourceRequirement) {
-        if(resourceRequirement.expectsResource()) {
+        if (resourceRequirement.expectsResource()) {
             logger.info("Retrieving reserved resource");
             return consumeReserved(resourceRequirement);
         } else if (resourceRequirement.isAtomic()) {
             logger.info("Retrieving atomic resource");
             return consumeAtomic(resourceRequirement);
-        }   if (resourceRequirement.isDynamicPort()){
+        } if (resourceRequirement.isDynamicPort()){
             logger.info("Retrieving resource for a dynamic port");
             return consumeDynamicPort(resourceRequirement);
-        }else if (resourceRequirement.reservesResource()) {
+        } else if (resourceRequirement.reservesResource()) {
             logger.info("Retrieving resource for reservation");
             return consumeUnreservedMerged(resourceRequirement);
-        }else if (resourceRequirement.consumesUnreservedResource()) {
+        } else if (resourceRequirement.consumesUnreservedResource()) {
             logger.info("Retrieving resource for unreserved resource requirement.");
             return consumeUnreservedMerged(resourceRequirement);
         }
