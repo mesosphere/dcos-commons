@@ -22,8 +22,8 @@ public class DefaultBlock extends DefaultObservable implements Block {
     private final UUID id = UUID.randomUUID();
     private final List<String> errors;
     private final Strategy strategy = new ParallelStrategy();
-    protected Status status;
-    protected Map<Protos.TaskID, Status> tasks = new HashMap<>();
+    private Status status;
+    private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
     public DefaultBlock(
             String name,
