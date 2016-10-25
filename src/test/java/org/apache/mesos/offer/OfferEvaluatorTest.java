@@ -15,6 +15,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+
+
 import java.util.*;
 
 public class OfferEvaluatorTest {
@@ -30,13 +32,18 @@ public class OfferEvaluatorTest {
 
     @Test
     public void testReserveTaskDynamicPort() throws InvalidRequirementException {
-        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
-                TestConstants.PORT_NAME,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
 
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredDynamicPort);
+
+        Protos.Value.Range rangeOffer = Protos.Value.Range.newBuilder().setBegin(1000).setEnd(1004).build();
+        Protos.Resource offeredPorts = ResourceUtils.getUnreservedRanges("ports", Arrays.asList(rangeOffer));
+        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
+        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
+                "ports", Arrays.asList(range));
+
+        ResourceRequirement dynamicPortRequirement = new ResourceRequirement(desiredPort);
+        dynamicPortRequirement.setEnvName(TestConstants.PORT_NAME);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(dynamicPortRequirement.getResource());
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -50,7 +57,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(2, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
 
         Label dynamicPortLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("dynamic_port", dynamicPortLabel.getKey());
+        Assert.assertEquals(ResourceRequirement.ENV_KEY, dynamicPortLabel.getKey());
         Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortLabel.getValue());
 
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
@@ -59,7 +66,7 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(1, taskInfo.getCommand().getEnvironment().getVariablesCount());
         Environment.Variable variable = taskInfo.getCommand().getEnvironment().getVariables(0);
         Assert.assertEquals(TestConstants.PORT_NAME, variable.getName());
-        Assert.assertEquals(String.valueOf(10000), variable.getValue());
+        Assert.assertEquals(String.valueOf(1000), variable.getValue());
     }
 
     @Test
@@ -68,15 +75,18 @@ public class OfferEvaluatorTest {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
 
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
-                TestConstants.PORT_NAME,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
+        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
+        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
+                "ports", Arrays.asList(range));
+        ResourceRequirement resreq= new ResourceRequirement(desiredPort);
+
+        resreq.setEnvName(TestConstants.PORT_NAME);
+        resreq.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
 
         OfferRequirement offerReq = new OfferRequirement(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
-                Optional.of(TaskTestUtils.getExecutorInfo(desiredDynamicPort)));
+                Optional.of(TaskTestUtils.getExecutorInfo(resreq.getResource())));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerReq,
@@ -87,13 +97,13 @@ public class OfferEvaluatorTest {
         Operation launchOperation = recommendations.get(2).getOperation();
         ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
         Resource fulfilledPortResource = executorInfo.getResources(0);
-        Assert.assertEquals(2, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+        Assert.assertEquals(4, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
 
         Label dynamicPortLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("dynamic_port", dynamicPortLabel.getKey());
+        Assert.assertEquals(ResourceRequirement.ENV_KEY, dynamicPortLabel.getKey());
         Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortLabel.getValue());
 
-        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(3);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Assert.assertEquals(1, executorInfo.getCommand().getEnvironment().getVariablesCount());
@@ -114,53 +124,134 @@ public class OfferEvaluatorTest {
     @Test
     public void testReserveTaskAndExecutorDynamicPort() throws InvalidRequirementException, InvalidProtocolBufferException {
         Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
-        Resource offeredExecutorPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource offeredExecutorPorts = ResourceTestUtils.getUnreservedPorts(12000, 12000);
         Resource offeredTaskPorts = ResourceTestUtils.getUnreservedPorts(11000, 11000);
 
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Resource desiredExecutorDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
-                TestConstants.PORT_NAME,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
+
+        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
+        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
+                "ports", Arrays.asList(range));
+
+        //ResourceRequirement desiredExecutorDynamicPort= new ResourceRequirement(desiredPort);
+        //desiredExecutorDynamicPort.setEnvName(TestConstants.PORT_NAME);
+
         String taskPortName = "TASK_PORT";
-        Resource desiredTaskDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
-                taskPortName,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
+        ResourceRequirement desiredTaskDynamicPort= new ResourceRequirement(desiredPort);
+        desiredTaskDynamicPort.setEnvName(taskPortName);
+        desiredTaskDynamicPort.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+
 
         OfferRequirement offerReq = new OfferRequirement(
                 TestConstants.TASK_TYPE,
-                Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort))),
-                Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort)));
+                Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort.getResource())))
+        );
+                //, Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort.getResource())));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerReq,
                 Arrays.asList(OfferTestUtils.getOffer(
-                        Arrays.asList(offeredCpu, offeredExecutorPorts, offeredTaskPorts))));
+                        Arrays.asList(offeredCpu,  offeredTaskPorts,offeredExecutorPorts))));
+
+        Assert.assertEquals(3, recommendations.size());
+
+        Operation launchOperation = recommendations.get(2).getOperation();
+ //       ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
+//        Resource fulfilledExecutorPortResource = executorInfo.getResources(0);
+
+   //     Assert.assertEquals(1, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledTaskPortResource = taskInfo.getResources(1);
+        Assert.assertEquals(4, fulfilledTaskPortResource.getReservation().getLabels().getLabelsCount());
+
+       /* Label dynamicPortExecutorLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals(ResourceRequirement.ENV_KEY, dynamicPortExecutorLabel.getKey());
+        Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortExecutorLabel.getValue());
+        */
+        Label dynamicPortTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals(ResourceRequirement.ENV_KEY, dynamicPortTaskLabel.getKey());
+        Assert.assertEquals(taskPortName, dynamicPortTaskLabel.getValue());
+
+     //   Label resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
+     //   Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        Label resourceIdTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(3);
+        Assert.assertEquals("resource_id", resourceIdTaskLabel.getKey());
+
+    //    Assert.assertEquals(1, executorInfo.getCommand().getEnvironment().getVariablesCount());
+     //   Environment.Variable executorVariable = executorInfo.getCommand().getEnvironment().getVariables(0);
+     //   Assert.assertEquals(TestConstants.PORT_NAME, executorVariable.getName());
+     //   Assert.assertEquals(String.valueOf(10000), executorVariable.getValue());
+
+     //   fulfilledExecutorPortResource = taskInfo.getResources(0);
+     //   Assert.assertEquals(1, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        CommandInfo command = TaskUtils.unpackTaskInfo(taskInfo).getCommand();
+        Assert.assertEquals(1, taskInfo.getCommand().getEnvironment().getVariablesCount());
+        Assert.assertEquals(1, command.getEnvironment().getVariablesCount());
+
+        Environment.Variable taskVariable = command.getEnvironment().getVariables(0);
+        Assert.assertEquals(taskPortName, taskVariable.getName());
+        Assert.assertEquals(String.valueOf(11000), taskVariable.getValue());
+    }
+
+    @Test
+    public void testReserveTaskAndExecutorDynamicPort2VIP() throws InvalidRequirementException, InvalidProtocolBufferException {
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource offeredExecutorPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource offeredTaskPorts = ResourceTestUtils.getUnreservedPorts(11000, 11000);
+
+        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
+
+        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
+        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
+                "ports", Arrays.asList(range));
+
+        ResourceRequirement desiredExecutorDynamicPort= new ResourceRequirement(desiredPort);
+        desiredExecutorDynamicPort.setEnvName(TestConstants.PORT_NAME);
+        desiredExecutorDynamicPort.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+
+        String taskPortName = "TASK_PORT";
+        ResourceRequirement desiredTaskDynamicPort= new ResourceRequirement(desiredPort);
+        desiredTaskDynamicPort.setEnvName(taskPortName);
+        desiredTaskDynamicPort.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+
+
+        OfferRequirement offerReq = new OfferRequirement(
+                TestConstants.TASK_TYPE,
+                Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort.getResource()))),
+Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort.getResource())));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerReq,
+                Arrays.asList(OfferTestUtils.getOffer(
+                        Arrays.asList(offeredCpu,  offeredTaskPorts,offeredExecutorPorts))));
 
         Assert.assertEquals(4, recommendations.size());
 
         Operation launchOperation = recommendations.get(3).getOperation();
         ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
         Resource fulfilledExecutorPortResource = executorInfo.getResources(0);
-        Assert.assertEquals(2, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
+
+        Assert.assertEquals(4, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
 
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource fulfilledTaskPortResource = taskInfo.getResources(1);
-        Assert.assertEquals(2, fulfilledTaskPortResource.getReservation().getLabels().getLabelsCount());
+        Assert.assertEquals(4, fulfilledTaskPortResource.getReservation().getLabels().getLabelsCount());
 
         Label dynamicPortExecutorLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("dynamic_port", dynamicPortExecutorLabel.getKey());
+        Assert.assertEquals(ResourceRequirement.ENV_KEY, dynamicPortExecutorLabel.getKey());
         Assert.assertEquals(TestConstants.PORT_NAME, dynamicPortExecutorLabel.getValue());
 
         Label dynamicPortTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("dynamic_port", dynamicPortTaskLabel.getKey());
+        Assert.assertEquals(ResourceRequirement.ENV_KEY, dynamicPortTaskLabel.getKey());
         Assert.assertEquals(taskPortName, dynamicPortTaskLabel.getValue());
 
-        Label resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(1);
+        Label resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(3);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
-        Label resourceIdTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(1);
+        Label resourceIdTaskLabel = fulfilledTaskPortResource.getReservation().getLabels().getLabels(3);
         Assert.assertEquals("resource_id", resourceIdTaskLabel.getKey());
 
         Assert.assertEquals(1, executorInfo.getCommand().getEnvironment().getVariablesCount());
@@ -168,19 +259,18 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(TestConstants.PORT_NAME, executorVariable.getName());
         Assert.assertEquals(String.valueOf(10000), executorVariable.getValue());
 
-        fulfilledExecutorPortResource = taskInfo.getResources(0);
-        Assert.assertEquals(1, fulfilledExecutorPortResource.getReservation().getLabels().getLabelsCount());
-
-        resourceIdLabel = fulfilledExecutorPortResource.getReservation().getLabels().getLabels(0);
-        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
-
         CommandInfo command = TaskUtils.unpackTaskInfo(taskInfo).getCommand();
-        Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
+
+        Assert.assertEquals(11000,TaskUtils.unpackTaskInfo(taskInfo).getDiscovery().getPorts().getPorts(0).getNumber());
+        Assert.assertEquals("some_string",TaskUtils.unpackTaskInfo(taskInfo).getDiscovery().getPorts().getPorts(0).getLabels().getLabels(0).getKey());
+        Assert.assertEquals("some_more_string",TaskUtils.unpackTaskInfo(taskInfo).getDiscovery().getPorts().getPorts(0).getLabels().getLabels(0).getValue());
+
         Assert.assertEquals(1, command.getEnvironment().getVariablesCount());
 
         Environment.Variable taskVariable = command.getEnvironment().getVariables(0);
         Assert.assertEquals(taskPortName, taskVariable.getName());
         Assert.assertEquals(String.valueOf(11000), taskVariable.getValue());
+
     }
 
     @Test
