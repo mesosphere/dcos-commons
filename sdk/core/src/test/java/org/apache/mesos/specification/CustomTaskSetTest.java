@@ -23,6 +23,7 @@ public class CustomTaskSetTest {
         for (int i = taskCount; i < taskCount; ++i) {
             Assert.assertEquals(false, taskSet.getTaskSpecifications().get(i).getContainer().isPresent());
             Assert.assertEquals(true, taskSet.getTaskSpecifications().get(i).getCommand().isPresent());
+            Assert.assertEquals(TestConstants.TASK_TYPE, taskSet.getTaskSpecifications().get(i).getType());
             Assert.assertEquals(String.format("custom_%s", i), taskSet.getTaskSpecifications().get(i).getName());
             Assert.assertEquals(String.format("custom %s", i), taskSet.getTaskSpecifications().get(i).getCommand().get().getValue());
         }
@@ -34,8 +35,9 @@ public class CustomTaskSetTest {
         for (int i = taskCount; i < taskCount; ++i) {
             Assert.assertEquals(true, taskSet.getTaskSpecifications().get(i).getContainer().isPresent());
             Assert.assertEquals(false, taskSet.getTaskSpecifications().get(i).getCommand().isPresent());
+            Assert.assertEquals(TestConstants.TASK_TYPE, taskSet.getTaskSpecifications().get(i).getType());
             Assert.assertEquals(String.format("custom_%s", i), taskSet.getTaskSpecifications().get(i).getName());
-            Assert.assertEquals(TestConstants.CONTAINER_INFO.getDocker().getImage(), taskSet.getTaskSpecifications().get(i).getContainer().get().getDocker().getImage().toString());
+            Assert.assertEquals(TestConstants.CONTAINER_INFO.getDocker().getImage(), taskSet.getTaskSpecifications().get(i).getContainer().get().getDocker().getImage());
             Assert.assertEquals(TestConstants.CONTAINER_INFO.getDocker().getNetwork(), taskSet.getTaskSpecifications().get(i).getContainer().get().getDocker().getNetwork());
         }
     }
@@ -46,9 +48,10 @@ public class CustomTaskSetTest {
         for (int i = 0; i < taskCount; ++i) {
             Assert.assertEquals(true, taskSet.getTaskSpecifications().get(i).getContainer().isPresent());
             Assert.assertEquals(true, taskSet.getTaskSpecifications().get(i).getCommand().isPresent());
+            Assert.assertEquals(TestConstants.TASK_TYPE, taskSet.getTaskSpecifications().get(i).getType());
             Assert.assertEquals(String.format("custom_%s", i), taskSet.getTaskSpecifications().get(i).getName());
             Assert.assertEquals(TestConstants.COMMAND_INFO.getValue(), taskSet.getTaskSpecifications().get(i).getCommand().get().getValue());
-            Assert.assertEquals(TestConstants.CONTAINER_INFO.getDocker().getImage().toString(), taskSet.getTaskSpecifications().get(i).getContainer().get().getDocker().getImage().toString());
+            Assert.assertEquals(TestConstants.CONTAINER_INFO.getDocker().getImage(), taskSet.getTaskSpecifications().get(i).getContainer().get().getDocker().getImage());
             Assert.assertEquals(TestConstants.CONTAINER_INFO.getDocker().getNetwork(), taskSet.getTaskSpecifications().get(i).getContainer().get().getDocker().getNetwork());
         }
     }
