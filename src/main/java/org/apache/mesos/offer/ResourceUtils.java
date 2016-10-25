@@ -12,8 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
@@ -313,9 +315,23 @@ public class ResourceUtils {
 
         return builderArg;
     }
+    public static ResourceRequirement getDesiredDynamicPort(String role, String principle,
+                                                 Optional<String> envName){
+        Value.Range range = Value.Range.newBuilder().setBegin(0).setEnd(0).build();
 
+        Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
+                "ports", Arrays.asList(range));
+        if (envName.isPresent()){
+            ResourceRequirement resreq = new ResourceRequirement(desiredPort);
+            resreq.setEnvName(envName.get());
+            return resreq;
 
-    public static TaskInfo.Builder updateEnvironment( TaskInfo.Builder builder, List<Resource> resources) {
+        }
+        return new ResourceRequirement(desiredPort);
+
+    }
+
+    public static TaskInfo.Builder updateEnvironment(TaskInfo.Builder builder, List<Resource> resources) {
         Environment updateEnv = ResourceUtils.updateEnvironment(builder.getCommand().getEnvironment(), resources);
         if (updateEnv.getVariablesCount() > 0) {
             return builder.setCommand(CommandInfo.newBuilder(builder.getCommand())
@@ -336,9 +352,10 @@ public class ResourceUtils {
         }
     }
 
-    /*public static Resource setValue(Resource resource, Value value) {
+    public static Resource setValue(Resource resource, Value value) {
         return setResource(Resource.newBuilder(resource), resource.getName(), value);
-    }*/
+    }
+
     public static Resource setResourceId(Resource resource, String resourceId) {
         return Resource.newBuilder(resource)
                 .setReservation(setResourceId(resource.getReservation(), resourceId))
