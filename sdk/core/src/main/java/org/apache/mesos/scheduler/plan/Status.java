@@ -1,7 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
 /**
- * Status of the block. Useful for reporting
+ * Status of an {@link Element}.
  */
 public enum Status {
   ERROR, /** execution experienced an error. */
