@@ -22,4 +22,9 @@ public interface PlacementRuleGenerator {
      * @param tasks all currently deployed tasks, against which the returned value is generated
      */
     public PlacementRule generate(Collection<TaskInfo> tasks);
+
+    /**
+     * Must be explicitly implemented by all PlacementRuleGenerators.
+     */
+    public boolean equals(Object o);
 }

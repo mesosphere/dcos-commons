@@ -1,13 +1,12 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,48 +17,51 @@ import java.util.Optional;
  * This class is a default implementation of the BlockFactory interface.
  */
 public class DefaultBlockFactory implements BlockFactory {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBlockFactory.class);
+
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
+    private final TaskSpecificationProvider taskSpecificationProvider;
 
-    public DefaultBlockFactory(StateStore stateStore) {
-        this(stateStore, new DefaultOfferRequirementProvider());
-    }
-
-    public DefaultBlockFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
+    public DefaultBlockFactory(
+            StateStore stateStore,
+            OfferRequirementProvider offerRequirementProvider,
+            TaskSpecificationProvider taskSpecificationProvider) {
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
+        this.taskSpecificationProvider = taskSpecificationProvider;
     }
 
     @Override
     public Block getBlock(String taskType, TaskSpecification taskSpecification) throws InvalidRequirementException {
-        logger.info("Generating block for: " + taskSpecification.getName());
+        LOGGER.info("Generating block for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
         if (!taskInfoOptional.isPresent()) {
-            logger.info("Generating new block for: " + taskSpecification.getName());
+            LOGGER.info("Generating new block for: " + taskSpecification.getName());
             return new DefaultBlock(
                     taskSpecification.getName(),
                     offerRequirementProvider.getNewOfferRequirement(taskType, taskSpecification),
                     Status.PENDING);
         } else {
+            final TaskSpecification oldTaskSpecification;
             try {
-                TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfoOptional.get());
-                Status status = getStatus(oldTaskSpecification, taskSpecification);
-                logger.info("Generating existing block for: " + taskSpecification.getName() +
-                        " with status: " + status);
-                return new DefaultBlock(
-                        taskSpecification.getName(),
-                        offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
-                        status);
-            } catch (InvalidTaskSpecificationException e) {
-                logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
+                oldTaskSpecification =
+                        taskSpecificationProvider.getTaskSpecification(taskInfoOptional.get());
+            } catch (TaskException e) {
                 throw new InvalidRequirementException(e);
             }
+            Status status = getStatus(oldTaskSpecification, taskSpecification);
+            LOGGER.info("Generating existing block for: " + taskSpecification.getName() +
+                    " with status: " + status);
+            return new DefaultBlock(
+                    taskSpecification.getName(),
+                    offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
+                    status);
         }
     }
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        logger.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
+        LOGGER.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
         if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {

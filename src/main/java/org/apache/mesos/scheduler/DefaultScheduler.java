@@ -5,7 +5,15 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigurationUpdater;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
+import org.apache.mesos.config.validate.ConfigurationValidationError;
+import org.apache.mesos.config.validate.ConfigurationValidator;
+import org.apache.mesos.config.validate.TaskSetsCannotShrink;
+import org.apache.mesos.config.validate.TaskVolumesCannotChange;
+import org.apache.mesos.curator.CuratorConfigStore;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
@@ -19,7 +27,10 @@ import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
+import org.apache.mesos.specification.DefaultServiceSpecification;
+import org.apache.mesos.specification.DefaultTaskSpecificationProvider;
 import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.api.StateResource;
@@ -43,18 +54,22 @@ public class DefaultScheduler implements Scheduler, Observer {
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final ServiceSpecification serviceSpecification;
-    private final String zkConnectionString;
+    private final ConfigStore<ServiceSpecification> configStore;
+    private final StateStore stateStore;
+    private final ConfigurationUpdater.UpdateResult configUpdateResult;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
 
     private SchedulerDriver driver;
     private Reconciler reconciler;
-    private StateStore stateStore;
     private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
+    private TaskSpecificationProvider taskSpecificationProvider;
     private OfferRequirementProvider offerRequirementProvider;
     private Plan deployPlan;
     private PlanManager deployPlanManager;
@@ -69,17 +84,37 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
         this(serviceSpecification,
-                zkConnectionString,
+                new CuratorConfigStore<ServiceSpecification>(
+                        DefaultServiceSpecification.getFactoryInstance(),
+                        serviceSpecification.getName(),
+                        zkConnectionString),
                 new CuratorStateStore(serviceSpecification.getName(), zkConnectionString));
     }
 
     public DefaultScheduler(
             ServiceSpecification serviceSpecification,
-            String zkConnectionString,
+            ConfigStore<ServiceSpecification> configStore,
             StateStore stateStore) {
+        this(serviceSpecification, configStore, stateStore,
+                Arrays.asList(new TaskSetsCannotShrink(), new TaskVolumesCannotChange()));
+    }
+
+    public DefaultScheduler(
+            ServiceSpecification serviceSpecification,
+            ConfigStore<ServiceSpecification> configStore,
+            StateStore stateStore,
+            Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
         this.serviceSpecification = serviceSpecification;
-        this.zkConnectionString = zkConnectionString;
+        this.configStore = configStore;
         this.stateStore = stateStore;
+        try {
+            this.configUpdateResult =
+                    new ConfigurationUpdater<ServiceSpecification>(stateStore, configStore, configValidators)
+                    .updateConfiguration(serviceSpecification);
+        } catch (ConfigStoreException e) {
+            logger.error("Fatal error when performing configuration update. Service exiting.", e);
+            throw new IllegalStateException(e);
+        }
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
     }
 
@@ -120,19 +155,23 @@ public class DefaultScheduler implements Scheduler, Observer {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        offerRequirementProvider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter());
+        taskSpecificationProvider = new DefaultTaskSpecificationProvider(configStore);
+        offerRequirementProvider = new DefaultOfferRequirementProvider(
+                new DefaultTaskConfigRouter(), configUpdateResult.targetId);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
     }
 
     private void initializeRecoveryPlanManager() {
         logger.info("Initializing recovery plan...");
         final RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider);
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider, taskSpecificationProvider);
         final LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
 
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
+                taskSpecificationProvider,
+                offerRequirementProvider,
                 recoveryRequirementProvider,
                 constrainer,
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
@@ -148,7 +187,12 @@ public class DefaultScheduler implements Scheduler, Observer {
         logger.info("Initializing deployment plan...");
         try {
             logger.info("Deploy plan: {}", deployPlan);
-            deployPlan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
+            List<String> configErrors = new ArrayList<>();
+            for (ConfigurationValidationError error : configUpdateResult.errors) {
+                configErrors.add(error.toString());
+            }
+            deployPlan = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                    .getPlan(serviceSpecification, configErrors);
         } catch (InvalidRequirementException e) {
             logger.error("Failed to generate deployPlan with exception: ", e);
             hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);

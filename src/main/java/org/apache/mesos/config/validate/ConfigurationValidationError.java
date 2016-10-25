@@ -7,7 +7,7 @@ package org.apache.mesos.config.validate;
 public class ConfigurationValidationError {
     private final String configField;
     private final String oldConfigValue; // Nullable
-    private final String newConfignValue;
+    private final String newConfigValue;
     private final String message;
 
     /**
@@ -33,7 +33,7 @@ public class ConfigurationValidationError {
             String configField, String oldConfigValue, String newConfigValue, String message) {
         this.configField = configField;
         this.oldConfigValue = oldConfigValue;
-        this.newConfignValue = newConfigValue;
+        this.newConfigValue = newConfigValue;
         this.message = message;
     }
 
@@ -48,7 +48,7 @@ public class ConfigurationValidationError {
      * Returns the current value which triggered the error.
      */
     public String getConfigurationValue() {
-        return newConfignValue;
+        return newConfigValue;
     }
 
     /**
@@ -73,10 +73,10 @@ public class ConfigurationValidationError {
     public String toString() {
         if (oldConfigValue != null) {
             return String.format("Field: '%s'; Transition: '%s' => '%s'; Message: '%s'",
-                    configField, oldConfigValue, newConfignValue, message);
+                    configField, oldConfigValue, newConfigValue, message);
         } else {
             return String.format("Field: '%s'; Value: '%s'; Message: '%s'",
-                    configField, newConfignValue, message);
+                    configField, newConfigValue, message);
         }
     }
 }

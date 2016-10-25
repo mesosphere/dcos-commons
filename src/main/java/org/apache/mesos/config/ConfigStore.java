@@ -26,14 +26,15 @@ public interface ConfigStore<T extends Configuration> {
     UUID store(T config) throws ConfigStoreException;
 
     /**
-     * Retrieves and deserializes the {@link Configuration} assigned to the provided UUID.
+     * Retrieves and deserializes the {@link Configuration} assigned to the provided UUID, or throws
+     * an exception if no config with the provided UUID was found.
      *
      * @param id The UUID of the configuration to be fetched
-     * @param factory The deserializer implementation for the configuration data
      * @return The deserialized configuration
-     * @throws ConfigStoreException if retrieval or deserialization fails
+     * @throws ConfigStoreException if retrieval or deserialization fails, or if the requested
+     *                              config is missing
      */
-    T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException;
+    T fetch(UUID id) throws ConfigStoreException;
 
     /**
      * Deletes the configuration with the provided UUID, or does nothing if no matching

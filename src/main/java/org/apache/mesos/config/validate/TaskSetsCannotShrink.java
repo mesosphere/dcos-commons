@@ -26,7 +26,8 @@ public class TaskSetsCannotShrink implements ConfigurationValidator<ServiceSpeci
             if (prevValue != null) {
                 errors.add(ConfigurationValidationError.valueError(
                         "TaskSets", taskSet.getName(),
-                        String.format("Duplicate task type '%s' in TaskSets", taskSet.getName())));
+                        String.format("Duplicate TaskSets named '%s' in Service '%s'",
+                                taskSet.getName(), newConfig.getName())));
             }
         }
         if (oldConfig == null) {
@@ -41,12 +42,16 @@ public class TaskSetsCannotShrink implements ConfigurationValidator<ServiceSpeci
             Integer newValue = newTaskTypeCounts.get(typeName);
             if (newValue == null) {
                 errors.add(ConfigurationValidationError.transitionError(
-                        String.format("TaskSet[name:%s]", typeName), String.valueOf(oldValue), "null",
+                        String.format("TaskSet[name:%s]", typeName),
+                        String.valueOf(oldValue),
+                        "null",
                         String.format("New config is missing TaskSet named '%s' (expected present with >= %d tasks)",
                                 typeName, oldValue)));
             } else if (newValue < oldValue) {
                 errors.add(ConfigurationValidationError.transitionError(
-                        String.format("TaskSet[name:%s]", typeName), String.valueOf(oldValue), String.valueOf(newValue),
+                        String.format("TaskSet[setname:%s]", typeName),
+                        String.valueOf(oldValue),
+                        String.valueOf(newValue),
                         String.format("New config's TaskSet named '%s' has %d tasks, expected >=%d tasks",
                                 typeName, newValue, oldValue)));
             }

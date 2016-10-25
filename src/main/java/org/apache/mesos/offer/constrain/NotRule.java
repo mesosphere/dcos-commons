@@ -86,7 +86,7 @@ public class NotRule implements PlacementRule {
 
         @Override
         public String toString() {
-            return String.format("NotGenerator{generator=%s}", generator);
+            return String.format("NotRuleGenerator{generator=%s}", generator);
         }
 
         @Override

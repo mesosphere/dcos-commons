@@ -2,7 +2,6 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.offer.OfferRequirementProvider;
@@ -12,6 +11,7 @@ import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.OfferTestUtils;
@@ -43,6 +43,7 @@ public class DefaultPlanCoordinatorTest {
     DefaultServiceSpecification serviceSpecificationB;
     OfferAccepter offerAccepter;
     OfferRequirementProvider offerRequirementProvider;
+    TaskSpecificationProvider taskSpecificationProvider;
     StateStore stateStore;
     TaskKiller taskKiller;
     DefaultPlanScheduler planScheduler;
@@ -53,7 +54,8 @@ public class DefaultPlanCoordinatorTest {
     public void setupTest() {
         MockitoAnnotations.initMocks(this);
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
-        offerRequirementProvider = new DefaultOfferRequirementProvider();
+        offerRequirementProvider = mock(OfferRequirementProvider.class);
+        taskSpecificationProvider = mock(TaskSpecificationProvider.class);
         stateStore = mock(StateStore.class);
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
@@ -100,7 +102,8 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testOnePlanManagerPendingSufficientOffer() throws Exception {
-        final Plan plan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
+        final Plan plan = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(new DefaultPlanManager(plan, new DefaultStrategyFactory())),
                 planScheduler);
@@ -110,7 +113,8 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testOnePlanManagerPendingInSufficientOffer() throws Exception {
-        final Plan plan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
+        final Plan plan = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(new DefaultPlanManager(plan, new DefaultStrategyFactory())),
                 planScheduler);
@@ -120,7 +124,8 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testOnePlanManagerComplete() throws Exception {
-        final Plan plan = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
+        final Plan plan = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
         plan.getPhases().get(0).getBlocks().get(0).forceComplete();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(new DefaultPlanManager(plan, new DefaultStrategyFactory())),
@@ -131,8 +136,10 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersPendingPlansDisjointAssets() throws Exception {
-        final Plan planA = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecificationB);
+        final Plan planA = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
+        final Plan planB = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecificationB);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA, new DefaultStrategyFactory());
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB, new DefaultStrategyFactory());
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
@@ -143,8 +150,10 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersPendingPlansSameAssets() throws Exception {
-        final Plan planA = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
+        final Plan planA = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
+        final Plan planB = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
         final PlanManager planManagerA = new TestingPlanManager();
         planManagerA.setPlan(planA);
         final PlanManager planManagerB = new TestingPlanManager();
@@ -157,8 +166,10 @@ public class DefaultPlanCoordinatorTest {
 
     @Test
     public void testTwoPlanManagersCompletePlans() throws Exception {
-        final Plan planA = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(stateStore, offerRequirementProvider).getPlan(serviceSpecification);
+        final Plan planA = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
+        final Plan planB = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
+                .getPlan(serviceSpecification);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA, new DefaultStrategyFactory());
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB, new DefaultStrategyFactory());
 

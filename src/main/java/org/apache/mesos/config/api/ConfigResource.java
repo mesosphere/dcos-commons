@@ -11,7 +11,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.Configuration;
-import org.apache.mesos.config.ConfigurationFactory;
 import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +26,9 @@ public class ConfigResource<T extends Configuration> {
     private static final Logger logger = LoggerFactory.getLogger(ConfigResource.class);
 
     private final ConfigStore<T> configStore;
-    private final ConfigurationFactory<T> configFactory;
 
-    public ConfigResource(ConfigStore<T> configStore, ConfigurationFactory<T> configFactory) {
+    public ConfigResource(ConfigStore<T> configStore) {
         this.configStore = configStore;
-        this.configFactory = configFactory;
     }
 
     /**
@@ -110,7 +107,7 @@ public class ConfigResource<T extends Configuration> {
      */
     private Response fetchConfig(UUID id) throws Exception {
         // return the content provided by the config verbatim, treat as plaintext
-        return Response.ok(configStore.fetch(id, configFactory).toJsonString(),
+        return Response.ok(configStore.fetch(id).toJsonString(),
                 MediaType.APPLICATION_JSON).build();
     }
 }

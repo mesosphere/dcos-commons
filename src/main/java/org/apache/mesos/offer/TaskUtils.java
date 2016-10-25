@@ -7,9 +7,13 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.specification.ConfigFileSpecification;
 import org.apache.mesos.specification.DefaultConfigFileSpecification;
+import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
+import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TaskSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,25 +195,26 @@ public class TaskUtils {
 
     /**
      * Sets a {@link Label} indicating the target configuruation for the provided {@link TaskInfo}.
-     * @param taskInfo is the TaskInfo which will have the appropriate configuration {@link Label} set.
+     *
+     * @param taskInfoBuilder is the TaskInfo which will have the appropriate configuration {@link Label} set.
      * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}
-     * @return
      */
-    public static TaskInfo setTargetConfiguration(TaskInfo taskInfo, UUID targetConfigurationId) {
-        return taskInfo.toBuilder()
-                .setLabels(withLabelSet(taskInfo.getLabels(),
+    public static TaskInfo.Builder setTargetConfiguration(
+            TaskInfo.Builder taskInfoBuilder, UUID targetConfigurationId) {
+        return taskInfoBuilder
+                .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
                         TARGET_CONFIGURATION_KEY,
-                        targetConfigurationId.toString()))
-                .build();
+                        targetConfigurationId.toString()));
     }
 
     /**
      * Returns the ID referencing a configuration in a {@link ConfigStore} associated with the provided
      * {@link TaskInfo}.
+     *
      * @param taskInfo is the TaskInfo from which the the configuration ID will be extracted.
      * @return the ID of the target configuration for the provided {@link TaskInfo}
-     * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with an indicated target
-     * configuration
+     * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with
+     *                       an indicated target configuration
      */
     public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
         Optional<String> value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
@@ -217,6 +222,22 @@ public class TaskUtils {
             throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
         }
         return UUID.fromString(value.get());
+    }
+
+    /**
+     * Returns the {@link TaskSpecification} in the provided {@link DefaultServiceSpecification}
+     * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
+     */
+    public static TaskSpecification getTaskSpecification(
+            ServiceSpecification serviceSpec, TaskInfo taskInfo) {
+        for (TaskSet taskSet : serviceSpec.getTaskSets()) {
+            for (TaskSpecification taskSpec : taskSet.getTaskSpecifications()) {
+                if (taskSpec.getName().equals(taskInfo.getName())) {
+                    return taskSpec;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -314,6 +335,9 @@ public class TaskUtils {
     }
 
     public static boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+
+        // Names
+
         String oldTaskName = oldTaskSpecification.getName();
         String newTaskName = newTaskSpecification.getName();
         if (!Objects.equals(oldTaskName, newTaskName)) {
@@ -321,12 +345,25 @@ public class TaskUtils {
             return true;
         }
 
+        // Commandinfos
+
         CommandInfo oldCommand = oldTaskSpecification.getCommand();
         CommandInfo newCommand = newTaskSpecification.getCommand();
         if (!Objects.equals(oldCommand, newCommand)) {
             LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
             return true;
         }
+
+        // Health checks
+
+        Optional<HealthCheck> oldHealthCheck = oldTaskSpecification.getHealthCheck();
+        Optional<HealthCheck> newHealthCheck = newTaskSpecification.getHealthCheck();
+        if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
+            LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldCommand, newCommand);
+            return true;
+        }
+
+        // Resources
 
         Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
         Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
@@ -350,6 +387,10 @@ public class TaskUtils {
             }
         }
 
+        // Volumes (no check -- shouldn't change)
+
+        // Config files
+
         Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
         Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
 
@@ -370,6 +411,15 @@ public class TaskUtils {
                 LOGGER.info("Config templates are different.");
                 return true;
             }
+        }
+
+        // Placement constraints
+
+        Optional<PlacementRuleGenerator> oldPlacement = oldTaskSpecification.getPlacement();
+        Optional<PlacementRuleGenerator> newPlacement = newTaskSpecification.getPlacement();
+        if (!Objects.equals(oldPlacement, newPlacement)) {
+            LOGGER.info("Task placements '{}' and '{}' are different.", oldPlacement, newPlacement);
+            return true;
         }
 
         return false;

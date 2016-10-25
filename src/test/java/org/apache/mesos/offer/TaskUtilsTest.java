@@ -48,12 +48,6 @@ public class TaskUtilsTest {
     }
 
     @Test
-    public void testSetTargetConfiguration() throws Exception {
-        Protos.TaskInfo taskInfo = TaskUtils.setTargetConfiguration(getTestTaskInfo(), testTargetConfigurationId);
-        Assert.assertEquals(testTargetConfigurationId, TaskUtils.getTargetConfiguration(taskInfo));
-    }
-
-    @Test
     public void testAreNotDifferentTaskSpecifications() {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification = TestTaskSetFactory.getTaskSpecification();
@@ -294,7 +288,7 @@ public class TaskUtilsTest {
     }
 
     private static Protos.TaskInfo getTestTaskInfoWithTargetConfiguration() {
-        return TaskUtils.setTargetConfiguration(getTestTaskInfo(), testTargetConfigurationId);
+        return TaskUtils.setTargetConfiguration(getTestTaskInfo().toBuilder(), testTargetConfigurationId).build();
     }
 
     private static Protos.TaskInfo getTestTaskInfo() {

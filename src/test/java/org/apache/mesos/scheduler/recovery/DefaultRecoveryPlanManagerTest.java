@@ -13,6 +13,7 @@ import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
@@ -46,6 +47,8 @@ import static org.mockito.Mockito.*;
  */
 public class DefaultRecoveryPlanManagerTest {
     private DefaultRecoveryPlanManager recoveryManager;
+    private TaskSpecificationProvider taskSpecificationProvider;
+    private OfferRequirementProvider offerRequirementProvider;
     private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
     private StateStore stateStore;
@@ -89,6 +92,8 @@ public class DefaultRecoveryPlanManagerTest {
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
+        taskSpecificationProvider = mock(TaskSpecificationProvider.class);
+        offerRequirementProvider = mock(OfferRequirementProvider.class);
         recoveryRequirementProvider = mock(RecoveryRequirementProvider.class);
         // stateStore = mock(StateStore.class);
         stateStore = new CuratorStateStore(
@@ -98,6 +103,8 @@ public class DefaultRecoveryPlanManagerTest {
         recoveryManager = spy(
                 new DefaultRecoveryPlanManager(
                         stateStore,
+                        taskSpecificationProvider,
+                        offerRequirementProvider,
                         recoveryRequirementProvider,
                         launchConstrainer,
                         failureMonitor));

@@ -6,9 +6,8 @@ import org.apache.mesos.scheduler.*;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
-import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,18 +30,24 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected volatile Map<UUID, PhaseStrategy> phaseStrategies;
 
     private final StateStore stateStore;
-    private final RecoveryRequirementProvider offerReqProvider;
+    private final TaskSpecificationProvider taskSpecificationProvider;
+    private final OfferRequirementProvider offerReqProvider;
+    private final RecoveryRequirementProvider recoveryReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
     private final UUID phaseId = UUID.randomUUID();
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
-            RecoveryRequirementProvider offerReqProvider,
+            TaskSpecificationProvider taskSpecificationProvider,
+            OfferRequirementProvider offerReqProvider,
+            RecoveryRequirementProvider recoveryReqProvider,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
         this.stateStore = stateStore;
+        this.taskSpecificationProvider = taskSpecificationProvider;
         this.offerReqProvider = offerReqProvider;
+        this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
         updatePlan(Collections.emptyList());
@@ -166,7 +171,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .findAny().isPresent();
 
             if (!blockExists && TaskUtils.needsRecovery(status)) {
-                Optional<Block> newBlock = createBlock(taskInfo.get());
+                TaskSpecification taskSpec = taskSpecificationProvider.getTaskSpecification(taskInfo.get());
+                Optional<Block> newBlock = createBlock(taskName, taskInfo.get(), taskSpec);
                 if (newBlock.isPresent()) {
                     Collection<Block> blocks = new ArrayList<>();
 
@@ -223,25 +229,24 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.notifyObservers();
     }
 
-    private Optional<Block> createBlock(Protos.TaskInfo taskInfo) {
+    private Optional<Block> createBlock(
+            String taskName, Protos.TaskInfo taskInfo, TaskSpecification taskSpec) {
         try {
-            final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
-            final TaskSpecification taskSpec = DefaultTaskSpecification.create(taskInfo);
             final List<RecoveryRequirement> recoveryRequirements;
 
             if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
-                recoveryRequirements = offerReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
+                recoveryRequirements = recoveryReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
             } else {
-                recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
+                recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
             }
 
             return Optional.of(new DefaultRecoveryBlock(
-                    taskSpec.getName(),
-                    offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpec),
+                    taskName,
+                    offerReqProvider.getExistingOfferRequirement(taskInfo, taskSpec),
                     Status.PENDING,
                     recoveryRequirements.get(0),
                     launchConstrainer));
-        } catch (InvalidTaskSpecificationException | InvalidRequirementException ex) {
+        } catch (InvalidRequirementException ex) {
             LOGGER.error("Error creating recovery block.", ex);
             return Optional.empty();
         }

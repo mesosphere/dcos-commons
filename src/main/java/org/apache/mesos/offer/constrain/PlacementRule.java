@@ -26,4 +26,9 @@ public interface PlacementRule {
      *     stripped out
      */
     public Offer filter(Offer offer);
+
+    /**
+     * Must be explicitly implemented by all PlacementRules.
+     */
+    public boolean equals(Object o);
 }

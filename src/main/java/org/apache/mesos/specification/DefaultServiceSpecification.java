@@ -10,7 +10,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -19,13 +18,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class DefaultServiceSpecification implements ServiceSpecification {
 
-    private static final ConfigurationFactory<DefaultServiceSpecification> FACTORY = new Factory();
+    private static final Factory FACTORY = new Factory();
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
      * Factory which performs the inverse of {@link DefaultServiceSpecification#getBytes()}.
      */
-    public static class Factory implements ConfigurationFactory<DefaultServiceSpecification> {
+    public static class Factory implements ConfigurationFactory<ServiceSpecification> {
 
         /**
          * Call {@link DefaultServiceSpecification#getFactoryInstance()} instead.
@@ -33,7 +32,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
         private Factory() { }
 
         @Override
-        public DefaultServiceSpecification parse(byte[] bytes) throws ConfigStoreException {
+        public ServiceSpecification parse(byte[] bytes) throws ConfigStoreException {
             try {
                 return SerializationUtils.fromJsonString(new String(bytes, CHARSET), DefaultServiceSpecification.class);
             } catch (IOException e) {
@@ -82,7 +81,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
      * Returns a {@link ConfigurationFactory} which may be used to deserialize
      * {@link DefaultServiceSpecification}s.
      */
-    public static ConfigurationFactory<DefaultServiceSpecification> getFactoryInstance() {
+    public static ConfigurationFactory<ServiceSpecification> getFactoryInstance() {
         return FACTORY;
     }
 

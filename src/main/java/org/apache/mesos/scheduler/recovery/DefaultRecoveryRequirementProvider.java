@@ -1,14 +1,11 @@
 package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.InvalidTaskSpecificationException;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,15 +16,16 @@ import java.util.List;
  * This class is a default implementation of the RecoveryRequirementProvider interface.
  */
 public class DefaultRecoveryRequirementProvider implements RecoveryRequirementProvider {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryRequirementProvider.class);
+
     private final OfferRequirementProvider offerRequirementProvider;
+    private final TaskSpecificationProvider taskSpecificationProvider;
 
-    public DefaultRecoveryRequirementProvider() {
-        this(new DefaultOfferRequirementProvider());
-    }
-
-    public DefaultRecoveryRequirementProvider(OfferRequirementProvider offerRequirementProvider) {
+    public DefaultRecoveryRequirementProvider(
+            OfferRequirementProvider offerRequirementProvider,
+            TaskSpecificationProvider taskSpecificationProvider) {
         this.offerRequirementProvider = offerRequirementProvider;
+        this.taskSpecificationProvider = taskSpecificationProvider;
     }
 
     @Override
@@ -37,13 +35,13 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
 
         for (Protos.TaskInfo taskInfo : stoppedTasks) {
             try {
-                TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
                 transientRecoveryRequirements.add(
                         new DefaultRecoveryRequirement(
-                                offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification),
+                                offerRequirementProvider.getExistingOfferRequirement(
+                                        taskInfo, taskSpecificationProvider.getTaskSpecification(taskInfo)),
                                 RecoveryRequirement.RecoveryType.TRANSIENT));
-            } catch (InvalidTaskSpecificationException e) {
-                logger.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
+            } catch (TaskException e) {
+                LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
             }
         }
 
@@ -57,15 +55,14 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
 
         for (Protos.TaskInfo taskInfo : failedTasks) {
             try {
-                TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
                 transientRecoveryRequirements.add(
                         new DefaultRecoveryRequirement(
                                 offerRequirementProvider.getNewOfferRequirement(
                                         TaskUtils.getTaskType(taskInfo),
-                                        taskSpecification),
+                                        taskSpecificationProvider.getTaskSpecification(taskInfo)),
                                 RecoveryRequirement.RecoveryType.PERMANENT));
-            } catch (InvalidTaskSpecificationException | TaskException e) {
-                logger.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
+            } catch (TaskException e) {
+                LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
             }
         }
 
