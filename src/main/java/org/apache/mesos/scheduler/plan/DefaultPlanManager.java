@@ -264,4 +264,19 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
 
         return null;
     }
+
+    @Override
+    public Set<String> getDirtyAssets() {
+        Set<String> dirtyAssets = new HashSet<>();
+        final List<? extends Phase> phases = plan.getPhases();
+        for (Phase phase : phases) {
+            final List<? extends Block> blocks = phase.getBlocks();
+            for (Block block : blocks) {
+                if (block.isInProgress()) {
+                    dirtyAssets.add(block.getName());
+                }
+            }
+        }
+        return dirtyAssets;
+    }
 }

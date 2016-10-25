@@ -256,5 +256,10 @@ public class DefaultPlanCoordinatorTest {
         public List<String> getErrors() {
             return Arrays.asList();
         }
+
+        @Override
+        public Set<String> getDirtyAssets() {
+            return new HashSet<>();
+        }
     }
 }

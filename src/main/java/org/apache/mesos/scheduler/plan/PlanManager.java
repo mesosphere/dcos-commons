@@ -50,4 +50,6 @@ public interface PlanManager extends Observer, Observable {
     Status getPhaseStatus(UUID phaseId);
 
     List<String> getErrors();
+
+    Set<String> getDirtyAssets();
 }

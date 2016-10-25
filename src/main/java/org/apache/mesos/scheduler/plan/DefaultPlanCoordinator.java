@@ -9,10 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of PlanCoordinator.
- *
+ * <p>
  * A {@DefaultPlanCoordinator} is an {@Observable} and will forward updates from its plans.
  */
 public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
@@ -39,6 +40,12 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         final Set<Protos.OfferID> dirtiedOffers = new HashSet<>();
         final Set<String> dirtiedAssets = new HashSet<>();
         final List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
+
+        // Pro-actively determine all known dirty assets.
+        dirtiedAssets.addAll(planManagers.stream()
+                .flatMap(planManager -> planManager.getDirtyAssets().stream())
+                .collect(Collectors.toList()));
+
         for (final PlanManager planManager : planManagers) {
             try {
                 LOGGER.info("Current PlanManager: {}. Current plan {} interrupted.",

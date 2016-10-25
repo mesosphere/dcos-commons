@@ -15,6 +15,15 @@ public class TestBlock extends DefaultObservable implements Block {
 
     private final UUID id = UUID.randomUUID();
     private Status status = Status.PENDING;
+    private String name;
+
+    public TestBlock() {
+        this.name = "test-block";
+    }
+
+    public TestBlock(String name) {
+        this.name = name;
+    }
 
     public TestBlock setStatus(Status newStatus) {
         status = newStatus;
@@ -78,6 +87,6 @@ public class TestBlock extends DefaultObservable implements Block {
 
     @Override
     public String getName() {
-        return "test-block";
+        return name;
     }
 }
