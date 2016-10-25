@@ -203,48 +203,113 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
-    public static Resource setDynamicPortName(Resource resource, String name) {
-        Labels labels = setDynamicPortName(resource.getReservation().getLabels(), name);
-
-        return Resource.newBuilder(resource)
-                .setReservation(
-                        ReservationInfo.newBuilder(resource.getReservation())
-                        .clearLabels()
-                        .setLabels(labels))
-                .build();
-    }
-
-    private static Labels setDynamicPortName(Labels labels, String name) {
-        Labels.Builder labelBuilder = Labels.newBuilder(labels);
-        labelBuilder.addLabelsBuilder()
-                .setKey(MesosResource.DYNAMIC_PORT_KEY)
-                .setValue(name)
-                .build();
-
-        return labelBuilder.build();
-    }
-
-    public static Protos.Environment getEnvironment(List<Resource> resources) {
+    //* if there is env in the resource */
+    public static Protos.Environment updateEnvironment(Protos.Environment env, List<Protos.Resource> resources) {
         Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
-        for (Resource resource : resources) {
-            String portName = DynamicPortRequirement.getPortName(resource);
-            if (portName != null) {
-                String portNumber = String.valueOf(resource.getRanges().getRange(0).getBegin());
+        for (Protos.Resource resource : resources) {
+            ResourceRequirement resReq = new ResourceRequirement(resource);
+            if (resReq.hasEnvName()) {
                 envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
-                        .setName(portName)
-                        .setValue(portNumber));
+                        .setName(resReq.getEnvName())
+                        .setValue(resReq.getEnvValue()));
             }
         }
-
-        return envBuilder.build();
-    }
-
-    public static Protos.Environment updateEnvironment(Protos.Environment env, List<Resource> resources) {
-        Protos.Environment resEnv = ResourceUtils.getEnvironment(resources);
         return Protos.Environment.newBuilder(env)
-                .addAllVariables(resEnv.getVariablesList())
+                .addAllVariables(envBuilder.build().getVariablesList())
                 .build();
     }
+
+    public static void setEnvName(ResourceRequirement resReq) {
+        if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
+            for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+                if (label.getKey().equals(ResourceRequirement.ENV_KEY)) {
+                    resReq.setEnvName(label.getValue());
+                    return;
+                }
+            }
+        }
+    }
+
+    public static void setVIPLabel(ResourceRequirement resReq) {
+        String key = null;
+        String value = null;
+        if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
+            for (Protos.Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+                if (label.getKey().equals(ResourceRequirement.VIP_KEY)) {
+                    key = label.getValue();
+                }
+                if (label.getKey().equals(ResourceRequirement.VIP_VALUE)) {
+                    value = label.getValue();
+                }
+            }
+        }
+        if (key != null && value != null) {
+            resReq.setVIPLabel(Label.newBuilder().setKey(key).setValue(value).build());
+        }
+    }
+
+    public static Resource getResourceAddLabelUnique(Resource resource, Label label) {
+        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo
+                .newBuilder(resource.getReservation());
+        Resource.Builder resourceBuilder = Resource.newBuilder(resource);
+
+        List<Label> labelList = resource.getReservation().getLabels().getLabelsList();
+
+        Protos.Labels.Builder labelsBuilder = Protos.Labels.newBuilder();
+        for (Label labelIn : labelList) {
+            if (labelIn.getKey() != label.getKey()) labelsBuilder.addLabels(labelIn);
+        }
+        labelsBuilder.addLabels(label);
+
+        reservationBuilder.setLabels(labelsBuilder.build());
+        resourceBuilder.setReservation(reservationBuilder.build());
+        return resourceBuilder.build();
+    }
+
+    public static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName,
+                                                   List<Resource> resourceList) {
+        TaskInfo.Builder taskBuilder = builder;
+
+        for (Resource resource : resourceList) {
+            ResourceRequirement resReq = new ResourceRequirement(resource);
+            taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
+        }
+        return taskBuilder;
+    }
+
+    public static TaskInfo.Builder setVIPDiscovery2(Protos.TaskInfo.Builder builder, String execName,
+                                                    List<ResourceRequirement> resReqList) {
+        TaskInfo.Builder taskBuilder = builder;
+
+        for (ResourceRequirement resReq : resReqList) {
+            taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
+        }
+        return taskBuilder;
+    }
+
+    /* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
+    private static TaskInfo.Builder setVIPDiscovery(Protos.TaskInfo.Builder builder, String execName,
+                                                    ResourceRequirement resReq) {
+        if (!resReq.hasVIPLabel()) return builder;
+        try {
+            int port = new Integer(resReq.getEnvValue());
+            DiscoveryInfo discoveryInfo = DiscoveryInfo.newBuilder(builder.getDiscovery())
+                    .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                    .setName(execName)
+                    .setPorts(Ports.newBuilder()
+                            .addPorts(Port.newBuilder()
+                                    .setNumber((int) (long) port)
+                                    .setProtocol("tcp")
+                                    .setLabels(Labels.newBuilder().addLabels(resReq.getVIPLabel()).build())))
+                    .build();
+            builder.setDiscovery(discoveryInfo);
+        } catch (Exception e) {
+            //FIX later
+        }
+
+        return builder;
+    }
+
 
     public static TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
         Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
@@ -269,10 +334,9 @@ public class ResourceUtils {
         }
     }
 
-    public static Resource setValue(Resource resource, Value value) {
+    /*public static Resource setValue(Resource resource, Value value) {
         return setResource(Resource.newBuilder(resource), resource.getName(), value);
-    }
-
+    }*/
     public static Resource setResourceId(Resource resource, String resourceId) {
         return Resource.newBuilder(resource)
                 .setReservation(setResourceId(resource.getReservation(), resourceId))
@@ -324,7 +388,7 @@ public class ResourceUtils {
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
                 resource = Protos.Resource.newBuilder(resource).setDisk(
-                    Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
+                        Protos.Resource.DiskInfo.newBuilder(resource.getDisk()).clearPersistence()
                 ).build();
             }
             resources.add(resource);

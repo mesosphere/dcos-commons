@@ -76,6 +76,9 @@ public class MesosResourcePool {
         } else if (resourceRequirement.isAtomic()) {
             logger.info("Retrieving atomic resource");
             return consumeAtomic(resourceRequirement);
+        } if (resourceRequirement.isDynamicPort()){
+            logger.info("Retrieving resource for a dynamic port");
+            return consumeDynamicPort(resourceRequirement);
         } else if (resourceRequirement.reservesResource()) {
             logger.info("Retrieving resource for reservation");
             return consumeUnreservedMerged(resourceRequirement);
@@ -89,37 +92,20 @@ public class MesosResourcePool {
         return Optional.empty();
     }
 
-    /**
-     * Consumes and returns a {@link MesosResource} which meets the provided
-     * {@link DynamicPortRequirement}, or does nothing and returns an empty {@link Optional} if no
-     * available resources meet the requirement.
-     */
-    public Optional<MesosResource> consume(DynamicPortRequirement dynamicPortRequirement) {
-        Value availableValue = unreservedMergedPool.get(dynamicPortRequirement.getName());
+    public Optional<MesosResource> consumeDynamicPort(ResourceRequirement resReq){
+        Value availableValue = unreservedMergedPool.get("ports");
 
-        if (availableValue == null) {
-            return Optional.empty();
-        }
+        if (availableValue == null) return Optional.empty();
 
-        // Choose first available port
         if (availableValue.getRanges().getRangeCount() > 0) {
             Value.Range range = availableValue.getRanges().getRange(0);
-            Resource resource = ResourceUtils.getUnreservedResource(
-                    dynamicPortRequirement.getName(),
-                    Value.newBuilder()
-                        .setType(Value.Type.RANGES)
-                        .setRanges(Value.Ranges.newBuilder()
-                                .addRange(Value.Range.newBuilder()
-                                        .setBegin(range.getBegin())
-                                        // Use getBegin again, since we just want the one port.
-                                        .setEnd(range.getBegin())))
-                        .build());
-
-            return consumeUnreservedMerged(new ResourceRequirement(resource));
-        }
+            resReq.addPort((int) range.getBegin());
+            return consumeUnreservedMerged(resReq);
+        }//if
 
         return Optional.empty();
     }
+
 
     /**
      * Marks the provided resource as available for consumption.
@@ -223,6 +209,7 @@ public class MesosResourcePool {
 
         if (sufficientValue(desiredValue, availableValue)) {
             unreservedMergedPool.put(resourceRequirement.getName(), ValueUtils.subtract(availableValue, desiredValue));
+            //// !!!! HERE We OVERWRITE THE RESOURCE AND ITS RESERVATION  /// TODO
             Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
             return Optional.of(new MesosResource(resource));
         } else {
