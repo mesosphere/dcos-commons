@@ -63,6 +63,20 @@ public class OfferEvaluator {
         return Collections.emptyList();
     }
 
+    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer)
+            throws StateStoreException {
+        List<OfferRecommendation> recommendations =
+                evaluateInternal(offerRequirement, offer, getPlacementRule(offerRequirement, stateStore));
+        if (!recommendations.isEmpty()) {
+            logger.info("Offer passed resource requirements, produced {} recommendations: {}",
+                    recommendations.size(), TextFormat.shortDebugString(offer));
+        } else {
+            logger.info("Offer did not pass resource requirements: {}",
+                    TextFormat.shortDebugString(offer));
+        }
+        return recommendations;
+    }
+
     private List<OfferRecommendation> evaluateInternal(
             OfferRequirement offerRequirement, Offer offer, Optional<PlacementRule> placementRule) {
         if (placementRule.isPresent()) {
@@ -77,7 +91,7 @@ public class OfferEvaluator {
                         offer.getId().getValue(), filteredCount, originalCount);
             } else {
                 logger.info("Offer: '{}' all {} resources didn't pass placement constraints, "
-                        + "skipping offer resource evaluation and declining offer.",
+                                + "skipping offer resource evaluation and declining offer.",
                         offer.getId().getValue(), originalCount);
                 return Collections.emptyList(); // short-circuit
             }
@@ -90,8 +104,7 @@ public class OfferEvaluator {
         List<OfferRecommendation> creates = new ArrayList<>();
         List<OfferRecommendation> launches = new ArrayList<>();
 
-        final Optional<ExecutorRequirement> execReqOptional =
-                offerRequirement.getExecutorRequirementOptional();
+        final Optional<ExecutorRequirement> execReqOptional = offerRequirement.getExecutorRequirementOptional();
         Optional<FulfilledRequirement> fulfilledExecutorRequirementOptional = Optional.empty();
         Optional<ExecutorInfo> execInfoOptional = Optional.empty();
         if (execReqOptional.isPresent()) {
@@ -102,7 +115,6 @@ public class OfferEvaluator {
                     || execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
                 fulfilledExecutorRequirementOptional = FulfilledRequirement.fulfillRequirement(
                         execReq.getResourceRequirements(),
-                        execReq.getDynamicPortRequirements(),
                         offer,
                         pool);
 
@@ -136,7 +148,6 @@ public class OfferEvaluator {
             Optional<FulfilledRequirement> fulfilledTaskRequirementOptional =
                     FulfilledRequirement.fulfillRequirement(
                             taskReq.getResourceRequirements(),
-                            taskReq.getDynamicPortRequirements(),
                             offer,
                             pool);
 
@@ -191,7 +202,6 @@ public class OfferEvaluator {
 
         public static Optional<FulfilledRequirement> fulfillRequirement(
                 Collection<ResourceRequirement> resourceRequirements,
-                Collection<DynamicPortRequirement> dynamicPortRequirements,
                 Offer offer,
                 MesosResourcePool pool) {
 
@@ -207,6 +217,7 @@ public class OfferEvaluator {
                             TextFormat.shortDebugString(resReq.getResource()));
                     return Optional.empty();
                 }
+
                 final MesosResource mesRes = mesResOptional.get();
                 logger.info("Satisfying resource requirement: {}\nwith resource: {}",
                         TextFormat.shortDebugString(resReq.getResource()),
@@ -272,29 +283,6 @@ public class OfferEvaluator {
                 logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
                 fulfilledResources.add(fulfilledResource);
             }
-
-            for (DynamicPortRequirement dynamicPortRequirement : dynamicPortRequirements) {
-                Optional<MesosResource> mesResOptional = pool.consume(dynamicPortRequirement);
-                if (!mesResOptional.isPresent()) {
-                    logger.warn("Failed to satisfy resource requirement: {}",
-                            TextFormat.shortDebugString(dynamicPortRequirement.getResource()));
-                    return Optional.empty();
-                }
-                final MesosResource mesRes = mesResOptional.get();
-                logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                        TextFormat.shortDebugString(dynamicPortRequirement.getResource()),
-                        TextFormat.shortDebugString(mesRes.getResource()));
-
-                Resource fulfilledResource = getFulfilledResource(dynamicPortRequirement, mesRes);
-                if (dynamicPortRequirement.reservesResource()) {
-                    logger.info("Reserves Resource");
-                    reserveRecommendations.add(new ReserveOfferRecommendation(offer, fulfilledResource));
-                }
-
-                logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
-                fulfilledResources.add(fulfilledResource);
-            }
-
             return Optional.of(new FulfilledRequirement(
                     fulfilledResources,
                     unreserveRecommendations,
@@ -317,16 +305,17 @@ public class OfferEvaluator {
         public List<OfferRecommendation> getCreateRecommendations() {
             return createRecommendations;
         }
+
     }
 
     private static Optional<PlacementRule> getPlacementRule(
             OfferRequirement offerRequirement, StateStore stateStore)
-                    throws StateStoreException {
+            throws StateStoreException {
         Optional<PlacementRuleGenerator> placementRuleGenerator =
                 offerRequirement.getPlacementRuleGeneratorOptional();
         return placementRuleGenerator.isPresent()
-            ? Optional.of(placementRuleGenerator.get().generate(stateStore.fetchTasks()))
-            : Optional.empty();
+                ? Optional.of(placementRuleGenerator.get().generate(stateStore.fetchTasks()))
+                : Optional.empty();
     }
 
     private static boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {
@@ -347,7 +336,7 @@ public class OfferEvaluator {
         Resource.Builder builder = Resource.newBuilder(mesRes.getResource());
         builder.setRole(resReq.getResource().getRole());
 
-        Optional<ReservationInfo> resInfo = getFulfilledReservationInfo(resReq, mesRes);
+        Optional<ReservationInfo> resInfo = getFulfilledReservationInfo(resReq);
         if (resInfo.isPresent()) {
             builder.setReservation(resInfo.get());
         }
@@ -356,7 +345,6 @@ public class OfferEvaluator {
         if (diskInfo.isPresent()) {
             builder.setDisk(diskInfo.get());
         }
-
         return builder.build();
     }
 
@@ -379,8 +367,7 @@ public class OfferEvaluator {
         return Optional.of(builder.build());
     }
 
-    private static Optional<ReservationInfo> getFulfilledReservationInfo(
-            ResourceRequirement resReq, MesosResource mesRes) {
+    private static Optional<ReservationInfo> getFulfilledReservationInfo(ResourceRequirement resReq) {
         if (!resReq.reservesResource()) {
             return Optional.empty();
         } else {
@@ -418,6 +405,7 @@ public class OfferEvaluator {
                 .clearResources()
                 .addAllResources(fulfilledTaskResources);
 
+
         if (execInfo.isPresent()) {
             List<Resource> selectedResources = fulfilledExecutorRequirement.isPresent()
                     ? fulfilledExecutorRequirement.get().getFulfilledResources()
@@ -426,15 +414,24 @@ public class OfferEvaluator {
                     .newBuilder(execInfo.get())
                     .clearResources()
                     .addAllResources(selectedResources);
+
             execBuilder = ResourceUtils.updateEnvironment(execBuilder, selectedResources);
+            //execBuilder = ResourceUtils.updateEnvironment2(execBuilder, fulfilledTaskRequirement);
+
             taskBuilder.setExecutor(execBuilder);
+            taskBuilder.setExecutor(execBuilder);
+
+            taskBuilder = ResourceUtils.setVIPDiscovery(taskBuilder, execInfo.get().getName(), fulfilledTaskResources);
+
         }
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
         taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
 
-        return TaskUtils.packTaskInfo(
-                ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources).build());
+        taskBuilder = ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources);
+        //taskBuilder=ResourceUtils.updateEnvironment2(taskBuilder, fulfilledTaskRequirement);
+
+        return TaskUtils.packTaskInfo(taskBuilder.build());
     }
 }
