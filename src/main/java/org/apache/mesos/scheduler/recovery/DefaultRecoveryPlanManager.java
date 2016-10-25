@@ -39,6 +39,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     private final RecoveryRequirementProvider offerReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
+    private final Object planLock = new Object();
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
@@ -49,22 +50,32 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.offerReqProvider = offerReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        this.plan = createPlan(createBlocks());
-
-        plan.subscribe(this);
+        setPlan(createPlan(createBlocks()));
     }
 
     @Override
     public Plan getPlan() {
-        return plan;
+        synchronized (planLock) {
+            return plan;
+        }
+    }
+
+    private void setPlan(Plan plan) {
+        synchronized (planLock) {
+            this.plan = plan;
+            this.plan.subscribe(this);
+        }
     }
 
     @Override
     public Collection<? extends Block> getCandidates(Collection<String> dirtyAssets) {
-        updatePlan();
-        return PlanUtils.getCandidates(plan, dirtyAssets).stream()
-                .filter(block -> launchConstrainer.canLaunch(((DefaultRecoveryBlock) block).getRecoveryRequirement()))
-                .collect(Collectors.toList());
+        synchronized (planLock) {
+            updatePlan();
+            return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
+                    .filter(block ->
+                            launchConstrainer.canLaunch(((DefaultRecoveryBlock) block).getRecoveryRequirement()))
+                    .collect(Collectors.toList());
+        }
     }
 
     /**
@@ -78,22 +89,26 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
      */
     @Override
     public void update(Protos.TaskStatus status) {
-        plan.update(status);
-        updatePlan();
-        notifyObservers();
+        synchronized (planLock) {
+            getPlan().update(status);
+            updatePlan();
+            notifyObservers();
+        }
     }
 
     private void updatePlan() {
-        List<Block> completeBlocks = plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(block -> block.isComplete())
-                .collect(Collectors.toList());
+        synchronized (planLock) {
+            // This list will not contain any Complete blocks.
+            List<Block> blocks = createBlocks();
+            List<String> blockNames = blocks.stream().map(block -> block.getName()).collect(Collectors.toList());
+            List<Block> completeBlocks = getPlan().getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(block -> !blockNames.contains(block.getName()))
+                    .collect(Collectors.toList());
 
-        // This list will not contain any Complete blocks.
-        List<Block> blocks = createBlocks();
-        blocks.addAll(completeBlocks);
-        this.plan = createPlan(blocks);
-        plan.subscribe(this);
+            blocks.addAll(completeBlocks);
+            setPlan(createPlan(blocks));
+        }
     }
 
     private Plan createPlan(List<Block> blocks) {
