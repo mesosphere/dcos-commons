@@ -168,13 +168,39 @@ public class DefaultPlanCoordinatorTest {
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA);
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB);
 
-        ((Block) planA.getChildren().get(0).getChildren().get(0)).forceComplete();
-        ((Block) planB.getChildren().get(0).getChildren().get(0)).forceComplete();
+        planA.getChildren().get(0).getChildren().get(0).forceComplete();
+        planB.getChildren().get(0).getChildren().get(0).forceComplete();
 
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB), planScheduler);
 
         Assert.assertEquals(0, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
                 SUFFICIENT_MEM, SUFFICIENT_DISK)).size());
+    }
+
+    @Test
+    public void testTwoPlanManagersPendingPlansSameAssetsDifferentOrder() throws Exception {
+        final Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final PlanManager planManagerA = new DefaultPlanManager(planA);
+        final PlanManager planManagerB = new DefaultPlanManager(planB);
+        final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Arrays.asList(planManagerA, planManagerB),
+                planScheduler);
+
+        planB.getChildren().get(0).getChildren().get(0).setStatus(Status.IN_PROGRESS);
+
+        // PlanA and PlanB have similar asset names. PlanA is configured to run before PlanB.
+        // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in IN_PROGRESS.
+        // PlanCoordinator should ensure that PlanA PlanManager knows about PlanB's (and any other configured plan's)
+        // dirty assets.
+        Assert.assertEquals(
+                0,
+                coordinator.processOffers(
+                        schedulerDriver,
+                        getOffers(
+                                SUFFICIENT_CPUS,
+                                SUFFICIENT_MEM,
+                                SUFFICIENT_DISK)).size());
     }
 }

@@ -26,7 +26,8 @@ public class DefaultTaskSpecification implements TaskSpecification {
 
     private final String name;
     private final String type;
-    private final Protos.CommandInfo commandInfo;
+    private final Optional<Protos.CommandInfo> commandInfo;
+    private final Optional<Protos.ContainerInfo> containerInfo;
     private final Collection<ResourceSpecification> resourceSpecifications;
     private final Collection<VolumeSpecification> volumeSpecifications;
     private final Collection<ConfigFileSpecification> configFileSpecifications;
@@ -51,22 +52,102 @@ public class DefaultTaskSpecification implements TaskSpecification {
         } catch (InvalidProtocolBufferException e) {
             throw new InvalidTaskSpecificationException("Failed to deserialize config files: " + e.getMessage());
         }
+
+        if (!taskInfo.hasCommand() && !taskInfo.hasContainer()) {
+            throw new InvalidTaskSpecificationException("Both ContainerInfo and CommandInfo are missing, specify one.");
+        }
+
         return new DefaultTaskSpecification(
                 taskInfo.getName(),
                 TaskUtils.getTaskType(taskInfo),
-                taskInfo.getCommand(),
+                taskInfo.hasContainer() ? Optional.of(taskInfo.getContainer()) : Optional.empty(),
+                taskInfo.hasCommand() ? Optional.of(taskInfo.getCommand()) : Optional.empty(),
                 getResources(taskInfo),
                 getVolumes(taskInfo),
                 configFiles,
                 placement,
-                Optional.empty());
+                taskInfo.hasHealthCheck() ? Optional.of(taskInfo.getHealthCheck()) : Optional.empty());
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo}.
+     */
+    protected DefaultTaskSpecification(
+            String name,
+            String type,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<PlacementRuleGenerator> placement,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        this(name,
+            type,
+            Optional.empty(),
+            Optional.of(commandInfo),
+            resourceSpecifications,
+            volumeSpecifications,
+            configFileSpecifications,
+            placement,
+            healthCheck);
+    }
+
+    /**
+     * Create task with only {@link Protos.ContainerInfo}.
+     */
+    protected DefaultTaskSpecification(
+            String name,
+            String type,
+            Protos.ContainerInfo containerInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<PlacementRuleGenerator> placement,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        this(name,
+            type,
+            Optional.of(containerInfo),
+            Optional.empty(),
+            resourceSpecifications,
+            volumeSpecifications,
+            configFileSpecifications,
+            placement,
+            healthCheck);
+    }
+
+    /**
+     * Create task with both {@link Protos.ContainerInfo} and {@link Protos.CommandInfo}.
+     */
+    protected DefaultTaskSpecification(
+            String name,
+            String type,
+            Protos.ContainerInfo containerInfo,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<PlacementRuleGenerator> placement,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        this(name,
+            type,
+            Optional.of(containerInfo),
+            Optional.of(commandInfo),
+            resourceSpecifications,
+            volumeSpecifications,
+            configFileSpecifications,
+            placement,
+            healthCheck);
     }
 
     @JsonCreator
     protected DefaultTaskSpecification(
             @JsonProperty("name") String name,
             @JsonProperty("type") String type,
-            @JsonProperty("command") Protos.CommandInfo commandInfo,
+            @JsonProperty("container") Optional<Protos.ContainerInfo> containerInfo,
+            @JsonProperty("command") Optional<Protos.CommandInfo> commandInfo,
             @JsonProperty("resources") Collection<ResourceSpecification> resourceSpecifications,
             @JsonProperty("volumes") Collection<VolumeSpecification> volumeSpecifications,
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFileSpecifications,
@@ -74,6 +155,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             @JsonProperty("health_check") Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
         this.type = type;
+        this.containerInfo = containerInfo;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
         this.volumeSpecifications = volumeSpecifications;
@@ -98,7 +180,12 @@ public class DefaultTaskSpecification implements TaskSpecification {
     }
 
     @Override
-    public Protos.CommandInfo getCommand() {
+    public Optional<Protos.ContainerInfo> getContainer() {
+        return containerInfo;
+    }
+
+    @Override
+    public Optional<Protos.CommandInfo> getCommand() {
         return commandInfo;
     }
 

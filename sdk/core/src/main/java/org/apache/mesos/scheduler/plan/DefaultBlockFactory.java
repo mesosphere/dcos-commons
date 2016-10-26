@@ -45,15 +45,15 @@ public class DefaultBlockFactory implements BlockFactory {
                         Status.PENDING,
                         Collections.emptyList());
             } else {
-                TaskSpecification oldTaskSpecification =
-                        DefaultTaskSpecification.create(TaskUtils.unpackTaskInfo(taskInfoOptional.get()));
+                Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
+                TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
                 logger.info("Generating existing block for: " + taskSpecification.getName() +
                         " with status: " + status);
                 return new DefaultBlock(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider
-                                .getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification)),
+                                .getExistingOfferRequirement(taskInfo, taskSpecification)),
                         status,
                         Collections.emptyList());
             }

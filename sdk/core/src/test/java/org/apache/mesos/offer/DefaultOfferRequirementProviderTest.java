@@ -36,6 +36,87 @@ public class DefaultOfferRequirementProviderTest {
         environmentVariables.set("EXECUTOR_URI", "");
     }
 
+    @Test(expected=InvalidTaskSpecificationException.class)
+    public void testEmptyTaskInfo() throws InvalidTaskSpecificationException, TaskException {
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
+                .setTaskId(TestConstants.TASK_ID)
+                .setName(TestConstants.TASK_NAME)
+                .setSlaveId(TestConstants.AGENT_ID);
+        DefaultTaskSpecification.create(taskInfoBuilder.build());
+    }
+
+    @Test(expected=TaskException.class)
+    public void testEmptyLabel() throws InvalidTaskSpecificationException, TaskException {
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
+                .setTaskId(TestConstants.TASK_ID)
+                .setCommand(TestConstants.COMMAND_INFO)
+                .setName(TestConstants.TASK_NAME)
+                .setSlaveId(TestConstants.AGENT_ID);
+        DefaultTaskSpecification.create(taskInfoBuilder.build());
+    }
+
+    @Test
+    public void testCommandTaskInfo()
+            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
+        Protos.TaskInfo tempTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(tempTaskInfo)
+                .clearContainer()
+                .addResources(mem)
+                .build();
+
+        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
+        OfferRequirement offerRequirement = defaultOfferRequirementProvider.getNewOfferRequirement(taskSpecification);
+
+        Assert.assertEquals(TestConstants.TASK_TYPE, taskSpecification.getType());
+        Assert.assertEquals(false, taskSpecification.getContainer().isPresent());
+        Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
+
+        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+    }
+
+    @Test
+    public void testContainerTaskInfo()
+            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
+        Protos.TaskInfo tempTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(tempTaskInfo)
+                .clearCommand()
+                .addResources(mem)
+                .build();
+
+        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
+        OfferRequirement offerRequirement = defaultOfferRequirementProvider.getNewOfferRequirement(taskSpecification);
+
+        Assert.assertEquals(TestConstants.TASK_TYPE, taskSpecification.getType());
+        Assert.assertEquals(false, taskSpecification.getCommand().isPresent());
+        Assert.assertEquals(true, taskSpecification.getContainer().isPresent());
+
+        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+    }
+
+    @Test
+    public void testCommandContainerTaskInfo()
+            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
+        Protos.TaskInfo tempTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(tempTaskInfo)
+                .addResources(mem)
+                .build();
+
+        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
+        OfferRequirement offerRequirement = defaultOfferRequirementProvider.getNewOfferRequirement(taskSpecification);
+
+        Assert.assertEquals(TestConstants.TASK_TYPE, taskSpecification.getType());
+        Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
+        Assert.assertEquals(true, taskSpecification.getContainer().isPresent());
+
+        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+    }
+
     @Test
     public void testUnchangedVolumes()
             throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {

@@ -31,7 +31,6 @@ public class DefaultServiceSpecificationTest {
                     TaskTypeGenerator.createAvoid("avoidme"),
                     new NotRule.Generator(TaskTypeGenerator.createColocate("colocateme"))))));
     private static final List<TaskSet> TASK_SETS = Arrays.asList(
-            //TestTaskSetFactory.getTaskSet(),
             TestTaskSetFactory.getTaskSet(Arrays.asList(
                     new DefaultConfigFileSpecification(
                             "../different/path/to/config",

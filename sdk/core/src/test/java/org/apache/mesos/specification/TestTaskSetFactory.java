@@ -53,6 +53,7 @@ public class TestTaskSetFactory {
         return DefaultTaskSet.create(
                 count,
                 name,
+                TestConstants.TASK_TYPE,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
