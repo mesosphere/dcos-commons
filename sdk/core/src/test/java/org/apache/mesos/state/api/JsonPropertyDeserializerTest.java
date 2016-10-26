@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.nio.charset.StandardCharsets;
+
 public class JsonPropertyDeserializerTest {
     private JsonPropertyDeserializer deserializer;
 
