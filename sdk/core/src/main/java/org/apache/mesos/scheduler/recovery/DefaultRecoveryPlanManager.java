@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
- *
+ * <p>
  * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link DefaultRecoveryBlock} for them and adds them to the recovery Plan, if not already added.
@@ -77,10 +77,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     /**
      * Updates the recovery plan if necessary.
-     *
+     * <p>
      * 1. Updates existing blocks.
      * 2. If the needs recovery and doesn't yet have a block in the plan, removes any COMPLETED blocks for this task
-     *    (at most one block for a given task can exist) and creates a new PENDING block.
+     * (at most one block for a given task can exist) and creates a new PENDING block.
      *
      * @param status task status
      */
@@ -153,15 +153,11 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public Set<String> getDirtyAssets() {
         Set<String> dirtyAssets = new HashSet<>();
         if (plan != null) {
-            final List<? extends Phase> phases = plan.getChildren();
-            for (Phase phase : phases) {
-                final List<? extends Block> blocks = phase.getChildren();
-                for (Block block : blocks) {
-                    if (block.isInProgress()) {
-                        dirtyAssets.add(block.getName());
-                    }
-                }
-            }
+            dirtyAssets.addAll(plan.getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(block -> block.isInProgress())
+                    .map(block -> block.getName())
+                    .collect(Collectors.toSet()));
         }
         return dirtyAssets;
     }

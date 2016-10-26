@@ -221,8 +221,7 @@ public class DefaultPlanManagerTest {
                 "test-plan",
                 Arrays.asList(phase),
                 new SerialStrategy<>(),
-                Collections.emptyList()
-        );
+                Collections.emptyList());
 
         block1.setStatus(Status.IN_PROGRESS);
         block2.setStatus(Status.IN_PROGRESS);
