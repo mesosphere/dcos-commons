@@ -16,6 +16,8 @@ import org.apache.mesos.scheduler.plan.api.PlansResource;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
+import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
+import org.apache.mesos.scheduler.recovery.monitor.NeverFailureMonitor;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
@@ -46,6 +48,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
     private final String frameworkName;
+    private final Optional<Integer> permanentFailureTimeoutSec;
+    private final Integer destructiveRecoveryDelaySec;
 
     private SchedulerDriver driver;
     private Reconciler reconciler;
@@ -76,14 +80,53 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     public static DefaultScheduler create(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
-        return new DefaultScheduler(name, deploymentPlanManager, zkConnectionString);
+        return create(
+                name,
+                deploymentPlanManager,
+                zkConnectionString,
+                Optional.of(PERMANENT_FAILURE_DELAY_SEC),
+                DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
     }
 
-    protected DefaultScheduler(String frameworkName, PlanManager deploymentPlanManager, String zkConnectionString) {
+    public static DefaultScheduler create(
+            String frameworkName,
+            PlanManager deploymentPlanManager,
+            Optional<Integer> permanentFailureTimeoutSec,
+            Integer destructiveRecoveryDelaySec) {
+        return create(
+                frameworkName,
+                deploymentPlanManager,
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                permanentFailureTimeoutSec,
+                destructiveRecoveryDelaySec);
+    }
+
+    public static DefaultScheduler create(
+            String frameworkName,
+            PlanManager deploymentPlanManager,
+            String zkConnectionString,
+            Optional<Integer> permanentFailureTimeoutSec,
+            Integer destructiveRecoveryDelaySec) {
+        return new DefaultScheduler(
+                frameworkName,
+                deploymentPlanManager,
+                zkConnectionString,
+                permanentFailureTimeoutSec,
+                destructiveRecoveryDelaySec);
+    }
+
+    protected DefaultScheduler(
+            String frameworkName,
+            PlanManager deploymentPlanManager,
+            String zkConnectionString,
+            Optional<Integer> permanentFailureTimeoutSec,
+            Integer destructiveRecoveryDelaySec) {
         this.frameworkName = frameworkName;
         this.deployPlanManager = deploymentPlanManager;
         this.zkConnectionString = zkConnectionString;
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
+        this.permanentFailureTimeoutSec = permanentFailureTimeoutSec;
+        this.destructiveRecoveryDelaySec = destructiveRecoveryDelaySec;
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -131,13 +174,20 @@ public class DefaultScheduler implements Scheduler, Observer {
         final RecoveryRequirementProvider recoveryRequirementProvider =
                 new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
         final LaunchConstrainer constrainer =
-                new TimedLaunchConstrainer(Duration.ofSeconds(DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC));
+                new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec));
+
+        FailureMonitor failureMonitor;
+        if (permanentFailureTimeoutSec.isPresent()) {
+            failureMonitor = new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()));
+        } else {
+            failureMonitor = new NeverFailureMonitor();
+        }
 
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 recoveryRequirementProvider,
                 constrainer,
-                new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
+                failureMonitor);
     }
 
 
