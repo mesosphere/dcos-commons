@@ -28,14 +28,14 @@ public class DCOSCertInstaller {
             final Path jrePath = Paths.get(pathToJRE);
             // Check if JRE is present, there's nothing to do.
             if (!Files.exists(jrePath)) {
-                LOGGER.info("JRE not found at path: {}", jrePath.toAbsolutePath());
+                LOGGER.error("JRE not found at path: {}", jrePath.toAbsolutePath());
                 return false;
             }
 
             final Path sandboxCertPath = Paths.get(CERT_PATH);
             // Check if cert is present, there's nothing to do.
             if (!Files.exists(sandboxCertPath)) {
-                LOGGER.info("Cert file not found at path: {}", sandboxCertPath.toAbsolutePath());
+                LOGGER.error("Cert file not found at path: {}", sandboxCertPath.toAbsolutePath());
                 return false;
             }
 
