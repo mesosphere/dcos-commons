@@ -16,9 +16,10 @@ import java.util.*;
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
     private static final String EXECUTOR_URI = "EXECUTOR_URI";
-    private final String JAVA_HOME = "JAVA_HOME";
-    private final String DEFAULT_JAVA_HOME = "jre1.8.0_91";
-    private final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/hdfs/assets/jre-8u91-linux-x64.tar.gz";
+    private static final String JAVA_HOME = "JAVA_HOME";
+    private static final String DEFAULT_JAVA_HOME = "jre1.8.0_91";
+    private static final String DEFAULT_JAVA_URI =
+            "https://downloads.mesosphere.com/hdfs/assets/jre-8u91-linux-x64.tar.gz";
 
     private final TaskConfigRouter taskConfigRouter;
 

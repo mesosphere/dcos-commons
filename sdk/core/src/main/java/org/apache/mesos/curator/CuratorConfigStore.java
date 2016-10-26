@@ -43,6 +43,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
+    private final ConfigurationFactory<T> factory;
     private final CuratorPersister curator;
     private final String configurationsPath;
     private final String targetPath;
@@ -53,8 +54,8 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      *
      * @param frameworkName The name of the framework
      */
-    public CuratorConfigStore(String frameworkName) {
-        this(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public CuratorConfigStore(ConfigurationFactory<T> factory, String frameworkName) {
+        this(factory, frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**
@@ -63,8 +64,8 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      * @param frameworkName The name of the framework
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
-    public CuratorConfigStore(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, new ExponentialBackoffRetry(
+    public CuratorConfigStore(ConfigurationFactory<T> factory, String frameworkName, String connectionString) {
+        this(factory, frameworkName, connectionString, new ExponentialBackoffRetry(
                 CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
                 CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
     }
@@ -77,7 +78,11 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      * @param retryPolicy The custom {@link RetryPolicy}
      */
     public CuratorConfigStore(
-            String frameworkName, String connectionString, RetryPolicy retryPolicy) {
+            ConfigurationFactory<T> factory,
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy) {
+        this.factory = factory;
         this.curator = new CuratorPersister(connectionString, retryPolicy);
 
         // Check version up-front:
@@ -111,7 +116,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     }
 
     @Override
-    public T fetch(UUID id, ConfigurationFactory<T> factory) throws ConfigStoreException {
+    public T fetch(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
             return factory.parse(curator.get(path));
