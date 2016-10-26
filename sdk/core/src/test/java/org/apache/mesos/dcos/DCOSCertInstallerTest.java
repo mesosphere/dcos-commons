@@ -56,7 +56,7 @@ public class DCOSCertInstallerTest {
     @Test
     public void testInstallCertificateIdeal() throws Exception {
         final Path path = Paths.get(jrePath, "bin", "keytool");
-        Files.write(path, keytool.getBytes());
+        Files.write(path, keytool.getBytes("UTF-8"));
         Files.setPosixFilePermissions(path, keytoolPermissions);
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
         Assert.assertTrue(DCOSCertInstaller.installCertificate(jrePath, mockProcessRunner));
@@ -65,7 +65,7 @@ public class DCOSCertInstallerTest {
     @Test
     public void testInstallCertificateFailureKeytoolError() throws Exception {
         final Path path = Paths.get(jrePath, "bin", "keytool");
-        Files.write(path, keytool.getBytes());
+        Files.write(path, keytool.getBytes("UTF-8"));
         Files.setPosixFilePermissions(path, keytoolPermissions);
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(1);
         Assert.assertFalse(DCOSCertInstaller.installCertificate(jrePath, mockProcessRunner));
