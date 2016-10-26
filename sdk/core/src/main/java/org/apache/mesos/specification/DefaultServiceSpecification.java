@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigurationComparer;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DefaultServiceSpecification implements ServiceSpecification {
 
     private static final Factory FACTORY = new Factory();
+    private static final Comparer COMPARER = new Comparer();
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
@@ -39,6 +41,22 @@ public class DefaultServiceSpecification implements ServiceSpecification {
                 throw new ConfigStoreException(
                         "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
             }
+        }
+    }
+
+    /**
+     * Comparer which checks for equality of {@link DefaultServiceSpecification}s.
+     */
+    public static class Comparer implements ConfigurationComparer<ServiceSpecification> {
+
+        /**
+         * Call {@link DefaultServiceSpecification#getComparerInstance()} instead.
+         */
+        private Comparer() { }
+
+        @Override
+        public boolean equals(ServiceSpecification first, ServiceSpecification second) {
+            return EqualsBuilder.reflectionEquals(first, second);
         }
     }
 
@@ -83,6 +101,14 @@ public class DefaultServiceSpecification implements ServiceSpecification {
      */
     public static ConfigurationFactory<ServiceSpecification> getFactoryInstance() {
         return FACTORY;
+    }
+
+    /**
+     * Returns a {@link ConfigurationComparer} which may be used to compare
+     * {@link DefaultServiceSpecification}s.
+     */
+    public static ConfigurationComparer<ServiceSpecification> getComparerInstance() {
+        return COMPARER;
     }
 
     @Override

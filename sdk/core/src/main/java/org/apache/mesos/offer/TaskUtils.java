@@ -199,7 +199,7 @@ public class TaskUtils {
     }
 
     /**
-     * Sets a {@link Label} indicating the target configuruation for the provided {@link TaskInfo}.
+     * Sets a {@link Label} indicating the target configuration for the provided {@link TaskInfo}.
      *
      * @param taskInfoBuilder is the TaskInfo which will have the appropriate configuration {@link Label} set.
      * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}

@@ -104,7 +104,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         final ConfigurationUpdater.UpdateResult configUpdateResult;
         try {
             configUpdateResult = new ConfigurationUpdater<ServiceSpecification>(
-                    stateStore, configStore, configValidators)
+                    stateStore,
+                    configStore,
+                    DefaultServiceSpecification.getComparerInstance(),
+                    configValidators)
                     .updateConfiguration(serviceSpecification);
         } catch (ConfigStoreException e) {
             LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);

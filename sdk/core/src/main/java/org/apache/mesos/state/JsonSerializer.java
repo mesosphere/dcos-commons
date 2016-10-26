@@ -1,6 +1,5 @@
 package org.apache.mesos.state;
 
-
 import org.apache.mesos.config.SerializationUtils;
 
 import java.io.IOException;

@@ -105,6 +105,7 @@ public class Main {
     private static Protos.CommandInfo getCommand(String name) {
         final String cmd = String.format(
                 "echo %s >> %s%s/output && sleep 1000", name, name, CONTAINER_PATH_SUFFIX);
+
         return Protos.CommandInfo.newBuilder()
                 .setValue(cmd)
                 .build();

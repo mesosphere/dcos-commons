@@ -3,12 +3,13 @@ package org.apache.mesos.state.api;
 import org.apache.mesos.state.StateStoreException;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Implementation of {@link PropertyDeserializer} which converts UTF-8 JSON byte arrays to Strings.
  */
 public class JsonPropertyDeserializer implements PropertyDeserializer {
-    private static final Charset DEFAULT_CHAR_SET = Charset.forName("UTF-8");
+    private static final Charset DEFAULT_CHAR_SET = StandardCharsets.UTF_8;
     private final Charset charset;
 
     public JsonPropertyDeserializer() {

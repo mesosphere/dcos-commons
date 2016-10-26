@@ -41,10 +41,10 @@ public class TaskUtilsTest {
     }
 
     @Test
-    public void testGetTargetConfigurationSuccess() throws Exception {
-        Assert.assertEquals(
-                testTargetConfigurationId,
-                TaskUtils.getTargetConfiguration(getTestTaskInfoWithTargetConfiguration()));
+    public void testSetTargetConfiguration() throws Exception {
+        Protos.TaskInfo taskInfo = TaskUtils.setTargetConfiguration(
+                getTestTaskInfo().toBuilder(), testTargetConfigurationId).build();
+        Assert.assertEquals(testTargetConfigurationId, TaskUtils.getTargetConfiguration(taskInfo));
     }
 
     @Test
@@ -285,10 +285,6 @@ public class TaskUtilsTest {
 
     private static Protos.TaskID getTaskId(String value) {
         return Protos.TaskID.newBuilder().setValue(value).build();
-    }
-
-    private static Protos.TaskInfo getTestTaskInfoWithTargetConfiguration() {
-        return TaskUtils.setTargetConfiguration(getTestTaskInfo().toBuilder(), testTargetConfigurationId).build();
     }
 
     private static Protos.TaskInfo getTestTaskInfo() {

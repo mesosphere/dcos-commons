@@ -25,7 +25,7 @@ import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 import java.io.IOException;
 
 /**
- * Contains static object serialization utilities.
+ * Contains static object serialization utilities for JSON and YAML.
  */
 public class SerializationUtils {
 
