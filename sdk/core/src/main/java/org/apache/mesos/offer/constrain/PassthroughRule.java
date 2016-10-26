@@ -1,5 +1,7 @@
 package org.apache.mesos.offer.constrain;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 
 /**
@@ -26,5 +28,15 @@ public class PassthroughRule implements PlacementRule {
     @Override
     public String toString() {
         return String.format("PassthroughRule{label=%s}", label);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

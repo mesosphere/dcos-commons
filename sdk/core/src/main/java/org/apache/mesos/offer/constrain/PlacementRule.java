@@ -2,6 +2,8 @@ package org.apache.mesos.offer.constrain;
 
 import org.apache.mesos.Protos.Offer;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * Implements placement constraint logic on an offer, filtering out the Resources which are not
  * to be used according to the filter logic.
@@ -11,6 +13,7 @@ import org.apache.mesos.Protos.Offer;
  * Offer is rejected, the return value will be a non-{@code null} Offer with zero Resources. A
  * PlacementRule may contain multiple internal checks, and may even be composed of other sub-Rules.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 public interface PlacementRule {
 
     /**
@@ -23,4 +26,9 @@ public interface PlacementRule {
      *     stripped out
      */
     public Offer filter(Offer offer);
+
+    /**
+     * Must be explicitly implemented by all PlacementRules.
+     */
+    public boolean equals(Object o);
 }

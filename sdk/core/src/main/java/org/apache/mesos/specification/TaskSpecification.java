@@ -3,17 +3,22 @@ package org.apache.mesos.specification;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.Collection;
 import java.util.Optional;
 
 /**
  * A TaskSpecification is a simplified description of a Mesos Task.
  */
+@JsonDeserialize(as = DefaultTaskSpecification.class)
 public interface TaskSpecification {
     /**
      * Returns the name of this task. E.g. "index-3" for the fourth index node or "data-0" for the
      * first data node.
      */
+    @JsonProperty("name")
     String getName();
 
     /**
@@ -21,11 +26,13 @@ public interface TaskSpecification {
      *
      * @return the type of the TaskSpecification
      */
+    @JsonProperty("type")
     String getType();
 
     /**
      * Returns the Mesos {@link Protos.CommandInfo} to be used for the starting task.
      */
+    @JsonProperty("command")
     Protos.CommandInfo getCommand();
 
     /**
@@ -33,6 +40,7 @@ public interface TaskSpecification {
      * an empty {@link Optional} if no additional health checks should be performed beyond Mesos
      * task status.
      */
+    @JsonProperty("health_check")
     Optional<Protos.HealthCheck> getHealthCheck();
 
     /**
@@ -41,6 +49,7 @@ public interface TaskSpecification {
      *
      * See the documentation for {@link ResourceSpecification} for more information.
      */
+    @JsonProperty("resources")
     Collection<ResourceSpecification> getResources();
 
     /**
@@ -49,6 +58,7 @@ public interface TaskSpecification {
      *
      * See the documentation for {@link VolumeSpecification} for more information.
      */
+    @JsonProperty("volumes")
     Collection<VolumeSpecification> getVolumes();
 
     /**
@@ -59,6 +69,7 @@ public interface TaskSpecification {
      * Mesos TaskInfo message from growing too large. If you need to exceed this limit, consider
      * using resource files.
      */
+    @JsonProperty("config_files")
     Collection<ConfigFileSpecification> getConfigFiles();
 
     /**
@@ -69,5 +80,6 @@ public interface TaskSpecification {
      * See the documentation for {@link PlacementRuleGenerator} and {@link PlacementRule} for more
      * information.
      */
+    @JsonProperty("placement")
     Optional<PlacementRuleGenerator> getPlacement();
 }

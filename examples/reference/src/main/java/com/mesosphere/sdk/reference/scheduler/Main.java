@@ -4,7 +4,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.offer.constrain.TaskTypeGenerator;
-import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
@@ -43,15 +42,9 @@ public class Main {
     }
 
     private static ServiceSpecification getServiceSpecification() {
-        return new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        return new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         DefaultTaskSet.create(TASK_METADATA_COUNT,
                                 TASK_METADATA_NAME,
                                 getCommand(TASK_METADATA_NAME),
@@ -71,14 +64,12 @@ public class Main {
                                 Collections.emptyList(),
                                 // avoid colocating with other data instances (<=1 instance/agent):
                                 Optional.of(TaskTypeGenerator.createAvoid(TASK_DATA_NAME)),
-                                Optional.of(getHealthCheck(TASK_DATA_NAME))));
-            }
-        };
+                                Optional.of(getHealthCheck(TASK_DATA_NAME)))));
     }
 
     private static Protos.HealthCheck getHealthCheck(String name) {
         Protos.CommandInfo commandInfo = Protos.CommandInfo.newBuilder()
-                .setValue("stat %s%s/output".format(name, CONTAINER_PATH_SUFFIX))
+                .setValue(String.format("stat %s%s/output", name, CONTAINER_PATH_SUFFIX))
                 .build();
 
         return Protos.HealthCheck.newBuilder()
@@ -112,8 +103,8 @@ public class Main {
     }
 
     private static Protos.CommandInfo getCommand(String name) {
-        final String CMD_FMT = "echo %s >> %s" + CONTAINER_PATH_SUFFIX + "/output && sleep 1000";
-        final String cmd = String.format(CMD_FMT, name, name);
+        final String cmd = String.format(
+                "echo %s >> %s%s/output && sleep 1000", name, name, CONTAINER_PATH_SUFFIX);
 
         return Protos.CommandInfo.newBuilder()
                 .setValue(cmd)

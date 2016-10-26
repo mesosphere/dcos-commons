@@ -4,10 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TaskSpecification;
-import org.apache.mesos.specification.TestTaskSetFactory;
+import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -76,15 +73,9 @@ public class CustomPlanTest {
 
         blocks = Arrays.asList(block0, block1, block2, block3);
 
-        serviceSpecification = new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        serviceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
                                 TASK_NAME,
                                 TASK_COUNT,
@@ -105,9 +96,7 @@ public class CustomPlanTest {
                                 TASK_CMD,
                                 TASK_CPU,
                                 TASK_MEM,
-                                TASK_DISK));
-            }
-        };
+                                TASK_DISK)));
     }
 
     @Test

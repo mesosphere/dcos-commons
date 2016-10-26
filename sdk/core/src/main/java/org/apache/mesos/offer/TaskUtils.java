@@ -10,10 +10,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.DefaultConfigFileSpecification;
-import org.apache.mesos.specification.ConfigFileSpecification;
-import org.apache.mesos.specification.ResourceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
