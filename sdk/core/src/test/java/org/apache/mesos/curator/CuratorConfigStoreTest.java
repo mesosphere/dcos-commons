@@ -71,7 +71,7 @@ public class CuratorConfigStoreTest {
     @Test
     public void testStoreFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
-        StringConfiguration config = (StringConfiguration) store.fetch(testId);
+        StringConfiguration config = store.fetch(testId);
         assertEquals(testConfig, config);
     }
 
