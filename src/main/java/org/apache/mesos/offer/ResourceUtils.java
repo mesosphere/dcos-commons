@@ -308,6 +308,7 @@ public class ResourceUtils {
                                     .setLabels(Labels.newBuilder().addLabels(resReq.getVIPLabel()).build())))
                     .build();
             builderArg.setDiscovery(discoveryInfo);
+            LOGGER.info("I set the VIP ");
         } catch (Exception e) {
             return builderArg;
             //FIX later

@@ -421,10 +421,12 @@ public class OfferEvaluator {
             taskBuilder.setExecutor(execBuilder);
             taskBuilder.setExecutor(execBuilder);
 
-            taskBuilder = ResourceUtils.setVIPDiscovery(taskBuilder, execInfo.get().getName(), fulfilledTaskResources);
 
         }
 
+        taskBuilder = ResourceUtils.setVIPDiscovery(taskBuilder, 
+                           taskReq.getTaskInfo().getName(), fulfilledTaskResources);
+        
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
         taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
