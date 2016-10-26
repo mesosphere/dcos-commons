@@ -258,7 +258,7 @@ public class ResourceUtils {
 
         Labels.Builder labelsBuilder = Labels.newBuilder();
         for (Label labelIn : labelList) {
-            if (!labelIn.getKey().equals(label.getKey())) {
+            if (!(labelIn.getKey()).equals(label.getKey())) {
                 labelsBuilder.addLabels(labelIn);
             }
         }
@@ -275,9 +275,7 @@ public class ResourceUtils {
 
         for (Resource resource : resourceList) {
             ResourceRequirement resReq = new ResourceRequirement(resource);
-            if (resReq.getName().equals("ports")) {
                 taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
-            }
         }
         return taskBuilder;
     }
@@ -295,9 +293,12 @@ public class ResourceUtils {
     /* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
     private static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builderArg, String execName,
                                                     ResourceRequirement resReq) {
+        if (!(resReq.getName()).equals("ports")) {
+            return builderArg;
+        }
         if (!resReq.hasVIPLabel()) {
             LOGGER.info(String.format("Port resource has no VIP requirement / %s ",
-                    resReq.getValue());
+                    resReq.getValue()));
             return builderArg;
         }
         try {
@@ -313,14 +314,12 @@ public class ResourceUtils {
                     .build();
             builderArg.setDiscovery(discoveryInfo);
             LOGGER.info(String.format("Discovery VIP is set for port resource  %s ",
-                    resReq.getValue());
+                    resReq.getValue()));
         } catch (Exception e) {
             LOGGER.error(String.format("Discovery VIP is NOT set for port resource  %s ",
-                    resReq.getValue());
+                    resReq.getValue()));
             return builderArg;
-            //FIX later
         }
-
         return builderArg;
     }
     public static ResourceRequirement getDesiredDynamicPort(String role, String principle,
