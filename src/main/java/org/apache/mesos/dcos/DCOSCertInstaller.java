@@ -1,8 +1,10 @@
 package org.apache.mesos.dcos;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,20 +18,25 @@ public class DCOSCertInstaller {
     public static final String DEFAULT_JRE_KEYSTORE_PASS = "changeit";
     public static final String CERT_PATH = ".ssl/ca.crt";
 
-    public static void installCertificate(String pathToJRE) {
+    public static boolean installCertificate(String pathToJRE) {
+        return installCertificate(pathToJRE, new ProcessRunner());
+    }
+
+    @VisibleForTesting
+    protected static boolean installCertificate(String pathToJRE, ProcessRunner processRunner) {
         try {
             final Path jrePath = Paths.get(pathToJRE);
             // Check if JRE is present, there's nothing to do.
             if (!Files.exists(jrePath)) {
                 LOGGER.info("JRE not found at path: {}", jrePath.toAbsolutePath());
-                return;
+                return false;
             }
 
             final Path sandboxCertPath = Paths.get(CERT_PATH);
             // Check if cert is present, there's nothing to do.
             if (!Files.exists(sandboxCertPath)) {
                 LOGGER.info("Cert file not found at path: {}", sandboxCertPath.toAbsolutePath());
-                return;
+                return false;
             }
 
             final Path jreDefaultKeystorePath = Paths.get(pathToJRE, "/lib/security/cacerts");
@@ -49,12 +56,28 @@ public class DCOSCertInstaller {
             LOGGER.info("Installing DC/OS cert using command: {}", command);
 
             final ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", command).inheritIO();
-            final Process certInstallerProcess = processBuilder.start();
-            final int exitCode = certInstallerProcess.waitFor();
-
+            final int exitCode = processRunner.run(processBuilder, 10);
             LOGGER.info("Certificate install process completed with exit code: {}", exitCode);
+            return exitCode == 0;
         } catch (Throwable t) {
             LOGGER.error("Error installing cert", t);
+            return false;
+        }
+    }
+
+    /**
+     * Runs the provided process and returns an exit value. This is broken out into a separate
+     * function to allow mockery in tests.
+     */
+    @VisibleForTesting
+    static class ProcessRunner {
+        public int run(ProcessBuilder processBuilder, double timeoutSeconds)
+                throws IOException, InterruptedException {
+            Process process = processBuilder.start();
+            synchronized (process) {
+                process.wait((long) (timeoutSeconds * 1000));
+            }
+            return process.exitValue();
         }
     }
 }
