@@ -54,6 +54,7 @@ public class Main {
                 return Arrays.asList(
                         DefaultTaskSet.create(TASK_METADATA_COUNT,
                                 TASK_METADATA_NAME,
+                                TASK_METADATA_NAME,
                                 getCommand(TASK_METADATA_NAME),
                                 getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
                                 getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
@@ -63,6 +64,7 @@ public class Main {
                                 Optional.of(TaskTypeGenerator.createAvoid(TASK_METADATA_NAME)),
                                 Optional.of(getHealthCheck(TASK_METADATA_NAME))),
                         DefaultTaskSet.create(TASK_DATA_COUNT,
+                                TASK_DATA_NAME,
                                 TASK_DATA_NAME,
                                 getCommand(TASK_DATA_NAME),
                                 getResources(TASK_DATA_CPU, TASK_DATA_MEM_MB),

@@ -1,11 +1,9 @@
 package org.apache.mesos.scheduler.recovery;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferRequirementProvider;
-import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.ChainedObserver;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
@@ -120,8 +118,12 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return stateStore.fetchTasksNeedingRecovery().stream()
                 .map(taskInfo -> {
                     try {
-                        return createBlock(taskInfo);
-                    } catch (TaskException | InvalidTaskSpecificationException | InvalidRequirementException e) {
+                        return createBlock(TaskUtils.unpackTaskInfo(taskInfo));
+                    } catch (
+                            TaskException |
+                            InvalidTaskSpecificationException |
+                            InvalidRequirementException |
+                            InvalidProtocolBufferException e) {
                         return new DefaultBlock(
                                 taskInfo.getName(),
                                 Optional.empty(),
