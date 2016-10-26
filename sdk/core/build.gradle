@@ -32,7 +32,6 @@ ext {
 }
 
 group = "mesosphere"
-archivesBaseName = "sdk"
 version = "0.8.1-SNAPSHOT"
 
 task sourceJar(type: Jar) {
@@ -54,6 +53,10 @@ publishing {
         }
         publications {
             mavenJava(MavenPublication) {
+                groupId project.group
+                artifactId 'dcos-commons'
+                version project.version
+
                 from components.java
 
                 artifact sourceJar {
