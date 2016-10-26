@@ -16,16 +16,18 @@ import java.util.Optional;
 public class DefaultTaskSpecification implements TaskSpecification {
 
     private final String name;
+    private final String type;
     private final Protos.CommandInfo commandInfo;
-    private final Optional<Protos.HealthCheck> healthCheck;
     private final Collection<ResourceSpecification> resourceSpecifications;
     private final Collection<VolumeSpecification> volumeSpecifications;
     private final Collection<ConfigFileSpecification> configFileSpecifications;
     private final Optional<PlacementRuleGenerator> placement;
+    private final Optional<Protos.HealthCheck> healthCheck;
 
     @JsonCreator
     protected DefaultTaskSpecification(
             @JsonProperty("name") String name,
+            @JsonProperty("type") String type,
             @JsonProperty("command") Protos.CommandInfo commandInfo,
             @JsonProperty("resources") Collection<ResourceSpecification> resourceSpecifications,
             @JsonProperty("volumes") Collection<VolumeSpecification> volumeSpecifications,
@@ -33,6 +35,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             @JsonProperty("placement") Optional<PlacementRuleGenerator> placement,
             @JsonProperty("health_check") Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
+        this.type = type;
         this.commandInfo = commandInfo;
         this.resourceSpecifications = resourceSpecifications;
         this.volumeSpecifications = volumeSpecifications;
@@ -49,6 +52,11 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getType() {
+        return type;
     }
 
     @Override

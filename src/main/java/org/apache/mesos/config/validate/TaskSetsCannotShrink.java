@@ -17,7 +17,7 @@ public class TaskSetsCannotShrink implements ConfigurationValidator<ServiceSpeci
 
     @Override
     public Collection<ConfigurationValidationError> validate(
-            ServiceSpecification oldConfig, ServiceSpecification newConfig) {
+            ServiceSpecification nullableConfig, ServiceSpecification newConfig) {
         List<ConfigurationValidationError> errors = new ArrayList<>();
         Map<String, Integer> newTaskTypeCounts = new HashMap<>();
         for (TaskSet taskSet : newConfig.getTaskSets()) {
@@ -30,13 +30,13 @@ public class TaskSetsCannotShrink implements ConfigurationValidator<ServiceSpeci
                                 taskSet.getName(), newConfig.getName())));
             }
         }
-        if (oldConfig == null) {
+        if (nullableConfig == null) {
             // No sizes to compare.
             return errors;
         }
         // Check for TaskSets in the old config which are missing or smaller in the new config.
         // Adding new TaskSets or increasing the size of tasksets are allowed.
-        for (TaskSet oldTaskSet : oldConfig.getTaskSets()) {
+        for (TaskSet oldTaskSet : nullableConfig.getTaskSets()) {
             final String typeName = oldTaskSet.getName();
             int oldValue = oldTaskSet.getTaskSpecifications().size();
             Integer newValue = newTaskTypeCounts.get(typeName);

@@ -52,6 +52,7 @@ public class DefaultTaskSet implements TaskSet {
         for (int i = 0; i < count; i++) {
             taskSpecifications.add(new DefaultTaskSpecification(
                     name + "-" + i,
+                    name,
                     command,
                     resources,
                     volumes,

@@ -1,16 +1,14 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferRequirementProvider;
-import org.apache.mesos.offer.TaskException;
-import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.offer.*;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -33,30 +31,33 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     @Override
-    public Block getBlock(String taskType, TaskSpecification taskSpecification) throws InvalidRequirementException {
-        LOGGER.info("Generating block for: " + taskSpecification.getName());
+    public Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidBlockException {
+        LOGGER.info("Generating block for: {}", taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
-        if (!taskInfoOptional.isPresent()) {
-            LOGGER.info("Generating new block for: " + taskSpecification.getName());
-            return new DefaultBlock(
-                    taskSpecification.getName(),
-                    offerRequirementProvider.getNewOfferRequirement(taskType, taskSpecification),
-                    Status.PENDING);
-        } else {
-            final TaskSpecification oldTaskSpecification;
-            try {
-                oldTaskSpecification =
+
+        try {
+            if (!taskInfoOptional.isPresent()) {
+                LOGGER.info("Generating new block for: {}", taskSpecification.getName());
+                return new DefaultBlock(
+                        taskSpecification.getName(),
+                        Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpecification)),
+                        Status.PENDING,
+                        Collections.emptyList());
+            } else {
+                final TaskSpecification oldTaskSpecification =
                         taskSpecificationProvider.getTaskSpecification(taskInfoOptional.get());
-            } catch (TaskException e) {
-                throw new InvalidRequirementException(e);
+                Status status = getStatus(oldTaskSpecification, taskSpecification);
+                LOGGER.info("Generating existing block for: {} with status: {}", taskSpecification.getName(), status);
+                return new DefaultBlock(
+                        taskSpecification.getName(),
+                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(
+                                taskInfoOptional.get(), taskSpecification)),
+                        status,
+                        Collections.emptyList());
             }
-            Status status = getStatus(oldTaskSpecification, taskSpecification);
-            LOGGER.info("Generating existing block for: " + taskSpecification.getName() +
-                    " with status: " + status);
-            return new DefaultBlock(
-                    taskSpecification.getName(),
-                    offerRequirementProvider.getExistingOfferRequirement(taskInfoOptional.get(), taskSpecification),
-                    status);
+        } catch (InvalidRequirementException | TaskException e) {
+            LOGGER.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
+            throw new Block.InvalidBlockException(e);
         }
     }
 

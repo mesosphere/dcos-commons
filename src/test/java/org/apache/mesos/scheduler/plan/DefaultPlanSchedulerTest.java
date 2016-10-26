@@ -55,33 +55,36 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testNullParams() {
-        assertTrue(scheduler.resourceOffers(null, OFFERS, new TestBlock()).isEmpty());
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, null, new TestBlock()).isEmpty());
+        assertTrue(scheduler.resourceOffers(null, OFFERS, Arrays.asList(new TestBlock())).isEmpty());
+        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, null, Arrays.asList(new TestBlock())).isEmpty());
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, null).isEmpty());
         verifyZeroInteractions(mockOfferAccepter, mockSchedulerDriver);
     }
 
     @Test
     public void testNonPendingBlock() {
-        TestBlock block = new TestBlock().setStatus(Status.IN_PROGRESS);
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
+        TestBlock block = new TestBlock();
+        block.setStatus(Status.IN_PROGRESS);
+        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(block)).isEmpty());
         assertTrue(block.isInProgress());
     }
 
     @Test
     public void testStartNoRequirement() {
-        TestBlock block = new TestOfferBlock(null).setStatus(Status.PENDING);
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
+        TestBlock block = new TestBlock();
+        block.setStatus(Status.PENDING);
+        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(block)).isEmpty());
         assertTrue(block.isPending());
     }
 
     @Test
     public void testEvaluateNoRecommendations() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
+        TestOfferBlock block = new TestOfferBlock(requirement);
+        block.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
 
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
+        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(block)).isEmpty());
         assertTrue(block.operations.isEmpty());
         verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
         assertTrue(block.isPending());
@@ -90,11 +93,12 @@ public class DefaultPlanSchedulerTest {
     @Test
     public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
+        TestOfferBlock block = new TestOfferBlock(requirement);
+        block.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(new ArrayList<>());
 
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block).isEmpty());
+        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(block)).isEmpty());
         assertTrue(block.operations.isEmpty());
         verify(mockOfferAccepter).accept(mockSchedulerDriver, RECOMMENDATIONS);
         assertTrue(block.isPending());
@@ -103,11 +107,12 @@ public class DefaultPlanSchedulerTest {
     @Test
     public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
         OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
-        TestOfferBlock block =(TestOfferBlock)new TestOfferBlock(requirement).setStatus(Status.PENDING);
+        TestOfferBlock block = new TestOfferBlock(requirement);
+        block.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
         when(mockOfferAccepter.accept(mockSchedulerDriver, RECOMMENDATIONS)).thenReturn(ACCEPTED_IDS);
 
-        assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, block));
+        assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(block)));
         assertFalse(block.operations.isEmpty());
         assertTrue(block.isInProgress());
     }

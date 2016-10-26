@@ -1,49 +1,62 @@
 package org.apache.mesos.scheduler.plan;
 
-import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
+import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Given a StateStore and a PlanSpecification the DefaultPlanFactory can generate a Plan.
  */
-public class DefaultPlanFactory {
-    private final DefaultPhaseFactory phaseFactory;
+public class DefaultPlanFactory implements PlanFactory {
+    private final StrategyGenerator<Phase> strategyGenerator;
+    private final PhaseFactory phaseFactory;
 
     public DefaultPlanFactory(
             StateStore stateStore,
             OfferRequirementProvider offerRequirementProvider,
-            TaskSpecificationProvider taskSpecificationProvider) {
-        this.phaseFactory = new DefaultPhaseFactory(new DefaultBlockFactory(
-                stateStore, offerRequirementProvider, taskSpecificationProvider));
+            TaskSpecificationProvider taskSpecificationProvider,
+            StrategyGenerator<Phase> strategyGenerator) {
+        this(new DefaultPhaseFactory(new DefaultBlockFactory(
+                stateStore, offerRequirementProvider, taskSpecificationProvider)),
+                strategyGenerator);
     }
 
-    public Plan getPlan(ServiceSpecification serviceSpecification, List<String> errors)
-            throws InvalidRequirementException {
-        if (errors.isEmpty()) {
-            return getPlan(serviceSpecification);
-        }
-        return DefaultPlan.withErrors(getPhases(serviceSpecification), errors);
+    public DefaultPlanFactory(PhaseFactory phaseFactory) {
+        this(phaseFactory, new SerialStrategy.Generator<>());
     }
 
-    public Plan getPlan(ServiceSpecification serviceSpecification) throws InvalidRequirementException {
-        return DefaultPlan.fromList(getPhases(serviceSpecification));
+    public DefaultPlanFactory(PhaseFactory phaseFactory, StrategyGenerator<Phase> strategyGenerator) {
+        this.phaseFactory = phaseFactory;
+        this.strategyGenerator = strategyGenerator;
     }
 
-    private List<? extends Phase> getPhases(ServiceSpecification serviceSpecification)
-            throws InvalidRequirementException {
+    public static Plan getPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
+        return getPlan(name, phases, strategy, Collections.emptyList());
+    }
 
-        List<Phase> phases = new ArrayList<>();
-        for (TaskSet taskSet : serviceSpecification.getTaskSets()) {
-            phases.add(phaseFactory.getPhase(taskSet));
-        }
+    public static Plan getPlan(String name, List<Phase> phases, Strategy<Phase> strategy, List<String> errors) {
+        return new DefaultPlan(name, phases, strategy, errors);
+    }
 
-        return phases;
+    @Override
+    public Plan getPlan(ServiceSpecification serviceSpecification) {
+        return new DefaultPlan(
+                serviceSpecification.getName(),
+                getPhases(serviceSpecification),
+                strategyGenerator.generate());
+    }
+
+    private List<Phase> getPhases(ServiceSpecification serviceSpecification) {
+        return serviceSpecification.getTaskSets().stream()
+                .map(phaseFactory::getPhase)
+                .collect(Collectors.toList());
     }
 }

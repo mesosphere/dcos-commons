@@ -12,7 +12,7 @@ import org.apache.mesos.config.Configuration;
  */
 public interface ConfigurationValidator<C extends Configuration> {
     /**
-     * Returns {@code List} of {@code ConfigurationValidationError} for the newly supplied
+     * Returns {@code List} of {@code ConfigurationValidationError}s for the newly supplied
      * {@code Configuration} object.
      *
      * A validation can validate a newConfig in following ways:
@@ -20,10 +20,10 @@ public interface ConfigurationValidator<C extends Configuration> {
      * Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
      * 2. Validate just newConfig parameter(s). Ex: CPU value > 0
      *
-     * @param oldConfig Currently persisted Configuration, or {@code null} if none is available
-     *                  (first launch of service)
+     * @param nullableOldConfig Currently persisted Configuration, or {@code null} if none is
+     *                          available (first launch of service)
      * @param newConfig Proposed new Configuration
      * @return List of errors, or an empty list if validation passed
      */
-    Collection<ConfigurationValidationError> validate(/* Nullable */ C oldConfig, C newConfig);
+    Collection<ConfigurationValidationError> validate(C nullableOldConfig, C newConfig);
 }

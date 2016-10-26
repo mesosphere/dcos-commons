@@ -79,6 +79,7 @@ public class TestTaskSetFactory {
 
         return new DefaultTaskSpecification(
                 name,
+                NAME,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),

@@ -1,9 +1,10 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.reconciliation.Reconciler;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 
 import java.util.Arrays;
-import java.util.UUID;
+import java.util.Collections;
 
 /**
  * Phase that implements reconciliation. It has exactly one Block, the
@@ -16,8 +17,9 @@ public final class ReconciliationPhase extends DefaultPhase {
     }
 
     private ReconciliationPhase(Reconciler reconciler) {
-        super(UUID.randomUUID(),
-                "Reconciliation",
-                Arrays.asList(ReconciliationBlock.create(reconciler)));
+        super("Reconciliation",
+                Arrays.asList(ReconciliationBlock.create(reconciler)),
+                new SerialStrategy<>(),
+                Collections.emptyList());
     }
 }

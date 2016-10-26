@@ -51,15 +51,15 @@ public class ConfigurationUpdater<C extends Configuration> {
 
     private final StateStore stateStore;
     private final ConfigStore<C> configStore;
-    private final Collection<ConfigurationValidator<C>> rules;
+    private final Collection<ConfigurationValidator<C>> validators;
 
     public ConfigurationUpdater(
             StateStore stateStore,
             ConfigStore<C> configStore,
-            Collection<ConfigurationValidator<C>> rules) {
+            Collection<ConfigurationValidator<C>> validators) {
         this.stateStore = stateStore;
         this.configStore = configStore;
-        this.rules = rules;
+        this.validators = validators;
     }
 
     /**
@@ -115,8 +115,8 @@ public class ConfigurationUpdater<C extends Configuration> {
         // NOTE: We ALWAYS run validation regardless of config equality below. This allows the
         // developer to e.g. require that a value be increased, whereas an up-front equality check
         // would short-circuit that validation.
-        for (ConfigurationValidator<C> rule : rules) {
-            errors.addAll(rule.validate(targetConfig, candidateConfig));
+        for (ConfigurationValidator<C> validator : validators) {
+            errors.addAll(validator.validate(targetConfig, candidateConfig));
         }
 
         // Select the appropriate configuration ID as the target. If the config hasn't changed or if
@@ -128,8 +128,8 @@ public class ConfigurationUpdater<C extends Configuration> {
                 sj.add(String.format("%d: %s", i++, error.toString()));
             }
             LOGGER.warn("New configuration failed validation against current target " +
-                    "configuration {}, with {} errors across {} rules:\n{}",
-                    targetConfigId, errors.size(), rules.size(), sj.toString());
+                    "configuration {}, with {} errors across {} validators:\n{}",
+                    targetConfigId, errors.size(), validators.size(), sj.toString());
             if (targetConfig == null) {
                 throw new ConfigStoreException(String.format(
                         "Configuration failed validation without any prior target configuration" +
@@ -149,10 +149,9 @@ public class ConfigurationUpdater<C extends Configuration> {
             configStore.setTargetConfig(targetConfigId);
         }
 
-        // Update config IDs on tasks whose config contents match the current target
-        updateTaskConfigIDsWhichMatchTarget(targetConfig, targetConfigId);
-        // Clean up configs which are no longer the target nor referenced by active tasks
-        clearUnusedConfigs(targetConfigId);
+        // Update config IDs on tasks whose config contents match the current target, then clean up
+        // leftover configs which are not the target and which are not referenced by any tasks.
+        cleanupDuplicateAndUnusedConfigs(targetConfig, targetConfigId);
 
         return new UpdateResult(targetConfigId, errors);
     }
@@ -161,8 +160,12 @@ public class ConfigurationUpdater<C extends Configuration> {
      * Searches for any task configurations which are already identical to the target configuration
      * and updates the accounting for those tasks to point to the current target configuration.
      */
-    private void updateTaskConfigIDsWhichMatchTarget(C targetConfig, UUID targetConfigId) throws ConfigStoreException {
+    private void cleanupDuplicateAndUnusedConfigs(C targetConfig, UUID targetConfigId)
+            throws ConfigStoreException {
         List<TaskInfo> taskInfosToUpdate = new ArrayList<>();
+        Set<UUID> neededConfigs = new HashSet<>();
+        neededConfigs.add(targetConfigId);
+        // Search task labels for configs which need to be cleaned up.
         for (TaskInfo taskInfo : stateStore.fetchTasks()) {
             final UUID taskConfigId;
             try {
@@ -179,21 +182,28 @@ public class ConfigurationUpdater<C extends Configuration> {
             } else {
                 final C taskConfig = configStore.fetch(taskConfigId);
                 if (targetConfig.equals(taskConfig)) {
+                    // Task is effectively already on the target config. Update task's config ID to match target,
+                    // and allow the duplicate config to be dropped from configStore.
                     LOGGER.info("Task {} config {} is identical to target {}. Updating task configuration to {}.",
                             taskInfo.getName(), taskConfigId, targetConfigId, targetConfigId);
                     taskInfosToUpdate.add(
                             TaskUtils.setTargetConfiguration(taskInfo.toBuilder(), targetConfigId).build());
                 } else {
+                    // Config isn't the same as the target. Refrain from updating task, mark config as 'needed'.
                     LOGGER.info("Task {} config {} differs from target {}. Leaving task as-is.",
                             taskInfo.getName(), taskConfigId, targetConfigId);
+                    neededConfigs.add(taskConfigId);
                 }
             }
         }
+
         if (!taskInfosToUpdate.isEmpty()) {
-            LOGGER.info("Updating {} tasks in StateStore with configuration ID {}",
+            LOGGER.info("Updating {} tasks in StateStore with target configuration ID {}",
                     taskInfosToUpdate.size(), targetConfigId);
             stateStore.storeTasks(taskInfosToUpdate);
         }
+
+        clearConfigsNotListed(neededConfigs);
     }
 
     /**
@@ -202,21 +212,7 @@ public class ConfigurationUpdater<C extends Configuration> {
      *
      * @throws ConfigStoreException if config access fails
      */
-    private void clearUnusedConfigs(UUID targetConfigId) throws ConfigStoreException {
-        final Set<UUID> neededConfigs = new HashSet<>();
-        neededConfigs.add(targetConfigId);
-        for (TaskInfo taskInfo : stateStore.fetchTasks()) {
-            final UUID neededConfig;
-            try {
-                neededConfig = TaskUtils.getTargetConfiguration(taskInfo);
-            } catch (TaskException e) {
-                LOGGER.warn("Unable to extract config ID from TaskInfo during cleanup checks, skipping: {}",
-                        TextFormat.shortDebugString(taskInfo));
-                continue;
-            }
-            neededConfigs.add(neededConfig);
-        }
-
+    private void clearConfigsNotListed(Set<UUID> neededConfigs) throws ConfigStoreException {
         final Set<UUID> configsToClear = new HashSet<>();
         for (UUID configId : configStore.list()) {
             if (!neededConfigs.contains(configId)) {

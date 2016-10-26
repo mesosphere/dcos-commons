@@ -9,7 +9,6 @@ import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.ConfigurationUpdater;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
-import org.apache.mesos.config.validate.ConfigurationValidationError;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.config.validate.TaskSetsCannotShrink;
 import org.apache.mesos.config.validate.TaskVolumesCannotChange;
@@ -21,7 +20,6 @@ import org.apache.mesos.reconciliation.DefaultReconciler;
 import org.apache.mesos.reconciliation.Reconciler;
 import org.apache.mesos.scheduler.api.TaskResource;
 import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.scheduler.plan.api.PlanResource;
 import org.apache.mesos.scheduler.plan.api.PlansResource;
 import org.apache.mesos.scheduler.recovery.*;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
@@ -55,66 +53,80 @@ public class DefaultScheduler implements Scheduler, Observer {
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
-    private final ServiceSpecification serviceSpecification;
-    private final ConfigStore<ServiceSpecification> configStore;
     private final StateStore stateStore;
-    private final ConfigurationUpdater.UpdateResult configUpdateResult;
     private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final BlockingQueue<Collection<Object>> resourcesQueue;
+    private final String frameworkName;
+    private final TaskSpecificationProvider taskSpecificationProvider;
+    private final OfferRequirementProvider offerRequirementProvider;
 
     private SchedulerDriver driver;
     private Reconciler reconciler;
     private TaskFailureListener taskFailureListener;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
-    private TaskSpecificationProvider taskSpecificationProvider;
-    private OfferRequirementProvider offerRequirementProvider;
-    private Plan deployPlan;
     private PlanManager deployPlanManager;
     private PlanScheduler planScheduler;
     private PlanManager recoveryPlanManager;
     private PlanCoordinator planCoordinator;
     private Collection<Object> resources;
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification) {
-        this(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
+        return create(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
-    public DefaultScheduler(ServiceSpecification serviceSpecification, String zkConnectionString) {
-        this(serviceSpecification,
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification, String zkConnectionString) {
+        return create(
+                serviceSpecification,
                 new CuratorConfigStore<ServiceSpecification>(
                         DefaultServiceSpecification.getFactoryInstance(),
                         serviceSpecification.getName(),
                         zkConnectionString),
-                new CuratorStateStore(serviceSpecification.getName(), zkConnectionString));
-    }
-
-    public DefaultScheduler(
-            ServiceSpecification serviceSpecification,
-            ConfigStore<ServiceSpecification> configStore,
-            StateStore stateStore) {
-        this(serviceSpecification, configStore, stateStore,
+                new CuratorStateStore(serviceSpecification.getName(), zkConnectionString),
                 Arrays.asList(new TaskSetsCannotShrink(), new TaskVolumesCannotChange()));
     }
 
-    public DefaultScheduler(
+    public static DefaultScheduler create(
             ServiceSpecification serviceSpecification,
             ConfigStore<ServiceSpecification> configStore,
             StateStore stateStore,
-            Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
-        this.serviceSpecification = serviceSpecification;
-        this.configStore = configStore;
-        this.stateStore = stateStore;
+            List<ConfigurationValidator<ServiceSpecification>> configValidators) {
+        final ConfigurationUpdater.UpdateResult configUpdateResult;
         try {
-            this.configUpdateResult =
-                    new ConfigurationUpdater<ServiceSpecification>(stateStore, configStore, configValidators)
+            configUpdateResult = new ConfigurationUpdater<ServiceSpecification>(
+                    stateStore, configStore, configValidators)
                     .updateConfiguration(serviceSpecification);
         } catch (ConfigStoreException e) {
-            logger.error("Fatal error when performing configuration update. Service exiting.", e);
+            LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
         }
+        OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider(
+                new DefaultTaskConfigRouter(), configUpdateResult.targetId);
+        TaskSpecificationProvider taskSpecificationProvider =
+                new DefaultTaskSpecificationProvider(configStore);
+        PlanFactory planFactory = new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultBlockFactory(
+                stateStore, offerRequirementProvider, taskSpecificationProvider)));
+        return new DefaultScheduler(
+                serviceSpecification.getName(),
+                new DefaultPlanManager(planFactory.getPlan(serviceSpecification)),
+                offerRequirementProvider,
+                taskSpecificationProvider,
+                stateStore);
+    }
+
+    protected DefaultScheduler(
+            String frameworkName,
+            PlanManager deployPlanManager,
+            OfferRequirementProvider offerRequirementProvider,
+            TaskSpecificationProvider taskSpecificationProvider,
+            StateStore stateStore) {
+        this.frameworkName = frameworkName;
+        this.deployPlanManager = deployPlanManager;
+        this.offerRequirementProvider = offerRequirementProvider;
+        this.taskSpecificationProvider = taskSpecificationProvider;
+        this.stateStore = stateStore;
         this.resourcesQueue = new ArrayBlockingQueue<>(1);
     }
 
@@ -132,37 +144,33 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     Plan getPlan() {
-        return deployPlan;
+        return deployPlanManager.getPlan();
     }
 
     private void initialize(SchedulerDriver driver) throws InterruptedException {
-        logger.info("Initializing...");
+        LOGGER.info("Initializing...");
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
-        initializeDeploymentPlanManager();
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
                 recoveryPlanManager,
                 deployPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
         planCoordinator.subscribe(this);
-        logger.info("Done initializing.");
+        LOGGER.info("Done initializing.");
     }
 
     private void initializeGlobals(SchedulerDriver driver) {
-        logger.info("Initializing globals...");
+        LOGGER.info("Initializing globals...");
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        taskSpecificationProvider = new DefaultTaskSpecificationProvider(configStore);
-        offerRequirementProvider = new DefaultOfferRequirementProvider(
-                new DefaultTaskConfigRouter(), configUpdateResult.targetId);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
     }
 
     private void initializeRecoveryPlanManager() {
-        logger.info("Initializing recovery plan...");
+        LOGGER.info("Initializing recovery plan...");
         final RecoveryRequirementProvider recoveryRequirementProvider =
                 new DefaultRecoveryRequirementProvider(offerRequirementProvider, taskSpecificationProvider);
         final LaunchConstrainer constrainer =
@@ -177,37 +185,14 @@ public class DefaultScheduler implements Scheduler, Observer {
                 new TimedFailureMonitor(Duration.ofSeconds(PERMANENT_FAILURE_DELAY_SEC)));
     }
 
-    private void initializeDeploymentPlanManager() {
-        logger.info("Initializing deployment PlanManager...");
-        initializeDeploymentPlan();
-        deployPlanManager = new DefaultPlanManager(deployPlan, new DefaultStrategyFactory());
-    }
-
-    private void initializeDeploymentPlan() {
-        logger.info("Initializing deployment plan...");
-        try {
-            logger.info("Deploy plan: {}", deployPlan);
-            List<String> configErrors = new ArrayList<>();
-            for (ConfigurationValidationError error : configUpdateResult.errors) {
-                configErrors.add(error.toString());
-            }
-            deployPlan = new DefaultPlanFactory(stateStore, offerRequirementProvider, taskSpecificationProvider)
-                    .getPlan(serviceSpecification, configErrors);
-        } catch (InvalidRequirementException e) {
-            logger.error("Failed to generate deployPlan with exception: ", e);
-            hardExit(SchedulerErrorCode.PLAN_CREATE_FAILURE);
-        }
-    }
-
     private void initializeResources() throws InterruptedException {
-        logger.info("Initializing resources...");
+        LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
-        resources.add(new PlanResource(deployPlanManager));
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore));
-        resources.add(new TaskResource(stateStore, taskKiller, serviceSpecification.getName()));
+        resources.add(new TaskResource(stateStore, taskKiller, frameworkName));
         resourcesQueue.put(resources);
     }
 
@@ -216,10 +201,10 @@ public class DefaultScheduler implements Scheduler, Observer {
             return;
         }
 
-        logger.info(String.format("Received %d offers:", offers.size()));
+        LOGGER.info(String.format("Received %d offers:", offers.size()));
         for (int i = 0; i < offers.size(); ++i) {
             // Offer protobuffers are very long. print each as a single line:
-            logger.info(String.format("- Offer %d: %s", i + 1, TextFormat.shortDebugString(offers.get(i))));
+            LOGGER.info(String.format("- Offer %d: %s", i + 1, TextFormat.shortDebugString(offers.get(i))));
         }
     }
 
@@ -227,7 +212,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
         unusedOffers.stream().forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
-            logger.info("Declining offer: " + offerId.getValue());
+            LOGGER.info("Declining offer: " + offerId.getValue());
             driver.declineOffer(offerId);
         });
     }
@@ -237,7 +222,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             ResourceCleaner cleaner = new ResourceCleaner(stateStore);
             return Optional.of(new ResourceCleanerScheduler(cleaner, offerAccepter));
         } catch (Exception ex) {
-            logger.error("Failed to construct ResourceCleaner", ex);
+            LOGGER.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
         }
     }
@@ -249,18 +234,18 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        logger.info("Registered framework with frameworkId: " + frameworkId.getValue());
+        LOGGER.info("Registered framework with frameworkId: " + frameworkId.getValue());
         try {
             initialize(driver);
         } catch (InterruptedException e) {
-            logger.error("Initialization failed with exception: ", e);
+            LOGGER.error("Initialization failed with exception: ", e);
             hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
         }
 
         try {
             stateStore.storeFrameworkId(frameworkId);
         } catch (Exception e) {
-            logger.error(String.format(
+            LOGGER.error(String.format(
                     "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
             hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
@@ -272,7 +257,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        logger.error("Re-registration implies we were unregistered.");
+        LOGGER.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
         suppressOrRevive();
     }
@@ -289,7 +274,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
-                logger.info("Reconciliation is still in progress.");
+                LOGGER.info("Reconciliation is still in progress.");
                 return;
             }
 
@@ -325,7 +310,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        logger.error("Rescinding offers is not supported.");
+        LOGGER.error("Rescinding offers is not supported.");
         hardExit(SchedulerErrorCode.OFFER_RESCINDED);
     }
 
@@ -334,7 +319,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                logger.info(String.format(
+                LOGGER.info(String.format(
                         "Received status update for taskId=%s state=%s message='%s'",
                         status.getTaskId().getValue(),
                         status.getState().toString(),
@@ -345,8 +330,9 @@ public class DefaultScheduler implements Scheduler, Observer {
                     stateStore.storeStatus(status);
                     deployPlanManager.update(status);
                     recoveryPlanManager.update(status);
+                    reconciler.update(status);
                 } catch (Exception e) {
-                    logger.warn("Failed to update TaskStatus received from Mesos. "
+                    LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);
                 }
             }
@@ -359,30 +345,30 @@ public class DefaultScheduler implements Scheduler, Observer {
             Protos.ExecutorID executorId,
             Protos.SlaveID slaveId,
             byte[] data) {
-        logger.error("Received a Framework Message, but don't know how to process it");
+        LOGGER.error("Received a Framework Message, but don't know how to process it");
     }
 
     @Override
     public void disconnected(SchedulerDriver driver) {
-        logger.error("Disconnected from Master.");
+        LOGGER.error("Disconnected from Master.");
         hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        logger.warn("Agent lost: " + agentId);
+        LOGGER.warn("Agent lost: " + agentId);
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        logger.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
+        LOGGER.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
     }
 
     @Override
     public void error(SchedulerDriver driver, String message) {
-        logger.error("SchedulerDriver failed with message: " + message);
+        LOGGER.error("SchedulerDriver failed with message: " + message);
 
         // Update or remove this when uninstall is solved:
         if (message.contains(UNINSTALL_INCOMPLETE_ERROR_MESSAGE)) {
@@ -393,9 +379,9 @@ public class DefaultScheduler implements Scheduler, Observer {
             // - User reinstalls service X
             // - X sees previous framework ID in ZK and attempts to register against it
             // - Mesos returns this error because that framework ID is no longer available for use
-            logger.error("This error is usually the result of an incomplete cleanup of Zookeeper "
+            LOGGER.error("This error is usually the result of an incomplete cleanup of Zookeeper "
                     + "and/or reserved resources following a previous uninstall of the service.");
-            logger.error("Please uninstall this service, read and perform the steps described at "
+            LOGGER.error("Please uninstall this service, read and perform the steps described at "
                     + UNINSTALL_INSTRUCTIONS_URI + " to delete the reserved resources, and then "
                     + "install this service once more.");
         }
@@ -416,13 +402,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void reviveOffers() {
-        logger.info("Reviving offers.");
+        LOGGER.info("Reviving offers.");
         driver.reviveOffers();
         stateStore.setSuppressed(false);
     }
 
     private void suppressOffers() {
-        logger.info("Suppressing offers.");
+        LOGGER.info("Suppressing offers.");
         driver.suppressOffers();
         stateStore.setSuppressed(true);
     }

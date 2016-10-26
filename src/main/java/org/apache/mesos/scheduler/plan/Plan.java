@@ -1,7 +1,5 @@
 package org.apache.mesos.scheduler.plan;
 
-import java.util.List;
-
 /**
  * Defines the interface for one or more {@link Phase}s, along with any errors encountered while
  * processing those Phases. The Plan is a representation of any work that is currently being
@@ -17,17 +15,4 @@ import java.util.List;
  * If any errors occurred during the rollout, the process would pause and the Plan would contain a
  * list of one or more error messages to be shown to the user,
  */
-public interface Plan extends Completable {
-
-    /**
-     * Returns a list of all {@link Phase}s contained in this Plan.
-     */
-    List<? extends Phase> getPhases();
-
-    /**
-     * Returns a list of user-visible descriptive error messages which have been encountered while
-     * progressing through this Plan. A non-empty response implies that the Plan is in an ERROR
-     * state.
-     */
-    List<String> getErrors();
-}
+public interface Plan extends Element<Phase> {}

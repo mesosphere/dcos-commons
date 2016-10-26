@@ -18,10 +18,12 @@ public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSp
 
     @Override
     public Collection<ConfigurationValidationError> validate(
-            ServiceSpecification oldConfig, ServiceSpecification newConfig) {
+            ServiceSpecification nullableOldConfig, ServiceSpecification newConfig) {
         List<ConfigurationValidationError> errors = new ArrayList<>();
-        Map<String, TaskSpecification> oldTasks = getAllTasksByName(oldConfig, errors);
-        Map<String, TaskSpecification> newTasks = getAllTasksByName(newConfig, errors);
+        Map<String, TaskSpecification> oldTasks =
+                (nullableOldConfig == null) ? new HashMap<>() : getAllTasksByName(nullableOldConfig, errors);
+        Map<String, TaskSpecification> newTasks =
+                getAllTasksByName(newConfig, errors);
         // Note: We're itentionally just comparing cases where the tasks in both TaskSpecs.
         // Enforcement of new/removed tasks should be performed in a separate Validator.
         for (Map.Entry<String, TaskSpecification> oldEntry : oldTasks.entrySet()) {

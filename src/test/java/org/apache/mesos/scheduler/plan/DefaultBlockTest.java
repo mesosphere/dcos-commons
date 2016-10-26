@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * This class tests the DefaultBlock class.
@@ -27,7 +29,11 @@ public class DefaultBlockTest {
 
     @Test
     public void testCompleteTerminal() {
-        DefaultBlock block = new DefaultBlock(TEST_BLOCK_NAME, mockOfferRequirement, Status.PENDING);
+        DefaultBlock block = new DefaultBlock(
+                TEST_BLOCK_NAME,
+                Optional.of(mockOfferRequirement),
+                Status.PENDING,
+                Collections.emptyList());
 
         Assert.assertTrue(block.isPending());
 

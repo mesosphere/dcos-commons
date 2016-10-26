@@ -4,7 +4,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
-import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,6 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
                 transientRecoveryRequirements.add(
                         new DefaultRecoveryRequirement(
                                 offerRequirementProvider.getNewOfferRequirement(
-                                        TaskUtils.getTaskType(taskInfo),
                                         taskSpecificationProvider.getTaskSpecification(taskInfo)),
                                 RecoveryRequirement.RecoveryType.PERMANENT));
             } catch (TaskException e) {

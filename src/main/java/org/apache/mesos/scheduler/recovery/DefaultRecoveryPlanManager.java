@@ -4,6 +4,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.scheduler.*;
 import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
 import org.apache.mesos.specification.TaskSpecification;
@@ -24,10 +26,9 @@ import java.util.stream.Collectors;
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryPlanManager.class);
+    private static final String RECOVERY_ELEMENT_NAME = "recovery";
 
     protected volatile Plan plan;
-    protected volatile PhaseStrategy phaseStrategy;
-    protected volatile Map<UUID, PhaseStrategy> phaseStrategies;
 
     private final StateStore stateStore;
     private final TaskSpecificationProvider taskSpecificationProvider;
@@ -35,7 +36,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     private final RecoveryRequirementProvider recoveryReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
-    private final UUID phaseId = UUID.randomUUID();
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
@@ -59,85 +59,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     @Override
-    public void setPlan(Plan plan) {
-        LOGGER.info("Ignoring setPlan call. {} generates plans dynamically.", getClass().getName());
-    }
-
-    /**
-     * Returns the first {@link Phase} in the {@link Plan} which isn't marked complete.
-     */
-    @Override
-    public Optional<Phase> getCurrentPhase() {
-        for (final Phase phase : plan.getPhases()) {
-            if (!phase.isComplete()) {
-                LOGGER.debug("Phase {} ({}) is NOT complete. This is the current phase.",
-                        phase.getName(), phase.getId());
-                return Optional.of(phase);
-            } else {
-                LOGGER.debug("Phase {} ({}) is complete.", phase.getName(), phase.getId());
-            }
-        }
-        LOGGER.debug("All recovery phases are complete.");
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<Block> getCurrentBlock(Collection<String> dirtiedAssets) {
-        if (phaseStrategy != null) {
-            final Optional<Block> chosenBlock = phaseStrategy.getCurrentBlock(dirtiedAssets);
-            if (chosenBlock.isPresent() &&
-                    launchConstrainer.canLaunch(((DefaultRecoveryBlock) chosenBlock.get()).getRecoveryRequirement())) {
-                return chosenBlock;
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public boolean isComplete() {
-        return plan != null && plan.isComplete();
-    }
-
-    @Override
-    public void proceed() {
-        LOGGER.info("Resuming recovery...");
-        if (phaseStrategy != null) {
-            phaseStrategy.proceed();
-            LOGGER.info("Done resuming recovery for phase: {}", phaseStrategy.getPhase());
-        } else {
-            LOGGER.info("No phase to resume");
-        }
-    }
-
-    @Override
-    public void interrupt() {
-        LOGGER.info("Interrupting recovery");
-        if (phaseStrategy != null) {
-            phaseStrategy.interrupt();
-            LOGGER.info("Interrupted current phase: phase = {}", phaseStrategy.getPhase());
-        } else {
-            LOGGER.info("No phase to interrupt");
-        }
-    }
-
-    @Override
-    public boolean isInterrupted() {
-        return getStatus() == Status.WAITING;
-    }
-
-    @Override
-    public void restart(UUID phaseId, UUID blockId) {
-        if (phaseStrategy != null) {
-            phaseStrategy.restart(blockId);
-        }
-    }
-
-    @Override
-    public void forceComplete(UUID phaseId, UUID blockId) {
-        if (phaseStrategy != null) {
-            phaseStrategy.forceComplete(blockId);
-        }
+    public Collection<? extends Block> getCandidates(Collection<String> dirtyAssets) {
+        return PlanUtils.getCandidates(plan, dirtyAssets).stream()
+                .filter(block -> launchConstrainer.canLaunch(((DefaultRecoveryBlock) block).getRecoveryRequirement()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -160,13 +85,11 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 return;
             }
 
-            // 1. Update existing blocks.
-            this.plan.getPhases().forEach(
-                    phase -> phase.getBlocks().forEach(
-                            block -> block.update(status)));
+            // 1. Update the existing Plan.
+            plan.update(status);
 
-            boolean blockExists = this.plan.getPhases().stream()
-                    .filter(phase -> phase.getBlocks().stream()
+            boolean blockExists = this.plan.getChildren().stream()
+                    .filter(phase -> phase.getChildren().stream()
                             .filter(block -> block.getName().equals(taskName)).findAny().isPresent())
                     .findAny().isPresent();
 
@@ -174,11 +97,11 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 TaskSpecification taskSpec = taskSpecificationProvider.getTaskSpecification(taskInfo.get());
                 Optional<Block> newBlock = createBlock(taskName, taskInfo.get(), taskSpec);
                 if (newBlock.isPresent()) {
-                    Collection<Block> blocks = new ArrayList<>();
+                    List<Block> blocks = new ArrayList<>();
 
                     // 2. remove any COMPLETED blocks for this task.
-                    for (Phase phase : this.plan.getPhases()) {
-                        blocks.addAll(phase.getBlocks().stream()
+                    for (Phase phase : this.plan.getChildren()) {
+                        blocks.addAll(phase.getChildren().stream()
                                 .filter(block -> !(block.isComplete() && block.getName().equals(taskName)))
                                 .collect(Collectors.toList()));
                     }
@@ -194,43 +117,14 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
     }
 
-    @Override
-    public boolean hasDecisionPoint(Block block) {
-        return phaseStrategy != null && phaseStrategy.hasDecisionPoint(block);
-    }
-
-    @Override
-    public Status getStatus() {
-        return PlanManagerUtils.getStatus(getPlan(), phaseStrategies);
-    }
-
-    @Override
-    public Status getPhaseStatus(UUID phaseId) {
-        return phaseStrategy != null ? phaseStrategy.getStatus() : Status.COMPLETE;
-    }
-
-    @Override
-    public List<String> getErrors() {
-        return plan != null ? plan.getErrors() : Arrays.asList();
-    }
-
-    private void updatePlan(Collection<Block> blocks) {
-        Phase phase = DefaultPhase.builder()
-                .setId(phaseId)
-                .addBlocks(blocks)
-                .build();
-
-        plan = DefaultPlan.fromArgs(phase);
+    private void updatePlan(List<Block> blocks) {
+        Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, blocks, new RandomStrategy<>());
+        plan = DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
         plan.subscribe(this);
-
-        phaseStrategy = new RandomRecoveryStrategy(phase);
-        phaseStrategies = new HashMap<>();
-        phaseStrategies.put(phase.getId(), phaseStrategy);
         this.notifyObservers();
     }
 
-    private Optional<Block> createBlock(
-            String taskName, Protos.TaskInfo taskInfo, TaskSpecification taskSpec) {
+    private Optional<Block> createBlock(String taskName, Protos.TaskInfo taskInfo, TaskSpecification taskSpec) {
         try {
             final List<RecoveryRequirement> recoveryRequirements;
 

@@ -16,32 +16,28 @@ import java.util.Objects;
 /**
  * Immutable JSON serialization object for a Plan which includes child Phases.
  */
-class StageInfo {
+class PlanInfo {
 
     private final List<PhaseInfo> phases;
     private final List<String> errors;
     private final Status status;
 
     @JsonCreator
-    public static StageInfo create(
+    public static PlanInfo create(
             @JsonProperty("phases") final List<PhaseInfo> phases,
             @JsonProperty("errors") final List<String> errors,
             @JsonProperty("status") final Status status) {
-        return new StageInfo(phases, errors, status);
+        return new PlanInfo(phases, errors, status);
     }
 
-    public static StageInfo forStage(final PlanManager manager) {
-        List<PhaseInfo> info = new ArrayList<>(manager.getPlan().getPhases().size());
-        for (Phase phase : manager.getPlan().getPhases()) {
-            info.add(PhaseInfo.forPhase(phase, manager));
-        }
-        return create(info,
-                manager.getPlan().getErrors(),
-                manager.getStatus());
+    public static PlanInfo forPlan(final PlanManager manager) {
+        List<PhaseInfo> info = new ArrayList<>(manager.getPlan().getChildren().size());
+        manager.getPlan().getChildren().forEach(phase -> info.add(PhaseInfo.forPhase((Phase) phase)));
+
+        return create(info, manager.getPlan().getErrors(), manager.getPlan().getStatus());
     }
 
-    private StageInfo(
-            final List<PhaseInfo> phases, final List<String> errors, final Status status) {
+    private PlanInfo(final List<PhaseInfo> phases, final List<String> errors, final Status status) {
         this.phases = phases;
         this.errors = errors;
         this.status = status;

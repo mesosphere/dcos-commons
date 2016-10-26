@@ -3,10 +3,10 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.DefaultObservable;
+import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * This class is an implementation of the Block interface for test purposes.
@@ -16,34 +16,14 @@ public class TestBlock extends DefaultObservable implements Block {
     private final UUID id = UUID.randomUUID();
     private Status status = Status.PENDING;
 
-    public TestBlock setStatus(Status newStatus) {
-        status = newStatus;
-        return this;
+    @Override
+    public List<Element> getChildren() {
+        return null;
     }
 
     @Override
-    public void restart() {
-        setStatus(Status.PENDING);
-    }
-
-    @Override
-    public void forceComplete() {
-        setStatus(Status.COMPLETE);
-    }
-
-    @Override
-    public boolean isPending() {
-        return status.equals(Status.PENDING);
-    }
-
-    @Override
-    public boolean isInProgress() {
-        return status.equals(Status.IN_PROGRESS);
-    }
-
-    @Override
-    public boolean isComplete() {
-        return status.equals(Status.COMPLETE);
+    public Strategy<? extends Block> getStrategy() {
+        return new SerialStrategy<>();
     }
 
     @Override
@@ -77,7 +57,22 @@ public class TestBlock extends DefaultObservable implements Block {
     }
 
     @Override
+    public List<String> getErrors() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public String getName() {
         return "test-block";
+    }
+
+    @Override
+    public Status getStatus() {
+        return status;
+    }
+
+    @Override
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }
