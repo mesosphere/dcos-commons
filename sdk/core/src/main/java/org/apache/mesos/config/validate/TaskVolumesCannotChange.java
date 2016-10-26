@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TaskSpecification;
@@ -32,9 +32,7 @@ public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSp
                 // Task removed: Don't worry about it. We're just verifying that volumes don't change.
                 continue;
             }
-            if (!CollectionUtils.isEqualCollection(
-                    oldEntry.getValue().getVolumes(),
-                    newTask.getVolumes())) {
+            if (!TaskUtils.volumesEqual(oldEntry.getValue(), newTask)) {
                 errors.add(ConfigurationValidationError.transitionError(
                         String.format("TaskVolumes[taskname:%s]", newTask.getName()),
                         oldEntry.getValue().getVolumes().toString(),

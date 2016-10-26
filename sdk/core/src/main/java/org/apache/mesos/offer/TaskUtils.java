@@ -6,18 +6,13 @@ import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
-import org.apache.mesos.specification.ConfigFileSpecification;
-import org.apache.mesos.specification.DefaultConfigFileSpecification;
-import org.apache.mesos.specification.DefaultServiceSpecification;
-import org.apache.mesos.specification.ResourceSpecification;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -387,7 +382,7 @@ public class TaskUtils {
         Optional<HealthCheck> oldHealthCheck = oldTaskSpecification.getHealthCheck();
         Optional<HealthCheck> newHealthCheck = newTaskSpecification.getHealthCheck();
         if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
-            LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldCommand, newCommand);
+            LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
             return true;
         }
 
@@ -415,7 +410,13 @@ public class TaskUtils {
             }
         }
 
-        // Volumes (no check -- shouldn't change)
+        // Volumes
+
+        if (!volumesEqual(oldTaskSpecification, newTaskSpecification)) {
+            LOGGER.info("Task volumes '{}' and '{}' are different.",
+                    oldTaskSpecification.getVolumes(), newTaskSpecification.getVolumes());
+            return true;
+        }
 
         // Config files
 
@@ -451,6 +452,16 @@ public class TaskUtils {
         }
 
         return false;
+    }
+
+    /**
+     * Utility method for checking if volumes changed between the two provided
+     * {@link TaskSpecification}s.
+     *
+     * @return whether the volume lists are equal
+     */
+    public static boolean volumesEqual(TaskSpecification first, TaskSpecification second) {
+        return CollectionUtils.isEqualCollection(first.getVolumes(), second.getVolumes());
     }
 
     /**
