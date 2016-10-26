@@ -37,32 +37,40 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
     public Collection<OfferID> processOffers(
             final SchedulerDriver driver,
             final List<Offer> offersToProcess) {
+        // Offers that have already been used
         final Set<OfferID> dirtiedOffers = new HashSet<>();
+
+        // Assets that are being actively worked on
         final Set<String> dirtiedAssets = new HashSet<>();
+
+        // Offers that are available for scheduling
         final List<Offer> offers = new ArrayList<>(offersToProcess);
 
-        // Pro-actively determine all known dirty assets.
+        // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented
+        // with offers first, does not accidently schedule an asset that's actively being worked upon by another
+        // PlanManager that is presented offers later.
         dirtiedAssets.addAll(planManagers.stream()
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
 
         for (final PlanManager planManager : planManagers) {
             try {
+                // Get candidate blocks to be scheduled
                 Collection<? extends Block> candidateBlocks = planManager.getCandidates(dirtiedAssets);
+
+                // Try scheduling candidate blocks using the available offers
                 Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateBlocks);
+
+                // Collect dirtied offers
                 dirtiedOffers.addAll(usedOffers);
 
-                // If a Block is InProgress let's mark it dirty.
-                for (Block block : candidateBlocks) {
-                    if (block.isInProgress()) {
-                        dirtiedAssets.add(block.getName());
-                    }
-                }
+                // Collect known dirtied assets
+                dirtiedAssets.addAll(planManager.getDirtyAssets());
             } catch (Throwable t) {
-                LOGGER.error("Error with plan manager: {}. Reason: {}", planManager, t);
+                LOGGER.error(String.format("Error with plan manager: %s.", planManager), t);
             }
 
-            // Filter dirtied offers.
+            // Filter out dirtied offers, and only present unused offers to the next PlanManager.
             final List<Offer> unacceptedOffers = PlanUtils.filterAcceptedOffers(offers, dirtiedOffers);
             offers.clear();
             offers.addAll(unacceptedOffers);
