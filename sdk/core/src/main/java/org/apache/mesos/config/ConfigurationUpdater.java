@@ -51,14 +51,17 @@ public class ConfigurationUpdater<C extends Configuration> {
 
     private final StateStore stateStore;
     private final ConfigStore<C> configStore;
+    private final ConfigurationComparer<C> configComparer;
     private final Collection<ConfigurationValidator<C>> validators;
 
     public ConfigurationUpdater(
             StateStore stateStore,
             ConfigStore<C> configStore,
+            ConfigurationComparer<C> configComparer,
             Collection<ConfigurationValidator<C>> validators) {
         this.stateStore = stateStore;
         this.configStore = configStore;
+        this.configComparer = configComparer;
         this.validators = validators;
     }
 
@@ -136,17 +139,17 @@ public class ConfigurationUpdater<C extends Configuration> {
                         "available for fallback. Initial launch with invalid configuration? " +
                         "%d Errors: %s", errors.size(), sj.toString()));
             }
-        } else if (targetConfig != null && targetConfig.equals(candidateConfig)) {
-            LOGGER.info("No changes detected between current target configuration '{}' and new " +
-                    "configuration. Leaving current configuration as the target.",
-                    targetConfigId);
-        } else {
+        } else if (targetConfig == null || !configComparer.equals(targetConfig, candidateConfig)) {
             LOGGER.info("Changes detected between current target configuration '{}' and new " +
                     "configuration. Setting target to new configuration.",
                     targetConfigId);
             targetConfigId = configStore.store(candidateConfig);
             targetConfig = candidateConfig;
             configStore.setTargetConfig(targetConfigId);
+        } else {
+            LOGGER.info("No changes detected between current target configuration '{}' and new " +
+                    "configuration. Leaving current configuration as the target.",
+                    targetConfigId);
         }
 
         // Update config IDs on tasks whose config contents match the current target, then clean up

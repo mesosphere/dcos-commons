@@ -1,5 +1,6 @@
 package org.apache.mesos.config;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.config.validate.ConfigurationValidationError;
@@ -22,6 +23,15 @@ import static org.mockito.Mockito.when;
 
 public class ConfigurationUpdaterTest {
     private static class TestConfig implements Configuration {
+
+        // intentionally just checking against the 'name' value to detect differences:
+        private static class Comparer implements ConfigurationComparer<TestConfig> {
+            @Override
+            public boolean equals(TestConfig first, TestConfig second) {
+                return first.name.equals(second.name);
+            }
+        }
+
         private String name;
         private int a;
 
@@ -40,22 +50,18 @@ public class ConfigurationUpdaterTest {
         }
 
         @Override
-        public String toJsonString() throws Exception {
-            return String.format("{ \"int\": %d }", a);
-        }
-
-        // intentionally just checking against the 'name' value to detect differences:
-        @Override
         public boolean equals(Object o) {
-            if (!(o instanceof TestConfig)) {
-                return false;
-            }
-            return name.equals(((TestConfig)o).name);
+            return EqualsBuilder.reflectionEquals(this, o);
         }
 
         @Override
         public int hashCode() {
             return HashCodeBuilder.reflectionHashCode(this);
+        }
+
+        @Override
+        public String toJsonString() throws Exception {
+            return String.format("{ \"int\": %d }", a);
         }
     }
 
@@ -82,12 +88,12 @@ public class ConfigurationUpdaterTest {
         final TestConfig targetConfig = new TestConfig("a", 1);
         final TestConfig newConfig = new TestConfig("b", 2);
 
-        final ConfigurationUpdater<TestConfig> configurationValidator = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, Collections.emptyList());
+        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
+                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Collections.emptyList());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         when(mockConfigStore.store(newConfig)).thenReturn(NEW_ID);
-        ConfigurationUpdater.UpdateResult result = configurationValidator.updateConfiguration(newConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
         Assert.assertEquals(NEW_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
@@ -98,12 +104,12 @@ public class ConfigurationUpdaterTest {
         final TestConfig targetConfig = new TestConfig("a", 1);
         final TestConfig newConfig = new TestConfig("b", 1);
 
-        final ConfigurationUpdater<TestConfig> configurationValidator = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
+                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         when(mockConfigStore.store(newConfig)).thenReturn(NEW_ID);
-        ConfigurationUpdater.UpdateResult result = configurationValidator.updateConfiguration(newConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
         Assert.assertEquals(NEW_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
@@ -115,11 +121,11 @@ public class ConfigurationUpdaterTest {
         final TestConfig targetConfig = new TestConfig("a", 1);
         final TestConfig newConfig = new TestConfig("a", 2);
 
-        final ConfigurationUpdater<TestConfig> configurationValidator = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
+                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        ConfigurationUpdater.UpdateResult result = configurationValidator.updateConfiguration(newConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertEquals(1, result.errors.size());
     }
@@ -129,11 +135,11 @@ public class ConfigurationUpdaterTest {
         // strings are equal, so validation of ints is skipped:
         final TestConfig targetConfig = new TestConfig("a", 1);
 
-        final ConfigurationUpdater<TestConfig> configurationValidator = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
+                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        ConfigurationUpdater.UpdateResult result = configurationValidator.updateConfiguration(targetConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(targetConfig);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
     }
@@ -143,11 +149,11 @@ public class ConfigurationUpdaterTest {
         final TestConfig targetConfig = new TestConfig("a", 1);
         final TestConfig newConfig = new TestConfig("b", 2);
 
-        final ConfigurationUpdater<TestConfig> configurationValidator = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
+                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        ConfigurationUpdater.UpdateResult result = configurationValidator.updateConfiguration(newConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertEquals(1, result.errors.size());
     }
@@ -158,13 +164,13 @@ public class ConfigurationUpdaterTest {
         final TestConfig newConfig = new TestConfig("b", 2);
 
         final UUID configId1 = UUID.randomUUID(); // used by 0 tasks
-        final UUID configId2 = UUID.randomUUID(); // used by 1 task, doesn't equal target
+        final UUID configId2 = UUID.randomUUID(); // used by 1 task, content doesn't equal target
         final TestConfig config2 = new TestConfig("c", 3);
-        final UUID configId3 = UUID.randomUUID(); // used by 2 tasks, equals target
-        final TestConfig config3 = new TestConfig("a", 4);
+        final UUID configId3 = UUID.randomUUID(); // used by 2 tasks, content equals target
+        final TestConfig config3 = new TestConfig("a", 1);
 
-        final ConfigurationUpdater<TestConfig> configurationValidator = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
+                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
 
@@ -174,9 +180,9 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.fetch(configId3)).thenReturn(config3);
         when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, configId1, configId2, configId3));
 
-        ConfigurationUpdater.UpdateResult result = configurationValidator.updateConfiguration(newConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
 
-        verify(mockStateStore).storeTasks(Arrays.asList(taskInfo(TARGET_ID))); // replaces configId4
+        verify(mockStateStore).storeTasks(Arrays.asList(taskInfo(TARGET_ID))); // replaces configId3
         verify(mockConfigStore).clear(configId1);
         verify(mockConfigStore).clear(configId3);
 

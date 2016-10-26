@@ -18,11 +18,4 @@ public interface Configuration {
      */
     @JsonIgnore
     String toJsonString() throws Exception;
-
-    /**
-     * Returns whether this configuration is overall equivalent to the provided configuration.
-     * Required for interaction with {@link ConfigurationUpdater}.
-     */
-    @Override
-    boolean equals(Object other);
 }
