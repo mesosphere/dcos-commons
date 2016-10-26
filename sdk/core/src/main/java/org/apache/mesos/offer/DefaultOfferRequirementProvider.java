@@ -233,8 +233,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
                 .setValue("./executor/bin/executor")
-                .addUris(executorURI)
-                .addAllUris(taskSpecification.getCommand().getUrisList());
+                .addUris(executorURI);
+
+        if (taskSpecification.getCommand().isPresent()) {
+            commandInfoBuilder.addAllUris(taskSpecification.getCommand().get().getUrisList());
+        }
 
         // some version of the JRE is required to kickstart the executor
         setJREVersion(commandInfoBuilder, taskSpecification);
@@ -250,19 +253,23 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
      * @return The string containing the value of the env var indicating where the JRE lives
      */
     private void setJREVersion(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpecification taskSpecification) {
-        Protos.Environment.Variable.Builder javaHomeVariable =
-                Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
 
-        Map<String, String> environment =
-                TaskUtils.fromEnvironmentToMap(taskSpecification.getCommand().getEnvironment());
-        if (environment.containsKey(JAVA_HOME)) {
-            javaHomeVariable.setValue(environment.get(JAVA_HOME));
-        } else {
-            javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
-            commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
+        if (taskSpecification.getCommand().isPresent()) {
+            Protos.Environment.Variable.Builder javaHomeVariable =
+                    Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
+
+            Map<String, String> environment =
+                    TaskUtils.fromEnvironmentToMap(taskSpecification.getCommand().get().getEnvironment());
+            if (environment.containsKey(JAVA_HOME)) {
+                javaHomeVariable.setValue(environment.get(JAVA_HOME));
+            } else {
+                javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
+                commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
+            }
+
+            Protos.Environment.Builder environmentBuilder = Protos.Environment.newBuilder()
+                    .addVariables(javaHomeVariable);
+            commandInfoBuilder.setEnvironment(environmentBuilder);
         }
-
-        Protos.Environment.Builder environmentBuilder = Protos.Environment.newBuilder().addVariables(javaHomeVariable);
-        commandInfoBuilder.setEnvironment(environmentBuilder);
     }
 }

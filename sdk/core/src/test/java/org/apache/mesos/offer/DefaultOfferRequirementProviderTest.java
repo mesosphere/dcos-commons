@@ -74,19 +74,6 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
 
         Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
-
-        /*
-        for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-            boolean validCpu = false;
-            boolean validMem = false;
-            for (ResourceRequirement resourceRequirement : taskRequirement.getResourceRequirements()) {
-                validCpu |= resourceRequirement.getResource().equals(cpu);
-                validMem |= resourceRequirement.getResource().equals(mem);
-            }
-            Assert.assertTrue(validCpu);
-            Assert.assertTrue(validMem);
-        }
-        */
     }
 
     @Test
