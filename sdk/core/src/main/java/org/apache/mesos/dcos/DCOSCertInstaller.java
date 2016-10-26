@@ -47,20 +47,20 @@ public class DCOSCertInstaller {
 
             final String certAbsolutePath = sandboxCertPath.toAbsolutePath().toString();
 
-            String command = keytoolAbsolutePath + " -importcert -noprompt";
-            command += " -alias dcoscert";
-            command += " -keystore " + jreDefaultKeystoreAbsolutePath;
-            command += " -file " + certAbsolutePath;
-            command += " -storepass " + DEFAULT_JRE_KEYSTORE_PASS;
+            String cmd = String.format("%s -importcert -noprompt -alias dcoscert -keystore %s -file %s -storepass %s",
+                    keytoolAbsolutePath,
+                    jreDefaultKeystoreAbsolutePath,
+                    certAbsolutePath,
+                    DEFAULT_JRE_KEYSTORE_PASS);
 
-            LOGGER.info("Installing DC/OS cert using command: {}", command);
+            LOGGER.info("Installing DC/OS cert using command: {}", cmd);
 
-            final ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", command).inheritIO();
+            final ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", cmd).inheritIO();
             final int exitCode = processRunner.run(processBuilder, 10);
             LOGGER.info("Certificate install process completed with exit code: {}", exitCode);
             return exitCode == 0;
         } catch (Throwable t) {
-            LOGGER.error("Error installing cert", t);
+            LOGGER.error("Error installing cert inside JRE: {}. Reason: {}", pathToJRE, t);
             return false;
         }
     }
