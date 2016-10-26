@@ -9,7 +9,12 @@ is Java 1.8+ compatible.
 Building dcos-commons
 --------------------------
 
-1. `./gradlew build`
+`./gradlew build`
+
+Publishing locally
+--------------------------
+
+`./gradlew publishToMavenLocal`
 
 Using dcos-commons
 --------------------------
