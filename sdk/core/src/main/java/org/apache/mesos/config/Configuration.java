@@ -21,8 +21,7 @@ public interface Configuration {
 
     /**
      * Returns whether this configuration is overall equivalent to the provided configuration.
-     * This is explicitly mentioned in the Configuration interface, as its availability is expected
-     * by {@link ConfigurationUpdater}.
+     * Required for interaction with {@link ConfigurationUpdater}.
      */
     @Override
     boolean equals(Object other);
