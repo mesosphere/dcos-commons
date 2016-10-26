@@ -275,7 +275,9 @@ public class ResourceUtils {
 
         for (Resource resource : resourceList) {
             ResourceRequirement resReq = new ResourceRequirement(resource);
-            taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
+            if (resReq.getName().equals("ports")) {
+                taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
+            }
         }
         return taskBuilder;
     }
@@ -294,6 +296,8 @@ public class ResourceUtils {
     private static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builderArg, String execName,
                                                     ResourceRequirement resReq) {
         if (!resReq.hasVIPLabel()) {
+            LOGGER.info(String.format("Port resource has no VIP requirement / %s ",
+                    resReq.getValue());
             return builderArg;
         }
         try {
@@ -308,8 +312,11 @@ public class ResourceUtils {
                                     .setLabels(Labels.newBuilder().addLabels(resReq.getVIPLabel()).build())))
                     .build();
             builderArg.setDiscovery(discoveryInfo);
-            LOGGER.info("I set the VIP ");
+            LOGGER.info(String.format("Discovery VIP is set for port resource  %s ",
+                    resReq.getValue());
         } catch (Exception e) {
+            LOGGER.error(String.format("Discovery VIP is NOT set for port resource  %s ",
+                    resReq.getValue());
             return builderArg;
             //FIX later
         }
@@ -437,7 +444,6 @@ public class ResourceUtils {
         String oldPrincipal = oldResourceSpecification.getPrincipal();
         String newPrincipal = newResourceSpecification.getPrincipal();
         if (!Objects.equals(oldPrincipal, newPrincipal)) {
-            LOGGER.info(String.format("Principals '%s' and '%s' are different.", oldPrincipal, newPrincipal));
             return true;
         }
 
