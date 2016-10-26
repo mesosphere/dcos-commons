@@ -60,7 +60,7 @@ public class DCOSCertInstaller {
             LOGGER.info("Certificate install process completed with exit code: {}", exitCode);
             return exitCode == 0;
         } catch (Throwable t) {
-            LOGGER.error("Error installing cert inside JRE: {}. Reason: {}", pathToJRE, t);
+            LOGGER.error(String.format("Error installing cert inside JRE: %s", pathToJRE), t);
             return false;
         }
     }
