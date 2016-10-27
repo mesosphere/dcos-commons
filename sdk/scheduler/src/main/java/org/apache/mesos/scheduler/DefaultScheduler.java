@@ -57,6 +57,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final StateStore stateStore;
     protected final Optional<Integer> permanentFailureTimeoutSec;
     protected final Integer destructiveRecoveryDelaySec;
+    private final RecoveryRequirementProvider recoveryRequirementProvider;
 
     protected SchedulerDriver driver;
     protected Reconciler reconciler;
@@ -107,7 +108,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * framework state.
      *
      * @param frameworkName the name of the framework (service name)
-     * @param deployPlanManager the deployment plan to be used by this service
+     * @param deploymentPlanManager the deployment plan to be used by this service
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
     public static DefaultScheduler create(String frameworkName, PlanManager deploymentPlanManager) {
@@ -123,7 +124,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * recovery durations.
      *
      * @param frameworkName the name of the framework (service name)
-     * @param deployPlanManager the deployment plan to be used by this service
+     * @param deploymentPlanManager the deployment plan to be used by this service
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *                   has been registered with mesos as indicated by a call to {@link
      *                   DefaultScheduler#registered(SchedulerDriver,
@@ -159,12 +160,14 @@ public class DefaultScheduler implements Scheduler, Observer {
     public static DefaultScheduler create(
             String frameworkName,
             PlanManager deployPlanManager,
+            StateStore stateStore,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return create(
                 frameworkName,
                 deployPlanManager,
-                createStateStore(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                stateStore,
+                new DefaultRecoveryRequirementProvider(),
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
     }
@@ -188,6 +191,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             String frameworkName,
             PlanManager deployPlanManager,
             StateStore stateStore,
+            RecoveryRequirementProvider recoveryRequirementProvider,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return new DefaultScheduler(
@@ -195,6 +199,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 deployPlanManager,
                 new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter()),
                 stateStore,
+                recoveryRequirementProvider,
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
     }
@@ -235,12 +240,14 @@ public class DefaultScheduler implements Scheduler, Observer {
             PlanManager deployPlanManager,
             OfferRequirementProvider offerRequirementProvider,
             StateStore stateStore,
+            RecoveryRequirementProvider recoveryRequirementProvider,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         this.frameworkName = frameworkName;
         this.deployPlanManager = deployPlanManager;
         this.offerRequirementProvider = offerRequirementProvider;
         this.stateStore = stateStore;
+        this.recoveryRequirementProvider = recoveryRequirementProvider;
         this.permanentFailureTimeoutSec = permanentFailureTimeoutSec;
         this.destructiveRecoveryDelaySec = destructiveRecoveryDelaySec;
     }

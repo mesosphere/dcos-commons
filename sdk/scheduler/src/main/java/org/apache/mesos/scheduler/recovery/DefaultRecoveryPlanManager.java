@@ -133,7 +133,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     private Step createStep(Protos.TaskInfo taskInfo)
             throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
-        final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
         final TaskSpecification taskSpec = DefaultTaskSpecification.create(taskInfo);
         final List<RecoveryRequirement> recoveryRequirements;
 
@@ -143,12 +142,16 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
         }
 
-        return new DefaultRecoveryStep(
-                taskSpec.getName(),
-                offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpec),
-                Status.PENDING,
-                recoveryRequirements.get(0),
-                launchConstrainer);
+        if (recoveryRequirements.size() == 1) {
+            return new DefaultRecoveryStep(
+                    taskSpec.getName(),
+                    Status.PENDING,
+                    recoveryRequirements.get(0),
+                    launchConstrainer);
+        } else {
+            throw new InvalidRequirementException(
+                    "Failed to generate the expected RecoveryRequirement: " + recoveryRequirements);
+        }
     }
 
     @Override
