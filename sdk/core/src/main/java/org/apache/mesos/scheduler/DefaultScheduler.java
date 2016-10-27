@@ -22,6 +22,7 @@ import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.api.JsonPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,32 +37,32 @@ import java.util.concurrent.*;
  * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler, Observer {
-    private static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
-    private static final String UNINSTALL_INSTRUCTIONS_URI =
+    protected static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
+    protected static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
-    private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
-    private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
-    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final String zkConnectionString;
-    private final ExecutorService executor = Executors.newFixedThreadPool(1);
-    private final BlockingQueue<Collection<Object>> resourcesQueue;
-    private final String frameworkName;
-    private final Optional<Integer> permanentFailureTimeoutSec;
-    private final Integer destructiveRecoveryDelaySec;
+    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
+    protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
+    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final String zkConnectionString;
+    protected final ExecutorService executor = Executors.newFixedThreadPool(1);
+    protected final BlockingQueue<Collection<Object>> resourcesQueue;
+    protected final String frameworkName;
+    protected final Optional<Integer> permanentFailureTimeoutSec;
+    protected final Integer destructiveRecoveryDelaySec;
 
-    private SchedulerDriver driver;
-    private Reconciler reconciler;
-    private StateStore stateStore;
-    private TaskFailureListener taskFailureListener;
-    private TaskKiller taskKiller;
-    private OfferAccepter offerAccepter;
-    private PlanManager deployPlanManager;
-    private PlanScheduler planScheduler;
-    private PlanManager recoveryPlanManager;
-    private PlanCoordinator planCoordinator;
-    private Collection<Object> resources;
+    protected SchedulerDriver driver;
+    protected Reconciler reconciler;
+    protected StateStore stateStore;
+    protected TaskFailureListener taskFailureListener;
+    protected TaskKiller taskKiller;
+    protected OfferAccepter offerAccepter;
+    protected PlanManager deployPlanManager;
+    protected PlanScheduler planScheduler;
+    protected PlanManager recoveryPlanManager;
+    protected  PlanCoordinator planCoordinator;
+    protected  Collection<Object> resources;
 
     public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
         return create(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
@@ -197,7 +198,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
-        resources.add(new StateResource(stateStore));
+        resources.add(new StateResource(stateStore, new JsonPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, frameworkName));
         resourcesQueue.put(resources);
     }
