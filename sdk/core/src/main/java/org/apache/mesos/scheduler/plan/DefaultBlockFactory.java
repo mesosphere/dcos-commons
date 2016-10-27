@@ -31,8 +31,7 @@ public class DefaultBlockFactory implements BlockFactory {
     }
 
     @Override
-    public Block getBlock(TaskSpecification taskSpecification)
-            throws Block.InvalidBlockException, InvalidProtocolBufferException {
+    public Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidBlockException {
         logger.info("Generating block for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
 
@@ -61,8 +60,8 @@ public class DefaultBlockFactory implements BlockFactory {
             logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
             throw new Block.InvalidBlockException(e);
         } catch (InvalidProtocolBufferException e) {
-            logger.error("Failed to unpack taskInfo: {}", e);
-            throw new InvalidProtocolBufferException(e.toString());
+            logger.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
+            throw new Block.InvalidBlockException(e);
         }
     }
 
