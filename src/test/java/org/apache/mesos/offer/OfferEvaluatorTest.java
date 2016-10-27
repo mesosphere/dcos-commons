@@ -36,12 +36,14 @@ public class OfferEvaluatorTest {
 
         Protos.Value.Range rangeOffer = Protos.Value.Range.newBuilder().setBegin(1000).setEnd(1004).build();
         Protos.Resource offeredPorts = ResourceUtils.getUnreservedRanges("ports", Arrays.asList(rangeOffer));
-        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
-        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
-                "ports", Arrays.asList(range));
+
+        Protos.Resource desiredPort=ResourceUtils.getDesiredPort(
+                TestConstants.ROLE, TestConstants.PRINCIPAL, 1000,
+                Optional.empty()).getResource();
 
         ResourceRequirement dynamicPortRequirement = new ResourceRequirement(desiredPort);
-        dynamicPortRequirement.setEnvName(TestConstants.PORT_NAME);
+        dynamicPortRequirement=ResourceRequirement.setEnvName(dynamicPortRequirement,
+                TestConstants.PORT_NAME);
 
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(dynamicPortRequirement.getResource());
 
@@ -75,13 +77,13 @@ public class OfferEvaluatorTest {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
 
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
-        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
-        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
-                "ports", Arrays.asList(range));
-        ResourceRequirement resreq= new ResourceRequirement(desiredPort);
 
-        resreq.setEnvName(TestConstants.PORT_NAME);
-        resreq.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+        ResourceRequirement resreq =ResourceUtils.getDesiredPort(
+                TestConstants.ROLE, TestConstants.PRINCIPAL, 0,
+                Optional.of(TestConstants.PORT_NAME));
+
+        resreq = ResourceRequirement.setVIPLabel(resreq,
+                Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
 
         OfferRequirement offerReq = new OfferRequirement(
                 TestConstants.TASK_TYPE,
@@ -129,17 +131,18 @@ public class OfferEvaluatorTest {
 
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
 
-        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
-        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
-                "ports", Arrays.asList(range));
+        Protos.Resource desiredPort = ResourceUtils.getDesiredDynamicPort(
+                TestConstants.ROLE, TestConstants.PRINCIPAL, Optional.empty()).getResource();
 
         //ResourceRequirement desiredExecutorDynamicPort= new ResourceRequirement(desiredPort);
         //desiredExecutorDynamicPort.setEnvName(TestConstants.PORT_NAME);
 
         String taskPortName = "TASK_PORT";
         ResourceRequirement desiredTaskDynamicPort= new ResourceRequirement(desiredPort);
-        desiredTaskDynamicPort.setEnvName(taskPortName);
-        desiredTaskDynamicPort.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+        desiredTaskDynamicPort=ResourceRequirement.setEnvName(desiredTaskDynamicPort,
+                taskPortName);
+        desiredTaskDynamicPort=ResourceRequirement.setVIPLabel(desiredTaskDynamicPort,
+                Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
 
 
         OfferRequirement offerReq = new OfferRequirement(
@@ -204,18 +207,20 @@ public class OfferEvaluatorTest {
 
         Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
 
-        Protos.Value.Range range = Protos.Value.Range.newBuilder().setBegin(0).setEnd(0).build();
-        Protos.Resource desiredPort = ResourceUtils.getDesiredRanges(TestConstants.ROLE, TestConstants.PRINCIPAL,
-                "ports", Arrays.asList(range));
+        ResourceRequirement desiredExecutorDynamicPort=ResourceUtils.getDesiredDynamicPort(
+                TestConstants.ROLE, TestConstants.PRINCIPAL,
+                Optional.of(TestConstants.PORT_NAME));
 
-        ResourceRequirement desiredExecutorDynamicPort= new ResourceRequirement(desiredPort);
-        desiredExecutorDynamicPort.setEnvName(TestConstants.PORT_NAME);
-        desiredExecutorDynamicPort.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+        desiredExecutorDynamicPort=ResourceRequirement.setVIPLabel(desiredExecutorDynamicPort,
+                Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
 
         String taskPortName = "TASK_PORT";
-        ResourceRequirement desiredTaskDynamicPort= new ResourceRequirement(desiredPort);
-        desiredTaskDynamicPort.setEnvName(taskPortName);
-        desiredTaskDynamicPort.setVIPLabel(Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
+        ResourceRequirement desiredTaskDynamicPort = ResourceUtils.getDesiredDynamicPort(
+                TestConstants.ROLE, TestConstants.PRINCIPAL,
+                Optional.of(taskPortName));
+
+        desiredTaskDynamicPort = ResourceRequirement.setVIPLabel(desiredTaskDynamicPort,
+                Label.newBuilder().setKey("some_string").setValue("some_more_string").build());
 
 
         OfferRequirement offerReq = new OfferRequirement(

@@ -124,7 +124,8 @@ public class MesosResourcePoolTest {
                 "ports", Arrays.asList(range3));
 
         ResourceRequirement dynamicPortRequirement1 = new ResourceRequirement(desiredPort);
-        dynamicPortRequirement1.setEnvName(TestConstants.PORT_NAME);
+        dynamicPortRequirement1=ResourceRequirement.setEnvName(dynamicPortRequirement1,
+                TestConstants.PORT_NAME);
 
         ResourceRequirement dynamicPortRequirement2 = new ResourceRequirement(desiredPort2);
         ResourceRequirement dynamicPortRequirement3 = new ResourceRequirement(desiredPort3);

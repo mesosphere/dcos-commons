@@ -101,9 +101,9 @@ public class MesosResourcePool {
 
         if (availableValue.getRanges().getRangeCount() > 0) {
             Value.Range range = availableValue.getRanges().getRange(0);
-            resReq.addPort((int) range.getBegin());
-            return consumeUnreservedMerged(resReq);
-        }//if
+            return consumeUnreservedMerged( ResourceRequirement.addPort(resReq,
+                    (int) range.getBegin()));
+        }
 
         return Optional.empty();
     }
@@ -211,7 +211,6 @@ public class MesosResourcePool {
 
         if (sufficientValue(desiredValue, availableValue)) {
             unreservedMergedPool.put(resourceRequirement.getName(), ValueUtils.subtract(availableValue, desiredValue));
-            //// !!!! HERE We OVERWRITE THE RESOURCE AND ITS RESERVATION  /// TODO
             Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
             return Optional.of(new MesosResource(resource));
         } else {

@@ -45,28 +45,4 @@ public class RequirementUtils {
         return resourceRequirements;
     }
 
-  /*public static Collection<PortRequirement> getDynamicPortRequirements(List<Resource> resources)
-          throws DynamicPortRequirement.DynamicPortException {
-    Collection<DynamicPortRequirement> portRequirements = new ArrayList<>();
-
-    for (Resource resource : resources) {
-      if (isDynamicPort(resource)) {
-        portRequirements.add(new DynamicPortRequirement(resource));
-      }
-    }
-
-    return portRequirements;
-  }*/
-  /*
-  static boolean isDynamicPort(Resource resource) {
-    if (resource.getName().equals("ports"))
-    //  return true;  // why not returning true here!
-    {
-      List<Protos.Value.Range> ranges = resource.getRanges().getRangeList();
-      return ranges.size() == 1 && ranges.get(0).getBegin() == 0 && ranges.get(0).getEnd() == 0;
-    }
-
-    return false;
-  }
-  */
 }

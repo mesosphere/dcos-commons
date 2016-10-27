@@ -1,5 +1,6 @@
 package org.apache.mesos.offer;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
@@ -204,7 +205,6 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
-    //* if there is env in the resource */
     public static Environment updateEnvironment(Environment env, List<Resource> resources) {
         Environment.Builder envBuilder = Environment.newBuilder();
         for (Resource resource : resources) {
@@ -220,22 +220,22 @@ public class ResourceUtils {
                 .build();
     }
 
-    public static void setEnvName(ResourceRequirement resReq) {
-        if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
-            for (Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+    public static String setEnvName(Resource resource) {
+        if (resource.hasReservation() && resource.getReservation().hasLabels()) {
+            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(ResourceRequirement.ENV_KEY)) {
-                    resReq.setEnvName(label.getValue());
-                    return;
+                    return label.getValue();
                 }
             }
         }
+        return null;
     }
 
-    public static void setVIPLabel(ResourceRequirement resReq) {
+    public static Label setVIPLabel(Resource resource) {
         String key = null;
         String value = null;
-        if (resReq.getResource().hasReservation() && resReq.getResource().getReservation().hasLabels()) {
-            for (Label label : resReq.getResource().getReservation().getLabels().getLabelsList()) {
+        if (resource.hasReservation() && resource.getReservation().hasLabels()) {
+            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(ResourceRequirement.VIP_KEY)) {
                     key = label.getValue();
                 }
@@ -245,8 +245,9 @@ public class ResourceUtils {
             }
         }
         if (key != null && value != null) {
-            resReq.setVIPLabel(Label.newBuilder().setKey(key).setValue(value).build());
+            return Label.newBuilder().setKey(key).setValue(value).build();
         }
+        return null;
     }
 
     public static Resource getResourceAddLabelUnique(Resource resource, Label label) {
@@ -269,28 +270,27 @@ public class ResourceUtils {
         return resourceBuilder.build();
     }
 
-    public static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builder, String execName,
+    public static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builder, String name,
                                                    List<Resource> resourceList) {
         TaskInfo.Builder taskBuilder = builder;
 
         for (Resource resource : resourceList) {
             ResourceRequirement resReq = new ResourceRequirement(resource);
-                taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
+                taskBuilder = setVIPDiscovery(taskBuilder, name, resReq);
         }
         return taskBuilder;
     }
 
-    public static TaskInfo.Builder setVIPDiscovery2(TaskInfo.Builder builder, String execName,
+    public static TaskInfo.Builder setVIPDiscovery2(TaskInfo.Builder builder, String name,
                                                     List<ResourceRequirement> resReqList) {
         TaskInfo.Builder taskBuilder = builder;
 
         for (ResourceRequirement resReq : resReqList) {
-            taskBuilder = setVIPDiscovery(taskBuilder, execName, resReq);
+            taskBuilder = setVIPDiscovery(taskBuilder, name, resReq);
         }
         return taskBuilder;
     }
 
-    /* what if we have multiple ports, or multiple VIPs, we need to work on here !!!! */ //FIX Later
     private static TaskInfo.Builder setVIPDiscovery(TaskInfo.Builder builderArg, String execName,
                                                     ResourceRequirement resReq) {
         if (!(resReq.getName()).equals("ports")) {
@@ -298,7 +298,7 @@ public class ResourceUtils {
         }
         if (!resReq.hasVIPLabel()) {
             LOGGER.info(String.format("Port resource has no VIP requirement / %s ",
-                    resReq.getValue()));
+                    TextFormat.shortDebugString(resReq.getValue())));
             return builderArg;
         }
         try {
@@ -314,14 +314,15 @@ public class ResourceUtils {
                     .build();
             builderArg.setDiscovery(discoveryInfo);
             LOGGER.info(String.format("Discovery VIP is set for port resource  %s ",
-                    resReq.getValue()));
+                    TextFormat.shortDebugString(resReq.getValue())));
         } catch (Exception e) {
             LOGGER.error(String.format("Discovery VIP is NOT set for port resource  %s ",
-                    resReq.getValue()));
+                    TextFormat.shortDebugString(resReq.getValue())));
             return builderArg;
         }
         return builderArg;
     }
+
     public static ResourceRequirement getDesiredDynamicPort(String role, String principle,
                                                  Optional<String> envName){
         Value.Range range = Value.Range.newBuilder().setBegin(0).setEnd(0).build();
@@ -329,11 +330,35 @@ public class ResourceUtils {
         Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
                 "ports", Arrays.asList(range));
         if (envName.isPresent()){
-            ResourceRequirement resreq = new ResourceRequirement(desiredPort);
-            resreq.setEnvName(envName.get());
-            return resreq;
-
+            return ResourceRequirement.setEnvName(new ResourceRequirement(desiredPort),
+                    envName.get());
         }
+        return new ResourceRequirement(desiredPort);
+
+    }
+
+    public static ResourceRequirement getDesiredPort(String role, String principle,
+                                                     int port,
+                                                            Optional<String> envName){
+        Value.Range range = Value.Range.newBuilder().setBegin(port).setEnd(port).build();
+
+        Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
+                "ports", Arrays.asList(range));
+        if (envName.isPresent()){
+            return ResourceRequirement.setEnvName(new ResourceRequirement(desiredPort),
+                    envName.get());
+        }
+        return new ResourceRequirement(desiredPort);
+
+    }
+
+
+    public static ResourceRequirement getDesiredPort(String role, String principle,
+                                                     int port) {
+        Value.Range range = Value.Range.newBuilder().setBegin(port).setEnd(port).build();
+
+        Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
+                "ports", Arrays.asList(range));
         return new ResourceRequirement(desiredPort);
 
     }

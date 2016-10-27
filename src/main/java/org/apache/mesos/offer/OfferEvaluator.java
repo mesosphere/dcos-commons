@@ -63,20 +63,6 @@ public class OfferEvaluator {
         return Collections.emptyList();
     }
 
-    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, Offer offer)
-            throws StateStoreException {
-        List<OfferRecommendation> recommendations =
-                evaluateInternal(offerRequirement, offer, getPlacementRule(offerRequirement, stateStore));
-        if (!recommendations.isEmpty()) {
-            logger.info("Offer passed resource requirements, produced {} recommendations: {}",
-                    recommendations.size(), TextFormat.shortDebugString(offer));
-        } else {
-            logger.info("Offer did not pass resource requirements: {}",
-                    TextFormat.shortDebugString(offer));
-        }
-        return recommendations;
-    }
-
     private List<OfferRecommendation> evaluateInternal(
             OfferRequirement offerRequirement, Offer offer, Optional<PlacementRule> placementRule) {
         if (placementRule.isPresent()) {
@@ -324,7 +310,6 @@ public class OfferEvaluator {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -404,7 +389,6 @@ public class OfferEvaluator {
                 .newBuilder(taskReq.getTaskInfo())
                 .clearResources()
                 .addAllResources(fulfilledTaskResources);
-
 
         if (execInfo.isPresent()) {
             List<Resource> selectedResources = fulfilledExecutorRequirement.isPresent()

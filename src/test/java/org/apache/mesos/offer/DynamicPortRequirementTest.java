@@ -19,12 +19,13 @@ public class DynamicPortRequirementTest {
                 TestConstants.ROLE, TestConstants.PRINCIPAL,
                 Optional.of(TestConstants.PORT_NAME));
 
-        dynamicPortRequirement1.setVIPLabel( Protos.Label.newBuilder().setKey("some_key").setValue("some_value").build());
+        dynamicPortRequirement1=ResourceRequirement.setVIPLabel(dynamicPortRequirement1,
+                Protos.Label.newBuilder().setKey("some_key").setValue("some_value").build());
 
         Assert.assertNotNull(dynamicPortRequirement1);
         Boolean flag=dynamicPortRequirement1.getResource().getReservation().getLabels().getLabelsList().contains(
                 Protos.Label.newBuilder().setKey(ResourceRequirement.VIP_KEY).setValue("some_key").build());
 
-        Assert.assertEquals(true, flag);
+        Assert.assertTrue(flag);
     }
 }

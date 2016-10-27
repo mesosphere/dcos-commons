@@ -25,7 +25,6 @@ public class ResourceRequirement {
     public static final String VIP_KEY = "VIP_KEY";
     public static final String VIP_VALUE = "VIP_VALUE";
 
-
     private MesosResource mesosResource;
     private DiskInfo diskInfo;
 
@@ -35,9 +34,8 @@ public class ResourceRequirement {
     public ResourceRequirement(Resource resource) {
         this.mesosResource = new MesosResource(resource);
         this.diskInfo = getDiskInfo();
-        ResourceUtils.setEnvName(this);
-        ResourceUtils.setVIPLabel(this);
-
+        this.envName = Optional.ofNullable(ResourceUtils.setEnvName(resource));
+        this.vipLabel = Optional.ofNullable(ResourceUtils.setVIPLabel(resource));
     }
 
     public boolean hasEnvName() {
@@ -48,6 +46,7 @@ public class ResourceRequirement {
     }
 
     public boolean hasVIPLabel() {
+
         return vipLabel.isPresent();
     }
 
@@ -67,37 +66,33 @@ public class ResourceRequirement {
     }
 
 
-    public void setEnvName(String envName) {
-        this.envName = Optional.of(envName);
-        if (!this.envName.isPresent()) {
-            return;
+    public static ResourceRequirement setEnvName(ResourceRequirement resReq, String envName) {
+        if (envName != null && envName.length() > 0) {
+            return new ResourceRequirement(
+                    ResourceUtils.getResourceAddLabelUnique(resReq.getResource(),
+                            Label.newBuilder()
+                                    .setKey(ENV_KEY)
+                                    .setValue(envName)
+                                    .build()));
         }
-        this.mesosResource = new MesosResource(
-                ResourceUtils.getResourceAddLabelUnique(getResource(),
-                        Label.newBuilder()
-                                .setKey(ENV_KEY)
-                                .setValue(getEnvName())
-                                .build()));
-
+        return resReq;
     }
 
-    public void setVIPLabel(Label label) {
-        vipLabel = Optional.of(label);
-        if (!vipLabel.isPresent()) {
-            return;
+    public static ResourceRequirement setVIPLabel(ResourceRequirement resReq, Label label) {
+        if (label != null) {
+            return new ResourceRequirement(
+                    ResourceUtils.getResourceAddLabelUnique(
+                            ResourceUtils.getResourceAddLabelUnique(resReq.getResource(),
+                                    Label.newBuilder()
+                                            .setKey(VIP_KEY)
+                                            .setValue(label.getKey())
+                                            .build()),
+                            Label.newBuilder()
+                                    .setKey(VIP_VALUE)
+                                    .setValue(label.getValue())
+                                    .build()));
         }
-        mesosResource = new MesosResource(
-                ResourceUtils.getResourceAddLabelUnique(getResource(),
-                        Label.newBuilder()
-                                .setKey(VIP_KEY)
-                                .setValue(vipLabel.get().getKey())
-                                .build()));
-        mesosResource = new MesosResource(
-                ResourceUtils.getResourceAddLabelUnique(getResource(),
-                        Label.newBuilder()
-                                .setKey(VIP_VALUE)
-                                .setValue(vipLabel.get().getValue())
-                                .build()));
+        return resReq;
     }
 
     public boolean isDynamicPort() {
@@ -108,15 +103,17 @@ public class ResourceRequirement {
         return false;
     }
 
-    public void addPort(int port) {
-        if (isDynamicPort()) {
+    /**
+     * If resource is "ports" and if the current value is set to 0. Otherwise does not update
+     */
+    public static ResourceRequirement addPort(ResourceRequirement resReq, int port) {
+        if (resReq.isDynamicPort()) {
             Value.Range range = Value.Range.newBuilder().setBegin(port).setEnd(port).build();
-            //Value value=Value.newBuilder().setType(Value.Type.RANGES).
-            // setRanges(Value.Ranges.newBuilder().addRange(range).build()).build();
-            Resource resource = Resource.newBuilder(this.getResource()).
+            Resource resource = Resource.newBuilder(resReq.getResource()).
                     setRanges(Value.Ranges.newBuilder().addRange(range).build()).build();
-            this.mesosResource = new MesosResource(resource);
-        }//isDynamicPort()
+            return new ResourceRequirement(resource);
+        }
+        return resReq;
     }
 
     public Resource getResource() {
@@ -155,7 +152,6 @@ public class ResourceRequirement {
         if (!hasReservation()) {
             return false;
         }
-
         return !expectsResource();
     }
 
@@ -207,7 +203,6 @@ public class ResourceRequirement {
         return mesosResource.getValue();
     }
 
-    /*    returns value for envName=<value> */
     public String getEnvValue() {
         Value value = getValue();
         if (value.getType() == Value.Type.RANGES && value.getRanges().getRangeCount() == 1) {
