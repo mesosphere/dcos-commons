@@ -978,9 +978,96 @@ the node has failed, restarts the task on a different node. The
 scheduler's persistent volume is reused on restart. A new persistent
 volume is created when a node fails.
 
+By default the mechanism for determining whether a task has permanently
+failed is time based.  When a task stays in a terminal state for some
+configurable duration it is determined to have failed.  By default, this
+duration is 20 minutes.  Once tasks have been determined to have
+permanently failed a second configurable parameter determines how many 
+destructive task replacements may occur in a given time period.  By 
+default, no more than one task may be destructively replaced in any 10 
+minute period.  Finally automatic destructive recovery may be entirely
+suppressed.
 
-We should emphasize that the persistent volume is reused on a restart,
-and a new one is created when the node fails.
+Consider the simplest construct for the `DefaultScheduler` in which
+automatic destructive recovery configuration is exposed:
+
+```java
+DefaultScheduler create(
+        String frameworkName,
+        PlanManager deploymentPlanManager,
+        Optional<Integer> permanentFailureTimeoutSec,
+        Integer destructiveRecoveryDelaySec) {
+```
+
+The `permanentFailureTimeoutSec` argument determines how long a task
+must be in a terminal state before it is considered permanently failed.
+If no value is present, automatic destructive recovery is turned off.
+
+The `destructiveRecoveryDelaySec` argument determines how much time must
+pass between destructive task replacement events.
+
+The parameters above encapsulate one implementation of a more general
+permanent task recovery scheme.  It has two major components: a safety
+constraint and a performance constraint.  In the example above, the
+duration which must be waited until a task is considered permanently 
+failed is the safety constraint.  One could write a safety constraint 
+with more subtlety than a simple timeout.
+
+The performance constraint is encapsulated above by the recovery delay
+parameter.  Even if a large number of tasks could be safely
+destructively replaced, it could possibly cause performance degradation
+as network traffic increases to reconstruct lost task state.
+Furthermore and abundance of caution is desirable when automating
+destructive recovery operations, so throttling the maximum rate of
+destruction is prudent.
+
+Recovery, just like deployment is mediated by a plan.  The status of the
+plan can be viewed at the endpoint below.
+```bash
+GET /v1/plans/recovery
+```
+
+It's output in the case where no failures of any kind have occurred
+looks like the below.
+```json
+{
+	phases: [{
+		id: "128d7df9-8605-4e1a-b98b-478821b1aeda",
+		name: "recovery",
+		steps: [],
+		status: "COMPLETE"
+	}],
+	errors: [],
+	status: "COMPLETE"
+}
+```
+
+After a task has crashed and been recovered one would see a plan similar
+to:
+```json
+{
+	phases: [{
+		id: "88d944d3-4fc2-4605-889f-96b5429fb8af",
+		name: "recovery",
+		steps: [{
+			id: "ed4d2209-ab19-4242-b7da-d10cdf9e443b",
+			status: "COMPLETE",
+			name: "data-2",
+			message: "org.apache.mesos.scheduler.recovery.DefaultRecoveryBlock: 'data-2 [ed4d2209-ab19-4242-b7da-d10cdf9e443b]' has status: 'COMPLETE'. RecoveryType: TRANSIENT"
+		}],
+		status: "COMPLETE"
+	}],
+	errors: [],
+	status: "COMPLETE"
+}
+```
+
+Note in particular the above message containing
+`RecoveryType: TRANSIENT` for the step named `data-2`.  This indicates a
+recovery from a temporary failure.  The task was able to be successfully
+recovered in its previous location with all its old resources including
+persistent volumes.  In the case of a permanent failure recovery, the
+message would instead contain `RecoveryType: PERMANENT`.
 
 ## Persistent volumes
 Schedulers must create persistent volumes that will
