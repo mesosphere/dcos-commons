@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.protobuf.DefaultVolumeSpecification;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
@@ -21,13 +21,13 @@ public class TestTaskSetFactory {
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
 
     public static TaskSet getTaskSet() {
-        return getTaskSet(
-                NAME,
-                COUNT,
-                CMD.getValue(),
-                CPU,
-                MEM,
-                DISK);
+        return getTaskSet(NAME, COUNT, CMD.getValue(), CPU, MEM, DISK);
+    }
+
+    public static TaskSet getTaskSet(
+            Collection<ConfigFileSpecification> configs,
+            Optional<PlacementRuleGenerator> placement) {
+        return getTaskSet(NAME, COUNT, CMD.getValue(), CPU, MEM, DISK, configs, placement);
     }
 
     public static TaskSet getTaskSet(
@@ -37,6 +37,18 @@ public class TestTaskSetFactory {
             double cpu,
             double mem,
             double disk) {
+        return getTaskSet(name, count, cmd, cpu, mem, disk, Collections.emptyList(), Optional.empty());
+    }
+
+    public static TaskSet getTaskSet(
+            String name,
+            Integer count,
+            String cmd,
+            double cpu,
+            double mem,
+            double disk,
+            Collection<ConfigFileSpecification> configs,
+            Optional<PlacementRuleGenerator> placement) {
 
         return DefaultTaskSet.create(
                 count,
@@ -45,8 +57,8 @@ public class TestTaskSetFactory {
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                Collections.emptyList(),
-                Optional.empty(),
+                configs,
+                placement,
                 Optional.empty());
     }
 

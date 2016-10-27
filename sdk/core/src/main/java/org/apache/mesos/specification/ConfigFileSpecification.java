@@ -1,12 +1,17 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 /**
  * Represents an optionally templated configuration file to be written before the task is started.
  */
+@JsonDeserialize(as = DefaultConfigFileSpecification.class)
 public interface ConfigFileSpecification {
     /**
      * Path where this file will be written, relative to the initial working directory of the task.
      */
+    @JsonProperty("relative_path")
     String getRelativePath();
 
     /**
@@ -27,5 +32,6 @@ public interface ConfigFileSpecification {
      *   FOO=BAR
      *   BAR=BAZ
      */
+    @JsonProperty("template_content")
     String getTemplateContent();
 }

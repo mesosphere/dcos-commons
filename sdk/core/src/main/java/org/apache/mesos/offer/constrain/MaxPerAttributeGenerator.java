@@ -6,8 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.TaskUtils;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Ensures that the given Offer’s attributes each have no more than N instances of the task type
@@ -46,8 +51,10 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
      * Creates a new rule generator which will block deployment on tasks which already have N
      * instances running against a specified attribute.
      */
+    @JsonCreator
     public MaxPerAttributeGenerator(
-            int maxTasksPerSelectedAttribute, AttributeSelector attributeSelector) {
+            @JsonProperty("max") int maxTasksPerSelectedAttribute,
+            @JsonProperty("selector") AttributeSelector attributeSelector) {
         this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
         this.attributeSelector = attributeSelector;
     }
@@ -92,5 +99,29 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
             // filter out any offers which contain the full attributes.
             return new NotRule(new OrRule(blockedAttributes));
         }
+    }
+
+    @JsonProperty("max")
+    private int getMax() {
+            return maxTasksPerSelectedAttribute; }
+
+    @JsonProperty("selector")
+    private AttributeSelector getSelector() {
+            return attributeSelector; }
+
+    @Override
+    public String toString() {
+        return String.format("MaxPerAttributeGenerator{max=%s, selector=%s}",
+                maxTasksPerSelectedAttribute, attributeSelector);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

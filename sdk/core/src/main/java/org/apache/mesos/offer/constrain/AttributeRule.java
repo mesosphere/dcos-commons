@@ -1,8 +1,14 @@
 package org.apache.mesos.offer.constrain;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.offer.AttributeStringUtils;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Requires that the Offer contain an attribute whose string representation matches the provided string.
@@ -35,12 +41,48 @@ public class AttributeRule implements PlacementRule {
         return String.format("AttributeRule{selector=%s}", attributeSelector);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
     /**
      * A generator which returns an {@link AttributeRule} for the provided attribute.
      */
+    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
     public static class Generator extends PassthroughGenerator {
-        public Generator(AttributeSelector attributeSelector) {
+
+        private final AttributeSelector attributeSelector;
+
+        @JsonCreator
+        public Generator(@JsonProperty("selector") AttributeSelector attributeSelector) {
             super(new AttributeRule(attributeSelector));
+            this.attributeSelector = attributeSelector;
+        }
+
+        @JsonProperty("selector")
+        private AttributeSelector getSelector() {
+            return attributeSelector;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("AttributeRuleGenerator{selector=%s}", attributeSelector);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
         }
     }
 }

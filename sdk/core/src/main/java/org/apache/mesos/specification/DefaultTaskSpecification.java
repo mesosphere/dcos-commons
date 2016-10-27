@@ -1,15 +1,17 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
-import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.ArrayList;
@@ -21,15 +23,16 @@ import java.util.Optional;
  */
 public class DefaultTaskSpecification implements TaskSpecification {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskSpecification.class);
+
     private final String name;
     private final String type;
     private final Optional<Protos.CommandInfo> commandInfo;
     private final Optional<Protos.ContainerInfo> containerInfo;
-    private final Optional<Protos.HealthCheck> healthCheck;
     private final Collection<ResourceSpecification> resourceSpecifications;
     private final Collection<VolumeSpecification> volumeSpecifications;
     private final Collection<ConfigFileSpecification> configFileSpecifications;
-    private final Optional<PlacementRuleGenerator> placementOptional;
+    private final Optional<PlacementRuleGenerator> placement;
+    private final Optional<Protos.HealthCheck> healthCheck;
 
     public static DefaultTaskSpecification create(Protos.TaskInfo taskInfo)
             throws InvalidTaskSpecificationException, TaskException {
@@ -76,7 +79,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRuleGenerator> placement,
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
@@ -86,7 +89,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             resourceSpecifications,
             volumeSpecifications,
             configFileSpecifications,
-            placementOptional,
+            placement,
             healthCheck);
     }
 
@@ -100,7 +103,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRuleGenerator> placement,
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
@@ -110,7 +113,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             resourceSpecifications,
             volumeSpecifications,
             configFileSpecifications,
-            placementOptional,
+            placement,
             healthCheck);
     }
 
@@ -125,7 +128,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRuleGenerator> placement,
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
@@ -135,21 +138,21 @@ public class DefaultTaskSpecification implements TaskSpecification {
             resourceSpecifications,
             volumeSpecifications,
             configFileSpecifications,
-            placementOptional,
+            placement,
             healthCheck);
     }
 
+    @JsonCreator
     protected DefaultTaskSpecification(
-            String name,
-            String type,
-            Optional<Protos.ContainerInfo> containerInfo,
-            Optional<Protos.CommandInfo> commandInfo,
-            Collection<ResourceSpecification> resourceSpecifications,
-            Collection<VolumeSpecification> volumeSpecifications,
-            Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placementOptional,
-            Optional<Protos.HealthCheck> healthCheck) {
-
+            @JsonProperty("name") String name,
+            @JsonProperty("type") String type,
+            @JsonProperty("container") Optional<Protos.ContainerInfo> containerInfo,
+            @JsonProperty("command") Optional<Protos.CommandInfo> commandInfo,
+            @JsonProperty("resources") Collection<ResourceSpecification> resourceSpecifications,
+            @JsonProperty("volumes") Collection<VolumeSpecification> volumeSpecifications,
+            @JsonProperty("config_files") Collection<ConfigFileSpecification> configFileSpecifications,
+            @JsonProperty("placement") Optional<PlacementRuleGenerator> placement,
+            @JsonProperty("health_check") Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
         this.type = type;
         this.containerInfo = containerInfo;
@@ -157,7 +160,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
         this.resourceSpecifications = resourceSpecifications;
         this.volumeSpecifications = volumeSpecifications;
         this.configFileSpecifications = configFileSpecifications;
-        this.placementOptional = placementOptional;
+        this.placement = placement;
         this.healthCheck = healthCheck;
     }
 
@@ -203,7 +206,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
 
     @Override
     public Optional<PlacementRuleGenerator> getPlacement() {
-        return placementOptional;
+        return placement;
     }
 
     private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {
@@ -279,5 +282,18 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TaskSpecification)) {
+            return false;
+        }
+        return !TaskUtils.areDifferent(this, (TaskSpecification) o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

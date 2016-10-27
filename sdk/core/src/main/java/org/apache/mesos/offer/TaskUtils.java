@@ -6,14 +6,13 @@ import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.DefaultConfigFileSpecification;
-import org.apache.mesos.specification.ConfigFileSpecification;
-import org.apache.mesos.specification.ResourceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -341,7 +340,11 @@ public class TaskUtils {
         driver.sendStatusUpdate(taskStatus);
     }
 
-    public static boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+    public static boolean areDifferent(
+            TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+
+        // Names
+
         String oldTaskName = oldTaskSpecification.getName();
         String newTaskName = newTaskSpecification.getName();
         if (!Objects.equals(oldTaskName, newTaskName)) {
@@ -349,43 +352,34 @@ public class TaskUtils {
             return true;
         }
 
-        boolean oldCommandPresent = oldTaskSpecification.getCommand().isPresent();
-        boolean newCommandPresent = newTaskSpecification.getCommand().isPresent();
+        // CommandInfos
 
-        if (oldCommandPresent != newCommandPresent) {
-            LOGGER.info(String.format("Task commands '%s' and '%s' are different.",
-                    (oldCommandPresent ? oldTaskSpecification.getCommand().get() : "NULL"),
-                    (newCommandPresent ? newTaskSpecification.getCommand().get() : "NULL")));
+        Optional<CommandInfo> oldCommand = oldTaskSpecification.getCommand();
+        Optional<CommandInfo> newCommand = newTaskSpecification.getCommand();
+        if (!Objects.equals(oldCommand, newCommand)) {
+            LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
             return true;
         }
 
-        if (oldCommandPresent && newCommandPresent) {
-            CommandInfo oldCommand = oldTaskSpecification.getCommand().get();
-            CommandInfo newCommand = newTaskSpecification.getCommand().get();
-            if (!Objects.equals(oldCommand, newCommand)) {
-                LOGGER.info(String.format("Task commands '%s' and '%s' are different.", oldCommand, newCommand));
-                return true;
-            }
-        }
+        // ContainerInfos
 
-        boolean oldContainerPresent = oldTaskSpecification.getContainer().isPresent();
-        boolean newContainerPresent = newTaskSpecification.getContainer().isPresent();
-
-        if (oldContainerPresent != newContainerPresent) {
-            LOGGER.info(String.format("Task containers '%s' and '%s' are different.",
-                    (oldContainerPresent ? oldTaskSpecification.getContainer().get() : "NULL"),
-                    (newContainerPresent ? newTaskSpecification.getContainer().get() : "NULL")));
+        Optional<ContainerInfo> oldContainer = oldTaskSpecification.getContainer();
+        Optional<ContainerInfo> newContainer = newTaskSpecification.getContainer();
+        if (!Objects.equals(oldContainer, newContainer)) {
+            LOGGER.info("Task containers '{}' and '{}' are different.", oldContainer, newContainer);
             return true;
         }
 
-        if (oldContainerPresent && newContainerPresent) {
-            ContainerInfo oldContainer = oldTaskSpecification.getContainer().get();
-            ContainerInfo newContainer = newTaskSpecification.getContainer().get();
-            if (!Objects.equals(oldContainer, newContainer)) {
-                LOGGER.info(String.format("Task containers '%s' and '%s' are different.", oldContainer, newContainer));
-                return true;
-            }
+        // Health checks
+
+        Optional<HealthCheck> oldHealthCheck = oldTaskSpecification.getHealthCheck();
+        Optional<HealthCheck> newHealthCheck = newTaskSpecification.getHealthCheck();
+        if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
+            LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
+            return true;
         }
+
+        // Resources (custom comparison)
 
         Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
         Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
@@ -409,29 +403,43 @@ public class TaskUtils {
             }
         }
 
-        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
-        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
+        // Volumes (custom comparison)
 
-        if (oldConfigMap.size() != newConfigMap.size()) {
-            LOGGER.info("Config lengths are different for old configs: '{}' and new configs: '{}'",
-                    oldConfigMap, newConfigMap);
+        if (!volumesEqual(oldTaskSpecification, newTaskSpecification)) {
+            LOGGER.info("Task volumes '{}' and '{}' are different.",
+                    oldTaskSpecification.getVolumes(), newTaskSpecification.getVolumes());
             return true;
         }
 
-        for (Map.Entry<String, String> newEntry : newConfigMap.entrySet()) {
-            String configPath = newEntry.getKey();
-            LOGGER.info("Checking config file difference for: {}", configPath);
-            String oldConfigTemplate = oldConfigMap.get(configPath);
-            if (oldConfigTemplate == null) {
-                LOGGER.info("Config file path not found: {}", configPath);
-                return true;
-            } else if (!newEntry.getValue().equals(oldConfigTemplate)) { // simple string comparison
-                LOGGER.info("Config templates are different.");
-                return true;
-            }
+        // Config files
+
+        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
+        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
+        if (!Objects.equals(oldConfigMap, newConfigMap)) {
+            LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
+            return true;
+        }
+
+        // Placement constraints
+
+        Optional<PlacementRuleGenerator> oldPlacement = oldTaskSpecification.getPlacement();
+        Optional<PlacementRuleGenerator> newPlacement = newTaskSpecification.getPlacement();
+        if (!Objects.equals(oldPlacement, newPlacement)) {
+            LOGGER.info("Task placement constraints '{}' and '{}' are different.", oldPlacement, newPlacement);
+            return true;
         }
 
         return false;
+    }
+
+    /**
+     * Utility method for checking if volumes changed between the two provided
+     * {@link TaskSpecification}s.
+     *
+     * @return whether the volume lists are equal
+     */
+    public static boolean volumesEqual(TaskSpecification first, TaskSpecification second) {
+        return CollectionUtils.isEqualCollection(first.getVolumes(), second.getVolumes());
     }
 
     /**
