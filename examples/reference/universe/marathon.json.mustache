@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env &&./scheduler/bin/reference-scheduler",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env &&./scheduler/bin/reference",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -23,7 +23,8 @@
     "DATA_COUNT": "{{data.count}}",
     "DATA_CPU": "{{data.cpus}}",
     "DATA_MEM": "{{data.mem}}",
-    "DATA_DISK": "{{data.disk}}"
+    "DATA_DISK": "{{data.disk}}",
+    "EXECUTOR_URI": "{{executor.uri}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
