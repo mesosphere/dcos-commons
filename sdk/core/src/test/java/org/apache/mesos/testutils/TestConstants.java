@@ -36,6 +36,17 @@ public class TestConstants {
                     .setValue("test-framework-id")
                     .build();
 
+    public static final Protos.ContainerInfo CONTAINER_INFO =
+            Protos.ContainerInfo.newBuilder()
+            .setType(Protos.ContainerInfo.Type.DOCKER)
+            .setDocker(
+                    Protos.ContainerInfo.DockerInfo.newBuilder()
+                    .setImage("bash")
+                    .setNetwork(Protos.ContainerInfo.DockerInfo.Network.HOST)
+                    .build()
+            )
+            .build();
+
     public static final Protos.CommandInfo COMMAND_INFO =
             Protos.CommandInfo.newBuilder()
             .setValue("echo test")

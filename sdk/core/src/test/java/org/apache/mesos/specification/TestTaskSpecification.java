@@ -14,7 +14,8 @@ import java.util.Optional;
 public class TestTaskSpecification implements TaskSpecification {
     private final String name;
     private final String type;
-    private final Protos.CommandInfo command;
+    private final Optional<Protos.CommandInfo> command;
+    private final Optional<Protos.ContainerInfo> container;
     private final Collection<VolumeSpecification> volumes;
     private Collection<ResourceSpecification> resources;
     private Collection<ConfigFileSpecification> configs;
@@ -25,6 +26,7 @@ public class TestTaskSpecification implements TaskSpecification {
         this.name = taskSpecification.getName();
         this.type = taskSpecification.getType();
         this.command = taskSpecification.getCommand();
+        this.container = taskSpecification.getContainer();
         this.resources = taskSpecification.getResources();
         this.volumes = taskSpecification.getVolumes();
         this.configs = taskSpecification.getConfigFiles();
@@ -43,8 +45,13 @@ public class TestTaskSpecification implements TaskSpecification {
     }
 
     @Override
-    public Protos.CommandInfo getCommand() {
+    public Optional<Protos.CommandInfo> getCommand() {
         return command;
+    }
+
+    @Override
+    public Optional<Protos.ContainerInfo> getContainer() {
+        return container;
     }
 
     @Override

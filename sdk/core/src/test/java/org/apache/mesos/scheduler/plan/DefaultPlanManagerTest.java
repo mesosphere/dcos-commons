@@ -11,10 +11,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 
@@ -206,6 +203,94 @@ public class DefaultPlanManagerTest {
                         .build());
 
         verify(mockBlock, times(1)).update(any());
+    }
+
+    @Test
+    public void testAllDirtyAssets() {
+        when(reconciler.isReconciled()).thenReturn(false);
+        final TestBlock block1 = new TestBlock("test-block-1");
+        final TestBlock block2 = new TestBlock("test-block-2");
+
+        final DefaultPhase phase = new DefaultPhase(
+                "phase-1",
+                Arrays.asList(block1, block2),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        DefaultPlan waitingPlan = new DefaultPlan(
+                "test-plan",
+                Arrays.asList(phase),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        block1.setStatus(Status.IN_PROGRESS);
+        block2.setStatus(Status.IN_PROGRESS);
+
+        PlanManager waitingManager = new DefaultPlanManager(waitingPlan);
+        Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
+
+        final Set<String> dirtyAssets = waitingManager.getDirtyAssets();
+        Assert.assertEquals(2, dirtyAssets.size());
+        Assert.assertTrue(dirtyAssets.contains("test-block-1"));
+        Assert.assertTrue(dirtyAssets.contains("test-block-2"));
+    }
+
+    @Test
+    public void testOneInProgressOnePending() {
+        when(reconciler.isReconciled()).thenReturn(false);
+        final TestBlock block1 = new TestBlock("test-block-1");
+        final TestBlock block2 = new TestBlock("test-block-2");
+        final DefaultPhase phase = new DefaultPhase(
+                "phase-1",
+                Arrays.asList(block1, block2),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        DefaultPlan waitingPlan = new DefaultPlan(
+                "test-plan",
+                Arrays.asList(phase),
+                new SerialStrategy<>(),
+                Collections.emptyList()
+        );
+
+        block1.setStatus(Status.PENDING);
+        block2.setStatus(Status.IN_PROGRESS);
+
+        PlanManager waitingManager = new DefaultPlanManager(waitingPlan);
+        Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
+
+        final Set<String> dirtyAssets = waitingManager.getDirtyAssets();
+        Assert.assertEquals(1, dirtyAssets.size());
+        Assert.assertTrue(dirtyAssets.contains("test-block-2"));
+    }
+
+    @Test
+    public void testOneInProgressOneComplete() {
+        when(reconciler.isReconciled()).thenReturn(false);
+        final TestBlock block1 = new TestBlock("test-block-1");
+        final TestBlock block2 = new TestBlock("test-block-2");
+        final DefaultPhase phase = new DefaultPhase(
+                "phase-1",
+                Arrays.asList(block1, block2),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        DefaultPlan waitingPlan = new DefaultPlan(
+                "test-plan",
+                Arrays.asList(phase),
+                new SerialStrategy<>(),
+                Collections.emptyList()
+        );
+
+        block1.setStatus(Status.COMPLETE);
+        block2.setStatus(Status.IN_PROGRESS);
+
+        PlanManager waitingManager = new DefaultPlanManager(waitingPlan);
+        Assert.assertEquals(Status.IN_PROGRESS, waitingManager.getPlan().getStatus());
+
+        final Set<String> dirtyAssets = waitingManager.getDirtyAssets();
+        Assert.assertEquals(1, dirtyAssets.size());
+        Assert.assertTrue(dirtyAssets.contains("test-block-2"));
     }
 
     private static void completePhase(Phase phase) {

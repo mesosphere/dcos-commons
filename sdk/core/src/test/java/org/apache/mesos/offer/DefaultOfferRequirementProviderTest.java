@@ -88,7 +88,8 @@ public class DefaultOfferRequirementProviderTest {
 
     private TaskSpecification setupMock(Protos.TaskInfo taskInfo, Optional<PlacementRuleGenerator> placement) {
         when(mockTaskSpecification.getName()).thenReturn(taskInfo.getName());
-        when(mockTaskSpecification.getCommand()).thenReturn(taskInfo.getCommand());
+        when(mockTaskSpecification.getCommand()).thenReturn(Optional.of(taskInfo.getCommand()));
+        when(mockTaskSpecification.getContainer()).thenReturn(Optional.of(taskInfo.getContainer()));
         when(mockTaskSpecification.getHealthCheck()).thenReturn(Optional.empty());
         when(mockTaskSpecification.getResources()).thenReturn(getResources(taskInfo));
         when(mockTaskSpecification.getVolumes()).thenReturn(getVolumes(taskInfo));

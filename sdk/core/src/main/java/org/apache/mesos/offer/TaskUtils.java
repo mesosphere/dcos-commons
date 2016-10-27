@@ -357,7 +357,8 @@ public class TaskUtils {
         driver.sendStatusUpdate(taskStatus);
     }
 
-    public static boolean areDifferent(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+    public static boolean areDifferent(
+            TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
 
         // Names
 
@@ -368,12 +369,21 @@ public class TaskUtils {
             return true;
         }
 
-        // Commandinfos
+        // CommandInfos
 
-        CommandInfo oldCommand = oldTaskSpecification.getCommand();
-        CommandInfo newCommand = newTaskSpecification.getCommand();
+        Optional<CommandInfo> oldCommand = oldTaskSpecification.getCommand();
+        Optional<CommandInfo> newCommand = newTaskSpecification.getCommand();
         if (!Objects.equals(oldCommand, newCommand)) {
             LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
+            return true;
+        }
+
+        // ContainerInfos
+
+        Optional<ContainerInfo> oldContainer = oldTaskSpecification.getContainer();
+        Optional<ContainerInfo> newContainer = newTaskSpecification.getContainer();
+        if (!Objects.equals(oldContainer, newContainer)) {
+            LOGGER.info("Task containers '{}' and '{}' are different.", oldContainer, newContainer);
             return true;
         }
 
@@ -386,7 +396,7 @@ public class TaskUtils {
             return true;
         }
 
-        // Resources
+        // Resources (custom comparison)
 
         Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
         Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
@@ -410,7 +420,7 @@ public class TaskUtils {
             }
         }
 
-        // Volumes
+        // Volumes (custom comparison)
 
         if (!volumesEqual(oldTaskSpecification, newTaskSpecification)) {
             LOGGER.info("Task volumes '{}' and '{}' are different.",
@@ -422,24 +432,9 @@ public class TaskUtils {
 
         Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
         Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
-
-        if (oldConfigMap.size() != newConfigMap.size()) {
-            LOGGER.info("Config lengths are different for old configs: '{}' and new configs: '{}'",
-                    oldConfigMap, newConfigMap);
+        if (!Objects.equals(oldConfigMap, newConfigMap)) {
+            LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
             return true;
-        }
-
-        for (Map.Entry<String, String> newEntry : newConfigMap.entrySet()) {
-            String configPath = newEntry.getKey();
-            LOGGER.info("Checking config file difference for: {}", configPath);
-            String oldConfigTemplate = oldConfigMap.get(configPath);
-            if (oldConfigTemplate == null) {
-                LOGGER.info("Config file path not found: {}", configPath);
-                return true;
-            } else if (!newEntry.getValue().equals(oldConfigTemplate)) { // simple string comparison
-                LOGGER.info("Config templates are different.");
-                return true;
-            }
         }
 
         // Placement constraints
@@ -447,7 +442,7 @@ public class TaskUtils {
         Optional<PlacementRuleGenerator> oldPlacement = oldTaskSpecification.getPlacement();
         Optional<PlacementRuleGenerator> newPlacement = newTaskSpecification.getPlacement();
         if (!Objects.equals(oldPlacement, newPlacement)) {
-            LOGGER.info("Task placements '{}' and '{}' are different.", oldPlacement, newPlacement);
+            LOGGER.info("Task placement constraints '{}' and '{}' are different.", oldPlacement, newPlacement);
             return true;
         }
 

@@ -1,8 +1,10 @@
 package org.apache.mesos.scheduler.recovery;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.*;
-import org.apache.mesos.scheduler.*;
+import org.apache.mesos.scheduler.ChainedObserver;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
@@ -11,21 +13,18 @@ import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
- *
+ * <p>
  * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link DefaultRecoveryBlock} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryPlanManager.class);
     private static final String RECOVERY_ELEMENT_NAME = "recovery";
 
     protected volatile Plan plan;
@@ -36,6 +35,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     private final RecoveryRequirementProvider recoveryReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
+    private final Object planLock = new Object();
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
@@ -50,99 +50,120 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        updatePlan(Collections.emptyList());
+        setPlan(createPlan(createBlocks()));
     }
 
     @Override
     public Plan getPlan() {
-        return plan;
+        synchronized (planLock) {
+            return plan;
+        }
+    }
+
+    private void setPlan(Plan plan) {
+        synchronized (planLock) {
+            this.plan = plan;
+            this.plan.subscribe(this);
+        }
     }
 
     @Override
     public Collection<? extends Block> getCandidates(Collection<String> dirtyAssets) {
-        return PlanUtils.getCandidates(plan, dirtyAssets).stream()
-                .filter(block -> launchConstrainer.canLaunch(((DefaultRecoveryBlock) block).getRecoveryRequirement()))
-                .collect(Collectors.toList());
+        synchronized (planLock) {
+            updatePlan();
+            return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
+                    .filter(block ->
+                            launchConstrainer.canLaunch(((DefaultRecoveryBlock) block).getRecoveryRequirement()))
+                    .collect(Collectors.toList());
+        }
     }
 
     /**
      * Updates the recovery plan if necessary.
-     *
+     * <p>
      * 1. Updates existing blocks.
      * 2. If the needs recovery and doesn't yet have a block in the plan, removes any COMPLETED blocks for this task
-     *    (at most one block for a given task can exist) and creates a new PENDING block.
+     * (at most one block for a given task can exist) and creates a new PENDING block.
      *
      * @param status task status
      */
     @Override
     public void update(Protos.TaskStatus status) {
-        try {
-            String taskName = TaskUtils.toTaskName(status.getTaskId());
+        synchronized (planLock) {
+            getPlan().update(status);
+            updatePlan();
+            notifyObservers();
+        }
+    }
+    private void updatePlan() {
+        synchronized (planLock) {
+            // This list will not contain any Complete blocks.
+            List<Block> blocks = createBlocks();
+            List<String> blockNames = blocks.stream().map(block -> block.getName()).collect(Collectors.toList());
+            List<Block> completeBlocks = getPlan().getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(block -> !blockNames.contains(block.getName()))
+                    .collect(Collectors.toList());
 
-            Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskName);
-            if (!taskInfo.isPresent()) {
-                LOGGER.error("Failed to fetch TaskInfo for task (name={})", taskName);
-                return;
-            }
-
-            // 1. Update the existing Plan.
-            plan.update(status);
-
-            boolean blockExists = this.plan.getChildren().stream()
-                    .filter(phase -> phase.getChildren().stream()
-                            .filter(block -> block.getName().equals(taskName)).findAny().isPresent())
-                    .findAny().isPresent();
-
-            if (!blockExists && TaskUtils.needsRecovery(status)) {
-                TaskSpecification taskSpec = taskSpecificationProvider.getTaskSpecification(taskInfo.get());
-                Optional<Block> newBlock = createBlock(taskName, taskInfo.get(), taskSpec);
-                if (newBlock.isPresent()) {
-                    List<Block> blocks = new ArrayList<>();
-
-                    // 2. remove any COMPLETED blocks for this task.
-                    for (Phase phase : this.plan.getChildren()) {
-                        blocks.addAll(phase.getChildren().stream()
-                                .filter(block -> !(block.isComplete() && block.getName().equals(taskName)))
-                                .collect(Collectors.toList()));
-                    }
-
-                    // 3. Add new PENDING block.
-                    blocks.add(newBlock.get());
-
-                    updatePlan(blocks);
-                }
-            }
-        } catch (TaskException ex) {
-            LOGGER.error("Error updating status for task (id={})", status.getTaskId().toString(), ex);
+            blocks.addAll(completeBlocks);
+            setPlan(createPlan(blocks));
         }
     }
 
-    private void updatePlan(List<Block> blocks) {
+    private Plan createPlan(List<Block> blocks) {
         Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, blocks, new RandomStrategy<>());
-        plan = DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
-        plan.subscribe(this);
-        this.notifyObservers();
+        return DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private Optional<Block> createBlock(String taskName, Protos.TaskInfo taskInfo, TaskSpecification taskSpec) {
-        try {
-            final List<RecoveryRequirement> recoveryRequirements;
+    private List<Block> createBlocks() {
+        return stateStore.fetchTasksNeedingRecovery().stream()
+                .map(taskInfo -> {
+                    try {
+                        return createBlock(
+                                TaskUtils.unpackTaskInfo(taskInfo),
+                                taskSpecificationProvider.getTaskSpecification(taskInfo));
+                    } catch (
+                            TaskException |
+                            InvalidRequirementException |
+                            InvalidProtocolBufferException e) {
+                        return new DefaultBlock(
+                                taskInfo.getName(),
+                                Optional.empty(),
+                                Status.ERROR,
+                                Arrays.asList(ExceptionUtils.getStackTrace(e)));
+                    }
+                })
+                .collect(Collectors.toList());
+    }
 
-            if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
-                recoveryRequirements = recoveryReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
-            } else {
-                recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
-            }
+    private Block createBlock(Protos.TaskInfo taskInfo, TaskSpecification taskSpec)
+            throws TaskException, InvalidRequirementException {
+        final List<RecoveryRequirement> recoveryRequirements;
 
-            return Optional.of(new DefaultRecoveryBlock(
-                    taskName,
-                    offerReqProvider.getExistingOfferRequirement(taskInfo, taskSpec),
-                    Status.PENDING,
-                    recoveryRequirements.get(0),
-                    launchConstrainer));
-        } catch (InvalidRequirementException ex) {
-            LOGGER.error("Error creating recovery block.", ex);
-            return Optional.empty();
+        if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
+            recoveryRequirements = recoveryReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
+        } else {
+            recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
         }
+
+        return new DefaultRecoveryBlock(
+                taskInfo.getName(),
+                offerReqProvider.getExistingOfferRequirement(taskInfo, taskSpec),
+                Status.PENDING,
+                recoveryRequirements.get(0),
+                launchConstrainer);
+    }
+
+    @Override
+    public Set<String> getDirtyAssets() {
+        Set<String> dirtyAssets = new HashSet<>();
+        if (plan != null) {
+            dirtyAssets.addAll(plan.getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(block -> block.isInProgress())
+                    .map(block -> block.getName())
+                    .collect(Collectors.toSet()));
+        }
+        return dirtyAssets;
     }
 }

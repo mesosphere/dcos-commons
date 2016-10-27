@@ -6,6 +6,7 @@ import org.apache.mesos.scheduler.Observer;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * PlanManager is the management interface for {@link Plan}s.  Its main purpose is to apply {@link Strategy} objects to
@@ -34,4 +35,12 @@ public interface PlanManager extends Observer, Observable {
      * @param status A TaskStatus from Mesos.
      */
     void update(TaskStatus status);
+
+    /**
+     * Returns a {@link Set} of assets that are dirty, i.e. being worked upon by the {@link Plan} that this
+     * {@link PlanManager} is working on.
+     *
+     * @return A {@link Set} containing assets that are dirty.
+     */
+    Set<String> getDirtyAssets();
 }

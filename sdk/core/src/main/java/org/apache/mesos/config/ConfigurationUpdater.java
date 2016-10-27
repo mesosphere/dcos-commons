@@ -51,17 +51,17 @@ public class ConfigurationUpdater<C extends Configuration> {
 
     private final StateStore stateStore;
     private final ConfigStore<C> configStore;
-    private final ConfigurationComparer<C> configComparer;
+    private final ConfigurationComparator<C> configComparator;
     private final Collection<ConfigurationValidator<C>> validators;
 
     public ConfigurationUpdater(
             StateStore stateStore,
             ConfigStore<C> configStore,
-            ConfigurationComparer<C> configComparer,
+            ConfigurationComparator<C> configComparator,
             Collection<ConfigurationValidator<C>> validators) {
         this.stateStore = stateStore;
         this.configStore = configStore;
-        this.configComparer = configComparer;
+        this.configComparator = configComparator;
         this.validators = validators;
     }
 
@@ -99,7 +99,9 @@ public class ConfigurationUpdater<C extends Configuration> {
             try {
                 LOGGER.info("Old target config: {}", targetConfig.toJsonString());
             } catch (Exception e) {
-                LOGGER.error("Unable to get JSON representation of old target config object", e);
+                LOGGER.error(String.format(
+                        "Unable to get JSON representation of old target config object %s: %s",
+                        targetConfigId, targetConfig), e);
                 // Don't add a validation error: That'd prevent the new config from replacing this
                 // one, and we'd be stuck with this config forever! Hopefully the new config will fix things...
             }
@@ -109,15 +111,17 @@ public class ConfigurationUpdater<C extends Configuration> {
         try {
             LOGGER.info("New prospective config: {}", candidateConfig.toJsonString());
         } catch (Exception e) {
-            LOGGER.error("Unable to get JSON representation of new prospective config object: " + candidateConfig, e);
+            LOGGER.error(String.format(
+                    "Unable to get JSON representation of new prospective config object: %s",
+                    candidateConfig), e);
             errors.add(ConfigurationValidationError.valueError("NewConfigAsJson", "jsonString",
                     String.format("Unable to serialize new config to JSON for logging: %s", e.getMessage())));
         }
 
         // Check for any validation errors (including against the prior config, if one is available)
-        // NOTE: We ALWAYS run validation regardless of config equality. This allows the developer
-        // to e.g. require that a value be increased, whereas a short-circuit on equality would
-        // prevent that sort of validation.
+        // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
+        // validators to always have a say in whether a given configuration is valid, regardless of
+        // whether it's considered equal by the ConfigComparator.
         for (ConfigurationValidator<C> validator : validators) {
             errors.addAll(validator.validate(targetConfig, candidateConfig));
         }
@@ -139,7 +143,7 @@ public class ConfigurationUpdater<C extends Configuration> {
                         "available for fallback. Initial launch with invalid configuration? " +
                         "%d Errors: %s", errors.size(), sj.toString()));
             }
-        } else if (targetConfig == null || !configComparer.equals(targetConfig, candidateConfig)) {
+        } else if (targetConfig == null || !configComparator.equals(targetConfig, candidateConfig)) {
             LOGGER.info("Changes detected between current target configuration '{}' and new " +
                     "configuration. Setting target to new configuration.",
                     targetConfigId);
@@ -161,7 +165,8 @@ public class ConfigurationUpdater<C extends Configuration> {
 
     /**
      * Searches for any task configurations which are already identical to the target configuration
-     * and updates the accounting for those tasks to point to the current target configuration.
+     * and updates the embedded config version label in those tasks to point to the current target
+     * configuration.
      */
     private void cleanupDuplicateAndUnusedConfigs(C targetConfig, UUID targetConfigId)
             throws ConfigStoreException {

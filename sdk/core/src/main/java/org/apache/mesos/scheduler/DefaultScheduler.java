@@ -33,6 +33,7 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.api.JsonPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +48,8 @@ import java.util.concurrent.*;
  * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler, Observer {
-    private static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
-    private static final String UNINSTALL_INSTRUCTIONS_URI =
+    protected static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
+    protected static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
@@ -106,7 +107,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             configUpdateResult = new ConfigurationUpdater<ServiceSpecification>(
                     stateStore,
                     configStore,
-                    DefaultServiceSpecification.getComparerInstance(),
+                    DefaultServiceSpecification.getComparatorInstance(),
                     configValidators)
                     .updateConfiguration(serviceSpecification);
         } catch (ConfigStoreException e) {
@@ -214,7 +215,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
                 "recovery", recoveryPlanManager)));
-        resources.add(new StateResource(stateStore));
+        resources.add(new StateResource(stateStore, new JsonPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, frameworkName));
         resourcesQueue.put(resources);
     }

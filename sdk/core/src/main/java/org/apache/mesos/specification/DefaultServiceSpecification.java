@@ -8,7 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.config.ConfigStoreException;
-import org.apache.mesos.config.ConfigurationComparer;
+import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DefaultServiceSpecification implements ServiceSpecification {
 
     private static final Factory FACTORY = new Factory();
-    private static final Comparer COMPARER = new Comparer();
+    private static final Comparator COMPARATOR = new Comparator();
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
@@ -47,12 +47,12 @@ public class DefaultServiceSpecification implements ServiceSpecification {
     /**
      * Comparer which checks for equality of {@link DefaultServiceSpecification}s.
      */
-    public static class Comparer implements ConfigurationComparer<ServiceSpecification> {
+    public static class Comparator implements ConfigurationComparator<ServiceSpecification> {
 
         /**
-         * Call {@link DefaultServiceSpecification#getComparerInstance()} instead.
+         * Call {@link DefaultServiceSpecification#getComparatorInstance()} instead.
          */
-        private Comparer() { }
+        private Comparator() { }
 
         @Override
         public boolean equals(ServiceSpecification first, ServiceSpecification second) {
@@ -107,8 +107,8 @@ public class DefaultServiceSpecification implements ServiceSpecification {
      * Returns a {@link ConfigurationComparer} which may be used to compare
      * {@link DefaultServiceSpecification}s.
      */
-    public static ConfigurationComparer<ServiceSpecification> getComparerInstance() {
-        return COMPARER;
+    public static ConfigurationComparator<ServiceSpecification> getComparatorInstance() {
+        return COMPARATOR;
     }
 
     @Override

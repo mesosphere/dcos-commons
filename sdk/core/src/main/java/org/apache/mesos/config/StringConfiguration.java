@@ -22,7 +22,7 @@ public class StringConfiguration implements Configuration {
     /**
      * Compares two StringConfigurations for equality.
      */
-    public static class Comparer implements ConfigurationComparer<StringConfiguration> {
+    public static class Comparator implements ConfigurationComparator<StringConfiguration> {
         @Override
         public boolean equals(StringConfiguration first, StringConfiguration second) {
             return first.equals(second);

@@ -25,7 +25,7 @@ public class ConfigurationUpdaterTest {
     private static class TestConfig implements Configuration {
 
         // intentionally just checking against the 'name' value to detect differences:
-        private static class Comparer implements ConfigurationComparer<TestConfig> {
+        private static class Comparator implements ConfigurationComparator<TestConfig> {
             @Override
             public boolean equals(TestConfig first, TestConfig second) {
                 return first.name.equals(second.name);
@@ -89,7 +89,7 @@ public class ConfigurationUpdaterTest {
         final TestConfig newConfig = new TestConfig("b", 2);
 
         final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Collections.emptyList());
+                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Collections.emptyList());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         when(mockConfigStore.store(newConfig)).thenReturn(NEW_ID);
@@ -105,7 +105,7 @@ public class ConfigurationUpdaterTest {
         final TestConfig newConfig = new TestConfig("b", 1);
 
         final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
+                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         when(mockConfigStore.store(newConfig)).thenReturn(NEW_ID);
@@ -122,7 +122,7 @@ public class ConfigurationUpdaterTest {
         final TestConfig newConfig = new TestConfig("a", 2);
 
         final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
+                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
@@ -136,7 +136,7 @@ public class ConfigurationUpdaterTest {
         final TestConfig targetConfig = new TestConfig("a", 1);
 
         final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
+                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(targetConfig);
@@ -150,7 +150,7 @@ public class ConfigurationUpdaterTest {
         final TestConfig newConfig = new TestConfig("b", 2);
 
         final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
+                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
@@ -170,7 +170,7 @@ public class ConfigurationUpdaterTest {
         final TestConfig config3 = new TestConfig("a", 1);
 
         final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparer(), Arrays.asList(testIntEquals));
+                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
 
