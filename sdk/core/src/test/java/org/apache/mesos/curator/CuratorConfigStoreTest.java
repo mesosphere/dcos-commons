@@ -26,7 +26,6 @@ public class CuratorConfigStoreTest {
     private static TestingServer testZk;
     private ConfigStore<StringConfiguration> store;
     private StringConfiguration testConfig;
-    private StringConfiguration.Factory configFactory;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -37,7 +36,7 @@ public class CuratorConfigStoreTest {
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
         store = new CuratorConfigStore<StringConfiguration>(
-                ROOT_ZK_PATH, testZk.getConnectString());
+                new StringConfiguration.Factory(), ROOT_ZK_PATH, testZk.getConnectString());
 
         // Check that schema version was created in the correct location:
         CuratorPersister curator = new CuratorPersister(
@@ -45,7 +44,6 @@ public class CuratorConfigStoreTest {
         assertNotEquals(0, curator.get("/dcos-service-test-root-path/SchemaVersion").length);
 
         testConfig = new StringConfiguration("test-config");
-        configFactory = new StringConfiguration.Factory();
     }
 
     @After
@@ -73,7 +71,7 @@ public class CuratorConfigStoreTest {
     @Test
     public void testStoreFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
-        StringConfiguration config = (StringConfiguration) store.fetch(testId, configFactory);
+        StringConfiguration config = store.fetch(testId);
         assertEquals(testConfig, config);
     }
 
@@ -87,7 +85,7 @@ public class CuratorConfigStoreTest {
     public void testStoreClearFetchConfig() throws Exception {
         UUID testId = store.store(testConfig);
         store.clear(testId);
-        store.fetch(testId, configFactory);
+        store.fetch(testId);
     }
 
     @Test

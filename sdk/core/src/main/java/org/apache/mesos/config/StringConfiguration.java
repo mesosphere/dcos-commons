@@ -11,12 +11,21 @@ public class StringConfiguration implements Configuration {
 
     /**
      * Factory which performs the inverse of {@link StringConfiguration#getBytes()}.
-     *
      */
     public static class Factory implements ConfigurationFactory<StringConfiguration> {
         @Override
         public StringConfiguration parse(byte[] bytes) throws ConfigStoreException {
             return new StringConfiguration(new String(bytes, StandardCharsets.UTF_8));
+        }
+    }
+
+    /**
+     * Compares two StringConfigurations for equality.
+     */
+    public static class Comparer implements ConfigurationComparator<StringConfiguration> {
+        @Override
+        public boolean equals(StringConfiguration first, StringConfiguration second) {
+            return first.equals(second);
         }
     }
 

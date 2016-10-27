@@ -4,7 +4,7 @@ package org.apache.mesos.offer;
  * An exception which describes an error in a provided set of Offer Requirements.
  */
 public class InvalidRequirementException extends Exception {
-    public InvalidRequirementException(Exception ex) {
+    public InvalidRequirementException(Throwable ex) {
         super(ex);
     }
 

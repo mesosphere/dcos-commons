@@ -9,7 +9,7 @@ import java.io.IOException;
  */
 public class ConfigStoreException extends IOException {
 
-    public ConfigStoreException(Exception e) {
+    public ConfigStoreException(Throwable e) {
         super(e);
     }
 

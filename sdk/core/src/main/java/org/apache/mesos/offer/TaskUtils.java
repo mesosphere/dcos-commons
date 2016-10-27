@@ -194,17 +194,17 @@ public class TaskUtils {
     }
 
     /**
-     * Sets a {@link Label} indicating the target configuruation for the provided {@link TaskInfo}.
-     * @param taskInfo is the TaskInfo which will have the appropriate configuration {@link Label} set.
+     * Sets a {@link Label} indicating the target configuration for the provided {@link TaskInfo}.
+     *
+     * @param taskInfoBuilder is the TaskInfo which will have the appropriate configuration {@link Label} set.
      * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}
-     * @return
      */
-    public static TaskInfo setTargetConfiguration(TaskInfo taskInfo, UUID targetConfigurationId) {
-        return taskInfo.toBuilder()
-                .setLabels(withLabelSet(taskInfo.getLabels(),
+    public static TaskInfo.Builder setTargetConfiguration(
+            TaskInfo.Builder taskInfoBuilder, UUID targetConfigurationId) {
+        return taskInfoBuilder
+                .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
                         TARGET_CONFIGURATION_KEY,
-                        targetConfigurationId.toString()))
-                .build();
+                        targetConfigurationId.toString()));
     }
 
     /**
@@ -212,8 +212,8 @@ public class TaskUtils {
      * {@link TaskInfo}.
      * @param taskInfo is the TaskInfo from which the the configuration ID will be extracted.
      * @return the ID of the target configuration for the provided {@link TaskInfo}
-     * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with an indicated target
-     * configuration
+     * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with
+     *                       an indicated target configuration
      */
     public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
         Optional<String> value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
