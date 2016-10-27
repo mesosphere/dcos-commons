@@ -25,7 +25,7 @@ public class ConfigurationUpdaterTest {
     private static class TestConfig implements Configuration {
 
         // intentionally just checking against the 'name' value to detect differences:
-        private static class Comparer implements ConfigurationComparer<TestConfig> {
+        private static class Comparer implements ConfigurationComparator<TestConfig> {
             @Override
             public boolean equals(TestConfig first, TestConfig second) {
                 return first.name.equals(second.name);

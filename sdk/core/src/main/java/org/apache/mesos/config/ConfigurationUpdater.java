@@ -51,13 +51,13 @@ public class ConfigurationUpdater<C extends Configuration> {
 
     private final StateStore stateStore;
     private final ConfigStore<C> configStore;
-    private final ConfigurationComparer<C> configComparer;
+    private final ConfigurationComparator<C> configComparer;
     private final Collection<ConfigurationValidator<C>> validators;
 
     public ConfigurationUpdater(
             StateStore stateStore,
             ConfigStore<C> configStore,
-            ConfigurationComparer<C> configComparer,
+            ConfigurationComparator<C> configComparer,
             Collection<ConfigurationValidator<C>> validators) {
         this.stateStore = stateStore;
         this.configStore = configStore;
