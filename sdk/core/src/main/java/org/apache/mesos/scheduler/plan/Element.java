@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * An Element is a generic component in a tree of elements.  It is the basic unit for the description of Plans used to
- * launch Mesos Tasks. {@link Plan}s, @{link Phase}s and {@link Block}s are all implementations of Elements.  Elements
+ * launch Mesos Tasks. {@link Plan}s, @{link Phase}s and {@link Step}s are all implementations of Elements.  Elements
  * have Strategies (see: {@link Strategy} associated with them which describe when child elements should be presented as
  * candidates for execution.
  *

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.scheduler.plan.Block;
+import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.scheduler.plan.Phase;
 import org.apache.mesos.scheduler.plan.Status;
 
@@ -13,28 +13,28 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Immutable JSON serialization object for a Phase which includes child Blocks.
+ * Immutable JSON serialization object for a {@link Phase} which includes child {@link Step}s.
  */
 class PhaseInfo {
 
     private final String id;
     private final String name;
-    private final List<BlockInfo> blocks;
+    private final List<StepInfo> steps;
     private final Status status;
 
     @JsonCreator
     public static PhaseInfo create(
             @JsonProperty("id") final String id,
             @JsonProperty("name") final String name,
-            @JsonProperty("blocks") final List<BlockInfo> blocks,
+            @JsonProperty("steps") final List<StepInfo> steps,
             @JsonProperty("status") final Status status) {
-        return new PhaseInfo(id, name, blocks, status);
+        return new PhaseInfo(id, name, steps, status);
     }
 
     public static PhaseInfo forPhase(final Phase phase) {
-        List<BlockInfo> info = new ArrayList<>();
-        List<Block> blocks = phase.getChildren();
-        blocks.forEach(block -> info.add(BlockInfo.forBlock(block)));
+        List<StepInfo> info = new ArrayList<>();
+        List<Step> steps = phase.getChildren();
+        steps.forEach(step -> info.add(StepInfo.forStep(step)));
 
         return create(phase.getId().toString(),
                 phase.getName(),
@@ -43,16 +43,16 @@ class PhaseInfo {
     }
 
     private PhaseInfo(
-            final String id, final String name, final List<BlockInfo> blocks, final Status status) {
+            final String id, final String name, final List<StepInfo> steps, final Status status) {
         this.id = id;
         this.name = name;
-        this.blocks = blocks;
+        this.steps = steps;
         this.status = status;
     }
 
-    @JsonProperty("blocks")
-    public List<BlockInfo> getBlocks() {
-        return blocks;
+    @JsonProperty("steps")
+    public List<StepInfo> getSteps() {
+        return steps;
     }
 
     @JsonProperty("id")
@@ -77,7 +77,7 @@ class PhaseInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getBlocks(), getStatus());
+        return Objects.hash(getId(), getName(), getSteps(), getStatus());
     }
 
     @Override

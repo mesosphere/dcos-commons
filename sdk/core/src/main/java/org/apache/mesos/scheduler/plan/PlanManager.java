@@ -21,14 +21,15 @@ public interface PlanManager extends Observer, Observable {
     Plan getPlan();
 
     /**
-     * Determines the next block that should be considered for scheduling. Blocks that are being selected by other
-     * PlanManager are provided as {@code dirtiedAssets} as a hint to this PlanManager to assist with scheduling.
+     * Determines the next {@link Step }that should be considered for scheduling. {@link Step}s that are being selected
+     * by other PlanManager are provided as {@code dirtiedAssets} as a hint to this PlanManager to assist with
+     * scheduling.
      *
-     * @param dirtyAssets Other blocks/assets that are already selected for scheduling.
-     * @return An Optional Block that can be scheduled or an empty Optional when there is no block to schedule. For ex:
-     *          the chosen block to schedule is being worked on by other PlanManager(s), etc.
+     * @param dirtyAssets Other {@link Step}s/assets that are already selected for scheduling.
+     * @return An Optional Step that can be scheduled or an empty Optional when there is no {@link Step} to schedule.
+     *         For ex: the chosen {@link Step }to schedule is being worked on by other PlanManager(s), etc.
      */
-    Collection<? extends Block> getCandidates(Collection<String> dirtyAssets);
+    Collection<? extends Step> getCandidates(Collection<String> dirtyAssets);
 
     /**
      * Notify constituent elements of TaskStatus updates.

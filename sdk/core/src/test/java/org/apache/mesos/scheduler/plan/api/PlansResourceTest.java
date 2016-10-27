@@ -21,11 +21,11 @@ import static org.mockito.Mockito.when;
 public class PlansResourceTest {
     @Mock private Plan mockPlan;
     @Mock private Phase mockPhase;
-    @Mock private Block mockBlock;
+    @Mock private Step mockStep;
 
     private PlanManager planManager;
     private final UUID phaseId = UUID.randomUUID();
-    private final UUID blockId = UUID.randomUUID();
+    private final UUID stepId = UUID.randomUUID();
     private static final Strategy<Phase> strategy = new SerialStrategy<>();
 
     private static final String planName = "test-plan-manager";
@@ -35,8 +35,8 @@ public class PlansResourceTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         when(mockPhase.getId()).thenReturn(phaseId);
-        when(mockBlock.getId()).thenReturn(blockId);
-        when(mockPhase.getChildren()).thenReturn(Arrays.asList(mockBlock));
+        when(mockStep.getId()).thenReturn(stepId);
+        when(mockPhase.getChildren()).thenReturn(Arrays.asList(mockStep));
         when(mockPlan.getChildren()).thenReturn(Arrays.asList(mockPhase));
         when(mockPlan.getStrategy()).thenReturn(strategy);
         planManager = new DefaultPlanManager(mockPlan);
@@ -81,7 +81,7 @@ public class PlansResourceTest {
 
     @Test
     public void testForceComplete() {
-        Response response = resource.forceCompleteCommand(planName, phaseId.toString(), blockId.toString());
+        Response response = resource.forceCompleteCommand(planName, phaseId.toString(), stepId.toString());
         assertTrue(response.getEntity() instanceof CommandResultInfo);
 
         CommandResultInfo commandResultInfo = (CommandResultInfo) response.getEntity();
@@ -99,7 +99,7 @@ public class PlansResourceTest {
 
     @Test
     public void testRestart() {
-        Response response = resource.restartCommand(planName, phaseId.toString(), blockId.toString());
+        Response response = resource.restartCommand(planName, phaseId.toString(), stepId.toString());
         assertTrue(response.getEntity() instanceof CommandResultInfo);
 
         CommandResultInfo commandResultInfo = (CommandResultInfo) response.getEntity();

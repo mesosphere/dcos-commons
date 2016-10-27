@@ -9,19 +9,19 @@ import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import java.util.*;
 
 /**
- * This class is an implementation of the Block interface for test purposes.
+ * This class is an implementation of the Step interface for test purposes.
  */
-public class TestBlock extends DefaultObservable implements Block {
+public class TestStep extends DefaultObservable implements Step {
 
     private final UUID id = UUID.randomUUID();
     private Status status = Status.PENDING;
     private String name;
 
-    public TestBlock() {
-        this.name = "test-block";
+    public TestStep() {
+        this.name = "test-step";
     }
 
-    public TestBlock(String name) {
+    public TestStep(String name) {
         this.name = name;
     }
 
@@ -31,7 +31,7 @@ public class TestBlock extends DefaultObservable implements Block {
     }
 
     @Override
-    public Strategy<? extends Block> getStrategy() {
+    public Strategy<? extends Step> getStrategy() {
         return new SerialStrategy<>();
     }
 

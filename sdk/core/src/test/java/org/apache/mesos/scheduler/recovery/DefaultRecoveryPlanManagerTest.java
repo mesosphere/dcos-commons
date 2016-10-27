@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
  * Our goal is verify the following pieces of functionality:
  * <ul>
  * <li>If it has failed tasks, it will not attempt to launch stopped tasks.</li>
- * <li> If a block is currently running with the same name as a terminated task, it will not appear as terminated.</li>
+ * <li> If a step is currently running with the same name as a terminated task, it will not appear as terminated.</li>
  * <li>If a task is failed, it can transition to stopped when the failure detector decides </li>
  * <li>If a task is stopped, it can be restarted (or maybe not, depending on offer)</li>
  * <li>Launches will only occur when the constrainer allows it</li>
@@ -156,7 +156,7 @@ public class DefaultRecoveryPlanManagerTest {
             assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
             assertEquals(TestConstants.TASK_NAME,
                     recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
-            final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
+            final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryStep) recoveryManager.getPlan()
                     .getChildren().get(0).getChildren().get(0)).getRecoveryRequirement().getRecoveryType();
             assertTrue(recoveryType == RecoveryRequirement.RecoveryType.TRANSIENT);
         }
@@ -200,13 +200,13 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void blockWithSameNameNoLaunch() throws Exception {
+    public void stepWithSameNameNoLaunch() throws Exception {
         final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem));
         final List<TaskInfo> infos = Collections.singletonList(taskInfo);
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
-        final Block block = mock(Block.class);
+        final Step step = mock(Step.class);
         Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         launchConstrainer.setCanLaunch(true);
@@ -214,9 +214,9 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeStatus(status);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
                 .thenReturn(Arrays.asList(recoveryRequirement));
-        when(block.getName()).thenReturn(TestConstants.TASK_NAME);
+        when(step.getName()).thenReturn(TestConstants.TASK_NAME);
         // 1 dirty
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(block));
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(step));
 
         recoveryManager.update(status);
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
@@ -234,7 +234,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void blockWithDifferentNameLaunches() throws Exception {
+    public void stepWithDifferentNameLaunches() throws Exception {
         final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
         final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         final List<Offer> offers = getOffers(1.0, 1.0);
@@ -243,15 +243,15 @@ public class DefaultRecoveryPlanManagerTest {
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
         final RecoveryRequirement recoveryRequirement =
                 getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
-        final Block block = mock(Block.class);
+        final Step step = mock(Step.class);
 
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(infos);
         stateStore.storeStatus(status);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
-        when(block.getName()).thenReturn("different-name");
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(block));
+        when(step.getName()).thenReturn("different-name");
+        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(step));
 
         recoveryManager.update(status);
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, offers);
@@ -293,7 +293,7 @@ public class DefaultRecoveryPlanManagerTest {
             assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
             assertEquals(TestConstants.TASK_NAME,
                     recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
-            final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
+            final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryStep) recoveryManager.getPlan()
                     .getChildren().get(0).getChildren().get(0)).getRecoveryRequirement().getRecoveryType();
             assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
         }
@@ -340,7 +340,7 @@ public class DefaultRecoveryPlanManagerTest {
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
         assertEquals(TestConstants.TASK_NAME,
                 recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
-        final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
+        final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryStep) recoveryManager.getPlan()
                 .getChildren().get(0).getChildren().get(0)).getRecoveryRequirement().getRecoveryType();
         assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
         reset(mockDeployManager);
@@ -385,7 +385,7 @@ public class DefaultRecoveryPlanManagerTest {
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
         assertEquals(TestConstants.TASK_NAME,
                 recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
-        final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryBlock) recoveryManager.getPlan()
+        final RecoveryRequirement.RecoveryType recoveryType = ((DefaultRecoveryStep) recoveryManager.getPlan()
                 .getChildren().get(0).getChildren().get(0)).getRecoveryRequirement().getRecoveryType();
         assertTrue(recoveryType == RecoveryRequirement.RecoveryType.PERMANENT);
 
@@ -436,7 +436,7 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     /**
-     * Tests that if we receive duplicate TASK_FAILED messages for the same task, only one block is created in the
+     * Tests that if we receive duplicate TASK_FAILED messages for the same task, only one step is created in the
      * recovery plan.
      */
     @Test

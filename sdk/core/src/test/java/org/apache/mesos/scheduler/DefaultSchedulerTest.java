@@ -6,7 +6,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.ResourceUtils;
-import org.apache.mesos.scheduler.plan.Block;
+import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.specification.DefaultServiceSpecification;
@@ -123,34 +123,34 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testLaunchA() throws InterruptedException {
-        installBlock(0, 0, getSufficientOfferForTaskA());
+        installStep(0, 0, getSufficientOfferForTaskA());
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
     public void testLaunchB() throws InterruptedException {
         // Launch A-0
         testLaunchA();
-        installBlock(1, 0, getSufficientOfferForTaskB());
+        installStep(1, 0, getSufficientOfferForTaskB());
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
     public void testFailLaunchA() throws InterruptedException {
-        // Get first Block associated with Task A-0
+        // Get first Step associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getChildren().get(0).getChildren().get(0);
-        Assert.assertTrue(blockTaskA0.isPending());
+        Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
+        Assert.assertTrue(stepTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         defaultScheduler.awaitTermination();
-        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
@@ -246,7 +246,7 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
@@ -278,15 +278,15 @@ public class DefaultSchedulerTest {
         register();
 
         Plan plan = defaultScheduler.getPlan();
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
     public void testLaunchAndRecovery() throws Exception {
-        // Get first Block associated with Task A-0
+        // Get first Step associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
-        Block blockTaskA0 = plan.getChildren().get(0).getChildren().get(0);
-        Assert.assertTrue(blockTaskA0.isPending());
+        Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
+        Assert.assertTrue(stepTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
@@ -302,9 +302,9 @@ public class DefaultSchedulerTest {
         // Sent TASK_RUNNING status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
 
-        // Wait for the Block to become Complete
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(blockTaskA0).isComplete(), equalTo(true));
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getBlockStatuses(plan));
+        // Wait for the Step to become Complete
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
 
         // Sent TASK_KILLED status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
@@ -500,10 +500,10 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private static List<Status> getBlockStatuses(Plan plan) {
+    private static List<Status> getStepStatuses(Plan plan) {
         return plan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
-                .map(block -> block.getStatus())
+                .map(step -> step.getStatus())
                 .collect(Collectors.toList());
     }
 
@@ -521,13 +521,13 @@ public class DefaultSchedulerTest {
         });
     }
 
-    private Protos.TaskID installBlock(int phaseIndex, int blockIndex, Protos.Offer offer) {
-        // Get first Block associated with Task A-0
+    private Protos.TaskID installStep(int phaseIndex, int stepIndex, Protos.Offer offer) {
+        // Get first Step associated with Task A-0
         Plan plan = defaultScheduler.getPlan();
         List<Protos.Offer> offers = Arrays.asList(offer);
         Protos.OfferID offerId = offer.getId();
-        Block block = plan.getChildren().get(phaseIndex).getChildren().get(blockIndex);
-        Assert.assertTrue(block.isPending());
+        Step step = plan.getChildren().get(phaseIndex).getChildren().get(stepIndex);
+        Assert.assertTrue(step.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
 
@@ -543,14 +543,14 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(block).isInProgress(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isInProgress(), equalTo(true));
 
         // Sent TASK_RUNNING status
         Protos.TaskID taskId = getTaskId(operations);
         statusUpdate(getTaskId(operations), Protos.TaskState.TASK_RUNNING);
 
-        // Wait for the Block to become Complete
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(block).isComplete(), equalTo(true));
+        // Wait for the Step to become Complete
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isComplete(), equalTo(true));
 
         return taskId;
     }
@@ -565,11 +565,11 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
         Plan plan = defaultScheduler.getPlan();
-        taskIds.add(installBlock(0, 0, getSufficientOfferForTaskA()));
-        taskIds.add(installBlock(1, 0, getSufficientOfferForTaskB()));
-        taskIds.add(installBlock(1, 1, getSufficientOfferForTaskB()));
+        taskIds.add(installStep(0, 0, getSufficientOfferForTaskA()));
+        taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
+        taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getBlockStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
         Assert.assertTrue(stateStore.isSuppressed());
 
         return taskIds;
