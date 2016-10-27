@@ -92,7 +92,7 @@ public class MesosResourcePool {
         return Optional.empty();
     }
 
-    public Optional<MesosResource> consumeDynamicPort(ResourceRequirement resReq){
+    public Optional<MesosResource> consumeDynamicPort(ResourceRequirement resReq) {
         Value availableValue = unreservedMergedPool.get("ports");
 
         if (availableValue == null) {
@@ -101,8 +101,8 @@ public class MesosResourcePool {
 
         if (availableValue.getRanges().getRangeCount() > 0) {
             Value.Range range = availableValue.getRanges().getRange(0);
-            return consumeUnreservedMerged( ResourceRequirement.addPort(resReq,
-                    (int) range.getBegin()));
+            return consumeUnreservedMerged(ResourceRequirement.addPort(resReq,
+                    (long) range.getBegin()));
         }
 
         return Optional.empty();

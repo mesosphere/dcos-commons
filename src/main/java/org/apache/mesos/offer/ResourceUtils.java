@@ -276,7 +276,7 @@ public class ResourceUtils {
 
         for (Resource resource : resourceList) {
             ResourceRequirement resReq = new ResourceRequirement(resource);
-                taskBuilder = setVIPDiscovery(taskBuilder, name, resReq);
+            taskBuilder = setVIPDiscovery(taskBuilder, name, resReq);
         }
         return taskBuilder;
     }
@@ -302,7 +302,7 @@ public class ResourceUtils {
             return builderArg;
         }
         try {
-            int port = Integer.parseInt(resReq.getEnvValue());
+            long port = Long.parseLong(resReq.getEnvValue());
             DiscoveryInfo discoveryInfo = DiscoveryInfo.newBuilder(builderArg.getDiscovery())
                     .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                     .setName(execName)
@@ -324,12 +324,12 @@ public class ResourceUtils {
     }
 
     public static ResourceRequirement getDesiredDynamicPort(String role, String principle,
-                                                 Optional<String> envName){
+                                                            Optional<String> envName) {
         Value.Range range = Value.Range.newBuilder().setBegin(0).setEnd(0).build();
 
         Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
                 "ports", Arrays.asList(range));
-        if (envName.isPresent()){
+        if (envName.isPresent()) {
             return ResourceRequirement.setEnvName(new ResourceRequirement(desiredPort),
                     envName.get());
         }
@@ -338,13 +338,13 @@ public class ResourceUtils {
     }
 
     public static ResourceRequirement getDesiredPort(String role, String principle,
-                                                     int port,
-                                                            Optional<String> envName){
+                                                     long port,
+                                                     Optional<String> envName) {
         Value.Range range = Value.Range.newBuilder().setBegin(port).setEnd(port).build();
 
         Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
                 "ports", Arrays.asList(range));
-        if (envName.isPresent()){
+        if (envName.isPresent()) {
             return ResourceRequirement.setEnvName(new ResourceRequirement(desiredPort),
                     envName.get());
         }
@@ -352,9 +352,8 @@ public class ResourceUtils {
 
     }
 
-
     public static ResourceRequirement getDesiredPort(String role, String principle,
-                                                     int port) {
+                                                     long port) {
         Value.Range range = Value.Range.newBuilder().setBegin(port).setEnd(port).build();
 
         Resource desiredPort = ResourceUtils.getDesiredRanges(role, principle,
@@ -375,7 +374,7 @@ public class ResourceUtils {
 
     public static ExecutorInfo.Builder updateEnvironment(
             ExecutorInfo.Builder builder, List<Resource> resources) {
-            Environment updateEnv = ResourceUtils.updateEnvironment(builder.getCommand().getEnvironment(), resources);
+        Environment updateEnv = ResourceUtils.updateEnvironment(builder.getCommand().getEnvironment(), resources);
         if (updateEnv.getVariablesCount() > 0) {
             return builder.setCommand(CommandInfo.newBuilder(builder.getCommand())
                     .setEnvironment(updateEnv));

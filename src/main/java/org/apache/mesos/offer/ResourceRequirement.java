@@ -106,7 +106,7 @@ public class ResourceRequirement {
     /**
      * If resource is "ports" and if the current value is set to 0. Otherwise does not update
      */
-    public static ResourceRequirement addPort(ResourceRequirement resReq, int port) {
+    public static ResourceRequirement addPort(ResourceRequirement resReq, Long port) {
         if (resReq.isDynamicPort()) {
             Value.Range range = Value.Range.newBuilder().setBegin(port).setEnd(port).build();
             Resource resource = Resource.newBuilder(resReq.getResource()).
