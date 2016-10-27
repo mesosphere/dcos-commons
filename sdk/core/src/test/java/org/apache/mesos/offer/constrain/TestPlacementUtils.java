@@ -1,9 +1,12 @@
 package org.apache.mesos.offer.constrain;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 
@@ -38,19 +41,47 @@ public class TestPlacementUtils {
         RESOURCES = new ImmutableList.Builder<Resource>().add(RESOURCE_1, RESOURCE_2, RESOURCE_3, RESOURCE_4).build();
     }
 
-    public static final PlacementRule ALL = new PlacementRule() {
+    public static final PlacementRule ALL = new AllTestRule();
+    public static final PlacementRule NONE = new NoneTestRule();
+    public static final PlacementRule REMOVE_FIRST = new RemoveFirstTestRule();
+    public static final PlacementRule REMOVE_LAST = new RemoveLastTestRule();
+
+    private static class AllTestRule implements PlacementRule {
+        @JsonCreator
+        public AllTestRule() { }
+
         @Override
         public Offer filter(Offer offer) {
             return offer;
         }
-    };
-    public static final PlacementRule NONE = new PlacementRule() {
+
+        @Override
+        public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
+
+        @Override
+        public int hashCode() { return HashCodeBuilder.reflectionHashCode(this); }
+    }
+
+    private static class NoneTestRule implements PlacementRule {
+        @JsonCreator
+        public NoneTestRule() { }
+
         @Override
         public Offer filter(Offer offer) {
             return offer.toBuilder().clearResources().build();
         }
+
+        @Override
+        public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
+
+        @Override
+        public int hashCode() { return HashCodeBuilder.reflectionHashCode(this); }
     };
-    public static final PlacementRule REMOVE_FIRST = new PlacementRule() {
+
+    private static class RemoveFirstTestRule implements PlacementRule {
+        @JsonCreator
+        public RemoveFirstTestRule() { }
+
         @Override
         public Offer filter(Offer offer) {
             if (offer.getResourcesCount() == 0) {
@@ -58,8 +89,18 @@ public class TestPlacementUtils {
             }
             return offer.toBuilder().removeResources(0).build();
         }
+
+        @Override
+        public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
+
+        @Override
+        public int hashCode() { return HashCodeBuilder.reflectionHashCode(this); }
     };
-    public static final PlacementRule REMOVE_LAST = new PlacementRule() {
+
+    private static class RemoveLastTestRule implements PlacementRule {
+        @JsonCreator
+        public RemoveLastTestRule() { }
+
         @Override
         public Offer filter(Offer offer) {
             int count = offer.getResourcesCount();
@@ -68,6 +109,12 @@ public class TestPlacementUtils {
             }
             return offer.toBuilder().removeResources(count - 1).build();
         }
+
+        @Override
+        public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
+
+        @Override
+        public int hashCode() { return HashCodeBuilder.reflectionHashCode(this); }
     };
 
     private TestPlacementUtils() {
