@@ -75,6 +75,18 @@
           "disk",
           "count"
         ]
-      }
+      },
+      "executor":
+        {
+          "description": "The executor running the tasks",
+          "type": "object",
+          "properties": {
+            "uri":{
+              "description": "URI of the executor",
+              "type": "string",
+              "default": "https://downloads.mesosphere.com/dcos-commons/artifacts/executor.zip"
+            }
+          }
+        }
     }
 }

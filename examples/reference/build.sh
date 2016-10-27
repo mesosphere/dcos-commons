@@ -9,27 +9,6 @@ cd $REPO_ROOT_DIR
 # Grab dcos-commons build/release tools:
 rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
 
-# GitHub notifier config
-_notify_github() {
-    $REPO_ROOT_DIR/dcos-commons-tools/github_update.py $1 build $2
-}
-
-_notify_github pending "Build running"
-
-# Scheduler/Executor (Java):
-
-./gradlew --refresh-dependencies distZip
-if [ $? -ne 0 ]; then
-  _notify_github failure "Gradle build failed"
-  exit 1
-fi
-
-./gradlew check
-if [ $? -ne 0 ]; then
-  _notify_github failure "Unit tests failed"
-  exit 1
-fi
-
 # CLI (Go):
 ./cli/build-cli.sh
 if [ $? -ne 0 ]; then
@@ -42,9 +21,8 @@ _notify_github success "Build succeeded"
 ./dcos-commons-tools/ci_upload.py \
   reference \
   universe/ \
-  reference-scheduler/build/distributions/*.zip \
+  build/distributions/*.zip \
   cli/dcos-data-store/dcos-data-store-darwin \
   cli/dcos-data-store/dcos-data-store-linux \
   cli/dcos-data-store/dcos-data-store.exe \
-  cli/python/dist/*.whl \
-  ../../sdk/executor/build/distributions/*.zip	
+  cli/python/dist/*.whl
