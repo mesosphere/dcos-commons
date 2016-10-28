@@ -17,7 +17,8 @@ import java.util.Optional;
  * This class is a default implementation of the BlockFactory interface.
  */
 public class DefaultBlockFactory implements BlockFactory {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBlockFactory.class);
+
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
 
@@ -33,12 +34,12 @@ public class DefaultBlockFactory implements BlockFactory {
     @Override
     public Block getBlock(TaskSpecification taskSpecification)
             throws Block.InvalidBlockException, InvalidProtocolBufferException {
-        logger.info("Generating block for: " + taskSpecification.getName());
+        LOGGER.info("Generating block for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
 
         try {
             if (!taskInfoOptional.isPresent()) {
-                logger.info("Generating new block for: " + taskSpecification.getName());
+                LOGGER.info("Generating new block for: " + taskSpecification.getName());
                 return new DefaultBlock(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpecification)),
@@ -48,7 +49,7 @@ public class DefaultBlockFactory implements BlockFactory {
                 Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
                 TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
-                logger.info("Generating existing block for: " + taskSpecification.getName() +
+                LOGGER.info("Generating existing block for: " + taskSpecification.getName() +
                         " with status: " + status);
                 return new DefaultBlock(
                         taskSpecification.getName(),
@@ -58,16 +59,16 @@ public class DefaultBlockFactory implements BlockFactory {
                         Collections.emptyList());
             }
         } catch (InvalidTaskSpecificationException | InvalidRequirementException | TaskException e) {
-            logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
+            LOGGER.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
             throw new Block.InvalidBlockException(e);
         } catch (InvalidProtocolBufferException e) {
-            logger.error("Failed to unpack taskInfo: {}", e);
+            LOGGER.error("Failed to unpack taskInfo: {}", e);
             throw new InvalidProtocolBufferException(e.toString());
         }
     }
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        logger.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
+        LOGGER.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
         if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {

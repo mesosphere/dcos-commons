@@ -210,6 +210,7 @@ public class TaskUtils {
     /**
      * Returns the ID referencing a configuration in a {@link ConfigStore} associated with the provided
      * {@link TaskInfo}.
+     *
      * @param taskInfo is the TaskInfo from which the the configuration ID will be extracted.
      * @return the ID of the target configuration for the provided {@link TaskInfo}
      * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with
@@ -274,6 +275,7 @@ public class TaskUtils {
 
     /**
       * Extracts the environment variables given in the {@link Environment}.
+      *
       * @param environment The {@link Environment} to extract environment variables from
       * @return The map containing environment variables
       */
@@ -291,6 +293,7 @@ public class TaskUtils {
 
     /**
      * Extracts and puts environment variables from the given map to a {@link Environment}.
+     *
      * @param environmentMap The map to extract environment variables from
      * @return The {@link Environment} containing the extracted environment variables
      */
@@ -446,8 +449,6 @@ public class TaskUtils {
      * Mesos requirements do not allow a TaskInfo to simultaneously have a Command and Executor.  In order to
      * workaround this we encapsulate a TaskInfo's Command and Data fields in an ExecutorInfo and store it in the
      * data field of the TaskInfo.
-     * @param taskInfo
-     * @return
      */
     public static TaskInfo packTaskInfo(TaskInfo taskInfo) {
         if (!taskInfo.hasExecutor()) {
@@ -474,10 +475,8 @@ public class TaskUtils {
     }
 
     /**
-     * This method reverses the work done in packTaskInfo such that the original TaskInfo is regenerated.
-     * @param taskInfo
-     * @return
-     * @throws InvalidProtocolBufferException
+     * This method reverses the work done in {@link #packTaskInfo(TaskInfo)} such that the original
+     * TaskInfo is regenerated.
      */
     public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
         if (!taskInfo.hasExecutor()) {
@@ -600,8 +599,8 @@ public class TaskUtils {
 
     /**
      * Returns a {@link CommandInfo.URI} that wraps the given URI string.
+     *
      * @param uri The URI to be encapsulated
-     * @return
      */
     public static CommandInfo.URI uri(String uri) {
         return CommandInfo.URI.newBuilder().setValue(uri).build();
@@ -609,6 +608,7 @@ public class TaskUtils {
 
     /**
      * Sets up the config files on the executor side.
+     *
      * @param taskInfo The {@link TaskInfo} to extract the config file data from
      * @throws IOException if the data in the taskInfo is not valid or the config can't be written to disk
      */
@@ -631,6 +631,7 @@ public class TaskUtils {
 
     /**
      * Injects the proper data into the given config template and writes the populated template to disk.
+     *
      * @param relativePath The path to write the file
      * @param templateContent The content of the config template
      * @param environment The environment from which to extract the injection data

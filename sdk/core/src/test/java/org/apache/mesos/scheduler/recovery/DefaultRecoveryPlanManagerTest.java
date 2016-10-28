@@ -49,6 +49,13 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest {
+    private static final double CPUS = 1.0;
+    private static final double MEM = 2.0;
+    private static final TaskInfo TASK_INFO = TaskTestUtils.getTaskInfo(Arrays.asList(
+            ResourceTestUtils.getDesiredCpu(CPUS),
+            ResourceTestUtils.getDesiredMem(MEM)));
+    private static final Collection<TaskInfo> TASK_INFOS = Collections.singletonList(TASK_INFO);
+
     private DefaultRecoveryPlanManager recoveryManager;
     private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
@@ -73,7 +80,11 @@ public class DefaultRecoveryPlanManagerTest {
         return new DefaultRecoveryRequirement(offerRequirement, recoveryType);
     }
 
-    private List<Offer> getOffers(double cpus, double mem) {
+    private static List<Offer> getOffers() {
+        return getOffers(CPUS, MEM);
+    }
+
+    private static List<Offer> getOffers(double cpus, double mem) {
         return OfferTestUtils.getOffers(
                 Arrays.asList(
                         ResourceTestUtils.getUnreservedCpu(cpus),
@@ -123,24 +134,18 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedTryConstrainedlaunch() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        final TaskInfo taskInfo = infos.get(0);
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(TestConstants.TASK_TYPE, infos),
+                new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS),
                 RecoveryRequirement.RecoveryType.TRANSIENT);
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
-                Protos.TaskState.TASK_FAILED);
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         launchConstrainer.setCanLaunch(false);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(
                 Arrays.asList(recoveryRequirement));
-        stateStore.storeTasks(infos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
 
         assertEquals(0, acceptedOffers.size());
         // Verify launchConstrainer was used
@@ -148,7 +153,7 @@ public class DefaultRecoveryPlanManagerTest {
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+            planCoordinator.processOffers(schedulerDriver, getOffers());
             //verify the UI
             assertNotNull(recoveryManager.getPlan());
             assertNotNull(recoveryManager.getPlan().getChildren());
@@ -166,18 +171,12 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppededDoRelaunch() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final List<Offer> offers = getOffers(1.0, 1.0);
-        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        final TaskInfo taskInfo = infos.get(0);
+        final List<Offer> offers = getOffers();
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(TestConstants.TASK_TYPE, infos));
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
-                Protos.TaskState.TASK_FAILED);
+                new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS));
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
 
-        stateStore.storeTasks(infos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
@@ -201,16 +200,12 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     @SuppressWarnings("unchecked")
     public void blockWithSameNameNoLaunch() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem));
-        final List<TaskInfo> infos = Collections.singletonList(taskInfo);
-        final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
+        final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS));
         final Block block = mock(Block.class);
-        Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         launchConstrainer.setCanLaunch(true);
-        stateStore.storeTasks(infos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
                 .thenReturn(Arrays.asList(recoveryRequirement));
@@ -219,7 +214,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(block));
 
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
 
         assertEquals(0, acceptedOffers.size());
         // Verify the RecoveryStatus has empty pools.
@@ -235,18 +230,14 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     @SuppressWarnings("unchecked")
     public void blockWithDifferentNameLaunches() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final List<Offer> offers = getOffers(1.0, 1.0);
-        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        final TaskInfo taskInfo = infos.get(0);
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        final List<Offer> offers = getOffers();
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
         final RecoveryRequirement recoveryRequirement =
-                getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, infos));
+                getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS));
         final Block block = mock(Block.class);
 
         launchConstrainer.setCanLaunch(true);
-        stateStore.storeTasks(infos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any())).thenReturn(Arrays.asList(recoveryRequirement));
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
@@ -262,10 +253,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void stoppedTaskTransitionsToFailed() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final List<TaskInfo> infos = Collections.singletonList(FailureUtils
-                .markFailed(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem))));
+        final List<TaskInfo> infos = Collections.singletonList(FailureUtils.markFailed(TASK_INFO));
         final TaskInfo taskInfo = infos.get(0);
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
@@ -280,11 +268,11 @@ public class DefaultRecoveryPlanManagerTest {
         when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+        planCoordinator.processOffers(schedulerDriver, getOffers());
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+            planCoordinator.processOffers(schedulerDriver, getOffers());
 
             // verify the transition to stopped
             assertNotNull(recoveryManager.getPlan());
@@ -302,21 +290,17 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void failedTaskCanBeRestarted() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
-        final List<Offer> offers = getOffers(1.0, 1.0);
+        final List<Offer> offers = getOffers();
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(TestConstants.TASK_TYPE, infos),
+                new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS),
                 RecoveryRequirement.RecoveryType.PERMANENT);
-        final TaskInfo taskInfo = infos.get(0);
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
+                TASK_INFO.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
 
-        failureMonitor.setFailedList(infos.get(0));
+        failureMonitor.setFailedList(TASK_INFO);
         launchConstrainer.setCanLaunch(true);
-        stateStore.storeTasks(infos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any()))
                 .thenReturn(Arrays.asList(recoveryRequirement));
@@ -325,7 +309,7 @@ public class DefaultRecoveryPlanManagerTest {
         recoveryManager.update(status);
         final Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(
                 schedulerDriver,
-                getOffers(1.0, 1.0));
+                getOffers());
 
         // Verify we launched the task
         assertEquals(1, acceptedOffers.size());
@@ -348,28 +332,22 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void failedTasksAreNotLaunchedWithInsufficientResources() throws Exception {
-        final double desiredCpu = 1.0;
-        final double desiredMem = 1.0;
-        final double insufficientCpu = desiredCpu / 2;
-        final double insufficientMem = desiredMem / 2;
+        final double insufficientCpu = CPUS / 2;
+        final double insufficientMem = MEM / 2;
 
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(desiredCpu);
-        final Resource mem = ResourceTestUtils.getDesiredMem(desiredMem);
-        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem)));
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(TestConstants.TASK_TYPE, infos),
+                new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS),
                 RecoveryRequirement.RecoveryType.PERMANENT);
         final List<Offer> insufficientOffers = getOffers(insufficientCpu, insufficientMem);
-        final TaskInfo failedTaskInfo = infos.get(0);
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
-                failedTaskInfo.getTaskId(),
+                TASK_INFO.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
 
-        failureMonitor.setFailedList(failedTaskInfo);
+        failureMonitor.setFailedList(TASK_INFO);
         launchConstrainer.setCanLaunch(true);
         when(recoveryRequirementProvider.getPermanentRecoveryRequirements(any()))
                 .thenReturn(Arrays.asList(recoveryRequirement));
-        stateStore.storeTasks(infos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
         when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
 
@@ -398,11 +376,11 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     public void permanentlyFailedTasksAreRescheduled() throws Exception {
         // Prepare permanently failed task with some reserved resources
-        final Resource cpus = ResourceTestUtils.getExpectedCpu(1.0);
+        final Resource cpus = ResourceTestUtils.getExpectedCpu(CPUS);
         final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
         final TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
-        final List<Offer> offers = getOffers(1.0, 1.0);
+        final List<Offer> offers = getOffers();
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
                 new OfferRequirement(
                         TestConstants.TASK_TYPE,
@@ -421,7 +399,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers(1.0, 1.0));
+        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
 
         assertEquals(1, acceptedOffers.size());
 
@@ -441,19 +419,15 @@ public class DefaultRecoveryPlanManagerTest {
      */
     @Test
     public void testUpdateTaskFailsTwice() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem));
-        final List<TaskInfo> taskInfos = Collections.singletonList(taskInfo);
-        final List<Offer> offers = getOffers(1.0, 1.0);
+        final List<Offer> offers = getOffers();
         final Protos.TaskStatus runningStatus = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
+                TASK_INFO.getTaskId(),
                 Protos.TaskState.TASK_RUNNING);
         final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
+                TASK_INFO.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(TestConstants.TASK_TYPE, taskInfos));
+                new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS));
 
         launchConstrainer.setCanLaunch(true);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
@@ -461,7 +435,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
 
         // TASK_RUNNING
-        stateStore.storeTasks(taskInfos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(runningStatus);
         recoveryManager.update(runningStatus);
 
@@ -478,19 +452,15 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void testMultipleFailuresSingleTask() throws Exception {
-        final Resource cpus = ResourceTestUtils.getDesiredCpu(1.0);
-        final Resource mem = ResourceTestUtils.getDesiredMem(1.0);
-        final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus, mem));
-        final List<TaskInfo> taskInfos = Collections.singletonList(taskInfo);
-        final List<Offer> offers = getOffers(1.0, 1.0);
+        final List<Offer> offers = getOffers();
         final Protos.TaskStatus runningStatus = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
+                TASK_INFO.getTaskId(),
                 Protos.TaskState.TASK_RUNNING);
         final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
+                TASK_INFO.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
-                new OfferRequirement(TestConstants.TASK_TYPE, taskInfos));
+                new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS));
 
         launchConstrainer.setCanLaunch(true);
         when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
@@ -498,7 +468,7 @@ public class DefaultRecoveryPlanManagerTest {
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
 
         // TASK_RUNNING
-        stateStore.storeTasks(taskInfos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(runningStatus);
         recoveryManager.update(runningStatus);
         assertEquals(0, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
@@ -510,7 +480,7 @@ public class DefaultRecoveryPlanManagerTest {
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_RUNNING
-        stateStore.storeTasks(taskInfos);
+        stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(runningStatus);
         recoveryManager.update(runningStatus);
 

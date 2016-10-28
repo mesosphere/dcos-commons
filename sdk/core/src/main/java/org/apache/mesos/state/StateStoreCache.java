@@ -73,6 +73,16 @@ public class StateStoreCache implements StateStore {
     }
 
     @VisibleForTesting
+    public static void resetInstanceForTests() {
+        RWLOCK.lock();
+        try {
+            instance = null;
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
+
+    @VisibleForTesting
     StateStoreCache(StateStore store) throws StateStoreException {
         this.store = store;
 

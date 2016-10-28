@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
@@ -22,6 +23,7 @@ import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.state.api.JsonPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
@@ -44,88 +46,106 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
-    protected final String zkConnectionString;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
+
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
-    protected final BlockingQueue<Collection<Object>> resourcesQueue;
+    protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
     protected final String frameworkName;
+    protected final PlanManager deployPlanManager;
+    protected final OfferRequirementProvider offerRequirementProvider;
+    protected final StateStore stateStore;
     protected final Optional<Integer> permanentFailureTimeoutSec;
     protected final Integer destructiveRecoveryDelaySec;
 
     protected SchedulerDriver driver;
     protected Reconciler reconciler;
-    protected StateStore stateStore;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
     protected OfferAccepter offerAccepter;
-    protected PlanManager deployPlanManager;
     protected PlanScheduler planScheduler;
     protected PlanManager recoveryPlanManager;
-    protected  PlanCoordinator planCoordinator;
-    protected  Collection<Object> resources;
+    protected PlanCoordinator planCoordinator;
+    protected Collection<Object> resources;
 
     public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
-        return create(serviceSpecification, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        return create(
+                serviceSpecification,
+                createStateStore(serviceSpecification.getName(), DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
     }
 
-    public static DefaultScheduler create(ServiceSpecification serviceSpecification, String zkConnectionString) {
-        StateStore stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
-        BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
-        PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
-        Plan deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-        return create(serviceSpecification.getName(), new DefaultPlanManager(deployPlan), zkConnectionString);
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification, StateStore stateStore) {
+        PlanFactory deployPlanFactory =
+                new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultBlockFactory(stateStore)));
+        return create(
+                serviceSpecification.getName(),
+                new DefaultPlanManager(deployPlanFactory.getPlan(serviceSpecification)),
+                stateStore);
     }
 
     public static DefaultScheduler create(String frameworkName, PlanManager deploymentPlanManager) {
-        return create(frameworkName, deploymentPlanManager, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        return create(
+                frameworkName,
+                deploymentPlanManager,
+                createStateStore(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
     }
 
-    public static DefaultScheduler create(String name, PlanManager deploymentPlanManager, String zkConnectionString) {
+    public static DefaultScheduler create(
+            String frameworkName,
+            PlanManager deploymentPlanManager,
+            StateStore stateStore) {
         return create(
-                name,
+                frameworkName,
                 deploymentPlanManager,
-                zkConnectionString,
+                stateStore,
                 Optional.of(PERMANENT_FAILURE_DELAY_SEC),
                 DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
     }
 
     public static DefaultScheduler create(
             String frameworkName,
-            PlanManager deploymentPlanManager,
+            PlanManager deployPlanManager,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return create(
                 frameworkName,
-                deploymentPlanManager,
-                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                deployPlanManager,
+                createStateStore(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
     }
 
     public static DefaultScheduler create(
             String frameworkName,
-            PlanManager deploymentPlanManager,
-            String zkConnectionString,
+            PlanManager deployPlanManager,
+            StateStore stateStore,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return new DefaultScheduler(
                 frameworkName,
-                deploymentPlanManager,
-                zkConnectionString,
+                deployPlanManager,
+                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter()),
+                stateStore,
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
     }
 
+    public static StateStore createStateStore(String frameworkName, String zkConnectionString) {
+        return StateStoreCache.getInstance(
+                new CuratorStateStore(frameworkName, zkConnectionString));
+    }
+
     protected DefaultScheduler(
             String frameworkName,
-            PlanManager deploymentPlanManager,
-            String zkConnectionString,
+            PlanManager deployPlanManager,
+            OfferRequirementProvider offerRequirementProvider,
+            StateStore stateStore,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         this.frameworkName = frameworkName;
-        this.deployPlanManager = deploymentPlanManager;
-        this.zkConnectionString = zkConnectionString;
-        this.resourcesQueue = new ArrayBlockingQueue<>(1);
+        this.deployPlanManager = deployPlanManager;
+        this.offerRequirementProvider = offerRequirementProvider;
+        this.stateStore = stateStore;
         this.permanentFailureTimeoutSec = permanentFailureTimeoutSec;
         this.destructiveRecoveryDelaySec = destructiveRecoveryDelaySec;
     }
@@ -148,7 +168,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initialize(SchedulerDriver driver) throws InterruptedException {
-        logger.info("Initializing...");
+        LOGGER.info("Initializing...");
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
         initializeResources();
@@ -157,12 +177,11 @@ public class DefaultScheduler implements Scheduler, Observer {
                 deployPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
         planCoordinator.subscribe(this);
-        logger.info("Done initializing.");
+        LOGGER.info("Done initializing.");
     }
 
     private void initializeGlobals(SchedulerDriver driver) {
-        logger.info("Initializing globals...");
-        stateStore = new CuratorStateStore(frameworkName, zkConnectionString);
+        LOGGER.info("Initializing globals...");
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
@@ -171,9 +190,9 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     private void initializeRecoveryPlanManager() {
-        logger.info("Initializing recovery plan...");
+        LOGGER.info("Initializing recovery plan...");
         final RecoveryRequirementProvider recoveryRequirementProvider =
-                new DefaultRecoveryRequirementProvider(new DefaultOfferRequirementProvider());
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider);
         final LaunchConstrainer constrainer =
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec));
 
@@ -191,9 +210,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                 failureMonitor);
     }
 
-
     private void initializeResources() throws InterruptedException {
-        logger.info("Initializing resources...");
+        LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deployPlanManager,
@@ -208,10 +226,10 @@ public class DefaultScheduler implements Scheduler, Observer {
             return;
         }
 
-        logger.info(String.format("Received %d offers:", offers.size()));
+        LOGGER.info(String.format("Received %d offers:", offers.size()));
         for (int i = 0; i < offers.size(); ++i) {
             // Offer protobuffers are very long. print each as a single line:
-            logger.info(String.format("- Offer %d: %s", i + 1, TextFormat.shortDebugString(offers.get(i))));
+            LOGGER.info(String.format("- Offer %d: %s", i + 1, TextFormat.shortDebugString(offers.get(i))));
         }
     }
 
@@ -219,7 +237,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
         unusedOffers.stream().forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
-            logger.info("Declining offer: " + offerId.getValue());
+            LOGGER.info("Declining offer: " + offerId.getValue());
             driver.declineOffer(offerId);
         });
     }
@@ -229,7 +247,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             ResourceCleaner cleaner = new ResourceCleaner(stateStore);
             return Optional.of(new ResourceCleanerScheduler(cleaner, offerAccepter));
         } catch (Exception ex) {
-            logger.error("Failed to construct ResourceCleaner", ex);
+            LOGGER.error("Failed to construct ResourceCleaner", ex);
             return Optional.empty();
         }
     }
@@ -241,18 +259,18 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        logger.info("Registered framework with frameworkId: " + frameworkId.getValue());
+        LOGGER.info("Registered framework with frameworkId: " + frameworkId.getValue());
         try {
             initialize(driver);
         } catch (InterruptedException e) {
-            logger.error("Initialization failed with exception: ", e);
+            LOGGER.error("Initialization failed with exception: ", e);
             hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
         }
 
         try {
             stateStore.storeFrameworkId(frameworkId);
         } catch (Exception e) {
-            logger.error(String.format(
+            LOGGER.error(String.format(
                     "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
             hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
@@ -264,7 +282,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        logger.error("Re-registration implies we were unregistered.");
+        LOGGER.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
         suppressOrRevive();
     }
@@ -281,7 +299,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
-                logger.info("Reconciliation is still in progress.");
+                LOGGER.info("Reconciliation is still in progress.");
                 return;
             }
 
@@ -317,7 +335,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        logger.error("Rescinding offers is not supported.");
+        LOGGER.error("Rescinding offers is not supported.");
         hardExit(SchedulerErrorCode.OFFER_RESCINDED);
     }
 
@@ -326,7 +344,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                logger.info(String.format(
+                LOGGER.info(String.format(
                         "Received status update for taskId=%s state=%s message='%s'",
                         status.getTaskId().getValue(),
                         status.getState().toString(),
@@ -339,7 +357,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                     recoveryPlanManager.update(status);
                     reconciler.update(status);
                 } catch (Exception e) {
-                    logger.warn("Failed to update TaskStatus received from Mesos. "
+                    LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);
                 }
             }
@@ -352,30 +370,30 @@ public class DefaultScheduler implements Scheduler, Observer {
             Protos.ExecutorID executorId,
             Protos.SlaveID slaveId,
             byte[] data) {
-        logger.error("Received a Framework Message, but don't know how to process it");
+        LOGGER.error("Received a Framework Message, but don't know how to process it");
     }
 
     @Override
     public void disconnected(SchedulerDriver driver) {
-        logger.error("Disconnected from Master.");
+        LOGGER.error("Disconnected from Master.");
         hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        logger.warn("Agent lost: " + agentId);
+        LOGGER.warn("Agent lost: " + agentId);
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        logger.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
+        LOGGER.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
     }
 
     @Override
     public void error(SchedulerDriver driver, String message) {
-        logger.error("SchedulerDriver failed with message: " + message);
+        LOGGER.error("SchedulerDriver failed with message: " + message);
 
         // Update or remove this when uninstall is solved:
         if (message.contains(UNINSTALL_INCOMPLETE_ERROR_MESSAGE)) {
@@ -386,9 +404,9 @@ public class DefaultScheduler implements Scheduler, Observer {
             // - User reinstalls service X
             // - X sees previous framework ID in ZK and attempts to register against it
             // - Mesos returns this error because that framework ID is no longer available for use
-            logger.error("This error is usually the result of an incomplete cleanup of Zookeeper "
+            LOGGER.error("This error is usually the result of an incomplete cleanup of Zookeeper "
                     + "and/or reserved resources following a previous uninstall of the service.");
-            logger.error("Please uninstall this service, read and perform the steps described at "
+            LOGGER.error("Please uninstall this service, read and perform the steps described at "
                     + UNINSTALL_INSTRUCTIONS_URI + " to delete the reserved resources, and then "
                     + "install this service once more.");
         }
@@ -396,28 +414,16 @@ public class DefaultScheduler implements Scheduler, Observer {
         hardExit(SchedulerErrorCode.ERROR);
     }
 
-    private boolean hasOperations() {
-        return planCoordinator.hasOperations();
-    }
-
     private void suppressOrRevive() {
-        if (hasOperations()) {
-            reviveOffers();
+        if (planCoordinator.hasOperations()) {
+            LOGGER.info("Reviving offers.");
+            driver.reviveOffers();
+            stateStore.setSuppressed(false);
         } else {
-            suppressOffers();
+            LOGGER.info("Suppressing offers.");
+            driver.suppressOffers();
+            stateStore.setSuppressed(true);
         }
-    }
-
-    private void reviveOffers() {
-        logger.info("Reviving offers.");
-        driver.reviveOffers();
-        stateStore.setSuppressed(false);
-    }
-
-    private void suppressOffers() {
-        logger.info("Suppressing offers.");
-        driver.suppressOffers();
-        stateStore.setSuppressed(true);
     }
 
     @Override
