@@ -96,7 +96,7 @@ public class Main {
                 Optional<PlacementRuleGenerator> placementOptional,
                 Optional<Protos.HealthCheck> healthCheck) {
 
-            ArrayList taskSpecifications = new ArrayList();
+            ArrayList<TaskSpecification> taskSpecifications = new ArrayList<>();
 
             for (int i = 0; i < count; ++i) {
                 taskSpecifications.add(new HDFSTaskSpecification(
@@ -105,7 +105,6 @@ public class Main {
             }
 
             return new HDFSTaskSet(name, taskSpecifications);
-
         }
 
         protected HDFSTaskSet(String name, List<TaskSpecification> taskSpecifications) {
@@ -225,11 +224,11 @@ public class Main {
     }
 
     private static List<ConfigFileSpecification> getHDFSConfigFiles() {
-        ConfigFileSpecification HDFS_SITE_CONFIG =
+        final ConfigFileSpecification hdfsSiteConfig =
                 new DefaultConfigFileSpecification(HDFS_SITE_CONFIG_PATH, convertFileToString("hdfs-site.xml"));
-        ConfigFileSpecification CORE_SITE_CONFIG =
+        final ConfigFileSpecification coreSiteConfig =
                 new DefaultConfigFileSpecification(CORE_SITE_CONFIG_PATH, convertFileToString("core-site.xml"));
-        return Arrays.asList(HDFS_SITE_CONFIG, CORE_SITE_CONFIG);
+        return Arrays.asList(hdfsSiteConfig, coreSiteConfig);
     }
 
     private static String convertFileToString(String localTemplatePath) {
