@@ -212,7 +212,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     /**
-     * Creates an {@link Protos.org.apache.mesos.Protos.ExecutorInfo} that drives
+     * Creates an {@link org.apache.mesos.Protos.ExecutorInfo} that drives
      * the {@link org.apache.mesos.executor.CustomExecutor}.
      * @param taskSpecification The {@link TaskSpecification} used to setup relevant environment for the executor.
      * @return The {@link org.apache.mesos.Protos.ExecutorInfo} to run
@@ -237,7 +237,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addUris(executorURI);
 
         if (taskSpecification.getCommand().isPresent()) {
-            commandInfoBuilder.addAllUris(taskSpecification.getCommand().get().getUrisList());
+            Protos.CommandInfo taskCommand = taskSpecification.getCommand().get();
+            commandInfoBuilder.addAllUris(taskCommand.getUrisList());
+
+            if (commandInfoBuilder.hasUser()) {
+                commandInfoBuilder.setUser(taskCommand.getUser());
+            }
         }
 
         // some version of the JRE is required to kickstart the executor
