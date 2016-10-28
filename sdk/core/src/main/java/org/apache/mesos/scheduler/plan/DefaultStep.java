@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * This class is a default implementation of the Block interface.
+ * This class is a default implementation of the Step interface.
  */
-public class DefaultBlock extends DefaultObservable implements Block {
+public class DefaultStep extends DefaultObservable implements Step {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final String name;
     private final Optional<OfferRequirement> offerRequirementOptional;
@@ -25,7 +25,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
     private Status status;
     private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
-    public DefaultBlock(
+    public DefaultStep(
             String name,
             Optional<OfferRequirement> offerRequirementOptional,
             Status status,
@@ -80,13 +80,13 @@ public class DefaultBlock extends DefaultObservable implements Block {
 
     @Override
     public void restart() {
-        logger.warn("Restarting block: '{} [{}]'", getName(), getId());
+        logger.warn("Restarting step: '{} [{}]'", getName(), getId());
         setStatus(Status.PENDING);
     }
 
     @Override
     public void forceComplete() {
-        logger.warn("Forcing completion of block: '{} [{}]'", getName(), getId());
+        logger.warn("Forcing completion of step: '{} [{}]'", getName(), getId());
         setStatus(Status.COMPLETE);
     }
 
@@ -148,7 +148,7 @@ public class DefaultBlock extends DefaultObservable implements Block {
             case TASK_KILLED:
             case TASK_KILLING:
                 tasks.replace(status.getTaskId(), Status.ERROR);
-                // Retry the block because something failed.
+                // Retry the step because something failed.
                 setStatus(Status.PENDING);
                 break;
             case TASK_STAGING:

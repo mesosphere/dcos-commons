@@ -14,10 +14,10 @@ import java.util.Collections;
 import java.util.Optional;
 
 /**
- * This class tests the DefaultBlock class.
+ * This class tests the DefaultStep class.
  */
-public class DefaultBlockTest {
-    private static final String TEST_BLOCK_NAME = "test-block";
+public class DefaultStepTest {
+    private static final String TEST_STEP_NAME = "test-step";
 
     @Mock
     private OfferRequirement mockOfferRequirement;
@@ -29,13 +29,13 @@ public class DefaultBlockTest {
 
     @Test
     public void testCompleteTerminal() {
-        DefaultBlock block = new DefaultBlock(
-                TEST_BLOCK_NAME,
+        DefaultStep step = new DefaultStep(
+                TEST_STEP_NAME,
                 Optional.of(mockOfferRequirement),
                 Status.PENDING,
                 Collections.emptyList());
 
-        Assert.assertTrue(block.isPending());
+        Assert.assertTrue(step.isPending());
 
         Protos.Offer.Operation operation = Protos.Offer.Operation.newBuilder()
                 .setType(Protos.Offer.Operation.Type.LAUNCH)
@@ -45,22 +45,22 @@ public class DefaultBlockTest {
                                 .setName(TestConstants.TASK_NAME)
                                 .setSlaveId(TestConstants.AGENT_ID)))
                 .build();
-        block.updateOfferStatus(Arrays.asList(operation));
+        step.updateOfferStatus(Arrays.asList(operation));
 
-        Assert.assertTrue(block.isInProgress());
+        Assert.assertTrue(step.isInProgress());
 
-        block.update(Protos.TaskStatus.newBuilder()
+        step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(TestConstants.TASK_ID)
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .build());
 
-        Assert.assertTrue(block.isComplete());
+        Assert.assertTrue(step.isComplete());
 
-        block.update(Protos.TaskStatus.newBuilder()
+        step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(TestConstants.TASK_ID)
                 .setState(Protos.TaskState.TASK_FAILED)
                 .build());
 
-        Assert.assertTrue(block.isComplete());
+        Assert.assertTrue(step.isComplete());
     }
 }

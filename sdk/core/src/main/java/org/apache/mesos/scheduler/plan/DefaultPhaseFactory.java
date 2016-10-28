@@ -18,22 +18,22 @@ import java.util.stream.Collectors;
  */
 public class DefaultPhaseFactory implements PhaseFactory {
 
-    private final BlockFactory blockFactory;
-    private final StrategyGenerator<Block> strategyGenerator;
+    private final StepFactory stepFactory;
+    private final StrategyGenerator<Step> strategyGenerator;
 
-    public DefaultPhaseFactory(BlockFactory blockFactory) {
-        this(blockFactory, new SerialStrategy.Generator<>());
+    public DefaultPhaseFactory(StepFactory stepFactory) {
+        this(stepFactory, new SerialStrategy.Generator<>());
     }
 
-    public DefaultPhaseFactory(BlockFactory blockFactory, StrategyGenerator<Block> strategyGenerator) {
-        this.blockFactory = blockFactory;
+    public DefaultPhaseFactory(StepFactory stepFactory, StrategyGenerator<Step> strategyGenerator) {
+        this.stepFactory = stepFactory;
         this.strategyGenerator = strategyGenerator;
     }
 
-    public static Phase getPhase(String name, List<Block> blocks, Strategy<Block> strategy) {
+    public static Phase getPhase(String name, List<Step> steps, Strategy<Step> strategy) {
         return new DefaultPhase(
                 name,
-                blocks,
+                steps,
                 strategy,
                 Collections.emptyList());
     }
@@ -44,28 +44,28 @@ public class DefaultPhaseFactory implements PhaseFactory {
     }
 
     @Override
-    public Phase getPhase(TaskSet taskSet, Strategy<Block> strategy) {
+    public Phase getPhase(TaskSet taskSet, Strategy<Step> strategy) {
         return new DefaultPhase(
                 taskSet.getName(),
-                getBlocks(taskSet),
+                getSteps(taskSet),
                 strategy,
                 Collections.emptyList());
     }
 
     @Override
-    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator<Block> strategyGenerator) {
+    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator<Step> strategyGenerator) {
         return taskSets.stream()
                 .map(taskSet -> getPhase(taskSet, strategyGenerator.generate()))
                 .collect(Collectors.toList());
     }
 
-    private List<Block> getBlocks(TaskSet taskSet) {
+    private List<Step> getSteps(TaskSet taskSet) {
         return taskSet.getTaskSpecifications().stream()
                 .map(taskSpec -> {
                     try {
-                        return blockFactory.getBlock(taskSpec);
-                    } catch (Block.InvalidBlockException | InvalidProtocolBufferException e) {
-                        return new DefaultBlock(
+                        return stepFactory.getStep(taskSpec);
+                    } catch (Step.InvalidStepException | InvalidProtocolBufferException e) {
+                        return new DefaultStep(
                                 taskSpec.getName(),
                                 Optional.empty(),
                                 Status.ERROR,

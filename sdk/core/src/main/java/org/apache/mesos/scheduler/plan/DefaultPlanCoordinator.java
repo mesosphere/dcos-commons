@@ -55,11 +55,11 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
 
         for (final PlanManager planManager : planManagers) {
             try {
-                // Get candidate blocks to be scheduled
-                Collection<? extends Block> candidateBlocks = planManager.getCandidates(dirtiedAssets);
+                // Get candidate steps to be scheduled
+                Collection<? extends Step> candidateSteps = planManager.getCandidates(dirtiedAssets);
 
-                // Try scheduling candidate blocks using the available offers
-                Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateBlocks);
+                // Try scheduling candidate steps using the available offers
+                Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateSteps);
 
                 // Collect dirtied offers
                 dirtiedOffers.addAll(usedOffers);

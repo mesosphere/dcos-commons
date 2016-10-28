@@ -26,7 +26,7 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
     }
 
     @Override
-    public Collection<? extends Block> getCandidates(Collection<String> dirtyAssets) {
+    public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
         return PlanUtils.getCandidates(plan, dirtyAssets);
     }
 
@@ -40,10 +40,10 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
         Set<String> dirtyAssets = new HashSet<>();
         final List<? extends Phase> phases = plan.getChildren();
         for (Phase phase : phases) {
-            final List<? extends Block> blocks = phase.getChildren();
-            for (Block block : blocks) {
-                if (block.isInProgress()) {
-                    dirtyAssets.add(block.getName());
+            final List<? extends Step> steps = phase.getChildren();
+            for (Step step : steps) {
+                if (step.isInProgress()) {
+                    dirtyAssets.add(step.getName());
                 }
             }
         }

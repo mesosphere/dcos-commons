@@ -13,13 +13,13 @@ import java.util.*;
 
 
 /**
- * Block that implements Reconciliation between the Mesos Master and a
- * framework. The Block will be complete when it receives status for all
+ * Step that implements Reconciliation between the Mesos Master and a
+ * framework. The Step will be complete when it receives status for all
  * known tasks and then performs implicit reconciliation.
  */
-public class ReconciliationBlock extends DefaultObservable implements Block {
+public class ReconciliationStep extends DefaultObservable implements Step {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReconciliationBlock.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReconciliationStep.class);
 
     private final Reconciler reconciler;
     private final UUID id = UUID.randomUUID();
@@ -28,13 +28,13 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
     /**
      * Factory method.
      * @param reconciler The reconciler to use for reconciliation.
-     * @return A new ReconciliationBlock
+     * @return A new ReconciliationStep
      */
-    public static final ReconciliationBlock create(Reconciler reconciler) {
-        return new ReconciliationBlock(reconciler);
+    public static final ReconciliationStep create(Reconciler reconciler) {
+        return new ReconciliationStep(reconciler);
     }
 
-    private ReconciliationBlock(final Reconciler reconciler) {
+    private ReconciliationStep(final Reconciler reconciler) {
         this.reconciler = reconciler;
         setStatus(Status.PENDING);
     }
@@ -107,7 +107,7 @@ public class ReconciliationBlock extends DefaultObservable implements Block {
     }
 
     @Override
-    public Strategy<? extends Block> getStrategy() {
+    public Strategy<? extends Step> getStrategy() {
         return new SerialStrategy<>();
     }
 

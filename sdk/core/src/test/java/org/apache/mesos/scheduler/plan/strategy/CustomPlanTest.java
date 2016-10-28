@@ -21,10 +21,14 @@ import static org.mockito.Mockito.when;
  * These test serve as validation of ease of custom plan construction, similar to the CustomTaskSetTest.
  */
 public class CustomPlanTest {
-    @Mock Block block0;
-    @Mock Block block1;
-    @Mock Block block2;
-    @Mock Block block3;
+    @Mock
+    Step step0;
+    @Mock
+    Step step1;
+    @Mock
+    Step step2;
+    @Mock
+    Step step3;
 
     private static final String SERVICE_NAME = "test-service";
     private static final String ROOT_ZK_PATH = "/test-root-path";
@@ -36,7 +40,7 @@ public class CustomPlanTest {
     private static final double TASK_DISK = 1500.0;
     private static final String TASK_CMD = "echo " + TASK_NAME;
 
-    private Collection<Block> blocks;
+    private Collection<Step> steps;
     private ServiceSpecification serviceSpecification;
     private static TestingServer testingServer;
     private static StateStore stateStore;
@@ -51,27 +55,27 @@ public class CustomPlanTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(block0.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(block1.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(block2.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(block3.getStrategy()).thenReturn(new SerialStrategy<>());
+        when(step0.getStrategy()).thenReturn(new SerialStrategy<>());
+        when(step1.getStrategy()).thenReturn(new SerialStrategy<>());
+        when(step2.getStrategy()).thenReturn(new SerialStrategy<>());
+        when(step3.getStrategy()).thenReturn(new SerialStrategy<>());
 
-        when(block0.getName()).thenReturn("block0");
-        when(block1.getName()).thenReturn("block1");
-        when(block2.getName()).thenReturn("block2");
-        when(block3.getName()).thenReturn("block3");
+        when(step0.getName()).thenReturn("step0");
+        when(step1.getName()).thenReturn("step1");
+        when(step2.getName()).thenReturn("step2");
+        when(step3.getName()).thenReturn("step3");
 
-        when(block0.getStatus()).thenReturn(Status.PENDING);
-        when(block1.getStatus()).thenReturn(Status.PENDING);
-        when(block2.getStatus()).thenReturn(Status.PENDING);
-        when(block3.getStatus()).thenReturn(Status.PENDING);
+        when(step0.getStatus()).thenReturn(Status.PENDING);
+        when(step1.getStatus()).thenReturn(Status.PENDING);
+        when(step2.getStatus()).thenReturn(Status.PENDING);
+        when(step3.getStatus()).thenReturn(Status.PENDING);
 
-        when(block0.isPending()).thenReturn(true);
-        when(block1.isPending()).thenReturn(true);
-        when(block2.isPending()).thenReturn(true);
-        when(block3.isPending()).thenReturn(true);
+        when(step0.isPending()).thenReturn(true);
+        when(step1.isPending()).thenReturn(true);
+        when(step2.isPending()).thenReturn(true);
+        when(step3.isPending()).thenReturn(true);
 
-        blocks = Arrays.asList(block0, block1, block2, block3);
+        steps = Arrays.asList(step0, step1, step2, step3);
 
         serviceSpecification = new DefaultServiceSpecification(
                 SERVICE_NAME,
@@ -114,9 +118,9 @@ public class CustomPlanTest {
 
     @Test
     public void testCustomPlanFromServiceSpecDoesntThrow()
-            throws Block.InvalidBlockException, InvalidProtocolBufferException {
-        DefaultBlockFactory blockFactory = new DefaultBlockFactory(stateStore);
-        DefaultPhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
+            throws Step.InvalidStepException, InvalidProtocolBufferException {
+        DefaultStepFactory stepFactory = new DefaultStepFactory(stateStore);
+        DefaultPhaseFactory phaseFactory = new DefaultPhaseFactory(stepFactory);
         Iterator<TaskSet> taskSetIterator = serviceSpecification.getTaskSets().iterator();
 
         Phase parallelPhase = phaseFactory.getPhase(
@@ -129,12 +133,12 @@ public class CustomPlanTest {
 
         TaskSet taskSet = taskSetIterator.next();
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("diamond");
-        List<Block> blocks = getBlocks(taskSet.getTaskSpecifications(), blockFactory);
+        List<Step> steps = getSteps(taskSet.getTaskSpecifications(), stepFactory);
 
-        phaseBuilder.addDependency(blocks.get(3), blocks.get(1));
-        phaseBuilder.addDependency(blocks.get(3), blocks.get(2));
-        phaseBuilder.addDependency(blocks.get(1), blocks.get(0));
-        phaseBuilder.addDependency(blocks.get(2), blocks.get(0));
+        phaseBuilder.addDependency(steps.get(3), steps.get(1));
+        phaseBuilder.addDependency(steps.get(3), steps.get(2));
+        phaseBuilder.addDependency(steps.get(1), steps.get(0));
+        phaseBuilder.addDependency(steps.get(2), steps.get(0));
         Phase diamondPhase = phaseBuilder.build();
 
         new DefaultPlan(
@@ -143,38 +147,38 @@ public class CustomPlanTest {
                 new SerialStrategy<>());
     }
 
-    private List<Block> getBlocks(List<TaskSpecification> taskSpecifications, BlockFactory blockFactory)
-            throws Block.InvalidBlockException, InvalidProtocolBufferException {
+    private List<Step> getSteps(List<TaskSpecification> taskSpecifications, StepFactory stepFactory)
+            throws Step.InvalidStepException, InvalidProtocolBufferException {
 
-        List<Block> blocks = new ArrayList<>();
+        List<Step> steps = new ArrayList<>();
         for (TaskSpecification taskSpecification : taskSpecifications) {
-            blocks.add(blockFactory.getBlock(taskSpecification));
+            steps.add(stepFactory.getStep(taskSpecification));
         }
 
-        return blocks;
+        return steps;
     }
 
     private Phase getParallelPhase() throws DependencyStrategyHelper.InvalidDependencyException {
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("parallel");
-        phaseBuilder.addAll(blocks);
+        phaseBuilder.addAll(steps);
         return phaseBuilder.build();
     }
 
     private Phase getDiamondPhase() {
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("diamond");
-        phaseBuilder.addDependency(block3, block1);
-        phaseBuilder.addDependency(block3, block2);
-        phaseBuilder.addDependency(block1, block0);
-        phaseBuilder.addDependency(block2, block0);
+        phaseBuilder.addDependency(step3, step1);
+        phaseBuilder.addDependency(step3, step2);
+        phaseBuilder.addDependency(step1, step0);
+        phaseBuilder.addDependency(step2, step0);
 
         return phaseBuilder.build();
     }
 
     private Phase getSerialPhase() {
         DefaultPhaseBuilder phaseBuilder = new DefaultPhaseBuilder("serial");
-        phaseBuilder.addDependency(block3, block2);
-        phaseBuilder.addDependency(block2, block1);
-        phaseBuilder.addDependency(block1, block0);
+        phaseBuilder.addDependency(step3, step2);
+        phaseBuilder.addDependency(step2, step1);
+        phaseBuilder.addDependency(step1, step0);
 
         return phaseBuilder.build();
     }
