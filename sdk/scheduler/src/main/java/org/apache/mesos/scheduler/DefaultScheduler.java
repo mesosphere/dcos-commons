@@ -68,12 +68,30 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected PlanCoordinator planCoordinator;
     protected Collection<Object> resources;
 
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided service-defined
+     * {@link ServiceSpecification} and the default ZK location for framework state.
+     *
+     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
     public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
         return create(
                 serviceSpecification,
                 createStateStore(serviceSpecification.getName(), DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
     }
 
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@link ServiceSpecification} and {@link StateStore}.
+     *
+     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param stateStore framework state storage, which must not be written to before the scheduler
+     *                   has been registered with mesos as indicated by a call to {@link
+     *                   DefaultScheduler#registered(SchedulerDriver,
+     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @see #createStateStore(String, String)
+     */
     public static DefaultScheduler create(ServiceSpecification serviceSpecification, StateStore stateStore) {
         PlanFactory deployPlanFactory =
                 new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(stateStore)));
@@ -83,6 +101,15 @@ public class DefaultScheduler implements Scheduler, Observer {
                 stateStore);
     }
 
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@code frameworkName} and {@link PlanManager} stack, and the default ZK location for
+     * framework state.
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param deployPlanManager the deployment plan to be used by this service
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
     public static DefaultScheduler create(String frameworkName, PlanManager deploymentPlanManager) {
         return create(
                 frameworkName,
@@ -90,6 +117,19 @@ public class DefaultScheduler implements Scheduler, Observer {
                 createStateStore(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
     }
 
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@code frameworkName}, {@link PlanManager} stack, and {@link StateStore}, but with default
+     * recovery durations.
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param deployPlanManager the deployment plan to be used by this service
+     * @param stateStore framework state storage, which must not be written to before the scheduler
+     *                   has been registered with mesos as indicated by a call to {@link
+     *                   DefaultScheduler#registered(SchedulerDriver,
+     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @see #createStateStore(String, String)
+     */
     public static DefaultScheduler create(
             String frameworkName,
             PlanManager deploymentPlanManager,
@@ -102,6 +142,20 @@ public class DefaultScheduler implements Scheduler, Observer {
                 DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
     }
 
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@code frameworkName} and {@link PlanManager} stack, and the default ZK location for
+     * framework state.
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param deployPlanManager the deployment plan to be used by this service
+     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
+     *                                   task has failed, or an empty {@link Optional} to disable
+     *                                   this detection
+     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
+     *                                    recovery operations such as destroying a failed task
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
     public static DefaultScheduler create(
             String frameworkName,
             PlanManager deployPlanManager,
@@ -115,6 +169,21 @@ public class DefaultScheduler implements Scheduler, Observer {
                 destructiveRecoveryDelaySec);
     }
 
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@code frameworkName}, {@link PlanManager} stack, and {@link StateStore}.
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param stateStore framework state storage, which must not be written to before the scheduler
+     *                   has been registered with mesos as indicated by a call to {@link
+     *                   DefaultScheduler#registered(SchedulerDriver,
+     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
+     *                                   task has failed, or an empty {@link Optional} to disable
+     *                                   this detection
+     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
+     *                                    recovery operations such as destroying a failed task
+     */
     public static DefaultScheduler create(
             String frameworkName,
             PlanManager deployPlanManager,
@@ -130,11 +199,37 @@ public class DefaultScheduler implements Scheduler, Observer {
                 destructiveRecoveryDelaySec);
     }
 
+    /**
+     * Creates and returns a new default {@link StateStore} suitable for passing to
+     * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
+     * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
+     * signified by a call to {@link DefaultScheduler#registered(SchedulerDriver,
+     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
+     */
     public static StateStore createStateStore(String frameworkName, String zkConnectionString) {
         return StateStoreCache.getInstance(
                 new CuratorStateStore(frameworkName, zkConnectionString));
     }
 
+    /**
+     * Creates a new DefaultScheduler.
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param deployPlanManager the deployment plan to be used by this service
+     * @param offerRequirementProvider generator of offers in order to run specified tasks
+     * @param stateStore framework state storage, which must not be written to before the scheduler
+     *                   has been registered with mesos as indicated by a call to {@link
+     *                   DefaultScheduler#registered(SchedulerDriver,
+     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
+     *                                   task has failed, or an empty {@link Optional} to disable
+     *                                   this detection
+     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
+     *                                    recovery operations such as destroying a failed task
+     */
     protected DefaultScheduler(
             String frameworkName,
             PlanManager deployPlanManager,
