@@ -48,8 +48,11 @@ class PackageVersion(object):
         version_tag = self.get_version()
         try:
             # get the rev for the remote tag. use % instead of .format() to preserve a literal '{}':
-            # output format: '<tag>           <refname>'
             rev = self._get_cmd_stdout('git ls-remote --tags %s refs/tags/%s^{}' % (repo_url, version_tag))
+            if len(rev) == 0:
+                # no tag with '^{}' suffix was found. retry without the suffix:
+                rev = self._get_cmd_stdout('git ls-remote --tags {} refs/tags/{}'.format(repo_url, version_tag))
+            # output format: '<tag>           <refname>'
             return rev.split()[0]
         except:
             logger.error('Failed to retrieve SHA1 from git for tag "{}"'.format(version_tag))
@@ -58,7 +61,10 @@ class PackageVersion(object):
 
     def _get_cmd_stdout(self, cmd):
         try:
-            return subprocess.check_output(cmd.split(' ')).decode('utf-8').strip()
+            logger.info("CMD: {}".format(cmd))
+            output = subprocess.check_output(cmd.split(' ')).decode('utf-8').strip()
+            logger.info("Output ({}b):\n{}".format(len(output), output))
+            return output
         except:
             logger.error('Failed to run command: "{}"'.format(cmd))
             raise
