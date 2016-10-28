@@ -34,7 +34,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
     public Collection<OfferID> resourceOffers(
             final SchedulerDriver driver,
             final List<Offer> offers,
-            final Collection<? extends Block> blocks) {
+            final Collection<? extends Step> steps) {
 
         if (driver == null) {
             logger.error("driver was null");
@@ -42,16 +42,16 @@ public class DefaultPlanScheduler implements PlanScheduler {
         } else if (offers == null) {
             logger.error("offers was null");
             return Collections.emptyList();
-        } else if (blocks == null) {
-            logger.error("blocks was null");
+        } else if (steps == null) {
+            logger.error("steps was null");
             return Collections.emptyList();
         }
 
         List<OfferID> acceptedOfferIds = new ArrayList<>();
         List<Offer> availableOffers = new ArrayList<>(offers);
 
-        for (Block block : blocks) {
-            acceptedOfferIds.addAll(resourceOffers(driver, availableOffers, block));
+        for (Step step : steps) {
+            acceptedOfferIds.addAll(resourceOffers(driver, availableOffers, step));
             availableOffers = PlanUtils.filterAcceptedOffers(availableOffers, acceptedOfferIds);
         }
 
@@ -61,7 +61,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private Collection<OfferID> resourceOffers(
             SchedulerDriver driver,
             List<Offer> offers,
-            Block block) {
+            Step step) {
 
         List<OfferID> acceptedOffers = new ArrayList<>();
 
@@ -70,21 +70,21 @@ public class DefaultPlanScheduler implements PlanScheduler {
             return acceptedOffers;
         }
 
-        if (block == null) {
-            logger.info("Ignoring resource offers for null block.");
+        if (step == null) {
+            logger.info("Ignoring resource offers for null step.");
             return acceptedOffers;
         }
 
-        if (!block.isPending()) {
-            logger.info("Ignoring resource offers for block: {} status: {}", block.getName(), block.getStatus());
+        if (!step.isPending()) {
+            logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return acceptedOffers;
         }
 
-        logger.info("Processing resource offers for block: {}", block.getName());
-        Optional<OfferRequirement> offerRequirementOptional = block.start();
+        logger.info("Processing resource offers for step: {}", step.getName());
+        Optional<OfferRequirement> offerRequirementOptional = step.start();
         if (!offerRequirementOptional.isPresent()) {
-            logger.info("No OfferRequirement for block: {}", block.getName());
-            block.updateOfferStatus(Collections.emptyList());
+            logger.info("No OfferRequirement for step: {}", step.getName());
+            step.updateOfferStatus(Collections.emptyList());
             return acceptedOffers;
         }
 
@@ -94,26 +94,26 @@ public class DefaultPlanScheduler implements PlanScheduler {
         // running no operation occurs.
         killTasks(offerRequirement);
 
-        // Block has returned an OfferRequirement to process. Find offers which match the
+        // Step has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
         List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerRequirement, offers);
         if (recommendations.isEmpty()) {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
             logger.warn(
-                    "Unable to find any offers which fulfill requirement provided by block {}: {}",
-                    block.getName(), offerRequirement);
-            block.updateOfferStatus(Collections.emptyList());
+                    "Unable to find any offers which fulfill requirement provided by step {}: {}",
+                    step.getName(), offerRequirement);
+            step.updateOfferStatus(Collections.emptyList());
             return acceptedOffers;
         }
 
         acceptedOffers = offerAccepter.accept(driver, recommendations);
-        // Notify block of offer outcome:
+        // Notify step of offer outcome:
         if (acceptedOffers.size() > 0) {
-            block.updateOfferStatus(getOperations(recommendations));
+            step.updateOfferStatus(getOperations(recommendations));
         } else {
-            // If no Operations occurred it may be of interest to the Block.  For example it may want to set it's state
+            // If no Operations occurred it may be of interest to the Step.  For example it may want to set it's state
             // to Pending to ensure it will be reattempted on the next Offer cycle.
-            block.updateOfferStatus(Collections.emptyList());
+            step.updateOfferStatus(Collections.emptyList());
         }
 
         return acceptedOffers;

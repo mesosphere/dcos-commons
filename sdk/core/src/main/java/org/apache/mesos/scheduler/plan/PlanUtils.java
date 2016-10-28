@@ -17,15 +17,15 @@ import java.util.stream.Collectors;
 public class PlanUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlanUtils.class);
 
-    public static final Collection<? extends Block> getCandidates(Plan plan, Collection<String> dirtyAssets) {
+    public static final Collection<? extends Step> getCandidates(Plan plan, Collection<String> dirtyAssets) {
         Collection<Phase> candidatePhases = plan.getStrategy().getCandidates(plan, dirtyAssets);
-        Collection<Block> candidateBlocks = candidatePhases.stream()
+        Collection<Step> candidateSteps = candidatePhases.stream()
                 .map(phase -> phase.getStrategy().getCandidates(phase, dirtyAssets))
-                .flatMap(blocks -> blocks.stream())
-                .filter(block -> block.isPending())
+                .flatMap(steps -> steps.stream())
+                .filter(step -> step.isPending())
                 .collect(Collectors.toList());
 
-        return candidateBlocks;
+        return candidateSteps;
     }
 
     public static final void update(TaskStatus taskStatus, Collection<? extends Element> elements) {

@@ -70,8 +70,8 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     public static DefaultScheduler create(ServiceSpecification serviceSpecification, String zkConnectionString) {
         StateStore stateStore = new CuratorStateStore(serviceSpecification.getName(), zkConnectionString);
-        BlockFactory blockFactory = new DefaultBlockFactory(stateStore);
-        PhaseFactory phaseFactory = new DefaultPhaseFactory(blockFactory);
+        StepFactory stepFactory = new DefaultStepFactory(stateStore);
+        PhaseFactory phaseFactory = new DefaultPhaseFactory(stepFactory);
         Plan deployPlan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
         return create(serviceSpecification.getName(), new DefaultPlanManager(deployPlan), zkConnectionString);
     }
@@ -332,7 +332,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                         status.getState().toString(),
                         status.getMessage()));
 
-                // Store status, then pass status to PlanManager => Plan => Blocks
+                // Store status, then pass status to PlanManager => Plan => Steps
                 try {
                     stateStore.storeStatus(status);
                     deployPlanManager.update(status);

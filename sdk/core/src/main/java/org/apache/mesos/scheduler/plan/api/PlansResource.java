@@ -1,9 +1,6 @@
 package org.apache.mesos.scheduler.plan.api;
 
-import org.apache.mesos.scheduler.plan.Block;
-import org.apache.mesos.scheduler.plan.Element;
-import org.apache.mesos.scheduler.plan.Phase;
-import org.apache.mesos.scheduler.plan.PlanManager;
+import org.apache.mesos.scheduler.plan.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +41,7 @@ public class PlansResource {
     }
 
     /**
-     * Returns a full list of the Plan's contents (incl all Phases/Blocks).
+     * Returns a full list of the {@link Plan}'s contents (incl all {@link Phase}s/{@link Step}s).
      */
     @GET
     @Path("/plans/{planName}")
@@ -93,12 +90,12 @@ public class PlansResource {
     public Response forceCompleteCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
-            @QueryParam("block") String blockId) {
+            @QueryParam("step") String stepId) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            Optional<Block> block = getBlock(manager, phaseId, blockId);
-            if (block.isPresent()) {
-                block.get().forceComplete();
+            Optional<Step> step = getStep(manager, phaseId, stepId);
+            if (step.isPresent()) {
+                step.get().forceComplete();
                 return Response.status(Response.Status.OK)
                         .entity(new CommandResultInfo("Received cmd: forceComplete"))
                         .build();
@@ -115,12 +112,12 @@ public class PlansResource {
     public Response restartCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
-            @QueryParam("block") String blockId) {
+            @QueryParam("step") String stepId) {
         final PlanManager manager = planManagers.get(planName);
         if (manager != null) {
-            Optional<Block> block = getBlock(manager, phaseId, blockId);
-            if (block.isPresent()) {
-                block.get().restart();
+            Optional<Step> step = getStep(manager, phaseId, stepId);
+            if (step.isPresent()) {
+                step.get().restart();
                 return Response.status(Response.Status.OK)
                         .entity(new CommandResultInfo("Received cmd: restart"))
                         .build();
@@ -159,9 +156,9 @@ public class PlansResource {
     @Path("/plan/forceComplete")
     public Response forceCompleteCommand(
             @QueryParam("phase") String phaseId,
-            @QueryParam("block") String blockId) {
+            @QueryParam("step") String stepId) {
 
-        return forceCompleteCommand("deploy", phaseId, blockId);
+        return forceCompleteCommand("deploy", phaseId, stepId);
     }
 
     @POST
@@ -169,26 +166,26 @@ public class PlansResource {
     @Path("/plan/restart")
     public Response restartCommand(
             @QueryParam("phase") String phaseId,
-            @QueryParam("block") String blockId) {
-        return restartCommand("deploy", phaseId, blockId);
+            @QueryParam("step") String stepId) {
+        return restartCommand("deploy", phaseId, stepId);
     }
 
-    private Optional<Block> getBlock(PlanManager manager, String phaseId, String blockId) {
+    private Optional<Step> getStep(PlanManager manager, String phaseId, String stepId) {
         List<Phase> phases = manager.getPlan().getChildren().stream()
                 .filter(phase -> phase.getId().equals(UUID.fromString(phaseId)))
                 .collect(Collectors.toList());
 
         if (phases.size() == 1) {
-            Element<Block> phase = phases.stream().findFirst().get();
+            Element<Step> phase = phases.stream().findFirst().get();
 
-            List<Block> blocks = phase.getChildren().stream()
-                    .filter(block -> block.getId().equals(UUID.fromString(blockId)))
+            List<Step> steps = phase.getChildren().stream()
+                    .filter(step -> step.getId().equals(UUID.fromString(stepId)))
                     .collect(Collectors.toList());
 
-            if (blocks.size() == 1) {
-                return blocks.stream().findFirst();
+            if (steps.size() == 1) {
+                return steps.stream().findFirst();
             } else {
-                logger.error("Expected 1 Block, found: " + blocks);
+                logger.error("Expected 1 Step, found: " + steps);
                 return Optional.empty();
             }
         } else {

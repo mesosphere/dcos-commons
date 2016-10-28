@@ -7,8 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * Phase that implements reconciliation. It has exactly one Block, the
- * reconciliation block.
+ * Phase that implements reconciliation. It has exactly one Step, the reconciliation {@link Step}.
  */
 public final class ReconciliationPhase extends DefaultPhase {
 
@@ -18,7 +17,7 @@ public final class ReconciliationPhase extends DefaultPhase {
 
     private ReconciliationPhase(Reconciler reconciler) {
         super("Reconciliation",
-                Arrays.asList(ReconciliationBlock.create(reconciler)),
+                Arrays.asList(ReconciliationStep.create(reconciler)),
                 new SerialStrategy<>(),
                 Collections.emptyList());
     }

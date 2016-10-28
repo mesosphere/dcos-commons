@@ -16,105 +16,105 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link ReconciliationBlock}.
+ * Tests for {@link ReconciliationStep}.
  */
-public class ReconciliationBlockTest {
+public class ReconciliationStepTest {
 
     private static final Set<TaskStatus> STATUSES = Sets.newHashSet(
             createTaskStatus("status1"), createTaskStatus("status2"));
 
     @Mock private Reconciler mockReconciler;
 
-    private ReconciliationBlock block;
+    private ReconciliationStep step;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        block = ReconciliationBlock.create(mockReconciler);
+        step = ReconciliationStep.create(mockReconciler);
     }
 
     @Test
     public void testStartsPending() {
-        assertTrue(block.isPending());
-        assertTrue(block.getMessage().contains("pending"));
+        assertTrue(step.isPending());
+        assertTrue(step.getMessage().contains("pending"));
     }
 
     @Test
     public void testStartStatusProviderFailure() throws Exception {
         doThrow(new RuntimeException("hello")).when(mockReconciler).start();
-        assertFalse(block.start().isPresent());
-        assertTrue(block.isPending());
+        assertFalse(step.start().isPresent());
+        assertTrue(step.isPending());
     }
 
     @Test
     public void testStart() throws Exception {
-        assertFalse(block.start().isPresent());
-        assertFalse(block.isPending());
+        assertFalse(step.start().isPresent());
+        assertFalse(step.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(block.isInProgress());
-        assertTrue(block.getMessage().contains("in progress"));
+        assertTrue(step.isInProgress());
+        assertTrue(step.getMessage().contains("in progress"));
         when(mockReconciler.isReconciled()).thenReturn(true);
-        assertTrue(block.isComplete());
-        assertTrue(block.getMessage().contains("complete"));
+        assertTrue(step.isComplete());
+        assertTrue(step.getMessage().contains("complete"));
     }
 
     @Test
     public void testStartInProgressRestart() throws Exception {
-        assertFalse(block.start().isPresent());
+        assertFalse(step.start().isPresent());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(block.isInProgress());
-        block.restart();
-        assertTrue(block.isPending());
+        assertTrue(step.isInProgress());
+        step.restart();
+        assertTrue(step.isPending());
     }
 
     @Test
     public void testStartCompleteRestart() throws Exception {
-        assertFalse(block.start().isPresent());
-        assertFalse(block.isPending());
+        assertFalse(step.start().isPresent());
+        assertFalse(step.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(true);
-        assertTrue(block.isComplete());
-        block.restart();
+        assertTrue(step.isComplete());
+        step.restart();
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(block.isPending());
+        assertTrue(step.isPending());
     }
 
     @Test
     public void testForceCompleteFromPending() {
-        assertTrue(block.isPending());
+        assertTrue(step.isPending());
 
-        block.forceComplete();
+        step.forceComplete();
         when(mockReconciler.isReconciled()).thenReturn(true); // simulate reconciler now complete
-        assertTrue(block.isComplete());
+        assertTrue(step.isComplete());
     }
 
     @Test
     public void testForceCompleteFromInProgress() throws Exception {
-        assertFalse(block.start().isPresent());
+        assertFalse(step.start().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(block.isInProgress());
+        assertTrue(step.isInProgress());
 
-        block.forceComplete();
+        step.forceComplete();
         when(mockReconciler.isReconciled()).thenReturn(true); // simulate reconciler now complete
-        assertTrue(block.isComplete());
+        assertTrue(step.isComplete());
     }
 
     @Test
     public void testForceCompleteFromComplete() throws Exception {
-        assertFalse(block.start().isPresent());
+        assertFalse(step.start().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(true);
-        assertTrue(block.isComplete());
+        assertTrue(step.isComplete());
 
-        block.forceComplete();
-        assertTrue(block.isComplete());
+        step.forceComplete();
+        assertTrue(step.isComplete());
     }
 
     @Test
     public void testUpdateOfferStatusFalseSucceeds() {
         // Expect no exception to be thrown
-        block.updateOfferStatus(Collections.emptyList());
+        step.updateOfferStatus(Collections.emptyList());
     }
 
     @Test(expected=UnsupportedOperationException.class)
@@ -123,12 +123,12 @@ public class ReconciliationBlockTest {
                 .setType(Protos.Offer.Operation.Type.LAUNCH)
                 .build();
         List<Protos.Offer.Operation> operations = Arrays.asList(op);
-        block.updateOfferStatus(operations);
+        step.updateOfferStatus(operations);
     }
 
     @Test
     public void testUpdate() {
-        block.update(STATUSES.iterator().next());
+        step.update(STATUSES.iterator().next());
     }
 
     private static TaskStatus createTaskStatus(String id) {

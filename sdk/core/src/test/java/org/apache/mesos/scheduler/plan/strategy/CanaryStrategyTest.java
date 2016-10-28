@@ -35,9 +35,9 @@ public class CanaryStrategyTest {
         when(el1.getStrategy()).thenReturn(new SerialStrategy<>());
         when(el2.getStrategy()).thenReturn(new SerialStrategy<>());
 
-        when(el0.getName()).thenReturn("block0");
-        when(el1.getName()).thenReturn("block1");
-        when(el2.getName()).thenReturn("block2");
+        when(el0.getName()).thenReturn("step0");
+        when(el1.getName()).thenReturn("step1");
+        when(el2.getName()).thenReturn("step2");
 
         when(el0.isPending()).thenReturn(true);
         when(el1.isPending()).thenReturn(true);

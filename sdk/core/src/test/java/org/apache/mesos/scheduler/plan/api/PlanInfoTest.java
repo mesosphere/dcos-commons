@@ -17,47 +17,40 @@ import static org.mockito.Mockito.when;
 
 public class PlanInfoTest {
 
-    @Mock Block mockBlock0;
-    @Mock Block mockBlock1;
-    @Mock Phase mockPhase0; // 2 blocks
-    @Mock Phase mockPhase1; // no blocks
-    @Mock
-    Plan mockPlan; // 2 phases
-    @Mock
-    PlanManager mockPlanManager;
+    @Mock Step mockStep0;
+    @Mock Step mockStep1;
+    @Mock Phase mockPhase0; // 2 steps
+    @Mock Phase mockPhase1; // no steps
+    @Mock Plan mockPlan; // 2 phases
+    @Mock PlanManager mockPlanManager;
 
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
     }
 
-    /**
-     * This also effectively tests:
-     * - {@link PhaseInfo#forPhase(Phase, PlanManager)}
-     * - {@link BlockInfo#forBlock(Block, PlanManager)}.
-     */
     @Test
     public void testForPlan() {
 
-        // block calls within BlockInfo.forBlock(), against block 0 and block 1
+        // step calls within StepInfo.forStep(), against step 0 and step 1
 
-        UUID block0Id = UUID.randomUUID();
-        when(mockBlock0.getId()).thenReturn(block0Id);
-        when(mockBlock0.isPending()).thenReturn(true);
-        String block0Name = "block-0";
-        when(mockBlock0.getName()).thenReturn(block0Name);
-        String block0Message = "hi";
-        when(mockBlock0.getMessage()).thenReturn(block0Message);
-        when(mockBlock0.getStatus()).thenReturn(Status.PENDING);
+        UUID step0Id = UUID.randomUUID();
+        when(mockStep0.getId()).thenReturn(step0Id);
+        when(mockStep0.isPending()).thenReturn(true);
+        String step0Name = "step-0";
+        when(mockStep0.getName()).thenReturn(step0Name);
+        String step0Message = "hi";
+        when(mockStep0.getMessage()).thenReturn(step0Message);
+        when(mockStep0.getStatus()).thenReturn(Status.PENDING);
 
-        UUID block1Id = UUID.randomUUID();
-        when(mockBlock1.getId()).thenReturn(block1Id);
+        UUID step1Id = UUID.randomUUID();
+        when(mockStep1.getId()).thenReturn(step1Id);
         // no explicit status response: produce Status.ERROR
-        String block1Name = "block-1";
-        when(mockBlock1.getName()).thenReturn(block1Name);
-        String block1Message = "hey";
-        when(mockBlock1.getMessage()).thenReturn(block1Message);
-        when(mockBlock1.getStatus()).thenReturn(Status.ERROR);
+        String step1Name = "step-1";
+        when(mockStep1.getName()).thenReturn(step1Name);
+        String step1Message = "hey";
+        when(mockStep1.getMessage()).thenReturn(step1Message);
+        when(mockStep1.getStatus()).thenReturn(Status.ERROR);
 
         // phase calls within PhaseInfo.forPhase(), against phase 0 and phase 1
 
@@ -67,8 +60,8 @@ public class PlanInfoTest {
         when(mockPhase0.getName()).thenReturn(phase0Name);
         Status phase0Status = Status.PENDING;
         when(mockPhase0.getStatus()).thenReturn(phase0Status);
-        // must use thenAnswer instead of thenReturn to work around java typing of "? extends Block"
-        when(mockPhase0.getChildren()).thenReturn(Arrays.asList(mockBlock0, mockBlock1));
+        // must use thenAnswer instead of thenReturn to work around java typing of "? extends Step"
+        when(mockPhase0.getChildren()).thenReturn(Arrays.asList(mockStep0, mockStep1));
 
         UUID phase1Id = UUID.randomUUID();
         when(mockPhase1.getId()).thenReturn(phase1Id);
@@ -91,31 +84,31 @@ public class PlanInfoTest {
         assertEquals(stageErrors, planInfo.getErrors());
         assertEquals(Status.WAITING, planInfo.getStatus());
 
-        // phase 0 + 2 blocks
+        // phase 0 + 2 steps
         PhaseInfo phaseInfo = planInfo.getPhases().get(0);
         assertEquals(phase0Id.toString(), phaseInfo.getId());
         assertEquals(phase0Name, phaseInfo.getName());
         assertEquals(phase0Status, phaseInfo.getStatus());
-        assertEquals(2, phaseInfo.getBlocks().size());
+        assertEquals(2, phaseInfo.getSteps().size());
 
-        BlockInfo blockInfo = phaseInfo.getBlocks().get(0);
-        assertEquals(block0Id.toString(), blockInfo.getId());
-        assertEquals(block0Message, blockInfo.getMessage());
-        assertEquals(block0Name, blockInfo.getName());
-        assertEquals(Status.PENDING, blockInfo.getStatus());
+        StepInfo stepInfo = phaseInfo.getSteps().get(0);
+        assertEquals(step0Id.toString(), stepInfo.getId());
+        assertEquals(step0Message, stepInfo.getMessage());
+        assertEquals(step0Name, stepInfo.getName());
+        assertEquals(Status.PENDING, stepInfo.getStatus());
 
-        blockInfo = phaseInfo.getBlocks().get(1);
-        assertEquals(block1Id.toString(), blockInfo.getId());
-        assertEquals(block1Message, blockInfo.getMessage());
-        assertEquals(block1Name, blockInfo.getName());
-        assertEquals(Status.ERROR, blockInfo.getStatus());
+        stepInfo = phaseInfo.getSteps().get(1);
+        assertEquals(step1Id.toString(), stepInfo.getId());
+        assertEquals(step1Message, stepInfo.getMessage());
+        assertEquals(step1Name, stepInfo.getName());
+        assertEquals(Status.ERROR, stepInfo.getStatus());
 
-        // phase 1 + 0 blocks
+        // phase 1 + 0 steps
         phaseInfo = planInfo.getPhases().get(1);
         assertEquals(phase1Id.toString(), phaseInfo.getId());
         assertEquals(phase1Name, phaseInfo.getName());
         assertEquals(phase1Status, phaseInfo.getStatus());
-        assertEquals(0, phaseInfo.getBlocks().size());
+        assertEquals(0, phaseInfo.getSteps().size());
 
         // exercise equals/hashCode while we're at it:
         assertTrue(planInfo.equals(planInfo));
@@ -124,8 +117,8 @@ public class PlanInfoTest {
         assertTrue(phaseInfo.equals(phaseInfo));
         assertEquals(phaseInfo.hashCode(), phaseInfo.hashCode());
         assertEquals(phaseInfo.toString(), phaseInfo.toString());
-        assertTrue(blockInfo.equals(blockInfo));
-        assertEquals(blockInfo.hashCode(), blockInfo.hashCode());
-        assertEquals(blockInfo.toString(), blockInfo.toString());
+        assertTrue(stepInfo.equals(stepInfo));
+        assertEquals(stepInfo.hashCode(), stepInfo.hashCode());
+        assertEquals(stepInfo.toString(), stepInfo.toString());
     }
 }

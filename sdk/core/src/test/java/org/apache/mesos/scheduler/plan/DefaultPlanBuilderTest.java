@@ -32,10 +32,10 @@ public class DefaultPlanBuilderTest {
         when(phase2.getStrategy()).thenReturn(new SerialStrategy<>());
         when(phase3.getStrategy()).thenReturn(new SerialStrategy<>());
 
-        when(phase0.getName()).thenReturn("block0");
-        when(phase1.getName()).thenReturn("block1");
-        when(phase2.getName()).thenReturn("block2");
-        when(phase3.getName()).thenReturn("block3");
+        when(phase0.getName()).thenReturn("step0");
+        when(phase1.getName()).thenReturn("step1");
+        when(phase2.getName()).thenReturn("step2");
+        when(phase3.getName()).thenReturn("step3");
 
         when(phase0.isPending()).thenReturn(true);
         when(phase1.isPending()).thenReturn(true);

@@ -14,31 +14,31 @@ import java.util.Collections;
 import java.util.Optional;
 
 /**
- * This class is a default implementation of the BlockFactory interface.
+ * This class is a default implementation of the StepFactory interface.
  */
-public class DefaultBlockFactory implements BlockFactory {
+public class DefaultStepFactory implements StepFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
 
-    public DefaultBlockFactory(StateStore stateStore) {
+    public DefaultStepFactory(StateStore stateStore) {
         this(stateStore, new DefaultOfferRequirementProvider());
     }
 
-    public DefaultBlockFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
+    public DefaultStepFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
     }
 
     @Override
-    public Block getBlock(TaskSpecification taskSpecification) throws Block.InvalidBlockException {
-        logger.info("Generating block for: " + taskSpecification.getName());
+    public Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException {
+        logger.info("Generating step for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
 
         try {
             if (!taskInfoOptional.isPresent()) {
-                logger.info("Generating new block for: " + taskSpecification.getName());
-                return new DefaultBlock(
+                logger.info("Generating new step for: " + taskSpecification.getName());
+                return new DefaultStep(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpecification)),
                         Status.PENDING,
@@ -47,9 +47,9 @@ public class DefaultBlockFactory implements BlockFactory {
                 Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
                 TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
-                logger.info("Generating existing block for: " + taskSpecification.getName() +
+                logger.info("Generating existing step for: " + taskSpecification.getName() +
                         " with status: " + status);
-                return new DefaultBlock(
+                return new DefaultStep(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider
                                 .getExistingOfferRequirement(taskInfo, taskSpecification)),
@@ -58,10 +58,10 @@ public class DefaultBlockFactory implements BlockFactory {
             }
         } catch (InvalidTaskSpecificationException | InvalidRequirementException | TaskException e) {
             logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
-            throw new Block.InvalidBlockException(e);
+            throw new Step.InvalidStepException(e);
         } catch (InvalidProtocolBufferException e) {
             logger.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
-            throw new Block.InvalidBlockException(e);
+            throw new Step.InvalidStepException(e);
         }
     }
 

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * <p>
  * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
- * generates a new {@link DefaultRecoveryBlock} for them and adds them to the recovery Plan, if not already added.
+ * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
     private static final String RECOVERY_ELEMENT_NAME = "recovery";
@@ -45,7 +45,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.offerReqProvider = offerReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        setPlan(createPlan(createBlocks()));
+        setPlan(createPlan(createSteps()));
     }
 
     @Override
@@ -63,12 +63,12 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     @Override
-    public Collection<? extends Block> getCandidates(Collection<String> dirtyAssets) {
+    public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
         synchronized (planLock) {
             updatePlan();
             return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
-                    .filter(block ->
-                            launchConstrainer.canLaunch(((DefaultRecoveryBlock) block).getRecoveryRequirement()))
+                    .filter(step ->
+                            launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryRequirement()))
                     .collect(Collectors.toList());
         }
     }
@@ -76,9 +76,9 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     /**
      * Updates the recovery plan if necessary.
      * <p>
-     * 1. Updates existing blocks.
-     * 2. If the needs recovery and doesn't yet have a block in the plan, removes any COMPLETED blocks for this task
-     * (at most one block for a given task can exist) and creates a new PENDING block.
+     * 1. Updates existing steps.
+     * 2. If the needs recovery and doesn't yet have a step in the plan, removes any COMPLETED steps for this task
+     * (at most one step for a given task can exist) and creates a new PENDING step.
      *
      * @param status task status
      */
@@ -93,35 +93,35 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     private void updatePlan() {
         synchronized (planLock) {
-            // This list will not contain any Complete blocks.
-            List<Block> blocks = createBlocks();
-            List<String> blockNames = blocks.stream().map(block -> block.getName()).collect(Collectors.toList());
-            List<Block> completeBlocks = getPlan().getChildren().stream()
+            // This list will not contain any Complete steps.
+            List<Step> steps = createSteps();
+            List<String> stepNames = steps.stream().map(step -> step.getName()).collect(Collectors.toList());
+            List<Step> completeSteps = getPlan().getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
-                    .filter(block -> !blockNames.contains(block.getName()))
+                    .filter(step -> !stepNames.contains(step.getName()))
                     .collect(Collectors.toList());
 
-            blocks.addAll(completeBlocks);
-            setPlan(createPlan(blocks));
+            steps.addAll(completeSteps);
+            setPlan(createPlan(steps));
         }
     }
 
-    private Plan createPlan(List<Block> blocks) {
-        Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, blocks, new RandomStrategy<>());
+    private Plan createPlan(List<Step> steps) {
+        Phase phase = DefaultPhaseFactory.getPhase(RECOVERY_ELEMENT_NAME, steps, new RandomStrategy<>());
         return DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private List<Block> createBlocks() {
+    private List<Step> createSteps() {
         return stateStore.fetchTasksNeedingRecovery().stream()
                 .map(taskInfo -> {
                     try {
-                        return createBlock(TaskUtils.unpackTaskInfo(taskInfo));
+                        return createStep(TaskUtils.unpackTaskInfo(taskInfo));
                     } catch (
                             TaskException |
                             InvalidTaskSpecificationException |
                             InvalidRequirementException |
                             InvalidProtocolBufferException e) {
-                        return new DefaultBlock(
+                        return new DefaultStep(
                                 taskInfo.getName(),
                                 Optional.empty(),
                                 Status.ERROR,
@@ -131,7 +131,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 .collect(Collectors.toList());
     }
 
-    private Block createBlock(Protos.TaskInfo taskInfo)
+    private Step createStep(Protos.TaskInfo taskInfo)
             throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
         final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider();
         final TaskSpecification taskSpec = DefaultTaskSpecification.create(taskInfo);
@@ -143,7 +143,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
         }
 
-        return new DefaultRecoveryBlock(
+        return new DefaultRecoveryStep(
                 taskSpec.getName(),
                 offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpec),
                 Status.PENDING,
@@ -157,8 +157,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         if (plan != null) {
             dirtyAssets.addAll(plan.getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
-                    .filter(block -> block.isInProgress())
-                    .map(block -> block.getName())
+                    .filter(step -> step.isInProgress())
+                    .map(step -> step.getName())
                     .collect(Collectors.toSet()));
         }
         return dirtyAssets;

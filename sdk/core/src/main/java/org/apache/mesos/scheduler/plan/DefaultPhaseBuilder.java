@@ -10,17 +10,17 @@ import java.util.Set;
  * The DefaultPhaseBuilder allows the construction of a {@link Phase} with a custom @{link Strategy} defined by the
  * expressed dependencies.
  */
-public class DefaultPhaseBuilder extends ElementBuilder<Phase, Block> {
+public class DefaultPhaseBuilder extends ElementBuilder<Phase, Step> {
     public DefaultPhaseBuilder(String name) {
         super(name);
     }
 
     public DefaultPhase build() {
-        Set<Block> blocks = dependencyStrategyHelper.getDependencies().keySet();
+        Set<Step> steps = dependencyStrategyHelper.getDependencies().keySet();
 
         return new DefaultPhase(
                 name,
-                new ArrayList<>(blocks),
+                new ArrayList<>(steps),
                 new DependencyStrategy<>(dependencyStrategyHelper),
                 Collections.emptyList());
     }

@@ -45,7 +45,7 @@ public class DefaultPlanCoordinatorTest {
     private DefaultPlanScheduler planScheduler;
     private TaskFailureListener taskFailureListener;
     private SchedulerDriver schedulerDriver;
-    private BlockFactory blockFactory;
+    private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
     private EnvironmentVariables environmentVariables;
 
@@ -56,8 +56,8 @@ public class DefaultPlanCoordinatorTest {
         stateStore = mock(StateStore.class);
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
-        blockFactory = new DefaultBlockFactory(stateStore);
-        phaseFactory = new DefaultPhaseFactory(blockFactory);
+        stepFactory = new DefaultStepFactory(stateStore);
+        phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
@@ -122,7 +122,7 @@ public class DefaultPlanCoordinatorTest {
     @Test
     public void testOnePlanManagerComplete() throws Exception {
         final Plan plan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-        ((Block) plan.getChildren().get(0).getChildren().get(0)).forceComplete();
+        ((Step) plan.getChildren().get(0).getChildren().get(0)).forceComplete();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(new DefaultPlanManager(plan)), planScheduler);
         Assert.assertEquals(0, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
