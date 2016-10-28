@@ -240,7 +240,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             Protos.CommandInfo taskCommand = taskSpecification.getCommand().get();
             commandInfoBuilder.addAllUris(taskCommand.getUrisList());
 
-            if (commandInfoBuilder.hasUser()) {
+            if (taskCommand.hasUser()) {
                 commandInfoBuilder.setUser(taskCommand.getUser());
             }
         }
