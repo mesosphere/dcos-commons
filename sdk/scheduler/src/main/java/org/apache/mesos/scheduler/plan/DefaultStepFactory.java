@@ -5,12 +5,15 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.InvalidTaskSpecificationException;
+import org.apache.mesos.specification.Pod;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,11 +35,14 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     @Override
-    public Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException {
-        LOGGER.info("Generating step for: {}", taskSpecification.getName());
-        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
+    public Step getStep(Pod pod)
+            throws Step.InvalidStepException, InvalidProtocolBufferException {
+        LOGGER.info("Generating step for: {}", pod.getName());
+        Optional<Protos.TaskInfo> taskInfoOptional = null;
 
-        try {
+        // Make sure all task specs within the pod get launched first.
+        for (TaskSpecification taskSpecification : pod.getTaskSpecifications()) {
+            taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
             if (!taskInfoOptional.isPresent()) {
                 LOGGER.info("Generating new step for: {}", taskSpecification.getName());
                 return new DefaultStep(
@@ -45,7 +51,24 @@ public class DefaultStepFactory implements StepFactory {
                         Status.PENDING,
                         Collections.emptyList());
             } else {
+                // if any task within a pod is in the stateStore, other tasks within the same pod are guaranteed
+                // to be in the stateStore as well since tasks are atomically stored as a collection
+                // so we don't need to check the rest of taskInfos and we break
+                break;
+            }
+
+        }
+
+        // if pod tasks are already launched, generate next step
+        // all tasks need to be completed in order for the pod to have a completed status
+        try {
+            List<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
+            Status status = Status.COMPLETE; // if no tasks, status is complete
+            boolean statusComplete;
+            for (TaskSpecification taskSpecification : pod.getTaskSpecifications()) {
+                taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
                 Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
+                launchedTaskInfos.add(taskInfo);
                 TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
                 LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
@@ -56,6 +79,13 @@ public class DefaultStepFactory implements StepFactory {
                         status,
                         Collections.emptyList());
             }
+            return new DefaultStep(
+                    pod.getName(),
+                    Optional.of(offerRequirementProvider
+                            .getExistingOfferRequirement(launchedTaskInfos, pod)),
+                    status,
+                    Collections.emptyList());
+
         } catch (InvalidTaskSpecificationException | InvalidRequirementException | TaskException e) {
             LOGGER.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
             throw new Step.InvalidStepException(e);

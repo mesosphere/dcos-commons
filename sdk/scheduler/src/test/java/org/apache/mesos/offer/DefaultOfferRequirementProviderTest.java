@@ -73,7 +73,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(false, taskSpecification.getContainer().isPresent());
         Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
 
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getPodType());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(false, taskSpecification.getCommand().isPresent());
         Assert.assertEquals(true, taskSpecification.getContainer().isPresent());
 
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getPodType());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
         Assert.assertEquals(true, taskSpecification.getContainer().isPresent());
 
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getPodType());
     }
 
     @Test
