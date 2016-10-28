@@ -1,20 +1,19 @@
 package org.apache.mesos.scheduler.plan.strategy;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.curator.test.TestingServer;
-import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * These tests do not validate plan behavior.  See the PhaseBuilder, PlanBuilder, and Strategy tests.
@@ -31,7 +30,6 @@ public class CustomPlanTest {
     Step step3;
 
     private static final String SERVICE_NAME = "test-service";
-    private static final String ROOT_ZK_PATH = "/test-root-path";
 
     private static final int TASK_COUNT = 4;
     private static final String TASK_NAME = "A";
@@ -42,19 +40,15 @@ public class CustomPlanTest {
 
     private Collection<Step> steps;
     private ServiceSpecification serviceSpecification;
-    private static TestingServer testingServer;
-    private static StateStore stateStore;
 
-    @BeforeClass
-    public static void beforeAll() throws Exception {
-        testingServer = new TestingServer();
-        testingServer.start();
-        stateStore = new CuratorStateStore(ROOT_ZK_PATH, testingServer.getConnectString());
-    }
+    @Mock private StateStore mockStateStore;
+    @Mock private OfferRequirementProvider mockOfferRequirementProvider;
+    @Mock private OfferRequirement mockOfferRequirement;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+
         when(step0.getStrategy()).thenReturn(new SerialStrategy<>());
         when(step1.getStrategy()).thenReturn(new SerialStrategy<>());
         when(step2.getStrategy()).thenReturn(new SerialStrategy<>());
@@ -118,8 +112,10 @@ public class CustomPlanTest {
 
     @Test
     public void testCustomPlanFromServiceSpecDoesntThrow()
-            throws Step.InvalidStepException, InvalidProtocolBufferException {
-        DefaultStepFactory stepFactory = new DefaultStepFactory(stateStore);
+            throws Step.InvalidStepException, InvalidRequirementException {
+        when(mockStateStore.fetchTask(anyString())).thenReturn(Optional.empty());
+        when(mockOfferRequirementProvider.getNewOfferRequirement(any(TaskSpecification.class))).thenReturn(mockOfferRequirement);
+        StepFactory stepFactory = new DefaultStepFactory(mockStateStore, mockOfferRequirementProvider);
         DefaultPhaseFactory phaseFactory = new DefaultPhaseFactory(stepFactory);
         Iterator<TaskSet> taskSetIterator = serviceSpecification.getTaskSets().iterator();
 
@@ -148,8 +144,7 @@ public class CustomPlanTest {
     }
 
     private List<Step> getSteps(List<TaskSpecification> taskSpecifications, StepFactory stepFactory)
-            throws Step.InvalidStepException, InvalidProtocolBufferException {
-
+            throws Step.InvalidStepException {
         List<Step> steps = new ArrayList<>();
         for (TaskSpecification taskSpecification : taskSpecifications) {
             steps.add(stepFactory.getStep(taskSpecification));

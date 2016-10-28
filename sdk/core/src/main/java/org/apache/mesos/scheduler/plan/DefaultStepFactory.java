@@ -31,8 +31,7 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     @Override
-    public Step getStep(TaskSpecification taskSpecification)
-            throws Step.InvalidStepException, InvalidProtocolBufferException {
+    public Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException {
         logger.info("Generating step for: " + taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
 
@@ -61,8 +60,8 @@ public class DefaultStepFactory implements StepFactory {
             logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
             throw new Step.InvalidStepException(e);
         } catch (InvalidProtocolBufferException e) {
-            logger.error("Failed to unpack taskInfo: {}", e);
-            throw new InvalidProtocolBufferException(e.toString());
+            logger.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
+            throw new Step.InvalidStepException(e);
         }
     }
 

@@ -1,6 +1,5 @@
 package org.apache.mesos.scheduler.plan;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
@@ -64,7 +63,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
                 .map(taskSpec -> {
                     try {
                         return stepFactory.getStep(taskSpec);
-                    } catch (Step.InvalidStepException | InvalidProtocolBufferException e) {
+                    } catch (Step.InvalidStepException e) {
                         return new DefaultStep(
                                 taskSpec.getName(),
                                 Optional.empty(),

@@ -1,7 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.offer.OfferRequirement;
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.specification.TaskSpecification;
 
 /**
@@ -12,6 +11,5 @@ import org.apache.mesos.specification.TaskSpecification;
  * TaskSpecification change is detected for a Task.
  */
 public interface StepFactory {
-    Step getStep(TaskSpecification taskSpecification)
-            throws Step.InvalidStepException, InvalidProtocolBufferException;
+    Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException;
 }
