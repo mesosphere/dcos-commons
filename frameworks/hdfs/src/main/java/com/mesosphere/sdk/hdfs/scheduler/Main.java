@@ -1,12 +1,10 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.DefaultConfigFileSpecification;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.offer.constrain.TaskTypeGenerator;
-import org.apache.mesos.protobuf.DefaultVolumeSpecification;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
@@ -23,7 +21,6 @@ public class Main {
 
     private static final String SERVICE_NAME = "hdfs";
     private static final String HDFS_VERSION = "hadoop-2.6.0-cdh5.7.1";
-    private static final String HDFS_SITE_CONFIG = "hdfs-site.xml";
     private static final String HDFS_SITE_CONFIG_PATH = String.format("%s/etc/hadoop/hdfs-site.xml", HDFS_VERSION);
     private static final String CORE_SITE_CONFIG_PATH = String.format("%s/etc/hadoop/core-site.xml", HDFS_VERSION);
 
@@ -58,15 +55,9 @@ public class Main {
     }
 
     private static ServiceSpecification getServiceSpecification() {
-        return new ServiceSpecification() {
-            @Override
-            public String getName() {
-                return SERVICE_NAME;
-            }
-
-            @Override
-            public List<TaskSet> getTaskSets() {
-                return Arrays.asList(
+        return new DefaultServiceSpecification(
+                SERVICE_NAME,
+                Arrays.asList(
                         HDFSTaskSet.create(JOURNAL_NODE_COUNT,
                                 JOURNAL_NODE_NAME,
                                 // command is defined in constructor
@@ -90,10 +81,9 @@ public class Main {
                                 getVolumes(DATA_NODE_DISK_MB),
                                 getHDFSConfigFiles(),
                                 Optional.of(TaskTypeGenerator.createAvoid(DATA_NODE_NAME)),
-                                Optional.empty()));
-
-            }
-        };
+                                Optional.empty())
+                )
+        );
     }
 
     private static class HDFSTaskSet extends DefaultTaskSet {
