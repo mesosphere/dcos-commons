@@ -2,7 +2,6 @@ package org.apache.mesos.scheduler.recovery;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.plan.DefaultStep;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;

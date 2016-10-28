@@ -115,23 +115,25 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return stateStore.fetchTasksNeedingRecovery().stream()
                 .map(taskInfo -> {
                     try {
-                        return createStep(TaskUtils.unpackTaskInfo(taskInfo));
+                        return createSteps(TaskUtils.unpackTaskInfo(taskInfo));
                     } catch (
                             TaskException |
                             InvalidTaskSpecificationException |
                             InvalidRequirementException |
                             InvalidProtocolBufferException e) {
-                        return new DefaultStep(
+                        return Arrays.asList(new DefaultStep(
                                 taskInfo.getName(),
                                 Optional.empty(),
                                 Status.ERROR,
-                                Arrays.asList(ExceptionUtils.getStackTrace(e)));
+                                Arrays.asList(ExceptionUtils.getStackTrace(e))));
                     }
                 })
+                .flatMap(steps -> steps.stream())
                 .collect(Collectors.toList());
+
     }
 
-    private Step createStep(Protos.TaskInfo taskInfo)
+    private List<Step> createSteps(Protos.TaskInfo taskInfo)
             throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
         final TaskSpecification taskSpec = DefaultTaskSpecification.create(taskInfo);
         final List<RecoveryRequirement> recoveryRequirements;
@@ -142,16 +144,13 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
         }
 
-        if (recoveryRequirements.size() == 1) {
-            return new DefaultRecoveryStep(
+        return recoveryRequirements.stream()
+                .map(recoveryRequirement -> new DefaultRecoveryStep(
                     taskSpec.getName(),
                     Status.PENDING,
                     recoveryRequirements.get(0),
-                    launchConstrainer);
-        } else {
-            throw new InvalidRequirementException(
-                    "Failed to generate the expected RecoveryRequirement: " + recoveryRequirements);
-        }
+                    launchConstrainer))
+                .collect(Collectors.toList());
     }
 
     @Override
