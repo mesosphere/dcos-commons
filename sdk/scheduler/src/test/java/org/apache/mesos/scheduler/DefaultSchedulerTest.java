@@ -4,7 +4,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.scheduler.plan.Plan;
@@ -13,6 +12,7 @@ import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
@@ -69,9 +69,28 @@ public class DefaultSchedulerTest {
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
+    private static final ServiceSpecification SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+            SERVICE_NAME,
+            Arrays.asList(
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_A_NAME,
+                            TASK_A_COUNT,
+                            TASK_A_CMD,
+                            TASK_A_CPU,
+                            TASK_A_MEM,
+                            TASK_A_DISK),
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_B_NAME,
+                            TASK_B_COUNT,
+                            TASK_B_CMD,
+                            TASK_B_CPU,
+                            TASK_B_MEM,
+                            TASK_B_DISK)));
+
     private static TestingServer testingServer;
+
+    private StateStore curatorStateStore;
     private DefaultScheduler defaultScheduler;
-    private StateStore stateStore;
     private EnvironmentVariables environmentVariables;
 
     @BeforeClass
@@ -85,26 +104,10 @@ public class DefaultSchedulerTest {
         CuratorTestUtils.clear(testingServer);
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
-        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
-                SERVICE_NAME,
-                Arrays.asList(
-                        TestTaskSetFactory.getTaskSet(
-                                TASK_A_NAME,
-                                TASK_A_COUNT,
-                                TASK_A_CMD,
-                                TASK_A_CPU,
-                                TASK_A_MEM,
-                                TASK_A_DISK),
-                        TestTaskSetFactory.getTaskSet(
-                                TASK_B_NAME,
-                                TASK_B_COUNT,
-                                TASK_B_CMD,
-                                TASK_B_CPU,
-                                TASK_B_MEM,
-                                TASK_B_DISK)));
 
-        stateStore = new CuratorStateStore(serviceSpecification.getName(), testingServer.getConnectString());
-        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
+        StateStoreCache.resetInstanceForTests();
+        curatorStateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION.getName(), testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, curatorStateStore);
         register();
     }
 
@@ -178,7 +181,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_MEM,
                                 TASK_B_DISK)));
 
-        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, curatorStateStore);
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -210,7 +213,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_MEM * 2.0,
                                 TASK_B_DISK)));
 
-        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, curatorStateStore);
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -242,7 +245,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_MEM,
                                 TASK_B_DISK)));
 
-        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, curatorStateStore);
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -274,7 +277,7 @@ public class DefaultSchedulerTest {
                                 TASK_B_MEM,
                                 TASK_B_DISK)));
 
-        defaultScheduler = DefaultScheduler.create(serviceSpecification, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.create(serviceSpecification, curatorStateStore);
         register();
 
         Plan plan = defaultScheduler.getPlan();
@@ -382,17 +385,17 @@ public class DefaultSchedulerTest {
                     int launchOp = 0;
                     for (Protos.Offer.Operation operation : operationSet) {
                         switch (operation.getType()) {
-                            case RESERVE:
-                                ++reserveOp;
-                                break;
-                            case CREATE:
-                                ++createOp;
-                                break;
-                            case LAUNCH:
-                                ++launchOp;
-                                break;
-                            default:
-                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
+                        case RESERVE:
+                            ++reserveOp;
+                            break;
+                        case CREATE:
+                            ++createOp;
+                            break;
+                        case LAUNCH:
+                            ++launchOp;
+                            break;
+                        default:
+                            Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
                         }
                     }
                     if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
@@ -419,7 +422,7 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = install();
         statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
 
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stateStore).isSuppressed(), equalTo(false));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(curatorStateStore).isSuppressed(), equalTo(false));
     }
 
     private int countOperationType(
@@ -570,7 +573,7 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
-        Assert.assertTrue(stateStore.isSuppressed());
+        Assert.assertTrue(curatorStateStore.isSuppressed());
 
         return taskIds;
     }

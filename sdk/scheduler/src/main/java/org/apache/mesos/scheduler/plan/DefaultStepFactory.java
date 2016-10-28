@@ -17,7 +17,8 @@ import java.util.Optional;
  * This class is a default implementation of the StepFactory interface.
  */
 public class DefaultStepFactory implements StepFactory {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
+
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
 
@@ -32,12 +33,12 @@ public class DefaultStepFactory implements StepFactory {
 
     @Override
     public Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException {
-        logger.info("Generating step for: " + taskSpecification.getName());
+        LOGGER.info("Generating step for: {}", taskSpecification.getName());
         Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
 
         try {
             if (!taskInfoOptional.isPresent()) {
-                logger.info("Generating new step for: " + taskSpecification.getName());
+                LOGGER.info("Generating new block for: {}", taskSpecification.getName());
                 return new DefaultStep(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpecification)),
@@ -47,8 +48,7 @@ public class DefaultStepFactory implements StepFactory {
                 Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
                 TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
-                logger.info("Generating existing step for: " + taskSpecification.getName() +
-                        " with status: " + status);
+                LOGGER.info("Generating existing block for: {} with status: {}", taskSpecification.getName(), status);
                 return new DefaultStep(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider
@@ -57,16 +57,16 @@ public class DefaultStepFactory implements StepFactory {
                         Collections.emptyList());
             }
         } catch (InvalidTaskSpecificationException | InvalidRequirementException | TaskException e) {
-            logger.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
+            LOGGER.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
             throw new Step.InvalidStepException(e);
         } catch (InvalidProtocolBufferException e) {
-            logger.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
+            LOGGER.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
             throw new Step.InvalidStepException(e);
         }
     }
 
     private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        logger.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
+        LOGGER.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
         if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {

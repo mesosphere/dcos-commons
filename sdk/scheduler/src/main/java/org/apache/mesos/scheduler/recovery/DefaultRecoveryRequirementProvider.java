@@ -18,7 +18,8 @@ import java.util.List;
  * This class is a default implementation of the RecoveryRequirementProvider interface.
  */
 public class DefaultRecoveryRequirementProvider implements RecoveryRequirementProvider {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryRequirementProvider.class);
+
     private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultRecoveryRequirementProvider() {
@@ -42,7 +43,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
                                 offerRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification),
                                 RecoveryRequirement.RecoveryType.TRANSIENT));
             } catch (InvalidTaskSpecificationException | TaskException e) {
-                logger.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
+                LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
             }
         }
 
@@ -62,7 +63,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
                                 offerRequirementProvider.getNewOfferRequirement(taskSpecification),
                                 RecoveryRequirement.RecoveryType.PERMANENT));
             } catch (InvalidTaskSpecificationException | TaskException e) {
-                logger.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
+                LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
             }
         }
 

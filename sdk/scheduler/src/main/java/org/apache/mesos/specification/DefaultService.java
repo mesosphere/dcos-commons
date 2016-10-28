@@ -4,7 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.api.JettyApiServer;
-import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
 import org.apache.mesos.scheduler.SchedulerUtils;
@@ -24,21 +24,36 @@ import java.util.Optional;
  */
 public class DefaultService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    private static final String MASTER_URI = "zk://master.mesos:2181/mesos";
     private static final String USER = "root";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
+
     private final int apiPort;
+    private final String zkConnectionString;
+
     private StateStore stateStore;
     private ServiceSpecification serviceSpecification;
 
     /**
      * Creates a new instance which when registered will start a Jetty HTTP API service on the
-     * provided port.
+     * provided port, using {@link DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING} as the ZK
+     * connection string.
      *
      * @param apiPort the port to run the HTTP API service against, typically the 'PORT0' envvar
      */
     public DefaultService(int apiPort)  {
+        this(apiPort, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    }
+
+    /**
+     * Creates a new instance which when registered will start a Jetty HTTP API service on the
+     * provided port, with support for a custom ZK location for state storage.
+     *
+     * @param apiPort the port to run the HTTP API service against, typically the 'PORT0' envvar
+     * @param zkConnectionString zookeeper connection string to use, of the form "host:port"
+     */
+    public DefaultService(int apiPort, String zkConnectionString)  {
         this.apiPort = apiPort;
+        this.zkConnectionString = zkConnectionString;
     }
 
     /**
@@ -48,12 +63,10 @@ public class DefaultService implements Service {
     @Override
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
-        this.stateStore = new CuratorStateStore(serviceSpecification.getName());
-
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(serviceSpecification);
-
+        this.stateStore = DefaultScheduler.createStateStore(serviceSpecification.getName(), zkConnectionString);
+        DefaultScheduler defaultScheduler = DefaultScheduler.create(serviceSpecification, stateStore);
         startApiServer(defaultScheduler, apiPort);
-        registerFramework(defaultScheduler, getFrameworkInfo(), MASTER_URI);
+        registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {

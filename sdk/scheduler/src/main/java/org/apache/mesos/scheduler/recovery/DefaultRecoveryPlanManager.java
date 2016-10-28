@@ -31,18 +31,18 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected volatile Plan plan;
 
     private final StateStore stateStore;
-    private final RecoveryRequirementProvider offerReqProvider;
+    private final RecoveryRequirementProvider recoveryReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
     private final Object planLock = new Object();
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
-            RecoveryRequirementProvider offerReqProvider,
+            RecoveryRequirementProvider recoveryReqProvider,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
         this.stateStore = stateStore;
-        this.offerReqProvider = offerReqProvider;
+        this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
         setPlan(createPlan(createSteps()));
@@ -138,9 +138,9 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         final List<RecoveryRequirement> recoveryRequirements;
 
         if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
-            recoveryRequirements = offerReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
+            recoveryRequirements = recoveryReqProvider.getPermanentRecoveryRequirements(Arrays.asList(taskInfo));
         } else {
-            recoveryRequirements = offerReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
+            recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
         }
 
         return new DefaultRecoveryStep(
