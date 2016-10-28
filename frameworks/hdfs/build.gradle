@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    compile project(":core")
+    compile project(":scheduler")
     compile "org.apache.mesos:mesos:${mesosVer}"
 }
 
