@@ -1,11 +1,13 @@
 package org.apache.mesos.offer.constrain;
 
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -90,6 +92,21 @@ public class HostnameRuleTest {
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_3));
         assertEquals(0, filtered.getResourcesCount());
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = new HostnameRule.AvoidHostnamesGenerator(HOST_1, HOST_3);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new HostnameRule.RequireHostnamesGenerator(HOST_1, HOST_3);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new HostnameRule.AvoidHostnameGenerator(HOST_1);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new HostnameRule.RequireHostnameGenerator(HOST_3);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static Offer offerWithHost(String host) {

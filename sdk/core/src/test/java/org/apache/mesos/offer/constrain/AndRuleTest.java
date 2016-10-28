@@ -5,12 +5,14 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 
 /**
@@ -157,6 +159,15 @@ public class AndRuleTest {
                 .generate(Collections.emptyList());
         Offer o = r.filter(offerWith(TestPlacementUtils.RESOURCES));
         assertEquals(r.toString(), offerWith(TestPlacementUtils.RESOURCE_2, TestPlacementUtils.RESOURCE_3), o);
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = new AndRule.Generator(
+                new PassthroughGenerator(TestPlacementUtils.REMOVE_LAST),
+                new PassthroughGenerator(TestPlacementUtils.REMOVE_FIRST),
+                new PassthroughGenerator(TestPlacementUtils.ALL));
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static Offer offerWith(Collection<Resource> resources) {

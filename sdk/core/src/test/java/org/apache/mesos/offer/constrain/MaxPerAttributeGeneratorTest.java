@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -11,6 +12,7 @@ import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
+import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
@@ -144,6 +146,15 @@ public class MaxPerAttributeGeneratorTest {
         assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
         assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+    }
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRuleGenerator generator = new MaxPerAttributeGenerator(2, ATTR_SELECTOR);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+
+        generator = new MaxPerAttributeGenerator(0, ATTR_SELECTOR);
+        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
     }
 
     private static Offer getOfferWithResources() {
