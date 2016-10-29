@@ -2,7 +2,6 @@ package org.apache.mesos.scheduler.recovery;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.plan.DefaultStep;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
@@ -24,11 +23,10 @@ public class DefaultRecoveryStep extends DefaultStep {
 
     public DefaultRecoveryStep(
             String name,
-            OfferRequirement offerRequirement,
             Status status,
             RecoveryRequirement recoveryRequirement,
             LaunchConstrainer launchConstrainer) {
-        super(name, Optional.of(offerRequirement), status, Collections.emptyList());
+        super(name, Optional.of(recoveryRequirement.getOfferRequirement()), status, Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.recoveryRequirement = recoveryRequirement;
     }

@@ -16,6 +16,7 @@ import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +71,7 @@ public class DefaultPlanCoordinatorTest {
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
         taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
-                TestTaskSetFactory.NAME + "-B",
+                TestConstants.TASK_TYPE + "-B",
                 TestTaskSetFactory.COUNT,
                 TestTaskSetFactory.CMD.getValue(),
                 TestTaskSetFactory.CPU,

@@ -6,7 +6,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.*;
@@ -62,7 +61,6 @@ public class DefaultRecoveryPlanManagerTest {
     private OfferAccepter offerAccepter;
     private StateStore stateStore;
     private TaskSpecificationProvider taskSpecificationProvider;
-    private OfferRequirementProvider offerReqProvider;
     private SchedulerDriver schedulerDriver;
     private TestingFailureMonitor failureMonitor;
     private TestingLaunchConstrainer launchConstrainer;
@@ -115,13 +113,11 @@ public class DefaultRecoveryPlanManagerTest {
                 testingServer.getConnectString());
         taskSpecificationProvider = mock(TaskSpecificationProvider.class);
         when(taskSpecificationProvider.getTaskSpecification(any(TaskInfo.class))).thenReturn(TestTaskSetFactory.getTaskSpecification());
-        offerReqProvider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID());
         taskFailureListener = mock(TaskFailureListener.class);
         recoveryManager = spy(
                 new DefaultRecoveryPlanManager(
                         stateStore,
                         taskSpecificationProvider,
-                        offerReqProvider,
                         recoveryRequirementProvider,
                         launchConstrainer,
                         failureMonitor));
@@ -412,7 +408,7 @@ public class DefaultRecoveryPlanManagerTest {
 
         // Verify we launched the task
         verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
-        assertEquals(3, recommendationCaptor.getValue().size()); // 1. Reserve CPU, 2. Reserve Mem, 3. Launch Task
+        assertEquals(2, recommendationCaptor.getValue().size());
         verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
 
         // Verify the appropriate task was not checked for failure with failure monitor.

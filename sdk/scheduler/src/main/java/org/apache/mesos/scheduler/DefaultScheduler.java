@@ -351,7 +351,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 taskSpecificationProvider,
-                offerRequirementProvider,
                 new DefaultRecoveryRequirementProvider(offerRequirementProvider, taskSpecificationProvider),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()

@@ -31,7 +31,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     private final StateStore stateStore;
     private final TaskSpecificationProvider taskSpecificationProvider;
-    private final OfferRequirementProvider offerReqProvider;
     private final RecoveryRequirementProvider recoveryReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
@@ -40,13 +39,11 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
             TaskSpecificationProvider taskSpecificationProvider,
-            OfferRequirementProvider offerReqProvider,
             RecoveryRequirementProvider recoveryReqProvider,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
         this.stateStore = stateStore;
         this.taskSpecificationProvider = taskSpecificationProvider;
-        this.offerReqProvider = offerReqProvider;
         this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
@@ -119,24 +116,26 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return stateStore.fetchTasksNeedingRecovery().stream()
                 .map(taskInfo -> {
                     try {
-                        return createStep(
+                        return createSteps(
                                 TaskUtils.unpackTaskInfo(taskInfo),
                                 taskSpecificationProvider.getTaskSpecification(taskInfo));
                     } catch (
                             TaskException |
                             InvalidRequirementException |
                             InvalidProtocolBufferException e) {
-                        return new DefaultStep(
+                        return Arrays.asList(new DefaultStep(
                                 taskInfo.getName(),
                                 Optional.empty(),
                                 Status.ERROR,
-                                Arrays.asList(ExceptionUtils.getStackTrace(e)));
+                                Arrays.asList(ExceptionUtils.getStackTrace(e))));
                     }
                 })
+                .flatMap(steps -> steps.stream())
                 .collect(Collectors.toList());
+
     }
 
-    private Step createStep(Protos.TaskInfo taskInfo, TaskSpecification taskSpec)
+    private List<Step> createSteps(Protos.TaskInfo taskInfo, TaskSpecification taskSpec)
             throws TaskException, InvalidRequirementException {
         final List<RecoveryRequirement> recoveryRequirements;
 
@@ -146,12 +145,13 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             recoveryRequirements = recoveryReqProvider.getTransientRecoveryRequirements(Arrays.asList(taskInfo));
         }
 
-        return new DefaultRecoveryStep(
-                taskInfo.getName(),
-                offerReqProvider.getExistingOfferRequirement(taskInfo, taskSpec),
-                Status.PENDING,
-                recoveryRequirements.get(0),
-                launchConstrainer);
+        return recoveryRequirements.stream()
+                .map(recoveryRequirement -> new DefaultRecoveryStep(
+                    taskSpec.getName(),
+                    Status.PENDING,
+                    recoveryRequirements.get(0),
+                    launchConstrainer))
+                .collect(Collectors.toList());
     }
 
     @Override
