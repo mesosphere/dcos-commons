@@ -25,4 +25,7 @@ _notify_github success "Build succeeded"
   cli/dcos-data-store/dcos-data-store-darwin \
   cli/dcos-data-store/dcos-data-store-linux \
   cli/dcos-data-store/dcos-data-store.exe \
-  cli/python/dist/*.whl
+  cli/python/dist/*.whl \
+  ../../sdk/executor/build/distributions/*.zip \
+	hdfs-site.xml \
+	core-site.xml

@@ -1,0 +1,41 @@
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "https://s3-us-west-2.amazonaws.com/infinity-artifacts/kafka/jre-8u91-linux-x64.tar.gz",
+      "executor-zip": "{{artifact-dir}}/executor.zip",
+      "scheduler-zip": "{{artifact-dir}}/scheduler.zip",
+			"hdfs-site-config": "{{artifact-dir}}/hdfs-site.xml",
+			"core-site-config": "{{artifact-dir}}/core-site.xml"
+    }
+  },
+  "images": {
+    "icon-small": "https://github.com/dcos/dcos-ui/raw/master/src/img/services/icon-service-default-small.png",
+    "icon-medium": "https://github.com/dcos/dcos-ui/raw/master/src/img/services/icon-service-default-medium.png",
+    "icon-large": "https://github.com/dcos/dcos-ui/raw/master/src/img/services/icon-service-default-large.png"
+  },
+  "cli":{
+    "binaries":{
+      "darwin":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-data-store-darwin}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-data-store-darwin"
+        }
+      },
+      "linux":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-data-store-linux}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-data-store-linux"
+        }
+      },
+      "windows":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-data-store.exe}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-data-store.exe"
+        }
+      }
+    }
+  }
+}
