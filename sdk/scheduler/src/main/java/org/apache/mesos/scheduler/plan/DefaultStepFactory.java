@@ -38,7 +38,7 @@ public class DefaultStepFactory implements StepFactory {
 
         try {
             if (!taskInfoOptional.isPresent()) {
-                LOGGER.info("Generating new block for: {}", taskSpecification.getName());
+                LOGGER.info("Generating new step for: {}", taskSpecification.getName());
                 return new DefaultStep(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpecification)),
@@ -48,7 +48,7 @@ public class DefaultStepFactory implements StepFactory {
                 Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
                 TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
-                LOGGER.info("Generating existing block for: {} with status: {}", taskSpecification.getName(), status);
+                LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
                 return new DefaultStep(
                         taskSpecification.getName(),
                         Optional.of(offerRequirementProvider
