@@ -7,17 +7,17 @@ Automatic repairs means that we can detect when a container crashes and restart 
 
 Here we'll collect some of the terms used throughout the code.
 
-### Failed task
-
-A task is considered failed when it first transitions to a terminal state.
-Failed tasks might have undergone a transient issue; because of this, they will be attempted to be restarted in place.
-This allows them to use any persistent data they've written to disk--critical for a database!
-
 ### Stopped task
 
-A task is considered stopped when it is definitely not going to be launched again in place.
-Stopped tasks represent situations where the machine or data is corrupt, and we need to perform heavier-weight recovery.
-Stopped tasks have lost all their data.
+A task is considered stopped when it first transitions to a terminal state.
+Stopped tasks might have undergone a transient issue; because of this, they will be attempted to be restarted in place.
+This allows them to use any persistent data they've written to disk--critical for a database!
+
+### Failed task
+
+A task is considered failed when it is definitely not going to be launched again in place.
+Failed tasks represent situations where the machine or data is corrupt, and we need to perform heavier-weight recovery.
+Failed tasks have lost all their data.
 
 ## Usage
 
@@ -28,10 +28,10 @@ You may also create a `RepairController` to expose an API to interact with the R
 
 ### Developer Steps
 
-To integrate the repair scheduler, you'll first need to implement 2 interfaces: `RepairOfferRequirementProvider` and `TaskFailureListener`.
+To integrate the repair scheduler, you'll first need to implement 2 interfaces: `RecoveryRequirementProvider` and `TaskFailureListener`.
 These are specific to your framework.
-Then, you should create an `AtomicReference<RepairStatus>` so that you can share it between your API code and the repair scheduler.
-At this point, you'll be able to create a `RepairScheduler`.
+
+At this point, you'll be able to create a `PlanManager` which implements a repair schedule.
 Some users may wish to build custom `LaunchConstrainer`s or `FailureMonitor`s if the included behaviors don't meet your needs.
 
 Most of the parameters to the `RepairScheduler` are self-explanatory.
@@ -48,13 +48,8 @@ If there's nothing it wants to do, it should return an empty `Optional`.
 
 ### `TaskFailureListener`
 
-`TaskFailureListener` is used to notify the framework when a failed task transitions to the stopped state.
+`TaskFailureListener` is used to notify the framework when a failed task transitions to the failed state.
 This allows the framework to do whatever it needs to do in order be able to provider new offer requirements for relaunching the stopped task.
-
-### `AtomicReference<RepairStatus>`
-
-This reference will be continuously updated to contain the latest sets of stopped and failed tasks.
-This can be consumed by tests for inspecting the internal state of the repair scheduler, and it's consumed by the `RepairController` to provide an API endpoint.
 
 ### `FailureMonitor`
 
