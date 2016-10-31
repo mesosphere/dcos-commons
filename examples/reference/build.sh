@@ -9,6 +9,13 @@ cd $REPO_ROOT_DIR
 # Grab dcos-commons build/release tools:
 rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
 
+# Service (Java):
+../../gradlew clean check distZip
+if [ $? -ne 0 ]; then
+  _notify_github failure "Gradle build failed"
+  exit 1
+fi
+
 # CLI (Go):
 ./cli/build-cli.sh
 if [ $? -ne 0 ]; then
