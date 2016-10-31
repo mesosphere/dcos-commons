@@ -28,19 +28,25 @@ public class PlanUtils {
         return candidateSteps;
     }
 
-    public static final void update(TaskStatus taskStatus, Collection<? extends Element> elements) {
-        LOGGER.info("Updated with TaskStatus: {}", taskStatus);
-        elements.forEach(element -> element.update(taskStatus));
+    @SuppressWarnings("unchecked")
+    public static final void update(Element parent, TaskStatus taskStatus) {
+        Collection<? extends Element> children = parent.getChildren();
+        LOGGER.info("Updated {} with TaskStatus: {}", parent.getName(), taskStatus);
+        children.forEach(element -> element.update(taskStatus));
     }
 
-    public static final void restart(Collection<? extends Element> elements) {
-        LOGGER.info("Restarting elements: {}", elements);
-        elements.forEach(element -> element.restart());
+    @SuppressWarnings("unchecked")
+    public static final void restart(Element parent) {
+        Collection<? extends Element> children = parent.getChildren();
+        LOGGER.info("Restarting elements within {}: {}", parent.getName(), children);
+        children.forEach(element -> element.restart());
     }
 
-    public static final void forceComplete(Collection<? extends Element> elements) {
-        LOGGER.info("Forcing completion of elements: {}", elements);
-        elements.forEach(element -> element.forceComplete());
+    @SuppressWarnings("unchecked")
+    public static final void forceComplete(Element parent) {
+        Collection<? extends Element> children = parent.getChildren();
+        LOGGER.info("Forcing completion of elements within {}: {}", parent.getName(), children);
+        children.forEach(element -> element.forceComplete());
     }
 
     public static final String getMessage(Element element) {
@@ -49,46 +55,54 @@ public class PlanUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static final List<String> getErrors(List<String> errors, Collection<? extends Element> elements) {
-        elements.forEach(element -> errors.addAll(element.getErrors()));
+    public static final List<String> getErrors(List<String> errors, Element parent) {
+        Collection<? extends Element> children = parent.getChildren();
+        children.forEach(element -> errors.addAll(element.getErrors()));
         return errors;
     }
 
-    public static final Status getStatus(Collection<? extends Element> elements) {
+    @SuppressWarnings("unchecked")
+    public static final Status getStatus(Element parent) {
         // Ordering matters throughout this method.  Modify with care.
 
-        if (elements == null) {
-            LOGGER.error("Cannot determine status of null elements.");
+        Collection<? extends Element> children = parent.getChildren();
+        if (children == null) {
+            LOGGER.error("Cannot determine status of null elements in {}.", parent.getName());
             return Status.ERROR;
         }
 
         Status result;
-        if (anyHaveStatus(Status.ERROR, elements)) {
+        if (anyHaveStatus(Status.ERROR, children)) {
             result = Status.ERROR;
-            LOGGER.warn("(status={}) Elements contains errors", result);
-        } else if (CollectionUtils.isEmpty(elements)) {
+            LOGGER.warn("({} status={}) Elements contains errors", parent.getName(), result);
+        } else if (CollectionUtils.isEmpty(children)) {
             result = Status.COMPLETE;
-            LOGGER.warn("(status={}) Empty collection of elements encountered.", result);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, elements)) {
+            LOGGER.warn("({} status={}) Empty collection of elements encountered.", parent.getName(), result);
+        } else if (anyHaveStatus(Status.IN_PROGRESS, children)) {
             result = Status.IN_PROGRESS;
-            LOGGER.info("(status={}) At least one phase has status: {}", result, Status.IN_PROGRESS);
-        } else if (anyHaveStatus(Status.WAITING, elements)) {
+            LOGGER.info("({} status={}) At least one phase has status: {}",
+                    parent.getName(), result, Status.IN_PROGRESS);
+        } else if (anyHaveStatus(Status.WAITING, children)) {
             result = Status.WAITING;
-            LOGGER.info("(status={}) At least one element has status: {}", result, Status.WAITING);
-        } else if (allHaveStatus(Status.COMPLETE, elements)) {
+            LOGGER.info("({} status={}) At least one element has status: {}",
+                    parent.getName(), result, Status.WAITING);
+        } else if (allHaveStatus(Status.COMPLETE, children)) {
             result = Status.COMPLETE;
-            LOGGER.info("(status={}) All elements have status: {}", result, Status.COMPLETE);
-        } else if (allHaveStatus(Status.PENDING, elements)) {
+            LOGGER.info("({} status={}) All elements have status: {}",
+                    parent.getName(), result, Status.COMPLETE);
+        } else if (allHaveStatus(Status.PENDING, children)) {
             result = Status.PENDING;
-            LOGGER.info("(status={}) All elements have status: {}", result, Status.PENDING);
-        } else if (anyHaveStatus(Status.COMPLETE, elements)
-                && anyHaveStatus(Status.PENDING, elements)) {
+            LOGGER.info("({} status={}) All elements have status: {}",
+                    parent.getName(), result, Status.PENDING);
+        } else if (anyHaveStatus(Status.COMPLETE, children)
+                && anyHaveStatus(Status.PENDING, children)) {
             result = Status.IN_PROGRESS;
-            LOGGER.info("(status={}) At least one element has status '{}' and one has status '{}'",
-                    result, Status.COMPLETE, Status.PENDING);
+            LOGGER.info("({} status={}) At least one element has status '{}' and one has status '{}'",
+                    parent.getName(), result, Status.COMPLETE, Status.PENDING);
         } else {
             result = Status.ERROR;
-            LOGGER.error("(status={}) Unexpected state. PlanElements: {}", result, elements);
+            LOGGER.error("({} status={}) Unexpected state. PlanElements: {}",
+                    parent.getName(), result, children);
         }
 
         return result;

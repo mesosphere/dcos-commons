@@ -27,7 +27,7 @@ public class TestStep extends DefaultObservable implements Step {
 
     @Override
     public List<Element> getChildren() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
