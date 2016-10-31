@@ -978,17 +978,17 @@ the node has failed, restarts the task on a different node. The
 scheduler's persistent volume is reused on restart. A new persistent
 volume is created when a node fails.
 
-By default the mechanism for determining whether a task has permanently
-failed is time based.  When a task stays in a terminal state for some
-configurable duration it is determined to have failed.  By default, this
+The mechanism to determine whether a task has permanently failed is time-based by default.
+When a task stays in a terminal state for some
+configurable duration, it is determined to have failed. The default
 duration is 20 minutes.  Once tasks have been determined to have
-permanently failed a second configurable parameter determines how many 
+permanently failed, a second configurable parameter determines how many 
 destructive task replacements may occur in a given time period.  By 
 default, no more than one task may be destructively replaced in any 10 
-minute period.  Finally automatic destructive recovery may be entirely
+minute period.  Finally, automatic destructive recovery may be entirely
 suppressed.
 
-Consider the simplest construct for the `DefaultScheduler` in which
+Consider the simplest construct for the `DefaultScheduler`, in which
 automatic destructive recovery configuration is exposed:
 
 ```java
@@ -1006,29 +1006,24 @@ If no value is present, automatic destructive recovery is turned off.
 The `destructiveRecoveryDelaySec` argument determines how much time must
 pass between destructive task replacement events.
 
-The parameters above encapsulate one implementation of a more general
-permanent task recovery scheme.  It has two major components: a safety
-constraint and a performance constraint.  In the example above, the
-duration which must be waited until a task is considered permanently 
-failed is the safety constraint.  One could write a safety constraint 
-with more subtlety than a simple timeout.
+The parameters above are one implementation of a more general
+permanent task recovery scheme.  The task recovery scheme has two major components: a _safety
+constraint_ and a _performance constraint_.  In the example above, the
+duration that must be waited until a task is considered permanently 
+failed is the _safety constraint_. You can write a safety constraint that is more complex than a simple timeout.
 
-The performance constraint is encapsulated above by the recovery delay
-parameter.  Even if a large number of tasks could be safely
-destructively replaced, it could possibly cause performance degradation
-as network traffic increases to reconstruct lost task state.
-Furthermore and abundance of caution is desirable when automating
-destructive recovery operations, so throttling the maximum rate of
-destruction is prudent.
+In the example above, the recovery delay
+parameter is the _performance constraint_.  Even if a large number of tasks could be safely
+destructively replaced, it could cause performance degradation
+as network traffic increases to reconstruct lost task state. In addition, you must be cautious when automating destructive recovery operations, so it is prudent to throttle the maximum rate of
+destruction.
 
-Recovery, just like deployment is mediated by a plan.  The status of the
-plan can be viewed at the endpoint below.
+Recovery, like deployment, is mediated by a plan. Use the endpoint below to view the status of the plan.
 ```bash
 GET /v1/plans/recovery
 ```
 
-It's output in the case where no failures of any kind have occurred
-looks like the below.
+If no failures of any kind have occurred, you will see output similar to the snippet below.
 ```json
 {
 	phases: [{
@@ -1042,7 +1037,7 @@ looks like the below.
 }
 ```
 
-After a task has crashed and been recovered one would see a plan similar
+If a task has crashed and been recovered, you will see a plan similar
 to:
 ```json
 {
@@ -1062,10 +1057,10 @@ to:
 }
 ```
 
-Note in particular the above message containing
-`RecoveryType: TRANSIENT` for the step named `data-2`.  This indicates a
+Note in particular the message that contains
+`RecoveryType: TRANSIENT` for the step named `data-2`.  This message indicates a
 recovery from a temporary failure.  The task was able to be successfully
-recovered in its previous location with all its old resources including
+recovered in its previous location with all its old resources, including
 persistent volumes.  In the case of a permanent failure recovery, the
 message would instead contain `RecoveryType: PERMANENT`.
 
