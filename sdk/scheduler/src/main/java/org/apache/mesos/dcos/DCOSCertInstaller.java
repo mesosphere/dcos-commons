@@ -1,6 +1,7 @@
 package org.apache.mesos.dcos;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,10 @@ public class DCOSCertInstaller {
     public static final String CERT_PATH = ".ssl/ca.crt";
 
     public static boolean installCertificate(String pathToJRE) {
+        if (StringUtils.isEmpty(pathToJRE)) {
+            LOGGER.error("No JRE specified, skipping certificate installation.");
+            return false;
+        }
         return installCertificate(pathToJRE, new ProcessRunner());
     }
 
