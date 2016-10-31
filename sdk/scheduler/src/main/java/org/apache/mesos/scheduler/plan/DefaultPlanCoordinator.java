@@ -26,7 +26,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             List<PlanManager> planManagers,
             PlanScheduler planScheduler) {
         if (CollectionUtils.isEmpty(planManagers)) {
-            throw new IllegalArgumentException("Atleast one plan manager is required");
+            throw new IllegalArgumentException("At least one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
         this.planManagers.stream().forEach(manager -> manager.subscribe(this));
@@ -47,7 +47,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         final List<Offer> offers = new ArrayList<>(offersToProcess);
 
         // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented
-        // with offers first, does not accidently schedule an asset that's actively being worked upon by another
+        // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
         // PlanManager that is presented offers later.
         dirtiedAssets.addAll(planManagers.stream()
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
