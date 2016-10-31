@@ -28,19 +28,19 @@ public class PlanUtils {
         return candidateSteps;
     }
 
-    public static final void update(TaskStatus taskStatus, Collection<? extends Element> elements) {
-        LOGGER.info("Updated with TaskStatus: {}", taskStatus);
-        elements.forEach(element -> element.update(taskStatus));
+    public static final void update(Element parent, TaskStatus taskStatus, Collection<? extends Element> children) {
+        LOGGER.info("Updated {} with TaskStatus: {}", parent.getName(), taskStatus);
+        children.forEach(element -> element.update(taskStatus));
     }
 
-    public static final void restart(Collection<? extends Element> elements) {
-        LOGGER.info("Restarting elements: {}", elements);
-        elements.forEach(element -> element.restart());
+    public static final void restart(Element parent, Collection<? extends Element> children) {
+        LOGGER.info("Restarting elements within {}: {}", parent.getName(), children);
+        children.forEach(element -> element.restart());
     }
 
-    public static final void forceComplete(Collection<? extends Element> elements) {
-        LOGGER.info("Forcing completion of elements: {}", elements);
-        elements.forEach(element -> element.forceComplete());
+    public static final void forceComplete(Element parent, Collection<? extends Element> children) {
+        LOGGER.info("Forcing completion of elements within {}: {}", parent.getName(), children);
+        children.forEach(element -> element.forceComplete());
     }
 
     public static final String getMessage(Element element) {

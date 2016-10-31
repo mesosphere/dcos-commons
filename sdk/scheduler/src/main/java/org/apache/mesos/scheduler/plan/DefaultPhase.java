@@ -64,17 +64,17 @@ public class DefaultPhase extends ChainedObserver implements Phase {
 
     @Override
     public void update(Protos.TaskStatus status) {
-        PlanUtils.update(status, getChildren());
+        PlanUtils.update(this, status, getChildren());
     }
 
     @Override
     public void restart() {
-        PlanUtils.restart(getChildren());
+        PlanUtils.restart(this, getChildren());
     }
 
     @Override
     public void forceComplete() {
-        PlanUtils.forceComplete(getChildren());
+        PlanUtils.forceComplete(this, getChildren());
     }
 
     @Override
