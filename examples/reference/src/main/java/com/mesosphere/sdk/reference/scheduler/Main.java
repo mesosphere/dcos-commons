@@ -33,6 +33,8 @@ public class Main {
     private static final double TASK_DATA_MEM_MB = Double.valueOf(System.getenv("DATA_MEM"));
     private static final double TASK_DATA_DISK_MB = Double.valueOf(System.getenv("DATA_DISK"));
 
+    private static final double SLEEP_DURATION = Double.valueOf(System.getenv("SLEEP_DURATION"));
+
     private static final int API_PORT = Integer.parseInt(System.getenv("PORT0"));
     private static final String CONTAINER_PATH_SUFFIX = "-container-path";
 
@@ -106,7 +108,7 @@ public class Main {
 
     private static Protos.CommandInfo getCommand(String name) {
         final String cmd = String.format(
-                "echo %s >> %s%s/output && sleep 1000", name, name, CONTAINER_PATH_SUFFIX);
+                "echo %s >> %s%s/output && sleep %s", name, name, CONTAINER_PATH_SUFFIX, SLEEP_DURATION);
 
         return Protos.CommandInfo.newBuilder()
                 .setValue(cmd)
