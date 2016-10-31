@@ -72,7 +72,7 @@ public class DefaultPlan extends ChainedObserver implements Plan {
 
     @Override
     public Status getStatus() {
-        status = PlanUtils.getStatus(getChildren());
+        status = PlanUtils.getStatus(this);
         return status;
     }
 
@@ -83,17 +83,17 @@ public class DefaultPlan extends ChainedObserver implements Plan {
 
     @Override
     public void update(Protos.TaskStatus status) {
-        PlanUtils.update(this, status, getChildren());
+        PlanUtils.update(this, status);
     }
 
     @Override
     public void restart() {
-        PlanUtils.restart(this, getChildren());
+        PlanUtils.restart(this);
     }
 
     @Override
     public void forceComplete() {
-        PlanUtils.forceComplete(this, getChildren());
+        PlanUtils.forceComplete(this);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class DefaultPlan extends ChainedObserver implements Plan {
 
     @Override
     public List<String> getErrors() {
-        return PlanUtils.getErrors(errors, getChildren());
+        return PlanUtils.getErrors(errors, this);
     }
 
     @Override
