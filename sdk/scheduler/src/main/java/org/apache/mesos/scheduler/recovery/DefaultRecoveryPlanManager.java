@@ -14,6 +14,7 @@ import org.apache.mesos.specification.DefaultTaskSpecification;
 import org.apache.mesos.specification.InvalidTaskSpecificationException;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -112,7 +113,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     private List<Step> createSteps() {
-        return stateStore.fetchTasksNeedingRecovery().stream()
+        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore).stream()
                 .map(taskInfo -> {
                     try {
                         return createSteps(TaskUtils.unpackTaskInfo(taskInfo));
