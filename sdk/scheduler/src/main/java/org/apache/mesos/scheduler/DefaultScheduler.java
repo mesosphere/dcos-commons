@@ -7,6 +7,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.dcos.DCOSCertInstaller;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
@@ -25,6 +26,7 @@ import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.api.JsonPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
+import org.apache.mesos.util.JavaHomeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,6 +274,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
         initializeResources();
+        DCOSCertInstaller.installCertificate(JavaHomeDetector.getJavaHomeFromEnv());
         final List<PlanManager> planManagers = Arrays.asList(
                 recoveryPlanManager,
                 deployPlanManager);
