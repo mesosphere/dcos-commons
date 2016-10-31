@@ -3,13 +3,15 @@ package com.mesosphere.sdk.reference.scheduler;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
-import org.apache.mesos.offer.constrain.TaskTypeGenerator;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Main entry point for the Reference Scheduler.
@@ -53,8 +55,7 @@ public class Main {
                                 getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
                                 // no config info/template files
                                 Collections.emptyList(),
-                                // avoid colocating with other metadata instances (<=1 instance/agent):
-                                Optional.of(TaskTypeGenerator.createAvoid(TASK_METADATA_NAME)),
+                                Optional.empty(),
                                 Optional.of(getHealthCheck(TASK_METADATA_NAME))),
                         DefaultTaskSet.create(TASK_DATA_COUNT,
                                 TASK_DATA_NAME,
@@ -64,8 +65,7 @@ public class Main {
                                 getVolumes(TASK_DATA_DISK_MB, TASK_DATA_NAME),
                                 // no config info/template files
                                 Collections.emptyList(),
-                                // avoid colocating with other data instances (<=1 instance/agent):
-                                Optional.of(TaskTypeGenerator.createAvoid(TASK_DATA_NAME)),
+                                Optional.empty(),
                                 Optional.of(getHealthCheck(TASK_DATA_NAME)))));
     }
 

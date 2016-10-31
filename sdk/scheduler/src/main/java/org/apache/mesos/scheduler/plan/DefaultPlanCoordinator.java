@@ -53,8 +53,11 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
 
+        LOGGER.info("Initial dirtied assets: {}", dirtiedAssets);
+
         for (final PlanManager planManager : planManagers) {
             try {
+                LOGGER.info("Processing offers for plan: {}", planManager.getPlan().getName());
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> candidateSteps = planManager.getCandidates(dirtiedAssets);
 
@@ -63,9 +66,11 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
 
                 // Collect dirtied offers
                 dirtiedOffers.addAll(usedOffers);
+                LOGGER.info("Updated dirtied offers: {}", dirtiedOffers);
 
                 // Collect known dirtied assets
                 dirtiedAssets.addAll(planManager.getDirtyAssets());
+                LOGGER.info("Updated dirtied assets: {}", dirtiedAssets);
             } catch (Throwable t) {
                 LOGGER.error(String.format("Error with plan manager: %s.", planManager), t);
             }
@@ -76,6 +81,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             offers.addAll(unacceptedOffers);
         }
 
+        LOGGER.info("Total dirtied offers: {}", dirtiedOffers);
         return dirtiedOffers;
     }
 

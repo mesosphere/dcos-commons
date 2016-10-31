@@ -47,7 +47,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        setPlan(createPlan(createSteps()));
+        plan = new DefaultPlan(RECOVERY_ELEMENT_NAME, Collections.emptyList());
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     @Override
     public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
         synchronized (planLock) {
-            updatePlan();
+            updatePlan(dirtyAssets);
             return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
                     .filter(step ->
                             launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryRequirement()))
@@ -88,18 +88,18 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public void update(Protos.TaskStatus status) {
         synchronized (planLock) {
             getPlan().update(status);
-            updatePlan();
             notifyObservers();
         }
     }
-    private void updatePlan() {
+    private void updatePlan(Collection<String> dirtyAssets) {
         synchronized (planLock) {
             // This list will not contain any Complete steps.
-            List<Step> steps = createSteps();
+            List<Step> steps = createSteps(dirtyAssets);
             List<String> stepNames = steps.stream().map(step -> step.getName()).collect(Collectors.toList());
             List<Step> completeSteps = getPlan().getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
                     .filter(step -> !stepNames.contains(step.getName()))
+                    .filter(step -> !dirtyAssets.contains(step.getName()))
                     .collect(Collectors.toList());
 
             steps.addAll(completeSteps);
@@ -112,8 +112,9 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private List<Step> createSteps() {
+    private List<Step> createSteps(Collection<String> dirtyAssets) {
         return stateStore.fetchTasksNeedingRecovery().stream()
+                .filter(taskInfo -> !dirtyAssets.contains(taskInfo.getName()))
                 .map(taskInfo -> {
                     try {
                         return createSteps(
@@ -132,7 +133,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 })
                 .flatMap(steps -> steps.stream())
                 .collect(Collectors.toList());
-
     }
 
     private List<Step> createSteps(Protos.TaskInfo taskInfo, TaskSpecification taskSpec)
