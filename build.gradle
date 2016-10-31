@@ -15,7 +15,7 @@ plugins {
 // at ANY TIME as changes are merged into master. They represent a fully unstable API.
 // ---
 group = "mesosphere"
-version = "0.8.1"
+version = "0.8.2-SNAPSHOT"
 
 allprojects {
     apply plugin: 'java'
