@@ -9,6 +9,11 @@ cd $REPO_ROOT_DIR
 # Grab dcos-commons build/release tools:
 rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
 
+# GitHub notifier config
+_notify_github() {
+    $REPO_ROOT_DIR/tools/github_update.py $1 build $2
+}
+
 # Service (Java):
 ../../gradlew clean check distZip
 if [ $? -ne 0 ]; then
