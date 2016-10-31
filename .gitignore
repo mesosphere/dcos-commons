@@ -5,6 +5,7 @@ target/
 tools/env/
 tools/cluster-*.properties
 tools/*.pem
+tools/shakedown_env/
 
 # idea
 *.i??

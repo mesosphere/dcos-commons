@@ -3,15 +3,12 @@
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
 set +e
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $REPO_ROOT_DIR
-
-# Grab dcos-commons build/release tools:
-rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
+REFERENCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $REFERENCE_DIR
 
 # GitHub notifier config
 _notify_github() {
-    $REPO_ROOT_DIR/tools/github_update.py $1 build $2
+    $REFERENCE_DIR/../../tools/github_update.py $1 build $2
 }
 
 # Service (Java):
@@ -30,7 +27,7 @@ fi
 
 _notify_github success "Build succeeded"
 
-./dcos-commons-tools/ci_upload.py \
+$REFERENCE_DIR/../../tools/ci_upload.py \
   reference \
   universe/ \
   build/distributions/*.zip \
