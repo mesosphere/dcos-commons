@@ -26,7 +26,6 @@ import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.api.JsonPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
-import org.apache.mesos.util.JavaHomeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -274,7 +273,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeGlobals(driver);
         initializeRecoveryPlanManager();
         initializeResources();
-        DCOSCertInstaller.installCertificate(JavaHomeDetector.getJavaHomeFromEnv());
+        DCOSCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
         final List<PlanManager> planManagers = Arrays.asList(
                 recoveryPlanManager,
                 deployPlanManager);
