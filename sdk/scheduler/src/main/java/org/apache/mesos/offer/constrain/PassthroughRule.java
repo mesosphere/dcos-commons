@@ -3,6 +3,7 @@ package org.apache.mesos.offer.constrain;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.offer.OfferRequirement;
 
 /**
  * A {@link PlacementRule} which performs no filtering. Just returns the offers it's given as-is.
@@ -21,7 +22,7 @@ public class PassthroughRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
         return offer;
     }
 

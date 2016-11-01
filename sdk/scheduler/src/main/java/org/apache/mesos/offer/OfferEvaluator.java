@@ -67,7 +67,7 @@ public class OfferEvaluator {
             OfferRequirement offerRequirement, Offer offer, Optional<PlacementRule> placementRule) {
         if (placementRule.isPresent()) {
             int originalCount = offer.getResourcesCount();
-            offer = placementRule.get().filter(offer);
+            offer = placementRule.get().filter(offer, offerRequirement);
             int filteredCount = offer.getResourcesCount();
             if (filteredCount == originalCount) {
                 logger.info("Offer: '{}' fully passed placement constraints, evaluating {} of {} resources",

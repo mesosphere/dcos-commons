@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.offer.AttributeStringUtils;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -24,7 +25,7 @@ public class AttributeRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
             if (attributeSelector.select(attributeString)) {

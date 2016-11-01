@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableCollection;
@@ -51,7 +52,7 @@ public class TestPlacementUtils {
         public AllTestRule() { }
 
         @Override
-        public Offer filter(Offer offer) {
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
             return offer;
         }
 
@@ -67,7 +68,7 @@ public class TestPlacementUtils {
         public NoneTestRule() { }
 
         @Override
-        public Offer filter(Offer offer) {
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
             return offer.toBuilder().clearResources().build();
         }
 
@@ -83,7 +84,7 @@ public class TestPlacementUtils {
         public RemoveFirstTestRule() { }
 
         @Override
-        public Offer filter(Offer offer) {
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
             if (offer.getResourcesCount() == 0) {
                 return offer;
             }
@@ -102,7 +103,7 @@ public class TestPlacementUtils {
         public RemoveLastTestRule() { }
 
         @Override
-        public Offer filter(Offer offer) {
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
             int count = offer.getResourcesCount();
             if (count == 0) {
                 return offer;

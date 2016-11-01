@@ -9,6 +9,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,8 +26,8 @@ public class NotRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
-        Offer filtered = rule.filter(offer);
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
+        Offer filtered = rule.filter(offer, offerRequirement);
         if (filtered.getResourcesCount() == 0) {
             // shortcut: all resources were filtered out, so return all resources
             return offer;

@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -26,7 +27,7 @@ public class HostnameRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
         if (hostname.equals(offer.getHostname())) {
             return offer;
         } else {

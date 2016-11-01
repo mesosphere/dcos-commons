@@ -1,15 +1,18 @@
 package org.apache.mesos.offer.constrain;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskRequirement;
 import org.apache.mesos.offer.TaskUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -114,6 +117,59 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
         return createColocate(typeToColocateWith, new TaskTypeLabelConverter());
     }
 
+    private static class TaskTypeRule implements PlacementRule {
+
+        private final BehaviorType behaviorType;
+
+        private final Map<String, TaskInfo> matchingTasksByName;
+
+        private TaskTypeRule(
+                BehaviorType behaviorType,
+                Map<String, TaskInfo> matchingTasksByName) {
+            this.behaviorType = behaviorType;
+            this.matchingTasksByName = matchingTasksByName;
+        }
+
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
+            Set<String> taskToLaunchNames = new HashSet<>();
+            for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
+                taskToLaunchNames.add(taskRequirement.getTaskInfo().getName());
+            }
+            for (Map.Entry<String, TaskInfo> matchingTask : matchingTasksByName.entrySet()) {
+                if (taskToLaunchNames.contains(matchingTask.getKey())) {
+                    // Ignore this task (regardless of behaviorType): It's name matches the task
+                    // that we're evaluating for placement. This occurs when we're redeploying a
+                    // given task with a new configuration (old data not deleted yet).
+                    continue;
+                }
+                if (matchingTask.getValue().getSlaveId().equals(offer.getSlaveId())) {
+                    switch (behaviorType) {
+                    case COLOCATE:
+                        // offer is for an agent which has a task to colocate with
+                        return offer;
+                    case AVOID:
+                        // offer is for an agent which has a task to be avoided
+                        return offer.toBuilder().clearResources().build();
+                    default:
+                        throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
+                    }
+                }
+            }
+            switch (behaviorType) {
+            case COLOCATE:
+                // offer doesn't match any tasks to colocate with
+                return offer.toBuilder().clearResources().build();
+            case AVOID:
+                // offer doesn't match any tasks to avoid
+                return offer;
+            default:
+                throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
+            }
+        }
+
+    }
+
     /**
      * The behavior to be used.
      */
@@ -138,42 +194,31 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
 
     @Override
     public PlacementRule generate(Collection<TaskInfo> tasks) {
-        Set<String> agentsWithMatchingType = new HashSet<>();
+        Map<String, TaskInfo> matchingTasksByName = new HashMap<>();
         for (TaskInfo task : tasks) {
             if (typeToFind.equals(typeConverter.getTaskType(task))) {
-                // Matching task type found. Target (or avoid) this agent.
-                agentsWithMatchingType.add(task.getSlaveId().getValue());
+                matchingTasksByName.put(task.getName(), task);
             }
         }
-
-        List<PlacementRule> agentRules = new ArrayList<>();
-        for (String agent : agentsWithMatchingType) {
-            agentRules.add(new AgentRule(agent));
-        }
-        switch (behaviorType) {
-        case COLOCATE:
-            if (agentRules.isEmpty()) {
+        if (matchingTasksByName.isEmpty()) {
+            switch (behaviorType) {
+            case COLOCATE:
                 // nothing to colocate with! fall back to allowing any location.
                 // this is expected when the developer has configured bidirectional rules
                 // (A colocates with B + B colocates with A)
                 return new PassthroughRule(
                         String.format("no tasks of type '%s' to colocate with", typeToFind));
-            } else {
-                return new OrRule(agentRules);
-            }
-        case AVOID:
-            if (agentRules.isEmpty()) {
+            case AVOID:
                 // nothing to avoid, but this is expected when avoiding nodes of the same type
                 // (self-avoidance), or when the developer has configured bidirectional rules
                 // (A avoids B + B avoids A)
                 return new PassthroughRule(
                         String.format("no tasks of type '%s' to avoid", typeToFind));
-            } else {
-                return new NotRule(new OrRule(agentRules));
+            default:
+                throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
             }
-        default:
-            throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
         }
+        return new TaskTypeRule(behaviorType, matchingTasksByName);
     }
 
     @JsonProperty("type")

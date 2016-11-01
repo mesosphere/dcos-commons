@@ -13,7 +13,9 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.config.SerializationUtils;
+import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 
@@ -21,6 +23,8 @@ import org.apache.mesos.testutils.TaskTestUtils;
  * Tests for {@link MaxPerAttributeGenerator}.
  */
 public class MaxPerAttributeGeneratorTest {
+
+    private static final OfferRequirement REQ = OfferRequirementTestUtils.getOfferRequirement();
 
     private static final String ATTR_PATTERN = "^footext:.*$";
     private static final AttributeSelector ATTR_SELECTOR = AttributeSelector.createRegexSelector(ATTR_PATTERN);
@@ -65,16 +69,16 @@ public class MaxPerAttributeGeneratorTest {
 
         PlacementRule rule = generator.generate(Arrays.asList(
                 TASK_NO_ATTRS, TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_2, TASK_ATTR_MISMATCH));
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
 
         rule = generator.generate(Arrays.asList());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
     }
 
     @Test
@@ -83,16 +87,16 @@ public class MaxPerAttributeGeneratorTest {
 
         PlacementRule rule = generator.generate(Arrays.asList(
                 TASK_NO_ATTRS, TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_2, TASK_ATTR_MISMATCH));
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
 
         rule = generator.generate(Arrays.asList());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
     }
 
     @Test
@@ -101,16 +105,16 @@ public class MaxPerAttributeGeneratorTest {
 
         PlacementRule rule = generator.generate(Arrays.asList(
                 TASK_NO_ATTRS, TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_2, TASK_ATTR_MISMATCH));
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
 
         rule = generator.generate(Arrays.asList());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
     }
 
     @Test
@@ -122,30 +126,30 @@ public class MaxPerAttributeGeneratorTest {
                 TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_1,
                 TASK_ATTR_MATCH_2,
                 TASK_ATTR_MISMATCH));
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
 
         rule = generator.generate(Arrays.asList(
                 TASK_NO_ATTRS, TASK_NO_ATTRS, TASK_NO_ATTRS,
                 TASK_ATTR_MATCH_1,
                 TASK_ATTR_MATCH_2, TASK_ATTR_MATCH_2,
                 TASK_ATTR_MISMATCH));
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
 
         rule = generator.generate(Arrays.asList(
                 TASK_NO_ATTRS,
                 TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_1,
                 TASK_ATTR_MATCH_2, TASK_ATTR_MATCH_2,
                 TASK_ATTR_MISMATCH, TASK_ATTR_MISMATCH, TASK_ATTR_MISMATCH));
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1).getResourcesCount());
-        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2).getResourcesCount());
-        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2, REQ).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ).getResourcesCount());
     }
 
     @Test

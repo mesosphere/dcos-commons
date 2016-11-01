@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -26,7 +27,7 @@ public class AgentRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
         if (offer.getSlaveId().getValue().equals(agentId)) {
             return offer;
         } else {

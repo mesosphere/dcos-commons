@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,15 +31,15 @@ public class AndRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
         // Uses Collection.retainAll() to implement a set intersection:
         boolean inited = false;
         Collection<Resource> survivingResources = new ArrayList<>();
         for (PlacementRule rule : rules) {
             if (inited) {
-                survivingResources.retainAll(rule.filter(offer).getResourcesList());
+                survivingResources.retainAll(rule.filter(offer, offerRequirement).getResourcesList());
             } else {
-                survivingResources.addAll(rule.filter(offer).getResourcesList());
+                survivingResources.addAll(rule.filter(offer, offerRequirement).getResourcesList());
                 inited = true;
             }
             if (survivingResources.isEmpty()) {

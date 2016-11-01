@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,10 +33,10 @@ public class OrRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement) {
         Set<Resource> resourceUnion = new HashSet<>();
         for (PlacementRule rule : rules) {
-            Offer filtered = rule.filter(offer);
+            Offer filtered = rule.filter(offer, offerRequirement);
             for (Resource resource : filtered.getResourcesList()) {
                 resourceUnion.add(resource);
             }

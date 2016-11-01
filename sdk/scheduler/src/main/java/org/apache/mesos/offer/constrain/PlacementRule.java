@@ -1,6 +1,7 @@
 package org.apache.mesos.offer.constrain;
 
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -22,10 +23,11 @@ public interface PlacementRule {
      * rejected, the return value will be a non-{@code null} Offer with zero Resources.
      *
      * @param offer the offer to be examined
+     * @param offerRequirement the offer requirement describing what's to be done with this offer
      * @return either the uncopied input as-is, or a copy of the input with zero or more Resources
      *     stripped out
      */
-    public Offer filter(Offer offer);
+    public Offer filter(Offer offer, OfferRequirement offerRequirement);
 
     /**
      * Must be explicitly implemented by all PlacementRules.
