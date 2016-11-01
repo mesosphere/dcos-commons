@@ -6,13 +6,17 @@ set +e
 REFERENCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REFERENCE_DIR
 
+ROOT_DIR=$REFERENCE_DIR/../..
+
 # GitHub notifier config
 _notify_github() {
-    $REFERENCE_DIR/../../tools/github_update.py $1 build $2
+    GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:reference $2
 }
 
+_notify_github pending "Build running"
+
 # Service (Java):
-../../gradlew clean check distZip
+$ROOT_DIR/gradlew clean check distZip
 if [ $? -ne 0 ]; then
   _notify_github failure "Gradle build failed"
   exit 1
@@ -27,7 +31,7 @@ fi
 
 _notify_github success "Build succeeded"
 
-$REFERENCE_DIR/../../tools/ci_upload.py \
+$ROOT_DIR/tools/ci_upload.py \
   reference \
   universe/ \
   build/distributions/*.zip \
