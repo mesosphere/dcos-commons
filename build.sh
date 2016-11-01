@@ -32,10 +32,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Go (optional, build if tools are present):
+# Bootstrap GOPATH contents (optional):
 
-if [ -n "$(which go)" -a -n "$GOPATH" ]; then
-  echo "Building Go CLI example (GOPATH: $GOPATH, go: $(which go) => $(go version))"
+if [ -n "$GOPATH" ]; then
+  echo "Setting up GOPATH (GOPATH: $GOPATH, go: $(which go) => $(go version))"
   # build must be performed within GOPATH, so set things up for that:
   REPO_NAME=dcos-commons # CI dir does not match repo name
   GOPATH_MESOSPHERE=$GOPATH/src/github.com/mesosphere
@@ -44,13 +44,8 @@ if [ -n "$(which go)" -a -n "$GOPATH" ]; then
   cd $GOPATH_MESOSPHERE
   ln -s $REPO_ROOT_DIR $REPO_NAME
   echo "Created symlink $(pwd)/$REPO_NAME -> $REPO_ROOT_DIR"
-  cd $REPO_NAME/cli/_example && go get && ./build-all.sh
-  if [ $? -ne 0 ]; then
-    _notify_github failure "Go CLI build failed"
-    exit 1
-  fi
 else
-  echo "NOTICE: Skipping Go CLI build: 'go' executable not found or 'GOPATH' envvar is unset"
+  echo "NOTICE: Skipping Go CLI setup: 'GOPATH' envvar is unset"
 fi
 
 _notify_github success "Build succeeded"
