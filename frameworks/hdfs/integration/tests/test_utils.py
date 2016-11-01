@@ -39,7 +39,7 @@ def uninstall():
 
     shakedown.run_command_on_master(
         'docker run mesosphere/janitor /janitor.py '
-        '-r hdfs-role -p hdfs-principal -z dcos-hdfs/hdfs '
+        '-r hdfs-role -p hdfs-principal -z dcos-service-hdfs/hdfs '
         '--auth_token={}'.format(
             shakedown.run_dcos_command(
                 'config show core.dcos_acs_token'
