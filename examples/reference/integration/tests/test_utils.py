@@ -8,10 +8,10 @@ PACKAGE_NAME = 'data-store'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-DEFAULT_DATA_STORE_TASK_COUNT = 5 # 2 metadata nodes, 3 data nodes
+DEFAULT_TASK_COUNT = 5 # 2 metadata nodes, 3 data nodes
 
 
-def check_health():
+def check_health(expected_tasks = DEFAULT_TASK_COUNT):
     def fn():
         try:
             return shakedown.get_service_tasks(PACKAGE_NAME)
@@ -21,9 +21,9 @@ def check_health():
     def success_predicate(tasks):
         running_tasks = [t for t in tasks if t['state'] == TASK_RUNNING_STATE]
         print('Waiting for {} healthy tasks, got {}/{}'.format(
-            DEFAULT_DATA_STORE_TASK_COUNT, len(running_tasks), len(tasks)))
+            expected_tasks, len(running_tasks), len(tasks)))
         return (
-            len(running_tasks) >= DEFAULT_DATA_STORE_TASK_COUNT,
+            len(running_tasks) >= expected_tasks,
             'Service did not become healthy'
         )
 
@@ -67,3 +67,33 @@ def spin(fn, success_predicate, *args, **kwargs):
     assert is_successful, error_message
 
     return result
+
+
+def get_marathon_config():
+    response = dcos.http.get(marathon_api_url('apps/{}/versions'.format(PACKAGE_NAME)))
+    assert response.status_code == 200, 'Marathon versions request failed'
+
+    version = response.json()['versions'][0]
+
+    response = dcos.http.get(marathon_api_url('apps/{}/versions/{}'.format(PACKAGE_NAME, version)))
+    assert response.status_code == 200
+
+    config = response.json()
+    del config['uris']
+    del config['version']
+
+    return config
+
+
+def marathon_api_url(basename):
+    return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
+
+
+def request(request_fn, *args, **kwargs):
+    def success_predicate(response):
+        return (
+            response.status_code == 200,
+            'Request failed: %s' % response.content,
+        )
+
+    return spin(request_fn, success_predicate, *args, **kwargs)
