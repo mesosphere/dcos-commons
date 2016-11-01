@@ -83,8 +83,8 @@ public interface TaskSpecification {
      * another task", "ensure instances are only launched on nodes with attribute X", etc. This may
      * return an empty {@code Optional} if no specific placement rules are applicable.
      *
-     * See the documentation for {@link PlacementRuleGenerator} and {@link PlacementRule} for more
-     * information.
+     * See the documentation for {@link PlacementRuleGenerator} and
+     * {@link org.apache.mesos.offer.constrain.PlacementRule} for more information.
      */
     @JsonProperty("placement")
     Optional<PlacementRuleGenerator> getPlacement();

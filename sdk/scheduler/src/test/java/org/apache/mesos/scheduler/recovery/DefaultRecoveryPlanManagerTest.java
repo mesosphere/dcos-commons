@@ -441,10 +441,12 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(runningStatus);
         recoveryManager.update(runningStatus);
+        assertEquals(0, recoveryManager.getPlan().getChildren().size());
 
         // TASK_FAILED
         stateStore.storeStatus(failedStatus);
         recoveryManager.update(failedStatus);
+        recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
@@ -474,12 +476,12 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(runningStatus);
         recoveryManager.update(runningStatus);
-        assertEquals(0, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
-
+        assertEquals(0, recoveryManager.getPlan().getChildren().size());
 
         // TASK_FAILED
         stateStore.storeStatus(failedStatus);
         recoveryManager.update(failedStatus);
+        recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_RUNNING
