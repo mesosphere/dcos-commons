@@ -38,12 +38,6 @@ else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
 fi
 
-# Hax for testing strict mode clusters:
-echo Security: $SECURITY
-if [ "$SECURITY" = "strict" ]; then
-    ${REPO_ROOT_DIR}/tools/setup_permissions.sh nobody hdfs-role
-fi
-
 # Run shakedown tests in reference scheduler directory:
 ${REPO_ROOT_DIR}/tools/run_tests.py \
                 shakedown \
