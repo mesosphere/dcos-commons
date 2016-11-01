@@ -30,17 +30,21 @@ public class Main {
     private static final double JOURNAL_NODE_MEM_MB = Double.valueOf(System.getenv("JOURNAL_NODE_MEMORY_MB"));
     private static final double JOURNAL_NODE_DISK_MB = Double.valueOf(System.getenv("JOURNAL_NODE_DISK_MB"));
 
-    private static final String NAME_NODE_NAME = "namenode";
-    private static final int NAME_NODE_COUNT = Integer.parseInt(System.getenv("NAME_NODE_COUNT"));
-    private static final double NAME_NODE_CPU = Double.valueOf(System.getenv("NAME_NODE_CPUS"));
-    private static final double NAME_NODE_MEM_MB = Double.valueOf(System.getenv("NAME_NODE_MEMORY_MB"));
-    private static final double NAME_NODE_DISK_MB = Double.valueOf(System.getenv("NAME_NODE_DISK_MB"));
-
     private static final String DATA_NODE_NAME = "datanode";
     private static final int DATA_NODE_COUNT = Integer.parseInt(System.getenv("DATA_NODE_COUNT"));
     private static final double DATA_NODE_CPU = Double.valueOf(System.getenv("DATA_NODE_CPUS"));
     private static final double DATA_NODE_MEM_MB = Double.valueOf(System.getenv("DATA_NODE_MEMORY_MB"));
     private static final double DATA_NODE_DISK_MB = Double.valueOf(System.getenv("DATA_NODE_DISK_MB"));
+    private static final String DATA_AND_JOURNAL_NODE_VOLUME_DIR = "volume/hdfs/data/jn";
+
+    private static final String NAME_NODE_NAME = "namenode";
+    private static final int NAME_NODE_COUNT = Integer.parseInt(System.getenv("NAME_NODE_COUNT"));
+    private static final double NAME_NODE_CPU = Double.valueOf(System.getenv("NAME_NODE_CPUS"));
+    private static final double NAME_NODE_MEM_MB = Double.valueOf(System.getenv("NAME_NODE_MEMORY_MB"));
+    private static final double NAME_NODE_DISK_MB = Double.valueOf(System.getenv("NAME_NODE_DISK_MB"));
+    private static final String NAME_NODE_FORMAT_FILE_INDICATOR = "current/VERSION";
+    private static final String NAME_NODE_VOLUME_DIR = "volume/hdfs/data/name";
+
 
     private static final int API_PORT = Integer.parseInt(System.getenv("PORT0"));
     private static final String CONTAINER_PATH_SUFFIX = "volume";
@@ -183,36 +187,71 @@ public class Main {
 
     private static String addNameNodeBootstrapCommands(int instanceIndex) {
         if (instanceIndex == 0) {
-            return String.format("echo 'Formating filesystem';" +
-                    "./%s/bin/hdfs namenode -format -force && " +
-                    "echo 'Initialize Shared Edits' && " +
-                    "./%s/bin/hdfs namenode -initializeSharedEdits -force && " +
-                    "echo 'Starting Name Node' && " +
-                    "./%s/bin/hdfs namenode", HDFS_VERSION, HDFS_VERSION, HDFS_VERSION
-            );
-        } else {
-            return String.format("echo 'sleeping for 30 seconds to let namenode-0 bootstrap and come up';" +
-                    "sleep 30;" +
-                    "echo 'NameNode bootstrap';" +
-                    "./%s/bin/hdfs namenode -bootstrapStandBy -force && " +
+            return String.format(
+                    prepNameNode() +
+                    "echo 'Starting ZKFC process';" +
+                    "./%s/bin/hdfs zkfc > zkfc.stdout 2> zkfc.stderr & " +
                     "echo 'Starting Name Node' && " +
                     "./%s/bin/hdfs namenode", HDFS_VERSION, HDFS_VERSION
             );
+        } else {
+            return String.format(
+                    "echo 'sleeping for 30 seconds to let system stabilize';" +
+                    "sleep 30;" +
+                    "echo 'NameNode bootstrap';" +
+                    "./%s/bin/hdfs namenode -bootstrapStandBy -force && " +
+                    "echo 'Starting ZKFC process';" +
+                    "./%s/bin/hdfs zkfc > zkfc.stdout 2> zkfc.stderr & " +
+                    "echo 'Starting Name Node' && " +
+                    "./%s/bin/hdfs namenode", HDFS_VERSION, HDFS_VERSION, HDFS_VERSION
+            );
         }
+    }
+
+    /**
+     * Determines whether if it's the first time a namenode is being launched and thus whether or not
+     * any formatting should be performed.
+     * If NAME_NODE_VOLUME_DIR/NAME_NODE_FORMAT_FILE_INDICATOR exists we know the formatting has been performed.
+     * Given this assumption and the fact that this namenode is being restarted, we're also assuming
+     * that the other namenode is now active, so we then bootstrap instead and become the standby namenode.
+     * Note: this logic only applies to the namenode that was launched first. The second namenode initially bootstraps,
+     * which is technically fine since it's a nondestructive operation. If the second namenode restarts, it will
+     * unconditionally bootstrap again.
+     * @return Either a string echoing that the formating has been done
+     * or a string containing the proper formatting commands.
+     */
+    private static String prepNameNode() {
+    return String.format("if [ -f %s/%s ]; " +
+                    "then " +
+                    "echo 'Formatting has already been done'; " +
+                    "echo 'sleeping for 30 seconds to let system stabilize';" +
+                    "sleep 30;" +
+                    "echo 'NameNode bootstrap';" +
+                    "./%s/bin/hdfs namenode -bootstrapStandBy -force; " +
+                    "else " +
+                    "echo 'Formating filesystem'; " +
+                    "./%s/bin/hdfs namenode -format -force; " +
+                    "echo 'ZKFC format'; " +
+                    "./%s/bin/hdfs zkfc -formatZK -force; " +
+                    "echo 'Initialize Shared Edits'; " +
+                    "./%s/bin/hdfs namenode -initializeSharedEdits -force; " +
+                    "fi && ",
+            HDFS_VERSION, NAME_NODE_VOLUME_DIR, NAME_NODE_FORMAT_FILE_INDICATOR,
+            HDFS_VERSION, HDFS_VERSION, HDFS_VERSION);
     }
 
     private static String createVolumeDirectory(String nodeType) {
         List<String> dirNames = new ArrayList<>();
         StringBuilder command = new StringBuilder();
         if (nodeType.equals(JOURNAL_NODE_NAME)) {
-            dirNames.add("volume/hdfs/data/jn");
+            dirNames.add(DATA_AND_JOURNAL_NODE_VOLUME_DIR);
             dirNames.add("/tmp/hadoop/dfs/journalnode/hdfs");
             command.append("echo 'Creating Journal Node edits directory';");
         } else if (nodeType.equals(DATA_NODE_NAME)) {
-            dirNames.add("volume/hdfs/data/jn");
+            dirNames.add(DATA_AND_JOURNAL_NODE_VOLUME_DIR);
             command.append("echo 'Creating Data Node data directory';");
         } else {
-            dirNames.add("volume/hdfs/data/name");
+            dirNames.add(NAME_NODE_VOLUME_DIR);
             command.append("echo 'Creating Name Node name directory';");
         }
 
