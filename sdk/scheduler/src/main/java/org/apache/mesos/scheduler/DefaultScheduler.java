@@ -222,7 +222,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static ConfigStore<ServiceSpecification> createConfigStore(
             String frameworkName, String zkConnectionString) {
-        return new CuratorConfigStore<ServiceSpecification>(
+        return new CuratorConfigStore<>(
                 DefaultServiceSpecification.getFactoryInstance(),
                 frameworkName,
                 zkConnectionString);
@@ -292,8 +292,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeRecoveryPlanManager();
         initializeResources();
         final List<PlanManager> planManagers = Arrays.asList(
-                recoveryPlanManager,
-                deploymentPlanManager);
+                deploymentPlanManager,
+                recoveryPlanManager);
         planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
@@ -500,6 +500,10 @@ public class DefaultScheduler implements Scheduler, Observer {
                     deploymentPlanManager.update(status);
                     recoveryPlanManager.update(status);
                     reconciler.update(status);
+
+                    if (TaskUtils.needsRecovery(status)) {
+                        revive();
+                    }
                 } catch (Exception e) {
                     LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                             + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -560,14 +564,22 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void suppressOrRevive() {
         if (planCoordinator.hasOperations()) {
-            LOGGER.info("Reviving offers.");
-            driver.reviveOffers();
-            stateStore.setSuppressed(false);
+            revive();
         } else {
-            LOGGER.info("Suppressing offers.");
-            driver.suppressOffers();
-            stateStore.setSuppressed(true);
+            suppress();
         }
+    }
+
+    private void suppress() {
+        LOGGER.info("Suppressing offers.");
+        driver.suppressOffers();
+        stateStore.setSuppressed(true);
+    }
+
+    private void revive() {
+        LOGGER.info("Reviving offers.");
+        driver.reviveOffers();
+        stateStore.setSuppressed(false);
     }
 
     @Override

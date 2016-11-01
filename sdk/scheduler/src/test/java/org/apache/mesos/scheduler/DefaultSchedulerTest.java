@@ -6,15 +6,16 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.offer.ResourceUtils;
-import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
+import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.awaitility.Awaitility;
@@ -26,11 +27,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -468,7 +465,51 @@ public class DefaultSchedulerTest {
         register();
         plan = defaultScheduler.deploymentPlanManager.getPlan();
         stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
-        Assert.assertTrue(stepTaskA0.isPending());
+        Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
+
+        List<Protos.Resource> expectedResources = getExpectedResources(operations);
+        Protos.Resource neededAdditionalResource = ResourceTestUtils.getUnreservedCpu(UPDATED_TASK_A_CPU - TASK_A_CPU);
+        expectedResources.add(neededAdditionalResource);
+
+        // Start update Step
+        Protos.Offer insufficientOffer = OfferTestUtils.getOffer(neededAdditionalResource);
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
+        verify(mockSchedulerDriver, timeout(1000).times(1)).killTask(launchedTaskId);
+        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(insufficientOffer.getId());
+        Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
+
+        // Sent TASK_KILLED status
+        statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
+        Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
+        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
+        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+
+        Protos.Offer expectedOffer = OfferTestUtils.getOffer(expectedResources);
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(expectedOffer));
+        verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
+                collectionThat(contains(expectedOffer.getId())),
+                operationsCaptor.capture(),
+                any());
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isInProgress(), equalTo(true));
+        Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
+        Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+
+        operations = operationsCaptor.getValue();
+        launchedTaskId = getTaskId(operations);
+        statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
+    }
+
+    private List<Protos.Resource> getExpectedResources(Collection<Protos.Offer.Operation> operations) {
+        for (Protos.Offer.Operation operation : operations) {
+            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
+                return operation.getLaunch().getTaskInfosList().stream()
+                        .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
+                        .collect(Collectors.toList());
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     @Test

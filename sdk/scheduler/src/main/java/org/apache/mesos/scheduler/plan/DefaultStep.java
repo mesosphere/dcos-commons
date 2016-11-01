@@ -23,6 +23,7 @@ public class DefaultStep extends DefaultObservable implements Step {
     private final UUID id = UUID.randomUUID();
     private final List<String> errors;
     private final Strategy strategy = new ParallelStrategy();
+    private final Object statusLock = new Object();
     private Status status;
     private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
@@ -60,10 +61,13 @@ public class DefaultStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public synchronized void setStatus(Status newStatus) {
-        Status oldStatus = status;
-        status = newStatus;
-        logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+    public void setStatus(Status newStatus) {
+        Status oldStatus;
+        synchronized (statusLock) {
+            oldStatus = status;
+            status = newStatus;
+            logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+        }
 
         if (!oldStatus.equals(newStatus)) {
             notifyObservers();
@@ -72,7 +76,6 @@ public class DefaultStep extends DefaultObservable implements Step {
 
     @Override
     public Optional<OfferRequirement> start() {
-        setStatus(Status.IN_PROGRESS);
         return offerRequirementOptional;
     }
 
@@ -80,6 +83,10 @@ public class DefaultStep extends DefaultObservable implements Step {
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
         logger.info("Updated with operations: {}", operations);
         setTaskIds(operations);
+
+        if (!operations.isEmpty()) {
+            setStatus(Status.IN_PROGRESS);
+        }
     }
 
     @Override
@@ -115,8 +122,10 @@ public class DefaultStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public synchronized Status getStatus() {
-        return status;
+    public Status getStatus() {
+        synchronized (statusLock) {
+            return status;
+        }
     }
 
     @Override
