@@ -1,32 +1,42 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
+import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.TaskKiller;
+import org.apache.mesos.scheduler.recovery.DefaultRecoveryPlanManager;
+import org.apache.mesos.scheduler.recovery.DefaultRecoveryRequirementProvider;
+import org.apache.mesos.scheduler.recovery.RecoveryRequirementProvider;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
+import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
+import org.apache.mesos.scheduler.recovery.monitor.DefaultFailureMonitor;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * Tests for {@code DefaultPlanCoordinator}.
@@ -38,10 +48,13 @@ public class DefaultPlanCoordinatorTest {
     public static final int SUFFICIENT_DISK = 10000;
     public static final int INSUFFICIENT_MEM = 1;
     public static final int INSUFFICIENT_DISK = 1;
+    private static TestingServer testingServer;
 
     private List<TaskSet> taskSets;
+    private List<TaskSet> updatedTaskSets;
     private List<TaskSet> taskSetsB;
     private DefaultServiceSpecification serviceSpecification;
+    private DefaultServiceSpecification updatedServiceSpecification;
     private DefaultServiceSpecification serviceSpecificationB;
     private OfferAccepter offerAccepter;
     private StateStore stateStore;
@@ -54,22 +67,21 @@ public class DefaultPlanCoordinatorTest {
     private PhaseFactory phaseFactory;
     private EnvironmentVariables environmentVariables;
 
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testingServer = new TestingServer();
+    }
+
     @Before
-    public void setupTest() {
+    public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
+        CuratorTestUtils.clear(testingServer);
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
-        stateStore = mock(StateStore.class);
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
         taskSpecificationProvider = mock(TaskSpecificationProvider.class);
-        stepFactory = new DefaultStepFactory(
-                stateStore,
-                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()),
-                taskSpecificationProvider);
-        phaseFactory = new DefaultPhaseFactory(stepFactory);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
+        updatedTaskSets = Arrays.asList(TestTaskSetFactory.getUpdateTaskSet());
         taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
                 TestConstants.TASK_TYPE + "-B",
                 TestTaskSetFactory.COUNT,
@@ -80,10 +92,22 @@ public class DefaultPlanCoordinatorTest {
         serviceSpecification = new DefaultServiceSpecification(
                 SERVICE_NAME,
                 taskSets);
+        stateStore = new CuratorStateStore(
+                serviceSpecification.getName(),
+                testingServer.getConnectString());
+        stepFactory = new DefaultStepFactory(
+                stateStore,
+                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()),
+                taskSpecificationProvider);
+        phaseFactory = new DefaultPhaseFactory(stepFactory);
+        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
+        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
+        updatedServiceSpecification = new DefaultServiceSpecification(
+                SERVICE_NAME,
+                updatedTaskSets);
         serviceSpecificationB = new DefaultServiceSpecification(
                 SERVICE_NAME + "-B",
                 taskSetsB);
-        when(stateStore.fetchTask(anyString())).thenReturn(Optional.empty());
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
     }
@@ -168,6 +192,100 @@ public class DefaultPlanCoordinatorTest {
                                 SUFFICIENT_CPUS,
                                 SUFFICIENT_MEM,
                                 SUFFICIENT_DISK)).size());
+    }
+
+    @Test
+    public void testConfigurationUpdate() throws Exception {
+        Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        PlanManager deploymentPlanManager = new DefaultPlanManager(planA);
+
+        UUID targetID = UUID.randomUUID();
+        final OfferRequirementProvider offerRequirementProvider = new DefaultOfferRequirementProvider(
+                new DefaultTaskConfigRouter(),
+                targetID);
+
+        final RecoveryRequirementProvider recoveryRequirementProvider =
+                new DefaultRecoveryRequirementProvider(
+                        offerRequirementProvider,
+                        taskSpecificationProvider);
+
+        final TestingLaunchConstrainer launchConstrainer = new TestingLaunchConstrainer();
+        launchConstrainer.setCanLaunch(true);
+
+        final PlanManager recoveryPlanManager = new DefaultRecoveryPlanManager(
+                stateStore,
+                taskSpecificationProvider,
+                recoveryRequirementProvider,
+                launchConstrainer,
+                new DefaultFailureMonitor());
+
+        DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Arrays.asList(deploymentPlanManager, recoveryPlanManager),
+                planScheduler);
+
+        // Offer for first launch
+        Assert.assertEquals(
+                1,
+                coordinator.processOffers(
+                        schedulerDriver,
+                        getOffers(
+                                SUFFICIENT_CPUS,
+                                SUFFICIENT_MEM,
+                                SUFFICIENT_DISK)).size());
+
+        // In Progress Deployment Plan
+        Step stepA0 = planA.getChildren().get(0).getChildren().get(0);
+        Assert.assertTrue(stepA0.isInProgress());
+        Assert.assertEquals(1, recoveryPlanManager.getPlan().getChildren().size());
+        Assert.assertTrue(recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+
+        Protos.TaskID expectedTaskID = ((DefaultStep) stepA0)
+                .getExpectedTasks().entrySet().stream()
+                .findFirst().get()
+                .getKey();
+
+        // Complete Deployment Plan
+        Protos.TaskStatus runningStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(expectedTaskID)
+                .setState(Protos.TaskState.TASK_RUNNING)
+                .build();
+        stateStore.storeStatus(runningStatus);
+
+        deploymentPlanManager.update(runningStatus);
+        recoveryPlanManager.update(runningStatus);
+        Assert.assertTrue(stepA0.isComplete());
+        Assert.assertEquals(1, recoveryPlanManager.getPlan().getChildren().size());
+        Assert.assertTrue(recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+
+        // Update configuration
+        planA = new DefaultPlanFactory(phaseFactory).getPlan(updatedServiceSpecification);
+        deploymentPlanManager = new DefaultPlanManager(planA);
+        coordinator = new DefaultPlanCoordinator(
+                Arrays.asList(deploymentPlanManager, recoveryPlanManager),
+                planScheduler);
+
+        stepA0 = planA.getChildren().get(0).getChildren().get(0);
+        Assert.assertTrue(stepA0.isPending());
+        Assert.assertEquals(1, recoveryPlanManager.getPlan().getChildren().size());
+        Assert.assertTrue(recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+
+        Assert.assertEquals(
+                1,
+                coordinator.processOffers(
+                        schedulerDriver,
+                        getOffers(
+                                SUFFICIENT_CPUS,
+                                SUFFICIENT_MEM,
+                                SUFFICIENT_DISK)).size());
+
+        Assert.assertTrue(stepA0.isInProgress());
+        Assert.assertEquals(1, recoveryPlanManager.getPlan().getChildren().size());
+        Assert.assertTrue(recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
+
+        expectedTaskID = ((DefaultStep) stepA0)
+                .getExpectedTasks().entrySet().stream()
+                .findFirst().get()
+                .getKey();
     }
 
     @Test

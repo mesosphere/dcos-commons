@@ -23,6 +23,10 @@ public class TestTaskSetFactory {
         return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU, MEM, DISK);
     }
 
+    public static TaskSet getUpdateTaskSet() {
+        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU + 1.0, MEM, DISK);
+    }
+
     public static TaskSet getTaskSet(
             Collection<ConfigFileSpecification> configs,
             Optional<PlacementRuleGenerator> placement) {

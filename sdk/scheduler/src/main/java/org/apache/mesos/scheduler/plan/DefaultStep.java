@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
@@ -34,6 +35,7 @@ public class DefaultStep extends DefaultObservable implements Step {
         this.offerRequirementOptional = offerRequirementOptional;
         this.status = status;
         this.errors = errors;
+        setStatus(status); // Log initial status
     }
 
     /**
@@ -53,8 +55,11 @@ public class DefaultStep extends DefaultObservable implements Step {
                 }
             }
         }
+
+        logger.info("Step is now waiting for updates for task IDs: {}", tasks);
     }
 
+    @Override
     public synchronized void setStatus(Status newStatus) {
         Status oldStatus = status;
         status = newStatus;
@@ -67,15 +72,14 @@ public class DefaultStep extends DefaultObservable implements Step {
 
     @Override
     public Optional<OfferRequirement> start() {
+        setStatus(Status.IN_PROGRESS);
         return offerRequirementOptional;
     }
 
     @Override
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
-        if (!operations.isEmpty()) {
-            setTaskIds(operations);
-            setStatus(Status.IN_PROGRESS);
-        }
+        logger.info("Updated with operations: {}", operations);
+        setTaskIds(operations);
     }
 
     @Override
@@ -183,5 +187,10 @@ public class DefaultStep extends DefaultObservable implements Step {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
+    }
+
+    @VisibleForTesting
+    public Map<Protos.TaskID, Status> getExpectedTasks() {
+        return tasks;
     }
 }

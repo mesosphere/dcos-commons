@@ -49,17 +49,22 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented
         // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
         // PlanManager that is presented offers later.
+        /*
         dirtiedAssets.addAll(planManagers.stream()
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
+                */
 
         LOGGER.info("Initial dirtied assets: {}", dirtiedAssets);
 
         for (final PlanManager planManager : planManagers) {
             try {
                 LOGGER.info("Processing offers for plan: {}", planManager.getPlan().getName());
+
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> candidateSteps = planManager.getCandidates(dirtiedAssets);
+                LOGGER.info("Attempting to process candidates: {}",
+                        candidateSteps.stream().map(step -> step.getName()).collect(Collectors.toList()));
 
                 // Try scheduling candidate steps using the available offers
                 Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateSteps);

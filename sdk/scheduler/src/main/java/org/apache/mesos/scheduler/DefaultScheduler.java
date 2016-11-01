@@ -283,11 +283,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
     }
 
-    @VisibleForTesting
-    Plan getPlan() {
-        return deploymentPlanManager.getPlan();
-    }
-
     private void initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.

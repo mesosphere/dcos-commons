@@ -22,7 +22,6 @@ public class PlanUtils {
         Collection<Step> candidateSteps = candidatePhases.stream()
                 .map(phase -> phase.getStrategy().getCandidates(phase, dirtyAssets))
                 .flatMap(steps -> steps.stream())
-                .filter(step -> step.isPending())
                 .collect(Collectors.toList());
 
         return candidateSteps;
