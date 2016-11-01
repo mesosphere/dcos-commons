@@ -28,8 +28,4 @@
         <name>hadoop.proxyuser.httpfs.hosts</name>
         <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value>
     </property>
-    <property>
-        <name>ha.zookeeper.quorum</name>
-        <value>namenode-0.hdfs.mesos:2181,namenode-1.hdfs.mesos:2181</value>
-    </property>
 </configuration>
