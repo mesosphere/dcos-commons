@@ -44,6 +44,7 @@ if [ -n "$GOPATH" ]; then
   cd $GOPATH_MESOSPHERE
   ln -s $REPO_ROOT_DIR $REPO_NAME
   echo "Created symlink $(pwd)/$REPO_NAME -> $REPO_ROOT_DIR"
+  cd $REPO_ROOT_DIR
 else
   echo "NOTICE: Skipping Go CLI setup: 'GOPATH' envvar is unset"
 fi
