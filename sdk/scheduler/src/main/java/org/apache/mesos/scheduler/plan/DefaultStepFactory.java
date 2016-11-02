@@ -1,7 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
@@ -12,7 +13,9 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
@@ -20,14 +23,17 @@ import java.util.*;
 public class DefaultStepFactory implements StepFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
 
+    private final ConfigStore configStore;
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
     private final TaskSpecificationProvider taskSpecificationProvider;
 
     public DefaultStepFactory(
+            ConfigStore configStore,
             StateStore stateStore,
             OfferRequirementProvider offerRequirementProvider,
             TaskSpecificationProvider taskSpecificationProvider) {
+        this.configStore = configStore;
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
         this.taskSpecificationProvider = taskSpecificationProvider;
@@ -47,10 +53,7 @@ public class DefaultStepFactory implements StepFactory {
                         Status.PENDING,
                         Collections.emptyList());
             } else {
-                final TaskSpecification oldTaskSpecification =
-                        taskSpecificationProvider.getTaskSpecification(
-                                TaskUtils.unpackTaskInfo(taskInfoOptional.get()));
-                Status status = getStatus(oldTaskSpecification, taskSpecification);
+                Status status = getStatus(taskInfoOptional.get());
                 LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
                 return new DefaultStep(
                         taskInfoOptional.get().getName(),
@@ -59,21 +62,27 @@ public class DefaultStepFactory implements StepFactory {
                         status,
                         Collections.emptyList());
             }
-        } catch (InvalidRequirementException | TaskException e) {
-            LOGGER.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
-            throw new Step.InvalidStepException(e);
-        } catch (InvalidProtocolBufferException e) {
-            LOGGER.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
+        } catch (InvalidRequirementException e) {
+            LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
     }
 
-    private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        LOGGER.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
-        if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
-            return Status.PENDING;
-        } else {
-            return Status.COMPLETE;
+    private Status getStatus(Protos.TaskInfo taskInfo) {
+        try {
+            if (isOnTarget(taskInfo)) {
+                return Status.COMPLETE;
+            }
+        } catch (ConfigStoreException | TaskException e) {
+            LOGGER.error("Failed to determine initial Step status so defaulting to PENDING.", e);
         }
+
+        return Status.PENDING;
+    }
+
+    private boolean isOnTarget(Protos.TaskInfo taskInfo) throws ConfigStoreException, TaskException {
+        UUID targetConfigId = configStore.getTargetConfig();
+        UUID taskConfigId = TaskUtils.getTargetConfiguration(taskInfo);
+        return targetConfigId.equals(taskConfigId);
     }
 }

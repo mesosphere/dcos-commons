@@ -22,9 +22,9 @@ public interface TaskSpecification {
     String getName();
 
     /**
-     * The type of a TaskSpecification should be the name of the {@link TaskSet} to which it belongs.
+     * The tyep of a TaskSpecification should be the name of the {@link TaskSet} to which it belongs.
      *
-     * @return the type of the TaskSpecification
+     * @return the name of the TaskSet of which this TaskSpecification is a member.
      */
     @JsonProperty("type")
     String getType();

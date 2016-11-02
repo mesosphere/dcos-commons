@@ -6,10 +6,7 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.ConfigStoreException;
-import org.apache.mesos.config.ConfigurationUpdater;
-import org.apache.mesos.config.DefaultTaskConfigRouter;
+import org.apache.mesos.config.*;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.config.validate.TaskSetsCannotShrink;
 import org.apache.mesos.config.validate.TaskVolumesCannotChange;
@@ -303,7 +300,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Updating config...");
         ConfigurationUpdater<ServiceSpecification> configurationUpdater =
-                new ConfigurationUpdater<>(
+                new DefaultConfigurationUpdater(
                         stateStore,
                         configStore,
                         DefaultServiceSpecification.getComparatorInstance(),
@@ -334,6 +331,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing deployment plan...");
         deploymentPlanManager = new DefaultPlanManager(
                 new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
+                        configStore,
                         stateStore,
                         offerRequirementProvider,
                         taskSpecificationProvider)))

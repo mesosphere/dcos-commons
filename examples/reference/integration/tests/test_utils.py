@@ -29,6 +29,24 @@ def check_health(expected_tasks = DEFAULT_TASK_COUNT):
 
     return spin(fn, success_predicate)
 
+def check_unhealthy(expected_tasks = DEFAULT_TASK_COUNT):
+    def fn():
+        try:
+            return shakedown.get_service_tasks(PACKAGE_NAME)
+        except dcos.errors.DCOSHTTPException:
+            return []
+
+    def success_predicate(tasks):
+        running_tasks = [t for t in tasks if t['state'] != TASK_RUNNING_STATE]
+        print('Waiting for {} unhealthy tasks, got {}/{}'.format(
+            expected_tasks, len(running_tasks), len(tasks)))
+        return (
+            len(running_tasks) >= expected_tasks,
+            'Service did not become unhealthy'
+        )
+
+    return spin(fn, success_predicate)
+
 
 def uninstall():
     print('Uninstalling/janitoring {}'.format(PACKAGE_NAME))

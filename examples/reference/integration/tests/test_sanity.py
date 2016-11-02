@@ -8,6 +8,7 @@ from tests.test_utils import (
     DEFAULT_TASK_COUNT,
     PACKAGE_NAME,
     check_health,
+    check_unhealthy,
     get_marathon_config,
     marathon_api_url,
     request,
@@ -45,13 +46,14 @@ def test_install_worked():
 @pytest.mark.sanity
 def test_bump_metadata_cpus():
     config = get_marathon_config()
-    cpus = int(config['env']['METADATA_CPU'])
+    cpus = float(config['env']['METADATA_CPU'])
     config['env']['METADATA_CPU'] = str(cpus + 0.1)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
+    check_unhealthy()
     check_health()
 
 

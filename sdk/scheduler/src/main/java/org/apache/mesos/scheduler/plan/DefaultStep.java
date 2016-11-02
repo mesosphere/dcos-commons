@@ -37,7 +37,7 @@ public class DefaultStep extends DefaultObservable implements Step {
         this.status = status;
         this.errors = errors;
 
-        setStatus(getStatus(tasks)); // Log initial status
+        setStatus(status); // Log initial status
     }
 
     /**

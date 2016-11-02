@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan.strategy;
 
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.OfferRequirementProvider;
@@ -41,6 +42,7 @@ public class CustomPlanTest {
     private Collection<Step> steps;
     private ServiceSpecification serviceSpecification;
 
+    @Mock private ConfigStore mockConfigStore;
     @Mock private StateStore mockStateStore;
     @Mock private OfferRequirementProvider mockOfferRequirementProvider;
     @Mock private OfferRequirement mockOfferRequirement;
@@ -115,7 +117,7 @@ public class CustomPlanTest {
     public void testCustomPlanFromServiceSpecDoesntThrow()
             throws Step.InvalidStepException, InvalidRequirementException {
         StepFactory stepFactory = new DefaultStepFactory(
-                mockStateStore, mockOfferRequirementProvider, mockTaskSpecificationProvider);
+                mockConfigStore, mockStateStore, mockOfferRequirementProvider, mockTaskSpecificationProvider);
         when(mockStateStore.fetchTask(anyString())).thenReturn(Optional.empty());
         when(mockOfferRequirementProvider.getNewOfferRequirement(any(TaskSpecification.class))).thenReturn(mockOfferRequirement);
         DefaultPhaseFactory phaseFactory = new DefaultPhaseFactory(stepFactory);

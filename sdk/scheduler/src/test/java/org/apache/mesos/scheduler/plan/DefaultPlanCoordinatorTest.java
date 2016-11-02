@@ -3,6 +3,7 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.DefaultOfferRequirementProvider;
@@ -87,6 +88,7 @@ public class DefaultPlanCoordinatorTest {
                 serviceSpecification.getName(),
                 testingServer.getConnectString());
         stepFactory = new DefaultStepFactory(
+                mock(ConfigStore.class),
                 stateStore,
                 new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()),
                 taskSpecificationProvider);
