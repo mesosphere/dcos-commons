@@ -2,15 +2,17 @@ package org.apache.mesos.scheduler.plan;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.*;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
@@ -50,11 +52,13 @@ public class DefaultStepFactory implements StepFactory {
                                 TaskUtils.unpackTaskInfo(taskInfoOptional.get()));
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
                 LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
+                Map<Protos.TaskID, Status> tasks = new HashMap<>();
+                tasks.put(taskInfoOptional.get().getTaskId(), status);
                 return new DefaultStep(
-                        taskSpecification.getName(),
+                        taskInfoOptional.get().getName(),
                         Optional.of(offerRequirementProvider.getExistingOfferRequirement(
                                 taskInfoOptional.get(), taskSpecification)),
-                        status,
+                        tasks,
                         Collections.emptyList());
             }
         } catch (InvalidRequirementException | TaskException e) {

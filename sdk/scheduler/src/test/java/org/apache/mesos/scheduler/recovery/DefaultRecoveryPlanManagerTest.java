@@ -488,6 +488,8 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(runningStatus);
         recoveryManager.update(runningStatus);
+        recoveryManager.getCandidates(Collections.emptyList());
+        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
         stateStore.storeStatus(failedStatus);
