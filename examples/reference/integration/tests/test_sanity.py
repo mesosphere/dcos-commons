@@ -42,7 +42,6 @@ def test_install_worked():
     pass
 
 
-@pytest.mark.skip(reason="known failure loop on meta-data-0")
 @pytest.mark.sanity
 def test_bump_metadata_cpus():
     config = get_marathon_config()
@@ -56,7 +55,6 @@ def test_bump_metadata_cpus():
     check_health()
 
 
-@pytest.mark.skip(reason="known failure loop on meta-data-0 (not a typo)")
 @pytest.mark.sanity
 def test_bump_data_nodes():
     config = get_marathon_config()

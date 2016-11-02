@@ -1,7 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
@@ -26,29 +25,19 @@ public class DefaultStep extends DefaultObservable implements Step {
     private final Strategy strategy = new ParallelStrategy();
     private final Object statusLock = new Object();
     private Status status;
-    private final Map<Protos.TaskID, Status> tasks;
+    private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
     public DefaultStep(
             String name,
             Optional<OfferRequirement> offerRequirementOptional,
             Status status,
             List<String> errors) {
-        this(name, offerRequirementOptional, new HashedMap(), errors);
-        setStatus(status);
-    }
-
-    public DefaultStep(
-            String name,
-            Optional<OfferRequirement> offerRequirementOptional,
-            Map<Protos.TaskID, Status> tasks,
-            List<String> errors) {
         this.name = name;
         this.offerRequirementOptional = offerRequirementOptional;
-        this.status = getStatus(tasks);
+        this.status = status;
         this.errors = errors;
-        this.tasks = tasks;
 
-        setStatus(status); // Log initial status
+        setStatus(getStatus(tasks)); // Log initial status
     }
 
     /**
@@ -70,11 +59,6 @@ public class DefaultStep extends DefaultObservable implements Step {
         }
 
         logger.info("Step is now waiting for updates for task IDs: {}", tasks);
-    }
-
-    private synchronized void setTaskIds(Collection<Protos.TaskID> taskIds, Status status) {
-        tasks.clear();
-        taskIds.forEach(id -> tasks.put(id, status));
     }
 
     @Override
@@ -201,7 +185,7 @@ public class DefaultStep extends DefaultObservable implements Step {
         for (Status taskStatus : tasks.values()) {
             if (!taskStatus.equals(Status.COMPLETE)) {
                 // Keep and log current status
-                return getStatus();
+                return taskStatus;
             }
         }
 

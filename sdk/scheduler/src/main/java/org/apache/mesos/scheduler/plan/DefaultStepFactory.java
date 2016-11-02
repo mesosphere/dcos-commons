@@ -52,13 +52,11 @@ public class DefaultStepFactory implements StepFactory {
                                 TaskUtils.unpackTaskInfo(taskInfoOptional.get()));
                 Status status = getStatus(oldTaskSpecification, taskSpecification);
                 LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
-                Map<Protos.TaskID, Status> tasks = new HashMap<>();
-                tasks.put(taskInfoOptional.get().getTaskId(), status);
                 return new DefaultStep(
                         taskInfoOptional.get().getName(),
                         Optional.of(offerRequirementProvider.getExistingOfferRequirement(
                                 taskInfoOptional.get(), taskSpecification)),
-                        tasks,
+                        status,
                         Collections.emptyList());
             }
         } catch (InvalidRequirementException | TaskException e) {
@@ -75,14 +73,7 @@ public class DefaultStepFactory implements StepFactory {
         if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
             return Status.PENDING;
         } else {
-            Protos.TaskState taskState = stateStore.fetchStatus(newTaskSpecification.getName()).get().getState();
-            switch (taskState) {
-                case TASK_STAGING:
-                case TASK_STARTING:
-                    return Status.IN_PROGRESS;
-                default:
-                    return Status.COMPLETE;
-            }
+            return Status.COMPLETE;
         }
     }
 }
