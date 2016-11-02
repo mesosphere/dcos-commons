@@ -153,7 +153,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             } else {
                 final ServiceSpecification taskConfig = configStore.fetch(taskConfigId);
                 if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
-
                     // Task is effectively already on the target config. Update task's config ID to match target,
                     // and allow the duplicate config to be dropped from configStore.
                     LOGGER.info("Task {} config {} is identical to target {}. Updating task configuration to {}.",
@@ -184,7 +183,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             ServiceSpecification taskConfig) {
         LOGGER.info("Checking whether config update is needed for task: {}", taskInfo.getName());
 
-        if (targetConfig.equals(targetConfig)) {
+        if (targetConfig.equals(taskConfig)) {
             LOGGER.info("Configurations are equal, no update needed for task: {}", taskInfo.getName());
             return false;
         }
