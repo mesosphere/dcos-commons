@@ -15,6 +15,7 @@ import org.apache.mesos.config.validate.TaskSetsCannotShrink;
 import org.apache.mesos.config.validate.TaskVolumesCannotChange;
 import org.apache.mesos.curator.CuratorConfigStore;
 import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.dcos.DCOSCertInstaller;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
@@ -205,9 +206,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param frameworkName the name of the framework (service name)
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
-    public static StateStore createStateStore(
-            String frameworkName, String zkConnectionString) {
-                return new CuratorStateStore(frameworkName, zkConnectionString);
+    public static StateStore createStateStore(String frameworkName, String zkConnectionString) {
+        return new CuratorStateStore(frameworkName, zkConnectionString);
     }
 
     /**
@@ -291,6 +291,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeDeploymentPlanManager();
         initializeRecoveryPlanManager();
         initializeResources();
+        DCOSCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
         final List<PlanManager> planManagers = Arrays.asList(
                 deploymentPlanManager,
                 recoveryPlanManager);

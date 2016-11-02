@@ -203,7 +203,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void blockWithSameNameNoLaunch() throws Exception {
+    public void stepWithSameNameNoLaunch() throws Exception {
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(new OfferRequirement(TestConstants.TASK_TYPE, TASK_INFOS));
         final Step step = mock(Step.class);
         Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
@@ -233,7 +233,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void blockWithDifferentNameLaunches() throws Exception {
+    public void stepWithDifferentNameLaunches() throws Exception {
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
         final RecoveryRequirement recoveryRequirement =
