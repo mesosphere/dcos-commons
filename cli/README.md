@@ -12,7 +12,7 @@ The following functionality is provided to cover the needs of most 'thin clients
 - Making HTTP GET/PUT/POST/DELETE calls to services
 - Pretty-printing JSON responses
 
-While the main DC/OS CLI is written in Python (and then compiled into a standalone binary), the CLI Modules developed using these tools are instead written directly in Go 1.5+. This is chosen to greatly simplify cross-compilation compared to Python. See the [example build-all.sh](_example/build-all.sh) for an example which cross compiles Linux/Mac/Win binaries in a single script.
+While the main DC/OS CLI is written in Python (and then compiled into a standalone binary), the CLI Modules developed using these tools are instead written directly in Go 1.5+. This is chosen to greatly simplify cross-compilation compared to Python. See the [example build-cli.sh](../examples/reference/cli/build-cli.sh) for an example which cross compiles Linux/Mac/Win binaries in a single script.
 
 ## Build
 
@@ -51,15 +51,15 @@ Assuming the above structure (with `~/code` for where you put your code and `~/g
 Now you may build the example CLI module for each targeted platform:
 
 ```bash
-cd $GOPATH/src/github.com/mesosphere/dcos-commons/cli/_example
+cd $GOPATH/src/github.com/mesosphere/dcos-commons/examples/reference/cli
 go get
-./build-all.sh # creates example.exe, example-darwin, example-linux
-./example-linux -h
+./build-cli.sh # creates dcos-data-store.exe, dcos-data-store-darwin, dcos-data-store-linux
+./dcos-data-store/dcos-data-store-linux data-store -h
 ```
 
 ## Develop
 
-See the [example CLI module](example/) for an example of how your CLI module could be built. The provided example adds a set of custom commands on top of the standard set.
+See the [example CLI module](../examples/reference/cli/) for an example of how your CLI module could be built. The provided example adds a set of custom commands on top of the standard set.
 
 Like the example CLI module, your own code may simply access the CLI libraries provided here by importing `github.com/mesosphere/dcos-commons/cli`. Your CLI module implementation may pick and choose which standard commands should be included, while also implementing its own custom commands.
 
