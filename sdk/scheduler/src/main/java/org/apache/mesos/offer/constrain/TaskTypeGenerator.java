@@ -117,59 +117,6 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
         return createColocate(typeToColocateWith, new TaskTypeLabelConverter());
     }
 
-    private static class TaskTypeRule implements PlacementRule {
-
-        private final BehaviorType behaviorType;
-
-        private final Map<String, TaskInfo> matchingTasksByName;
-
-        private TaskTypeRule(
-                BehaviorType behaviorType,
-                Map<String, TaskInfo> matchingTasksByName) {
-            this.behaviorType = behaviorType;
-            this.matchingTasksByName = matchingTasksByName;
-        }
-
-        @Override
-        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
-            Set<String> taskToLaunchNames = new HashSet<>();
-            for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-                taskToLaunchNames.add(taskRequirement.getTaskInfo().getName());
-            }
-            for (Map.Entry<String, TaskInfo> matchingTask : matchingTasksByName.entrySet()) {
-                if (taskToLaunchNames.contains(matchingTask.getKey())) {
-                    // Ignore this task (regardless of behaviorType): It's name matches the task
-                    // that we're evaluating for placement. This occurs when we're redeploying a
-                    // given task with a new configuration (old data not deleted yet).
-                    continue;
-                }
-                if (matchingTask.getValue().getSlaveId().equals(offer.getSlaveId())) {
-                    switch (behaviorType) {
-                    case COLOCATE:
-                        // offer is for an agent which has a task to colocate with
-                        return offer;
-                    case AVOID:
-                        // offer is for an agent which has a task to be avoided
-                        return offer.toBuilder().clearResources().build();
-                    default:
-                        throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
-                    }
-                }
-            }
-            switch (behaviorType) {
-            case COLOCATE:
-                // offer doesn't match any tasks to colocate with
-                return offer.toBuilder().clearResources().build();
-            case AVOID:
-                // offer doesn't match any tasks to avoid
-                return offer;
-            default:
-                throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
-            }
-        }
-
-    }
-
     /**
      * The behavior to be used.
      */
@@ -200,25 +147,30 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
                 matchingTasksByName.put(task.getName(), task);
             }
         }
-        if (matchingTasksByName.isEmpty()) {
-            switch (behaviorType) {
-            case COLOCATE:
+        switch (behaviorType) {
+        case COLOCATE:
+            if (matchingTasksByName.isEmpty()) {
                 // nothing to colocate with! fall back to allowing any location.
                 // this is expected when the developer has configured bidirectional rules
                 // (A colocates with B + B colocates with A)
                 return new PassthroughRule(
                         String.format("no tasks of type '%s' to colocate with", typeToFind));
-            case AVOID:
+            } else {
+                return new ColocateTaskTypeRule(matchingTasksByName);
+            }
+        case AVOID:
+            if (matchingTasksByName.isEmpty()) {
                 // nothing to avoid, but this is expected when avoiding nodes of the same type
                 // (self-avoidance), or when the developer has configured bidirectional rules
                 // (A avoids B + B avoids A)
                 return new PassthroughRule(
                         String.format("no tasks of type '%s' to avoid", typeToFind));
-            default:
-                throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
+            } else {
+                return new AvoidTaskTypeRule(matchingTasksByName);
             }
+        default:
+            throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
         }
-        return new TaskTypeRule(behaviorType, matchingTasksByName);
     }
 
     @JsonProperty("type")
@@ -250,5 +202,79 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Implementation of task type avoidance. Considers the presence of tasks in the cluster to
+     * determine whether the provided task can be launched against a given offer. This rule requires
+     * that the offer be located on an agent which doesn't currently have an instance of the
+     * specified task type.
+     */
+    private static class AvoidTaskTypeRule implements PlacementRule {
+
+        private final Map<String, TaskInfo> tasksToAvoidByName;
+
+        private AvoidTaskTypeRule(Map<String, TaskInfo> tasksToAvoidByName) {
+            this.tasksToAvoidByName = tasksToAvoidByName;
+        }
+
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
+            Set<String> taskToLaunchNames = new HashSet<>();
+            for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
+                taskToLaunchNames.add(taskRequirement.getTaskInfo().getName());
+            }
+            for (Map.Entry<String, TaskInfo> taskToAvoid : tasksToAvoidByName.entrySet()) {
+                if (taskToLaunchNames.contains(taskToAvoid.getKey())) {// TODO WRONG: should check new taskcoordinate
+                    // This is stale data for the same task that we're currently evaluating for
+                    // placement. Don't worry about avoiding it. This occurs when we're redeploying
+                    // a given task with a new configuration (old data not deleted yet).
+                    continue;
+                }
+                if (taskToAvoid.getValue().getSlaveId().equals(offer.getSlaveId())) {
+                    // Offer is for an agent which has a task to be avoided. Denied!
+                    return offer.toBuilder().clearResources().build();
+                }
+            }
+            // Offer doesn't match any tasks to avoid. Denied!
+            return offer;
+        }
+    }
+
+    /**
+     * Implementation of task type colocation. Considers the presence of tasks in the cluster to
+     * determine whether the provided task can be launched against a given offer. This rule requires
+     * that the offer be located on an agent which currently has an instance of the specified task
+     * type.
+     */
+    private static class ColocateTaskTypeRule implements PlacementRule {
+
+        private final Map<String, TaskInfo> tasksToColocateByName;
+
+        private ColocateTaskTypeRule(Map<String, TaskInfo> tasksToColocateByName) {
+            this.tasksToColocateByName = tasksToColocateByName;
+        }
+
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
+            Set<String> taskToLaunchNames = new HashSet<>();
+            for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
+                taskToLaunchNames.add(taskRequirement.getTaskInfo().getName());
+            }
+            for (Map.Entry<String, TaskInfo> taskToColocate : tasksToColocateByName.entrySet()) {
+                if (taskToLaunchNames.contains(taskToColocate.getKey())) {// TODO WRONG: should check new taskcoordinate
+                    // This is stale data for the same task that we're currently evaluating for
+                    // placement. Don't worry about colocating with it. This occurs when we're
+                    // redeploying a given task with a new configuration (old data not deleted yet).
+                    continue;
+                }
+                if (taskToColocate.getValue().getSlaveId().equals(offer.getSlaveId())) {
+                    // Offer is for an agent which has a task to colocate with. Approved!
+                    return offer;
+                }
+            }
+            // Offer doesn't match any tasks to colocate with. Denied!
+            return offer.toBuilder().clearResources().build();
+        }
     }
 }
