@@ -10,5 +10,5 @@ import org.apache.mesos.Protos.Offer.Operation;
  * storage location.
  */
 public interface OperationRecorder {
-  void record(Operation operation, Offer offer) throws Exception;
+    void record(Operation operation, Offer offer) throws Exception;
 }
