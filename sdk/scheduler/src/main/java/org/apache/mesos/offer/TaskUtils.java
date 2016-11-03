@@ -225,6 +225,22 @@ public class TaskUtils {
     }
 
     /**
+     * Returns the {@link TaskSpecification} in the provided {@link DefaultServiceSpecification}
+     * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
+     */
+    public static TaskSpecification getTaskSpecification(
+            ServiceSpecification serviceSpec, TaskInfo taskInfo) {
+        for (TaskSet taskSet : serviceSpec.getTaskSets()) {
+            for (TaskSpecification taskSpec : taskSet.getTaskSpecifications()) {
+                if (taskSpec.getName().equals(taskInfo.getName())) {
+                    return taskSpec;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
      * Any templates with matching paths will be overwritten.
      *

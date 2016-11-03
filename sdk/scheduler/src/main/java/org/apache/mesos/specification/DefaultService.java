@@ -64,7 +64,10 @@ public class DefaultService implements Service {
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
         this.stateStore = DefaultScheduler.createStateStore(serviceSpecification.getName(), zkConnectionString);
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(serviceSpecification, stateStore);
+        DefaultScheduler defaultScheduler = DefaultScheduler.create(
+                serviceSpecification,
+                stateStore,
+                DefaultScheduler.createConfigStore(serviceSpecification.getName(), zkConnectionString));
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
