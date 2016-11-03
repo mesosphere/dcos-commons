@@ -26,7 +26,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             List<PlanManager> planManagers,
             PlanScheduler planScheduler) {
         if (CollectionUtils.isEmpty(planManagers)) {
-            throw new IllegalArgumentException("Atleast one plan manager is required");
+            throw new IllegalArgumentException("At least one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
         this.planManagers.stream().forEach(manager -> manager.subscribe(this));
@@ -46,26 +46,35 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         // Offers that are available for scheduling
         final List<Offer> offers = new ArrayList<>(offersToProcess);
 
+
         // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented
-        // with offers first, does not accidently schedule an asset that's actively being worked upon by another
+        // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
         // PlanManager that is presented offers later.
         dirtiedAssets.addAll(planManagers.stream()
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
 
+        LOGGER.info("Initial dirtied assets: {}", dirtiedAssets);
+
         for (final PlanManager planManager : planManagers) {
             try {
+                LOGGER.info("Processing offers for plan: {}", planManager.getPlan().getName());
+
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> candidateSteps = planManager.getCandidates(dirtiedAssets);
+                LOGGER.info("Attempting to process candidates: {}",
+                        candidateSteps.stream().map(step -> step.getName()).collect(Collectors.toList()));
 
                 // Try scheduling candidate steps using the available offers
                 Collection<OfferID> usedOffers = planScheduler.resourceOffers(driver, offers, candidateSteps);
 
                 // Collect dirtied offers
                 dirtiedOffers.addAll(usedOffers);
+                LOGGER.info("Updated dirtied offers: {}", dirtiedOffers);
 
                 // Collect known dirtied assets
                 dirtiedAssets.addAll(planManager.getDirtyAssets());
+                LOGGER.info("Updated dirtied assets: {}", dirtiedAssets);
             } catch (Throwable t) {
                 LOGGER.error(String.format("Error with plan manager: %s.", planManager), t);
             }
@@ -76,6 +85,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             offers.addAll(unacceptedOffers);
         }
 
+        LOGGER.info("Total dirtied offers: {}", dirtiedOffers);
         return dirtiedOffers;
     }
 

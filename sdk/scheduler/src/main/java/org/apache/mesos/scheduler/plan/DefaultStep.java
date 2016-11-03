@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
@@ -22,6 +23,7 @@ public class DefaultStep extends DefaultObservable implements Step {
     private final UUID id = UUID.randomUUID();
     private final List<String> errors;
     private final Strategy strategy = new ParallelStrategy();
+    private final Object statusLock = new Object();
     private Status status;
     private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
@@ -34,6 +36,8 @@ public class DefaultStep extends DefaultObservable implements Step {
         this.offerRequirementOptional = offerRequirementOptional;
         this.status = status;
         this.errors = errors;
+
+        setStatus(status); // Log initial status
     }
 
     /**
@@ -53,12 +57,18 @@ public class DefaultStep extends DefaultObservable implements Step {
                 }
             }
         }
+
+        logger.info("Step is now waiting for updates for task IDs: {}", tasks);
     }
 
-    public synchronized void setStatus(Status newStatus) {
-        Status oldStatus = status;
-        status = newStatus;
-        logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+    @Override
+    public void setStatus(Status newStatus) {
+        Status oldStatus;
+        synchronized (statusLock) {
+            oldStatus = status;
+            status = newStatus;
+            logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+        }
 
         if (!oldStatus.equals(newStatus)) {
             notifyObservers();
@@ -72,8 +82,10 @@ public class DefaultStep extends DefaultObservable implements Step {
 
     @Override
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
+        logger.info("Updated with operations: {}", operations);
+        setTaskIds(operations);
+
         if (!operations.isEmpty()) {
-            setTaskIds(operations);
             setStatus(Status.IN_PROGRESS);
         }
     }
@@ -111,8 +123,10 @@ public class DefaultStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public synchronized Status getStatus() {
-        return status;
+    public Status getStatus() {
+        synchronized (statusLock) {
+            return status;
+        }
     }
 
     @Override
@@ -159,15 +173,23 @@ public class DefaultStep extends DefaultObservable implements Step {
                 logger.warn("Failed to process unexpected state: " + status.getState());
         }
 
+
+        setStatus(getStatus(tasks));
+    }
+
+    private Status getStatus(Map<Protos.TaskID, Status> tasks) {
+        if (tasks.isEmpty()) {
+            return Status.PENDING;
+        }
+
         for (Status taskStatus : tasks.values()) {
             if (!taskStatus.equals(Status.COMPLETE)) {
                 // Keep and log current status
-                setStatus(this.status);
-                return;
+                return taskStatus;
             }
         }
 
-        setStatus(Status.COMPLETE);
+        return Status.COMPLETE;
     }
 
     @Override
@@ -183,5 +205,10 @@ public class DefaultStep extends DefaultObservable implements Step {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
+    }
+
+    @VisibleForTesting
+    public Map<Protos.TaskID, Status> getExpectedTasks() {
+        return tasks;
     }
 }

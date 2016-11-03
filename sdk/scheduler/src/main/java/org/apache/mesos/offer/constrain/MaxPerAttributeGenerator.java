@@ -14,8 +14,6 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.AttributeStringUtils;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,7 +47,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 'rack:a' from future deployments.
  */
 public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MaxPerAttributeGenerator.class); // TODO(nick) TEMP
 
     private final int maxTasksPerSelectedAttribute;
     private final AttributeSelector attributeSelector;
@@ -129,7 +126,6 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
             }
             if (offerAttributeStrings.isEmpty()) {
                 // shortcut: offer has no attributes to enforce. offer accepted!
-                LOGGER.error("offer has no attributes = accept");
                 return offer;
             }
 
@@ -142,18 +138,15 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
                     // redeploying a given task with a new configuration (old data not deleted yet).
                     // NOTE: If it weren't for this case, creation of selectedAttrTaskCounts could've
                     // been put in the PlacementRuleGenerator rather than in the PlacementRule.
-                    LOGGER.error("skip equivalent task: {}", task.getName());
                     continue;
                 }
                 for (String taskAttributeString : TaskUtils.getOfferAttributeStrings(task)) {
                     // only tally attribute values that are actually present in the offer
                     if (!offerAttributeStrings.contains(taskAttributeString)) {
-                        LOGGER.error("ignoring attribute not in offer: {}", taskAttributeString);
                         continue;
                     }
                     // only tally attribute(s) that match the selector (eg 'rack:.*'):
                     if (!attributeSelector.select(taskAttributeString)) {
-                        LOGGER.error("ignoring unselected attribute: {}", taskAttributeString);
                         continue;
                     }
                     // increment the tally for this exact attribute value (eg 'rack:9'):
@@ -165,16 +158,13 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
                     if (val >= maxTasksPerSelectedAttribute) {
                         // this attribute value's usage meets or exceeds the limit, and it is
                         // present in this offer per the earlier check. offer denied!
-                        LOGGER.error("denied due to attribute {}", taskAttributeString);
                         return offer.toBuilder().clearResources().build();
                     }
-                    LOGGER.error("updated attribute {} = {}", taskAttributeString, val);
                     offerAttrTaskCounts.put(taskAttributeString, val);
                 }
             }
             // after scanning all the tasks for usage of attributes present in this offer, nothing
             // hit or exceeded the limit. offer accepted!
-            LOGGER.error("accepted with attribute counts {}", offerAttrTaskCounts);
             return offer;
         }
 

@@ -3,7 +3,6 @@ package org.apache.mesos.state;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
-import org.apache.mesos.offer.TaskUtils;
 
 import java.util.*;
 
@@ -69,7 +68,7 @@ public interface StateStore {
     /**
      * Stores the TaskStatus of a particular Task. The {@link TaskInfo} for this exact task MUST have already been
      * written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by {@link
-     * TaskUtils#toTaskId(String)}.
+     * org.apache.mesos.offer.TaskUtils#toTaskId(String)}.
      *
      * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
@@ -108,31 +107,6 @@ public interface StateStore {
      * @throws StateStoreException if fetching the TaskInfo information otherwise fails
      */
     Collection<TaskInfo> fetchTasks() throws StateStoreException;
-
-    /**
-     * Fetches and returns all {@link TaskInfo}s for tasks needing recovery.
-     *
-     * @return Terminated TaskInfos
-     * @throws StateStoreException
-     */
-    default Collection<TaskInfo> fetchTasksNeedingRecovery() throws StateStoreException {
-        Collection<TaskInfo> allInfos = fetchTasks();
-        Collection<TaskStatus> allStatuses = fetchStatuses();
-        Map<Protos.TaskID, TaskStatus> statusMap = new HashMap<>();
-        for (TaskStatus status : allStatuses) {
-            statusMap.put(status.getTaskId(), status);
-        }
-        List<TaskInfo> results = new ArrayList<>();
-        for (TaskInfo info : allInfos) {
-            if (!statusMap.containsKey(info.getTaskId())) {
-                continue;
-            }
-            if (TaskUtils.needsRecovery(statusMap.get(info.getTaskId()))) {
-                results.add(info);
-            }
-        }
-        return results;
-    }
 
 
     /**

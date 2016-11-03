@@ -44,9 +44,8 @@ public class StateStoreCache implements StateStore {
 
     protected Optional<FrameworkID> frameworkId;
 
-    protected Map<String, TaskID> nameToId = new HashMap<>();
-    protected Map<TaskID, TaskInfo> idToTask = new HashMap<>();
-    protected Map<TaskID, TaskStatus> idToStatus = new HashMap<>();
+    protected Map<String, TaskInfo> nameToTask = new HashMap<>();
+    protected Map<String, TaskStatus> nameToStatus = new HashMap<>();
 
     protected Map<String, byte[]> properties = new HashMap<>();
 
@@ -88,12 +87,20 @@ public class StateStoreCache implements StateStore {
 
         // Use bulk fetches to initialize cache with underlying storage state:
         frameworkId = store.fetchFrameworkId();
+        Map<TaskID, TaskInfo> idToTask = new HashMap<>(); // Used to map ID=>Name below
         for (TaskInfo task : store.fetchTasks()) {
-            nameToId.put(task.getName(), task.getTaskId());
+            nameToTask.put(task.getName(), task);
             idToTask.put(task.getTaskId(), task);
         }
         for (TaskStatus status : store.fetchStatuses()) {
-            idToStatus.put(status.getTaskId(), status);
+            // Get the name from the corresponding TaskInfo for this task ID:
+            TaskInfo task = idToTask.get(status.getTaskId());
+            if (task == null) {
+                throw new StateStoreException(String.format(
+                        "The following TaskInfo is not present: %s. TaskInfo must be present in " +
+                        "order to store a TaskStatus. All Tasks: %s", status.getTaskId(), idToTask));
+            }
+            nameToStatus.put(task.getName(), status);
         }
         for (String key : store.fetchPropertyKeys()) {
             properties.put(key, store.fetchProperty(key));
@@ -138,8 +145,7 @@ public class StateStoreCache implements StateStore {
         try {
             store.storeTasks(tasks);
             for (TaskInfo task : tasks) {
-                nameToId.put(task.getName(), task.getTaskId());
-                idToTask.put(task.getTaskId(), task);
+                nameToTask.put(task.getName(), task);
             }
         } finally {
             RWLOCK.unlock();
@@ -151,14 +157,20 @@ public class StateStoreCache implements StateStore {
         RWLOCK.lock();
         try {
             store.storeStatus(status);
-            // corner case: only store status if a name=>id mapping already exists from storing taskinfo.
-            // this shouldn't come up in practice since the underlying statestore should have thrown anyway.
-            if (!idToTask.containsKey(status.getTaskId())) {
+            String taskName = null;
+            // Use TaskInfo cache to map TaskID => Name
+            for (TaskInfo taskInfo : nameToTask.values()) {
+                if (taskInfo.getTaskId().equals(status.getTaskId())) {
+                    taskName = taskInfo.getName();
+                    break;
+                }
+            }
+            if (taskName == null) {
                 throw new StateStoreException(String.format(
                         "The following TaskInfo is not present in the StateStore: %s. " +
                         "TaskInfo must be present in order to store a TaskStatus.", status.getTaskId()));
             }
-            idToStatus.put(status.getTaskId(), status);
+            nameToStatus.put(taskName, status);
         } finally {
             RWLOCK.unlock();
         }
@@ -169,14 +181,12 @@ public class StateStoreCache implements StateStore {
         RWLOCK.lock();
         try {
             store.clearTask(taskName);
-            TaskID taskId = nameToId.remove(taskName);
-            if (taskId != null) {
-                idToTask.remove(taskId);
-                idToStatus.remove(taskId);
-            } else {
+            TaskInfo oldValue = nameToTask.remove(taskName);
+            if (oldValue == null) {
                 logger.warn("Unable to find task named {} to remove. Known task names are: {}",
-                        taskName, nameToId.keySet());
+                        taskName, nameToTask.keySet());
             }
+            nameToStatus.remove(taskName);
         } finally {
             RWLOCK.unlock();
         }
@@ -186,7 +196,7 @@ public class StateStoreCache implements StateStore {
     public Collection<String> fetchTaskNames() throws StateStoreException {
         RLOCK.lock();
         try {
-            return nameToId.keySet();
+            return nameToTask.keySet();
         } finally {
             RLOCK.unlock();
         }
@@ -196,7 +206,7 @@ public class StateStoreCache implements StateStore {
     public Collection<TaskInfo> fetchTasks() throws StateStoreException {
         RLOCK.lock();
         try {
-            return idToTask.values();
+            return nameToTask.values();
         } finally {
             RLOCK.unlock();
         }
@@ -206,19 +216,7 @@ public class StateStoreCache implements StateStore {
     public Optional<TaskInfo> fetchTask(String taskName) throws StateStoreException {
         RLOCK.lock();
         try {
-            TaskID taskId = nameToId.get(taskName);
-            if (taskId == null) {
-                // Entry not found.
-                return Optional.empty();
-            }
-            TaskInfo task = idToTask.get(taskId);
-            if (task == null) {
-                // If we have a name->ID mapping, we really should have a TaskInfo for that ID.
-                throw new StateStoreException(String.format(
-                        "Cache consistency error: Unable to find TaskInfo for known ID '%s'. Name=>ID[%s] TaskIDs[%s]",
-                        taskName, nameToId, idToTask.keySet()));
-            }
-            return Optional.of(task);
+            return Optional.ofNullable(nameToTask.get(taskName));
         } finally {
             RLOCK.unlock();
         }
@@ -228,7 +226,7 @@ public class StateStoreCache implements StateStore {
     public Collection<TaskStatus> fetchStatuses() throws StateStoreException {
         RLOCK.lock();
         try {
-            return idToStatus.values();
+            return nameToStatus.values();
         } finally {
             RLOCK.unlock();
         }
@@ -238,17 +236,7 @@ public class StateStoreCache implements StateStore {
     public Optional<TaskStatus> fetchStatus(String taskName) throws StateStoreException {
         RLOCK.lock();
         try {
-            TaskID taskId = nameToId.get(taskName);
-            if (taskId == null) {
-                // Task name doesn't exist at all.
-                return Optional.empty();
-            }
-            TaskStatus status = idToStatus.get(taskId);
-            if (status == null) {
-                // Task name exists, but no status (storeTask was called but not yet storeStatus)
-                return Optional.empty();
-            }
-            return Optional.of(status);
+            return Optional.ofNullable(nameToStatus.get(taskName));
         } finally {
             RLOCK.unlock();
         }

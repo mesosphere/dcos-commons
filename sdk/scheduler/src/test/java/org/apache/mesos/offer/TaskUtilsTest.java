@@ -59,7 +59,7 @@ public class TaskUtilsTest {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
                 TestTaskSetFactory.getTaskSpecification(
-                        "new" + TestTaskSetFactory.NAME,
+                        "new" + TestConstants.TASK_NAME,
                         TestTaskSetFactory.CMD.getValue(),
                         TestTaskSetFactory.CPU,
                         TestTaskSetFactory.MEM,
@@ -73,7 +73,7 @@ public class TaskUtilsTest {
         TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpecification();
         TaskSpecification newTaskSpecification =
                 TestTaskSetFactory.getTaskSpecification(
-                        TestTaskSetFactory.NAME,
+                        TestConstants.TASK_NAME,
                         TestTaskSetFactory.CMD.getValue() + " && echo foo",
                         TestTaskSetFactory.CPU,
                         TestTaskSetFactory.MEM,

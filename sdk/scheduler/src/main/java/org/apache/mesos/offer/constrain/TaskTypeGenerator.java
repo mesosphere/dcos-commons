@@ -240,7 +240,7 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
             for (TaskInfo task : tasksToAvoid) {
                 taskNames.add(task.getName());
             }
-            return String.format("AvoidTaskRule{tasks=%s}", taskNames);
+            return String.format("AvoidTasksRule{tasks=%s}", taskNames);
         }
     }
 
@@ -282,7 +282,7 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
             for (TaskInfo task : tasksToColocate) {
                 taskNames.add(task.getName());
             }
-            return String.format("ColocateTaskRule{tasks=%s}", taskNames);
+            return String.format("ColocateTasksRule{tasks=%s}", taskNames);
         }
     }
 }

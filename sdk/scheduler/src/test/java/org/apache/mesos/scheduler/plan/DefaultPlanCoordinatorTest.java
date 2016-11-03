@@ -1,7 +1,12 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.DefaultTaskConfigRouter;
+import org.apache.mesos.curator.CuratorStateStore;
+import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.OfferAccepter;
 import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
@@ -9,20 +14,24 @@ import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * Tests for {@code DefaultPlanCoordinator}.
@@ -34,6 +43,7 @@ public class DefaultPlanCoordinatorTest {
     public static final int SUFFICIENT_DISK = 10000;
     public static final int INSUFFICIENT_MEM = 1;
     public static final int INSUFFICIENT_DISK = 1;
+    private static TestingServer testingServer;
 
     private List<TaskSet> taskSets;
     private List<TaskSet> taskSetsB;
@@ -45,24 +55,27 @@ public class DefaultPlanCoordinatorTest {
     private DefaultPlanScheduler planScheduler;
     private TaskFailureListener taskFailureListener;
     private SchedulerDriver schedulerDriver;
+    private TaskSpecificationProvider taskSpecificationProvider;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
     private EnvironmentVariables environmentVariables;
 
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testingServer = new TestingServer();
+    }
+
     @Before
-    public void setupTest() {
+    public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
+        CuratorTestUtils.clear(testingServer);
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
-        stateStore = mock(StateStore.class);
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
-        stepFactory = new DefaultStepFactory(stateStore);
-        phaseFactory = new DefaultPhaseFactory(stepFactory);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
+        taskSpecificationProvider = mock(TaskSpecificationProvider.class);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
         taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
-                TestTaskSetFactory.NAME + "-B",
+                TestConstants.TASK_TYPE + "-B",
                 TestTaskSetFactory.COUNT,
                 TestTaskSetFactory.CMD.getValue(),
                 TestTaskSetFactory.CPU,
@@ -71,10 +84,20 @@ public class DefaultPlanCoordinatorTest {
         serviceSpecification = new DefaultServiceSpecification(
                 SERVICE_NAME,
                 taskSets);
+        stateStore = new CuratorStateStore(
+                serviceSpecification.getName(),
+                testingServer.getConnectString());
+        stepFactory = new DefaultStepFactory(
+                mock(ConfigStore.class),
+                stateStore,
+                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()),
+                taskSpecificationProvider);
+        phaseFactory = new DefaultPhaseFactory(stepFactory);
+        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
+        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
         serviceSpecificationB = new DefaultServiceSpecification(
                 SERVICE_NAME + "-B",
                 taskSetsB);
-        when(stateStore.fetchTask(anyString())).thenReturn(Optional.empty());
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
     }

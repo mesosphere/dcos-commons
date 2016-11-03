@@ -26,7 +26,11 @@ public class DefaultRecoveryStep extends DefaultStep {
             Status status,
             RecoveryRequirement recoveryRequirement,
             LaunchConstrainer launchConstrainer) {
-        super(name, Optional.of(recoveryRequirement.getOfferRequirement()), status, Collections.emptyList());
+        super(
+                name,
+                Optional.of(recoveryRequirement.getOfferRequirement()),
+                status,
+                Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.recoveryRequirement = recoveryRequirement;
     }
