@@ -6,14 +6,14 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * This class provides a default implementation of the {@link Pod} interface.
+ * This class provides a default implementation of the {@link PodSpecification} interface.
  */
-public class DefaultPod implements Pod {
+public class DefaultPodSpecification implements PodSpecification {
     private String name;
     private List<TaskSpecification> taskSpecifications;
     private Optional<PlacementRuleGenerator> placementRuleGeneratorOptional;
 
-    public DefaultPod(
+    public DefaultPodSpecification(
             String name,
             List<TaskSpecification> taskSpecifications,
             Optional<PlacementRuleGenerator> placementRuleGeneratorOptional) {

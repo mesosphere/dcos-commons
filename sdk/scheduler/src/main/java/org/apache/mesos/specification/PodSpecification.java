@@ -7,16 +7,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A {@code Pod} groups one or more {@link TaskSpecification}s so that they can run in the same container.
+ * A {@code PodSpecification} groups one or more {@link TaskSpecification}s so that they can run in the same container.
  */
-public interface Pod {
+public interface PodSpecification {
     /**
-     * The name of the Pod.
+     * Returns the name of this pod.
      */
     String getName();
 
     /**
-     * The list of {@link TaskSpecification} belonging to the Pod.
+     * Returns the list of {@link TaskSpecification} belonging to this pod.
      */
     List<TaskSpecification> getTaskSpecifications();
 

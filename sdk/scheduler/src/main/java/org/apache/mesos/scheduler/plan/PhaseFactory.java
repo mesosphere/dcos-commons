@@ -2,15 +2,15 @@ package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
-import org.apache.mesos.specification.PodSet;
+import org.apache.mesos.specification.PodSetSpecification;
 
 import java.util.List;
 
 /**
- * A PhaseFactory transforms {@link PodSet}s into {@link Phase}s.
+ * A PhaseFactory transforms {@link PodSetSpecification}s into {@link Phase}s.
  */
 public interface PhaseFactory {
-    Phase getPhase(PodSet taskSet);
-    Phase getPhase(PodSet taskSet, Strategy<Step> strategy);
-    List<Phase> getPhases(List<PodSet> podSets, StrategyGenerator<Step> strategyGenerator);
+    Phase getPhase(PodSetSpecification podSet);
+    Phase getPhase(PodSetSpecification podSet, Strategy<Step> strategy);
+    List<Phase> getPhases(List<PodSetSpecification> podSetSpecifications, StrategyGenerator<Step> strategyGenerator);
 }

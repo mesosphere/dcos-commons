@@ -3,7 +3,6 @@ package com.mesosphere.sdk.reference.scheduler;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
-//import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.offer.constrain.TaskTypeGenerator;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
@@ -22,17 +21,12 @@ public class Main {
     private static final String ROLE = SchedulerUtils.nameToRole(SERVICE_NAME);
     private static final String PRINCIPAL = SchedulerUtils.nameToPrincipal(SERVICE_NAME);
 
+    private static final int POD_COUNT = Integer.parseInt(System.getenv("POD_COUNT"));
     private static final String TASK_METADATA_NAME = "meta-data";
     private static final int TASK_METADATA_COUNT = Integer.parseInt(System.getenv("METADATA_COUNT"));
     private static final double TASK_METADATA_CPU = Double.valueOf(System.getenv("METADATA_CPU"));
     private static final double TASK_METADATA_MEM_MB = Double.valueOf(System.getenv("METADATA_MEM"));
     private static final double TASK_METADATA_DISK_MB = Double.valueOf(System.getenv("METADATA_DISK"));
-
-    private static final String TASK_DATA_NAME = "data";
-    private static final int TASK_DATA_COUNT = Integer.parseInt(System.getenv("DATA_COUNT"));
-    private static final double TASK_DATA_CPU = Double.valueOf(System.getenv("DATA_CPU"));
-    private static final double TASK_DATA_MEM_MB = Double.valueOf(System.getenv("DATA_MEM"));
-    private static final double TASK_DATA_DISK_MB = Double.valueOf(System.getenv("DATA_DISK"));
 
     private static final double SLEEP_DURATION = Double.valueOf(System.getenv("SLEEP_DURATION"));
 
@@ -45,74 +39,29 @@ public class Main {
     }
 
     private static ServiceSpecification getServiceSpecification() {
-        return new DefaultServiceSpecification(
-                SERVICE_NAME,
-                Arrays.asList(
-                        DefaultPodSet.create(
-                                TASK_METADATA_COUNT, // # of pods
-                                TASK_METADATA_NAME,  // pod name
-                                // avoid colocating with other metadata instances (<=1 instance/agent):
-                                Optional.of(TaskTypeGenerator.createAvoid(TASK_METADATA_NAME)), // placement constraints
-                                Arrays.asList(       // pod definition consisting of task spec(s)
-                                        new CustomTaskSpecification(
-                                                TASK_METADATA_NAME,
-                                                TASK_METADATA_NAME,
-                                                getCommand(TASK_METADATA_NAME),
-                                                getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
-                                                getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
-                                                // no config info/template files
-                                                Collections.emptyList(),
-                                                Optional.of(getHealthCheck(TASK_METADATA_NAME))),
-                                        new CustomTaskSpecification(
-                                                "my-other-task",
-                                                "my-other-task",
-                                                getCommand("my-other-task"),
-                                                getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
-                                                getVolumes(TASK_METADATA_DISK_MB, "my-other-task"),
-                                                // no config info/template files
-                                                Collections.emptyList(),
-                                                Optional.of(getHealthCheck("my-other-task")))
-                                        )
-                                )
-                        )
-        );
-                        //DefaultTaskSet.create(
-                        //        TASK_METADATA_COUNT,
-                        //        TASK_METADATA_NAME,
-                        //        TASK_METADATA_NAME,
-                        //        getCommand(TASK_METADATA_NAME),
-                        //        getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
-                        //        getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
-                        //        // no config info/template files
-                        //        Collections.emptyList(),
-                        //        // avoid colocating with other metadata instances (<=1 instance/agent):
-                        //        Optional.of(TaskTypeGenerator.createAvoid(TASK_METADATA_NAME)),
-                        //        Optional.of(getHealthCheck(TASK_METADATA_NAME))),
-                        //DefaultTaskSet.create(TASK_DATA_COUNT,
-                        //        TASK_DATA_NAME,
-                        //        TASK_DATA_NAME,
-                        //        getCommand(TASK_DATA_NAME),
-                        //        getResources(TASK_DATA_CPU, TASK_DATA_MEM_MB),
-                        //        getVolumes(TASK_DATA_DISK_MB, TASK_DATA_NAME),
-                        //        // no config info/template files
-                        //        Collections.emptyList(),
-                        //        // avoid colocating with other data instances (<=1 instance/agent):
-                        //        Optional.of(TaskTypeGenerator.createAvoid(TASK_DATA_NAME)),
-                        //        Optional.of(getHealthCheck(TASK_DATA_NAME)))));
-    }
 
-    private static class CustomTaskSpecification extends DefaultTaskSpecification {
-        public CustomTaskSpecification(
-                String name,
-                String type,
-                Protos.CommandInfo commandInfo,
-                Collection<ResourceSpecification> resourceSpecifications,
-                Collection<VolumeSpecification> volumeSpecifications,
-                Collection<ConfigFileSpecification> configFileSpecifications,
-                Optional<Protos.HealthCheck> healthCheck) {
-            super(name, type, commandInfo, resourceSpecifications, volumeSpecifications,
-                    configFileSpecifications, Optional.empty(), healthCheck);
-        }
+        List<TaskSpecification> podTasks = Arrays.asList(
+                new DefaultTaskSpecification(
+                        TASK_METADATA_NAME,
+                        getCommand(TASK_METADATA_NAME),
+                        getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
+                        getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
+                        Optional.of(getHealthCheck(TASK_METADATA_NAME))),
+                new DefaultTaskSpecification(
+                        "my-other-task",
+                        getCommand("my-other-task"),
+                        getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
+                        getVolumes(TASK_METADATA_DISK_MB, "my-other-task"),
+                        Optional.of(getHealthCheck("my-other-task")))
+        );
+
+        // Define only one set of pods
+        PodSetSpecification podSet = DefaultPodSetSpecification.create(
+                        POD_COUNT, // # of pods
+                        "test-pod",// pod name
+                        podTasks);
+
+        return new DefaultServiceSpecification(SERVICE_NAME, Arrays.asList(podSet));
     }
 
     private static Protos.HealthCheck getHealthCheck(String name) {

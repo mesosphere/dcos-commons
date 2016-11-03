@@ -32,13 +32,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getNewOfferRequirement(Pod pod)
+    public OfferRequirement getNewOfferRequirement(PodSpecification podSpecification)
             throws InvalidRequirementException {
 
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         Protos.TaskInfo.Builder taskInfoBuilder;
 
-        for (TaskSpecification taskSpecification : pod.getTaskSpecifications()) {
+        for (TaskSpecification taskSpecification : podSpecification.getTaskSpecifications()) {
             taskInfoBuilder = Protos.TaskInfo.newBuilder()
                     .setName(taskSpecification.getName())
                     .setTaskId(TaskUtils.emptyTaskId())
@@ -65,55 +65,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return new OfferRequirement(
-                pod.getName(),
+                podSpecification.getName(),
                 taskInfos,
-                Optional.of(getExecutorInfo(pod)),
-                pod.getPlacement());
-    }
-
-    @Override
-    public OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
-            throws InvalidRequirementException {
-
-        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
-                .setName(taskSpecification.getName())
-                .setTaskId(TaskUtils.emptyTaskId())
-                .setSlaveId(TaskUtils.emptyAgentId())
-                .addAllResources(getNewResources(taskSpecification));
-
-        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
-
-        if (taskSpecification.getCommand().isPresent()) {
-            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpecification.getType())
-                    .updateEnvironment(taskSpecification.getCommand().get());
-            taskInfoBuilder.setCommand(updatedCommand);
-        }
-
-        if (taskSpecification.getContainer().isPresent()) {
-            taskInfoBuilder.setContainer(taskSpecification.getContainer().get());
-        }
-
-        if (taskSpecification.getHealthCheck().isPresent()) {
-            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
-        }
-
-        return new OfferRequirement(
-                taskSpecification.getType(),
-                Arrays.asList(taskInfoBuilder.build()),
-                Optional.of(getExecutorInfo(taskSpecification)),
-                taskSpecification.getPlacement());
+                Optional.of(getExecutorInfo(podSpecification)),
+                podSpecification.getPlacement());
     }
 
 
     @Override
-    public OfferRequirement getExistingOfferRequirement(List<Protos.TaskInfo> taskInfos, Pod pod)
+    public OfferRequirement getExistingOfferRequirement(List<Protos.TaskInfo> taskInfos, PodSpecification podSpec)
             throws InvalidRequirementException, IllegalStateException {
 
-        List<TaskSpecification> newTaskSpecs = pod.getTaskSpecifications();
+        List<TaskSpecification> newTaskSpecs = podSpec.getTaskSpecifications();
 
         if (newTaskSpecs.size() != taskInfos.size()) {
             throw new IllegalStateException(String.format(
-                    "The previously launched pod had size %d while the desired pod has size %d",
+                    "The previously launched podSpecification had size %d while the desired podSpecification has size %d",
                     taskInfos.size(), newTaskSpecs.size()
             ));
         }
@@ -181,77 +148,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return new OfferRequirement(
-                pod.getName(),
+                podSpec.getName(),
                 newTaskInfos,
-                Optional.of(getExecutorInfo(pod)),
-                pod.getPlacement());
+                Optional.of(getExecutorInfo(podSpec)),
+                podSpec.getPlacement());
     }
-
-    @Override
-    public OfferRequirement getExistingOfferRequirement(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
-            throws InvalidRequirementException {
-
-        validateVolumes(taskInfo, taskSpecification);
-        Map<String, Protos.Resource> oldResourceMap = getResourceMap(taskInfo.getResourcesList());
-
-        List<Protos.Resource> updatedResources = new ArrayList<>();
-        for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
-            Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
-            if (oldResource != null) {
-                try {
-                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
-                } catch (IllegalArgumentException e) {
-                    LOGGER.error("Failed to update Resources with exception: ", e);
-                    // On failure to update resources keep the old resources.
-                    updatedResources.add(oldResource);
-                }
-            } else {
-                updatedResources.add(ResourceUtils.getDesiredResource(resourceSpecification));
-            }
-        }
-
-        String taskType;
-        try {
-            taskType = TaskUtils.getTaskType(taskInfo);
-        } catch (TaskException e) {
-            throw new InvalidRequirementException(e);
-        }
-
-        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
-                .clearResources()
-                .clearExecutor()
-                .addAllResources(updatedResources)
-                .addAllResources(getVolumes(taskInfo.getResourcesList()))
-                .setTaskId(TaskUtils.emptyTaskId())
-                .setSlaveId(TaskUtils.emptyAgentId());
-
-        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
-
-        if (taskSpecification.getCommand().isPresent()) {
-            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
-                    .updateEnvironment(taskSpecification.getCommand().get());
-            taskInfoBuilder.setCommand(updatedCommand);
-        }
-
-        if (taskSpecification.getContainer().isPresent()) {
-            taskInfoBuilder.setContainer(taskSpecification.getContainer().get());
-        }
-
-        if (taskSpecification.getHealthCheck().isPresent()) {
-            taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
-        }
-
-        try {
-            return new OfferRequirement(
-                    TaskUtils.getTaskType(taskInfo),
-                    Arrays.asList(taskInfoBuilder.build()),
-                    Optional.of(getExecutorInfo(taskSpecification)),
-                    taskSpecification.getPlacement());
-        } catch (TaskException e) {
-            throw new InvalidRequirementException(e);
-        }
-    }
-
 
     private static void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
@@ -337,22 +238,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     /**
      * Creates an {@link org.apache.mesos.Protos.ExecutorInfo} that drives
      * the {@link org.apache.mesos.executor.CustomExecutor}.
-     * Note: There could be multiple {@link TaskSpecification}(s) inside the {@link Pod} each of whom could be
+     * Note: There could be multiple {@link TaskSpecification}(s) inside the {@link PodSpecification} each of whom could be
      * setting their own JAVA_HOME env var. Since there can only be one JAVA_HOME env var, only the value set
-     * by the first {@link TaskSpecification} in the {@link Pod} is considered.
+     * by the first {@link TaskSpecification} in the {@link PodSpecification} is considered.
      *
-     * @param pod The {@link Pod} used to setup relevant environment for the executor running the
+     * @param podSpecification The {@link PodSpecification} used to setup relevant environment for the executor running the
      * {@link TaskSpecification}(s).
      * @return The {@link org.apache.mesos.Protos.ExecutorInfo} to run
      * the {@link org.apache.mesos.executor.CustomExecutor}
      *
      * @throws IllegalStateException
      */
-    private Protos.ExecutorInfo getExecutorInfo(Pod pod) throws IllegalStateException {
+    private Protos.ExecutorInfo getExecutorInfo(PodSpecification podSpecification) throws IllegalStateException {
 
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
-                .setName(pod.getName())
+                .setName(podSpecification.getName())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
         String executorStr = System.getenv(EXECUTOR_URI);
@@ -365,7 +266,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setValue("./executor/bin/executor")
                 .addUris(executorURI);
 
-        for (TaskSpecification taskSpecification : pod.getTaskSpecifications()) {
+        for (TaskSpecification taskSpecification : podSpecification.getTaskSpecifications()) {
             if (taskSpecification.getCommand().isPresent()) {
                 commandInfoBuilder.addAllUris(taskSpecification.getCommand().get().getUrisList());
             }
@@ -373,7 +274,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         // some version of the JRE is required to kickstart the executor
         // if any tasks set the JAVA_HOME env var, return the first one seen
-        setJREVersion(commandInfoBuilder, pod);
+        setJREVersion(commandInfoBuilder, podSpecification);
 
         executorInfoBuilder.setCommand(commandInfoBuilder.build());
         return executorInfoBuilder.build();
@@ -422,17 +323,17 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     /**
      * Determines the version of the JRE to use for the custom executor.
-     * @param pod If a specific JRE is specified, it would be included in
-     * the env vars of one of the {@link TaskSpecification}s in the given {@link Pod}.
+     * @param podSpecification If a specific JRE is specified, it would be included in
+     * the env vars of one of the {@link TaskSpecification}s in the given {@link PodSpecification}.
      * @return The modified {@link org.apache.mesos.Protos.CommandInfoOrBuilder}
      * containing the value of the env var indicating where the JRE lives
      */
-    private void setJREVersion(Protos.CommandInfo.Builder commandInfoBuilder, Pod pod) {
+    private void setJREVersion(Protos.CommandInfo.Builder commandInfoBuilder, PodSpecification podSpecification) {
 
         Protos.Environment.Variable.Builder javaHomeVariable =
                 Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
 
-        for (TaskSpecification taskSpecification : pod.getTaskSpecifications()) {
+        for (TaskSpecification taskSpecification : podSpecification.getTaskSpecifications()) {
             if (taskSpecification.getCommand().isPresent()) {
                 Map<String, String> environment =
                         TaskUtils.fromEnvironmentToMap(taskSpecification.getCommand().get().getEnvironment());

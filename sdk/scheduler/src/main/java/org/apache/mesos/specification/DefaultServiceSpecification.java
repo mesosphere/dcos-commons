@@ -44,14 +44,14 @@ public class DefaultServiceSpecification implements ServiceSpecification {
     }
 
     private final String name;
-    private final List<PodSet> podSets;
+    private final List<PodSetSpecification> podSetSpecifications;
 
     @JsonCreator
     public DefaultServiceSpecification(
             @JsonProperty("name") String name,
-            @JsonProperty("pod_sets") List<PodSet> podSets) {
+            @JsonProperty("pod_sets") List<PodSetSpecification> podSetSpecifications) {
         this.name = name;
-        this.podSets = podSets;
+        this.podSetSpecifications = podSetSpecifications;
     }
 
     @Override
@@ -59,9 +59,8 @@ public class DefaultServiceSpecification implements ServiceSpecification {
         return name;
     }
 
-    @Override
-    public List<PodSet> getPodSets() {
-        return podSets;
+    public List<PodSetSpecification> getPodSetSpecifications() {
+        return podSetSpecifications;
     }
 
     @Override

@@ -73,7 +73,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Returns a new {@link DefaultScheduler} instance using the provided service-defined
      * {@link ServiceSpecification} and the default ZK location for framework state.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpecification specification containing service name and pods to be deployed
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
     public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
@@ -86,7 +86,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Returns a new {@link DefaultScheduler} instance using the provided
      * {@link ServiceSpecification} and {@link StateStore}.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpecification specification containing service name and pods to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *                   has been registered with mesos as indicated by a call to {@link
      *                   DefaultScheduler#registered(SchedulerDriver,

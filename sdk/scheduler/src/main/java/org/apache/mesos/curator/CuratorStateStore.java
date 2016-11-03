@@ -24,16 +24,19 @@ import java.util.*;
  * <code>
  * rootPath/
  *     -> FrameworkID
- *     -> Tasks/
- *         -> [TaskName-0]/
- *             -> TaskInfo
- *             -> TaskStatus
- *         -> [TaskName-1]/
- *             -> TaskInfo
- *         -> [TaskName-2]/
- *             -> TaskInfo
- *             -> TaskStatus
- *         -> ...
+ *     -> Pods/
+ *         -> [PodName-0]/
+ *             -> [TaskName-0]/
+ *                -> TaskInfo
+ *                -> TaskStatus
+ *             -> [TaskName-1]/
+ *                -> TaskInfo
+ *             -> [TaskName-2]/
+ *                -> TaskInfo
+ *                -> TaskStatus
+ *         -> [PodName-1]/
+ *             ...
+ *         ...
  * </code>
  *
  * Note that for frameworks which don't use custom executors, the same structure is used, except
@@ -53,11 +56,11 @@ public class CuratorStateStore implements StateStore {
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
-    private static final String TASKS_ROOT_NAME = "Tasks";
+    private static final String PODS_ROOT_NAME = "Pods";
     private static final String SUPPRESSED_KEY = "suppressed";
 
     private final Persister curator;
-    private final TaskPathMapper taskPathMapper;
+    private final PodPathMapper podPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
 
@@ -105,7 +108,7 @@ public class CuratorStateStore implements StateStore {
         }
 
         final String rootPath = CuratorUtils.toServiceRootPath(frameworkName);
-        this.taskPathMapper = new TaskPathMapper(rootPath);
+        this.podPathMapper = new PodPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
     }
@@ -159,12 +162,13 @@ public class CuratorStateStore implements StateStore {
     // Write Tasks
 
     @Override
-    public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
+    public void storeTasks(String podName, Collection<Protos.TaskInfo> tasks) throws StateStoreException {
         Map<String, byte[]> taskBytesMap = new HashMap<>();
         for (Protos.TaskInfo taskInfo : tasks) {
-            String path = taskPathMapper.getTaskInfoPath(taskInfo.getName());
-            logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), path);
-            taskBytesMap.put(path, taskInfo.toByteArray());
+            String taskPath = podPathMapper.getTaskPath(podName, taskInfo.getName());
+            String taskInfoPath = podPathMapper.getTaskInfoPath(taskPath);
+            logger.debug("Storing Taskinfo for {} in '{}'", taskInfo.getName(), taskInfoPath);
+            taskBytesMap.put(taskInfoPath, taskInfo.toByteArray());
         }
         try {
             curator.setMany(taskBytesMap);
@@ -175,7 +179,7 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
+    public void storeStatus(String podName, Protos.TaskStatus status) throws StateStoreException {
         String taskName;
         try {
             taskName = TaskUtils.toTaskName(status.getTaskId());
@@ -189,7 +193,7 @@ public class CuratorStateStore implements StateStore {
         // occasionally get these for stale tasks that have since been changed (with new UUIDs).
         Optional<Protos.TaskInfo> optionalTaskInfo;
         try {
-            optionalTaskInfo = fetchTask(taskName);
+            optionalTaskInfo = fetchTask(podName, taskName);
         } catch (Exception e) {
             throw new StateStoreException(String.format(
                     "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s.", taskName), e);
@@ -210,19 +214,20 @@ public class CuratorStateStore implements StateStore {
                     status, optionalTaskInfo));
         }
 
-        String path = taskPathMapper.getTaskStatusPath(taskName);
-        logger.debug("Storing status for '{}' in '{}'", taskName, path);
+        String taskPath = podPathMapper.getTaskPath(podName, taskName);
+        String taskStatusPath = podPathMapper.getTaskStatusPath(taskPath);
+        logger.debug("Storing status for '{}' in '{}'", taskName, taskStatusPath);
 
         try {
-            curator.set(path, status.toByteArray());
+            curator.set(taskStatusPath, status.toByteArray());
         } catch (Exception e) {
             throw new StateStoreException(e);
         }
     }
 
     @Override
-    public void clearTask(String taskName) throws StateStoreException {
-        String path = taskPathMapper.getTaskPath(taskName);
+    public void clearTask(String podName, String taskName) throws StateStoreException {
+        String path = podPathMapper.getTaskPath(podName, taskName);
         logger.debug("Clearing Task at '{}'", path);
         try {
             curator.delete(path);
@@ -237,14 +242,36 @@ public class CuratorStateStore implements StateStore {
 
     // Read Tasks
 
+
     @Override
-    public Collection<String> fetchTaskNames() throws StateStoreException {
-        String path = taskPathMapper.getTasksRootPath();
-        logger.debug("Fetching task names from '{}'", path);
+    public Optional<Collection<Protos.TaskInfo>> fetchPod(String podName) throws StateStoreException {
+        logger.debug("Fetching pod '{}'", podName);
+        try {
+            Optional<Protos.TaskInfo> taskInfoOptional;
+            Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
+            for (String taskName : fetchTaskNames(podName)) {
+                taskInfoOptional = fetchTask(podName, taskName);
+                // If we're supposed to have a task but we don't, the pod is incomplete and we return an empty optional
+                if (!taskInfoOptional.isPresent()) {
+                    return Optional.empty();
+                } else {
+                    taskInfos.add(taskInfoOptional.get());
+                }
+            }
+            return Optional.of(taskInfos);
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    @Override
+    public Collection<String> fetchTaskNames(String podName) throws StateStoreException {
+        String podPath = podPathMapper.getPodPath(podName);
+        logger.debug("Fetching task names for pod '{}' from '{}'", podName, podPath);
         try {
             Collection<String> taskNames = new ArrayList<>();
-            for (String childNode : curator.getChildren(path)) {
-                taskNames.add(childNode);
+            for (String taskChildName : curator.getChildren(podPath)) {
+                taskNames.add(taskChildName);
             }
             return taskNames;
         } catch (KeeperException.NoNodeException e) {
@@ -257,11 +284,53 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
+    public Collection<String> fetchTaskNames() throws StateStoreException {
+        String path = podPathMapper.getPodsRootPath();
+        logger.debug("Fetching task names from '{}'", path);
+        try {
+            Collection<String> taskNames = new ArrayList<>();
+            for (String podChildNode : curator.getChildren(path)) {
+                for (String taskChildNode : curator.getChildren(String.join("/", path, podChildNode))) {
+                    taskNames.add(taskChildNode);
+                }
+            }
+            return taskNames;
+        } catch (KeeperException.NoNodeException e) {
+            // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
+            // expected to commonly occur when the Framework is being run for the first time.
+            return Collections.emptyList();
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    private Collection<String> fetchTaskPaths() throws StateStoreException {
+        String path = podPathMapper.getPodsRootPath();
+        logger.debug("Fetching task names from '{}'", path);
+        try {
+            Collection<String> taskPaths = new ArrayList<>();
+            for (String podChildNode : curator.getChildren(path)) {
+                for (String taskChildNode : curator.getChildren(String.join("/", path, podChildNode))) {
+                    taskPaths.add(String.join("/", path, podChildNode, taskChildNode);
+                }
+            }
+            return taskPaths;
+        } catch (KeeperException.NoNodeException e) {
+            // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
+            // expected to commonly occur when the Framework is being run for the first time.
+            return Collections.emptyList();
+        } catch (Exception e) {
+            throw new StateStoreException(e);
+        }
+
+    }
+
+    @Override
     public Collection<Protos.TaskInfo> fetchTasks() throws StateStoreException {
         Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
-        for (String taskName : fetchTaskNames()) {
+        for (String taskPath : fetchTaskPaths()) {
             try {
-                byte[] bytes = curator.get(taskPathMapper.getTaskInfoPath(taskName));
+                byte[] bytes = curator.get(podPathMapper.getTaskInfoPath(taskPath));
                 taskInfos.add(Protos.TaskInfo.parseFrom(bytes));
             } catch (Exception e) {
                 // Throw even for NoNodeException: We should always have a TaskInfo for every entry
@@ -272,11 +341,12 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Optional<Protos.TaskInfo> fetchTask(String taskName) throws StateStoreException {
-        String path = taskPathMapper.getTaskInfoPath(taskName);
-        logger.debug("Fetching TaskInfo {} from '{}'", taskName, path);
+    public Optional<Protos.TaskInfo> fetchTask(String podName, String taskName) throws StateStoreException {
+        String taskPath = podPathMapper.getTaskPath(podName, taskName);
+        String taskInfoPath = podPathMapper.getTaskInfoPath(taskName);
+        logger.debug("Fetching TaskInfo {} from '{}'", taskName, taskInfoPath);
         try {
-            byte[] bytes = curator.get(path);
+            byte[] bytes = curator.get(taskInfoPath);
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskInfo.parseFrom(bytes));
             } else {
@@ -284,7 +354,7 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve TaskInfo for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + taskInfoPath);
             return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -294,9 +364,9 @@ public class CuratorStateStore implements StateStore {
     @Override
     public Collection<Protos.TaskStatus> fetchStatuses() throws StateStoreException {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
-        for (String taskName : fetchTaskNames()) {
+        for (String taskPath : fetchTaskPaths()) {
             try {
-                byte[] bytes = curator.get(taskPathMapper.getTaskStatusPath(taskName));
+                byte[] bytes = curator.get(podPathMapper.getTaskStatusPath(taskPath));
                 taskStatuses.add(Protos.TaskStatus.parseFrom(bytes));
             } catch (KeeperException.NoNodeException e) {
                 // The task node exists, but it doesn't contain a TaskStatus node. This may occur if
@@ -310,11 +380,12 @@ public class CuratorStateStore implements StateStore {
     }
 
     @Override
-    public Optional<Protos.TaskStatus> fetchStatus(String taskName) throws StateStoreException {
-        String path = taskPathMapper.getTaskStatusPath(taskName);
-        logger.debug("Fetching status for '{}' in '{}'", taskName, path);
+    public Optional<Protos.TaskStatus> fetchStatus(String podName, String taskName) throws StateStoreException {
+        String taskPath = podPathMapper.getTaskPath(podName, taskName);
+        String taskStatusPath = podPathMapper.getTaskStatusPath(taskPath);
+        logger.debug("Fetching status for '{}' in '{}'", taskName, taskStatusPath);
         try {
-            byte[] bytes = curator.get(path);
+            byte[] bytes = curator.get(taskStatusPath);
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskStatus.parseFrom(bytes));
             } else {
@@ -322,7 +393,7 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve TaskStatus for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + taskStatusPath);
             return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);
@@ -390,27 +461,31 @@ public class CuratorStateStore implements StateStore {
 
     // Internals
 
-    private static class TaskPathMapper {
-        private final String tasksRootPath;
+    private static class PodPathMapper {
+        private final String podsRootPath;
 
-        private TaskPathMapper(String rootPath) {
-            this.tasksRootPath = CuratorUtils.join(rootPath, TASKS_ROOT_NAME);
+        private PodPathMapper(String rootPath) {
+            this.podsRootPath = CuratorUtils.join(rootPath, PODS_ROOT_NAME);
         }
 
         private String getTaskInfoPath(String taskName) {
-            return CuratorUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
+            return CuratorUtils.join(taskName, TASK_INFO_PATH_NAME);
         }
 
         private String getTaskStatusPath(String taskName) {
-            return CuratorUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+            return CuratorUtils.join(taskName, TASK_STATUS_PATH_NAME);
         }
 
-        private String getTaskPath(String taskName) {
-            return CuratorUtils.join(getTasksRootPath(), taskName);
+        private String getTaskPath(String podName, String taskName) {
+            return CuratorUtils.join(getPodPath(podName), taskName);
         }
 
-        private String getTasksRootPath() {
-            return tasksRootPath;
+        private String getPodPath(String podName) {
+            return CuratorUtils.join(getPodsRootPath(), podName);
+        }
+
+        private String getPodsRootPath() {
+            return podsRootPath;
         }
     }
 

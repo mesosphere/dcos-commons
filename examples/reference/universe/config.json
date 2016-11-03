@@ -80,6 +80,19 @@
           "disk",
           "count"
         ]
+      },
+      "pod":{
+        "description":"Pod configuration properties",
+        "type":"object",
+        "properties":{
+          "count":{
+            "description":"Number of pods to deploy",
+            "type":"integer",
+            "default":3
+        },
+        "required":[
+            "count"
+        ]
       }
     }
 }

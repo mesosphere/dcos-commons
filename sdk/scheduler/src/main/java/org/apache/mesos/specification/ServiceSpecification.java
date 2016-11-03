@@ -22,9 +22,9 @@ public interface ServiceSpecification extends Configuration {
     String getName();
 
     /**
-     * Returns the list of {@link PodSet}s defining the types of Tasks in Pods which compose the underlying
+     * Returns the list of {@link PodSetSpecification}s defining the types of Tasks in Pods which compose the underlying
      * service.
      */
     @JsonProperty("task_sets")
-    List<PodSet> getPodSets();
+    List<PodSetSpecification> getPodSetSpecifications();
 }

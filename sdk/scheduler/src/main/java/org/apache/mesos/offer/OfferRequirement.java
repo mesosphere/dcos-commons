@@ -27,7 +27,7 @@ public class OfferRequirement {
     /**
      * Creates a new OfferRequirement.
      *
-     * @param podType the pod type name from the PodSet, used for placement filtering
+     * @param podType the pod type name from the PodSetSpecification, used for placement filtering
      * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
      * @param executorInfoOptional the executor from which an executor requirement should be
      *     generated, if any
