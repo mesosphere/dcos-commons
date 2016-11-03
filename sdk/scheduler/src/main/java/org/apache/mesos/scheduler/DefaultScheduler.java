@@ -22,6 +22,7 @@ import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
 import org.apache.mesos.scheduler.recovery.monitor.NeverFailureMonitor;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.api.JsonPropertyDeserializer;
@@ -57,7 +58,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final StateStore stateStore;
     protected final Optional<Integer> permanentFailureTimeoutSec;
     protected final Integer destructiveRecoveryDelaySec;
-    private final RecoveryRequirementProvider recoveryRequirementProvider;
 
     protected SchedulerDriver driver;
     protected Reconciler reconciler;
@@ -108,13 +108,13 @@ public class DefaultScheduler implements Scheduler, Observer {
      * framework state.
      *
      * @param frameworkName the name of the framework (service name)
-     * @param deploymentPlanManager the deployment plan to be used by this service
+     * @param deployPlanManager the deployment plan to be used by this service
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static DefaultScheduler create(String frameworkName, PlanManager deploymentPlanManager) {
+    public static DefaultScheduler create(String frameworkName, PlanManager deployPlanManager) {
         return create(
                 frameworkName,
-                deploymentPlanManager,
+                deployPlanManager,
                 createStateStore(frameworkName, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
     }
 
@@ -124,7 +124,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * recovery durations.
      *
      * @param frameworkName the name of the framework (service name)
-     * @param deploymentPlanManager the deployment plan to be used by this service
+     * @param deployPlanManager the deployment plan to be used by this service
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *                   has been registered with mesos as indicated by a call to {@link
      *                   DefaultScheduler#registered(SchedulerDriver,
@@ -133,11 +133,11 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static DefaultScheduler create(
             String frameworkName,
-            PlanManager deploymentPlanManager,
+            PlanManager deployPlanManager,
             StateStore stateStore) {
         return create(
                 frameworkName,
-                deploymentPlanManager,
+                deployPlanManager,
                 stateStore,
                 Optional.of(PERMANENT_FAILURE_DELAY_SEC),
                 DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
@@ -145,38 +145,10 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Returns a new {@link DefaultScheduler} instance using the provided
-     * {@code frameworkName} and {@link PlanManager} stack, and the default ZK location for
-     * framework state.
-     *
-     * @param frameworkName the name of the framework (service name)
-     * @param deployPlanManager the deployment plan to be used by this service
-     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
-     *                                   task has failed, or an empty {@link Optional} to disable
-     *                                   this detection
-     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
-     *                                    recovery operations such as destroying a failed task
-     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
-     */
-    public static DefaultScheduler create(
-            String frameworkName,
-            PlanManager deployPlanManager,
-            StateStore stateStore,
-            Optional<Integer> permanentFailureTimeoutSec,
-            Integer destructiveRecoveryDelaySec) {
-        return create(
-                frameworkName,
-                deployPlanManager,
-                stateStore,
-                new DefaultRecoveryRequirementProvider(),
-                permanentFailureTimeoutSec,
-                destructiveRecoveryDelaySec);
-    }
-
-    /**
-     * Returns a new {@link DefaultScheduler} instance using the provided
      * {@code frameworkName}, {@link PlanManager} stack, and {@link StateStore}.
      *
      * @param frameworkName the name of the framework (service name)
+     * @param deployPlanManager the deployment plan to be used by this service
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *                   has been registered with mesos as indicated by a call to {@link
      *                   DefaultScheduler#registered(SchedulerDriver,
@@ -191,7 +163,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             String frameworkName,
             PlanManager deployPlanManager,
             StateStore stateStore,
-            RecoveryRequirementProvider recoveryRequirementProvider,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return new DefaultScheduler(
@@ -199,7 +170,41 @@ public class DefaultScheduler implements Scheduler, Observer {
                 deployPlanManager,
                 new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter()),
                 stateStore,
-                recoveryRequirementProvider,
+                permanentFailureTimeoutSec,
+                destructiveRecoveryDelaySec);
+    }
+
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@code frameworkName}, {@link PlanManager}, {@link StateStore}, and
+     * {@link OfferRequirementProvider}.
+     *
+     * @param frameworkName the name of the framework (service name)
+     * @param deployPlanManager the deployment plan to be used by this service
+     * @param offerRequirementProvider converts {@link TaskSpecification}s to
+     *                                 {@link OfferRequirement}s
+     * @param stateStore framework state storage, which must not be written to before the scheduler
+     *                   has been registered with mesos as indicated by a call to {@link
+     *                   DefaultScheduler#registered(SchedulerDriver,
+     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
+     *                                   task has failed, or an empty {@link Optional} to disable
+     *                                   this detection
+     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
+     *                                    recovery operations such as destroying a failed task
+     */
+    public static DefaultScheduler create(
+            String frameworkName,
+            PlanManager deployPlanManager,
+            OfferRequirementProvider offerRequirementProvider,
+            StateStore stateStore,
+            Optional<Integer> permanentFailureTimeoutSec,
+            Integer destructiveRecoveryDelaySec) {
+        return new DefaultScheduler(
+                frameworkName,
+                deployPlanManager,
+                offerRequirementProvider,
+                stateStore,
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
     }
@@ -239,14 +244,12 @@ public class DefaultScheduler implements Scheduler, Observer {
             PlanManager deployPlanManager,
             OfferRequirementProvider offerRequirementProvider,
             StateStore stateStore,
-            RecoveryRequirementProvider recoveryRequirementProvider,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         this.frameworkName = frameworkName;
         this.deployPlanManager = deployPlanManager;
         this.offerRequirementProvider = offerRequirementProvider;
         this.stateStore = stateStore;
-        this.recoveryRequirementProvider = recoveryRequirementProvider;
         this.permanentFailureTimeoutSec = permanentFailureTimeoutSec;
         this.destructiveRecoveryDelaySec = destructiveRecoveryDelaySec;
     }

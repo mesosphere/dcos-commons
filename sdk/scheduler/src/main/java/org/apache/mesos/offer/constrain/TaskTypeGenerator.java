@@ -1,10 +1,8 @@
 package org.apache.mesos.offer.constrain;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -12,13 +10,11 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskException;
-import org.apache.mesos.offer.TaskRequirement;
 import org.apache.mesos.offer.TaskUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-
 
 /**
  * This rule ensures that the given Offer is colocated with (or never colocated with) the specified
@@ -141,32 +137,34 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
 
     @Override
     public PlacementRule generate(Collection<TaskInfo> tasks) {
-        Map<String, TaskInfo> matchingTasksByName = new HashMap<>();
+        List<TaskInfo> matchingTasks = new ArrayList<>();
         for (TaskInfo task : tasks) {
             if (typeToFind.equals(typeConverter.getTaskType(task))) {
-                matchingTasksByName.put(task.getName(), task);
+                matchingTasks.add(task);
             }
         }
+        // Create a rule which will handle most of the validation. Logic is deferred to avoid
+        // double-counting a task against a prior version of itself.
         switch (behaviorType) {
         case COLOCATE:
-            if (matchingTasksByName.isEmpty()) {
+            if (matchingTasks.isEmpty()) {
                 // nothing to colocate with! fall back to allowing any location.
                 // this is expected when the developer has configured bidirectional rules
                 // (A colocates with B + B colocates with A)
                 return new PassthroughRule(
                         String.format("no tasks of type '%s' to colocate with", typeToFind));
             } else {
-                return new ColocateTaskTypeRule(matchingTasksByName);
+                return new ColocateTasksRule(matchingTasks);
             }
         case AVOID:
-            if (matchingTasksByName.isEmpty()) {
+            if (matchingTasks.isEmpty()) {
                 // nothing to avoid, but this is expected when avoiding nodes of the same type
                 // (self-avoidance), or when the developer has configured bidirectional rules
                 // (A avoids B + B avoids A)
                 return new PassthroughRule(
                         String.format("no tasks of type '%s' to avoid", typeToFind));
             } else {
-                return new AvoidTaskTypeRule(matchingTasksByName);
+                return new AvoidTasksRule(matchingTasks);
             }
         default:
             throw new IllegalStateException("Unsupported behavior type: " + behaviorType);
@@ -210,34 +208,39 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
      * that the offer be located on an agent which doesn't currently have an instance of the
      * specified task type.
      */
-    private static class AvoidTaskTypeRule implements PlacementRule {
+    private static class AvoidTasksRule implements PlacementRule {
 
-        private final Map<String, TaskInfo> tasksToAvoidByName;
+        private final Collection<TaskInfo> tasksToAvoid;
 
-        private AvoidTaskTypeRule(Map<String, TaskInfo> tasksToAvoidByName) {
-            this.tasksToAvoidByName = tasksToAvoidByName;
+        private AvoidTasksRule(Collection<TaskInfo> tasksToAvoid) {
+            this.tasksToAvoid = tasksToAvoid;
         }
 
         @Override
         public Offer filter(Offer offer, OfferRequirement offerRequirement) {
-            Set<String> taskToLaunchNames = new HashSet<>();
-            for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-                taskToLaunchNames.add(taskRequirement.getTaskInfo().getName());
-            }
-            for (Map.Entry<String, TaskInfo> taskToAvoid : tasksToAvoidByName.entrySet()) {
-                if (taskToLaunchNames.contains(taskToAvoid.getKey())) {// TODO WRONG: should check new taskcoordinate
+            for (TaskInfo taskToAvoid : tasksToAvoid) {
+                if (PlacementUtils.areEquivalent(taskToAvoid, offerRequirement)) {
                     // This is stale data for the same task that we're currently evaluating for
                     // placement. Don't worry about avoiding it. This occurs when we're redeploying
                     // a given task with a new configuration (old data not deleted yet).
                     continue;
                 }
-                if (taskToAvoid.getValue().getSlaveId().equals(offer.getSlaveId())) {
-                    // Offer is for an agent which has a task to be avoided. Denied!
+                if (taskToAvoid.getSlaveId().equals(offer.getSlaveId())) {
+                    // The offer is for an agent which has a task to be avoided. Denied!
                     return offer.toBuilder().clearResources().build();
                 }
             }
-            // Offer doesn't match any tasks to avoid. Denied!
+            // The offer doesn't match any tasks to avoid. Denied!
             return offer;
+        }
+
+        @Override
+        public String toString() {
+            List<String> taskNames = new ArrayList<>();
+            for (TaskInfo task : tasksToAvoid) {
+                taskNames.add(task.getName());
+            }
+            return String.format("AvoidTaskRule{tasks=%s}", taskNames);
         }
     }
 
@@ -247,34 +250,39 @@ public class TaskTypeGenerator implements PlacementRuleGenerator {
      * that the offer be located on an agent which currently has an instance of the specified task
      * type.
      */
-    private static class ColocateTaskTypeRule implements PlacementRule {
+    private static class ColocateTasksRule implements PlacementRule {
 
-        private final Map<String, TaskInfo> tasksToColocateByName;
+        private final Collection<TaskInfo> tasksToColocate;
 
-        private ColocateTaskTypeRule(Map<String, TaskInfo> tasksToColocateByName) {
-            this.tasksToColocateByName = tasksToColocateByName;
+        private ColocateTasksRule(Collection<TaskInfo> tasksToColocate) {
+            this.tasksToColocate = tasksToColocate;
         }
 
         @Override
         public Offer filter(Offer offer, OfferRequirement offerRequirement) {
-            Set<String> taskToLaunchNames = new HashSet<>();
-            for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-                taskToLaunchNames.add(taskRequirement.getTaskInfo().getName());
-            }
-            for (Map.Entry<String, TaskInfo> taskToColocate : tasksToColocateByName.entrySet()) {
-                if (taskToLaunchNames.contains(taskToColocate.getKey())) {// TODO WRONG: should check new taskcoordinate
+            for (TaskInfo taskToColocate : tasksToColocate) {
+                if (PlacementUtils.areEquivalent(taskToColocate, offerRequirement)) {
                     // This is stale data for the same task that we're currently evaluating for
                     // placement. Don't worry about colocating with it. This occurs when we're
                     // redeploying a given task with a new configuration (old data not deleted yet).
                     continue;
                 }
-                if (taskToColocate.getValue().getSlaveId().equals(offer.getSlaveId())) {
-                    // Offer is for an agent which has a task to colocate with. Approved!
+                if (taskToColocate.getSlaveId().equals(offer.getSlaveId())) {
+                    // The offer is for an agent which has a task to colocate with. Approved!
                     return offer;
                 }
             }
-            // Offer doesn't match any tasks to colocate with. Denied!
+            // The offer doesn't match any tasks to colocate with. Denied!
             return offer.toBuilder().clearResources().build();
+        }
+
+        @Override
+        public String toString() {
+            List<String> taskNames = new ArrayList<>();
+            for (TaskInfo task : tasksToColocate) {
+                taskNames.add(task.getName());
+            }
+            return String.format("ColocateTaskRule{tasks=%s}", taskNames);
         }
     }
 }

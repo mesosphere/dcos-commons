@@ -11,6 +11,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Utilities for testing placement constraints.
+ */
 public class TestPlacementUtils {
 
     public static final Resource RESOURCE_1;

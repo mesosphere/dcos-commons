@@ -1,15 +1,21 @@
 package org.apache.mesos.offer.constrain;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.Protos.Attribute;
+import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.AttributeStringUtils;
+import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,6 +49,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 'rack:a' from future deployments.
  */
 public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MaxPerAttributeGenerator.class); // TODO(nick) TEMP
 
     private final int maxTasksPerSelectedAttribute;
     private final AttributeSelector attributeSelector;
@@ -61,53 +68,20 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
 
     @Override
     public PlacementRule generate(Collection<TaskInfo> tasks) {
-        // map: enforced attribute => # tasks which were launched against attribute
-        Map<String, Integer> selectedAttrTaskCounts = new HashMap<>();
-        for (TaskInfo task : tasks) {
-            for (String attribute : TaskUtils.getOfferAttributeStrings(task)) {
-                // only enforce attribute(s) that match (eg 'rack:.*'):
-                if (!attributeSelector.select(attribute)) {
-                    continue;
-                }
-                // increment the count for this exact attribute (eg 'rack:9'):
-                Integer val = selectedAttrTaskCounts.get(attribute);
-                if (val == null) {
-                    val = 0;
-                }
-                val++;
-                selectedAttrTaskCounts.put(attribute, val);
-            }
-        }
-        // find the attributes which meet or exceed the limit and block any offers with those
-        // (EXACT) attributes from the next launch.
-        List<PlacementRule> blockedAttributes = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : selectedAttrTaskCounts.entrySet()) {
-            if (entry.getValue() >= maxTasksPerSelectedAttribute) {
-                blockedAttributes.add(
-                        new AttributeRule(AttributeSelector.createStringSelector(entry.getKey())));
-            }
-        }
-        switch (blockedAttributes.size()) {
-        case 0:
-            // nothing is full, don't filter any offers.
-            return new PassthroughRule(
-                    String.format("no matching attributes are full: %s", attributeSelector));
-        case 1:
-            // shortcut: no OrRule needed, just block the one attribute
-            return new NotRule(blockedAttributes.get(0));
-        default:
-            // filter out any offers which contain the full attributes.
-            return new NotRule(new OrRule(blockedAttributes));
-        }
+        // Create a rule which will handle the validation. Logic is deferred to avoid
+        // double-counting a task against a prior version of itself.
+        return new MaxPerAttributeRule(maxTasksPerSelectedAttribute, attributeSelector, tasks);
     }
 
     @JsonProperty("max")
     private int getMax() {
-            return maxTasksPerSelectedAttribute; }
+        return maxTasksPerSelectedAttribute;
+    }
 
     @JsonProperty("selector")
     private AttributeSelector getSelector() {
-            return attributeSelector; }
+        return attributeSelector;
+    }
 
     @Override
     public String toString() {
@@ -124,4 +98,91 @@ public class MaxPerAttributeGenerator implements PlacementRuleGenerator {
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
     }
+
+    /**
+     * Implementation of max attribute counts. Considers attribute usage of tasks in the cluster to
+     * determine whether the provided task can be launched against a given offer. This rule is
+     * checked at offer evaluation time in order to check that the task isn't being double-counted
+     * against itself in a config update scenario.
+     */
+    private static class MaxPerAttributeRule implements PlacementRule {
+
+        private final int maxTasksPerSelectedAttribute;
+        private final AttributeSelector attributeSelector;
+        private final Collection<TaskInfo> tasks;
+
+        private MaxPerAttributeRule(
+                int maxTasksPerSelectedAttribute,
+                AttributeSelector attributeSelector,
+                Collection<TaskInfo> tasks) {
+            this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
+            this.attributeSelector = attributeSelector;
+            this.tasks = tasks;
+        }
+
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement) {
+            // collect all the attribute values present in this offer:
+            Set<String> offerAttributeStrings = new HashSet<>();
+            for (Attribute attributeProto : offer.getAttributesList()) {
+                offerAttributeStrings.add(AttributeStringUtils.toString(attributeProto));
+            }
+            if (offerAttributeStrings.isEmpty()) {
+                // shortcut: offer has no attributes to enforce. offer accepted!
+                LOGGER.error("offer has no attributes = accept");
+                return offer;
+            }
+
+            // map: enforced attribute in offer => # other tasks which were launched against attribute
+            Map<String, Integer> offerAttrTaskCounts = new HashMap<>();
+            for (TaskInfo task : tasks) {
+                if (PlacementUtils.areEquivalent(task, offerRequirement)) {
+                    // This is stale data for the same task that we're currently evaluating for
+                    // placement. Don't worry about counting its attribute usage. This occurs when we're
+                    // redeploying a given task with a new configuration (old data not deleted yet).
+                    // NOTE: If it weren't for this case, creation of selectedAttrTaskCounts could've
+                    // been put in the PlacementRuleGenerator rather than in the PlacementRule.
+                    LOGGER.error("skip equivalent task: {}", task.getName());
+                    continue;
+                }
+                for (String taskAttributeString : TaskUtils.getOfferAttributeStrings(task)) {
+                    // only tally attribute values that are actually present in the offer
+                    if (!offerAttributeStrings.contains(taskAttributeString)) {
+                        LOGGER.error("ignoring attribute not in offer: {}", taskAttributeString);
+                        continue;
+                    }
+                    // only tally attribute(s) that match the selector (eg 'rack:.*'):
+                    if (!attributeSelector.select(taskAttributeString)) {
+                        LOGGER.error("ignoring unselected attribute: {}", taskAttributeString);
+                        continue;
+                    }
+                    // increment the tally for this exact attribute value (eg 'rack:9'):
+                    Integer val = offerAttrTaskCounts.get(taskAttributeString);
+                    if (val == null) {
+                        val = 0;
+                    }
+                    val++;
+                    if (val >= maxTasksPerSelectedAttribute) {
+                        // this attribute value's usage meets or exceeds the limit, and it is
+                        // present in this offer per the earlier check. offer denied!
+                        LOGGER.error("denied due to attribute {}", taskAttributeString);
+                        return offer.toBuilder().clearResources().build();
+                    }
+                    LOGGER.error("updated attribute {} = {}", taskAttributeString, val);
+                    offerAttrTaskCounts.put(taskAttributeString, val);
+                }
+            }
+            // after scanning all the tasks for usage of attributes present in this offer, nothing
+            // hit or exceeded the limit. offer accepted!
+            LOGGER.error("accepted with attribute counts {}", offerAttrTaskCounts);
+            return offer;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("MaxPerAttributeRule{max=%s, selector=%s, tasks=%d}",
+                    maxTasksPerSelectedAttribute, attributeSelector, tasks.size());
+        }
+    }
+
 }
