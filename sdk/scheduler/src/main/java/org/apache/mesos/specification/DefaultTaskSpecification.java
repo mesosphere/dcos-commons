@@ -16,6 +16,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -25,6 +26,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskSpecification.class);
 
     private final String name;
+    private final String podName;
     private final String type;
     private final Optional<Protos.CommandInfo> commandInfo;
     private final Optional<Protos.ContainerInfo> containerInfo;
@@ -66,13 +68,135 @@ public class DefaultTaskSpecification implements TaskSpecification {
                 getVolumes(taskInfo),
                 configFiles,
                 placement,
-                taskInfo.hasHealthCheck() ? Optional.of(taskInfo.getHealthCheck()) : Optional.empty());
+                taskInfo.hasHealthCheck() ? Optional.of(taskInfo.getHealthCheck()) : Optional.empty(),
+                TaskUtils.getTaskPodName(taskInfo));
     }
 
     /**
-     * Create task with only {@link Protos.CommandInfo}.
+     * Create task with only {@link Protos.CommandInfo}, using the name as the type of the task.
      */
-    protected DefaultTaskSpecification(
+    public DefaultTaskSpecification(
+            String name,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<PlacementRuleGenerator> placement,
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
+
+        this(name,
+                name, // treat type as name
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                configFileSpecifications,
+                placement,
+                healthCheck,
+                podName);
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo} and no placement constraints.
+     */
+    public DefaultTaskSpecification(
+            String name,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
+
+        this(name,
+                name, // treat type as name
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                configFileSpecifications,
+                Optional.empty(), // no placement constraints
+                healthCheck,
+                podName);
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo} and no config files.
+     */
+    public DefaultTaskSpecification(
+            String name,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Optional<PlacementRuleGenerator> placement,
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
+
+        this(name,
+                name, // treat type as name
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                Collections.emptyList(),
+                placement,
+                healthCheck,
+                podName);
+
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo} and no placement constraints and config files.
+     */
+    public DefaultTaskSpecification(
+            String name,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
+
+        this(name,
+                name, // treat type as name
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                Collections.emptyList(),
+                Optional.empty(),
+                healthCheck,
+                podName);
+
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo} and no placement constraints and config files.
+     */
+    public DefaultTaskSpecification(
+            String name,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Optional<Protos.HealthCheck> healthCheck) {
+
+        this(name,
+                name, // treat type as name
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                Collections.emptyList(),
+                Optional.empty(),
+                healthCheck,
+                "");
+
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo} without pod name.
+     */
+    public DefaultTaskSpecification(
             String name,
             String type,
             Protos.CommandInfo commandInfo,
@@ -83,14 +207,41 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
-            type,
-            Optional.empty(),
-            Optional.of(commandInfo),
-            resourceSpecifications,
-            volumeSpecifications,
-            configFileSpecifications,
-            placement,
-            healthCheck);
+                type,
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                configFileSpecifications,
+                placement,
+                healthCheck,
+                "");
+    }
+
+    /**
+     * Create task with only {@link Protos.CommandInfo}.
+     */
+    public DefaultTaskSpecification(
+            String name,
+            String type,
+            Protos.CommandInfo commandInfo,
+            Collection<ResourceSpecification> resourceSpecifications,
+            Collection<VolumeSpecification> volumeSpecifications,
+            Collection<ConfigFileSpecification> configFileSpecifications,
+            Optional<PlacementRuleGenerator> placement,
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
+
+        this(name,
+                type,
+                Optional.empty(),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                configFileSpecifications,
+                placement,
+                healthCheck,
+                podName);
     }
 
     /**
@@ -104,17 +255,19 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
             Optional<PlacementRuleGenerator> placement,
-            Optional<Protos.HealthCheck> healthCheck) {
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
 
         this(name,
-            type,
-            Optional.of(containerInfo),
-            Optional.empty(),
-            resourceSpecifications,
-            volumeSpecifications,
-            configFileSpecifications,
-            placement,
-            healthCheck);
+                type,
+                Optional.of(containerInfo),
+                Optional.empty(),
+                resourceSpecifications,
+                volumeSpecifications,
+                configFileSpecifications,
+                placement,
+                healthCheck,
+                podName);
     }
 
     /**
@@ -129,17 +282,19 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
             Optional<PlacementRuleGenerator> placement,
-            Optional<Protos.HealthCheck> healthCheck) {
+            Optional<Protos.HealthCheck> healthCheck,
+            String podName) {
 
         this(name,
-            type,
-            Optional.of(containerInfo),
-            Optional.of(commandInfo),
-            resourceSpecifications,
-            volumeSpecifications,
-            configFileSpecifications,
-            placement,
-            healthCheck);
+                type,
+                Optional.of(containerInfo),
+                Optional.of(commandInfo),
+                resourceSpecifications,
+                volumeSpecifications,
+                configFileSpecifications,
+                placement,
+                healthCheck,
+                podName);
     }
 
     @JsonCreator
@@ -152,8 +307,10 @@ public class DefaultTaskSpecification implements TaskSpecification {
             @JsonProperty("volumes") Collection<VolumeSpecification> volumeSpecifications,
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFileSpecifications,
             @JsonProperty("placement") Optional<PlacementRuleGenerator> placement,
-            @JsonProperty("health_check") Optional<Protos.HealthCheck> healthCheck) {
+            @JsonProperty("health_check") Optional<Protos.HealthCheck> healthCheck,
+            @JsonProperty("podName") String podName) {
         this.name = name;
+        this.podName = podName;
         this.type = type;
         this.containerInfo = containerInfo;
         this.commandInfo = commandInfo;
@@ -172,6 +329,11 @@ public class DefaultTaskSpecification implements TaskSpecification {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getPodName() {
+        return podName;
     }
 
     @Override

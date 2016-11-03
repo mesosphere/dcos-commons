@@ -63,7 +63,7 @@ public interface StateStore {
      * @param tasks Tasks to be stored, which each meet the above requirements
      * @throws StateStoreException when persisting TaskInfo information fails, or if its TaskId is malformed
      */
-    void storeTasks(Collection<TaskInfo> tasks) throws StateStoreException;
+    void storeTasks(String podName, Collection<TaskInfo> tasks) throws StateStoreException;
 
 
     /**
@@ -71,20 +71,22 @@ public interface StateStore {
      * written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by {@link
      * TaskUtils#toTaskId(String)}.
      *
+     * @param podName The pod which the task belongs to.
      * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
      *                             TaskInfo wasn't stored first
      */
-    void storeStatus(TaskStatus status) throws StateStoreException;
+    void storeStatus(String podName, TaskStatus status) throws StateStoreException;
 
 
     /**
      * Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.
      *
+     * @param podName The name of the pod which this task belongs to.
      * @param taskName The name of the task to be cleared
      * @throws StateStoreException when clearing the indicated Task's informations fails
      */
-    void clearTask(String taskName) throws StateStoreException;
+    void clearTask(String podName, String taskName) throws StateStoreException;
 
 
     // Read Tasks
@@ -99,6 +101,14 @@ public interface StateStore {
      */
     Collection<String> fetchTaskNames() throws StateStoreException;
 
+    /**
+     * Fetches all the Task names for tasks of a particular Pod.
+     *
+     * @param podName The name of the pod whose tasks' names to return.
+     * @return A collection of task names that belong to the pod of the given name.
+     * @throws StateStoreException if fetching the task names fails
+     */
+    Collection<String> fetchTaskNames(String podName) throws StateStoreException;
 
     /**
      * Fetches and returns all {@link TaskInfo}s from the underlying storage, or an empty list if none are found. This
@@ -134,16 +144,27 @@ public interface StateStore {
         return results;
     }
 
+    /**
+     * Fetches the pod, which is essentially a collection of TaskInfos, or returns an empty Optional if not matching
+     * pod is found.
+     *
+     * @param podName The name of the pod.
+     * @return The corresponding pod, represented as a collection of TaskInfos
+     * @throws StateStoreException if no data was found for the requested name, or if fetching the Pod otherwise fails
+     */
+    Optional<Collection<TaskInfo>> fetchPod(String podName) throws StateStoreException;
 
     /**
-     * Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.
+     * Fetches the TaskInfo for a particular Task that's inside a particular Pod, or returns an empty Optional
+     * if no matching task is found.
      *
+     * @param podName The name of the Pod
      * @param taskName The name of the Task
      * @return The corresponding TaskInfo object
      * @throws StateStoreException if no data was found for the requested name, or if fetching the TaskInfo otherwise
      *                             fails
      */
-    Optional<TaskInfo> fetchTask(String taskName) throws StateStoreException;
+    Optional<TaskInfo> fetchTask(String podName, String taskName) throws StateStoreException;
 
 
     /**
@@ -161,11 +182,12 @@ public interface StateStore {
      * A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
      *
      * @param taskName The name of the Task which should have its status retrieved
+     * @param podName The name of the pod which this task belongs to
      * @return The TaskStatus associated with a particular Task
      * @throws StateStoreException if no data was found for the requested name, or if fetching the TaskStatus
      *                             information otherwise fails
      */
-    Optional<TaskStatus> fetchStatus(String taskName) throws StateStoreException;
+    Optional<TaskStatus> fetchStatus(String podName, String taskName) throws StateStoreException;
 
 
     // Read/Write Properties

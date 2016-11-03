@@ -1,10 +1,12 @@
 package org.apache.mesos.scheduler.plan;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
-import org.apache.mesos.specification.TaskSet;
+import org.apache.mesos.specification.PodSetSpecification;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,34 +40,36 @@ public class DefaultPhaseFactory implements PhaseFactory {
     }
 
     @Override
-    public Phase getPhase(TaskSet taskSet) {
-        return getPhase(taskSet, strategyGenerator.generate());
+    public Phase getPhase(PodSetSpecification podSetSpecification) {
+        return getPhase(podSetSpecification, strategyGenerator.generate());
     }
 
     @Override
-    public Phase getPhase(TaskSet taskSet, Strategy<Step> strategy) {
+    public Phase getPhase(PodSetSpecification podSetSpecification, Strategy<Step> strategy) {
         return new DefaultPhase(
-                taskSet.getName(),
-                getSteps(taskSet),
+                podSetSpecification.getName(),
+                getSteps(podSetSpecification),
                 strategy,
                 Collections.emptyList());
     }
 
     @Override
-    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator<Step> strategyGenerator) {
-        return taskSets.stream()
-                .map(taskSet -> getPhase(taskSet, strategyGenerator.generate()))
+    public List<Phase> getPhases(List<PodSetSpecification> podSetSpecifications, StrategyGenerator<Step> strategyGenerator) {
+        return podSetSpecifications.stream()
+                .map(podSet -> getPhase(podSet, strategyGenerator.generate()))
                 .collect(Collectors.toList());
     }
 
-    private List<Step> getSteps(TaskSet taskSet) {
-        return taskSet.getTaskSpecifications().stream()
-                .map(taskSpec -> {
+    private List<Step> getSteps(PodSetSpecification podSetSpecification) {
+        return podSetSpecification.getPodSpecifications().stream()
+                .map(pod -> {
                     try {
-                        return stepFactory.getStep(taskSpec);
-                    } catch (Step.InvalidStepException e) {
+                        return stepFactory.getStep(pod);
+                    } catch (Step.InvalidStepException |
+                            InvalidProtocolBufferException |
+                            InvalidRequirementException e) {
                         return new DefaultStep(
-                                taskSpec.getName(),
+                                pod.getName(),
                                 Optional.empty(),
                                 Status.ERROR,
                                 Arrays.asList(ExceptionUtils.getStackTrace(e)));

@@ -37,7 +37,7 @@ public class DefaultPlanFactory implements PlanFactory {
     }
 
     private List<Phase> getPhases(ServiceSpecification serviceSpecification) {
-        return serviceSpecification.getTaskSets().stream()
+        return serviceSpecification.getPodSetSpecifications().stream()
                 .map(phaseFactory::getPhase)
                 .collect(Collectors.toList());
     }

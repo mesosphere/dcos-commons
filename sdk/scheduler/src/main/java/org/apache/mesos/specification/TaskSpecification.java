@@ -22,6 +22,12 @@ public interface TaskSpecification {
     String getName();
 
     /**
+     * Returns the name of the pod this task belongs to.
+     */
+    @JsonProperty("pod_name")
+    String getPodName();
+
+    /**
      * The type of a TaskSpecification should be the name of the {@link TaskSet} to which it belongs.
      *
      * @return the type of the TaskSpecification

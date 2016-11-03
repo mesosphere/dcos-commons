@@ -19,7 +19,7 @@ import java.util.Optional;
  * an Offer will already have the indicated persistence ID.
  */
 public class OfferRequirement {
-    private final String taskType;
+    private final String podType;
     private final Collection<TaskRequirement> taskRequirements;
     private final Optional<ExecutorRequirement> executorRequirementOptional;
     private final Optional<PlacementRuleGenerator> placementRuleGeneratorOptional;
@@ -27,7 +27,7 @@ public class OfferRequirement {
     /**
      * Creates a new OfferRequirement.
      *
-     * @param taskType the task type name from the TaskSet, used for placement filtering
+     * @param podType the pod type name from the PodSetSpecification, used for placement filtering
      * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
      * @param executorInfoOptional the executor from which an executor requirement should be
      *     generated, if any
@@ -37,12 +37,12 @@ public class OfferRequirement {
      *     from the provided information
      */
     public OfferRequirement(
-            String taskType,
+            String podType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional,
             Optional<PlacementRuleGenerator> placementRuleGeneratorOptional)
                     throws InvalidRequirementException {
-        this.taskType = taskType;
+        this.podType = podType;
         this.taskRequirements = getTaskRequirementsInternal(taskInfos);
         this.executorRequirementOptional = executorInfoOptional.isPresent() ?
                 Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
@@ -57,11 +57,11 @@ public class OfferRequirement {
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
     public OfferRequirement(
-            String taskType,
+            String podType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional)
                     throws InvalidRequirementException {
-        this(taskType, taskInfos, executorInfoOptional, Optional.empty());
+        this(podType, taskInfos, executorInfoOptional, Optional.empty());
     }
 
     /**
@@ -69,13 +69,13 @@ public class OfferRequirement {
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
-    public OfferRequirement(String taskType, Collection<TaskInfo> taskInfos)
+    public OfferRequirement(String podType, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
-        this(taskType, taskInfos, Optional.empty());
+        this(podType, taskInfos, Optional.empty());
     }
 
-    public String getTaskType() {
-        return taskType;
+    public String getPodType() {
+        return podType;
     }
 
     public Collection<TaskRequirement> getTaskRequirements() {

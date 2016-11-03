@@ -159,7 +159,7 @@ public class OfferEvaluator {
                             execInfoOptional,
                             fulfilledExecutorRequirementOptional,
                             offer,
-                            offerRequirement.getTaskType())));
+                            offerRequirement.getPodType())));
         }
 
         List<OfferRecommendation> recommendations = new ArrayList<>();

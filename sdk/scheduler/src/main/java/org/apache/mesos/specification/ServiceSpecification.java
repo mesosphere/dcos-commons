@@ -7,7 +7,7 @@ import org.apache.mesos.config.Configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * A {@code ServiceSpecification} defines the name of a Service and the types of Tasks which
+ * A {@code ServiceSpecification} defines the name of a Service and the types of Tasks in Pods which
  * constitute the service.
  *
  * ServiceSpecifications are implementations of the {@link Configuration} interface. This allows
@@ -22,9 +22,9 @@ public interface ServiceSpecification extends Configuration {
     String getName();
 
     /**
-     * Returns the list of {@link TaskSet}s defining the types of Tasks which compose the underlying
+     * Returns the list of {@link PodSetSpecification}s defining the types of Tasks in Pods which compose the underlying
      * service.
      */
     @JsonProperty("task_sets")
-    List<TaskSet> getTaskSets();
+    List<PodSetSpecification> getPodSetSpecifications();
 }

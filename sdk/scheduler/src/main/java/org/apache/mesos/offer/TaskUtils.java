@@ -41,6 +41,11 @@ public class TaskUtils {
      */
     private static final String TASK_TYPE_KEY = "task_type";
 
+    /**
+     * Label key against which the Task Pod name is stored.
+     */
+    private static final String TASK_POD_NAME_KEY = "task_pod_name";
+
     private TaskUtils() {
         // do not instantiate
     }
@@ -168,6 +173,19 @@ public class TaskUtils {
             throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_KEY);
         }
         return taskType.get();
+    }
+
+    /**
+     * Returns the name of the pod the task belongs to, which was embedded in the provided {@link TaskInfo}
+     *
+     * @throws TaskException if the pod name could not be found.
+     */
+    public static String getTaskPodName(TaskInfo taskInfo) throws TaskException {
+        Optional<String> taskPodName = findLabelValue(taskInfo.getLabels(), TASK_POD_NAME_KEY);
+        if (!taskPodName.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + TASK_POD_NAME_KEY);
+        }
+        return taskPodName.get();
     }
 
     /**

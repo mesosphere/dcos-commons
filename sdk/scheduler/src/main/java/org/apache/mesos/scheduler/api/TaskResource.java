@@ -56,15 +56,15 @@ public class TaskResource {
     }
 
     /**
-     * Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
+     * Produces the TaskInfo for the provided pod and task name, or returns an error if that name doesn't
      * exist or the data couldn't be read.
      */
-    @Path("/info/{taskName}")
+    @Path("/info/{podName}/{taskName}")
     @GET
-    public Response getTaskInfo(@PathParam("taskName") String taskName) {
+    public Response getTaskInfo(@PathParam("podName") String podName, @PathParam("taskName") String taskName) {
         try {
-            logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
-            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
+            logger.info("Attempting to fetch TaskInfo for task '{}' from pod '{}'", taskName, podName);
+            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(podName, taskName);
             if (taskInfoOptional.isPresent()) {
                 return Response.ok(new JsonFormat().printToString(taskInfoOptional.get()),
                         MediaType.APPLICATION_JSON).build();
@@ -83,12 +83,12 @@ public class TaskResource {
      * exist or the data couldn't be read. This may fail even if the task name is valid if
      * TaskStatus data hadn't yet been written by the Framework.
      */
-    @Path("/status/{taskName}")
+    @Path("/status/{podName}/{taskName}")
     @GET
-    public Response getTaskStatus(@PathParam("taskName") String taskName) {
-        logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
+    public Response getTaskStatus(@PathParam("podName") String podName, @PathParam("taskName") String taskName) {
+        logger.info("Attempting to fetch TaskInfo for task '{}' from pod '{}'", taskName, podName);
 
-        Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskName);
+        Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(podName, taskName);
         if (taskStatus.isPresent()) {
             return Response.ok(new JsonFormat().printToString(taskStatus.get()),
                     MediaType.APPLICATION_JSON).build();
@@ -110,10 +110,10 @@ public class TaskResource {
      * @param taskName Name of the task
      * @return 200 or 404
      */
-    @Path("/connection/{taskName}")
+    @Path("/connection/{podName}/{taskName}")
     @GET
-    public Response getConnection(@PathParam("taskName") String taskName) {
-        Optional<Protos.TaskInfo> info = stateStore.fetchTask(taskName);
+    public Response getConnection(@PathParam("podName") String podName, @PathParam("taskName") String taskName) {
+        Optional<Protos.TaskInfo> info = stateStore.fetchTask(podName, taskName);
         if (info.isPresent()) {
             return Response.ok(
                     getTaskConnection(info.get()).toString(),
