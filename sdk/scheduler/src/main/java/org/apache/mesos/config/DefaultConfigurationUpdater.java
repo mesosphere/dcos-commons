@@ -16,7 +16,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 11/2/16.
+ * Handles the validation and update of a new configuration against a prior configuration, if any.
+ * In the case of the DefaultConfigurationUpdater, configurations are ServiceSpecifications.
  */
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpecification> {
 
