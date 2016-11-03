@@ -156,38 +156,6 @@ public class ConfigurationUpdaterTest {
         Assert.assertEquals(1, result.errors.size());
     }
 
-    /*
-    @Test
-    public void testConfigCleanup() throws ConfigStoreException {
-
-        final UUID configId1 = UUID.randomUUID(); // used by 0 tasks
-        final UUID configId2 = UUID.randomUUID(); // used by 1 task, content doesn't equal target
-        final ServiceSpecification config2 = new ServiceSpecification("c", 3);
-        final UUID configId3 = UUID.randomUUID(); // used by 2 tasks, content equals target
-        final ServiceSpecification config3 = new ServiceSpecification("a", 1);
-
-        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
-        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-
-        when(mockStateStore.fetchTasks()).thenReturn(
-                Arrays.asList(taskInfo(configId2), taskInfo(configId3), taskInfo(configId2)));
-        when(mockConfigStore.fetch(configId2)).thenReturn(config2);
-        when(mockConfigStore.fetch(configId3)).thenReturn(config3);
-        when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, configId1, configId2, configId3));
-
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
-
-        verify(mockStateStore).storeTasks(Arrays.asList(taskInfo(TARGET_ID))); // replaces configId3
-        verify(mockConfigStore).clear(configId1);
-        verify(mockConfigStore).clear(configId3);
-
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertEquals(1, result.errors.size());
-    }
-    */
-
     private static final Protos.TaskInfo taskInfo(UUID configId) {
         return TaskUtils.setTargetConfiguration(
                 TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder(), configId)
