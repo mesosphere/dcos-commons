@@ -1,11 +1,11 @@
 package org.apache.mesos.config;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.config.validate.ConfigurationValidationError;
-import org.apache.mesos.config.validate.ConfigurationValidator;
+import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.scheduler.DefaultScheduler;
+import org.apache.mesos.specification.DefaultServiceSpecification;
+import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.junit.Assert;
@@ -22,61 +22,81 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ConfigurationUpdaterTest {
-    private static class TestConfig implements Configuration {
-
-        // intentionally just checking against the 'name' value to detect differences:
-        private static class Comparator implements ConfigurationComparator<TestConfig> {
-            @Override
-            public boolean equals(TestConfig first, TestConfig second) {
-                return first.name.equals(second.name);
-            }
-        }
-
-        private String name;
-        private int a;
-
-        public TestConfig(String name, int a) {
-            this.name = name;
-            this.a = a;
-        }
-
-        public int getA() {
-            return a;
-        }
-
-        @Override
-        public byte[] getBytes() throws ConfigStoreException {
-            return new byte[0];
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-
-        @Override
-        public String toJsonString() throws Exception {
-            return String.format("{ \"int\": %d }", a);
-        }
-    }
-
     private static final UUID TARGET_ID = UUID.randomUUID();
     private static final UUID NEW_ID = UUID.randomUUID();
 
-    @Mock private StateStore mockStateStore;
-    @Mock private ConfigStore<TestConfig> mockConfigStore;
+    private static final String SERVICE_NAME = "test-service";
+    private static final int TASK_A_COUNT = 1;
+    private static final String TASK_A_NAME = "A";
+    private static final double TASK_A_CPU = 1.0;
+    private static final double UPDATED_TASK_A_CPU = TASK_A_CPU + 1.0;
+    private static final double TASK_A_MEM = 1000.0;
+    private static final double TASK_A_DISK = 1500.0;
+    private static final String TASK_A_CMD = "echo " + TASK_A_NAME;
 
-    ConfigurationValidator<TestConfig> testIntEquals = (oConfig, nConfig) -> {
-        if (oConfig != null && oConfig.getA() != nConfig.getA()) {
-            return Arrays.asList(ConfigurationValidationError.valueError("a", "" + nConfig.getA(), "not equal"));
-        }
-        return Collections.emptyList();
-    };
+    private static final int TASK_B_COUNT = 2;
+    private static final String TASK_B_NAME = "B";
+    private static final double TASK_B_CPU = 2.0;
+    private static final double TASK_B_MEM = 2000.0;
+    private static final double TASK_B_DISK = 2500.0;
+    private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
+
+    private static final ServiceSpecification ORIGINAL_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+            SERVICE_NAME,
+            Arrays.asList(
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_A_NAME,
+                            TASK_A_COUNT,
+                            TASK_A_CMD,
+                            TASK_A_CPU,
+                            TASK_A_MEM,
+                            TASK_A_DISK),
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_B_NAME,
+                            TASK_B_COUNT,
+                            TASK_B_CMD,
+                            TASK_B_CPU,
+                            TASK_B_MEM,
+                            TASK_B_DISK)));
+
+    private static final ServiceSpecification UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+            SERVICE_NAME,
+            Arrays.asList(
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_A_NAME,
+                            TASK_A_COUNT,
+                            TASK_A_CMD,
+                            UPDATED_TASK_A_CPU,
+                            TASK_A_MEM,
+                            TASK_A_DISK),
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_B_NAME,
+                            TASK_B_COUNT,
+                            TASK_B_CMD,
+                            TASK_B_CPU,
+                            TASK_B_MEM,
+                            TASK_B_DISK)));
+
+    private static final ServiceSpecification BAD_UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+            SERVICE_NAME,
+            Arrays.asList(
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_A_NAME,
+                            TASK_A_COUNT,
+                            TASK_A_CMD,
+                            UPDATED_TASK_A_CPU,
+                            TASK_A_MEM,
+                            TASK_A_DISK),
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_B_NAME,
+                            TASK_B_COUNT - 1,
+                            TASK_B_CMD,
+                            TASK_B_CPU,
+                            TASK_B_MEM,
+                            TASK_B_DISK)));
+
+    @Mock private StateStore mockStateStore;
+    @Mock private ConfigStore<ServiceSpecification> mockConfigStore;
 
     @Before
     public void beforeEach() {
@@ -85,15 +105,16 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testZeroValidations() throws ConfigStoreException {
-        final TestConfig targetConfig = new TestConfig("a", 1);
-        final TestConfig newConfig = new TestConfig("b", 2);
-
-        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Collections.emptyList());
+        final ConfigurationUpdater<ServiceSpecification> configurationUpdater =
+                new DefaultConfigurationUpdater(
+                        mockStateStore,
+                        mockConfigStore,
+                        DefaultServiceSpecification.getComparatorInstance(),
+                        Collections.emptyList());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        when(mockConfigStore.store(newConfig)).thenReturn(NEW_ID);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
+        when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
         Assert.assertEquals(NEW_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
@@ -101,96 +122,41 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testValidationDifferentConfigs() throws ConfigStoreException {
-        final TestConfig targetConfig = new TestConfig("a", 1);
-        final TestConfig newConfig = new TestConfig("b", 1);
-
-        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        when(mockConfigStore.store(newConfig)).thenReturn(NEW_ID);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
+        when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
         Assert.assertEquals(NEW_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
     }
 
     @Test
-    public void testValidationEqualConfigs() throws ConfigStoreException {
-        // validation should be performed even if the configs appear equal (see TestConfig.equals()):
-        final TestConfig targetConfig = new TestConfig("a", 1);
-        final TestConfig newConfig = new TestConfig("a", 2);
-
-        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
-        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertEquals(1, result.errors.size());
-    }
-
-    @Test
     public void testValidationSameConfig() throws ConfigStoreException {
         // strings are equal, so validation of ints is skipped:
-        final TestConfig targetConfig = new TestConfig("a", 1);
-
-        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(targetConfig);
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
     }
 
     @Test
     public void testValidationSingleError() throws ConfigStoreException {
-        final TestConfig targetConfig = new TestConfig("a", 1);
-        final TestConfig newConfig = new TestConfig("b", 2);
-
-        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
+        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertEquals(1, result.errors.size());
     }
 
-    @Test
-    public void testConfigCleanup() throws ConfigStoreException {
-        final TestConfig targetConfig = new TestConfig("a", 1);
-        final TestConfig newConfig = new TestConfig("b", 2);
-
-        final UUID configId1 = UUID.randomUUID(); // used by 0 tasks
-        final UUID configId2 = UUID.randomUUID(); // used by 1 task, content doesn't equal target
-        final TestConfig config2 = new TestConfig("c", 3);
-        final UUID configId3 = UUID.randomUUID(); // used by 2 tasks, content equals target
-        final TestConfig config3 = new TestConfig("a", 1);
-
-        final ConfigurationUpdater<TestConfig> configurationUpdater = new ConfigurationUpdater<>(
-                mockStateStore, mockConfigStore, new TestConfig.Comparator(), Arrays.asList(testIntEquals));
-        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(targetConfig);
-
-        when(mockStateStore.fetchTasks()).thenReturn(
-                Arrays.asList(taskInfo(configId2), taskInfo(configId3), taskInfo(configId2)));
-        when(mockConfigStore.fetch(configId2)).thenReturn(config2);
-        when(mockConfigStore.fetch(configId3)).thenReturn(config3);
-        when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, configId1, configId2, configId3));
-
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(newConfig);
-
-        verify(mockStateStore).storeTasks(Arrays.asList(taskInfo(TARGET_ID))); // replaces configId3
-        verify(mockConfigStore).clear(configId1);
-        verify(mockConfigStore).clear(configId3);
-
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertEquals(1, result.errors.size());
-    }
-
-    private static final TaskInfo taskInfo(UUID configId) {
+    private static final Protos.TaskInfo taskInfo(UUID configId) {
         return TaskUtils.setTargetConfiguration(
                 TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder(), configId)
                 .build();

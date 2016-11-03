@@ -3,11 +3,24 @@
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
 set +e
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $REPO_ROOT_DIR
+REFERENCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $REFERENCE_DIR
 
-# Grab dcos-commons build/release tools:
-rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
+ROOT_DIR=$REFERENCE_DIR/../..
+
+# GitHub notifier config
+_notify_github() {
+    GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:reference $2
+}
+
+_notify_github pending "Build running"
+
+# Service (Java):
+$ROOT_DIR/gradlew clean check distZip
+if [ $? -ne 0 ]; then
+  _notify_github failure "Gradle build failed"
+  exit 1
+fi
 
 # CLI (Go):
 ./cli/build-cli.sh
@@ -18,7 +31,7 @@ fi
 
 _notify_github success "Build succeeded"
 
-./dcos-commons-tools/ci_upload.py \
+$ROOT_DIR/tools/ci_upload.py \
   reference \
   universe/ \
   build/distributions/*.zip \

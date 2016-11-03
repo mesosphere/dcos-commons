@@ -3,18 +3,19 @@ package org.apache.mesos.scheduler.recovery;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.*;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.scheduler.ChainedObserver;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
-import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.InvalidTaskSpecificationException;
-import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
     private static final String RECOVERY_ELEMENT_NAME = "recovery";
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected volatile Plan plan;
 
@@ -46,7 +48,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        setPlan(createPlan(createSteps()));
+        plan = new DefaultPlan(RECOVERY_ELEMENT_NAME, Collections.emptyList());
     }
 
     @Override
@@ -60,13 +62,18 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         synchronized (planLock) {
             this.plan = plan;
             this.plan.subscribe(this);
+            List<String> stepNames =  plan.getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .map(step -> step.getName())
+                    .collect(Collectors.toList());
+            logger.info("Recovery plan set to: {}", stepNames);
         }
     }
 
     @Override
     public Collection<? extends Step> getCandidates(Collection<String> dirtyAssets) {
         synchronized (planLock) {
-            updatePlan();
+            updatePlan(dirtyAssets);
             return PlanUtils.getCandidates(getPlan(), dirtyAssets).stream()
                     .filter(step ->
                             launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryRequirement()))
@@ -87,22 +94,26 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public void update(Protos.TaskStatus status) {
         synchronized (planLock) {
             getPlan().update(status);
-            updatePlan();
             notifyObservers();
         }
     }
+    private void updatePlan(Collection<String> dirtyAssets) {
+        logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
 
-    private void updatePlan() {
         synchronized (planLock) {
             // This list will not contain any Complete steps.
-            List<Step> steps = createSteps();
+            List<Step> steps = createSteps(dirtyAssets);
             List<String> stepNames = steps.stream().map(step -> step.getName()).collect(Collectors.toList());
-            List<Step> completeSteps = getPlan().getChildren().stream()
+            logger.info("New recovery steps: {}", stepNames);
+
+            List<Step> oldSteps = getPlan().getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
                     .filter(step -> !stepNames.contains(step.getName()))
                     .collect(Collectors.toList());
+            logger.info("Old recovery steps: {}",
+                    oldSteps.stream().map(step -> step.getName()).collect(Collectors.toList()));
 
-            steps.addAll(completeSteps);
+            steps.addAll(oldSteps);
             setPlan(createPlan(steps));
         }
     }
@@ -112,14 +123,14 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private List<Step> createSteps() {
+    private List<Step> createSteps(Collection<String> dirtyAssets) {
         return StateStoreUtils.fetchTasksNeedingRecovery(stateStore).stream()
+                .filter(taskInfo -> !dirtyAssets.contains(taskInfo.getName()))
                 .map(taskInfo -> {
                     try {
                         return createSteps(TaskUtils.unpackTaskInfo(taskInfo));
                     } catch (
                             TaskException |
-                            InvalidTaskSpecificationException |
                             InvalidRequirementException |
                             InvalidProtocolBufferException e) {
                         return Arrays.asList(new DefaultStep(
@@ -131,12 +142,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 })
                 .flatMap(steps -> steps.stream())
                 .collect(Collectors.toList());
-
     }
 
     private List<Step> createSteps(Protos.TaskInfo taskInfo)
-            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
-        final TaskSpecification taskSpec = DefaultTaskSpecification.create(taskInfo);
+            throws TaskException, InvalidRequirementException {
         final List<RecoveryRequirement> recoveryRequirements;
 
         if (FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo)) {
@@ -147,10 +156,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
         return recoveryRequirements.stream()
                 .map(recoveryRequirement -> new DefaultRecoveryStep(
-                    taskSpec.getName(),
-                    Status.PENDING,
-                    recoveryRequirements.get(0),
-                    launchConstrainer))
+                        taskInfo.getName(),
+                        Status.PENDING,
+                        recoveryRequirements.get(0),
+                        launchConstrainer))
                 .collect(Collectors.toList());
     }
 

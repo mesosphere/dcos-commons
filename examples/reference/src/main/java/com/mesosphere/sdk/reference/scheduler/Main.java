@@ -3,13 +3,15 @@ package com.mesosphere.sdk.reference.scheduler;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
-import org.apache.mesos.offer.constrain.TaskTypeGenerator;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Main entry point for the Reference Scheduler.
@@ -33,6 +35,8 @@ public class Main {
     private static final double TASK_DATA_MEM_MB = Double.valueOf(System.getenv("DATA_MEM"));
     private static final double TASK_DATA_DISK_MB = Double.valueOf(System.getenv("DATA_DISK"));
 
+    private static final double SLEEP_DURATION = Double.valueOf(System.getenv("SLEEP_DURATION"));
+
     private static final int API_PORT = Integer.parseInt(System.getenv("PORT0"));
     private static final String CONTAINER_PATH_SUFFIX = "-container-path";
 
@@ -47,25 +51,21 @@ public class Main {
                 Arrays.asList(
                         DefaultTaskSet.create(TASK_METADATA_COUNT,
                                 TASK_METADATA_NAME,
-                                TASK_METADATA_NAME,
                                 getCommand(TASK_METADATA_NAME),
                                 getResources(TASK_METADATA_CPU, TASK_METADATA_MEM_MB),
                                 getVolumes(TASK_METADATA_DISK_MB, TASK_METADATA_NAME),
                                 // no config info/template files
                                 Collections.emptyList(),
-                                // avoid colocating with other metadata instances (<=1 instance/agent):
-                                Optional.of(TaskTypeGenerator.createAvoid(TASK_METADATA_NAME)),
+                                Optional.empty(),
                                 Optional.of(getHealthCheck(TASK_METADATA_NAME))),
                         DefaultTaskSet.create(TASK_DATA_COUNT,
-                                TASK_DATA_NAME,
                                 TASK_DATA_NAME,
                                 getCommand(TASK_DATA_NAME),
                                 getResources(TASK_DATA_CPU, TASK_DATA_MEM_MB),
                                 getVolumes(TASK_DATA_DISK_MB, TASK_DATA_NAME),
                                 // no config info/template files
                                 Collections.emptyList(),
-                                // avoid colocating with other data instances (<=1 instance/agent):
-                                Optional.of(TaskTypeGenerator.createAvoid(TASK_DATA_NAME)),
+                                Optional.empty(),
                                 Optional.of(getHealthCheck(TASK_DATA_NAME)))));
     }
 
@@ -106,7 +106,7 @@ public class Main {
 
     private static Protos.CommandInfo getCommand(String name) {
         final String cmd = String.format(
-                "echo %s >> %s%s/output && sleep 1000", name, name, CONTAINER_PATH_SUFFIX);
+                "echo %s >> %s%s/output && sleep %s", name, name, CONTAINER_PATH_SUFFIX, SLEEP_DURATION);
 
         return Protos.CommandInfo.newBuilder()
                 .setValue(cmd)

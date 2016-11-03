@@ -25,10 +25,10 @@ public interface PlacementRule {
      * @return either the uncopied input as-is, or a copy of the input with zero or more Resources
      *     stripped out
      */
-    public Offer filter(Offer offer);
+    Offer filter(Offer offer);
 
     /**
      * Must be explicitly implemented by all PlacementRules.
      */
-    public boolean equals(Object o);
+    boolean equals(Object o);
 }

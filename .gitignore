@@ -1,10 +1,12 @@
 target/
 *.pyc
+.cache/
 
 # leftovers from running tools directly
 tools/env/
 tools/cluster-*.properties
 tools/*.pem
+tools/shakedown_env/
 
 # idea
 *.i??

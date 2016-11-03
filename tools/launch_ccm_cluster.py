@@ -20,6 +20,7 @@ import os
 import pprint
 import random
 import string
+import subprocess
 import sys
 import time
 
@@ -230,12 +231,14 @@ class CCMLauncher(object):
   agents={} private/{} public
   duration={} minutes
   mountvols={}
+  permissions={}
   channel={}
   template={}'''.format(
       cluster_name,
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
+      config.permissions,
       config.ccm_channel,
       config.cf_template))
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
@@ -266,6 +269,15 @@ class CCMLauncher(object):
             sys.stdout = sys.stderr
             import enable_mount_volumes
             enable_mount_volumes.main(stack_id)
+            sys.stdout = stdout
+
+        if config.permissions:
+            logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
+            # force total redirect to stderr:
+            stdout = sys.stdout
+            sys.stdout = sys.stderr
+            script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'setup_permissions.sh')
+            subprocess.check_call(['bash', script_path])
             sys.stdout = stdout
 
         # we fetch the token once up-front because on Open clusters it must be reused.
@@ -318,7 +330,8 @@ class StartConfig(object):
             aws_region = 'eu-central-1',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
-            mount_volumes = False):
+            mount_volumes = False,
+            permissions = False):
         self.name_prefix = name_prefix
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
@@ -330,6 +343,7 @@ class StartConfig(object):
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
         self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
+        self.permissions = os.environ.get('SECURITY', '') == 'strict'
         self.template_url = os.environ.get('DCOS_TEMPLATE_URL', None)
         if not description:
             description = 'A test cluster with {} private/{} public agents'.format(

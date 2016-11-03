@@ -54,7 +54,7 @@ public class DefaultPhase extends ChainedObserver implements Phase {
             return Status.WAITING;
         }
 
-        return PlanUtils.getStatus(getChildren());
+        return PlanUtils.getStatus(this);
     }
 
     @Override
@@ -64,17 +64,17 @@ public class DefaultPhase extends ChainedObserver implements Phase {
 
     @Override
     public void update(Protos.TaskStatus status) {
-        PlanUtils.update(status, getChildren());
+        PlanUtils.update(this, status);
     }
 
     @Override
     public void restart() {
-        PlanUtils.restart(getChildren());
+        PlanUtils.restart(this);
     }
 
     @Override
     public void forceComplete() {
-        PlanUtils.forceComplete(getChildren());
+        PlanUtils.forceComplete(this);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class DefaultPhase extends ChainedObserver implements Phase {
 
     @Override
     public List<String> getErrors() {
-        return PlanUtils.getErrors(errors, getChildren());
+        return PlanUtils.getErrors(errors, this);
     }
 
     @Override
