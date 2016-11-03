@@ -12,62 +12,62 @@ import java.util.List;
  */
 public class RequirementUtils {
 
-  public static Collection<String> getResourceIds(Collection<ResourceRequirement> resourceRequirements) {
-    Collection<String> resourceIds = new ArrayList<String>();
+    public static Collection<String> getResourceIds(Collection<ResourceRequirement> resourceRequirements) {
+        Collection<String> resourceIds = new ArrayList<>();
 
-    for (ResourceRequirement resReq : resourceRequirements) {
-      if (resReq.expectsResource()) {
-        resourceIds.add(resReq.getResourceId());
-      }
+        for (ResourceRequirement resReq : resourceRequirements) {
+            if (resReq.expectsResource()) {
+                resourceIds.add(resReq.getResourceId());
+            }
+        }
+
+        return resourceIds;
     }
 
-    return resourceIds;
-  }
+    public static Collection<String> getPersistenceIds(Collection<ResourceRequirement> resourceRequirements) {
+        Collection<String> persistenceIds = new ArrayList<String>();
 
-  public static Collection<String> getPersistenceIds(Collection<ResourceRequirement> resourceRequirements) {
-    Collection<String> persistenceIds = new ArrayList<String>();
+        for (ResourceRequirement resReq : resourceRequirements) {
+            String persistenceId = resReq.getPersistenceId();
+            if (persistenceId != null) {
+                persistenceIds.add(persistenceId);
+            }
+        }
 
-    for (ResourceRequirement resReq : resourceRequirements) {
-      String persistenceId = resReq.getPersistenceId();
-      if (persistenceId != null) {
-        persistenceIds.add(persistenceId);
-      }
+        return persistenceIds;
     }
 
-    return persistenceIds;
-  }
+    public static Collection<ResourceRequirement> getResourceRequirements(Collection<Resource> resources) {
+        Collection<ResourceRequirement> resourceRequirements = new ArrayList<>();
 
-  public static Collection<ResourceRequirement> getResourceRequirements(Collection<Resource> resources) {
-    Collection<ResourceRequirement> resourceRequirements = new ArrayList<>();
+        for (Resource resource : resources) {
+            if (!isDynamicPort(resource)) {
+                resourceRequirements.add(new ResourceRequirement(resource));
+            }
+        }
 
-    for (Resource resource : resources) {
-      if (!isDynamicPort(resource)) {
-        resourceRequirements.add(new ResourceRequirement(resource));
-      }
+        return resourceRequirements;
     }
 
-    return resourceRequirements;
-  }
+    public static Collection<DynamicPortRequirement> getDynamicPortRequirements(List<Resource> resources)
+                    throws DynamicPortRequirement.DynamicPortException {
+        Collection<DynamicPortRequirement> portRequirements = new ArrayList<>();
 
-  public static Collection<DynamicPortRequirement> getDynamicPortRequirements(List<Resource> resources)
-          throws DynamicPortRequirement.DynamicPortException {
-    Collection<DynamicPortRequirement> portRequirements = new ArrayList<>();
+        for (Resource resource : resources) {
+            if (isDynamicPort(resource)) {
+                portRequirements.add(new DynamicPortRequirement(resource));
+            }
+        }
 
-    for (Resource resource : resources) {
-      if (isDynamicPort(resource)) {
-        portRequirements.add(new DynamicPortRequirement(resource));
-      }
+        return portRequirements;
     }
 
-    return portRequirements;
-  }
+    static boolean isDynamicPort(Resource resource) {
+        if (resource.getName().equals("ports")) {
+            List<Protos.Value.Range> ranges = resource.getRanges().getRangeList();
+            return ranges.size() == 1 && ranges.get(0).getBegin() == 0 && ranges.get(0).getEnd() == 0;
+        }
 
-  static boolean isDynamicPort(Resource resource) {
-    if (resource.getName().equals("ports")) {
-      List<Protos.Value.Range> ranges = resource.getRanges().getRangeList();
-      return ranges.size() == 1 && ranges.get(0).getBegin() == 0 && ranges.get(0).getEnd() == 0;
+        return false;
     }
-
-    return false;
-  }
 }
