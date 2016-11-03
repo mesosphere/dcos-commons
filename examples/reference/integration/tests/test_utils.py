@@ -29,20 +29,23 @@ def check_health(expected_tasks = DEFAULT_TASK_COUNT):
 
     return spin(fn, success_predicate)
 
-def check_unhealthy(expected_tasks = DEFAULT_TASK_COUNT):
+def get_deployment_plan():
     def fn():
         try:
-            return shakedown.get_service_tasks(PACKAGE_NAME)
+            return dcos.http.get(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/deploy")
         except dcos.errors.DCOSHTTPException:
             return []
 
-    def success_predicate(tasks):
-        running_tasks = [t for t in tasks if t['state'] != TASK_RUNNING_STATE]
-        print('Waiting for {} unhealthy tasks, got {}/{}'.format(
-            expected_tasks, len(running_tasks), len(tasks)))
+    def success_predicate(response):
+        print('Waiting for 200 response')
+        success = False
+
+        if hasattr(response, 'status_code'):
+            success = response.status_code == 200
+
         return (
-            len(running_tasks) >= expected_tasks,
-            'Service did not become unhealthy'
+            success,
+            'Failed to reach deployment endpoint'
         )
 
     return spin(fn, success_predicate)
