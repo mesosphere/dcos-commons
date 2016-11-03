@@ -12,8 +12,8 @@ import org.apache.mesos.scheduler.plan.strategy.RandomStrategy;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.FailureMonitor;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +34,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected volatile Plan plan;
 
     private final StateStore stateStore;
-    private final TaskSpecificationProvider taskSpecificationProvider;
     private final RecoveryRequirementProvider recoveryReqProvider;
     private final FailureMonitor failureMonitor;
     private final LaunchConstrainer launchConstrainer;
@@ -42,12 +41,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
-            TaskSpecificationProvider taskSpecificationProvider,
             RecoveryRequirementProvider recoveryReqProvider,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
         this.stateStore = stateStore;
-        this.taskSpecificationProvider = taskSpecificationProvider;
         this.recoveryReqProvider = recoveryReqProvider;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
@@ -127,7 +124,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     private List<Step> createSteps(Collection<String> dirtyAssets) {
-        return stateStore.fetchTasksNeedingRecovery().stream()
+        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore).stream()
                 .filter(taskInfo -> !dirtyAssets.contains(taskInfo.getName()))
                 .map(taskInfo -> {
                     try {

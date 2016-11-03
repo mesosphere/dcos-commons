@@ -114,13 +114,11 @@ public class DefaultRecoveryPlanManagerTest {
         taskSpecificationProvider = mock(TaskSpecificationProvider.class);
         when(taskSpecificationProvider.getTaskSpecification(any(TaskInfo.class))).thenReturn(TestTaskSetFactory.getTaskSpecification());
         taskFailureListener = mock(TaskFailureListener.class);
-        recoveryManager = spy(
-                new DefaultRecoveryPlanManager(
-                        stateStore,
-                        taskSpecificationProvider,
-                        recoveryRequirementProvider,
-                        launchConstrainer,
-                        failureMonitor));
+        recoveryManager = spy(new DefaultRecoveryPlanManager(
+                stateStore,
+                recoveryRequirementProvider,
+                launchConstrainer,
+                failureMonitor));
         schedulerDriver = mock(SchedulerDriver.class);
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);

@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
@@ -104,6 +103,13 @@ public class StateStoreCacheTest {
         assertNotNull(instance);
         assertSame(instance, StateStoreCache.getInstance(mockStore));
         StateStoreCache.getInstance(store); // should throw
+    }
+
+    @Test(expected=StateStoreException.class)
+    public void testMissingTaskInfoStartup() {
+        when(mockStore.fetchTasks()).thenReturn(Arrays.asList(TASK));
+        when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS, STATUS2));
+        mockedCache = new StateStoreCache(mockStore);
     }
 
     @Test
@@ -289,6 +295,25 @@ public class StateStoreCacheTest {
     }
 
     @Test
+    public void testStoreTaskInfoSameNameDifferentIDs() {
+        // same name, different IDs:
+        final TaskInfo taskA = TASK.toBuilder()
+                .setName(TASK_NAME)
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME))
+                .build();
+        final TaskInfo taskB = TASK.toBuilder()
+                .setName(TASK_NAME)
+                .setTaskId(TaskUtils.toTaskId(TASK_NAME + "b"))
+                .build();
+        doNothing().when(mockStore).storeTasks(Arrays.asList(taskA, taskB));
+        mockedCache.storeTasks(Arrays.asList(taskA, taskB));
+
+        assertEquals(1, mockedCache.fetchTaskNames().size());
+        assertEquals(1, mockedCache.fetchTasks().size());
+        assertEquals(taskB, mockedCache.fetchTask(TASK_NAME).get());
+    }
+
+    @Test
     public void testTaskStatusSingleThread() {
         cache.consistencyCheckForTests();
         cache.storeTasks(Arrays.asList(TASK, TASK2));
@@ -404,32 +429,11 @@ public class StateStoreCacheTest {
             try {
                 // Phase 1: check internal consistency
 
-                // If a name=>ID entry exists, a matching ID=>task entry must also exist (not the case for ID=>status)
-                for (Map.Entry<String, TaskID> entry : nameToId.entrySet()) {
-                    if (!idToTask.containsKey(entry.getValue())) {
+                // If an name=>status entry exists, a matching name=>task entry must also exist.
+                for (Map.Entry<String, TaskStatus> entry : nameToStatus.entrySet()) {
+                    if (!nameToTask.containsKey(entry.getKey())) {
                         throw new IllegalStateException(String.format(
-                                "idToTask is missing nameToId entry: %s", entry));
-                    }
-                }
-                // If an ID=>task entry exists, a matching name=>ID entry must also exist.
-                for (Map.Entry<TaskID, TaskInfo> entry : idToTask.entrySet()) {
-                    if (!nameToId.containsValue(entry.getKey())) {
-                        throw new IllegalStateException(String.format(
-                                "nameToId is missing idToTask entry: %s", entry));
-                    }
-                }
-                // If an ID=>status entry exists, a matching name=>ID entry must also exist.
-                for (Map.Entry<TaskID, TaskStatus> entry : idToStatus.entrySet()) {
-                    if (!nameToId.containsValue(entry.getKey())) {
-                        throw new IllegalStateException(String.format(
-                                "nameToId is missing idToStatus entry: %s", entry));
-                    }
-                }
-                // If an ID=>status entry exists, a matching ID=>task entry must also exist
-                for (Map.Entry<TaskID, TaskStatus> entry : idToStatus.entrySet()) {
-                    if (!idToTask.containsKey(entry.getKey())) {
-                        throw new IllegalStateException(String.format(
-                                "nameToId is missing idToStatus entry: %s", entry));
+                                "nameToTask is missing nameToStatus entry: %s", entry));
                     }
                 }
 
@@ -444,34 +448,34 @@ public class StateStoreCacheTest {
                 }
                 // Local task names should match stored task names
                 Set<String> storeNames = new HashSet<>(store.fetchTaskNames());
-                if (!storeNames.equals(nameToId.keySet())) {
+                if (!storeNames.equals(nameToTask.keySet())) {
                     throw new IllegalStateException(String.format(
                             "Cache has taskNames[%s] while storage has taskNames[%s]",
-                            nameToId.keySet(), storeNames));
+                            nameToTask.keySet(), storeNames));
                 }
                 // Local TaskInfos should match stored TaskInfos
-                Map<TaskID, TaskInfo> storeTasks = new HashMap<>();
+                Map<String, TaskInfo> storeTasks = new HashMap<>();
                 for (String taskName : storeNames) {
                     TaskInfo task = store.fetchTask(taskName).get();
-                    storeTasks.put(task.getTaskId(), task);
+                    storeTasks.put(task.getName(), task);
                 }
-                if (!storeTasks.equals(idToTask)) {
+                if (!storeTasks.equals(nameToTask)) {
                     throw new IllegalStateException(String.format(
                             "Cache has taskInfos[%s] while storage has taskInfos[%s]",
-                            idToTask, storeTasks));
+                            nameToTask, storeTasks));
                 }
                 // Local TaskStatuses should match stored TaskStatuses
-                Map<TaskID, TaskStatus> storeStatuses = new HashMap<>();
+                Map<String, TaskStatus> storeStatuses = new HashMap<>();
                 for (String taskName : storeNames) {
                     Optional<TaskStatus> status = store.fetchStatus(taskName);
                     if (status.isPresent()) {
-                        storeStatuses.put(status.get().getTaskId(), status.get());
+                        storeStatuses.put(taskName, status.get());
                     }
                 }
-                if (!storeStatuses.equals(idToStatus)) {
+                if (!storeStatuses.equals(nameToStatus)) {
                     throw new IllegalStateException(String.format(
                             "Cache has taskStatuses[%s] while storage has taskStatuses[%s]",
-                            idToStatus, storeStatuses));
+                            nameToStatus, storeStatuses));
                 }
                 // Local Properties should match stored Properties
                 Map<String, byte[]> storeProperties = new HashMap<>();
@@ -500,12 +504,10 @@ public class StateStoreCacheTest {
                 stateDump.append("\nState dump:\n");
                 stateDump.append("- frameworkId: ");
                 stateDump.append(frameworkId);
-                stateDump.append("\n- nameToId: ");
-                stateDump.append(nameToId);
-                stateDump.append("\n- idToTask: ");
-                stateDump.append(idToTask);
-                stateDump.append("\n- idToStatus: ");
-                stateDump.append(idToStatus);
+                stateDump.append("\n- nameToTask: ");
+                stateDump.append(nameToTask);
+                stateDump.append("\n- nameToStatus: ");
+                stateDump.append(nameToStatus);
                 stateDump.append("\n- properties: ");
                 stateDump.append(properties);
                 stateDump.append('\n');
