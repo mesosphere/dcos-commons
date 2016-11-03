@@ -33,6 +33,7 @@ import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.state.api.JsonPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
@@ -204,7 +205,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
     public static StateStore createStateStore(String frameworkName, String zkConnectionString) {
-        return new CuratorStateStore(frameworkName, zkConnectionString);
+        return StateStoreCache.getInstance(new CuratorStateStore(frameworkName, zkConnectionString));
     }
 
     /**
