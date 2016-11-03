@@ -10,8 +10,12 @@ cd $REPO_ROOT_DIR
 rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
 
 _notify_github() {
-  GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:reference $2
+  $REPO_ROOT_DIR/dcos-commons-tools/github_update.py $1 build $2
 }
+
+# Build steps for HDFS
+
+_notify_github pending "Build running"
 
 # CLI (Go):
 ./cli/build-cli.sh

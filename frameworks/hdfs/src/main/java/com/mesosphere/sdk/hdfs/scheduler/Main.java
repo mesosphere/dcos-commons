@@ -187,11 +187,7 @@ public class Main {
             cmd += String.format("echo 'sleeping for 30 seconds to let namenodes come up';" +
                             "sleep 30;" +
                             "echo 'Starting ZKFC process';" +
-                            // Direct output to persistent volume for better visibility during debugging.
-                            // Won't eat up too much space as it doesn't generate much log data in normal scenarios
-                            // after namenode election occurs
-                            "./%s/bin/hdfs %s > %s/zkfc.stdout 2> %s/zkfc.stderr",
-                    HDFS_VERSION, taskName, CONTAINER_PATH_SUFFIX, CONTAINER_PATH_SUFFIX);
+                            "./%s/bin/hdfs %s", HDFS_VERSION, taskName);
         } else {
             cmd += "./%s/bin/hdfs %s";
             cmd = String.format(cmd, HDFS_VERSION, taskName);
