@@ -77,6 +77,24 @@ public class ConfigurationUpdaterTest {
                             TASK_B_MEM,
                             TASK_B_DISK)));
 
+    private static final ServiceSpecification BAD_UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+            SERVICE_NAME,
+            Arrays.asList(
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_A_NAME,
+                            TASK_A_COUNT,
+                            TASK_A_CMD,
+                            UPDATED_TASK_A_CPU,
+                            TASK_A_MEM,
+                            TASK_A_DISK),
+                    TestTaskSetFactory.getTaskSet(
+                            TASK_B_NAME,
+                            TASK_B_COUNT - 1,
+                            TASK_B_CMD,
+                            TASK_B_CPU,
+                            TASK_B_MEM,
+                            TASK_B_DISK)));
+
     @Mock private StateStore mockStateStore;
     @Mock private ConfigStore<ServiceSpecification> mockConfigStore;
 
@@ -116,18 +134,6 @@ public class ConfigurationUpdaterTest {
     }
 
     @Test
-    public void testValidationEqualConfigs() throws ConfigStoreException {
-        // validation should be performed even if the configs appear equal (see ServiceSpecification.equals()):
-        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
-        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
-        Assert.assertEquals(TARGET_ID, result.targetId);
-        Assert.assertEquals(1, result.errors.size());
-    }
-
-    @Test
     public void testValidationSameConfig() throws ConfigStoreException {
         // strings are equal, so validation of ints is skipped:
         final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
@@ -145,7 +151,7 @@ public class ConfigurationUpdaterTest {
                 mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
-        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertEquals(1, result.errors.size());
     }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by gabriel on 11/2/16.
@@ -207,17 +208,21 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             Protos.TaskInfo taskInfo,
             ServiceSpecification serviceSpecification) {
 
-        return serviceSpecification.getTaskSets().stream()
-                .filter(taskSet -> {
-                    try {
-                        return taskSet.getName().equals(TaskUtils.getTaskType(taskInfo));
-                    } catch (TaskException e) {
-                        return false;
-                    }
-                })
-                .flatMap(taskSet -> taskSet.getTaskSpecifications().stream())
-                .filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
-                .findFirst();
+        try {
+            final String taskType = TaskUtils.getTaskType(taskInfo);
+
+            List<TaskSpecification> taskSpecifications = serviceSpecification.getTaskSets().stream()
+                    .filter(taskSet -> taskSet.getName().equals(taskType))
+                    .flatMap(taskSet -> taskSet.getTaskSpecifications().stream())
+                    .collect(Collectors.toList());
+
+            return taskSpecifications.stream().filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
+                    .findFirst();
+
+        } catch (TaskException e) {
+            LOGGER.error("Failed to find existing TaskSpecification.", e);
+            return Optional.empty();
+        }
     }
 
     /**
