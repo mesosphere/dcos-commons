@@ -58,13 +58,15 @@
         "MESOS_MODULES": "file:///opt/mesosphere/etc/mesos-scheduler-modules/dcos_authenticatee_module.json",
         "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
         {{/service.secret_name}}
-       "TASKCFG_ALL_JAVA_HOME":"./jre1.8.0_91"
-       ,"JAVA_OPTS":"-Xmx{{service.heap}}M"
+       "JAVA_OPTS":"-Xmx{{service.heap}}M"
        ,"EXECUTOR_URI":"{{resource.assets.uris.executor-zip}}"
        ,"SERVICE_NAME":"{{service.name}}"
        ,"SERVICE_ROLE":"{{service.role}}"
        ,"SERVICE_PRINCIPAL":"{{service.principal}}"
        ,"SERVICE_USER":"nobody"
+       ,"SECURE_MODE":"true"
+       ,"KEYTABS_URI":"http://10.0.3.104:8788/keytabs.tar.gz"
+       ,"TASK_JRE":"https://s3-us-west-2.amazonaws.com/infinity-artifacts/jre-8u91-linux-x64.tar.gz"
        ,"NAME_NODE_CPUS":"{{name_node.cpus}}"
        ,"NAME_NODE_MEMORY_MB":"{{name_node.mem}}"
        ,"NAME_NODE_HEAP_MB":"{{name_node.heap}}"

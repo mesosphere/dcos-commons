@@ -151,4 +151,126 @@
         <name>dfs.client.failover.proxy.provider.hdfs</name>
         <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value>
     </property>
+
+    {{#securemode}}
+        <property>
+            <name>ignore.secure.ports.for.testing</name>
+            <value>true</value>
+        </property>
+
+        <!-- Security Configuration -->
+
+        <!-- TODO: Make user configurable -->
+        <property>
+            <name>hadoop.security.auth_to_local</name>
+            <value>
+                RULE:[2:$1@$0](.*)s/.*/root/
+                RULE:[1:$1@$0](.*)s/.*/root/
+            </value>
+        </property>
+        <property>
+            <name>hadoop.security.authentication</name>
+            <value>kerberos</value>
+        </property>
+        <property>
+            <name>hadoop.security.authorization</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>hadoop.rpc.protection</name>
+            <value>authentication</value>
+        </property>
+        <property>
+            <name>dfs.block.access.token.enable</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>dfs.namenode.kerberos.principal.pattern</name>
+            <value>hdfs/*@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.datanode.kerberos.principal.pattern</name>
+            <value>hdfs/*@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.journalnode.kerberos.principal.pattern</name>
+            <value>hdfs/*@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.cluster.administrators</name>
+            <value>core,root,hdfs,nobody</value>
+        </property>
+        <property>
+            <name>dfs.web.authentication.kerberos.principal</name>
+            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.web.authentication.kerberos.keytab</name>
+            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+        </property>
+
+        {{#datanode}}
+        <!-- DataNode Security Configuration -->
+        <property>
+            <name>dfs.datanode.keytab.file</name>
+            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+        </property>
+        <property>
+            <name>dfs.datanode.kerberos.principal</name>
+            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.datanode.data.dir.perm</name>
+            <value>700</value>
+        </property>
+        {{/datanode}}
+
+        {{#namenode}}
+        <!-- NameNode Security Configuration -->
+        <property>
+            <name>dfs.namenode.keytab.file</name>
+            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+        </property>
+        <property>
+            <name>dfs.namenode.kerberos.principal</name>
+            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.namenode.kerberos.internal.spnego.principal</name>
+            <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        {{/namenode}}
+
+        {{#zkfc}}
+        <!-- NameNode Security Configuration -->
+        <property>
+            <name>dfs.namenode.keytab.file</name>
+            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+        </property>
+        <property>
+            <name>dfs.namenode.kerberos.principal</name>
+            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.namenode.kerberos.internal.spnego.principal</name>
+            <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        {{/zkfc}}
+
+        {{#journalnode}}
+        <!-- JournalNode Security Configuration -->
+        <property>
+            <name>dfs.journalnode.keytab.file</name>
+            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+        </property>
+        <property>
+            <name>dfs.journalnode.kerberos.principal</name>
+            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        <property>
+            <name>dfs.journalnode.kerberos.internal.spnego.principal</name>
+            <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+        </property>
+        {{/journalnode}}
+    {{/securemode}}
 </configuration>

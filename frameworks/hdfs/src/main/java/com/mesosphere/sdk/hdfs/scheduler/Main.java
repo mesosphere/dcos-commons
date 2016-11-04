@@ -11,7 +11,8 @@ import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -24,6 +25,10 @@ public class Main {
     private static final String HDFS_VERSION = "hadoop-2.6.0-cdh5.7.1";
     private static final String HDFS_SITE_CONFIG_PATH = String.format("%s/etc/hadoop/hdfs-site.xml", HDFS_VERSION);
     private static final String CORE_SITE_CONFIG_PATH = String.format("%s/etc/hadoop/core-site.xml", HDFS_VERSION);
+
+    private static final Boolean SECURE_MODE = Boolean.parseBoolean(System.getenv("SECURE_MODE"));
+    private static final String KEYTABS_URI = System.getenv("KEYTABS_URI");
+    private static final String TASK_JRE = System.getenv("TASK_JRE");
 
     private static final String JOURNAL_NODE_NAME = "journalnode";
     private static final int JOURNAL_NODE_COUNT = Integer.parseInt(System.getenv("JOURNAL_NODE_COUNT"));
@@ -193,9 +198,32 @@ public class Main {
             cmd = String.format(cmd, HDFS_VERSION, taskName);
         }
 
-        return Protos.CommandInfo.newBuilder()
+        String taskInstanceName = taskName + "-" + instanceIndex;
+        final Protos.CommandInfo.Builder builder = Protos.CommandInfo.newBuilder();
+        final Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
+        if (SECURE_MODE) {
+            builder.addUris(Protos.CommandInfo.URI.newBuilder().setValue(KEYTABS_URI));
+            envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
+                        .setName("HADOOP_OPTS")
+                        .setValue("-Dsun.security.krb5.debug=true"))
+                    .addVariables(Protos.Environment.Variable.newBuilder()
+                            .setName("SECURE_MODE")
+                            .setValue(SECURE_MODE.toString()))
+                    .addVariables(Protos.Environment.Variable.newBuilder()
+                        .setName("HADOOP_ROOT_LOGGER")
+                        .setValue("TRACE,console"));
+        }
+        return builder
                 .addUris(Protos.CommandInfo.URI.newBuilder().setValue(HDFS_URI))
+                .addUris(Protos.CommandInfo.URI.newBuilder().setValue(TASK_JRE))
                 .setValue(cmd)
+                .setEnvironment(envBuilder
+                        .addVariables(Protos.Environment.Variable.newBuilder()
+                                .setName("TASK_NAME")
+                                .setValue(taskInstanceName))
+                        .addVariables(Protos.Environment.Variable.newBuilder()
+                                .setName(taskName)
+                                .setValue(taskName)))
                 .build();
     }
 
