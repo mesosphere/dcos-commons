@@ -2,6 +2,7 @@ package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.specification.TaskSpecificationProvider;
@@ -33,11 +34,19 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         List<RecoveryRequirement> transientRecoveryRequirements = new ArrayList<>();
 
         for (Protos.TaskInfo taskInfo : stoppedTasks) {
+            OfferRequirement offerRequirementWithoutPlacementConstraint;
+            try {
+                offerRequirementWithoutPlacementConstraint =
+                        offerRequirementProvider.getExistingOfferRequirement(
+                                taskInfo, taskSpecificationProvider.getTaskSpecification(taskInfo))
+                        .withPlacementConstraintRemoved();
+            } catch (TaskException e) {
+                LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);
+                continue;
+            }
             try {
                 transientRecoveryRequirements.add(
-                        new DefaultRecoveryRequirement(
-                                offerRequirementProvider.getExistingOfferRequirement(
-                                        taskInfo, taskSpecificationProvider.getTaskSpecification(taskInfo)),
+                        new DefaultRecoveryRequirement(offerRequirementWithoutPlacementConstraint,
                                 RecoveryRequirement.RecoveryType.TRANSIENT));
             } catch (TaskException e) {
                 LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);

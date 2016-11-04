@@ -3,29 +3,31 @@ package org.apache.mesos.offer;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
- * An OfferRequirement encapsulates the needed resources an Offer must have.
- * In general these are Resource requirements like it must have a certain amount of
- * cpu, memory, and disk.  Additionally it has two modes regarding expectations around
- * Persistent Volumes.  In the CREATE mode it anticipates that the Scheduler will be
- * creating the required volume, so a Volume with a particular persistence id is not
- * required to be already present in an Offer.  In the EXISTING mode, we expect that
- * an Offer will already have the indicated persistence ID.
+ * An OfferRequirement encapsulates the needed resources that an {@link Offer} must have in order to
+ * launch a task against that {@link Offer}.
+ *
+ * In general these are Resource requirements, such as requiring a certain amount of cpu, memory,
+ * and disk, as encapsulated by {@link TaskRequirement} and {@link ExecutorRequirement}.
+ * More dynamic requirements may also be defined on the placement of the new task, as evaluated
+ * by the provided {@link PlacementRule}s.
  */
 public class OfferRequirement {
     private final String taskType;
     private final Collection<TaskRequirement> taskRequirements;
     private final Optional<ExecutorRequirement> executorRequirementOptional;
-    private final Optional<PlacementRuleGenerator> placementRuleGeneratorOptional;
+    private final Collection<PlacementRule> placementRules;
 
     /**
-     * Creates a new OfferRequirement.
+     * Creates a new {@link OfferRequirement}.
      *
      * @param taskType the task type name from the TaskSet, used for placement filtering
      * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
@@ -40,18 +42,27 @@ public class OfferRequirement {
             String taskType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional,
-            Optional<PlacementRuleGenerator> placementRuleGeneratorOptional)
+            Collection<PlacementRule> placementRules)
                     throws InvalidRequirementException {
+        /*
+        this(
+                taskType,
+                getTaskRequirementsInternal(taskInfos),
+                executorInfoOptional.isPresent() ?
+                        Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
+                        Optional.empty(),
+                placementRules);
+         */
         this.taskType = taskType;
         this.taskRequirements = getTaskRequirementsInternal(taskInfos);
         this.executorRequirementOptional = executorInfoOptional.isPresent() ?
                 Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
                 Optional.empty();
-        this.placementRuleGeneratorOptional = placementRuleGeneratorOptional;
+        this.placementRules = placementRules;
     }
 
     /**
-     * Creates a new OfferRequirement with provided executor requirement and empty placement
+     * Creates a new {@link OfferRequirement} with provided executor requirement and empty placement
      * constraints.
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
@@ -65,7 +76,8 @@ public class OfferRequirement {
     }
 
     /**
-     * Creates a new OfferRequirement with empty executor requirement and empty placement constraints.
+     * Creates a new {@link OfferRequirement} with empty executor requirement and empty placement
+     * constraints.
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
@@ -73,6 +85,26 @@ public class OfferRequirement {
             throws InvalidRequirementException {
         this(taskType, taskInfos, Optional.empty());
     }
+
+    /**
+     * Creates and returns a new {@link OfferRequirement} with any placement rules removed.
+     */
+    public OfferRequirement withoutPlacementRules() {
+        return new OfferRequirement(taskType, taskRequirements, executorRequirementOptional, Collections.emptyList());
+    }
+
+    /*
+    private OfferRequirement(
+            String taskType,
+            Collection<TaskRequirement> taskRequirements,
+            Optional<ExecutorRequirement> executorRequirementOptional,
+            Collection<PlacementRule> placementRules) {
+        this.taskType = taskType;
+        this.taskRequirements = taskRequirements;
+        this.executorRequirementOptional = executorRequirementOptional;
+        this.placementRules = placementRules;
+    }
+    */
 
     public String getTaskType() {
         return taskType;
