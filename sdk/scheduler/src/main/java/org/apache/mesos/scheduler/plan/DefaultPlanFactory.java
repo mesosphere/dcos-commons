@@ -1,6 +1,6 @@
 package org.apache.mesos.scheduler.plan;
 
-import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigTargetStore;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
@@ -21,13 +21,13 @@ public class DefaultPlanFactory implements PlanFactory {
     private final PhaseFactory phaseFactory;
 
     public DefaultPlanFactory(
-            ConfigStore configStore,
+            ConfigTargetStore configTargetStore,
             StateStore stateStore,
             OfferRequirementProvider offerRequirementProvider,
             TaskSpecificationProvider taskSpecificationProvider,
             StrategyGenerator<Phase> strategyGenerator) {
         this(new DefaultPhaseFactory(
-                new DefaultStepFactory(configStore, stateStore, offerRequirementProvider, taskSpecificationProvider)),
+                new DefaultStepFactory(configTargetStore, stateStore, offerRequirementProvider)),
                 strategyGenerator);
     }
 
