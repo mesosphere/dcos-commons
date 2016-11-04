@@ -1,14 +1,13 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigTargetStore;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.TaskSpecification;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,20 +22,17 @@ import java.util.UUID;
 public class DefaultStepFactory implements StepFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
 
-    private final ConfigStore configStore;
+    private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
-    private final TaskSpecificationProvider taskSpecificationProvider;
 
     public DefaultStepFactory(
-            ConfigStore configStore,
+            ConfigTargetStore configTargetStore,
             StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider,
-            TaskSpecificationProvider taskSpecificationProvider) {
-        this.configStore = configStore;
+            OfferRequirementProvider offerRequirementProvider) {
+        this.configTargetStore = configTargetStore;
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
-        this.taskSpecificationProvider = taskSpecificationProvider;
     }
 
     @Override
@@ -81,7 +77,7 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     private boolean isOnTarget(Protos.TaskInfo taskInfo) throws ConfigStoreException, TaskException {
-        UUID targetConfigId = configStore.getTargetConfig();
+        UUID targetConfigId = configTargetStore.getTargetConfig();
         UUID taskConfigId = TaskUtils.getTargetConfiguration(taskInfo);
         return targetConfigId.equals(taskConfigId);
     }

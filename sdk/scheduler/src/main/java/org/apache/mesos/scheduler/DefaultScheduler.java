@@ -30,7 +30,6 @@ import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.DefaultTaskSpecificationProvider;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
@@ -70,7 +69,6 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
-    protected TaskSpecificationProvider taskSpecificationProvider;
     protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -317,7 +315,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing globals...");
         offerRequirementProvider = new DefaultOfferRequirementProvider(
                 new DefaultTaskConfigRouter(), configUpdateResult.targetId);
-        taskSpecificationProvider = new DefaultTaskSpecificationProvider(configStore);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
@@ -332,10 +329,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing deployment plan...");
         deploymentPlanManager = new DefaultPlanManager(
                 new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
-                        configStore,
-                        stateStore,
-                        offerRequirementProvider,
-                        taskSpecificationProvider)))
+                        configStore, stateStore, offerRequirementProvider)))
                 .getPlan(serviceSpecification));
     }
 
@@ -346,7 +340,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing recovery plan...");
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider, taskSpecificationProvider),
+                new DefaultRecoveryRequirementProvider(
+                        offerRequirementProvider,
+                        new DefaultTaskSpecificationProvider(configStore)),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))

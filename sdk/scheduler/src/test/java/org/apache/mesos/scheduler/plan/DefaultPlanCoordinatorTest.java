@@ -14,7 +14,6 @@ import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.specification.TestTaskSetFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
@@ -55,7 +54,6 @@ public class DefaultPlanCoordinatorTest {
     private DefaultPlanScheduler planScheduler;
     private TaskFailureListener taskFailureListener;
     private SchedulerDriver schedulerDriver;
-    private TaskSpecificationProvider taskSpecificationProvider;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
     private EnvironmentVariables environmentVariables;
@@ -72,7 +70,6 @@ public class DefaultPlanCoordinatorTest {
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
-        taskSpecificationProvider = mock(TaskSpecificationProvider.class);
         taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
         taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
                 TestConstants.TASK_TYPE + "-B",
@@ -90,8 +87,7 @@ public class DefaultPlanCoordinatorTest {
         stepFactory = new DefaultStepFactory(
                 mock(ConfigStore.class),
                 stateStore,
-                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()),
-                taskSpecificationProvider);
+                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()));
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);

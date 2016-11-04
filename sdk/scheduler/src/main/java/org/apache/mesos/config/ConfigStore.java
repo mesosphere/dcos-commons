@@ -15,7 +15,7 @@ import java.util.UUID;
  * @param <T> The {@code Configuration} object to be serialized and deserialized in the
  *            implementation of this interface
  */
-public interface ConfigStore<T extends Configuration> {
+public interface ConfigStore<T extends Configuration> extends ConfigTargetStore {
 
     /**
      * Serializes the provided {@link Configuration} using its {@link Configuration#getBytes()}
@@ -51,21 +51,4 @@ public interface ConfigStore<T extends Configuration> {
      * @throws ConfigStoreException if list retrieval fails
      */
     Collection<UUID> list() throws ConfigStoreException;
-
-    /**
-     * Stores the ID of the active target configuration, replacing any current value.
-     *
-     * @see #getTargetConfig()
-     * @throws ConfigStoreException if writing the ID fails
-     */
-    void setTargetConfig(UUID id) throws ConfigStoreException;
-
-    /**
-     * Returns the current ID of the active target configuration, or throws an exception if none is
-     * set.
-     *
-     * @see #setTargetConfig(UUID)
-     * @throws ConfigStoreException if reading or deserializing the ID fails, or no value is set
-     */
-    UUID getTargetConfig() throws ConfigStoreException;
 }
