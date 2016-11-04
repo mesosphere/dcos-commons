@@ -45,43 +45,14 @@ public class OfferEvaluator {
         List<Offer> filteredOffers = new ArrayList<>();
         Optional<PlacementRule> placementRuleOptional = offerRequirement.getPlacementRuleOptional();
         if (placementRuleOptional.isPresent()) {
-            // Just fetch the tasks once, they shouldn't change within this evaluate() call:
-            Collection<TaskInfo> tasks = stateStore.fetchTasks();
-            // The reference PlacementRules all have custom toString()s, so this should give a good
-            // representation of the filter:
-            PlacementRule placementRule = placementRuleOptional.get();
-            logger.info("Evaluating {} offers against placement constraint '{}':", offers.size(), placementRule);
-            for (int index = 0; index < offers.size(); ++index) {
-                // Pass offer with filtered resources removed:
-                Offer offer = offers.get(index);
-                int originalCount = offer.getResourcesCount();
-                offer = placementRule.filter(offer, offerRequirement, tasks);
-                int filteredCount = offer.getResourcesCount();
-                if (filteredCount == originalCount) {
-                    logger.info("- {}: Fully passed placement constraint, " +
-                            "{} resources remain for evaluation: {}",
-                            index + 1, filteredCount, offer.getId().getValue());
-                    filteredOffers.add(offer);
-                } else if (filteredCount > 0) {
-                    logger.info("- {}: Partially passed placement constraint, " +
-                            "{} of {} resources remain for evaluation: {}",
-                            index + 1, filteredCount, originalCount, offer.getId().getValue());
-                    filteredOffers.add(offer);
-                } else {
-                    logger.info("- {}: Failed placement constraint for all {} resources, " +
-                            "removed from resource evaluation",
-                            index + 1, originalCount, offer.getId().getValue());
-                    // omit from filteredOffers
-                }
+            filteredOffers = evaluatePlacementRule(placementRuleOptional.get(), offerRequirement, offers);
+            if (filteredOffers.isEmpty()) {
+                logger.info("No offers survived placement constraint evaluation, skipping resource evaluation.");
+                return Collections.emptyList();
             }
         } else {
             // No filtering, all offers pass:
             filteredOffers.addAll(offers);
-        }
-
-        if (filteredOffers.isEmpty()) {
-            logger.info("No offers survived placement constraint evaluation, skipping resource evaluation.");
-            return Collections.emptyList();
         }
 
         // Then perform offer resource evaluation against the placement-filtered result.
@@ -99,6 +70,40 @@ public class OfferEvaluator {
             }
         }
         return Collections.emptyList();
+    }
+
+    private List<Offer> evaluatePlacementRule(
+            PlacementRule placementRule, OfferRequirement offerRequirement, List<Offer> offers) {
+        // Just fetch the tasks once, they shouldn't change within this evaluate() call:
+        Collection<TaskInfo> tasks = stateStore.fetchTasks();
+        // The reference PlacementRules all have custom toString()s, so this should give a good
+        // representation of the filter:
+        logger.info("Evaluating {} offers against placement constraint '{}':", offers.size(), placementRule);
+        List<Offer> filteredOffers = new ArrayList<>();
+        for (int index = 0; index < offers.size(); ++index) {
+            // Pass offer with filtered resources removed:
+            Offer offer = offers.get(index);
+            int originalCount = offer.getResourcesCount();
+            offer = placementRule.filter(offer, offerRequirement, tasks);
+            int filteredCount = offer.getResourcesCount();
+            if (filteredCount == originalCount) {
+                logger.info("- {}: Fully passed placement constraint, " +
+                        "{} resources remain for evaluation: {}",
+                        index + 1, filteredCount, offer.getId().getValue());
+                filteredOffers.add(offer);
+            } else if (filteredCount > 0) {
+                logger.info("- {}: Partially passed placement constraint, " +
+                        "{} of {} resources remain for evaluation: {}",
+                        index + 1, filteredCount, originalCount, offer.getId().getValue());
+                filteredOffers.add(offer);
+            } else {
+                logger.info("- {}: Failed placement constraint for all {} resources, " +
+                        "removed from resource evaluation",
+                        index + 1, originalCount, offer.getId().getValue());
+                // omit from filteredOffers
+            }
+        }
+        return filteredOffers;
     }
 
     private List<OfferRecommendation> evaluateInternal(OfferRequirement offerRequirement, Offer offer) {
