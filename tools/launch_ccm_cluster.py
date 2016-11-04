@@ -336,7 +336,7 @@ class StartConfig(object):
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
         self.cf_template = os.environ.get('CCM_TEMPLATE', cf_template)
-        self.start_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', start_timeout_mins)
+        self.start_timeout_mins = int(os.environ.get('CCM_TIMEOUT_MINS', start_timeout_mins))
         self.public_agents = int(os.environ.get('CCM_PUBLIC_AGENTS', public_agents))
         self.private_agents = int(os.environ.get('CCM_AGENTS', private_agents))
         self.aws_region = os.environ.get('CCM_AWS_REGION', aws_region)

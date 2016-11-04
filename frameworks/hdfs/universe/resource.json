@@ -2,10 +2,10 @@
   "assets": {
     "uris": {
       "jre-tar-gz": "https://downloads.mesosphere.com/kafka/assets/jre-8u91-linux-x64.tar.gz",
-      "executor-zip": "{{artifact-dir}}/executor.zip",
+      "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/executor.zip",
       "scheduler-zip": "{{artifact-dir}}/scheduler.zip",
-			"hdfs-site-config": "{{artifact-dir}}/hdfs-site.xml",
-			"core-site-config": "{{artifact-dir}}/core-site.xml"
+      "hdfs-site-config": "{{artifact-dir}}/hdfs-site.xml",
+      "core-site-config": "{{artifact-dir}}/core-site.xml"
     }
   },
   "images": {
@@ -17,23 +17,23 @@
     "binaries":{
       "darwin":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-data-store-darwin}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hdfs-darwin}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-data-store-darwin"
+          "url":"{{artifact-dir}}/dcos-hdfs-darwin"
         }
       },
       "linux":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-data-store-linux}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hdfs-linux}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-data-store-linux"
+          "url":"{{artifact-dir}}/dcos-hdfs-linux"
         }
       },
       "windows":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-data-store.exe}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hdfs.exe}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-data-store.exe"
+          "url":"{{artifact-dir}}/dcos-hdfs.exe"
         }
       }
     }
