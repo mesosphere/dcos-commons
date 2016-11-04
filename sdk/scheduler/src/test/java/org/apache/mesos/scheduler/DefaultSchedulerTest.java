@@ -124,8 +124,13 @@ public class DefaultSchedulerTest {
         environmentVariables.set("EXECUTOR_URI", "");
 
         StateStoreCache.resetInstanceForTests();
-        stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION.getName(), testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION.getName(), testingServer.getConnectString());
+        stateStore = DefaultScheduler.createStateStore(
+                SERVICE_SPECIFICATION.getName(),
+                testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(
+                SERVICE_SPECIFICATION.getName(),
+                testingServer.getConnectString(),
+                Collections.emptyList());
         defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, stateStore, configStore);
         register();
     }

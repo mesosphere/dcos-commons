@@ -96,7 +96,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                         DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
                 createConfigStore(
                         serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
+                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                        Collections.emptyList()));
     }
 
     /**
@@ -151,7 +152,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                         DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
                 createConfigStore(
                         serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                        Collections.emptyList()),
                 defaultConfigValidators(),
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
@@ -213,15 +215,20 @@ public class DefaultScheduler implements Scheduler, Observer {
      * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
      * signified by a call to {@link DefaultScheduler#registered(SchedulerDriver,
-     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}
+     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}.
      *
      * @param frameworkName the name of the framework (service name)
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
+     * @param customDeserializationSubtypes custom subtypes to register for deserialization of
+     *      {@link DefaultServiceSpecification}, mainly useful for deserializing custom
+     *      implementations of {@link PlacementRule}s.
      */
     public static ConfigStore<ServiceSpecification> createConfigStore(
-            String frameworkName, String zkConnectionString) {
+            String frameworkName,
+            String zkConnectionString,
+            Collection<Class<?>> customDeserializationSubtypes) {
         return new CuratorConfigStore<>(
-                DefaultServiceSpecification.getFactory(Collections.emptyList()),
+                DefaultServiceSpecification.getFactory(customDeserializationSubtypes),
                 frameworkName,
                 zkConnectionString);
     }

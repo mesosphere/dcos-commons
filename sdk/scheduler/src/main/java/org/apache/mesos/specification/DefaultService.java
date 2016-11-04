@@ -12,6 +12,7 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -67,7 +68,10 @@ public class DefaultService implements Service {
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
                 serviceSpecification,
                 stateStore,
-                DefaultScheduler.createConfigStore(serviceSpecification.getName(), zkConnectionString));
+                DefaultScheduler.createConfigStore(
+                        serviceSpecification.getName(),
+                        zkConnectionString,
+                        Collections.emptyList()));
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
