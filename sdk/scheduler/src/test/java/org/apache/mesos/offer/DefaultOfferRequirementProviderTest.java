@@ -1,8 +1,6 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.offer.constrain.PassthroughGenerator;
-import org.apache.mesos.offer.constrain.PassthroughRule;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.DefaultResourceSpecification;
 import org.apache.mesos.specification.DefaultVolumeSpecification;
 import org.apache.mesos.specification.ResourceSpecification;
@@ -12,6 +10,8 @@ import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,7 +35,12 @@ import static org.mockito.Mockito.when;
 public class DefaultOfferRequirementProviderTest {
     private static final double CPU = 1.0;
     private static final double MEM = 1024.0;
-    private static final PlacementRuleGenerator ALLOW_ALL = new PassthroughGenerator(new PassthroughRule("test"));
+    private static final PlacementRule ALLOW_ALL = new PlacementRule() {
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+            return offer;
+        }
+    };
     private static final DefaultOfferRequirementProvider PROVIDER =
             new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), UUID.randomUUID());
 
@@ -63,7 +68,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertNotNull(offerRequirement);
         Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
         Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
-        Assert.assertTrue(offerRequirement.getPlacementRuleGeneratorOptional().isPresent());
+        Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
     @Test
@@ -86,7 +91,7 @@ public class DefaultOfferRequirementProviderTest {
         return setupMock(taskInfo, Optional.empty());
     }
 
-    private TaskSpecification setupMock(Protos.TaskInfo taskInfo, Optional<PlacementRuleGenerator> placement) {
+    private TaskSpecification setupMock(Protos.TaskInfo taskInfo, Optional<PlacementRule> placement) {
         when(mockTaskSpecification.getName()).thenReturn(taskInfo.getName());
         when(mockTaskSpecification.getCommand()).thenReturn(Optional.of(taskInfo.getCommand()));
         when(mockTaskSpecification.getContainer()).thenReturn(Optional.of(taskInfo.getContainer()));

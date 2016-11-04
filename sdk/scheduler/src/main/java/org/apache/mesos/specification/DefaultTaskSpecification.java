@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,7 +24,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     private final Collection<ResourceSpecification> resourceSpecifications;
     private final Collection<VolumeSpecification> volumeSpecifications;
     private final Collection<ConfigFileSpecification> configFileSpecifications;
-    private final Optional<PlacementRuleGenerator> placement;
+    private final Optional<PlacementRule> placement;
     private final Optional<Protos.HealthCheck> healthCheck;
 
     /**
@@ -37,7 +37,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placement,
+            Optional<PlacementRule> placement,
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
@@ -61,7 +61,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placement,
+            Optional<PlacementRule> placement,
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
@@ -86,7 +86,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             Collection<ResourceSpecification> resourceSpecifications,
             Collection<VolumeSpecification> volumeSpecifications,
             Collection<ConfigFileSpecification> configFileSpecifications,
-            Optional<PlacementRuleGenerator> placement,
+            Optional<PlacementRule> placement,
             Optional<Protos.HealthCheck> healthCheck) {
 
         this(name,
@@ -109,7 +109,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
             @JsonProperty("resources") Collection<ResourceSpecification> resourceSpecifications,
             @JsonProperty("volumes") Collection<VolumeSpecification> volumeSpecifications,
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFileSpecifications,
-            @JsonProperty("placement") Optional<PlacementRuleGenerator> placement,
+            @JsonProperty("placement") Optional<PlacementRule> placement,
             @JsonProperty("health_check") Optional<Protos.HealthCheck> healthCheck) {
         this.name = name;
         this.type = type;
@@ -163,7 +163,7 @@ public class DefaultTaskSpecification implements TaskSpecification {
     }
 
     @Override
-    public Optional<PlacementRuleGenerator> getPlacement() {
+    public Optional<PlacementRule> getPlacement() {
         return placement;
     }
 

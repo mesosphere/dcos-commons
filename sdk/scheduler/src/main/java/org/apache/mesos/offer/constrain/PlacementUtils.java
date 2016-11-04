@@ -34,24 +34,24 @@ public class PlacementUtils {
      * @param collocateAgents Agents which should have Tasks placed on them.
      * @return The appropriate placement rule.
      */
-    public static Optional<PlacementRuleGenerator> getAgentPlacementRule(
+    public static Optional<PlacementRule> getAgentPlacementRule(
             List<String> avoidAgents,
             List<String> collocateAgents) {
 
-        Optional<PlacementRuleGenerator> placement;
+        Optional<PlacementRule> placement;
         if (!avoidAgents.isEmpty()) {
             if (!collocateAgents.isEmpty()) {
                 // avoid and collocate enforcement
-                placement = Optional.of(new AndRule.Generator(
-                        new AgentRule.AvoidAgentsGenerator(avoidAgents),
-                        new AgentRule.RequireAgentsGenerator(collocateAgents)));
+                placement = Optional.of(new AndRule(
+                        AgentRule.avoid(avoidAgents),
+                        AgentRule.require(collocateAgents)));
             } else {
                 // avoid enforcement only
-                placement = Optional.of(new AgentRule.AvoidAgentsGenerator(avoidAgents));
+                placement = Optional.of(AgentRule.avoid(avoidAgents));
             }
         } else if (!collocateAgents.isEmpty()) {
             // collocate enforcement only
-            placement = Optional.of(new AgentRule.RequireAgentsGenerator(collocateAgents));
+            placement = Optional.of(AgentRule.require(collocateAgents));
         } else {
             // no collocate/avoid enforcement
             placement = Optional.empty();

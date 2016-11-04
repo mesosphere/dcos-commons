@@ -11,7 +11,6 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.executor.ExecutorUtils;
 import org.apache.mesos.offer.constrain.PlacementRule;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreException;
 import org.slf4j.Logger;
@@ -41,47 +40,68 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
             throws StateStoreException {
-        Optional<PlacementRule> placementRule = getPlacementRule(offerRequirement, stateStore);
-        if (placementRule.isPresent()) {
+
+        // First, check placement constraints (to filter offers)
+        List<Offer> filteredOffers = new ArrayList<>();
+        Optional<PlacementRule> placementRuleOptional = offerRequirement.getPlacementRuleOptional();
+        if (placementRuleOptional.isPresent()) {
+            // Just fetch the tasks once, they shouldn't change within this evaluate() call:
+            Collection<TaskInfo> tasks = stateStore.fetchTasks();
             // The reference PlacementRules all have custom toString()s, so this should give a good
             // representation of the filter:
-            logger.info("Evaluating {} offers against placement constraints: {}",
-                    offers.size(), placementRule.get());
+            PlacementRule placementRule = placementRuleOptional.get();
+            logger.info("Evaluating {} offers against placement constraint '{}':", offers.size(), placementRule);
+            for (int index = 0; index < offers.size(); ++index) {
+                // Pass offer with filtered resources removed:
+                Offer offer = offers.get(index);
+                int originalCount = offer.getResourcesCount();
+                offer = placementRule.filter(offer, offerRequirement, tasks);
+                int filteredCount = offer.getResourcesCount();
+                if (filteredCount == originalCount) {
+                    logger.info("- {}: Fully passed placement constraint, " +
+                            "{} resources remain for evaluation: {}",
+                            index + 1, filteredCount, offer.getId().getValue());
+                    filteredOffers.add(offer);
+                } else if (filteredCount > 0) {
+                    logger.info("- {}: Partially passed placement constraint, " +
+                            "{} of {} resources remain for evaluation: {}",
+                            index + 1, filteredCount, originalCount, offer.getId().getValue());
+                    filteredOffers.add(offer);
+                } else {
+                    logger.info("- {}: Failed placement constraint for all {} resources, " +
+                            "removed from resource evaluation",
+                            index + 1, originalCount, offer.getId().getValue());
+                    // omit from filteredOffers
+                }
+            }
+        } else {
+            // No filtering, all offers pass:
+            filteredOffers.addAll(offers);
         }
-        for (Offer offer : offers) {
-            List<OfferRecommendation> recommendations =
-                    evaluateInternal(offerRequirement, offer, placementRule);
+
+        if (filteredOffers.isEmpty()) {
+            logger.info("No offers survived placement constraint evaluation, skipping resource evaluation.");
+            return Collections.emptyList();
+        }
+
+        // Then perform offer resource evaluation against the placement-filtered result.
+        logger.info("Evaluating up to {} offers for match against resource requirements:", filteredOffers.size());
+        for (int index = 0; index < filteredOffers.size(); ++index) {
+            Offer offer = filteredOffers.get(index);
+            List<OfferRecommendation> recommendations = evaluateInternal(offerRequirement, offer);
             if (!recommendations.isEmpty()) {
-                logger.info("Offer passed placement/resource requirements, produced {} recommendations: {}",
-                        recommendations.size(), TextFormat.shortDebugString(offer));
+                logger.info("- {}: passed resource requirements, returning {} recommendations: {}",
+                        index + 1, recommendations.size(), TextFormat.shortDebugString(offer));
                 return recommendations;
             } else {
-                logger.info("Offer did not pass constraints and/or resource requirements: {}",
-                        TextFormat.shortDebugString(offer));
+                logger.info("- {}: did not pass resource requirements: {}",
+                        index + 1, TextFormat.shortDebugString(offer));
             }
         }
         return Collections.emptyList();
     }
 
-    private List<OfferRecommendation> evaluateInternal(
-            OfferRequirement offerRequirement, Offer offer, Optional<PlacementRule> placementRule) {
-        if (placementRule.isPresent()) {
-            int originalCount = offer.getResourcesCount();
-            offer = placementRule.get().filter(offer, offerRequirement);
-            int filteredCount = offer.getResourcesCount();
-            if (filteredCount == originalCount) {
-                logger.info("Offer: '{}' fully passed placement constraints, evaluating {} of {} resources",
-                        offer.getId().getValue(), filteredCount, originalCount);
-            } else if (filteredCount > 0) {
-                logger.info("Offer: '{}' partially passed placement constraints, evaluating {} of {} resources",
-                        offer.getId().getValue(), filteredCount, originalCount);
-            } else {
-                logger.info("Offer: '{}' all {} resources didn't pass placement constraints, "
-                        + "skipping offer resource evaluation and declining offer.",
-                        offer.getId().getValue(), originalCount);
-                return Collections.emptyList(); // short-circuit
-            }
-        }
+    private List<OfferRecommendation> evaluateInternal(OfferRequirement offerRequirement, Offer offer) {
 
         MesosResourcePool pool = new MesosResourcePool(offer);
 
@@ -317,16 +337,6 @@ public class OfferEvaluator {
         public List<OfferRecommendation> getCreateRecommendations() {
             return createRecommendations;
         }
-    }
-
-    private static Optional<PlacementRule> getPlacementRule(
-            OfferRequirement offerRequirement, StateStore stateStore)
-                    throws StateStoreException {
-        Optional<PlacementRuleGenerator> placementRuleGenerator =
-                offerRequirement.getPlacementRuleGeneratorOptional();
-        return placementRuleGenerator.isPresent()
-            ? Optional.of(placementRuleGenerator.get().generate(stateStore.fetchTasks()))
-            : Optional.empty();
     }
 
     private static boolean hasExpectedExecutorId(Offer offer, Protos.ExecutorID executorID) {

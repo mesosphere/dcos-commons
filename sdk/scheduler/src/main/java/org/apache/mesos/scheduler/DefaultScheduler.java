@@ -221,7 +221,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     public static ConfigStore<ServiceSpecification> createConfigStore(
             String frameworkName, String zkConnectionString) {
         return new CuratorConfigStore<>(
-                DefaultServiceSpecification.getFactoryInstance(),
+                DefaultServiceSpecification.getFactory(Collections.emptyList()),
                 frameworkName,
                 zkConnectionString);
     }

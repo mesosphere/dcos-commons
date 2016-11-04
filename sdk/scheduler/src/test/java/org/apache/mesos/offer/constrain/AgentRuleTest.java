@@ -24,93 +24,97 @@ public class AgentRuleTest {
 
     @Test
     public void testRequireAgent() {
-        PlacementRule rule = new AgentRule.RequireAgentGenerator(AGENT_1).generate(Collections.emptyList());
-        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        PlacementRule rule = AgentRule.require(AGENT_1);
+        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
 
-        rule = new AgentRule.RequireAgentGenerator(AGENT_2).generate(Collections.emptyList());
-        filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        rule = AgentRule.require(AGENT_2);
+        filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
     }
 
     @Test
     public void testAvoidAgent() {
-        PlacementRule rule = new AgentRule.AvoidAgentGenerator(AGENT_1).generate(Collections.emptyList());
-        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        PlacementRule rule = AgentRule.avoid(AGENT_1);
+        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
 
-        rule = new AgentRule.AvoidAgentGenerator(AGENT_2).generate(Collections.emptyList());
-        filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        rule = AgentRule.avoid(AGENT_2);
+        filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
     }
 
     @Test
     public void testRequireAgents() {
-        PlacementRule rule = new AgentRule.RequireAgentsGenerator(AGENT_1, AGENT_3).generate(Collections.emptyList());
-        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        PlacementRule rule = AgentRule.require(AGENT_1, AGENT_3);
+        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
 
-        rule = new AgentRule.RequireAgentsGenerator(AGENT_2, AGENT_3).generate(Collections.emptyList());
-        filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        rule = AgentRule.require(AGENT_2, AGENT_3);
+        filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
     }
 
     @Test
     public void testAvoidAgents() {
-        PlacementRule rule = new AgentRule.AvoidAgentsGenerator(AGENT_1, AGENT_3).generate(Collections.emptyList());
-        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        PlacementRule rule = AgentRule.avoid(AGENT_1, AGENT_3);
+        Offer filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
 
-        rule = new AgentRule.AvoidAgentsGenerator(AGENT_2, AGENT_3).generate(Collections.emptyList());
-        filtered = rule.filter(offerWithAgent(AGENT_1), REQ);
+        rule = AgentRule.avoid(AGENT_2, AGENT_3);
+        filtered = rule.filter(offerWithAgent(AGENT_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_2), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_2), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
-        filtered = rule.filter(offerWithAgent(AGENT_3), REQ);
+        filtered = rule.filter(offerWithAgent(AGENT_3), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
     }
 
     @Test
     public void testSerializeDeserialize() throws IOException {
-        PlacementRuleGenerator generator = new AgentRule.AvoidAgentsGenerator(AGENT_1, AGENT_3);
-        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+        PlacementRule rule = AgentRule.avoid(AGENT_1, AGENT_3);
+        assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        generator = new AgentRule.AvoidAgentGenerator(AGENT_1);
-        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+        rule = AgentRule.avoid(AGENT_1);
+        assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        generator = new AgentRule.RequireAgentsGenerator(AGENT_1, AGENT_3);
-        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+        rule = AgentRule.require(AGENT_1, AGENT_3);
+        assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        generator = new AgentRule.RequireAgentGenerator(AGENT_1);
-        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+        rule = AgentRule.require(AGENT_1);
+        assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
 
     private static Offer offerWithAgent(String agentId) {

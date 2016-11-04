@@ -587,22 +587,6 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private Protos.Offer getSufficientOfferForUpdatedTaskA() {
-        UUID offerId = UUID.randomUUID();
-
-        return Protos.Offer.newBuilder()
-                .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(TestConstants.HOSTNAME)
-                .addAllResources(
-                        Arrays.asList(
-                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM),
-                                ResourceTestUtils.getUnreservedDisk(TASK_A_DISK)))
-                .build();
-    }
-
     private Protos.Offer getSufficientOfferForTaskB() {
         UUID offerId = UUID.randomUUID();
 

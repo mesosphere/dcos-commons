@@ -55,7 +55,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
         }
 
-        return new OfferRequirement(
+        return OfferRequirement.create(
                 taskSpecification.getType(),
                 Arrays.asList(taskInfoBuilder.build()),
                 Optional.of(getExecutorInfo(taskSpecification)),
@@ -118,7 +118,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         try {
-            return new OfferRequirement(
+            return OfferRequirement.create(
                     TaskUtils.getTaskType(taskInfo),
                     Arrays.asList(taskInfoBuilder.build()),
                     Optional.of(getExecutorInfo(taskSpecification)),

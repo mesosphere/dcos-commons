@@ -11,7 +11,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -441,8 +441,8 @@ public class TaskUtils {
 
         // Placement constraints
 
-        Optional<PlacementRuleGenerator> oldPlacement = oldTaskSpecification.getPlacement();
-        Optional<PlacementRuleGenerator> newPlacement = newTaskSpecification.getPlacement();
+        Optional<PlacementRule> oldPlacement = oldTaskSpecification.getPlacement();
+        Optional<PlacementRule> newPlacement = newTaskSpecification.getPlacement();
         if (!Objects.equals(oldPlacement, newPlacement)) {
             LOGGER.info("Task placement constraints '{}' and '{}' are different.", oldPlacement, newPlacement);
             return true;

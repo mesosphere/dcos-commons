@@ -4,11 +4,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.constrain.PlacementRule;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -24,7 +22,7 @@ public class OfferRequirement {
     private final String taskType;
     private final Collection<TaskRequirement> taskRequirements;
     private final Optional<ExecutorRequirement> executorRequirementOptional;
-    private final Collection<PlacementRule> placementRules;
+    private final Optional<PlacementRule> placementRuleOptional;
 
     /**
      * Creates a new {@link OfferRequirement}.
@@ -33,32 +31,23 @@ public class OfferRequirement {
      * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
      * @param executorInfoOptional the executor from which an executor requirement should be
      *     generated, if any
-     * @param placementRuleGeneratorOptional the placement constraints which should be applied to the
-     *     tasks, if any
+     * @param placementRuleOptional the placement constraints which should be applied to the tasks, if any
      * @throws InvalidRequirementException if task or executor requirements could not be generated
      *     from the provided information
      */
-    public OfferRequirement(
+    public static OfferRequirement create(
             String taskType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional,
-            Collection<PlacementRule> placementRules)
+            Optional<PlacementRule> placementRuleOptional)
                     throws InvalidRequirementException {
-        /*
-        this(
+        return new OfferRequirement(
                 taskType,
                 getTaskRequirementsInternal(taskInfos),
                 executorInfoOptional.isPresent() ?
                         Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
                         Optional.empty(),
-                placementRules);
-         */
-        this.taskType = taskType;
-        this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-        this.executorRequirementOptional = executorInfoOptional.isPresent() ?
-                Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
-                Optional.empty();
-        this.placementRules = placementRules;
+                placementRuleOptional);
     }
 
     /**
@@ -67,12 +56,12 @@ public class OfferRequirement {
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
-    public OfferRequirement(
+    public static OfferRequirement create(
             String taskType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional)
                     throws InvalidRequirementException {
-        this(taskType, taskInfos, executorInfoOptional, Optional.empty());
+        return create(taskType, taskInfos, executorInfoOptional, Optional.empty());
     }
 
     /**
@@ -81,30 +70,28 @@ public class OfferRequirement {
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
-    public OfferRequirement(String taskType, Collection<TaskInfo> taskInfos)
+    public static OfferRequirement create (String taskType, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
-        this(taskType, taskInfos, Optional.empty());
+        return create(taskType, taskInfos, Optional.empty());
     }
 
     /**
      * Creates and returns a new {@link OfferRequirement} with any placement rules removed.
      */
     public OfferRequirement withoutPlacementRules() {
-        return new OfferRequirement(taskType, taskRequirements, executorRequirementOptional, Collections.emptyList());
+        return new OfferRequirement(taskType, taskRequirements, executorRequirementOptional, Optional.empty());
     }
 
-    /*
     private OfferRequirement(
             String taskType,
             Collection<TaskRequirement> taskRequirements,
             Optional<ExecutorRequirement> executorRequirementOptional,
-            Collection<PlacementRule> placementRules) {
+            Optional<PlacementRule> placementRuleOptional) {
         this.taskType = taskType;
         this.taskRequirements = taskRequirements;
         this.executorRequirementOptional = executorRequirementOptional;
-        this.placementRules = placementRules;
+        this.placementRuleOptional = placementRuleOptional;
     }
-    */
 
     public String getTaskType() {
         return taskType;
@@ -118,8 +105,8 @@ public class OfferRequirement {
         return executorRequirementOptional;
     }
 
-    public Optional<PlacementRuleGenerator> getPlacementRuleGeneratorOptional() {
-        return placementRuleGeneratorOptional;
+    public Optional<PlacementRule> getPlacementRuleOptional() {
+        return placementRuleOptional;
     }
 
     public Collection<String> getResourceIds() {

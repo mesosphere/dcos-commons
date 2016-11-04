@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -48,7 +48,7 @@ public class DefaultTaskSet implements TaskSet {
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         return create(
@@ -70,7 +70,7 @@ public class DefaultTaskSet implements TaskSet {
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         return create(
@@ -93,7 +93,7 @@ public class DefaultTaskSet implements TaskSet {
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         return create(
@@ -116,7 +116,7 @@ public class DefaultTaskSet implements TaskSet {
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         List<TaskSpecification> taskSpecifications = new ArrayList<>();
