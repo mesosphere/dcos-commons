@@ -89,15 +89,31 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
     public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
+        return create(serviceSpecification, Collections.emptyList());
+    }
+
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided service-defined
+     * {@link ServiceSpecification} and the default ZK location for framework state, and with the
+     * provided custom {@link PlacementRule} classes which are used within the provided
+     * {@link ServiceSpecification}. Custom implementations of {@link PlacementRule}s MUST be
+     * serializable and deserializable by Jackson, and MUST be provided to support correctly
+     * identifying them in the serialized {@link ServiceSpecification}.
+     *
+     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param customDeserializationSubtypes custom placement rule implementations which support
+     *     Jackson deserialization
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
+    public static DefaultScheduler create(
+            ServiceSpecification serviceSpecification,
+            Collection<Class<?>> customDeserializationSubtypes) {
         return create(
                 serviceSpecification,
-                createStateStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                createStateStore(serviceSpecification),
                 createConfigStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
-                        Collections.emptyList()));
+                        serviceSpecification,
+                        customDeserializationSubtypes));
     }
 
     /**
@@ -147,13 +163,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             Integer destructiveRecoveryDelaySec) {
         return create(
                 serviceSpecification,
-                createStateStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
-                createConfigStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
-                        Collections.emptyList()),
+                createStateStore(serviceSpecification),
+                createConfigStore(serviceSpecification),
                 defaultConfigValidators(),
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
@@ -172,8 +183,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      *                    has been registered with mesos as indicated by a call to {@link
      *                    DefaultScheduler#registered(SchedulerDriver,
      *                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
-     * @param configValidators custom validators to be used, instead of the default validators
-     *                         returned by {@link #defaultConfigValidators()}
+     * @param configValidators configuration validators to be used when evaluating config changes
      * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
      *                                   task has failed, or an empty {@link Optional} to disable
      *                                   this detection
@@ -211,6 +221,18 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
+     * Calls {@link #createStateStore(String, String)} with the specification name as the
+     * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
+     *
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
+    public static StateStore createStateStore(ServiceSpecification serviceSpecification) {
+        return createStateStore(
+                serviceSpecification.getName(),
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    }
+
+    /**
      * Creates and returns a new default {@link ConfigStore} suitable for passing to
      * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
@@ -233,7 +255,43 @@ public class DefaultScheduler implements Scheduler, Observer {
                 zkConnectionString);
     }
 
-    public static Collection<ConfigurationValidator<ServiceSpecification>> defaultConfigValidators() {
+    /**
+     * Calls {@link #createConfigStore(String, String, Collection))} with the specification name as
+     * the {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
+     *
+     * @param customDeserializationSubtypes custom subtypes to register for deserialization of
+     *      {@link DefaultServiceSpecification}, mainly useful for deserializing custom
+     *      implementations of {@link PlacementRule}s.
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
+    public static ConfigStore<ServiceSpecification> createConfigStore(
+            ServiceSpecification serviceSpecification,
+            Collection<Class<?>> customDeserializationSubtypes) {
+        return createConfigStore(
+                serviceSpecification.getName(),
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                customDeserializationSubtypes);
+    }
+
+    /**
+     * Calls {@link #createConfigStore(ServiceSpecification, Collection)} with an empty list of
+     * custom deserialization types.
+     */
+    public static ConfigStore<ServiceSpecification> createConfigStore(
+            ServiceSpecification serviceSpecification) {
+        return createConfigStore(serviceSpecification, Collections.emptyList());
+    }
+
+    /**
+     * Returns the default configuration validators:
+     * - Task sets cannot shrink (each set's task count must stay the same or increase).
+     * - Task volumes cannot be changed.
+     *
+     * This function may be used to get the default validators and add more to the list when
+     * constructing the {@link DefaultScheduler}.
+     */
+    public static List<ConfigurationValidator<ServiceSpecification>> defaultConfigValidators() {
+        // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new TaskSetsCannotShrink(),
                 new TaskVolumesCannotChange());
