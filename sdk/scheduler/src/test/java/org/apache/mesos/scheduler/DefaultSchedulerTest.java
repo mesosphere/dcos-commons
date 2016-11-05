@@ -1,11 +1,20 @@
 package org.apache.mesos.scheduler;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.ResourceUtils;
+import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.offer.constrain.TestPlacementUtils;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.plan.Step;
@@ -28,6 +37,9 @@ import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.mockito.*;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
 import java.util.*;
@@ -125,10 +137,10 @@ public class DefaultSchedulerTest {
 
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(
-                SERVICE_SPECIFICATION.getName(),
+                SERVICE_SPECIFICATION,
                 testingServer.getConnectString());
         configStore = DefaultScheduler.createConfigStore(
-                SERVICE_SPECIFICATION.getName(),
+                SERVICE_SPECIFICATION,
                 testingServer.getConnectString(),
                 Collections.emptyList());
         defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, stateStore, configStore);
@@ -138,6 +150,70 @@ public class DefaultSchedulerTest {
     @Test
     public void testConstruction() {
         Assert.assertNotNull(defaultScheduler);
+    }
+
+    @Test(expected=ConfigStoreException.class)
+    public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
+        ServiceSpecification serviceSpecification =
+                new DefaultServiceSpecification(
+                        "placement",
+                        Arrays.asList(TestTaskSetFactory.getTaskSet(
+                                Collections.emptyList(),
+                                Optional.of(TestPlacementUtils.ALL))));
+        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
+                .getPlacement().isPresent());
+        DefaultScheduler.createConfigStore(
+                serviceSpecification,
+                testingServer.getConnectString(),
+                Collections.emptyList());
+    }
+
+    @Test(expected=ConfigStoreException.class)
+    public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() throws ConfigStoreException {
+        ServiceSpecification serviceSpecification =
+                new DefaultServiceSpecification(
+                        "placement",
+                        Arrays.asList(TestTaskSetFactory.getTaskSet(
+                                Collections.emptyList(),
+                                Optional.of(new PlacementRuleMissingEquality()))));
+        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
+                .getPlacement().isPresent());
+        DefaultScheduler.createConfigStore(
+                serviceSpecification,
+                testingServer.getConnectString(),
+                Arrays.asList(PlacementRuleMissingEquality.class));
+    }
+
+    @Test(expected=ConfigStoreException.class)
+    public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() throws ConfigStoreException {
+        ServiceSpecification serviceSpecification =
+                new DefaultServiceSpecification(
+                        "placement",
+                        Arrays.asList(TestTaskSetFactory.getTaskSet(
+                                Collections.emptyList(),
+                                Optional.of(new PlacementRuleMismatchedAnnotations("hi")))));
+        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
+                .getPlacement().isPresent());
+        DefaultScheduler.createConfigStore(
+                serviceSpecification,
+                testingServer.getConnectString(),
+                Arrays.asList(PlacementRuleMismatchedAnnotations.class));
+    }
+
+    @Test
+    public void testConstructConfigStoreWithRegisteredGoodCustomType() throws ConfigStoreException {
+        ServiceSpecification serviceSpecification =
+                new DefaultServiceSpecification(
+                        "placement",
+                        Arrays.asList(TestTaskSetFactory.getTaskSet(
+                                Collections.emptyList(),
+                                Optional.of(TestPlacementUtils.ALL))));
+        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
+                .getPlacement().isPresent());
+        DefaultScheduler.createConfigStore(
+                serviceSpecification,
+                testingServer.getConnectString(),
+                Arrays.asList(TestPlacementUtils.ALL.getClass()));
     }
 
     @Test
@@ -682,4 +758,43 @@ public class DefaultSchedulerTest {
 
         return taskIds;
     }
+
+    private static class PlacementRuleMissingEquality implements PlacementRule {
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement,
+                Collection<TaskInfo> tasks) {
+            return offer;
+        }
+    };
+
+    private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
+
+        private final String fork;
+
+        @JsonCreator
+        PlacementRuleMismatchedAnnotations(@JsonProperty("wrong") String spoon) {
+            this.fork = spoon;
+        }
+
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement,
+                Collection<TaskInfo> tasks) {
+            return offer;
+        }
+
+        @JsonProperty("message")
+        private String getMsg() {
+            return fork;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+    };
 }

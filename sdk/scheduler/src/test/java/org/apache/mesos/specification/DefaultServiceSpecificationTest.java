@@ -61,7 +61,7 @@ public class DefaultServiceSpecificationTest {
     @Test
     public void testSerializeDeserialize() throws Exception {
         Assert.assertEquals(ReflectionToStringBuilder.toString(serviceSpecification), serviceSpecification,
-                DefaultServiceSpecification.getFactory(Collections.emptyList())
+                DefaultServiceSpecification.getFactory(serviceSpecification, Collections.emptyList())
                         .parse(serviceSpecification.getBytes()));
     }
 }

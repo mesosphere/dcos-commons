@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.api.JettyApiServer;
+import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
@@ -64,14 +65,18 @@ public class DefaultService implements Service {
     @Override
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
-        this.stateStore = DefaultScheduler.createStateStore(serviceSpecification.getName(), zkConnectionString);
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(
-                serviceSpecification,
-                stateStore,
-                DefaultScheduler.createConfigStore(
-                        serviceSpecification.getName(),
-                        zkConnectionString,
-                        Collections.emptyList()));
+        this.stateStore = DefaultScheduler.createStateStore(serviceSpecification, zkConnectionString);
+        DefaultScheduler defaultScheduler;
+        try {
+            defaultScheduler = DefaultScheduler.create(
+                    serviceSpecification,
+                    stateStore,
+                    DefaultScheduler.createConfigStore(
+                            serviceSpecification, zkConnectionString, Collections.emptyList()));
+        } catch (ConfigStoreException e) {
+            LOGGER.error("Unable to create DefaultScheduler", e);
+            throw new IllegalStateException(e);
+        }
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
