@@ -12,7 +12,10 @@ import org.apache.mesos.specification.ResourceSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
