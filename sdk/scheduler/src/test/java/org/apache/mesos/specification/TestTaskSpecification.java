@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +19,7 @@ public class TestTaskSpecification implements TaskSpecification {
     private final Collection<VolumeSpecification> volumes;
     private Collection<ResourceSpecification> resources;
     private Collection<ConfigFileSpecification> configs;
-    private final Optional<PlacementRuleGenerator> placement;
+    private final Optional<PlacementRule> placement;
     private Optional<Protos.HealthCheck> healthCheck;
 
     public TestTaskSpecification(TaskSpecification taskSpecification) {
@@ -73,7 +73,7 @@ public class TestTaskSpecification implements TaskSpecification {
     }
 
     @Override
-    public Optional<PlacementRuleGenerator> getPlacement() {
+    public Optional<PlacementRule> getPlacement() {
         return placement;
     }
 

@@ -38,6 +38,7 @@ func main() {
 type NodeHandler struct {
 	name string
 }
+
 func (cmd *NodeHandler) runReplace(c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("name", cmd.name)
