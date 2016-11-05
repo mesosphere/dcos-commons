@@ -11,3 +11,7 @@ project(":examples/reference").name = "reference"
 
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
+
+include 'frameworks/elastic'
+project(':frameworks/elastic').name = 'elastic'
+

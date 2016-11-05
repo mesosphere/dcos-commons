@@ -1,0 +1,35 @@
+group 'com.mesosphere.sdk'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    maven {
+        url "http://downloads.mesosphere.com/maven/"
+    }
+    maven {
+        url "http://downloads.mesosphere.com/maven-snapshot/"
+    }
+}
+
+ext {
+    mesosVer = "0.28.0"
+}
+
+dependencies {
+    compile project(":scheduler")
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
+    compile "org.apache.mesos:mesos:${mesosVer}"
+    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
+    testCompile 'de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1'
+}
+
+distributions {
+    main {
+        baseName = 'scheduler'
+        version = ''
+    }
+}
+
+mainClassName = 'com.mesosphere.sdk.elastic.scheduler.Main'

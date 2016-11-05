@@ -39,3 +39,4 @@ frameworks/*/dcos-commons-tools/
 # OS X
 .DS_Store
 
+/cli/_example/

@@ -41,7 +41,7 @@ allprojects {
     compileTestJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 
     task wrapper(type: Wrapper) {
-        gradleVersion = '2.3'
+        gradleVersion = '3.1'
     }
 
     idea {
