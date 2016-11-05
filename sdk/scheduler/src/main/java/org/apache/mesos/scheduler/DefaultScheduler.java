@@ -53,8 +53,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
-    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
-    protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
+    public static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
+    public static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);

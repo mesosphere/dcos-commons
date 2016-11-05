@@ -524,6 +524,10 @@ public class TaskUtils {
         return builder;
     }
 
+    public static int getMemory(TaskSpecification taskSpecification) {
+        Map<String, ResourceSpecification> resourceMap = getResourceSpecMap(taskSpecification.getResources());
+        return (int) resourceMap.get("mem").getValue().getScalar().getValue();
+    }
 
     /**
      * Returns the value of a {@link Label} named {@code key}, or returns {@code null} if no

@@ -14,6 +14,7 @@ repositories {
 }
 
 ext {
+    mockitoVer = "1.9.5"
     mesosVer = "0.28.0"
 }
 
@@ -21,6 +22,7 @@ dependencies {
     compile project(":scheduler")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     compile "org.apache.mesos:mesos:${mesosVer}"
+    testCompile "org.mockito:mockito-all:${mockitoVer}"
     testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
     testCompile 'de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1'
 }

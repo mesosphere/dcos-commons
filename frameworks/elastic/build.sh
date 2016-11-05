@@ -42,6 +42,6 @@ fi
 _notify_github success "Build succeeded"
 
 ./dcos-commons-tools/ci_upload.py \
-  reference \
+  elastic \
   universe/ \
-  reference-scheduler/build/distributions/*.zip
+  build/distributions/*.zip

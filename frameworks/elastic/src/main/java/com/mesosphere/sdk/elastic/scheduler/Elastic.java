@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.ValueUtils;
@@ -11,13 +12,13 @@ import org.apache.mesos.specification.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class ElasticsearchService {
-    private static final String MASTER_NODE_TYPE_NAME = "master";
+class Elastic {
+    static final String MASTER_NODE_TYPE_NAME = "master";
+    static final String DATA_NODE_TYPE_NAME = "data";
+    static final String INGEST_NODE_TYPE_NAME = "ingest";
+    static final String COORDINATOR_NODE_TYPE_NAME = "coordinator";
+    static final String KIBANA_TYPE_NAME = "kibana";
     private static final int MASTER_NODE_COUNT = 3;
-    private static final String DATA_NODE_TYPE_NAME = "data";
-    private static final String INGEST_NODE_TYPE_NAME = "ingest";
-    private static final String COORDINATOR_NODE_TYPE_NAME = "coordinator";
-    private static final String KIBANA_TYPE_NAME = "kibana";
     private static final String CONTAINER_PATH_SUFFIX = "-container-path";
     private static final String FRAMEWORK_USER = System.getenv("FRAMEWORK_USER");
     private static final String FRAMEWORK_ID = System.getenv("MESOS_FRAMEWORK_ID");
@@ -72,7 +73,7 @@ class ElasticsearchService {
     private final KibanaCommand kibanaCommand;
     private final ServiceSpecification serviceSpecification;
 
-    ElasticsearchService() {
+    Elastic() {
         int statsdUdpPort = Integer.parseInt(System.getenv("STATSD_UDP_PORT"));
         String statsdUdpHost = System.getenv("STATSD_UDP_HOST");
         String elasticsearchVerName = System.getenv("ELASTICSEARCH_VER_NAME");
@@ -83,6 +84,10 @@ class ElasticsearchService {
         String kibanaVerName = System.getenv("KIBANA_VER_NAME");
         kibanaCommand = new KibanaCommand(kibanaVerName, XPACK_URI);
         serviceSpecification = new DefaultServiceSpecification(SERVICE_NAME, createTaskSets());
+    }
+
+    List<ConfigurationValidator<ServiceSpecification>> configValidators() {
+        return Collections.singletonList(new HeapCannotExceedHalfMem());
     }
 
     ServiceSpecification getServiceSpecification() {
@@ -202,7 +207,7 @@ class ElasticsearchService {
 
         // ES_JAVA_OPTS used by Elasticsearch to manage heap
         Protos.Environment.Variable heapEnvVar = OfferUtils.createEnvironmentVariable("ES_JAVA_OPTS",
-            elasticsearchHeapOpts(heapSize));
+            OfferUtils.elasticsearchHeapOpts(heapSize));
         // FRAMEWORK_NAME env var needed by dns_utils/wait_dns.sh
         Protos.Environment.Variable fwNameEnvVar = OfferUtils.createEnvironmentVariable("FRAMEWORK_NAME", SERVICE_NAME);
         return Protos.CommandInfo.newBuilder()
@@ -220,6 +225,7 @@ class ElasticsearchService {
 
     private Protos.CommandInfo createKibanaCommandInfo(int nodeId) {
         final String cmd = kibanaCommand.getCommandLineInvocation();
+//        TODO: fromMapToEnvironment
         Protos.Environment.Variable esUrlEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_ELASTICSEARCH_URL",
             String.format("http://master-0.%s.mesos:%d", SERVICE_NAME, masterNodeHttpPort));
         Protos.Environment.Variable nodeNameEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_SERVER_NAME",
@@ -243,10 +249,6 @@ class ElasticsearchService {
 
     private List<Protos.Value.Range> createIndividualPortRanges(List<Integer> individualPorts) {
         return individualPorts.stream().map(OfferUtils::buildSinglePortRange).collect(Collectors.toList());
-    }
-
-    private String elasticsearchHeapOpts(int heapSizeMb) {
-        return String.format("-Xms%1$dM -Xmx%1$dM", heapSizeMb);
     }
 
     private String createContainerPath(String nodeTypeName) {

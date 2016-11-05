@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RunWith(HierarchicalContextRunner.class)
-public class ElasticsearchServiceTest {
+public class ElasticTest {
     @Rule
     public EnvironmentVariables environmentVariables = new EnvironmentVariables();
-    private ElasticsearchService elasticsearchService;
+    private Elastic elastic;
 
     @Before
     public void before() throws Exception {
@@ -80,12 +80,12 @@ public class ElasticsearchServiceTest {
         public void zeroPort() throws Exception {
             environmentVariables.set("MASTER_NODE_HTTP_PORT", "0");
             environmentVariables.set("MASTER_NODE_TRANSPORT_PORT", "0");
-            elasticsearchService = new ElasticsearchService();
+            elastic = new Elastic();
         }
 
         @Test
         public void getTaskSets() throws Exception {
-            TaskSet masterTaskSet = elasticsearchService.getServiceSpecification().getTaskSets().get(1);
+            TaskSet masterTaskSet = elastic.getServiceSpecification().getTaskSets().get(1);
             Assert.assertEquals("master", masterTaskSet.getName());
             List<TaskSpecification> masterTaskSpecifications = masterTaskSet.getTaskSpecifications();
             TaskSpecification masterTaskSpecification = masterTaskSpecifications.get(0);
@@ -98,13 +98,13 @@ public class ElasticsearchServiceTest {
         @Before
         public void noCoordinatorNodes() throws Exception {
             environmentVariables.set("COORDINATOR_NODE_COUNT", "0");
-            elasticsearchService = new ElasticsearchService();
+            elastic = new Elastic();
         }
 
         @Test
         public void getTaskSets() throws Exception {
-            Assert.assertEquals(4, elasticsearchService.getServiceSpecification().getTaskSets().size());
-            List<String> taskNames = elasticsearchService.getServiceSpecification().getTaskSets().stream()
+            Assert.assertEquals(4, elastic.getServiceSpecification().getTaskSets().size());
+            List<String> taskNames = elastic.getServiceSpecification().getTaskSets().stream()
                 .map(TaskSet::getName).collect(Collectors.toList());
             Assert.assertEquals(Arrays.asList("kibana", "master", "data", "ingest"), taskNames);
         }
@@ -115,13 +115,13 @@ public class ElasticsearchServiceTest {
         @Before
         public void noKibanaNodes() throws Exception {
             environmentVariables.set("KIBANA_COUNT", "0");
-            elasticsearchService = new ElasticsearchService();
+            elastic = new Elastic();
         }
 
         @Test
         public void getTaskSets() throws Exception {
-            Assert.assertEquals(4, elasticsearchService.getServiceSpecification().getTaskSets().size());
-            List<String> taskNames = elasticsearchService.getServiceSpecification().getTaskSets().stream()
+            Assert.assertEquals(4, elastic.getServiceSpecification().getTaskSets().size());
+            List<String> taskNames = elastic.getServiceSpecification().getTaskSets().stream()
                 .map(TaskSet::getName).collect(Collectors.toList());
             Assert.assertEquals(Arrays.asList("master", "data", "ingest", "coordinator"), taskNames);
         }
@@ -135,16 +135,16 @@ public class ElasticsearchServiceTest {
 
         @Test
         public void getName() throws Exception {
-            elasticsearchService = new ElasticsearchService();
-            Assert.assertEquals("elastic-framework", elasticsearchService.getServiceSpecification().getName());
+            elastic = new Elastic();
+            Assert.assertEquals("elastic-framework", elastic.getServiceSpecification().getName());
         }
 
         @Test
         public void getTaskSets() throws Exception {
-            elasticsearchService = new ElasticsearchService();
-            Assert.assertEquals(5, elasticsearchService.getServiceSpecification().getTaskSets().size());
+            elastic = new Elastic();
+            Assert.assertEquals(5, elastic.getServiceSpecification().getTaskSets().size());
 
-            TaskSet kibanaTaskSet = elasticsearchService.getServiceSpecification().getTaskSets().get(0);
+            TaskSet kibanaTaskSet = elastic.getServiceSpecification().getTaskSets().get(0);
             Assert.assertEquals("kibana", kibanaTaskSet.getName());
             List<TaskSpecification> kibanaTaskSpecifications = kibanaTaskSet.getTaskSpecifications();
             Assert.assertEquals(1, kibanaTaskSpecifications.size());
@@ -154,28 +154,28 @@ public class ElasticsearchServiceTest {
             Assert.assertEquals("uris { value: \"https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-beta1-linux-x86_64.tar.gz\" } uris { value: \"https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-5.0.0-beta1.zip\" } environment { variables { name: \"KIBANA_ELASTICSEARCH_URL\" value: \"http://master-0.elastic-framework.mesos:9250\" } variables { name: \"KIBANA_SERVER_NAME\" value: \"kibana-0\" } variables { name: \"KIBANA_PASSWORD\" value: \"secret\" } variables { name: \"KIBANA_PORT\" value: \"5601\" } variables { name: \"KIBANA_ENCRYPTION_KEY\" value: \"elastic-framework-id\" } } value: \"$MESOS_SANDBOX/https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-beta1-linux-x86_64.tar.gz/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-5.0.0-beta1.zip && exec $MESOS_SANDBOX/https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-beta1-linux-x86_64.tar.gz/bin/kibana -c kibana.yml\" user: \"core\"",
                 TextFormat.shortDebugString(kibanaTaskSpecification.getCommand().get()));
 
-            TaskSet masterTaskSet = elasticsearchService.getServiceSpecification().getTaskSets().get(1);
+            TaskSet masterTaskSet = elastic.getServiceSpecification().getTaskSets().get(1);
             Assert.assertEquals("master", masterTaskSet.getName());
             List<TaskSpecification> masterTaskSpecifications = masterTaskSet.getTaskSpecifications();
             Assert.assertEquals(3, masterTaskSpecifications.size());
             TaskSpecification masterTaskSpecification = masterTaskSpecifications.get(0);
             Assert.assertEquals("master-0", masterTaskSpecification.getName());
 
-            TaskSet dataTaskSet = elasticsearchService.getServiceSpecification().getTaskSets().get(2);
+            TaskSet dataTaskSet = elastic.getServiceSpecification().getTaskSets().get(2);
             Assert.assertEquals("data", dataTaskSet.getName());
             List<TaskSpecification> dataTaskSpecifications = dataTaskSet.getTaskSpecifications();
             Assert.assertEquals(2, dataTaskSpecifications.size());
             TaskSpecification dataTaskSpecification = dataTaskSpecifications.get(1);
             Assert.assertEquals("data-1", dataTaskSpecification.getName());
 
-            TaskSet ingestTaskSet = elasticsearchService.getServiceSpecification().getTaskSets().get(3);
+            TaskSet ingestTaskSet = elastic.getServiceSpecification().getTaskSets().get(3);
             Assert.assertEquals("ingest", ingestTaskSet.getName());
             List<TaskSpecification> ingestTaskSpecifications = ingestTaskSet.getTaskSpecifications();
             Assert.assertEquals(1, ingestTaskSpecifications.size());
             TaskSpecification ingestTaskSpecification = ingestTaskSpecifications.get(0);
             Assert.assertEquals("ingest-0", ingestTaskSpecification.getName());
 
-            TaskSet coordinatorTaskSet = elasticsearchService.getServiceSpecification().getTaskSets().get(4);
+            TaskSet coordinatorTaskSet = elastic.getServiceSpecification().getTaskSets().get(4);
             Assert.assertEquals("coordinator", coordinatorTaskSet.getName());
             List<TaskSpecification> coordinatorTaskSpecifications = coordinatorTaskSet.getTaskSpecifications();
             Assert.assertEquals(1, coordinatorTaskSpecifications.size());

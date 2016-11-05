@@ -28,4 +28,10 @@ public class OfferUtilsTest {
         Assert.assertEquals("bar", variable.getValue());
     }
 
+    @Test
+    public void heapFromOpts() throws Exception {
+        Assert.assertEquals(1234, OfferUtils.heapFromOpts("-Xms1234M -Xmx1234M"));
+        Assert.assertEquals(0, OfferUtils.heapFromOpts("invalid"));
+    }
+
 }
