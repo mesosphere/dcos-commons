@@ -4,6 +4,9 @@ import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 
+/**
+ * This class describes port requirements that should be routed to with a named VIP (or "service address") in DC/OS.
+ */
 public class NamedVIPPortRequirement extends ResourceRequirement {
     private static final String VIP_LABEL_NAME_KEY = "vip_key";
     private static final String VIP_LABEL_VALUE_KEY = "vip_value";
@@ -43,7 +46,8 @@ public class NamedVIPPortRequirement extends ResourceRequirement {
         return null;
     }
 
-    public static Protos.Resource getDesiredNamedVIPPort(String key, String name, Long port, String role, String principal) {
+    public static Protos.Resource getDesiredNamedVIPPort(
+            String key, String name, Long port, String role, String principal) {
         return ResourceUtils.setVIPPortName(
                 ResourceUtils.getDesiredRanges(
                         role,
@@ -76,6 +80,9 @@ public class NamedVIPPortRequirement extends ResourceRequirement {
         }
     }
 
+    /**
+     * Exception thrown when attempting to create malformed NamedVIPPortRequirements.
+     */
     public static class NamedVIPPortException extends InvalidRequirementException {
 
         public NamedVIPPortException(String msg) {

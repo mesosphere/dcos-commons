@@ -275,7 +275,8 @@ public class ResourceUtils {
      * Populates {@link DiscoveryInfo} with necessary information to create VIP if the provided {@link ExecutorInfo}
      * has a port associated with a named VIP.
      */
-    public static ExecutorInfo.Builder setDiscoveryInfo(ExecutorInfo.Builder execBuilder, Collection<Resource> resources) {
+    public static ExecutorInfo.Builder setDiscoveryInfo(
+            ExecutorInfo.Builder execBuilder, Collection<Resource> resources) {
         for (Resource r : resources) {
             if (RequirementUtils.isNamedVIPPort(r)) {
                 DiscoveryInfo.Builder discoveryBuilder = DiscoveryInfo.newBuilder()
