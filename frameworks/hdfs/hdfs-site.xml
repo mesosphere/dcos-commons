@@ -152,7 +152,7 @@
         <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value>
     </property>
 
-    {{#securemode}}
+    {{#SECURE_MODE}}
         <property>
             <name>ignore.secure.ports.for.testing</name>
             <value>true</value>
@@ -178,7 +178,11 @@
         </property>
         <property>
             <name>hadoop.rpc.protection</name>
-            <value>authentication</value>
+            <value>privacy</value>
+        </property>
+        <property>
+            <name>dfs.encrypt.data.transfer</name>
+            <value>true</value>
         </property>
         <property>
             <name>dfs.block.access.token.enable</name>
@@ -272,5 +276,5 @@
             <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
         </property>
         {{/journalnode}}
-    {{/securemode}}
+    {{/SECURE_MODE}}
 </configuration>

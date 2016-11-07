@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
+import org.apache.mesos.offer.constrain.AndRule;
 import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
 import org.apache.mesos.offer.constrain.TaskTypeGenerator;
 import org.apache.mesos.scheduler.SchedulerUtils;
@@ -97,7 +98,8 @@ public class Main {
                                 getResources(ZKFC_PROCESS_CPU, ZKFC_PROCESS_MEM_MB),
                                 getVolumes(ZKFC_PROCESS_DISK_MB),
                                 configFiles,
-                                Optional.of(TaskTypeGenerator.createColocate(NAME_NODE_NAME)),
+                                Optional.of(new AndRule.Generator(TaskTypeGenerator.createAvoid(ZKFC_PROCESS_NAME),
+                                        TaskTypeGenerator.createColocate(NAME_NODE_NAME))),
                                 Optional.empty()),
                         HDFSTaskSet.create(DATA_NODE_COUNT,
                                 DATA_NODE_NAME,
