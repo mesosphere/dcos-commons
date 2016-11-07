@@ -63,10 +63,12 @@ public class DefaultService implements Service {
      */
     public DefaultService(int apiPort,
                           String zkConnectionString,
-                          Collection<ConfigurationValidator<ServiceSpecification>> configValidators)  {
+                          Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
         this.apiPort = apiPort;
         this.zkConnectionString = zkConnectionString;
-        List<ConfigurationValidator<ServiceSpecification>> validators = DefaultScheduler.defaultConfigValidators();
+        List<ConfigurationValidator<ServiceSpecification>> validators =
+                new ArrayList<>(DefaultScheduler.defaultConfigValidators());
+
         validators.addAll(configValidators);
         this.configValidators = validators;
     }
