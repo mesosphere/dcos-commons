@@ -284,10 +284,11 @@ class CCMLauncher(object):
                 sys.stdout = stdout
 
             run_script('create_service_account.sh', '--strict')
-            run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
-            run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
-            run_script('setup_permissions.sh', 'nobody kafka-role'.split())
-            run_script('setup_permissions.sh', 'nobody spark-role'.split())
+            # These should instead be run by individual tests. See projects' test.sh:
+            #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
+            #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
+            #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
+            #run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
         # we fetch the token once up-front because on Open clusters it must be reused.
         # given that, we may as well use the same flow across both Open and EE.
