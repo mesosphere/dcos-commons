@@ -275,7 +275,7 @@ class CCMLauncher(object):
             logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
 
             def run_script(scriptname, args = []):
-                print('Command: {} {}'.format(scriptname, ' '.join(args)))
+                logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
                 # force total redirect to stderr:
                 stdout = sys.stdout
                 sys.stdout = sys.stderr

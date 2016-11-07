@@ -70,4 +70,4 @@ curl -k -L -X PUT \
      -H "Authorization: token=${ACS_TOKEN}" \
      "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:volume:role:${ROLE}/users/${SERVICE_ACCOUNT_NAME}/delete"
 
-echo Permission setup DONE for user=$LINUX_USER role=$ROLE
+echo Permission setup completed for user=$LINUX_USER role=$ROLE
