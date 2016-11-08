@@ -260,6 +260,7 @@ class CCMLauncher(object):
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
+        logger.info('Cluster is now RUNNING: {}'.format(cluster_info))
 
         if config.mount_volumes:
             logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
