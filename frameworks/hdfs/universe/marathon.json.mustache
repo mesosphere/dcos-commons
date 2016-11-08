@@ -66,7 +66,7 @@
        ,"SERVICE_USER":"nobody"
        ,"SECURE_MODE":"{{service.secure_mode}}"
        ,"KEYTABS_URI":"{{service.keytabs_uri}}"
-       ,"TASK_JRE":"https://s3-us-west-2.amazonaws.com/infinity-artifacts/jre-8u91-linux-x64.tar.gz"
+       ,"TASK_JRE_URI":"{{service.task_jre_uri}}"
        ,"NAME_NODE_CPUS":"{{name_node.cpus}}"
        ,"NAME_NODE_MEMORY_MB":"{{name_node.mem}}"
        ,"NAME_NODE_HEAP_MB":"{{name_node.heap}}"
@@ -132,6 +132,9 @@
        ,"TASKCFG_ALL_HADOOP_PROXYUSER_ROOT_GROUPS": "*"
        ,"TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_GROUPS": "*"
        ,"TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS": "*"
+       ,"TASKCFG_ALL_HADOOP_OPTS": "{{hdfs.hadoop_opts}}"
+       ,"TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}"
+       ,"TASKCFG_ALL_SECURE_MODE": "{{service.secure_mode}}"
        ,"API_PORT":"{{service.api_port}}"
     }
 }

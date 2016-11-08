@@ -29,7 +29,7 @@ public class Main {
 
     private static final Boolean SECURE_MODE = Boolean.parseBoolean(System.getenv("SECURE_MODE"));
     private static final String KEYTABS_URI = System.getenv("KEYTABS_URI");
-    private static final String TASK_JRE = System.getenv("TASK_JRE");
+    private static final String TASK_JRE_URI = System.getenv("TASK_JRE_URI");
 
     private static final String JOURNAL_NODE_NAME = "journalnode";
     private static final int JOURNAL_NODE_COUNT = Integer.parseInt(System.getenv("JOURNAL_NODE_COUNT"));
@@ -180,7 +180,6 @@ public class Main {
     }
 
     private static Protos.CommandInfo getCommand(String taskName, int instanceIndex) {
-
         String cmd = "env && ";
 
         if (!taskName.equals(ZKFC_PROCESS_NAME)) {
@@ -202,24 +201,14 @@ public class Main {
 
         String taskInstanceName = taskName + "-" + instanceIndex;
         final Protos.CommandInfo.Builder builder = Protos.CommandInfo.newBuilder();
-        final Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
         if (SECURE_MODE) {
             builder.addUris(Protos.CommandInfo.URI.newBuilder().setValue(KEYTABS_URI));
-            envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
-                        .setName("HADOOP_OPTS")
-                        .setValue("-Dsun.security.krb5.debug=true"))
-                    .addVariables(Protos.Environment.Variable.newBuilder()
-                            .setName("SECURE_MODE")
-                            .setValue(SECURE_MODE.toString()))
-                    .addVariables(Protos.Environment.Variable.newBuilder()
-                        .setName("HADOOP_ROOT_LOGGER")
-                        .setValue("TRACE,console"));
         }
         return builder
                 .addUris(Protos.CommandInfo.URI.newBuilder().setValue(HDFS_URI))
-                .addUris(Protos.CommandInfo.URI.newBuilder().setValue(TASK_JRE))
+                .addUris(Protos.CommandInfo.URI.newBuilder().setValue(TASK_JRE_URI))
                 .setValue(cmd)
-                .setEnvironment(envBuilder
+                .setEnvironment(Protos.Environment.newBuilder()
                         .addVariables(Protos.Environment.Variable.newBuilder()
                                 .setName("TASK_NAME")
                                 .setValue(taskInstanceName))
