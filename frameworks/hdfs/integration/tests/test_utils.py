@@ -3,11 +3,16 @@ import time
 import dcos
 import shakedown
 
+from tests.defaults import (
+    IS_STRICT,
+    PACKAGE_NAME,
+    PRINCIPAL,
+    TASK_RUNNING_STATE,
+)
 
-PACKAGE_NAME = 'hdfs'
+
 WAIT_TIME_IN_SECONDS = 15 * 60
 
-TASK_RUNNING_STATE = 'TASK_RUNNING'
 DEFAULT_HDFS_TASK_COUNT = 8 # 3 data nodes, 3 journal nodes, 2 name nodes
 
 
@@ -38,9 +43,11 @@ def uninstall():
         print('Got exception when uninstalling package, continuing with janitor anyway: {}'.format(e))
 
     shakedown.run_command_on_master(
-        'docker run mesosphere/janitor /janitor.py '
-        '-r hdfs-role -p hdfs-principal -z dcos-service-hdfs/hdfs '
+        'docker run mesosphere/janitor /janitor.py {}'
+        '-r hdfs-role -p {} -z dcos-service-hdfs '
         '--auth_token={}'.format(
+            '-m https://leader.mesos:5050/master/ ' if IS_STRICT else '',
+            PRINCIPAL,
             shakedown.run_dcos_command(
                 'config show core.dcos_acs_token'
             )[0].strip()
