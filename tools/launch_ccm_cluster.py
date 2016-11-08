@@ -283,8 +283,8 @@ class CCMLauncher(object):
                 subprocess.check_call(['bash', script_path] + args)
                 sys.stdout = stdout
 
-            run_script('create_service_account.sh', '--strict')
-            # These should instead be run by individual tests. See projects' test.sh:
+            run_script('create_service_account.sh', ['--strict'])
+            # Examples of what individual tests should run. See respective projects' "test.sh":
             #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
             #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
             #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
