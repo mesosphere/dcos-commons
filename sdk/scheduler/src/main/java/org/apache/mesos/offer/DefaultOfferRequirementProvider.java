@@ -198,7 +198,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return resources;
     }
 
-    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec) {
+    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec)
+            throws InvalidRequirementException {
         ResourceSet resourceSet = getResourceSet(taskSpec);
         Collection<Protos.Resource> resources = new ArrayList<>();
 
@@ -234,8 +235,16 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return resources;
     }
 
-    private static ResourceSet getResourceSet(TaskSpec taskSpec) {
-        throw new UnsupportedOperationException("getResourceSet is not yet implemented.");
+    private static ResourceSet getResourceSet(TaskSpec taskSpec) throws InvalidRequirementException {
+        Optional<ResourceSet> resourceSetOptional = taskSpec.getPod().getResources().stream()
+                .filter(resourceSet -> resourceSet.getId().equals(taskSpec.getResourceSetId()))
+                .findFirst();
+
+        if (resourceSetOptional.isPresent()) {
+            return resourceSetOptional.get();
+        } else {
+            throw new InvalidRequirementException("Failed to find ResourceSet for TaskSpec: " + taskSpec);
+        }
     }
 
     private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
@@ -302,13 +311,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private Protos.ExecutorInfo getExecutorInfo(TaskSpec taskSpec) throws IllegalStateException {
-
-        // In this case the Executor is already running, so no modification to the ExecutorInfo can be made.
-        Optional<Protos.ExecutorInfo> executorInfoOptional = getExecutorInfo(taskSpec.getPod());
-        if (executorInfoOptional.isPresent()) {
-            return executorInfoOptional.get();
-        }
-
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(taskSpec.getName())
@@ -340,11 +342,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         executorInfoBuilder.setCommand(commandInfoBuilder.build());
         return executorInfoBuilder.build();
-    }
-
-    private Optional<Protos.ExecutorInfo> getExecutorInfo(PodSpec podSpec) {
-        // TODO: Get ExecutorInfo from StateStore
-        throw new UnsupportedOperationException("getExecutorInfo(podSpec) is not yet implemented.");
     }
 
     /**

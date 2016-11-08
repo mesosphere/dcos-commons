@@ -1,11 +1,7 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.offer.constrain.PlacementRule;
-import org.apache.mesos.specification.DefaultResourceSpecification;
-import org.apache.mesos.specification.DefaultVolumeSpecification;
-import org.apache.mesos.specification.ResourceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
-import org.apache.mesos.specification.VolumeSpecification;
+import org.apache.mesos.specification.*;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
@@ -27,6 +23,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -85,6 +82,46 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertNotNull(offerRequirement);
         Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
         Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
+    }
+
+    @Test(expected=InvalidRequirementException.class)
+    public void testNewOfferRequirementEmptyResourceSets() throws InvalidRequirementException {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getResources()).thenReturn(Collections.emptyList());
+
+        TaskSpec taskSpec = mock(TaskSpec.class);
+        when(taskSpec.getName()).thenReturn("task_spec_name");
+        when(taskSpec.getPod()).thenReturn(podSpec);
+
+        PROVIDER.getNewOfferRequirement(taskSpec);
+    }
+
+    @Test
+    public void testNewOfferRequirement() throws InvalidRequirementException {
+        ResourceSpecification resourceSpecification = new DefaultResourceSpecification(
+                "cpus",
+                ValueUtils.getValue(ResourceTestUtils.getDesiredCpu(1.0)),
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        ResourceSet resourceSet = mock(ResourceSet.class);
+        when(resourceSet.getResources()).thenReturn(Arrays.asList(resourceSpecification));
+        when(resourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
+        when(podSpec.getType()).thenReturn(TestConstants.TASK_TYPE);
+
+        TaskSpec taskSpec = mock(TaskSpec.class);
+        when(taskSpec.getName()).thenReturn("task_spec_name");
+        when(taskSpec.getPod()).thenReturn(podSpec);
+        when(taskSpec.getResourceSetId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+        when(taskSpec.getCommand()).thenReturn(Optional.empty());
+        when(taskSpec.getContainer()).thenReturn(Optional.empty());
+
+        OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(taskSpec);
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertNotNull(offerRequirement.getTaskType());
     }
 
     private TaskSpecification setupMock(Protos.TaskInfo taskInfo) {
