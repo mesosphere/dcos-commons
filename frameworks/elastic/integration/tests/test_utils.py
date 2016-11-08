@@ -9,10 +9,12 @@ import shakedown
 
 DEFAULT_HTTP_PORT = 9200
 
-PACKAGE_NAME = 'elasticsearch'
-WAIT_TIME_IN_SECONDS = 600
+PACKAGE_NAME = 'elastic'
+WAIT_TIME_IN_SECONDS = 1200
 DEFAULT_TASK_COUNT = 8
 DEFAULT_NODE_COUNT = 7
+DEFAULT_INDEX_NAME = 'customer'
+DEFAULT_INDEX_TYPE = 'entry'
 DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
 
@@ -41,7 +43,7 @@ def check_dcos_service_health():
     return shakedown.service_healthy(PACKAGE_NAME)
 
 
-def check_dcos_tasks_health(task_count):
+def wait_for_dcos_tasks_health(task_count):
     def fn():
         try:
             return shakedown.get_service_tasks(PACKAGE_NAME)
@@ -67,6 +69,19 @@ def check_elasticsearch_index_health(index_name, color, http_port=DEFAULT_HTTP_P
     def success_predicate(result):
         return (
             result and result["status"] == color, 'Index did not reach {}'.format(color)
+        )
+
+    return spin(fn, success_predicate)
+
+
+def wait_for_expected_nodes_to_exist():
+    def fn():
+        return get_elasticsearch_cluster_health()
+
+    def success_predicate(result):
+        return (
+            result and result["number_of_nodes"] == DEFAULT_NODE_COUNT,
+            'Cluster did not reach {} nodes'.format(DEFAULT_NODE_COUNT)
         )
 
     return spin(fn, success_predicate)
@@ -109,7 +124,8 @@ def check_new_elasticsearch_master_elected(initial_master):
 
 
 def marathon_update(config):
-    request(requests.put, marathon_api_url('apps/elasticsearch'), json=config, headers=REQUEST_HEADERS, verify=False)
+    request(requests.put, marathon_api_url('apps/{}'.format(PACKAGE_NAME)), json=config, headers=REQUEST_HEADERS,
+            verify=False)
 
 
 def request(request_fn, *args, **kwargs):
@@ -140,6 +156,12 @@ def get_hosts_with_plugin(plugin_name):
 def get_elasticsearch_index_health(index_name, http_port=DEFAULT_HTTP_PORT):
     exit_status, output = shakedown.run_command_on_master(
         "{}/_cluster/health/{}'".format(curl_api("GET", http_port), index_name))
+    return output
+
+
+@as_json
+def get_elasticsearch_cluster_health():
+    exit_status, output = shakedown.run_command_on_master("{}/_cluster/health'".format(curl_api("GET")))
     return output
 
 
@@ -183,10 +205,6 @@ def get_document(index_name, index_type, doc_id):
     return output
 
 
-def curl_api(method, http_port=DEFAULT_HTTP_PORT):
-    return "curl -X{} -s -u elastic:changeme 'http://master-0.{}.mesos:{}".format(method, PACKAGE_NAME, http_port)
-
-
 def spin(fn, success_predicate, *args, **kwargs):
     end_time = time.time() + WAIT_TIME_IN_SECONDS
     while time.time() < end_time:
@@ -223,12 +241,14 @@ def uninstall():
 
 
 def get_elasticsearch_config():
-    response = requests.get(marathon_api_url('apps/elasticsearch/versions'), headers=REQUEST_HEADERS, verify=False)
+    response = requests.get(marathon_api_url('apps/{}/versions'.format(PACKAGE_NAME)), headers=REQUEST_HEADERS,
+                            verify=False)
     assert response.status_code == 200, 'Marathon versions request failed'
 
     version = response.json()['versions'][0]
 
-    response = requests.get(marathon_api_url('apps/elasticsearch/versions/%s' % version), headers=REQUEST_HEADERS,
+    response = requests.get(marathon_api_url('apps/{}/versions/{}'.format(PACKAGE_NAME, version)),
+                            headers=REQUEST_HEADERS,
                             verify=False)
     assert response.status_code == 200
 
@@ -239,9 +259,9 @@ def get_elasticsearch_config():
     return config
 
 
-def elasticsearch_api_url(basename):
-    return '{}/v1/{}'.format(shakedown.dcos_service_url('elasticsearch'), basename)
-
-
 def marathon_api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
+
+
+def curl_api(method, http_port=DEFAULT_HTTP_PORT):
+    return "curl -X{} -s -u elastic:changeme 'http://master-0.{}.mesos:{}".format(method, PACKAGE_NAME, http_port)

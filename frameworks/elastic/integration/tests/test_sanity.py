@@ -2,8 +2,6 @@ import pytest
 
 from tests.test_utils import *
 
-DEFAULT_INDEX_NAME = 'customer'
-DEFAULT_INDEX_TYPE = 'entry'
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
 DEFAULT_SETTINGS_MAPPINGS = {
@@ -17,6 +15,20 @@ DEFAULT_SETTINGS_MAPPINGS = {
                 "role": {"type": "keyword"}}}}}
 
 
+def setup_module(module):
+    uninstall()
+    shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None, timeout_sec=WAIT_TIME_IN_SECONDS)
+
+
+def setup_function(function):
+    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT)
+    wait_for_expected_nodes_to_exist()
+
+
+def teardown_module(module):
+    uninstall()
+
+
 @pytest.fixture
 def default_populated_index():
     delete_index(DEFAULT_INDEX_NAME)
@@ -26,20 +38,8 @@ def default_populated_index():
 
 
 @pytest.mark.sanity
-def test_tasks_health():
-    check_dcos_tasks_health(DEFAULT_TASK_COUNT)
-
-
-@pytest.mark.sanity
 def test_service_health():
     check_dcos_service_health()
-
-
-@pytest.mark.sanity
-def test_expected_nodes_exist():
-    cluster_health = get_elasticsearch_index_health(DEFAULT_INDEX_NAME)
-
-    assert cluster_health["number_of_nodes"] == DEFAULT_NODE_COUNT
 
 
 @pytest.mark.sanity
@@ -104,16 +104,6 @@ def test_plugin_install_and_uninstall(default_populated_index):
     check_plugin_uninstalled(plugin_name)
 
 
-@pytest.mark.bump
-def test_bump_data_nodes():
-    config = get_elasticsearch_config()
-    data_nodes = int(config['env']['DATA_NODE_COUNT'])
-    config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
-    marathon_update(config)
-
-    check_dcos_tasks_health(DEFAULT_TASK_COUNT + 1)
-
-
 @pytest.mark.ports
 def test_change_master_ports(default_populated_index):
     config = get_elasticsearch_config()
@@ -125,3 +115,22 @@ def test_change_master_ports(default_populated_index):
     config['env']['MASTER_NODE_HTTP_PORT'] = str(new_master_http_port)
     marathon_update(config)
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", new_master_http_port)
+
+    config['env']['MASTER_NODE_HTTP_PORT'] = str(master_http_port)
+    config['env']['MASTER_NODE_TRANSPORT_PORT'] = str(master_transport_port)
+    marathon_update(config)
+    check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", master_http_port)
+
+
+@pytest.mark.bump
+def test_bump_node_counts():
+    config = get_elasticsearch_config()
+    data_nodes = int(config['env']['DATA_NODE_COUNT'])
+    config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
+    ingest_nodes = int(config['env']['INGEST_NODE_COUNT'])
+    config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
+    coordinator_nodes = int(config['env']['COORDINATOR_NODE_COUNT'])
+    config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
+    marathon_update(config)
+
+    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT + 3)
