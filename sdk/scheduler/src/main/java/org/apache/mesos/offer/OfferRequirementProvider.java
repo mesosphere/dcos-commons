@@ -1,6 +1,7 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.specification.TaskSpecification;
 
 /**
@@ -16,6 +17,8 @@ public interface OfferRequirementProvider {
      */
     OfferRequirement getNewOfferRequirement(TaskSpecification taskSpecification)
             throws InvalidRequirementException;
+
+    OfferRequirement getNewOfferRequirement(TaskSpec taskSpec) throws InvalidRequirementException;
 
     /**
      * Provides an OfferRequirement encapsulating the needs of a Task undergoing an update.  The previous incarnation of

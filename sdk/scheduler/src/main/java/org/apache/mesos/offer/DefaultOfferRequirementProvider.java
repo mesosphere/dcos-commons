@@ -62,6 +62,41 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 taskSpecification.getPlacement());
     }
 
+    @Override
+    public OfferRequirement getNewOfferRequirement(TaskSpec taskSpec) throws InvalidRequirementException {
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
+                .setName(taskSpec.getName())
+                .setTaskId(TaskUtils.emptyTaskId())
+                .setSlaveId(TaskUtils.emptyAgentId())
+                .addAllResources(getNewResources(taskSpec));
+
+        TaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
+        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+
+        if (taskSpec.getCommand().isPresent()) {
+            // TODO: update command environment
+            // Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpecification.getType())
+            //        .updateEnvironment(taskSpecification.getCommand().get());
+            //taskInfoBuilder.setCommand(updatedCommand);
+            taskInfoBuilder.setCommand(Protos.CommandInfo.newBuilder().setValue(taskSpec.getCommand().get()));
+        }
+
+        if (taskSpec.getContainer().isPresent()) {
+            taskInfoBuilder.setContainer(taskSpec.getContainer().get().getContainerInfo());
+        }
+
+        // TODO: put health-checks back
+        //if (taskSpecification.getHealthCheck().isPresent()) {
+        //    taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
+        //}
+
+        return OfferRequirement.create(
+                taskSpec.getPod().getType(),
+                Arrays.asList(taskInfoBuilder.build()),
+                Optional.of(getExecutorInfo(taskSpec)),
+                taskSpec.getPod().getPlacementRule());
+    }
+
 
     @Override
     public OfferRequirement getExistingOfferRequirement(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
@@ -163,6 +198,46 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return resources;
     }
 
+    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec) {
+        ResourceSet resourceSet = getResourceSet(taskSpec);
+        Collection<Protos.Resource> resources = new ArrayList<>();
+
+        for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
+            resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
+        }
+
+        if (resourceSet.getVolumes().size() > 0) {
+            for (VolumeSpecification volumeSpecification : resourceSet.getVolumes()) {
+                switch (volumeSpecification.getType()) {
+                    case ROOT:
+                        resources.add(
+                                ResourceUtils.getDesiredRootVolume(
+                                        volumeSpecification.getRole(),
+                                        volumeSpecification.getPrincipal(),
+                                        volumeSpecification.getValue().getScalar().getValue(),
+                                        volumeSpecification.getContainerPath()));
+                        break;
+                    case MOUNT:
+                        resources.add(
+                                ResourceUtils.getDesiredMountVolume(
+                                        volumeSpecification.getRole(),
+                                        volumeSpecification.getPrincipal(),
+                                        volumeSpecification.getValue().getScalar().getValue(),
+                                        volumeSpecification.getContainerPath()));
+                        break;
+                    default:
+                        LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
+                }
+            }
+        }
+
+        return resources;
+    }
+
+    private static ResourceSet getResourceSet(TaskSpec taskSpec) {
+        throw new UnsupportedOperationException("getResourceSet is not yet implemented.");
+    }
+
     private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
         Map<String, Protos.Resource> resourceMap = new HashMap<>();
         for (Protos.Resource resource : resources) {
@@ -226,6 +301,52 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return executorInfoBuilder.build();
     }
 
+    private Protos.ExecutorInfo getExecutorInfo(TaskSpec taskSpec) throws IllegalStateException {
+
+        // In this case the Executor is already running, so no modification to the ExecutorInfo can be made.
+        Optional<Protos.ExecutorInfo> executorInfoOptional = getExecutorInfo(taskSpec.getPod());
+        if (executorInfoOptional.isPresent()) {
+            return executorInfoOptional.get();
+        }
+
+        Protos.CommandInfo.URI executorURI;
+        Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
+                .setName(taskSpec.getName())
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
+
+        String executorStr = System.getenv(EXECUTOR_URI);
+        if (executorStr == null) {
+            throw new IllegalStateException("Missing environment variable: " + EXECUTOR_URI);
+        }
+        executorURI = TaskUtils.uri(executorStr);
+
+        Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
+                .setValue("./executor/bin/executor")
+                .addUris(executorURI);
+
+        if (taskSpec.getCommand().isPresent()) {
+            Protos.CommandInfo taskCommand = Protos.CommandInfo.newBuilder()
+                    .setValue(taskSpec.getCommand().get())
+                    .build();
+            commandInfoBuilder.addAllUris(taskCommand.getUrisList());
+
+            if (taskCommand.hasUser()) {
+                commandInfoBuilder.setUser(taskCommand.getUser());
+            }
+        }
+
+        // some version of the JRE is required to kickstart the executor
+        setJREVersion(commandInfoBuilder, taskSpec);
+
+        executorInfoBuilder.setCommand(commandInfoBuilder.build());
+        return executorInfoBuilder.build();
+    }
+
+    private Optional<Protos.ExecutorInfo> getExecutorInfo(PodSpec podSpec) {
+        // TODO: Get ExecutorInfo from StateStore
+        throw new UnsupportedOperationException("getExecutorInfo(podSpec) is not yet implemented.");
+    }
+
     /**
      * Determines the version of the JRE to use for the custom executor.
      * @param taskSpecification If a specific JRE is specified, it would be included in
@@ -240,6 +361,26 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
             Map<String, String> environment =
                     TaskUtils.fromEnvironmentToMap(taskSpecification.getCommand().get().getEnvironment());
+            if (environment.containsKey(JAVA_HOME)) {
+                javaHomeVariable.setValue(environment.get(JAVA_HOME));
+            } else {
+                javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
+                commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
+            }
+
+            Protos.Environment.Builder environmentBuilder = Protos.Environment.newBuilder()
+                    .addVariables(javaHomeVariable);
+            commandInfoBuilder.setEnvironment(environmentBuilder);
+        }
+    }
+
+    private void setJREVersion(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
+
+        if (taskSpec.getCommand().isPresent()) {
+            Protos.Environment.Variable.Builder javaHomeVariable =
+                    Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
+
+            Map<String, String> environment = taskSpec.getEnvironment();
             if (environment.containsKey(JAVA_HOME)) {
                 javaHomeVariable.setValue(environment.get(JAVA_HOME));
             } else {

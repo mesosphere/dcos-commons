@@ -9,10 +9,12 @@ import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
 import org.apache.mesos.scheduler.SchedulerUtils;
+import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -63,6 +65,10 @@ public class DefaultService implements Service {
      * {@code apiPort}.
      */
     @Override
+    public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
+
+    }
+
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
         this.stateStore = DefaultScheduler.createStateStore(serviceSpecification, zkConnectionString);
@@ -129,4 +135,5 @@ public class DefaultService implements Service {
 
         return fwkInfoBuilder.build();
     }
+
 }

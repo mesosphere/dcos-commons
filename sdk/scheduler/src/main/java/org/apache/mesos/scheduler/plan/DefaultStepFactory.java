@@ -7,6 +7,7 @@ import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
@@ -69,6 +70,14 @@ public class DefaultStepFactory implements StepFactory {
             LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
+    }
+
+    public Step getStep(TaskSpec taskSpec) throws InvalidRequirementException {
+        return new DefaultStep(
+                taskSpec.getName(),
+                Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpec)),
+                Status.PENDING,
+                Collections.emptyList());
     }
 
     private Status getStatus(Protos.TaskInfo taskInfo) {
