@@ -1,5 +1,7 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -12,6 +14,12 @@ public interface TaskSpec {
     String getName();
     GoalState getGoal();
     String getResourceSet();
+
+    // This method must be ignored to avoid infinite recursion, during serialization.  TaskSpecs should be constructed
+    // with reference to their parent Pod which should be derived from structure of ServiceSpecification stored in the
+    // ConfigStore.
+    @JsonIgnore
+    PodSpec getPod();
 
     Optional<String> getCommand();
     Optional<ContainerSpec> getContainer();
