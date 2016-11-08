@@ -1,15 +1,16 @@
 {
   "packagingVersion": "2.0",
-  "name": "elasticsearch",
+  "name": "elastic",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
-  "description": "An example implementation of a stateful service using the DC/OS SDK",
+  "description": "Elasticsearch 5, Kibana 5, and X-Pack",
   "selected": true,
   "framework": true,
   "tags": [
     "kibana",
-    "elasticsearch"
+    "elasticsearch",
+    "x-pack"
   ],
-  "postInstallNotes": "elasticsearch post install notes.",
-  "postUninstallNotes": "elasticsearch post uninstall notes"
+  "postInstallNotes": "elastic post install notes.",
+  "postUninstallNotes": "elastic post uninstall notes"
 }

@@ -8,7 +8,7 @@
         "name": {
           "description": "The name of the Elasticsearch service instance",
           "type": "string",
-          "default": "elasticsearch"
+          "default": "elastic"
         },
         "user": {
           "description": "The user to run the Elasticsearch service instance and own the sandbox.",
