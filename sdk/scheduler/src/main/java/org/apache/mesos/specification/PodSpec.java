@@ -9,7 +9,8 @@ import java.util.Optional;
  * Created by gabriel on 11/7/16.
  */
 public interface PodSpec {
-    String getName();
+    String getType();
+    String getInstanceName();
     Collection<TaskSpec> getTasks();
     Collection<ResourceSet> getResources();
     Optional<PlacementRule> getPlacementRule();
