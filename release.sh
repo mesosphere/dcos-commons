@@ -10,5 +10,5 @@ cd $REPO_ROOT_DIR
 ./build.sh
 ./gradlew publish
 
-# Build and upload tools to S3:
-./tools/release.sh
+# Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
+# This ensures that builds against different tags don't step on each other.
