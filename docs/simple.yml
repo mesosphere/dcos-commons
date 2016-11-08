@@ -1,0 +1,134 @@
+name: service
+environment:
+  - TYPE_A_COUNT: 3
+  - TYPE_A_CPUS: 1.0
+  - TYPE_A_MEM: 1024
+  - TYPE_A_DISK: 1024
+pods:
+  # Simple resources example
+  - name: pod-type-a
+    placement: <constraint language>
+    count: {$TYPE_A_COUNT}
+    strategy: parallel
+    tasks:
+      - name: task-a
+        goal: RUNNING
+        cmd: ./task-a --port0 $DYN_PORT_NAME --port1 $STATIC_PORT_NAME
+        container: ubuntu:latest
+        env:
+          TASK_A_FOO: ${TYPE_A_COUNT}
+        uris:
+          - http:\/foo.bar.com/
+        configurations:
+          - src: config.file
+            dst: /config/path/config.file
+        resources:
+          - name: cpus
+            value: {$TYPE_A_CPUS}
+          - name: mem
+            value: {$TYPE_A_MEM}
+          - name: port
+            value: 0
+            env-key: DYN_PORT_NAME
+          - name: port
+            value: 4356
+            env-key: STATIC_PORT_NAME
+          volumes:
+            - path: /data/path-foo
+              type: MOUNT
+              constraints:
+                - ssd:true
+              size: {$TYPE_A_DISK}
+            - path: /data/path-bar
+              type: ROOT
+              size: {$TYPE_A_DISK}
+              constraints:
+                - <constraint language>
+          vips:
+            - port: 3030
+              address: task-a:4040
+        health-checks:
+          - name: check-up
+            cmd: curl -f "http://localhost:<port>/check-up"
+            interval: 5
+            grace-period: 30
+            max-consecutive-failures: 3
+      - name: task-b
+        goal: RUNNING
+        cmd: ./task-a --port0 $DYN_PORT_NAME --port1 $STATIC_PORT_NAME
+        resource-set: type-b-resource-set
+        env:
+          TASK_A_FOO: ${TYPE_A_COUNT}
+        uris:
+          - http:\/foo.bar.com/
+        configurations:
+          - src: config.file
+            dst: /config/path/config.file
+    resource-sets:
+      - id: type-b-resource-set
+        - name: cpus
+          value: {$TYPE_A_CPUS}
+        - name: mem
+          value: {$TYPE_A_MEM}
+        - name: port
+          value: 0
+          env-key: DYN_PORT_NAME
+        - name: port
+          value: 4356
+          env-key: STATIC_PORT_NAME
+        volumes:
+          - path: /data/path-foo
+            type: MOUNT
+            constraints:
+              - ssd:true
+            size: {$TYPE_A_DISK}
+          - path: /data/path-bar
+            type: ROOT
+            size: {$TYPE_A_DISK}
+            constraints:
+              - <constraint language>
+        vips:
+          - port: 3030
+            address: task-a:4040
+
+#1 Sugar option
+plans:
+  - name: deploy
+    strategy: parallel
+    phases:
+      - name: A-phase
+        strategy: parallel
+        pod: pod-type-a
+      - name: B-phase
+        strategy: serial
+        pod: pod-type-b
+
+#2 Sugar option
+plans:
+  - name: deploy
+    strategy: parallel
+    phases:
+      - name: A-phase
+        strategy: parallel
+        pod: pod-type-a
+        steps:
+          - task-a
+          - task-foo-a
+      - name: B-phase
+        strategy: serial
+        pod: pod-type-b
+
+#3 Manual option
+plans:
+  - name: deploy
+    strategy: parallel
+    phases:
+      - name: A-phase
+        strategy: parallel
+        pod: pod-type-a
+        steps:
+          - pod-type-a.0.task-a
+          - pod-type-a.0.task-foo
+      - name: B-phase
+        strategy: serial
+        pod: pod-type-b
