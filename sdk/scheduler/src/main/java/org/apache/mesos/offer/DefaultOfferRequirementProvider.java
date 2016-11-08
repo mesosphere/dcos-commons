@@ -74,11 +74,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
 
         if (taskSpec.getCommand().isPresent()) {
-            // TODO: update command environment
-            // Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpecification.getType())
-            //        .updateEnvironment(taskSpecification.getCommand().get());
-            //taskInfoBuilder.setCommand(updatedCommand);
-            taskInfoBuilder.setCommand(Protos.CommandInfo.newBuilder().setValue(taskSpec.getCommand().get()));
+            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getPod().getType())
+                    .updateEnvironment(Protos.CommandInfo.newBuilder().setValue(taskSpec.getCommand().get()).build());
+            taskInfoBuilder.setCommand(updatedCommand);
         }
 
         if (taskSpec.getContainer().isPresent()) {
