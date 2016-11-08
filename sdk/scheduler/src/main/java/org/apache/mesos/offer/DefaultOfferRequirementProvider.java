@@ -83,10 +83,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setContainer(taskSpec.getContainer().get().getContainerInfo());
         }
 
-        // TODO: put health-checks back
-        //if (taskSpecification.getHealthCheck().isPresent()) {
-        //    taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
-        //}
+        if (taskSpec.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
+        }
 
         return OfferRequirement.create(
                 taskSpec.getPod().getType(),

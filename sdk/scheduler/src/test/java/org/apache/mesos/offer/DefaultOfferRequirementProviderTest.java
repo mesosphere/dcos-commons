@@ -16,6 +16,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -112,12 +113,21 @@ public class DefaultOfferRequirementProviderTest {
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
         when(podSpec.getType()).thenReturn(TestConstants.TASK_TYPE);
 
+        HealthCheckSpec healthCheckSpec = mock(HealthCheckSpec.class);
+        when(healthCheckSpec.getCommand()).thenReturn("./health-check-cmd");
+        when(healthCheckSpec.getMaxConsecutiveFailures()).thenReturn(3);
+        when(healthCheckSpec.getDelay()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getInterval()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getTimeout()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getGracePeriod()).thenReturn(Duration.ZERO);
+
         TaskSpec taskSpec = mock(TaskSpec.class);
         when(taskSpec.getName()).thenReturn("task_spec_name");
         when(taskSpec.getPod()).thenReturn(podSpec);
         when(taskSpec.getResourceSetId()).thenReturn(TestConstants.RESOURCE_SET_ID);
-        when(taskSpec.getCommand()).thenReturn(Optional.empty());
+        when(taskSpec.getCommand()).thenReturn(Optional.of("./task-cmd"));
         when(taskSpec.getContainer()).thenReturn(Optional.empty());
+        when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
 
         OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(taskSpec);
         Assert.assertNotNull(offerRequirement);

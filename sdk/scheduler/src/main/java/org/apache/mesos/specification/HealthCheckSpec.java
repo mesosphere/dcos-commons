@@ -9,6 +9,7 @@ public interface HealthCheckSpec {
     String getCommand();
     Integer getMaxConsecutiveFailures();
     Duration getDelay();
-    Duration getGracePeriod();
     Duration getInterval();
+    Duration getTimeout();
+    Duration getGracePeriod();
 }
