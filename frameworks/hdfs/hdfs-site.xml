@@ -159,13 +159,11 @@
         </property>
 
         <!-- Security Configuration -->
-
-        <!-- TODO: Make user configurable -->
         <property>
             <name>hadoop.security.auth_to_local</name>
             <value>
-                RULE:[2:$1@$0](.*)s/.*/root/
-                RULE:[1:$1@$0](.*)s/.*/root/
+                RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
+                RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
             </value>
         </property>
         <property>
@@ -174,14 +172,6 @@
         </property>
         <property>
             <name>hadoop.security.authorization</name>
-            <value>true</value>
-        </property>
-        <property>
-            <name>hadoop.rpc.protection</name>
-            <value>privacy</value>
-        </property>
-        <property>
-            <name>dfs.encrypt.data.transfer</name>
             <value>true</value>
         </property>
         <property>

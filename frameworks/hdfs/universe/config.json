@@ -78,6 +78,12 @@
 					"type": "string",
 					"description": "The URI from which the JRE for all tasks is downloaded",
 					"default": "https://s3-us-west-2.amazonaws.com/infinity-artifacts/jre-8u91-linux-x64.tar.gz"
+				},
+				"user": {
+					"id": "http://hdfs/dcos/mesosphere.com/service/user",
+					"type": "string",
+					"description": "The user as which service and tasks are run.",
+					"default": "nobody"
 				}
 			},
 			"additionalProperties": false,

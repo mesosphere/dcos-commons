@@ -1,7 +1,7 @@
 {
   "id": "hdfs",
   "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env &&./scheduler/bin/hdfs",
-  "user": "nobody",
+  "user": "{{service.user}}",
   "instances": 1,
   "cpus": {{service.cpus}},
   "mem": {{service.mem}},
@@ -63,7 +63,7 @@
        ,"SERVICE_NAME":"{{service.name}}"
        ,"SERVICE_ROLE":"{{service.role}}"
        ,"SERVICE_PRINCIPAL":"{{service.principal}}"
-       ,"SERVICE_USER":"nobody"
+       ,"SERVICE_USER":"{{service.user}}"
        ,"SECURE_MODE":"{{service.secure_mode}}"
        ,"KEYTABS_URI":"{{service.keytabs_uri}}"
        ,"TASK_JRE_URI":"{{service.task_jre_uri}}"
@@ -135,6 +135,7 @@
        ,"TASKCFG_ALL_HADOOP_OPTS": "{{hdfs.hadoop_opts}}"
        ,"TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}"
        ,"TASKCFG_ALL_SECURE_MODE": "{{service.secure_mode}}"
+       ,"TASKCFG_ALL_TASK_USER": "{{service.user}}"
        ,"API_PORT":"{{service.api_port}}"
     }
 }
