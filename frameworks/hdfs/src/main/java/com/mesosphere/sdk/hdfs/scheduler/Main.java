@@ -5,8 +5,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
 import org.apache.mesos.offer.constrain.AndRule;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
-import org.apache.mesos.offer.constrain.TaskTypeGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.offer.constrain.TaskTypeRule;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
@@ -82,7 +82,7 @@ public class Main {
                                 getResources(JOURNAL_NODE_CPU, JOURNAL_NODE_MEM_MB),
                                 getVolumes(JOURNAL_NODE_DISK_MB),
                                 configFiles,
-                                Optional.of(TaskTypeGenerator.createAvoid(JOURNAL_NODE_NAME)),
+                                Optional.of(TaskTypeRule.avoid(JOURNAL_NODE_NAME)),
                                 Optional.empty()),
                         HDFSTaskSet.create(NAME_NODE_COUNT,
                                 NAME_NODE_NAME,
@@ -90,7 +90,7 @@ public class Main {
                                 getResources(NAME_NODE_CPU, NAME_NODE_MEM_MB),
                                 getVolumes(NAME_NODE_DISK_MB),
                                 configFiles,
-                                Optional.of(TaskTypeGenerator.createAvoid(NAME_NODE_NAME)),
+                                Optional.of(TaskTypeRule.avoid(NAME_NODE_NAME)),
                                 Optional.empty()),
                         HDFSTaskSet.create(ZKFC_PROCESS_COUNT,
                                 ZKFC_PROCESS_NAME,
@@ -98,8 +98,8 @@ public class Main {
                                 getResources(ZKFC_PROCESS_CPU, ZKFC_PROCESS_MEM_MB),
                                 getVolumes(ZKFC_PROCESS_DISK_MB),
                                 configFiles,
-                                Optional.of(new AndRule.Generator(TaskTypeGenerator.createAvoid(ZKFC_PROCESS_NAME),
-                                        TaskTypeGenerator.createColocate(NAME_NODE_NAME))),
+                                Optional.of(new AndRule(TaskTypeRule.colocateWith(NAME_NODE_NAME),
+                                        TaskTypeRule.avoid(ZKFC_PROCESS_NAME))),
                                 Optional.empty()),
                         HDFSTaskSet.create(DATA_NODE_COUNT,
                                 DATA_NODE_NAME,
@@ -107,7 +107,7 @@ public class Main {
                                 getResources(DATA_NODE_CPU, DATA_NODE_MEM_MB),
                                 getVolumes(DATA_NODE_DISK_MB),
                                 configFiles,
-                                Optional.of(TaskTypeGenerator.createAvoid(DATA_NODE_NAME)),
+                                Optional.of(TaskTypeRule.avoid(DATA_NODE_NAME)),
                                 Optional.empty())
                 )
         );
@@ -120,7 +120,7 @@ public class Main {
                 Collection<ResourceSpecification> resources,
                 Collection<VolumeSpecification> volumes,
                 Collection<ConfigFileSpecification> configs,
-                Optional<PlacementRuleGenerator> placementOptional,
+                Optional<PlacementRule> placementOptional,
                 Optional<Protos.HealthCheck> healthCheck) {
 
             ArrayList<TaskSpecification> taskSpecifications = new ArrayList<>();
@@ -146,7 +146,7 @@ public class Main {
                     Collection<ResourceSpecification> resourceSpecifications,
                     Collection<VolumeSpecification> volumeSpecifications,
                     Collection<ConfigFileSpecification> configFileSpecifications,
-                    Optional<PlacementRuleGenerator> placementOptional,
+                    Optional<PlacementRule> placementOptional,
                     Optional<Protos.HealthCheck> healthCheck) {
                 super(name, type, commandInfo, resourceSpecifications, volumeSpecifications,
                         configFileSpecifications, placementOptional, healthCheck);
@@ -180,6 +180,7 @@ public class Main {
     }
 
     private static Protos.CommandInfo getCommand(String taskName, int instanceIndex) {
+
         String cmd = "env && ";
 
         if (!taskName.equals(ZKFC_PROCESS_NAME)) {

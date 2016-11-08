@@ -3,75 +3,94 @@ package org.apache.mesos.offer;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
 /**
- * An OfferRequirement encapsulates the needed resources an Offer must have.
- * In general these are Resource requirements like it must have a certain amount of
- * cpu, memory, and disk.  Additionally it has two modes regarding expectations around
- * Persistent Volumes.  In the CREATE mode it anticipates that the Scheduler will be
- * creating the required volume, so a Volume with a particular persistence id is not
- * required to be already present in an Offer.  In the EXISTING mode, we expect that
- * an Offer will already have the indicated persistence ID.
+ * An OfferRequirement encapsulates the needed resources that an {@link Offer} must have in order to
+ * launch a task against that {@link Offer}.
+ *
+ * In general these are Resource requirements, such as requiring a certain amount of cpu, memory,
+ * and disk, as encapsulated by {@link TaskRequirement} and {@link ExecutorRequirement}.
+ * More dynamic requirements may also be defined on the placement of the new task, as evaluated
+ * by the provided {@link PlacementRule}s.
  */
 public class OfferRequirement {
     private final String taskType;
     private final Collection<TaskRequirement> taskRequirements;
     private final Optional<ExecutorRequirement> executorRequirementOptional;
-    private final Optional<PlacementRuleGenerator> placementRuleGeneratorOptional;
+    private final Optional<PlacementRule> placementRuleOptional;
 
     /**
-     * Creates a new OfferRequirement.
+     * Creates a new {@link OfferRequirement}.
      *
      * @param taskType the task type name from the TaskSet, used for placement filtering
      * @param taskInfos the 'draft' {@link TaskInfo}s from which task requirements should be generated
      * @param executorInfoOptional the executor from which an executor requirement should be
      *     generated, if any
-     * @param placementRuleGeneratorOptional the placement constraints which should be applied to the
-     *     tasks, if any
+     * @param placementRuleOptional the placement constraints which should be applied to the tasks, if any
      * @throws InvalidRequirementException if task or executor requirements could not be generated
      *     from the provided information
      */
-    public OfferRequirement(
+    public static OfferRequirement create(
             String taskType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional,
-            Optional<PlacementRuleGenerator> placementRuleGeneratorOptional)
+            Optional<PlacementRule> placementRuleOptional)
                     throws InvalidRequirementException {
-        this.taskType = taskType;
-        this.taskRequirements = getTaskRequirementsInternal(taskInfos);
-        this.executorRequirementOptional = executorInfoOptional.isPresent() ?
-                Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
-                Optional.empty();
-        this.placementRuleGeneratorOptional = placementRuleGeneratorOptional;
+        return new OfferRequirement(
+                taskType,
+                getTaskRequirementsInternal(taskInfos),
+                executorInfoOptional.isPresent() ?
+                        Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
+                        Optional.empty(),
+                placementRuleOptional);
     }
 
     /**
-     * Creates a new OfferRequirement with provided executor requirement and empty placement
+     * Creates a new {@link OfferRequirement} with provided executor requirement and empty placement
      * constraints.
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
-    public OfferRequirement(
+    public static OfferRequirement create(
             String taskType,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional)
                     throws InvalidRequirementException {
-        this(taskType, taskInfos, executorInfoOptional, Optional.empty());
+        return create(taskType, taskInfos, executorInfoOptional, Optional.empty());
     }
 
     /**
-     * Creates a new OfferRequirement with empty executor requirement and empty placement constraints.
+     * Creates a new {@link OfferRequirement} with empty executor requirement and empty placement
+     * constraints.
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
-    public OfferRequirement(String taskType, Collection<TaskInfo> taskInfos)
+    public static OfferRequirement create (String taskType, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
-        this(taskType, taskInfos, Optional.empty());
+        return create(taskType, taskInfos, Optional.empty());
+    }
+
+    /**
+     * Creates and returns a new {@link OfferRequirement} with any placement rules removed.
+     */
+    public OfferRequirement withoutPlacementRules() {
+        return new OfferRequirement(taskType, taskRequirements, executorRequirementOptional, Optional.empty());
+    }
+
+    private OfferRequirement(
+            String taskType,
+            Collection<TaskRequirement> taskRequirements,
+            Optional<ExecutorRequirement> executorRequirementOptional,
+            Optional<PlacementRule> placementRuleOptional) {
+        this.taskType = taskType;
+        this.taskRequirements = taskRequirements;
+        this.executorRequirementOptional = executorRequirementOptional;
+        this.placementRuleOptional = placementRuleOptional;
     }
 
     public String getTaskType() {
@@ -86,8 +105,8 @@ public class OfferRequirement {
         return executorRequirementOptional;
     }
 
-    public Optional<PlacementRuleGenerator> getPlacementRuleGeneratorOptional() {
-        return placementRuleGeneratorOptional;
+    public Optional<PlacementRule> getPlacementRuleOptional() {
+        return placementRuleOptional;
     }
 
     public Collection<String> getResourceIds() {

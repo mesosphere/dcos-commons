@@ -17,5 +17,5 @@ public interface Configuration {
      * user.
      */
     @JsonIgnore
-    String toJsonString() throws Exception;
+    String toJsonString() throws ConfigStoreException;
 }

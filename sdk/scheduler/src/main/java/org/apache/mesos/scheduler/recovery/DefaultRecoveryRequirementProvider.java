@@ -34,10 +34,14 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
 
         for (Protos.TaskInfo taskInfo : stoppedTasks) {
             try {
+                // Note: We intentionally remove any placement rules when performing transient recovery.
+                // We aren't interested in honoring placement rules, past or future. We just want to
+                // get the task back up and running where it was before.
                 transientRecoveryRequirements.add(
                         new DefaultRecoveryRequirement(
                                 offerRequirementProvider.getExistingOfferRequirement(
-                                        taskInfo, taskSpecificationProvider.getTaskSpecification(taskInfo)),
+                                        taskInfo, taskSpecificationProvider.getTaskSpecification(taskInfo))
+                                .withoutPlacementRules(),
                                 RecoveryRequirement.RecoveryType.TRANSIENT));
             } catch (TaskException e) {
                 LOGGER.error("Failed to generate TaskSpecification for transient recovery with exception: ", e);

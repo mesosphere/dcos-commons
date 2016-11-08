@@ -1,8 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
@@ -53,6 +53,9 @@ public class DefaultStepFactory implements StepFactory {
                         Status.PENDING,
                         Collections.emptyList());
             } else {
+                // Note: This path is for deploying new versions of tasks, unlike transient recovery
+                // which is only interested in relaunching tasks as they were. So while they omit
+                // placement rules in their OfferRequirement, we include them.
                 Status status = getStatus(taskInfoOptional.get());
                 LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
                 return new DefaultStep(

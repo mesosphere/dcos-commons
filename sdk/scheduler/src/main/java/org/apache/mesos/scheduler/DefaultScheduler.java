@@ -86,17 +86,39 @@ public class DefaultScheduler implements Scheduler, Observer {
      * {@link ServiceSpecification} and the default ZK location for framework state.
      *
      * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
+     *     unrecognized deserialization type
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static DefaultScheduler create(ServiceSpecification serviceSpecification) {
+    public static DefaultScheduler create(ServiceSpecification serviceSpecification)
+            throws ConfigStoreException {
+        return create(serviceSpecification, Collections.emptyList());
+    }
+
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided service-defined
+     * {@link ServiceSpecification} and the default ZK location for framework state, and with the
+     * provided custom {@link PlacementRule} classes which are used within the provided
+     * {@link ServiceSpecification}. Custom implementations of {@link PlacementRule}s MUST be
+     * serializable and deserializable by Jackson, and MUST be provided to support correctly
+     * identifying them in the serialized {@link ServiceSpecification}.
+     *
+     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param customDeserializationSubtypes custom placement rule implementations which support
+     *     Jackson deserialization
+     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
+     *     unrecognized deserialization type
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
+    public static DefaultScheduler create(
+            ServiceSpecification serviceSpecification,
+            Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         return create(
                 serviceSpecification,
-                createStateStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                createStateStore(serviceSpecification),
                 createConfigStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING));
+                        serviceSpecification,
+                        customDeserializationSubtypes));
     }
 
     /**
@@ -105,13 +127,11 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param serviceSpecification specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
-     *                   has been registered with mesos as indicated by a call to {@link
-     *                   DefaultScheduler#registered(SchedulerDriver,
-     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configStore framework config storage, which must not be written to before the scheduler
-     *                    has been registered with mesos as indicated by a call to {@link
-     *                    DefaultScheduler#registered(SchedulerDriver,
-     *                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @see #createStateStore(String, String)
      */
     public static DefaultScheduler create(
@@ -134,24 +154,21 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param serviceSpecification specification containing service name and tasks to be deployed
      * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
-     *                                   task has failed, or an empty {@link Optional} to disable
-     *                                   this detection
+     *      task has failed, or an empty {@link Optional} to disable this detection
      * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
-     *                                    recovery operations such as destroying a failed task
+     *      recovery operations such as destroying a failed task
+     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
+     *      unrecognized deserialization type
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
     public static DefaultScheduler create(
             ServiceSpecification serviceSpecification,
             Optional<Integer> permanentFailureTimeoutSec,
-            Integer destructiveRecoveryDelaySec) {
+            Integer destructiveRecoveryDelaySec) throws ConfigStoreException {
         return create(
                 serviceSpecification,
-                createStateStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
-                createConfigStore(
-                        serviceSpecification.getName(),
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                createStateStore(serviceSpecification),
+                createConfigStore(serviceSpecification),
                 defaultConfigValidators(),
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
@@ -163,20 +180,16 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param serviceSpecification specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
-     *                   has been registered with mesos as indicated by a call to {@link
-     *                   DefaultScheduler#registered(SchedulerDriver,
-     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configStore framework config storage, which must not be written to before the scheduler
-     *                    has been registered with mesos as indicated by a call to {@link
-     *                    DefaultScheduler#registered(SchedulerDriver,
-     *                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
-     * @param configValidators custom validators to be used, instead of the default validators
-     *                         returned by {@link #defaultConfigValidators()}
+     *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @param configValidators configuration validators to be used when evaluating config changes
      * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
-     *                                   task has failed, or an empty {@link Optional} to disable
-     *                                   this detection
+     *     task has failed, or an empty {@link Optional} to disable this detection
      * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
-     *                                    recovery operations such as destroying a failed task
+     *     recovery operations such as destroying a failed task
      */
     public static DefaultScheduler create(
             ServiceSpecification serviceSpecification,
@@ -201,11 +214,24 @@ public class DefaultScheduler implements Scheduler, Observer {
      * signified by a call to {@link DefaultScheduler#registered(SchedulerDriver,
      * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}
      *
-     * @param frameworkName the name of the framework (service name)
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
-    public static StateStore createStateStore(String frameworkName, String zkConnectionString) {
-        return StateStoreCache.getInstance(new CuratorStateStore(frameworkName, zkConnectionString));
+    public static StateStore createStateStore(ServiceSpecification serviceSpecification, String zkConnectionString) {
+        return StateStoreCache.getInstance(new CuratorStateStore(
+                serviceSpecification.getName(),
+                zkConnectionString));
+    }
+
+    /**
+     * Calls {@link #createStateStore(String, String)} with the specification name as the
+     * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
+     *
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
+    public static StateStore createStateStore(ServiceSpecification serviceSpecification) {
+        return createStateStore(
+                serviceSpecification,
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**
@@ -213,20 +239,67 @@ public class DefaultScheduler implements Scheduler, Observer {
      * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
      * signified by a call to {@link DefaultScheduler#registered(SchedulerDriver,
-     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}
+     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}.
      *
-     * @param frameworkName the name of the framework (service name)
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
+     * @param customDeserializationSubtypes custom subtypes to register for deserialization of
+     *     {@link DefaultServiceSpecification}, mainly useful for deserializing custom
+     *     implementations of {@link PlacementRule}s.
+     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
+     *     unrecognized deserialization type
      */
     public static ConfigStore<ServiceSpecification> createConfigStore(
-            String frameworkName, String zkConnectionString) {
+            ServiceSpecification serviceSpecification,
+            String zkConnectionString,
+            Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         return new CuratorConfigStore<>(
-                DefaultServiceSpecification.getFactoryInstance(),
-                frameworkName,
+                DefaultServiceSpecification.getFactory(serviceSpecification, customDeserializationSubtypes),
+                serviceSpecification.getName(),
                 zkConnectionString);
     }
 
-    public static Collection<ConfigurationValidator<ServiceSpecification>> defaultConfigValidators() {
+    /**
+     * Calls {@link #createConfigStore(String, String, Collection))} with the specification name as
+     * the {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
+     *
+     * @param customDeserializationSubtypes custom subtypes to register for deserialization of
+     *     {@link DefaultServiceSpecification}, mainly useful for deserializing custom
+     *     implementations of {@link PlacementRule}s.
+     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
+     *     unrecognized deserialization type
+     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
+     */
+    public static ConfigStore<ServiceSpecification> createConfigStore(
+            ServiceSpecification serviceSpecification,
+            Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
+        return createConfigStore(
+                serviceSpecification,
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                customDeserializationSubtypes);
+    }
+
+    /**
+     * Calls {@link #createConfigStore(ServiceSpecification, Collection)} with an empty list of
+     * custom deserialization types.
+     *
+     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
+     *     unrecognized deserialization type
+     */
+    public static ConfigStore<ServiceSpecification> createConfigStore(
+            ServiceSpecification serviceSpecification) throws ConfigStoreException {
+        return createConfigStore(serviceSpecification, Collections.emptyList());
+    }
+
+    /**
+     * Returns the default configuration validators:
+     * - Task sets cannot shrink (each set's task count must stay the same or increase).
+     * - Task volumes cannot be changed.
+     *
+     * This function may be used to get the default validators and add more to the list when
+     * constructing the {@link DefaultScheduler}.
+     */
+    public static List<ConfigurationValidator<ServiceSpecification>> defaultConfigValidators() {
+        // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new TaskSetsCannotShrink(),
                 new TaskVolumesCannotChange());
@@ -237,20 +310,17 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param serviceSpecification specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
-     *                   has been registered with mesos as indicated by a call to {@link
-     *                   DefaultScheduler#registered(SchedulerDriver,
-     *                   org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configStore framework config storage, which must not be written to before the scheduler
-     *                    has been registered with mesos as indicated by a call to {@link
-     *                    DefaultScheduler#registered(SchedulerDriver,
-     *                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configValidators custom validators to be used, instead of the default validators
-     *                         returned by {@link #defaultConfigValidators()}
+     *     returned by {@link #defaultConfigValidators()}
      * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
-     *                                   task has failed, or an empty {@link Optional} to disable
-     *                                   this detection
+     *     task has failed, or an empty {@link Optional} to disable this detection
      * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
-     *                                    recovery operations such as destroying a failed task
+     *     recovery operations such as destroying a failed task
      */
     protected DefaultScheduler(
             ServiceSpecification serviceSpecification,

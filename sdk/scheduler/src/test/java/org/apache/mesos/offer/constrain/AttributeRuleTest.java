@@ -12,12 +12,16 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.AttributeStringUtils;
+import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 
 /**
  * Tests for {@link AttributeRule}.
  */
 public class AttributeRuleTest {
+
+    private static final OfferRequirement REQ = OfferRequirementTestUtils.getOfferRequirement();
 
     private static final Attribute ATTR_TEXT;
     private static final Attribute ATTR_SCALAR;
@@ -56,22 +60,22 @@ public class AttributeRuleTest {
         Offer.Builder o = getOfferWithResources()
                 .addAttributes(ATTR_TEXT);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_TEXT))).filter(o.build()));
+                AttributeStringUtils.toString(ATTR_TEXT))).filter(o.build(), REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SCALAR);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o.build()));
+                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o.build(), REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_RANGES))).filter(o.build()));
+                AttributeStringUtils.toString(ATTR_RANGES))).filter(o.build(), REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SET);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SET))).filter(o.build()));
+                AttributeStringUtils.toString(ATTR_SET))).filter(o.build(), REQ, Collections.emptyList()));
     }
 
     @Test
@@ -82,14 +86,14 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_SET)
                 .build();
-        assertEquals(o, new AttributeRule.Generator(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_TEXT))).generate(Collections.emptyList()).filter(o));
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o));
+                AttributeStringUtils.toString(ATTR_TEXT))).filter(o, REQ, Collections.emptyList()));
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_RANGES))).filter(o));
+                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o, REQ, Collections.emptyList()));
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SET))).filter(o));
+                AttributeStringUtils.toString(ATTR_RANGES))).filter(o, REQ, Collections.emptyList()));
+        assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
+                AttributeStringUtils.toString(ATTR_SET))).filter(o, REQ, Collections.emptyList()));
     }
 
     @Test
@@ -99,26 +103,26 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_SET)
                 .build();
         assertEquals(0, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_TEXT))).filter(o).getResourcesCount());
+                AttributeStringUtils.toString(ATTR_TEXT))).filter(o, REQ, Collections.emptyList()).getResourcesCount());
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o));
+                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o, REQ, Collections.emptyList()));
         assertEquals(0, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_RANGES))).filter(o).getResourcesCount());
+                AttributeStringUtils.toString(ATTR_RANGES))).filter(o, REQ, Collections.emptyList()).getResourcesCount());
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SET))).filter(o));
+                AttributeStringUtils.toString(ATTR_SET))).filter(o, REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_TEXT)
                 .build();
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_TEXT))).filter(o));
+                AttributeStringUtils.toString(ATTR_TEXT))).filter(o, REQ, Collections.emptyList()));
         assertEquals(0, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o).getResourcesCount());
+                AttributeStringUtils.toString(ATTR_SCALAR))).filter(o, REQ, Collections.emptyList()).getResourcesCount());
         assertEquals(o, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_RANGES))).filter(o));
+                AttributeStringUtils.toString(ATTR_RANGES))).filter(o, REQ, Collections.emptyList()));
         assertEquals(0, new AttributeRule(AttributeSelector.createStringSelector(
-                AttributeStringUtils.toString(ATTR_SET))).filter(o).getResourcesCount());
+                AttributeStringUtils.toString(ATTR_SET))).filter(o, REQ, Collections.emptyList()).getResourcesCount());
     }
 
     @Test
@@ -126,22 +130,22 @@ public class AttributeRuleTest {
         Offer.Builder o = getOfferWithResources()
                 .addAttributes(ATTR_TEXT);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_TEXT_REGEX)).filter(o.build()));
+                ATTR_TEXT_REGEX)).filter(o.build(), REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SCALAR);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SCALAR_REGEX)).filter(o.build()));
+                ATTR_SCALAR_REGEX)).filter(o.build(), REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_RANGES_REGEX)).filter(o.build()));
+                ATTR_RANGES_REGEX)).filter(o.build(), REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SET);
         assertEquals(o.build(), new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SET_REGEX)).filter(o.build()));
+                ATTR_SET_REGEX)).filter(o.build(), REQ, Collections.emptyList()));
     }
 
     @Test
@@ -153,13 +157,13 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_SET)
                 .build();
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_TEXT_REGEX)).filter(o));
+                ATTR_TEXT_REGEX)).filter(o, REQ, Collections.emptyList()));
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SCALAR_REGEX)).filter(o));
+                ATTR_SCALAR_REGEX)).filter(o, REQ, Collections.emptyList()));
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_RANGES_REGEX)).filter(o));
+                ATTR_RANGES_REGEX)).filter(o, REQ, Collections.emptyList()));
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SET_REGEX)).filter(o));
+                ATTR_SET_REGEX)).filter(o, REQ, Collections.emptyList()));
     }
 
     @Test
@@ -169,37 +173,39 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_SET)
                 .build();
         assertEquals(0, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_TEXT_REGEX)).filter(o).getResourcesCount());
+                ATTR_TEXT_REGEX)).filter(o, REQ, Collections.emptyList()).getResourcesCount());
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SCALAR_REGEX)).filter(o));
+                ATTR_SCALAR_REGEX)).filter(o, REQ, Collections.emptyList()));
         assertEquals(0, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_RANGES_REGEX)).filter(o).getResourcesCount());
+                ATTR_RANGES_REGEX)).filter(o, REQ, Collections.emptyList()).getResourcesCount());
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SET_REGEX)).filter(o));
+                ATTR_SET_REGEX)).filter(o, REQ, Collections.emptyList()));
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_TEXT)
                 .build();
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_TEXT_REGEX)).filter(o));
+                ATTR_TEXT_REGEX)).filter(o, REQ, Collections.emptyList()));
         assertEquals(0, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SCALAR_REGEX)).filter(o).getResourcesCount());
+                ATTR_SCALAR_REGEX)).filter(o, REQ, Collections.emptyList()).getResourcesCount());
         assertEquals(o, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_RANGES_REGEX)).filter(o));
+                ATTR_RANGES_REGEX)).filter(o, REQ, Collections.emptyList()));
         assertEquals(0, new AttributeRule(AttributeSelector.createRegexSelector(
-                ATTR_SET_REGEX)).filter(o).getResourcesCount());
+                ATTR_SET_REGEX)).filter(o, REQ, Collections.emptyList()).getResourcesCount());
     }
 
     @Test
     public void testSerializeDeserialize() throws IOException {
-        PlacementRuleGenerator generator = new AttributeRule.Generator(
+        PlacementRule rule = new AttributeRule(
                 AttributeSelector.createStringSelector(AttributeStringUtils.toString(ATTR_SCALAR)));
-        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+        assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        generator = new AttributeRule.Generator(
+        rule = new AttributeRule(
                 AttributeSelector.createRegexSelector(ATTR_RANGES_REGEX));
-        assertEquals(generator, SerializationUtils.fromJsonString(SerializationUtils.toJsonString(generator), PlacementRuleGenerator.class));
+        assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
 
     private static Offer.Builder getOfferWithResources() {

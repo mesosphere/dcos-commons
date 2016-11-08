@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
@@ -29,7 +29,7 @@ public class TestTaskSetFactory {
 
     public static TaskSet getTaskSet(
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placement) {
+            Optional<PlacementRule> placement) {
         return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU, MEM, DISK, configs, placement);
     }
 
@@ -51,7 +51,7 @@ public class TestTaskSetFactory {
             double mem,
             double disk,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placement) {
+            Optional<PlacementRule> placement) {
 
         return DefaultTaskSet.create(
                 count,
