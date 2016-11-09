@@ -4,11 +4,11 @@ import os
 import time
 
 from tests.test_utils import (
+    PACKAGE_NAME,
     check_health,
+    install,
     uninstall,
 )
-
-from tests.defaults import DEFAULT_NODE_COUNT, PACKAGE_NAME
 
 
 strict_mode = os.getenv('SECURITY', 'permissive')
@@ -37,12 +37,7 @@ def kill_task_with_pattern(pattern, host=None):
 
 def setup_module():
     uninstall()
-
-    if strict_mode == 'strict':
-        shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + "/strict.json")
-    else:
-        shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None)
-
+    install()
     check_health()
 
 
@@ -79,28 +74,28 @@ def test_kill_scheduler():
     check_health()
 
 
-# This test currently fails.
-#@pytest.mark.recovery
-#def test_kill_datanode_executor():
-#    kill_task_with_pattern('hdfs.executor.Main', 'datanode-0.hdfs.mesos')
-#
-#    check_health()
+@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
+@pytest.mark.recovery
+def test_kill_datanode_executor():
+    kill_task_with_pattern('hdfs.executor.Main', 'datanode-0.hdfs.mesos')
+
+    check_health()
 
 
-# This test currently fails.
-#@pytest.mark.recovery
-#def test_kill_journalnode_executor():
-#    kill_task_with_pattern('hdfs.executor.Main', 'journalnode-0.hdfs.mesos')
-#
-#    check_health()
+@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
+@pytest.mark.recovery
+def test_kill_journalnode_executor():
+    kill_task_with_pattern('hdfs.executor.Main', 'journalnode-0.hdfs.mesos')
+
+    check_health()
 
 
-# This test currently fails.
-#@pytest.mark.recovery
-#def test_kill_namenode_executor():
-#    kill_task_with_pattern('hdfs.executor.Main', 'namenode-0.hdfs.mesos')
-#
-#    check_health()
+@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
+@pytest.mark.recovery
+def test_kill_namenode_executor():
+    kill_task_with_pattern('hdfs.executor.Main', 'namenode-0.hdfs.mesos')
+
+    check_health()
 
 
 @pytest.mark.recovery
@@ -111,13 +106,13 @@ def test_kill_all_datanodes():
     check_health()
 
 
-# This test currently fails.
-#@pytest.mark.recovery
-#def test_kill_all_journalnodes():
-#    for host in shakedown.get_service_ips(PACKAGE_NAME):
-#        kill_task_with_pattern('JournalNode', host)
-#
-#    check_health()
+@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
+@pytest.mark.recovery
+def test_kill_all_journalnodes():
+    for host in shakedown.get_service_ips(PACKAGE_NAME):
+        kill_task_with_pattern('JournalNode', host)
+
+    check_health()
 
 
 @pytest.mark.recovery
