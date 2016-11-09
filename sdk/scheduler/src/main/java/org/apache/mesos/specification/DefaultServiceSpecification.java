@@ -14,8 +14,6 @@ import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.constrain.*;
-import org.apache.mesos.offer.constrain.StringMatcher.*;
-import org.apache.mesos.offer.constrain.TaskTypeRule.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

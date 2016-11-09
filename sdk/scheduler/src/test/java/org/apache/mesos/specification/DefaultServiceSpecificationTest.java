@@ -17,16 +17,16 @@ import java.util.Optional;
 public class DefaultServiceSpecificationTest {
     private static final String SERVICE_NAME = "test-service-name";
     private static final PlacementRule HUGE_RULE = new AndRule(Arrays.asList(
-            new MaxPerAttributeRule(3, StringMatcher.createAny()),
-            new MaxPerAttributeRule(3, StringMatcher.createExact("foo"), StringMatcher.createRegex("index-.*")),
-            new MaxPerAttributeRule(3, StringMatcher.createRegex(".+"), StringMatcher.createAny()),
+            new MaxPerAttributeRule(3, AnyMatcher.create()),
+            new MaxPerAttributeRule(3, ExactMatcher.create("foo"), RegexMatcher.create("index-.*")),
+            new MaxPerAttributeRule(3, RegexMatcher.create(".+"), AnyMatcher.create()),
             HostnameRule.avoid("avoidhost"),
             HostnameRule.require("requirehost1", "requirehost2"),
             AgentRule.require("requireagent1", "requireagent2"),
             AgentRule.avoid("avoidagent"),
-            new AttributeRule(StringMatcher.createExact("hello")),
+            new AttributeRule(ExactMatcher.create("hello")),
             new OrRule(Arrays.asList(
-                    new MaxPerAttributeRule(3, StringMatcher.createExact("hi")),
+                    new MaxPerAttributeRule(3, ExactMatcher.create("hi")),
                     HostnameRule.avoid("avoidhost1", "avoidhost2"),
                     HostnameRule.require("requirehost"),
                     AgentRule.require("requireagent"),

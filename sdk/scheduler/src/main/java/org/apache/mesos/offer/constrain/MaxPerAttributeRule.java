@@ -58,7 +58,7 @@ public class MaxPerAttributeRule implements PlacementRule {
 
     private final int maxTasksPerSelectedAttribute;
     private final StringMatcher attributeMatcher;
-    private final StringMatcher taskMatcher;
+    private final StringMatcher taskFilter;
 
     /**
      * Creates a new rule which will block deployment on tasks which already have N instances
@@ -72,7 +72,7 @@ public class MaxPerAttributeRule implements PlacementRule {
     public MaxPerAttributeRule(
             int maxTasksPerSelectedAttribute,
             StringMatcher attributeMatcher) {
-        this(maxTasksPerSelectedAttribute, attributeMatcher, StringMatcher.createAny());
+        this(maxTasksPerSelectedAttribute, attributeMatcher, null);
     }
 
     /**
@@ -84,17 +84,20 @@ public class MaxPerAttributeRule implements PlacementRule {
      *     which has attributes matching the provided {@code matcher}
      * @param attributeMatcher the filter on which attributes should be counted and tallied, for
      *     example only checking attributes which match a {@code rack:*} pattern
-     * @param taskMatcher a filter on task names to determine which tasks are included in the count,
+     * @param taskFilter a filter on task names to determine which tasks are included in the count,
      *     for example counting all tasks, or just counting tasks of a given type
      */
     @JsonCreator
     public MaxPerAttributeRule(
             @JsonProperty("max") int maxTasksPerSelectedAttribute,
             @JsonProperty("matcher") StringMatcher attributeMatcher,
-            @JsonProperty("task_matcher") StringMatcher taskMatcher) {
+            @JsonProperty("task_filter") StringMatcher taskFilter) {
         this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
         this.attributeMatcher = attributeMatcher;
-        this.taskMatcher = taskMatcher;
+        if (taskFilter == null) { // null when unspecified in serialized data
+            taskFilter = AnyMatcher.create();
+        }
+        this.taskFilter = taskFilter;
     }
 
     @Override
@@ -113,7 +116,7 @@ public class MaxPerAttributeRule implements PlacementRule {
         Map<String, Integer> offerAttrTaskCounts = new HashMap<>();
         for (TaskInfo task : tasks) {
             // only tally tasks which match the task matcher (eg 'index-.*')
-            if (!taskMatcher.select(task.getName())) {
+            if (!taskFilter.select(task.getName())) {
                 continue;
             }
             if (PlacementUtils.areEquivalent(task, offerRequirement)) {
@@ -156,19 +159,19 @@ public class MaxPerAttributeRule implements PlacementRule {
     }
 
     @JsonProperty("matcher")
-    private StringMatcher getMatcher() {
+    private StringMatcher getAttributeMatcher() {
         return attributeMatcher;
     }
 
-    @JsonProperty("task_matcher")
-    private StringMatcher getTaskMatcher() {
-        return taskMatcher;
+    @JsonProperty("task_filter")
+    private StringMatcher getTaskFilter() {
+        return taskFilter;
     }
 
     @Override
     public String toString() {
-        return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task_matcher=%s}",
-                maxTasksPerSelectedAttribute, attributeMatcher, taskMatcher);
+        return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task_filter=%s}",
+                maxTasksPerSelectedAttribute, attributeMatcher, taskFilter);
     }
 
     @Override
