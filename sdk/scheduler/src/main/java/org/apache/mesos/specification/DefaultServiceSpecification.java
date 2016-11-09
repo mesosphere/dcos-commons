@@ -49,6 +49,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
                 OrRule.class,
                 TaskTypeRule.class,
                 // Matchers:
+                AnyMatcher.class,
                 ExactMatcher.class,
                 RegexMatcher.class,
                 // TaskTypeConverters:

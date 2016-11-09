@@ -69,10 +69,9 @@ public class MaxPerAttributeRule implements PlacementRule {
      *     which has attributes matching the provided {@code matcher}
      * @param attributeMatcher the filter on which attributes should be counted and tallied
      */
-    @JsonCreator
     public MaxPerAttributeRule(
-            @JsonProperty("max") int maxTasksPerSelectedAttribute,
-            @JsonProperty("matcher") StringMatcher attributeMatcher) {
+            int maxTasksPerSelectedAttribute,
+            StringMatcher attributeMatcher) {
         this(maxTasksPerSelectedAttribute, attributeMatcher, StringMatcher.createAny());
     }
 
