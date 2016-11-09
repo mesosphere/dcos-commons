@@ -20,18 +20,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class AttributeRule implements PlacementRule {
 
-    private final AttributeSelector attributeSelector;
+    private final StringMatcher matcher;
 
     @JsonCreator
-    public AttributeRule(@JsonProperty("selector") AttributeSelector attributeSelector) {
-        this.attributeSelector = attributeSelector;
+    public AttributeRule(@JsonProperty("matcher") StringMatcher matcher) {
+        this.matcher = matcher;
     }
 
     @Override
     public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
-            if (attributeSelector.select(attributeString)) {
+            if (matcher.select(attributeString)) {
                 // match found. return entire offer as-is
                 return offer;
             }
@@ -40,14 +40,14 @@ public class AttributeRule implements PlacementRule {
         return offer.toBuilder().clearResources().build();
     }
 
-    @JsonProperty("selector")
-    private AttributeSelector getSelector() {
-        return attributeSelector;
+    @JsonProperty("matcher")
+    private StringMatcher getMatcher() {
+        return matcher;
     }
 
     @Override
     public String toString() {
-        return String.format("AttributeRule{selector=%s}", attributeSelector);
+        return String.format("AttributeRule{matcher=%s}", matcher);
     }
 
     @Override

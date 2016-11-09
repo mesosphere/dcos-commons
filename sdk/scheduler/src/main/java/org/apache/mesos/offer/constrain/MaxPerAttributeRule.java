@@ -52,7 +52,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MaxPerAttributeRule implements PlacementRule {
 
     private final int maxTasksPerSelectedAttribute;
-    private final AttributeSelector attributeSelector;
+    private final StringMatcher matcher;
 
     /**
      * Creates a new rule which will block deployment on tasks which already have N instances
@@ -61,9 +61,9 @@ public class MaxPerAttributeRule implements PlacementRule {
     @JsonCreator
     public MaxPerAttributeRule(
             @JsonProperty("max") int maxTasksPerSelectedAttribute,
-            @JsonProperty("selector") AttributeSelector attributeSelector) {
+            @JsonProperty("matcher") StringMatcher matcher) {
         this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
-        this.attributeSelector = attributeSelector;
+        this.matcher = matcher;
     }
 
     @Override
@@ -93,7 +93,7 @@ public class MaxPerAttributeRule implements PlacementRule {
                     continue;
                 }
                 // only tally attribute(s) that match the selector (eg 'rack:.*'):
-                if (!attributeSelector.select(taskAttributeString)) {
+                if (!matcher.select(taskAttributeString)) {
                     continue;
                 }
                 // increment the tally for this exact attribute value (eg 'rack:9'):
@@ -120,15 +120,15 @@ public class MaxPerAttributeRule implements PlacementRule {
         return maxTasksPerSelectedAttribute;
     }
 
-    @JsonProperty("selector")
-    private AttributeSelector getSelector() {
-        return attributeSelector;
+    @JsonProperty("matcher")
+    private StringMatcher getMatcher() {
+        return matcher;
     }
 
     @Override
     public String toString() {
-        return String.format("MaxPerAttributeRule{max=%s, selector=%s}",
-                maxTasksPerSelectedAttribute, attributeSelector);
+        return String.format("MaxPerAttributeRule{max=%s, matcher=%s}",
+                maxTasksPerSelectedAttribute, matcher);
     }
 
     @Override

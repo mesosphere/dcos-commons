@@ -14,6 +14,8 @@ import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.constrain.*;
+import org.apache.mesos.offer.constrain.StringMatcher.*;
+import org.apache.mesos.offer.constrain.TaskTypeRule.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,6 +39,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
          * {@link PlacementRule}s that are included in the library.
          */
         private static final Collection<Class<?>> defaultRegisteredSubtypes = Arrays.asList(
+                // Rules:
                 AgentRule.class,
                 AndRule.class,
                 AttributeRule.class,
@@ -44,7 +47,12 @@ public class DefaultServiceSpecification implements ServiceSpecification {
                 MaxPerAttributeRule.class,
                 NotRule.class,
                 OrRule.class,
-                TaskTypeRule.class);
+                TaskTypeRule.class,
+                // Matchers:
+                ExactMatcher.class,
+                RegexMatcher.class,
+                // TaskTypeConverters:
+                TaskTypeLabelConverter.class);
 
         private final ObjectMapper objectMapper;
 

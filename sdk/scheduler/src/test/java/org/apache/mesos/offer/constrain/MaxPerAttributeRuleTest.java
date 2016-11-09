@@ -26,7 +26,7 @@ import org.apache.mesos.testutils.TaskTestUtils;
 public class MaxPerAttributeRuleTest {
 
     private static final String ATTR_PATTERN = "^footext:.*$";
-    private static final AttributeSelector ATTR_SELECTOR = AttributeSelector.createRegexSelector(ATTR_PATTERN);
+    private static final StringMatcher ATTR_SELECTOR = StringMatcher.createRegex(ATTR_PATTERN);
 
     private static final Offer OFFER_NO_ATTRS = getOfferWithResources();
     private static final Offer OFFER_ATTR_MATCH_1;

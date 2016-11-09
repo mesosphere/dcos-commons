@@ -31,7 +31,7 @@ public class TaskTypeRule implements PlacementRule {
      * the developer, or see {@link TaskIDDashConverter} for a sample implementation which expects
      * task ids of the form "tasktypehere-0__uuid".
      */
-    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
     public interface TaskTypeConverter {
         public String getTaskType(TaskInfo taskInfo);
     }
