@@ -63,7 +63,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         LOGGER.info("Starting reference scheduler with args: " + Arrays.asList(args));
-        new DefaultService(API_PORT).register(getServiceSpecification());
+        new DefaultService(args[0]);
     }
 
     private static ServiceSpecification getServiceSpecification() {
