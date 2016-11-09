@@ -18,7 +18,6 @@ if os.environ.get('SECURITY', '') == 'strict':
     PRINCIPAL = 'service-acct'
     DEFAULT_OPTIONS_DICT = {
         "service": {
-            "user": "nobody",
             "principal": PRINCIPAL,
             "secret_name": "secret"
         }
