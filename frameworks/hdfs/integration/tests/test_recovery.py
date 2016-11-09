@@ -11,9 +11,6 @@ from tests.test_utils import (
 )
 
 
-strict_mode = os.getenv('SECURITY', 'permissive')
-
-
 def get_scheduler_host():
     return shakedown.get_service_ips('marathon').pop()
 
