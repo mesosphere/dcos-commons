@@ -75,7 +75,7 @@ def test_commercial_api_available(default_populated_index):
     assert response["failures"] == []
 
 
-@pytest.mark.sanity
+@pytest.mark.recovery
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
     shakedown.kill_process_on_host("data-0.{}.mesos".format(PACKAGE_NAME), "node.data=true")
@@ -83,14 +83,14 @@ def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
 
 
-@pytest.mark.sanity
+@pytest.mark.recovery
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
     shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "node.master=true")
     check_new_elasticsearch_master_elected(initial_master)
 
 
-@pytest.mark.plugins
+@pytest.mark.recovery
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = get_elasticsearch_config()
@@ -104,7 +104,7 @@ def test_plugin_install_and_uninstall(default_populated_index):
     check_plugin_uninstalled(plugin_name)
 
 
-@pytest.mark.ports
+@pytest.mark.recovery
 def test_change_master_ports(default_populated_index):
     config = get_elasticsearch_config()
     master_transport_port = int(config['env']['MASTER_NODE_TRANSPORT_PORT'])
@@ -122,7 +122,7 @@ def test_change_master_ports(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", master_http_port)
 
 
-@pytest.mark.bump
+@pytest.mark.recovery
 def test_bump_node_counts():
     config = get_elasticsearch_config()
     data_nodes = int(config['env']['DATA_NODE_COUNT'])
