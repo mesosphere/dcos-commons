@@ -77,7 +77,7 @@ public class DefaultOfferRequirementProviderTest {
 
         when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
 
-        when(taskSpec.getName()).thenReturn("task_spec_name");
+        when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
         when(taskSpec.getPod()).thenReturn(podSpec);
         when(taskSpec.getResourceSetId()).thenReturn(TestConstants.RESOURCE_SET_ID);
         when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
@@ -137,6 +137,7 @@ public class DefaultOfferRequirementProviderTest {
         when(taskSpec.getName()).thenReturn("task_spec_name");
         when(taskSpec.getPod()).thenReturn(podSpec);
         when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
+        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
 
         when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
 
@@ -157,19 +158,28 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertFalse(taskInfo.hasContainer());
     }
 
+    @Test(expected=InvalidRequirementException.class)
+    public void testExistingOfferRequirementEmpty() throws InvalidRequirementException {
+        PROVIDER.getExistingOfferRequirement(Collections.emptyList(), Optional.empty(), podSpec);
+    }
+
     @Test
-    public void testExistingOfferRequirement() throws InvalidRequirementException {
+    public void testExistingOfferRequirementEmptyExecutor() throws InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-
-        TaskSpecification taskSpecification = setupMock(taskInfo, Optional.of(ALLOW_ALL));
-
         OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(taskInfo, taskSpecification);
+                PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.empty(), podSpec);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
-        Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
+    }
+
+    @Test
+    public void testExistingOfferRequirementExistingExecutor() throws InvalidRequirementException {
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        Protos.ExecutorInfo executorInfo = TaskTestUtils.getExistingExecutorInfo(cpu);
+        OfferRequirement offerRequirement =
+                PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.of(executorInfo), podSpec);
+        Assert.assertNotNull(offerRequirement);
     }
 
     private TaskSpecification setupMock(Protos.TaskInfo taskInfo) {

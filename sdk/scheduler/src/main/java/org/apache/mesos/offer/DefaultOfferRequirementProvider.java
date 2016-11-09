@@ -239,7 +239,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         for (TaskRequirement taskRequirement : taskRequirements) {
             try {
-                String localTaskType = TaskUtils.getTaskType(taskRequirements.get(0).getTaskInfo());
+                String localTaskType = TaskUtils.getTaskType(taskRequirement.getTaskInfo());
                 if (!localTaskType.equals(taskType)) {
                     throw new InvalidRequirementException("TaskRequirements must have TaskTypes.");
                 }
