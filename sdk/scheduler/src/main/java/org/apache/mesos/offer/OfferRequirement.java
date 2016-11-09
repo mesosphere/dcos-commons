@@ -10,8 +10,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * An OfferRequirement encapsulates the needed resources that an {@link Offer} must have in order to
- * launch a task against that {@link Offer}.
+ * An OfferRequirement encapsulates the needed resources that an {@link org.apache.mesos.Protos.Offer} must have in
+ * order to launch a task against that {@link org.apache.mesos.Protos.Offer}.
  *
  * In general these are Resource requirements, such as requiring a certain amount of cpu, memory,
  * and disk, as encapsulated by {@link TaskRequirement} and {@link ExecutorRequirement}.
@@ -81,6 +81,16 @@ public class OfferRequirement {
     public OfferRequirement withoutPlacementRules() {
         return new OfferRequirement(taskType, taskRequirements, executorRequirementOptional, Optional.empty());
     }
+
+    public static OfferRequirement create(
+            String taskType,
+            Collection<TaskRequirement> taskRequirements,
+            ExecutorRequirement executorRequirement,
+            Optional<PlacementRule> placementRuleOptional) {
+
+        return new OfferRequirement(taskType, taskRequirements, Optional.of(executorRequirement), placementRuleOptional);
+    }
+
 
     private OfferRequirement(
             String taskType,

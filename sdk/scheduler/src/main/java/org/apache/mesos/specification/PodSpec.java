@@ -13,7 +13,6 @@ public interface PodSpec {
     String getType();
     Optional<String> getUser();
     Integer getIndex();
-    ResourceSet getResource();
     List<TaskSpec> getTasks();
     Collection<ResourceSet> getResources();
     Optional<PlacementRule> getPlacementRule();

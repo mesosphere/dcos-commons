@@ -44,14 +44,52 @@ public class DefaultOfferRequirementProviderTest {
 
     private EnvironmentVariables environmentVariables;
 
-    @Mock
-    private TaskSpecification mockTaskSpecification;
+    @Mock private TaskSpecification mockTaskSpecification;
+
+    @Mock private PodSpec podSpec;
+    @Mock private HealthCheckSpec healthCheckSpec;
+    @Mock private CommandSpec commandSpec;
+    @Mock private TaskSpec taskSpec;
+    @Mock private ResourceSet resourceSet;
+
+    private ResourceSpecification resourceSpecification = new DefaultResourceSpecification(
+            "cpus",
+            ValueUtils.getValue(ResourceTestUtils.getDesiredCpu(1.0)),
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL);
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
+
+        when(podSpec.getResources()).thenReturn(Collections.emptyList());
+        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(podSpec.getUser()).thenReturn(Optional.empty());
+
+        when(healthCheckSpec.getCommand()).thenReturn(TestConstants.HEALTH_CHECK_CMD);
+        when(healthCheckSpec.getMaxConsecutiveFailures()).thenReturn(3);
+        when(healthCheckSpec.getDelay()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getInterval()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getTimeout()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getGracePeriod()).thenReturn(Duration.ZERO);
+
+        when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
+
+        when(taskSpec.getName()).thenReturn("task_spec_name");
+        when(taskSpec.getPod()).thenReturn(podSpec);
+        when(taskSpec.getResourceSetId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+        when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
+        when(taskSpec.getContainer()).thenReturn(Optional.empty());
+        when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
+        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
+
+        when(resourceSet.getResources()).thenReturn(Arrays.asList(resourceSpecification));
+        when(resourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+
+        when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
+        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
     }
 
     @Test
@@ -107,45 +145,9 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testNewOfferRequirement() throws InvalidRequirementException {
-        ResourceSpecification resourceSpecification = new DefaultResourceSpecification(
-                "cpus",
-                ValueUtils.getValue(ResourceTestUtils.getDesiredCpu(1.0)),
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
-
-        ResourceSet resourceSet = mock(ResourceSet.class);
-        when(resourceSet.getResources()).thenReturn(Arrays.asList(resourceSpecification));
-        when(resourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
-
-        PodSpec podSpec = mock(PodSpec.class);
-        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
-        when(podSpec.getType()).thenReturn(TestConstants.TASK_TYPE);
-        when(podSpec.getUser()).thenReturn(Optional.empty());
-
-        HealthCheckSpec healthCheckSpec = mock(HealthCheckSpec.class);
-        when(healthCheckSpec.getCommand()).thenReturn(TestConstants.HEALTH_CHECK_CMD);
-        when(healthCheckSpec.getMaxConsecutiveFailures()).thenReturn(3);
-        when(healthCheckSpec.getDelay()).thenReturn(Duration.ZERO);
-        when(healthCheckSpec.getInterval()).thenReturn(Duration.ZERO);
-        when(healthCheckSpec.getTimeout()).thenReturn(Duration.ZERO);
-        when(healthCheckSpec.getGracePeriod()).thenReturn(Duration.ZERO);
-
-        CommandSpec commandSpec = mock(CommandSpec.class);
-        when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
-
-        TaskSpec taskSpec = mock(TaskSpec.class);
-        when(taskSpec.getName()).thenReturn("task_spec_name");
-        when(taskSpec.getPod()).thenReturn(podSpec);
-        when(taskSpec.getResourceSetId()).thenReturn(TestConstants.RESOURCE_SET_ID);
-        when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
-        when(taskSpec.getContainer()).thenReturn(Optional.empty());
-        when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
-
-        when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
-
         OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(podSpec);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getTaskType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
 
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
@@ -157,7 +159,17 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testExistingOfferRequirement() throws InvalidRequirementException {
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
 
+        TaskSpecification taskSpecification = setupMock(taskInfo, Optional.of(ALLOW_ALL));
+
+        OfferRequirement offerRequirement =
+                PROVIDER.getExistingOfferRequirement(taskInfo, taskSpecification);
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
+        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
+        Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
     private TaskSpecification setupMock(Protos.TaskInfo taskInfo) {

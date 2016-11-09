@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A default implementation of the OfferRequirementProvider interface.
@@ -59,24 +58,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return OfferRequirement.create(
                 taskSpecification.getType(),
                 Arrays.asList(taskInfoBuilder.build()),
-                Optional.of(getExecutorInfo(taskSpecification)),
+                Optional.of(getNewExecutorInfo(taskSpecification)),
                 taskSpecification.getPlacement());
     }
 
     @Override
     public OfferRequirement getNewOfferRequirement(PodSpec podSpec) throws InvalidRequirementException {
         List<Protos.TaskInfo> taskInfos = getTaskInfos(podSpec);
-        Protos.ExecutorInfo.Builder execBuilder = getExecutorInfo(podSpec);
+        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podSpec);
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
-        for (TaskSpec taskSpec : podSpec.getTasks()) {
-            if (taskSpec.getCommand().isPresent()) {
-                List<Protos.CommandInfo.URI> uris = taskSpec.getUris().stream()
-                        .map(uri -> Protos.CommandInfo.URI.newBuilder().setValue(uri.toString()).build())
-                        .collect(Collectors.toList());
-                execCmdBuilder.addAllUris(uris);
-            }
-        }
+        podSpec.getTasks()
+                .forEach(taskSpec -> execCmdBuilder.addAllUris(CommandUtils.getUris(taskSpec.getCommand().get())));
 
         Protos.ExecutorInfo executorInfo = execBuilder.setCommand(execCmdBuilder).build();
 
@@ -90,7 +83,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private List<Protos.TaskInfo> getTaskInfos(PodSpec podSpec) throws InvalidRequirementException {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (TaskSpec taskSpec : podSpec.getTasks()) {
+            if (taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING)) {
                 taskInfos.add(getTaskInfo(taskSpec));
+            }
         }
 
         return taskInfos;
@@ -183,11 +178,138 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             return OfferRequirement.create(
                     TaskUtils.getTaskType(taskInfo),
                     Arrays.asList(taskInfoBuilder.build()),
-                    Optional.of(getExecutorInfo(taskSpecification)),
+                    Optional.of(getNewExecutorInfo(taskSpecification)),
                     taskSpecification.getPlacement());
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
+    }
+
+    public TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo, TaskSpec taskSpec)
+            throws InvalidRequirementException {
+
+        String taskType;
+        try {
+            taskType = TaskUtils.getTaskType(taskInfo);
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
+
+        List<Protos.Resource> updatedResources = getUpdatedResources(taskInfo, taskSpec);
+
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
+                .clearResources()
+                .clearExecutor()
+                .addAllResources(updatedResources)
+                .addAllResources(getVolumes(taskInfo.getResourcesList()))
+                .setTaskId(TaskUtils.emptyTaskId())
+                .setSlaveId(TaskUtils.emptyAgentId());
+
+        TaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
+        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+
+        if (taskSpec.getCommand().isPresent()) {
+            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
+                    .updateEnvironment(CommandUtils.getCommandInfo(taskSpec.getCommand().get()));
+            taskInfoBuilder.setCommand(updatedCommand);
+        }
+
+        if (taskSpec.getContainer().isPresent()) {
+            taskInfoBuilder.setContainer(taskSpec.getContainer().get().getContainerInfo());
+        }
+
+        if (taskSpec.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
+        }
+
+        return new TaskRequirement(taskInfo);
+    }
+
+    private String validateTaskRequirements(List<TaskRequirement> taskRequirements) throws InvalidRequirementException {
+        if (taskRequirements.isEmpty()) {
+            throw new InvalidRequirementException("Failed to generate any TaskRequirements.");
+        }
+
+        String taskType = "";
+        try {
+            taskType = TaskUtils.getTaskType(taskRequirements.get(0).getTaskInfo());
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
+
+        for (TaskRequirement taskRequirement : taskRequirements) {
+            try {
+                String localTaskType = TaskUtils.getTaskType(taskRequirements.get(0).getTaskInfo());
+                if (!localTaskType.equals(taskType)) {
+                    throw new InvalidRequirementException("TaskRequirements must have TaskTypes.");
+                }
+            } catch (TaskException e) {
+                throw new InvalidRequirementException(e);
+            }
+        }
+
+        return taskType;
+    }
+
+    public OfferRequirement getExistingOfferRequirement(
+            List<Protos.TaskInfo> taskInfos,
+            Optional<Protos.ExecutorInfo> executorInfoOptional,
+            PodSpec podSpec) throws InvalidRequirementException {
+
+        List<TaskRequirement> taskRequirements = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            Optional<TaskSpec> taskSpecOptional = getTaskSpec(taskInfo, podSpec);
+
+            if (taskSpecOptional.isPresent()) {
+                taskRequirements.add(getExistingTaskRequirement(taskInfo, taskSpecOptional.get()));
+            }
+        }
+
+        String taskType = validateTaskRequirements(taskRequirements);
+
+        ExecutorRequirement executorRequirement = null;
+        if (executorInfoOptional.isPresent()) {
+            executorRequirement = ExecutorRequirement.create(executorInfoOptional.get());
+        } else {
+            executorRequirement = ExecutorRequirement.create(getNewExecutorInfo(podSpec).build());
+        }
+
+        return OfferRequirement.create(
+                taskType,
+                taskRequirements,
+                executorRequirement,
+                podSpec.getPlacementRule());
+    }
+
+    private List<Protos.Resource> getUpdatedResources(Protos.TaskInfo taskInfo, TaskSpec taskSpec)
+            throws InvalidRequirementException {
+
+        Map<String, Protos.Resource> oldResourceMap = getResourceMap(taskInfo.getResourcesList());
+
+        ResourceSet resourceSet = getResourceSet(taskSpec);
+        List<Protos.Resource> updatedResources = new ArrayList<>();
+        for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
+            Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
+            if (oldResource != null) {
+                try {
+                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
+                } catch (IllegalArgumentException e) {
+                    LOGGER.error("Failed to update Resources with exception: ", e);
+                    // On failure to update resources keep the old resources.
+                    updatedResources.add(oldResource);
+                }
+            } else {
+                updatedResources.add(ResourceUtils.getDesiredResource(resourceSpecification));
+            }
+        }
+
+        return updatedResources;
+    }
+
+    private Optional<TaskSpec> getTaskSpec(Protos.TaskInfo taskInfo, PodSpec podSpec) {
+        return podSpec.getTasks().stream()
+                .filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
+                .findFirst();
     }
 
     private static Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {
@@ -304,7 +426,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
      * the {@link org.apache.mesos.executor.CustomExecutor}
      * @throws IllegalStateException
      */
-    private Protos.ExecutorInfo getExecutorInfo(TaskSpecification taskSpecification) throws IllegalStateException {
+    private Protos.ExecutorInfo getNewExecutorInfo(TaskSpecification taskSpecification) throws IllegalStateException {
 
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
@@ -337,7 +459,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return executorInfoBuilder.build();
     }
 
-    private Protos.ExecutorInfo.Builder getExecutorInfo(PodSpec podSpec) throws IllegalStateException {
+    private Protos.ExecutorInfo.Builder getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
@@ -392,4 +514,5 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             commandInfoBuilder.setEnvironment(environmentBuilder);
         }
     }
+
 }
