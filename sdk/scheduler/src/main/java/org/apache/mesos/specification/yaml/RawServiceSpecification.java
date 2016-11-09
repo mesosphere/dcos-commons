@@ -1,15 +1,20 @@
-package org.apache.mesos.specification;
+package org.apache.mesos.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Root of the parsed YAML object model.
+ */
 public class RawServiceSpecification {
     private String name;
     private String principal;
-    private Collection<RawPod> pods;
+    private Integer apiPort;
+    private String zookeeper;
+    private LinkedHashMap<String, RawPod> pods;
     private Collection<RawPlan> plans;
 
     public String getName() {
@@ -21,7 +26,6 @@ public class RawServiceSpecification {
         this.name = name;
     }
 
-
     public String getPrincipal() {
         return principal;
     }
@@ -31,12 +35,30 @@ public class RawServiceSpecification {
         this.principal = principal;
     }
 
-    public Collection<RawPod> getPods() {
+    public Integer getApiPort() {
+        return apiPort;
+    }
+
+    @JsonProperty("api-port")
+    public void setApiPort(Integer apiPort) {
+        this.apiPort = apiPort;
+    }
+
+    public String getZookeeper() {
+        return zookeeper;
+    }
+
+    @JsonProperty("zookeeper")
+    public void setZookeeper(String zookeeper) {
+        this.zookeeper = zookeeper;
+    }
+
+    public LinkedHashMap<String, RawPod> getPods() {
         return pods;
     }
 
     @JsonProperty("pods")
-    public void setPods(Collection<RawPod> pods) {
+    public void setPods(LinkedHashMap<String, RawPod> pods) {
         this.pods = pods;
     }
 
@@ -53,11 +75,10 @@ public class RawServiceSpecification {
 class RawPod {
     private String name;
     private String placement;
-    private String count;
+    private Integer count;
     private String strategy;
-    private List<RawTask> tasks;
+    private LinkedHashMap<String, RawTask> tasks;
     private Collection<RawResourceSet> resourceSets;
-    private Collection<RawVolume> volumes;
 
     public String getName() {
         return name;
@@ -86,12 +107,12 @@ class RawPod {
         this.placement = placement;
     }
 
-    public String getCount() {
+    public Integer getCount() {
         return count;
     }
 
     @JsonProperty("count")
-    public void setCount(String count) {
+    public void setCount(Integer count) {
         this.count = count;
     }
 
@@ -104,22 +125,13 @@ class RawPod {
         this.strategy = strategy;
     }
 
-    public List<RawTask> getTasks() {
+    public LinkedHashMap<String, RawTask> getTasks() {
         return tasks;
     }
 
     @JsonProperty("tasks")
-    public void setTasks(List<RawTask> tasks) {
+    public void setTasks(LinkedHashMap<String, RawTask> tasks) {
         this.tasks = tasks;
-    }
-
-    public Collection<RawVolume> getVolumes() {
-        return volumes;
-    }
-
-    @JsonProperty("volumes")
-    public void setVolumes(Collection<RawVolume> volumes) {
-        this.volumes = volumes;
     }
 }
 
@@ -134,7 +146,8 @@ class RawTask {
     private Double cpus;
     private Integer memory;
     private Collection<RawPort> ports;
-    private Collection<RawHealthCheck> healthChecks;
+    private LinkedHashMap<String, RawHealthCheck> healthChecks;
+    private Collection<RawVolume> volumes;
     private String resourceSet;
 
     public Double getCpus() {
@@ -173,12 +186,12 @@ class RawTask {
         this.resourceSet = resourceSet;
     }
 
-    public Collection<RawHealthCheck> getHealthChecks() {
+    public LinkedHashMap<String, RawHealthCheck> getHealthChecks() {
         return healthChecks;
     }
 
     @JsonProperty("health-checks")
-    public void setHealthChecks(Collection<RawHealthCheck> healthChecks) {
+    public void setHealthChecks(LinkedHashMap<String, RawHealthCheck> healthChecks) {
         this.healthChecks = healthChecks;
     }
 
@@ -243,6 +256,15 @@ class RawTask {
     @JsonProperty("configurations")
     public void setConfigurations(Collection<RawConfiguration> configurations) {
         this.configurations = configurations;
+    }
+
+    public Collection<RawVolume> getVolumes() {
+        return volumes;
+    }
+
+    @JsonProperty("volumes")
+    public void setVolumes(Collection<RawVolume> volumes) {
+        this.volumes = volumes;
     }
 }
 
