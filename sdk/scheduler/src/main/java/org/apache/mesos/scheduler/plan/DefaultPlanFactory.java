@@ -1,12 +1,9 @@
 package org.apache.mesos.scheduler.plan;
 
-import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.state.StateStore;
+import org.apache.mesos.specification.ServiceSpec;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,17 +15,6 @@ import java.util.stream.Collectors;
 public class DefaultPlanFactory implements PlanFactory {
     private final StrategyGenerator<Phase> strategyGenerator;
     private final PhaseFactory phaseFactory;
-
-    public DefaultPlanFactory(
-            ConfigStore configStore,
-            StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider,
-            StrategyGenerator<Phase> strategyGenerator) {
-        this(
-                new DefaultPhaseFactory(
-                        new DefaultStepFactory(configStore, stateStore, offerRequirementProvider)),
-                strategyGenerator);
-    }
 
     public DefaultPlanFactory(PhaseFactory phaseFactory) {
         this(phaseFactory, new SerialStrategy.Generator<>());
@@ -48,15 +34,15 @@ public class DefaultPlanFactory implements PlanFactory {
     }
 
     @Override
-    public Plan getPlan(ServiceSpecification serviceSpecification) {
+    public Plan getPlan(ServiceSpec serviceSpec) {
         return new DefaultPlan(
-                serviceSpecification.getName(),
-                getPhases(serviceSpecification),
+                serviceSpec.getName(),
+                getPhases(serviceSpec),
                 strategyGenerator.generate());
     }
 
-    private List<Phase> getPhases(ServiceSpecification serviceSpecification) {
-        return serviceSpecification.getTaskSets().stream()
+    private List<Phase> getPhases(ServiceSpec serviceSpec) {
+        return serviceSpec.getPods().stream()
                 .map(phaseFactory::getPhase)
                 .collect(Collectors.toList());
     }

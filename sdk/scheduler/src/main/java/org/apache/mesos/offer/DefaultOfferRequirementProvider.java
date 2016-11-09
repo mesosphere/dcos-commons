@@ -29,32 +29,32 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getNewOfferRequirement(PodSpec podSpec) throws InvalidRequirementException {
-        List<Protos.TaskInfo> taskInfos = getTaskInfos(podSpec);
-        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podSpec);
+    public OfferRequirement getNewOfferRequirement(PodInstance podInstance) throws InvalidRequirementException {
+        List<Protos.TaskInfo> taskInfos = getTaskInfos(podInstance.getPod());
+        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
-        podSpec.getTasks()
+        podInstance.getPod().getTasks()
                 .forEach(taskSpec -> execCmdBuilder.addAllUris(CommandUtils.getUris(taskSpec.getCommand().get())));
 
         Protos.ExecutorInfo executorInfo = execBuilder.setCommand(execCmdBuilder).build();
 
         return OfferRequirement.create(
-                podSpec.getType(),
+                podInstance.getPod().getType(),
                 taskInfos,
                 Optional.of(executorInfo),
-                podSpec.getPlacementRule());
+                podInstance.getPod().getPlacementRule());
     }
 
     @Override
     public OfferRequirement getExistingOfferRequirement(
             List<Protos.TaskInfo> taskInfos,
             Optional<Protos.ExecutorInfo> executorInfoOptional,
-            PodSpec podSpec) throws InvalidRequirementException {
+            PodInstance podInstance) throws InvalidRequirementException {
 
         List<TaskRequirement> taskRequirements = new ArrayList<>();
         for (Protos.TaskInfo taskInfo : taskInfos) {
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podSpec);
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance.getPod());
 
             if (taskSpecOptional.isPresent()) {
                 taskRequirements.add(getExistingTaskRequirement(taskInfo, taskSpecOptional.get()));
@@ -67,14 +67,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         if (executorInfoOptional.isPresent()) {
             executorRequirement = ExecutorRequirement.create(executorInfoOptional.get());
         } else {
-            executorRequirement = ExecutorRequirement.create(getNewExecutorInfo(podSpec).build());
+            executorRequirement = ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod()).build());
         }
 
         return OfferRequirement.create(
                 taskType,
                 taskRequirements,
                 executorRequirement,
-                podSpec.getPlacementRule());
+                podInstance.getPod().getPlacementRule());
     }
 
 

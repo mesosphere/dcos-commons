@@ -30,7 +30,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
     /**
      * Factory which performs the inverse of {@link DefaultServiceSpecification#getBytes()}.
      */
-    public static class Factory implements ConfigurationFactory<ServiceSpecification> {
+    public static class Factory implements ConfigurationFactory<ServiceSpec> {
 
         /**
          * Subtypes to be registered by defaults. This list should include all
@@ -62,10 +62,10 @@ public class DefaultServiceSpecification implements ServiceSpecification {
         }
 
         @Override
-        public ServiceSpecification parse(byte[] bytes) throws ConfigStoreException {
+        public ServiceSpec parse(byte[] bytes) throws ConfigStoreException {
             try {
                 return SerializationUtils.fromString(
-                        new String(bytes, CHARSET), DefaultServiceSpecification.class, objectMapper);
+                        new String(bytes, CHARSET), DefaultServiceSpec.class, objectMapper);
             } catch (IOException e) {
                 throw new ConfigStoreException(
                         "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
@@ -137,23 +137,23 @@ public class DefaultServiceSpecification implements ServiceSpecification {
      * {@link DefaultServiceSpecification}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
-     * @param testSpecification specification to test for successful serialization/deserialization
+     * @param serviceSpec specification to test for successful serialization/deserialization
      * @param additionalSubtypesToRegister any class subtypes which should be registered with
      *     Jackson for deserialization. any custom placement rule implementations must be provided
      * @throws ConfigStoreException if testing the provided specification fails
      */
-    public static ConfigurationFactory<ServiceSpecification> getFactory(
-            ServiceSpecification testSpecification,
+    public static ConfigurationFactory<ServiceSpec> getFactory(
+            ServiceSpec serviceSpec,
             Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
-        ConfigurationFactory<ServiceSpecification> factory = new Factory(additionalSubtypesToRegister);
+        ConfigurationFactory<ServiceSpec> factory = new Factory(additionalSubtypesToRegister);
         // Serialize and then deserialize:
-        ServiceSpecification loopbackSpecification = factory.parse(testSpecification.getBytes());
+        ServiceSpecification loopbackSpecification = factory.parse(serviceSpec.getBytes());
         // Verify that equality works:
-        if (!loopbackSpecification.equals(testSpecification)) {
+        if (!loopbackSpecification.equals(serviceSpec)) {
             StringBuilder error = new StringBuilder();
             error.append("Equality test failed: Loopback result is not equal to original:\n");
             error.append("- Original:\n");
-            error.append(testSpecification.toJsonString());
+            error.append(serviceSpec.toJsonString());
             error.append('\n');
             error.append("- Result:\n");
             error.append(loopbackSpecification.toJsonString());

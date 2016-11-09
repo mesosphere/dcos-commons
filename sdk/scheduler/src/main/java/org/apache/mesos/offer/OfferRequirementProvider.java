@@ -1,7 +1,7 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.PodInstance;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,10 +11,10 @@ import java.util.Optional;
  * scenarios: initial launch, and update of an already running container.
  */
 public interface OfferRequirementProvider {
-    OfferRequirement getNewOfferRequirement(PodSpec podSpec) throws InvalidRequirementException;
+    OfferRequirement getNewOfferRequirement(PodInstance podInstance) throws InvalidRequirementException;
 
     OfferRequirement getExistingOfferRequirement(
             List<Protos.TaskInfo> taskInfos,
             Optional<Protos.ExecutorInfo> executorInfoOptional,
-            PodSpec podSpec) throws InvalidRequirementException;
+            PodInstance podInstance) throws InvalidRequirementException;
 }

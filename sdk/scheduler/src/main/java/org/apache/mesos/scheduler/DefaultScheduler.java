@@ -28,9 +28,8 @@ import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.NeverFailureMonitor;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
 import org.apache.mesos.specification.DefaultServiceSpecification;
-import org.apache.mesos.specification.DefaultTaskSpecificationProvider;
+import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
@@ -61,16 +60,15 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
     protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
-    protected final ServiceSpecification serviceSpecification;
+    protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
-    protected final ConfigStore<ServiceSpecification> configStore;
+    protected final ConfigStore<ServiceSpec> configStore;
     protected final Collection<ConfigurationValidator<ServiceSpecification>> configValidators;
     protected final Optional<Integer> permanentFailureTimeoutSec;
     protected final Integer destructiveRecoveryDelaySec;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
-    protected TaskSpecificationProvider taskSpecificationProvider;
     protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -85,25 +83,25 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Returns a new {@link DefaultScheduler} instance using the provided service-defined
      * {@link ServiceSpecification} and the default ZK location for framework state.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpec specification containing service name and tasks to be deployed
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *     unrecognized deserialization type
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static DefaultScheduler create(ServiceSpecification serviceSpecification)
+    public static DefaultScheduler create(ServiceSpec serviceSpec)
             throws ConfigStoreException {
-        return create(serviceSpecification, Collections.emptyList());
+        return create(serviceSpec, Collections.emptyList());
     }
 
     /**
      * Returns a new {@link DefaultScheduler} instance using the provided service-defined
      * {@link ServiceSpecification} and the default ZK location for framework state, and with the
-     * provided custom {@link PlacementRule} classes which are used within the provided
-     * {@link ServiceSpecification}. Custom implementations of {@link PlacementRule}s MUST be
+     * provided custom {@link org.apache.mesos.offer.constrain.PlacementRule} classes which are used within the provided
+     * {@link ServiceSpecification}. Custom implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s MUST be
      * serializable and deserializable by Jackson, and MUST be provided to support correctly
      * identifying them in the serialized {@link ServiceSpecification}.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpec specification containing service name and tasks to be deployed
      * @param customDeserializationSubtypes custom placement rule implementations which support
      *     Jackson deserialization
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
@@ -111,13 +109,13 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
     public static DefaultScheduler create(
-            ServiceSpecification serviceSpecification,
+            ServiceSpec serviceSpec,
             Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         return create(
-                serviceSpecification,
-                createStateStore(serviceSpecification),
+                serviceSpec,
+                createStateStore(serviceSpec),
                 createConfigStore(
-                        serviceSpecification,
+                        serviceSpec,
                         customDeserializationSubtypes));
     }
 
@@ -135,11 +133,11 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @see #createStateStore(String, String)
      */
     public static DefaultScheduler create(
-            ServiceSpecification serviceSpecification,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
-            ConfigStore<ServiceSpecification> configStore) {
+            ConfigStore<ServiceSpec> configStore) {
         return create(
-                serviceSpecification,
+                serviceSpec,
                 stateStore,
                 configStore,
                 defaultConfigValidators(),
@@ -152,7 +150,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * {@code frameworkName} and {@link PlanManager} stack, and the default ZK location for
      * framework state.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpec specification containing service name and tasks to be deployed
      * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
      *      task has failed, or an empty {@link Optional} to disable this detection
      * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
@@ -162,13 +160,13 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
     public static DefaultScheduler create(
-            ServiceSpecification serviceSpecification,
+            ServiceSpec serviceSpec,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) throws ConfigStoreException {
         return create(
-                serviceSpecification,
-                createStateStore(serviceSpecification),
-                createConfigStore(serviceSpecification),
+                serviceSpec,
+                createStateStore(serviceSpec),
+                createConfigStore(serviceSpec),
                 defaultConfigValidators(),
                 permanentFailureTimeoutSec,
                 destructiveRecoveryDelaySec);
@@ -178,7 +176,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Returns a new {@link DefaultScheduler} instance using the provided
      * {@code frameworkName}, {@link PlanManager} stack, and {@link StateStore}.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpec specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
      *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
@@ -192,14 +190,14 @@ public class DefaultScheduler implements Scheduler, Observer {
      *     recovery operations such as destroying a failed task
      */
     public static DefaultScheduler create(
-            ServiceSpecification serviceSpecification,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
-            ConfigStore<ServiceSpecification> configStore,
+            ConfigStore<ServiceSpec> configStore,
             Collection<ConfigurationValidator<ServiceSpecification>> configValidators,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return new DefaultScheduler(
-                serviceSpecification,
+                serviceSpec,
                 stateStore,
                 configStore,
                 configValidators,
@@ -216,19 +214,19 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
-    public static StateStore createStateStore(ServiceSpecification serviceSpecification, String zkConnectionString) {
+    public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
         return StateStoreCache.getInstance(new CuratorStateStore(
-                serviceSpecification.getName(),
+                serviceSpec.getName(),
                 zkConnectionString));
     }
 
     /**
-     * Calls {@link #createStateStore(String, String)} with the specification name as the
+     * Calls {@link #createStateStore(ServiceSpecification, String)} with the specification name as the
      * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static StateStore createStateStore(ServiceSpecification serviceSpecification) {
+    public static StateStore createStateStore(ServiceSpec serviceSpecification) {
         return createStateStore(
                 serviceSpecification,
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
@@ -244,36 +242,36 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
      *     {@link DefaultServiceSpecification}, mainly useful for deserializing custom
-     *     implementations of {@link PlacementRule}s.
+     *     implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s.
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *     unrecognized deserialization type
      */
-    public static ConfigStore<ServiceSpecification> createConfigStore(
-            ServiceSpecification serviceSpecification,
+    public static ConfigStore<ServiceSpec> createConfigStore(
+            ServiceSpec serviceSpec,
             String zkConnectionString,
             Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         return new CuratorConfigStore<>(
-                DefaultServiceSpecification.getFactory(serviceSpecification, customDeserializationSubtypes),
-                serviceSpecification.getName(),
+                DefaultServiceSpecification.getFactory(serviceSpec, customDeserializationSubtypes),
+                serviceSpec.getName(),
                 zkConnectionString);
     }
 
     /**
-     * Calls {@link #createConfigStore(String, String, Collection))} with the specification name as
+     * Calls {@link #createConfigStore(ServiceSpecification, String, Collection))} with the specification name as
      * the {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
      *
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
      *     {@link DefaultServiceSpecification}, mainly useful for deserializing custom
-     *     implementations of {@link PlacementRule}s.
+     *     implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s.
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *     unrecognized deserialization type
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static ConfigStore<ServiceSpecification> createConfigStore(
-            ServiceSpecification serviceSpecification,
+    public static ConfigStore<ServiceSpec> createConfigStore(
+            ServiceSpec serviceSpec,
             Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         return createConfigStore(
-                serviceSpecification,
+                serviceSpec,
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
                 customDeserializationSubtypes);
     }
@@ -285,9 +283,9 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *     unrecognized deserialization type
      */
-    public static ConfigStore<ServiceSpecification> createConfigStore(
-            ServiceSpecification serviceSpecification) throws ConfigStoreException {
-        return createConfigStore(serviceSpecification, Collections.emptyList());
+    public static ConfigStore<ServiceSpec> createConfigStore(
+            ServiceSpec serviceSpec) throws ConfigStoreException {
+        return createConfigStore(serviceSpec, Collections.emptyList());
     }
 
     /**
@@ -308,7 +306,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     /**
      * Creates a new DefaultScheduler.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpec specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
      *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
@@ -323,13 +321,13 @@ public class DefaultScheduler implements Scheduler, Observer {
      *     recovery operations such as destroying a failed task
      */
     protected DefaultScheduler(
-            ServiceSpecification serviceSpecification,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
-            ConfigStore<ServiceSpecification> configStore,
+            ConfigStore<ServiceSpec> configStore,
             Collection<ConfigurationValidator<ServiceSpecification>> configValidators,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
-        this.serviceSpecification = serviceSpecification;
+        this.serviceSpec = serviceSpec;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.configValidators = configValidators;
@@ -378,7 +376,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                         configValidators);
         final ConfigurationUpdater.UpdateResult configUpdateResult;
         try {
-            configUpdateResult = configurationUpdater.updateConfiguration(serviceSpecification);
+            configUpdateResult = configurationUpdater.updateConfiguration(serviceSpec);
         } catch (ConfigStoreException e) {
             LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
@@ -387,7 +385,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing globals...");
         offerRequirementProvider = new DefaultOfferRequirementProvider(
                 new DefaultTaskConfigRouter(), configUpdateResult.targetId);
-        taskSpecificationProvider = new DefaultTaskSpecificationProvider(configStore);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
@@ -404,9 +401,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                 new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
                         configStore,
                         stateStore,
-                        offerRequirementProvider,
-                        taskSpecificationProvider)))
-                .getPlan(serviceSpecification));
+                        offerRequirementProvider)))
+                .getPlan(serviceSpec));
     }
 
     /**
@@ -416,7 +412,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing recovery plan...");
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider, taskSpecificationProvider),
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
@@ -430,7 +426,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore, new JsonPropertyDeserializer()));
-        resources.add(new TaskResource(stateStore, taskKiller, serviceSpecification.getName()));
+        resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         resourcesQueue.put(resources);
     }
 

@@ -35,7 +35,7 @@ public class DefaultService implements Service {
     private final String zkConnectionString;
 
     private StateStore stateStore;
-    private ServiceSpecification serviceSpecification;
+    private ServiceSpec serviceSpec;
 
     /**
      * Creates a new instance which when registered will start a Jetty HTTP API service on the
@@ -69,16 +69,16 @@ public class DefaultService implements Service {
 
     }
 
-    public void register(ServiceSpecification serviceSpecification) {
-        this.serviceSpecification = serviceSpecification;
-        this.stateStore = DefaultScheduler.createStateStore(serviceSpecification, zkConnectionString);
+    public void register(ServiceSpec serviceSpec) {
+        this.serviceSpec = serviceSpec;
+        this.stateStore = DefaultScheduler.createStateStore(serviceSpec, zkConnectionString);
         DefaultScheduler defaultScheduler;
         try {
             defaultScheduler = DefaultScheduler.create(
-                    serviceSpecification,
+                    serviceSpec,
                     stateStore,
                     DefaultScheduler.createConfigStore(
-                            serviceSpecification, zkConnectionString, Collections.emptyList()));
+                            serviceSpec, zkConnectionString, Collections.emptyList()));
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create DefaultScheduler", e);
             throw new IllegalStateException(e);
@@ -120,11 +120,11 @@ public class DefaultService implements Service {
 
     private Protos.FrameworkInfo getFrameworkInfo() {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceSpecification.getName())
+                .setName(serviceSpec.getName())
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(USER)
-                .setRole(SchedulerUtils.nameToRole(serviceSpecification.getName()))
-                .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpecification.getName()))
+                .setRole(SchedulerUtils.nameToRole(serviceSpec.getName()))
+                .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpec.getName()))
                 .setCheckpoint(true);
 
         // The framework ID is not available when we're being started for the first time.

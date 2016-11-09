@@ -4,7 +4,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +17,9 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRecoveryRequirementProvider.class);
 
     private final OfferRequirementProvider offerRequirementProvider;
-    private final TaskSpecificationProvider taskSpecificationProvider;
 
-    public DefaultRecoveryRequirementProvider(
-            OfferRequirementProvider offerRequirementProvider,
-            TaskSpecificationProvider taskSpecificationProvider) {
+    public DefaultRecoveryRequirementProvider(OfferRequirementProvider offerRequirementProvider) {
         this.offerRequirementProvider = offerRequirementProvider;
-        this.taskSpecificationProvider = taskSpecificationProvider;
     }
 
     @Override

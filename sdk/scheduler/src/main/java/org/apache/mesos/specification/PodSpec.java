@@ -11,13 +11,9 @@ import java.util.Optional;
  */
 public interface PodSpec {
     String getType();
+    Integer getCount();
     Optional<String> getUser();
-    Integer getIndex();
     List<TaskSpec> getTasks();
     Collection<ResourceSet> getResources();
     Optional<PlacementRule> getPlacementRule();
-
-    default String getName() {
-        return getType() + "-" + getIndex();
-    }
 }

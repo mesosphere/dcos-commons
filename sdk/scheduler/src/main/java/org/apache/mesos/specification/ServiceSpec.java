@@ -1,13 +1,15 @@
 package org.apache.mesos.specification;
 
-import java.util.Collection;
+import org.apache.mesos.config.Configuration;
+
+import java.util.List;
 
 /**
  * Created by gabriel on 11/7/16.
  */
-public interface ServiceSpec {
+public interface ServiceSpec extends Configuration {
     String getName();
     String getRole();
     String getPrincipal();
-    Collection<PodSpec> getPods();
+    List<PodSpec> getPods();
 }
