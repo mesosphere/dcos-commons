@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A default implementation of the OfferRequirementProvider interface.
@@ -63,7 +64,39 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getNewOfferRequirement(TaskSpec taskSpec) throws InvalidRequirementException {
+    public OfferRequirement getNewOfferRequirement(PodSpec podSpec) throws InvalidRequirementException {
+        List<Protos.TaskInfo> taskInfos = getTaskInfos(podSpec);
+        Protos.ExecutorInfo.Builder execBuilder = getExecutorInfo(podSpec);
+        Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
+
+        for (TaskSpec taskSpec : podSpec.getTasks()) {
+            if (taskSpec.getCommand().isPresent()) {
+                List<Protos.CommandInfo.URI> uris = taskSpec.getUris().stream()
+                        .map(uri -> Protos.CommandInfo.URI.newBuilder().setValue(uri.toString()).build())
+                        .collect(Collectors.toList());
+                execCmdBuilder.addAllUris(uris);
+            }
+        }
+
+        Protos.ExecutorInfo executorInfo = execBuilder.setCommand(execCmdBuilder).build();
+
+        return OfferRequirement.create(
+                podSpec.getType(),
+                taskInfos,
+                Optional.of(executorInfo),
+                podSpec.getPlacementRule());
+    }
+
+    private List<Protos.TaskInfo> getTaskInfos(PodSpec podSpec) throws InvalidRequirementException {
+        List<Protos.TaskInfo> taskInfos = new ArrayList<>();
+        for (TaskSpec taskSpec : podSpec.getTasks()) {
+                taskInfos.add(getTaskInfo(taskSpec));
+        }
+
+        return taskInfos;
+    }
+
+    private Protos.TaskInfo getTaskInfo(TaskSpec taskSpec) throws InvalidRequirementException {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(taskSpec.getName())
                 .setTaskId(TaskUtils.emptyTaskId())
@@ -75,7 +108,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         if (taskSpec.getCommand().isPresent()) {
             Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getPod().getType())
-                    .updateEnvironment(Protos.CommandInfo.newBuilder().setValue(taskSpec.getCommand().get()).build());
+                    .updateEnvironment(Protos.CommandInfo.newBuilder()
+                            .setValue(taskSpec.getCommand().get().getValue()).build());
             taskInfoBuilder.setCommand(updatedCommand);
         }
 
@@ -87,11 +121,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
         }
 
-        return OfferRequirement.create(
-                taskSpec.getPod().getType(),
-                Arrays.asList(taskInfoBuilder.build()),
-                Optional.of(getExecutorInfo(taskSpec)),
-                taskSpec.getPod().getPlacementRule());
+        return taskInfoBuilder.build();
     }
 
 
@@ -307,10 +337,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return executorInfoBuilder.build();
     }
 
-    private Protos.ExecutorInfo getExecutorInfo(TaskSpec taskSpec) throws IllegalStateException {
+    private Protos.ExecutorInfo.Builder getExecutorInfo(PodSpec podSpec) throws IllegalStateException {
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
-                .setName(taskSpec.getName())
+                .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
         String executorStr = System.getenv(EXECUTOR_URI);
@@ -323,22 +353,17 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setValue("./executor/bin/executor")
                 .addUris(executorURI);
 
-        if (taskSpec.getCommand().isPresent()) {
-            Protos.CommandInfo taskCommand = Protos.CommandInfo.newBuilder()
-                    .setValue(taskSpec.getCommand().get())
-                    .build();
-            commandInfoBuilder.addAllUris(taskCommand.getUrisList());
+        Protos.Environment.Variable.Builder javaHomeVariable =
+                Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
+        javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
+        commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
 
-            if (taskCommand.hasUser()) {
-                commandInfoBuilder.setUser(taskCommand.getUser());
-            }
+        if (podSpec.getUser().isPresent()) {
+            commandInfoBuilder.setUser(podSpec.getUser().get());
         }
 
-        // some version of the JRE is required to kickstart the executor
-        setJREVersion(commandInfoBuilder, taskSpec);
-
         executorInfoBuilder.setCommand(commandInfoBuilder.build());
-        return executorInfoBuilder.build();
+        return executorInfoBuilder;
     }
 
     /**
@@ -355,26 +380,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
             Map<String, String> environment =
                     TaskUtils.fromEnvironmentToMap(taskSpecification.getCommand().get().getEnvironment());
-            if (environment.containsKey(JAVA_HOME)) {
-                javaHomeVariable.setValue(environment.get(JAVA_HOME));
-            } else {
-                javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
-                commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
-            }
-
-            Protos.Environment.Builder environmentBuilder = Protos.Environment.newBuilder()
-                    .addVariables(javaHomeVariable);
-            commandInfoBuilder.setEnvironment(environmentBuilder);
-        }
-    }
-
-    private void setJREVersion(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
-
-        if (taskSpec.getCommand().isPresent()) {
-            Protos.Environment.Variable.Builder javaHomeVariable =
-                    Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
-
-            Map<String, String> environment = taskSpec.getEnvironment();
             if (environment.containsKey(JAVA_HOME)) {
                 javaHomeVariable.setValue(environment.get(JAVA_HOME));
             } else {

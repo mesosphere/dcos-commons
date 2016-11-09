@@ -14,6 +14,7 @@ public class HealthCheckUtils {
                 .setTimeoutSeconds(healthCheckSpec.getTimeout().getSeconds())
                 .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
                 .setGracePeriodSeconds(healthCheckSpec.getGracePeriod().getSeconds())
+                .setCommand(Protos.CommandInfo.newBuilder().setValue(healthCheckSpec.getCommand()))
                 .build();
     }
 }

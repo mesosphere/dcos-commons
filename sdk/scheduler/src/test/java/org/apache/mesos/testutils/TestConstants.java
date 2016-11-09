@@ -19,6 +19,9 @@ public class TestConstants {
     public static final Protos.SlaveID AGENT_ID = Protos.SlaveID.newBuilder().setValue("test-slave-id").build();
     public static final String TASK_NAME = "test-task-name";
     public static final String TASK_TYPE = "test-task-type";
+    public static final String TASK_CMD = "./task-cmd";
+    public static final String POD_TYPE = "pod-type";
+    public static final String HEALTH_CHECK_CMD = "./health-check";
     public static final String RESOURCE_ID = "test-resource-id";
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
     public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);

@@ -1,13 +1,13 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.specification.TaskSpec;
+import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.TaskSpecification;
 import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
@@ -72,10 +72,10 @@ public class DefaultStepFactory implements StepFactory {
         }
     }
 
-    public Step getStep(TaskSpec taskSpec) throws InvalidRequirementException {
+    public Step getStep(PodSpec podSpec) throws InvalidRequirementException {
         return new DefaultStep(
-                taskSpec.getName(),
-                Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpec)),
+                podSpec.getType() + "-" + podSpec.getIndex(),
+                Optional.of(offerRequirementProvider.getNewOfferRequirement(podSpec)),
                 Status.PENDING,
                 Collections.emptyList());
     }

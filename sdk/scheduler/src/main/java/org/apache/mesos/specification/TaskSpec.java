@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -21,15 +20,16 @@ public interface TaskSpec {
     @JsonIgnore
     PodSpec getPod();
 
-    Optional<String> getCommand();
+    Optional<CommandSpec> getCommand();
     Optional<ContainerSpec> getContainer();
-
-    Map<String, String> getEnvironment();
 
     Optional<HealthCheckSpec> getHealthCheck();
     Collection<URI> getUris();
     Collection<ConfigFileSpecification> getConfigFiles();
 
+    /**
+     * The allowed goal states for a Task.
+     */
     enum GoalState {
         RUNNING,
         FINISHED
