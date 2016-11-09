@@ -17,7 +17,9 @@ import java.util.Optional;
 public class DefaultServiceSpecificationTest {
     private static final String SERVICE_NAME = "test-service-name";
     private static final PlacementRule HUGE_RULE = new AndRule(Arrays.asList(
-            new MaxPerAttributeRule(3, StringMatcher.createRegex(".+")),
+            new MaxPerAttributeRule(3, StringMatcher.createAny()),
+            new MaxPerAttributeRule(3, StringMatcher.createExact("foo"), StringMatcher.createRegex("index-.*")),
+            new MaxPerAttributeRule(3, StringMatcher.createRegex(".+"), StringMatcher.createAny()),
             HostnameRule.avoid("avoidhost"),
             HostnameRule.require("requirehost1", "requirehost2"),
             AgentRule.require("requireagent1", "requireagent2"),

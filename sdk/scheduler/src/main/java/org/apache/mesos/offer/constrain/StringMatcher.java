@@ -20,27 +20,59 @@ public interface StringMatcher {
     public boolean select(String value);
 
     /**
-     * Returns a new {@link StringMatcher} which selects attributes whose string representation
-     * exactly matches the provided string.
-     *
-     * @see org.apache.mesos.offer.AttributeStringUtils#toString(org.apache.mesos.Protos.Attribute)
+     * Returns a new {@link StringMatcher} which returns {@code true} for all inputs.
+     */
+    public static StringMatcher createAny() {
+        return new AnyMatcher();
+    }
+
+    /**
+     * Returns a new {@link StringMatcher} which returns {@code true} when the input value is an
+     * exact string match.
      */
     public static StringMatcher createExact(String str) {
         return new ExactMatcher(str);
     }
 
     /**
-     * Returns a new {@link StringMatcher} which selects attributes whose string representation
-     * match the provided regular expression.
-     *
-     * @see org.apache.mesos.offer.AttributeStringUtils#toString(org.apache.mesos.Protos.Attribute)
+     * Returns a new {@link StringMatcher} which returns {@code true} when the input value matches
+     * the provided regular expression pattern.
      */
     public static StringMatcher createRegex(String pattern) {
         return new RegexMatcher(pattern);
     }
 
     /**
-     * Implements exact string matching support for offer comparisons.
+     * Implements exact string matching support for string comparisons.
+     */
+    public static class AnyMatcher implements StringMatcher {
+
+        @JsonCreator
+        private AnyMatcher() { }
+
+        @Override
+        public boolean select(String value) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "AnyMatcher{}";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+    }
+
+    /**
+     * Implements exact string matching support for string comparisons.
      */
     public static class ExactMatcher implements StringMatcher {
 
