@@ -8,15 +8,13 @@ import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.PodSpec;
-import org.apache.mesos.specification.TaskSpecification;
-import org.apache.mesos.specification.TaskSpecificationProvider;
+import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
@@ -27,30 +25,27 @@ public class DefaultStepFactory implements StepFactory {
     private final ConfigStore configStore;
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
-    private final TaskSpecificationProvider taskSpecificationProvider;
 
     public DefaultStepFactory(
             ConfigStore configStore,
             StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider,
-            TaskSpecificationProvider taskSpecificationProvider) {
+            OfferRequirementProvider offerRequirementProvider) {
         this.configStore = configStore;
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
-        this.taskSpecificationProvider = taskSpecificationProvider;
     }
 
     @Override
-    public Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException {
-        LOGGER.info("Generating step for: {}", taskSpecification.getName());
-        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskSpecification.getName());
+    public Step getStep(PodSpec podSpec) throws Step.InvalidStepException {
+        LOGGER.info("Generating step for pod: {}", podSpec.getName());
+        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(podSpec.getName());
 
         try {
             if (!taskInfoOptional.isPresent()) {
-                LOGGER.info("Generating new step for: {}", taskSpecification.getName());
+                LOGGER.info("Generating new step for: {}", podSpec.getName());
                 return new DefaultStep(
-                        taskSpecification.getName(),
-                        Optional.of(offerRequirementProvider.getNewOfferRequirement(taskSpecification)),
+                        podSpec.getName(),
+                        Optional.of(offerRequirementProvider.getNewOfferRequirement(podSpec)),
                         Status.PENDING,
                         Collections.emptyList());
             } else {
@@ -58,11 +53,14 @@ public class DefaultStepFactory implements StepFactory {
                 // which is only interested in relaunching tasks as they were. So while they omit
                 // placement rules in their OfferRequirement, we include them.
                 Status status = getStatus(taskInfoOptional.get());
-                LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
+                LOGGER.info("Generating existing step for: {} with status: {}", podSpec.getName(), status);
                 return new DefaultStep(
                         taskInfoOptional.get().getName(),
-                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(
-                                taskInfoOptional.get(), taskSpecification)),
+                        Optional.of(
+                                offerRequirementProvider.getExistingOfferRequirement(
+                                        getTaskInfosShouldBeRunning(podSpec),
+                                        getExecutor(podSpec),
+                                        podSpec)),
                         status,
                         Collections.emptyList());
             }
@@ -72,12 +70,47 @@ public class DefaultStepFactory implements StepFactory {
         }
     }
 
-    public Step getStep(PodSpec podSpec) throws InvalidRequirementException {
-        return new DefaultStep(
-                podSpec.getType() + "-" + podSpec.getIndex(),
-                Optional.of(offerRequirementProvider.getNewOfferRequirement(podSpec)),
-                Status.PENDING,
-                Collections.emptyList());
+    private List<Protos.TaskInfo> getTaskInfosShouldBeRunning(PodSpec podSpec) {
+        List<Protos.TaskInfo> podTasks = getPodTasks(podSpec);
+
+        List<Protos.TaskInfo> tasksShouldBeRunning = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : podTasks) {
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podSpec);
+
+            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(TaskSpec.GoalState.RUNNING)) {
+                tasksShouldBeRunning.add(taskInfo);
+            }
+        }
+
+        return tasksShouldBeRunning;
+    }
+
+    private Optional<Protos.ExecutorInfo> getExecutor(PodSpec podSpec) {
+        List<Protos.TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podSpec);
+
+        for (Protos.TaskInfo taskInfo : shouldBeRunningTasks) {
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskStatusOptional.isPresent() && taskStatusOptional.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
+                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
+                return Optional.of(taskInfo.getExecutor());
+            }
+        }
+
+        LOGGER.info("No running executor found.");
+        return Optional.empty();
+    }
+
+    private List<Protos.TaskInfo> getPodTasks(PodSpec podSpec) {
+        return stateStore.fetchTasks().stream()
+                .filter(taskInfo -> {
+                    try {
+                        return TaskUtils.getTaskType(taskInfo).equals(podSpec.getType());
+                    } catch (TaskException e) {
+                        LOGGER.error("Encountered ");
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     private Status getStatus(Protos.TaskInfo taskInfo) {

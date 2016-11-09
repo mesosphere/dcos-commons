@@ -1,6 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.TaskSpecification;
 
 /**
@@ -11,5 +13,5 @@ import org.apache.mesos.specification.TaskSpecification;
  * TaskSpecification change is detected for a Task.
  */
 public interface StepFactory {
-    Step getStep(TaskSpecification taskSpecification) throws Step.InvalidStepException;
+    Step getStep(PodSpec podSpec) throws Step.InvalidStepException, InvalidRequirementException;
 }

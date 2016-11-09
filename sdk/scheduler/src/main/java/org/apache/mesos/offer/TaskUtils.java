@@ -240,6 +240,12 @@ public class TaskUtils {
         return null;
     }
 
+    public static Optional<TaskSpec> getTaskSpec(Protos.TaskInfo taskInfo, PodSpec podSpec) {
+        return podSpec.getTasks().stream()
+                .filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
+                .findFirst();
+    }
+
     /**
      * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
      * Any templates with matching paths will be overwritten.

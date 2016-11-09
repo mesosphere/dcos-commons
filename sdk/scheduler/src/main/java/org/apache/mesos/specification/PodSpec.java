@@ -16,4 +16,8 @@ public interface PodSpec {
     List<TaskSpec> getTasks();
     Collection<ResourceSet> getResources();
     Optional<PlacementRule> getPlacementRule();
+
+    default String getName() {
+        return getType() + "-" + getIndex();
+    }
 }

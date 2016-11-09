@@ -6,7 +6,6 @@ import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 
 import java.util.Collections;
@@ -24,10 +23,10 @@ public class DefaultPlanFactory implements PlanFactory {
             ConfigStore configStore,
             StateStore stateStore,
             OfferRequirementProvider offerRequirementProvider,
-            TaskSpecificationProvider taskSpecificationProvider,
             StrategyGenerator<Phase> strategyGenerator) {
-        this(new DefaultPhaseFactory(
-                new DefaultStepFactory(configStore, stateStore, offerRequirementProvider, taskSpecificationProvider)),
+        this(
+                new DefaultPhaseFactory(
+                        new DefaultStepFactory(configStore, stateStore, offerRequirementProvider)),
                 strategyGenerator);
     }
 
