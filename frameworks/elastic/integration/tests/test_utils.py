@@ -128,6 +128,26 @@ def marathon_update(config):
             verify=False)
 
 
+def task_ids_dont_change(initial_task_ids):
+    def fn():
+        try:
+            return initial_task_ids == get_task_ids()
+        except dcos.errors.DCOSHTTPException:
+            return []
+
+    def success_predicate(tasks):
+        return (initial_task_ids == get_task_ids(), "Task IDs changed")
+
+    return (len(tasks) == 1 and tasks[0]['id'] != task_id, "Task ID didn't change.")
+
+    return spin(fn, success_predicate)
+
+
+def get_task_ids():
+    tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    return [t['id'] for t in tasks]
+
+
 def request(request_fn, *args, **kwargs):
     def success_predicate(response):
         return (
@@ -265,3 +285,8 @@ def marathon_api_url(basename):
 
 def curl_api(method, http_port=DEFAULT_HTTP_PORT):
     return "curl -X{} -s -u elastic:changeme 'http://master-0.{}.mesos:{}".format(method, PACKAGE_NAME, http_port)
+
+
+def get_marathon_host():
+    return shakedown.get_marathon_tasks()[0]['statuses'][0]['container_status']['network_infos'][0]['ip_addresses'][0][
+        'ip_address']

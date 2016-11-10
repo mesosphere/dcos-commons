@@ -15,19 +15,19 @@ DEFAULT_SETTINGS_MAPPINGS = {
                 "role": {"type": "keyword"}}}}}
 
 
-def setup_module(module):
-    uninstall()
-    shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None, timeout_sec=WAIT_TIME_IN_SECONDS)
-
-
-def setup_function(function):
-    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT)
-    wait_for_expected_nodes_to_exist()
-
-
-def teardown_module(module):
-    uninstall()
-
+# def setup_module(module):
+#     uninstall()
+#     shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None, timeout_sec=WAIT_TIME_IN_SECONDS)
+#
+#
+# def setup_function(function):
+#     wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT)
+#     wait_for_expected_nodes_to_exist()
+#
+#
+# def teardown_module(module):
+#     uninstall()
+#
 
 @pytest.fixture
 def default_populated_index():
@@ -134,3 +134,12 @@ def test_bump_node_counts():
     marathon_update(config)
 
     wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT + 3)
+
+
+@pytest.mark.scheduler
+def test_unchanged_scheduler_restarts_without_restarting_tasks():
+    initial_task_ids = get_task_ids()
+    shakedown.kill_process_on_host(get_marathon_host(), "scheduler.Main")
+    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT)
+    current_task_ids = get_task_ids()
+    assert initial_task_ids == current_task_ids
