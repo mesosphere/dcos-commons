@@ -43,6 +43,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
                 AttributeRule.class,
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
+                MaxPerHostnameRule.class,
                 NotRule.class,
                 OrRule.class,
                 TaskTypeRule.class,

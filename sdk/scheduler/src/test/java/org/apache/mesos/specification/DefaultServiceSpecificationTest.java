@@ -20,6 +20,8 @@ public class DefaultServiceSpecificationTest {
             new MaxPerAttributeRule(3, AnyMatcher.create()),
             new MaxPerAttributeRule(3, ExactMatcher.create("foo"), RegexMatcher.create("index-.*")),
             new MaxPerAttributeRule(3, RegexMatcher.create(".+"), AnyMatcher.create()),
+            new MaxPerHostnameRule(-1, ExactMatcher.create("bar")),
+            new MaxPerHostnameRule(8),
             HostnameRule.avoid(ExactMatcher.create("avoidhost")),
             HostnameRule.require(RegexMatcher.create("requirehost1"), AnyMatcher.create()),
             AgentRule.require("requireagent1", "requireagent2"),
