@@ -153,12 +153,14 @@ public class Main {
                         "cpus",
                         ValueUtils.getValue(ResourceUtils.getUnreservedScalar("cpus", cpu)),
                         ROLE,
-                        PRINCIPAL),
+                        PRINCIPAL,
+                        "CPUS"),
                 new DefaultResourceSpecification(
                         "mem",
                         ValueUtils.getValue(ResourceUtils.getUnreservedScalar("mem", memMb)),
                         ROLE,
-                        PRINCIPAL));
+                        PRINCIPAL,
+                        "MEM"));
     }
 
     private static Collection<VolumeSpecification> getVolumes(double diskMb) {
@@ -167,7 +169,8 @@ public class Main {
                 VolumeSpecification.Type.ROOT,
                 CONTAINER_PATH_SUFFIX,
                 ROLE,
-                PRINCIPAL);
+                PRINCIPAL,
+                "VOLUME");
 
         return Arrays.asList(volumeSpecification);
     }

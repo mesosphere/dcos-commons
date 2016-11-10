@@ -381,6 +381,7 @@ public class DefaultRecoveryPlanManagerTest {
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
                 OfferRequirement.create(
                         TestConstants.TASK_TYPE,
+                        0,
                         Collections.singletonList(ResourceUtils.clearResourceIds(taskInfo))));
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
                 failedTaskInfo.getTaskId(),

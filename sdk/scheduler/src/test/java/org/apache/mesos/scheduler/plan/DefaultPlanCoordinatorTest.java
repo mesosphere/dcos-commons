@@ -3,34 +3,22 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.DefaultTaskConfigRouter;
-import org.apache.mesos.curator.CuratorStateStore;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.OfferAccepter;
-import org.apache.mesos.offer.OfferEvaluator;
-import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultServiceSpec;
 import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
-import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
-import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.mockito.MockitoAnnotations;
 
-import java.util.*;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Tests for {@code DefaultPlanCoordinator}.
@@ -63,6 +51,7 @@ public class DefaultPlanCoordinatorTest {
         testingServer = new TestingServer();
     }
 
+    /*
     @Before
     public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -97,6 +86,7 @@ public class DefaultPlanCoordinatorTest {
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
     }
+    */
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
         final ArrayList<Protos.Offer> offers = new ArrayList<>();

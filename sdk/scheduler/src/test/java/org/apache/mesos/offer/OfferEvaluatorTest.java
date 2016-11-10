@@ -75,6 +75,7 @@ public class OfferEvaluatorTest {
 
         OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
+                0,
                 Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredDynamicPort)));
 
@@ -130,6 +131,7 @@ public class OfferEvaluatorTest {
 
         OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
+                0,
                 Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort))),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort)));
 
@@ -191,6 +193,7 @@ public class OfferEvaluatorTest {
 
         OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
+                0,
                 Arrays.asList(TaskTestUtils.getTaskInfo(desiredTaskCpu)),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorCpu)));
         List<Offer> offers = Arrays.asList(OfferTestUtils.getOffer(insufficientOfferedResource));
@@ -487,7 +490,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(desiredExecutorResource);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo)),
+                OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(taskInfo), Optional.of(execInfo)),
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredTaskResource, offeredExecutorResource))));
         Assert.assertEquals(3, recommendations.size());
 
@@ -556,7 +559,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExistingExecutorInfo(desiredExecutorResource);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo)),
+                OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(taskInfo), Optional.of(execInfo)),
                 Arrays.asList(OfferTestUtils.getOffer(
                         TestConstants.EXECUTOR_ID,
                         Arrays.asList(offeredTaskResource, offeredExecutorResource))));
@@ -799,7 +802,7 @@ public class OfferEvaluatorTest {
                 .build());
 
         OfferRequirement offerRequirement =
-                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), execInfo);
+                OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(taskInfo), execInfo);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -820,7 +823,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExistingExecutorInfo(expectedExecutorMem);
 
         OfferRequirement offerRequirement =
-                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo));
+                OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(taskInfo), Optional.of(execInfo));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -844,7 +847,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(expectedExecutorMem);
 
         OfferRequirement offerRequirement =
-                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo));
+                OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(taskInfo), Optional.of(execInfo));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -869,6 +872,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(desiredExecutorCpu);
         OfferRequirement offerRequirement = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
+                0,
                 Arrays.asList(taskInfo0, taskInfo1),
                 Optional.of(execInfo));
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -916,6 +920,7 @@ public class OfferEvaluatorTest {
         Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
         return OfferRequirement.create(
                 TestConstants.TASK_TYPE,
+                0,
                 Arrays.asList(TaskTestUtils.getTaskInfo(resource)),
                 Optional.empty(),
                 placement);

@@ -1,14 +1,5 @@
 package org.apache.mesos.offer.constrain;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -20,6 +11,14 @@ import org.apache.mesos.offer.constrain.TaskTypeRule.TaskTypeLabelConverter;
 import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link TaskTypeRule}.
@@ -181,7 +180,7 @@ public class TaskTypeRuleTest {
 
     private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
         try {
-            return OfferRequirement.create(TaskUtils.getType(taskInfo), Arrays.asList(taskInfo));
+            return OfferRequirement.create(TaskUtils.getType(taskInfo), 0, Arrays.asList(taskInfo));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
