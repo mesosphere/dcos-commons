@@ -5,7 +5,7 @@ import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TestTaskSetFactory;
+import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.junit.Assert;
@@ -44,14 +44,14 @@ public class ConfigurationUpdaterTest {
     private static final ServiceSpecification ORIGINAL_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
             SERVICE_NAME,
             Arrays.asList(
-                    TestTaskSetFactory.getTaskSet(
+                    TestPodFactory.getTaskSet(
                             TASK_A_NAME,
                             TASK_A_COUNT,
                             TASK_A_CMD,
                             TASK_A_CPU,
                             TASK_A_MEM,
                             TASK_A_DISK),
-                    TestTaskSetFactory.getTaskSet(
+                    TestPodFactory.getTaskSet(
                             TASK_B_NAME,
                             TASK_B_COUNT,
                             TASK_B_CMD,
@@ -62,14 +62,14 @@ public class ConfigurationUpdaterTest {
     private static final ServiceSpecification UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
             SERVICE_NAME,
             Arrays.asList(
-                    TestTaskSetFactory.getTaskSet(
+                    TestPodFactory.getTaskSet(
                             TASK_A_NAME,
                             TASK_A_COUNT,
                             TASK_A_CMD,
                             UPDATED_TASK_A_CPU,
                             TASK_A_MEM,
                             TASK_A_DISK),
-                    TestTaskSetFactory.getTaskSet(
+                    TestPodFactory.getTaskSet(
                             TASK_B_NAME,
                             TASK_B_COUNT,
                             TASK_B_CMD,
@@ -80,14 +80,14 @@ public class ConfigurationUpdaterTest {
     private static final ServiceSpecification BAD_UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
             SERVICE_NAME,
             Arrays.asList(
-                    TestTaskSetFactory.getTaskSet(
+                    TestPodFactory.getTaskSet(
                             TASK_A_NAME,
                             TASK_A_COUNT,
                             TASK_A_CMD,
                             UPDATED_TASK_A_CPU,
                             TASK_A_MEM,
                             TASK_A_DISK),
-                    TestTaskSetFactory.getTaskSet(
+                    TestPodFactory.getTaskSet(
                             TASK_B_NAME,
                             TASK_B_COUNT - 1,
                             TASK_B_CMD,

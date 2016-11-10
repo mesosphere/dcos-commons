@@ -76,21 +76,21 @@ public class CustomPlanTest {
         serviceSpecification = new DefaultServiceSpecification(
                 SERVICE_NAME,
                 Arrays.asList(
-                        TestTaskSetFactory.getTaskSet(
+                        TestPodFactory.getTaskSet(
                                 TASK_NAME,
                                 TASK_COUNT,
                                 TASK_CMD,
                                 TASK_CPU,
                                 TASK_MEM,
                                 TASK_DISK),
-                        TestTaskSetFactory.getTaskSet(
+                        TestPodFactory.getTaskSet(
                                 TASK_NAME,
                                 TASK_COUNT,
                                 TASK_CMD,
                                 TASK_CPU,
                                 TASK_MEM,
                                 TASK_DISK),
-                        TestTaskSetFactory.getTaskSet(
+                        TestPodFactory.getTaskSet(
                                 TASK_NAME,
                                 TASK_COUNT,
                                 TASK_CMD,

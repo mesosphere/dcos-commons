@@ -13,7 +13,7 @@ import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
-import org.apache.mesos.specification.TestTaskSetFactory;
+import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
@@ -51,8 +51,8 @@ import static org.mockito.Mockito.*;
  */
 public class DefaultRecoveryPlanManagerTest {
     private static final TaskInfo TASK_INFO = TaskTestUtils.getTaskInfo(Arrays.asList(
-            ResourceTestUtils.getDesiredCpu(TestTaskSetFactory.CPU),
-            ResourceTestUtils.getDesiredMem(TestTaskSetFactory.MEM)));
+            ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
+            ResourceTestUtils.getDesiredMem(TestPodFactory.MEM)));
     private static final Collection<TaskInfo> TASK_INFOS = Collections.singletonList(TASK_INFO);
 
     private DefaultRecoveryPlanManager recoveryManager;
@@ -80,7 +80,7 @@ public class DefaultRecoveryPlanManagerTest {
     }
 
     private static List<Offer> getOffers() {
-        return getOffers(TestTaskSetFactory.CPU, TestTaskSetFactory.MEM);
+        return getOffers(TestPodFactory.CPU, TestPodFactory.MEM);
     }
 
     private static List<Offer> getOffers(double cpus, double mem) {
@@ -329,8 +329,8 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     public void failedTasksAreNotLaunchedWithInsufficientResources() throws Exception {
-        final double insufficientCpu = TestTaskSetFactory.CPU / 2.;
-        final double insufficientMem = TestTaskSetFactory.MEM / 2.;
+        final double insufficientCpu = TestPodFactory.CPU / 2.;
+        final double insufficientMem = TestPodFactory.MEM / 2.;
 
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
                 OfferRequirement.create(TestConstants.TASK_TYPE, TestConstants.TASK_INDEX, TASK_INFOS),
@@ -373,7 +373,7 @@ public class DefaultRecoveryPlanManagerTest {
     @Test
     public void permanentlyFailedTasksAreRescheduled() throws Exception {
         // Prepare permanently failed task with some reserved resources
-        final Resource cpus = ResourceTestUtils.getExpectedCpu(TestTaskSetFactory.CPU);
+        final Resource cpus = ResourceTestUtils.getExpectedCpu(TestPodFactory.CPU);
         final TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpus));
         final TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);

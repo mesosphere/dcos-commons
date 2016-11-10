@@ -13,9 +13,8 @@ import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.specification.DefaultServiceSpec;
-import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TestTaskSetFactory;
+import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
@@ -71,14 +70,14 @@ public class DefaultPlanCoordinatorTest {
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
-        taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
-        taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
+        taskSets = Arrays.asList(TestPodFactory.getTaskSet());
+        taskSetsB = Arrays.asList(TestPodFactory.getTaskSet(
                 TestConstants.TASK_TYPE + "-B",
-                TestTaskSetFactory.COUNT,
-                TestTaskSetFactory.CMD.getValue(),
-                TestTaskSetFactory.CPU,
-                TestTaskSetFactory.MEM,
-                TestTaskSetFactory.DISK));
+                TestPodFactory.COUNT,
+                TestPodFactory.CMD.getValue(),
+                TestPodFactory.CPU,
+                TestPodFactory.MEM,
+                TestPodFactory.DISK));
         serviceSpecification = new DefaultServiceSpec(
                 SERVICE_NAME,
                 taskSets);

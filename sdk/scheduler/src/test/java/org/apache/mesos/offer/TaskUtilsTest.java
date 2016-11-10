@@ -49,43 +49,43 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreNotDifferentTaskSpecifications() {
-        TaskSpec oldTaskSpecification = TestTaskSetFactory.getTaskSpec();
-        TaskSpec newTaskSpecification = TestTaskSetFactory.getTaskSpec();
+        TaskSpec oldTaskSpecification = TestPodFactory.getTaskSpec();
+        TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec();
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsName() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpec();
+        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
         TaskSpecification newTaskSpecification =
-                TestTaskSetFactory.getTaskSpec(
+                TestPodFactory.getTaskSpec(
                         "new" + TestConstants.TASK_NAME,
-                        TestTaskSetFactory.CMD.getValue(),
-                        TestTaskSetFactory.CPU,
-                        TestTaskSetFactory.MEM,
-                        TestTaskSetFactory.DISK);
+                        TestPodFactory.CMD.getValue(),
+                        TestPodFactory.CPU,
+                        TestPodFactory.MEM,
+                        TestPodFactory.DISK);
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsCmd() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpec();
+        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
         TaskSpecification newTaskSpecification =
-                TestTaskSetFactory.getTaskSpec(
+                TestPodFactory.getTaskSpec(
                         TestConstants.TASK_NAME,
-                        TestTaskSetFactory.CMD.getValue() + " && echo foo",
-                        TestTaskSetFactory.CPU,
-                        TestTaskSetFactory.MEM,
-                        TestTaskSetFactory.DISK);
+                        TestPodFactory.CMD.getValue() + " && echo foo",
+                        TestPodFactory.CPU,
+                        TestPodFactory.MEM,
+                        TestPodFactory.DISK);
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test
     public void testAreDifferentTaskSpecificationsResourcesLength() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpec();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addResource(new DefaultResourceSpecification(
                         "foo",
                         Protos.Value.newBuilder()
@@ -100,7 +100,7 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsNoResourceOverlap() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addResource(new DefaultResourceSpecification(
                         "bar",
                         Protos.Value.newBuilder()
@@ -110,7 +110,7 @@ public class TaskUtilsTest {
                         TestConstants.ROLE,
                         TestConstants.PRINCIPAL));
 
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addResource(new DefaultResourceSpecification(
                         "foo",
                         Protos.Value.newBuilder()
@@ -125,7 +125,7 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreNotDifferentTaskSpecificationsResourcesMatch() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addResource(new DefaultResourceSpecification(
                         "bar",
                         Protos.Value.newBuilder()
@@ -135,7 +135,7 @@ public class TaskUtilsTest {
                         TestConstants.ROLE,
                         TestConstants.PRINCIPAL));
 
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addResource(new DefaultResourceSpecification(
                         "bar",
                         Protos.Value.newBuilder()
@@ -150,8 +150,8 @@ public class TaskUtilsTest {
 
     @Test(expected=IllegalArgumentException.class)
     public void testAreDifferentTaskSpecificationsConfigsSamePathFailsValidation() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpec();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addConfigFile(new DefaultConfigFileSpecification(
                         "../relative/path/to/config",
                         "this is a config template"))
@@ -163,8 +163,8 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsConfigsLength() {
-        TaskSpecification oldTaskSpecification = TestTaskSetFactory.getTaskSpec();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addConfigFile(new DefaultConfigFileSpecification(
                         "../relative/path/to/config",
                         "this is a config template"));
@@ -174,7 +174,7 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreDifferentTaskSpecificationsNoConfigOverlap() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addConfigFile(new DefaultConfigFileSpecification(
                         "../relative/path/to/config",
                         "this is a config template"))
@@ -182,7 +182,7 @@ public class TaskUtilsTest {
                         "../relative/path/to/config2",
                         "this is a second config template"));
 
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addConfigFile(new DefaultConfigFileSpecification(
                         "../different/path/to/config",
                         "different path to a different template"))
@@ -195,7 +195,7 @@ public class TaskUtilsTest {
 
     @Test
     public void testAreNotDifferentTaskSpecificationsConfigMatch() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addConfigFile(new DefaultConfigFileSpecification(
                         "../relative/path/to/config",
                         "this is a config template"))
@@ -203,7 +203,7 @@ public class TaskUtilsTest {
                         "../relative/path/to/config2",
                         "this is a second config template"));
 
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestTaskSetFactory.getTaskSpec())
+        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
                 .addConfigFile(new DefaultConfigFileSpecification(
                         "../relative/path/to/config",
                         "this is a config template"))

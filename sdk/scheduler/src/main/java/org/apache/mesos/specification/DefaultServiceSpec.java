@@ -81,7 +81,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private Comparator() { }
 
         @Override
-        public boolean equals(ServiceSpec first, ServiceSpecsecond) {
+        public boolean equals(ServiceSpec first, ServiceSpec second) {
             return EqualsBuilder.reflectionEquals(first, second);
         }
     }

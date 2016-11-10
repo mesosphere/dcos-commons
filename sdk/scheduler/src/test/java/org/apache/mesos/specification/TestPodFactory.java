@@ -12,7 +12,7 @@ import java.util.Optional;
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
  */
-public class TestTaskSetFactory {
+public class TestPodFactory {
     public static final int COUNT = 1;
     public static final double CPU = 1.0;
     public static final double MEM = 1000.0;
@@ -73,15 +73,34 @@ public class TestTaskSetFactory {
                 DISK);
     }
 
-    public static ResourceSet getResourceSet() {
-
+    public static ResourceSet getResourceSet(double cpu, double mem, double disk) {
+        return DefaultResourceSet.newBuilder()
+                .id(TestConstants.RESOURCE_SET_ID)
+                .resources(getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL))
+                .volumes(getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL))
+                .build();
     }
 
-    public static PodSpec getPodSpec() {
-        return DefaultPodSpec.Builder.newBuilder()
-                .type(TestConstants.POD_TYPE)
-                .count(1)
+    public static PodSpec getPodSpec(String type, String taskName, String cmd, int count, double cpu, double mem, double disk) {
+        PodSpec podSpec = DefaultPodSpec.newBuilder()
+                .type(type)
+                .count(count)
+                .resources(Arrays.asList(getResourceSet(cpu, mem, disk)))
+                .build();
 
+        TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
+                .name(taskName)
+                .goalState(TaskSpec.GoalState.RUNNING)
+                .resourceSetId(TestConstants.RESOURCE_SET_ID)
+                .pod(podSpec)
+                .commandSpec(DefaultCommandSpec.newBuilder()
+                        .value(cmd)
+                        .build())
+                .build();
+
+        return DefaultPodSpec.newBuilder((DefaultPodSpec) podSpec)
+                .tasks(Arrays.asList(taskSpec))
+                .build();
     }
 
     public static TaskSpec getTaskSpec(
@@ -90,24 +109,7 @@ public class TestTaskSetFactory {
             double cpu,
             double mem,
             double disk) {
-
-        return DefaultTaskSpec.newBuilder()
-                .name(name)
-                .goalState(TaskSpec.GoalState.RUNNING)
-                .resourceSetId(TestConstants.RESOURCE_SET_ID)
-                .pod(DefaultPodSpec.Builder.newBuilder()
-                .)
-
-
-        return new DefaultTaskSpec(
-                name,
-                TestConstants.TASK_TYPE,
-                getCommand(cmd),
-                getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                Collections.emptyList(),
-                Optional.empty(),
-                Optional.empty());
+        return getPodSpec(TestConstants.POD_TYPE, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
     }
 
 
@@ -130,7 +132,8 @@ public class TestTaskSetFactory {
                                 .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpu))
                                 .build(),
                         role,
-                        principal),
+                        principal,
+                        "CPUS"),
                 new DefaultResourceSpecification(
                         "mem",
                         Protos.Value.newBuilder()
@@ -138,7 +141,8 @@ public class TestTaskSetFactory {
                                 .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem))
                                 .build(),
                         role,
-                        principal));
+                        principal,
+                        "MEM"));
     }
 
     static Collection<VolumeSpecification> getVolumes(double diskSize, String role, String principal) {
@@ -148,6 +152,7 @@ public class TestTaskSetFactory {
                         VolumeSpecification.Type.ROOT,
                         TestConstants.CONTAINER_PATH,
                         role,
-                        principal));
+                        principal,
+                        "VOLUME"));
     }
 }

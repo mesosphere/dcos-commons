@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -41,13 +40,13 @@ public class DefaultService implements Service {
 
     public DefaultService() {}
 
-    public DefaultService(String yamlSpecification) throws IOException {
+    public DefaultService(String yamlSpecification) throws Exception {
         final PlanGenerator planGenerator = new DefaultPlanGenerator();
         final ServiceSpec serviceSpecification = YAMLServiceSpecFactory.generateFromYAML(yamlSpecification);
         register(serviceSpecification, planGenerator.generate(serviceSpecification));
     }
 
-    public DefaultService(File pathToYamlSpecification) throws IOException {
+    public DefaultService(File pathToYamlSpecification) throws Exception {
         final PlanGenerator planGenerator = new DefaultPlanGenerator();
         final ServiceSpec serviceSpecification = YAMLServiceSpecFactory.generateFromYAML(pathToYamlSpecification);
         register(serviceSpecification, planGenerator.generate(serviceSpecification));

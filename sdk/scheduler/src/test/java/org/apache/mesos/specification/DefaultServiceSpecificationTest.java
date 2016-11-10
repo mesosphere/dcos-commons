@@ -32,7 +32,7 @@ public class DefaultServiceSpecificationTest {
                     TaskTypeRule.avoid("avoidme"),
                     new NotRule(TaskTypeRule.colocateWith("colocateme"))))));
     private static final List<TaskSet> TASK_SETS = Arrays.asList(
-            TestTaskSetFactory.getTaskSet(Arrays.asList(
+            TestPodFactory.getTaskSet(Arrays.asList(
                     new DefaultConfigFileSpecification(
                             "../different/path/to/config",
                             "different path to a different template"),

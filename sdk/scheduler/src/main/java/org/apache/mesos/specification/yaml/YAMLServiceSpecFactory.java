@@ -6,7 +6,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.mesos.specification.ServiceSpec;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 /**
@@ -15,11 +14,11 @@ import java.nio.charset.Charset;
 public class YAMLServiceSpecFactory {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
-    public static final ServiceSpec generateFromYAML(File pathToYaml) throws IOException {
+    public static final ServiceSpec generateFromYAML(File pathToYaml) throws Exception {
         return generateFromYAML(FileUtils.readFileToString(pathToYaml, Charset.forName("UTF-8")));
     }
 
-    public static final ServiceSpec generateFromYAML(String yaml) throws IOException {
+    public static final ServiceSpec generateFromYAML(String yaml) throws Exception {
         return YAMLToInternalMappers.from(YAML_MAPPER.readValue(yaml.getBytes(), RawServiceSpecification.class));
     }
 }
