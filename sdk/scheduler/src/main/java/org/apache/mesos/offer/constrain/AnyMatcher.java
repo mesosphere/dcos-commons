@@ -18,7 +18,7 @@ public class AnyMatcher implements StringMatcher {
     private AnyMatcher() { }
 
     @Override
-    public boolean select(String value) {
+    public boolean match(String value) {
         return true;
     }
 

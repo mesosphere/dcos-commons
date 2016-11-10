@@ -22,7 +22,7 @@ public class RegexMatcher implements StringMatcher {
     }
 
     @Override
-    public boolean select(String value) {
+    public boolean match(String value) {
         return pattern.matcher(value).matches();
     }
 

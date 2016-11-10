@@ -23,7 +23,7 @@ public class ExactMatcher implements StringMatcher {
     }
 
     @Override
-    public boolean select(String value) {
+    public boolean match(String value) {
         return str.equals(value);
     }
 

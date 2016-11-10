@@ -31,7 +31,7 @@ public class AttributeRule implements PlacementRule {
     public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
-            if (matcher.select(attributeString)) {
+            if (matcher.match(attributeString)) {
                 // match found. return entire offer as-is
                 return offer;
             }

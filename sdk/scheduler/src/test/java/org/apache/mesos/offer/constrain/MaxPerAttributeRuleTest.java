@@ -450,7 +450,7 @@ public class MaxPerAttributeRuleTest {
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = new MaxPerAttributeRule(0, ATTR_MATCHER);
+        rule = new MaxPerAttributeRule(0, ATTR_MATCHER, RegexMatcher.create("hello"));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
@@ -464,7 +464,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testDeserializeAllParams() throws IOException {
-        String str = "{ '@type': 'MaxPerAttributeRule', 'max': 2, 'matcher': { '@type': 'AnyMatcher' }, 'task_filter': { '@type': 'ExactMatcher' } }".replace('\'', '"');
+        String str = "{ '@type': 'MaxPerAttributeRule', 'max': 2, 'matcher': { '@type': 'AnyMatcher' }, 'task_filter': { '@type': 'ExactMatcher', 'string': 'foo' } }".replace('\'', '"');
         SerializationUtils.fromString(str,
                 PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }

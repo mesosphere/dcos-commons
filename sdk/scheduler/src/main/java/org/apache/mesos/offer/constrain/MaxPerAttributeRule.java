@@ -116,7 +116,7 @@ public class MaxPerAttributeRule implements PlacementRule {
         Map<String, Integer> offerAttrTaskCounts = new HashMap<>();
         for (TaskInfo task : tasks) {
             // only tally tasks which match the task matcher (eg 'index-.*')
-            if (!taskFilter.select(task.getName())) {
+            if (!taskFilter.match(task.getName())) {
                 continue;
             }
             if (PlacementUtils.areEquivalent(task, offerRequirement)) {
@@ -131,7 +131,7 @@ public class MaxPerAttributeRule implements PlacementRule {
                     continue;
                 }
                 // only tally attribute(s) that match the attribute matcher (eg 'rack:.*'):
-                if (!attributeMatcher.select(taskAttributeString)) {
+                if (!attributeMatcher.match(taskAttributeString)) {
                     continue;
                 }
                 // increment the tally for this exact attribute value (eg 'rack:9'):
