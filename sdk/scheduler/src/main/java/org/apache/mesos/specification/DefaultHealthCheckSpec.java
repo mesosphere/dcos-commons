@@ -6,6 +6,7 @@ import java.time.Duration;
  * Default implementation of {@link HealthCheckSpec}.
  */
 public class DefaultHealthCheckSpec implements HealthCheckSpec {
+    private String name;
     private String command;
     private Integer maxConsecutiveFailures;
     private Duration delay;
@@ -14,6 +15,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     private Duration gracePeriod;
 
     private DefaultHealthCheckSpec(Builder builder) {
+        name = builder.name;
         command = builder.command;
         maxConsecutiveFailures = builder.maxConsecutiveFailures;
         delay = builder.delay;
@@ -28,6 +30,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
 
     public static Builder newBuilder(DefaultHealthCheckSpec copy) {
         Builder builder = new Builder();
+        builder.name = copy.name;
         builder.command = copy.command;
         builder.maxConsecutiveFailures = copy.maxConsecutiveFailures;
         builder.delay = copy.delay;
@@ -35,6 +38,11 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         builder.timeout = copy.timeout;
         builder.gracePeriod = copy.gracePeriod;
         return builder;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -78,6 +86,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         private Duration interval;
         private Duration timeout;
         private Duration gracePeriod;
+        private String name;
 
         private Builder() {
         }
@@ -155,6 +164,17 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
          */
         public DefaultHealthCheckSpec build() {
             return new DefaultHealthCheckSpec(this);
+        }
+
+        /**
+         * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param name the {@code name} to set
+         * @return a reference to this Builder
+         */
+        public Builder name(String name) {
+            this.name = name;
+            return this;
         }
     }
 }

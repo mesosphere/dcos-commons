@@ -1,11 +1,15 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Basic implementation of {@link ConfigFileSpecification} which returns the provided values.
@@ -21,6 +25,12 @@ public class DefaultConfigFileSpecification implements ConfigFileSpecification {
             @JsonProperty("template_content") String templateContent) {
         this.relativePath = relativePath;
         this.templateContent = templateContent;
+    }
+
+    public DefaultConfigFileSpecification(
+            String relativePath,
+            File templateFile) throws IOException {
+        this(relativePath, FileUtils.readFileToString(templateFile, "UTF-8"));
     }
 
     @Override

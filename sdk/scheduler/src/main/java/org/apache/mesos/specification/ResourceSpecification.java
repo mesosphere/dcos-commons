@@ -26,6 +26,6 @@ public interface ResourceSpecification {
     String getPrincipal();
 
     default Optional<String> getEnvKey() {
-        return Optional.empty();
+        return Optional.of(getName());
     }
 }

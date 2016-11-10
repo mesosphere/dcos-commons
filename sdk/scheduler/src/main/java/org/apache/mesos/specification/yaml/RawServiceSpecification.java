@@ -1,8 +1,11 @@
 package org.apache.mesos.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -77,6 +80,7 @@ class RawPod {
     private String placement;
     private Integer count;
     private String strategy;
+    private String user;
     private LinkedHashMap<String, RawTask> tasks;
     private Collection<RawResourceSet> resourceSets;
 
@@ -133,6 +137,15 @@ class RawPod {
     public void setTasks(LinkedHashMap<String, RawTask> tasks) {
         this.tasks = tasks;
     }
+
+    public String getUser() {
+        return user;
+    }
+
+    @JsonProperty("user")
+    public void setUser(String user) {
+        this.user = user;
+    }
 }
 
 class RawTask {
@@ -140,7 +153,7 @@ class RawTask {
     private String goal;
     private String cmd;
     private String image;
-    private Map<String, Object> env;
+    private Map<String, String> env;
     private Collection<RawConfiguration> configurations;
     private Collection<String> uris;
     private Double cpus;
@@ -222,17 +235,17 @@ class RawTask {
         this.image = image;
     }
 
-    public Map<String, Object> getEnv() {
+    public Map<String, String> getEnv() {
         return env;
     }
 
     @JsonProperty("env")
-    public void setEnv(Map<String, Object> env) {
+    public void setEnv(Map<String, String> env) {
         this.env = env;
     }
 
     public Collection<String> getUris() {
-        return uris;
+        return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
     }
 
     @JsonProperty("uris")
@@ -327,7 +340,7 @@ class RawResource {
 class RawVolume {
     String path;
     String type;
-    String size;
+    int size;
 
     public String getPath() {
         return path;
@@ -347,12 +360,12 @@ class RawVolume {
         this.type = type;
     }
 
-    public String getSize() {
+    public int getSize() {
         return size;
     }
 
     @JsonProperty("size")
-    public void setSize(String size) {
+    public void setSize(int size) {
         this.size = size;
     }
 }
@@ -391,15 +404,15 @@ class RawPort {
 }
 
 class RawVip {
-    String port;
+    int port;
     String prefix;
 
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 
     @JsonProperty("port")
-    public void setPort(String port) {
+    public void setPort(int port) {
         this.port = port;
     }
 
@@ -416,9 +429,11 @@ class RawVip {
 class RawHealthCheck {
     String name;
     String cmd;
-    String interval;
-    String gracePeriod;
-    String maxConsecutiveFailures;
+    Duration interval;
+    Duration gracePeriod;
+    Duration delay;
+    Duration timeout;
+    Integer maxConsecutiveFailures;
 
     public String getName() {
         return name;
@@ -438,31 +453,49 @@ class RawHealthCheck {
         this.cmd = cmd;
     }
 
-    public String getInterval() {
+    public Duration getInterval() {
         return interval;
     }
 
     @JsonProperty("interval")
-    public void setInterval(String interval) {
+    public void setInterval(Duration interval) {
         this.interval = interval;
     }
 
-    public String getGracePeriod() {
+    public Duration getGracePeriod() {
         return gracePeriod;
     }
 
-    @JsonProperty("grace-period")
-    public void setGracePeriod(String gracePeriod) {
+    @JsonProperty("gracePeriod")
+    public void setGracePeriod(Duration gracePeriod) {
         this.gracePeriod = gracePeriod;
     }
 
-    public String getMaxConsecutiveFailures() {
+    public Integer getMaxConsecutiveFailures() {
         return maxConsecutiveFailures;
     }
 
-    @JsonProperty("max-consecutive-failures")
-    public void setMaxConsecutiveFailures(String maxConsecutiveFailures) {
+    @JsonProperty("maxConsecutiveFailures")
+    public void setMaxConsecutiveFailures(Integer maxConsecutiveFailures) {
         this.maxConsecutiveFailures = maxConsecutiveFailures;
+    }
+
+    public Duration getDelay() {
+        return delay;
+    }
+
+    @JsonProperty("delay")
+    public void setDelay(Duration delay) {
+        this.delay = delay;
+    }
+
+    public Duration getTimeout() {
+        return timeout;
+    }
+
+    @JsonProperty("timeout")
+    public void setTimeout(Duration timeout) {
+        this.timeout = timeout;
     }
 }
 

@@ -8,6 +8,8 @@ import org.apache.mesos.Protos;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Optional;
+
 /**
  * This class provides a default implementation of the ResourceSpecification interface.
  */
@@ -16,17 +18,20 @@ public class DefaultResourceSpecification implements ResourceSpecification {
     private final Protos.Value value;
     private final String role;
     private final String principal;
+    private final String envKey;
 
     @JsonCreator
     public DefaultResourceSpecification(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
-            @JsonProperty("principal") String principal) {
+            @JsonProperty("principal") String principal,
+            @JsonProperty("env_key") String envKey) {
         this.name = name;
         this.value = value;
         this.role = role;
         this.principal = principal;
+        this.envKey = envKey;
     }
 
     @Override
@@ -57,6 +62,11 @@ public class DefaultResourceSpecification implements ResourceSpecification {
     @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public Optional<String> getEnvKey() {
+        return Optional.of(envKey);
     }
 
     @Override

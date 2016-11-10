@@ -6,6 +6,7 @@ pods:
   meta-data:
     placement: "avoid-type: meta-data"
     count: 2
+    user: nobody
     tasks:
       meta-data-task:
         goal: RUNNING
@@ -30,6 +31,7 @@ pods:
   data-store:
       placement: "avoid-type: data-store"
       count: 3
+      user: nobody
       tasks:
         data-store-task:
           goal: RUNNING
