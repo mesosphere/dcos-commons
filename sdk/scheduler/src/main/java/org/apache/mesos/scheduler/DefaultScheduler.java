@@ -252,7 +252,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             String zkConnectionString,
             Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
         return new CuratorConfigStore<>(
-                DefaultServiceSpecification.getFactory(serviceSpec, customDeserializationSubtypes),
+                DefaultServiceSpec.getFactory(serviceSpec, customDeserializationSubtypes),
                 serviceSpec.getName(),
                 zkConnectionString);
     }

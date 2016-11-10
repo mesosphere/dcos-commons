@@ -1,5 +1,9 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.offer.constrain.PlacementRule;
 
 import java.util.Collection;
@@ -14,13 +18,24 @@ public class DefaultPodSpec implements PodSpec {
     private Collection<ResourceSet> resources;
     private PlacementRule placementRule;
 
+    @JsonCreator
+    public DefaultPodSpec(
+            @JsonProperty("type") String type,
+            @JsonProperty("user") String user,
+            @JsonProperty("count") int count,
+            @JsonProperty("task_specs") List<TaskSpec> tasks,
+            @JsonProperty("resource_sets") Collection<ResourceSet> resources,
+            @JsonProperty("placement_rule") PlacementRule placementRule) {
+        this.type = type;
+        this.user = user;
+        this.count = count;
+        this.tasks = tasks;
+        this.resources = resources;
+        this.placementRule = placementRule;
+    }
+
     private DefaultPodSpec(Builder builder) {
-        type = builder.type;
-        user = builder.user;
-        count = builder.count;
-        tasks = builder.tasks;
-        resources = builder.resources;
-        placementRule = builder.placementRule;
+        this(builder.type, builder.user, builder.count, builder.tasks, builder.resources, builder.placementRule);
     }
 
     public static Builder newBuilder() {
@@ -66,6 +81,16 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public Optional<PlacementRule> getPlacementRule() {
         return Optional.ofNullable(placementRule);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
 

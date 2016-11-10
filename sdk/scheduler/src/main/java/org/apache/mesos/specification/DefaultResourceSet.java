@@ -1,5 +1,10 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.Collection;
 
 /**
@@ -9,6 +14,16 @@ public class DefaultResourceSet implements ResourceSet {
     private String id;
     private Collection<ResourceSpecification> resources;
     private Collection<VolumeSpecification> volumes;
+
+    @JsonCreator
+    public DefaultResourceSet(
+            @JsonProperty("id") String id,
+            @JsonProperty("resource_specifications") Collection<ResourceSpecification> resources,
+            @JsonProperty("volume_specifications") Collection<VolumeSpecification> volumes) {
+        this.id = id;
+        this.resources = resources;
+        this.volumes = volumes;
+    }
 
     private DefaultResourceSet(Builder builder) {
         id = builder.id;
@@ -43,6 +58,15 @@ public class DefaultResourceSet implements ResourceSet {
         return volumes;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
     /**
      * {@code DefaultResourceSet} builder static inner class.

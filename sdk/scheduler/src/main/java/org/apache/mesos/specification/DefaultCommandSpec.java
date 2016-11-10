@@ -1,5 +1,10 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -14,11 +19,24 @@ public class DefaultCommandSpec implements CommandSpec {
     private String user;
     private Collection<URI> uris;
 
+    @JsonCreator
+    public DefaultCommandSpec(
+            @JsonProperty("value") String value,
+            @JsonProperty("environment") Map<String, String> environment,
+            @JsonProperty("user") String user,
+            @JsonProperty("uris") Collection<URI> uris) {
+        this.value = value;
+        this.environment = environment;
+        this.user = user;
+        this.uris = uris;
+    }
+
     private DefaultCommandSpec(Builder builder) {
-        value = builder.value;
-        environment = builder.environment;
-        user = builder.user;
-        uris = builder.uris;
+        this(
+                builder.value,
+                builder.environment,
+                builder.user,
+                builder.uris);
     }
 
     public static Builder newBuilder() {
@@ -54,6 +72,15 @@ public class DefaultCommandSpec implements CommandSpec {
         return uris;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
     /**
      * {@code DefaultCommandSpec} builder static inner class.

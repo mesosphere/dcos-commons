@@ -1,5 +1,7 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.offer.TaskUtils;
@@ -19,16 +21,36 @@ public class DefaultTaskSpec implements TaskSpec {
     private Collection<URI> uris;
     private Collection<ConfigFileSpecification> configFiles;
 
+    @JsonCreator
+    public DefaultTaskSpec(
+            @JsonProperty("name") String name,
+            @JsonProperty("goal") GoalState goalState,
+            @JsonProperty("resource_set_id") String resourceSetId,
+            @JsonProperty("command_spec") CommandSpec commandSpec,
+            @JsonProperty("container_spec") ContainerSpec containerSpec,
+            @JsonProperty("health_check_spec") HealthCheckSpec healthCheckSpec,
+            @JsonProperty("uris") Collection<URI> uris,
+            @JsonProperty("config_files") Collection<ConfigFileSpecification> configFiles) {
+        this.name = name;
+        this.goalState = goalState;
+        this.resourceSetId = resourceSetId;
+        this.commandSpec = commandSpec;
+        this.containerSpec = containerSpec;
+        this.healthCheckSpec = healthCheckSpec;
+        this.uris = uris;
+        this.configFiles = configFiles;
+    }
+
     private DefaultTaskSpec(Builder builder) {
-        name = builder.name;
-        goalState = builder.goalState;
-        resourceSetId = builder.resourceSetId;
-        pod = builder.pod;
-        commandSpec = builder.commandSpec;
-        containerSpec = builder.containerSpec;
-        healthCheckSpec = builder.healthCheckSpec;
-        uris = builder.uris;
-        configFiles = builder.configFiles;
+        this.name = builder.name;
+        this.goalState = builder.goalState;
+        this.resourceSetId = builder.resourceSetId;
+        this.pod = builder.pod;
+        this.commandSpec = builder.commandSpec;
+        this.containerSpec = builder.containerSpec;
+        this.healthCheckSpec = builder.healthCheckSpec;
+        this.uris = builder.uris;
+        this.configFiles = builder.configFiles;
     }
 
     public static Builder newBuilder() {
@@ -101,7 +123,7 @@ public class DefaultTaskSpec implements TaskSpec {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof TaskSpecification)) {
+        if (!(o instanceof TaskSpec)) {
             return false;
         }
         return !TaskUtils.areDifferent(this, (TaskSpec) o);
