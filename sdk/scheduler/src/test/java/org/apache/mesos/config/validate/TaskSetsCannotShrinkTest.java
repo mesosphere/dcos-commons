@@ -1,20 +1,17 @@
 package org.apache.mesos.config.validate;
 
-import java.util.Arrays;
-
 import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.specification.DefaultServiceSpecification;
-import org.apache.mesos.specification.DefaultTaskSet;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
+
 public class TaskSetsCannotShrinkTest {
-    private static final ConfigurationValidator<ServiceSpecification> VALIDATOR = new TaskSetsCannotShrink();
+    private static final ConfigurationValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotShrink();
 
     @Mock
     private TaskSpecification mockTaskSpec;
@@ -26,12 +23,12 @@ public class TaskSetsCannotShrinkTest {
 
     @Test
     public void testMatchingSize() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec1 = new DefaultServiceSpec(
                 "svc1",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
                         DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec, mockTaskSpec))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec2 = new DefaultServiceSpec(
                 "svc2",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
@@ -45,11 +42,11 @@ public class TaskSetsCannotShrinkTest {
 
     @Test
     public void testSetGrowth() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec1 = new DefaultServiceSpec(
                 "svc1",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec2 = new DefaultServiceSpec(
                 "svc2",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
@@ -63,12 +60,12 @@ public class TaskSetsCannotShrinkTest {
 
     @Test
     public void testTaskGrowth() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec1 = new DefaultServiceSpec(
                 "svc1",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
                         DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec2 = new DefaultServiceSpec(
                 "svc2",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
@@ -82,12 +79,12 @@ public class TaskSetsCannotShrinkTest {
 
     @Test
     public void testSetRemove() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec1 = new DefaultServiceSpec(
                 "svc1",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
                         DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec, mockTaskSpec))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec2 = new DefaultServiceSpec(
                 "svc2",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec))));
@@ -100,12 +97,12 @@ public class TaskSetsCannotShrinkTest {
 
     @Test
     public void testSetRename() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec1 = new DefaultServiceSpec(
                 "svc1",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
                         DefaultTaskSet.create("set2", Arrays.asList(mockTaskSpec, mockTaskSpec))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec2 = new DefaultServiceSpec(
                 "svc2",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
@@ -119,12 +116,12 @@ public class TaskSetsCannotShrinkTest {
 
     @Test
     public void testDuplicateSet() throws InvalidRequirementException {
-        ServiceSpecification serviceSpec1 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec1 = new DefaultServiceSpec(
                 "svc1",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec))));
-        ServiceSpecification serviceSpec2 = new DefaultServiceSpecification(
+        ServiceSpec serviceSpec2 = new DefaultServiceSpec(
                 "svc2",
                 Arrays.asList(
                         DefaultTaskSet.create("set1", Arrays.asList(mockTaskSpec)),

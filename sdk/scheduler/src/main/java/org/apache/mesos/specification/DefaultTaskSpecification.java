@@ -1,13 +1,9 @@
 package org.apache.mesos.specification;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos;
-import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.offer.constrain.PlacementRule;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.Protos;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -167,21 +163,4 @@ public class DefaultTaskSpecification implements TaskSpecification {
         return placement;
     }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof TaskSpecification)) {
-            return false;
-        }
-        return !TaskUtils.areDifferent(this, (TaskSpecification) o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
 }

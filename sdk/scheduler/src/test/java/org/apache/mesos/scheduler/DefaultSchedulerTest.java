@@ -1,7 +1,8 @@
 package org.apache.mesos.scheduler;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.curator.test.TestingServer;
@@ -18,9 +19,7 @@ import org.apache.mesos.offer.constrain.TestPlacementUtils;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.plan.Step;
-import org.apache.mesos.specification.DefaultServiceSpecification;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TestTaskSetFactory;
+import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.testing.CuratorTestUtils;
@@ -37,9 +36,6 @@ import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.mockito.*;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.IOException;
 import java.util.*;
@@ -80,7 +76,7 @@ public class DefaultSchedulerTest {
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
-    private static final ServiceSpecification SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+    private static final ServiceSpec SERVICE_SPECIFICATION = new DefaultServiceSpec(
             SERVICE_NAME,
             Arrays.asList(
                     TestTaskSetFactory.getTaskSet(
@@ -98,7 +94,7 @@ public class DefaultSchedulerTest {
                             TASK_B_MEM,
                             TASK_B_DISK)));
 
-    private static final ServiceSpecification UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
+    private static final ServiceSpec UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpec(
             SERVICE_NAME,
             Arrays.asList(
                     TestTaskSetFactory.getTaskSet(
@@ -119,7 +115,7 @@ public class DefaultSchedulerTest {
     private static TestingServer testingServer;
 
     private StateStore stateStore;
-    private ConfigStore<ServiceSpecification> configStore;
+    private ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
     private EnvironmentVariables environmentVariables;
 
@@ -154,8 +150,8 @@ public class DefaultSchedulerTest {
 
     @Test(expected=ConfigStoreException.class)
     public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
-        ServiceSpecification serviceSpecification =
-                new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification =
+                new DefaultServiceSpec(
                         "placement",
                         Arrays.asList(TestTaskSetFactory.getTaskSet(
                                 Collections.emptyList(),
@@ -170,8 +166,8 @@ public class DefaultSchedulerTest {
 
     @Test(expected=ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() throws ConfigStoreException {
-        ServiceSpecification serviceSpecification =
-                new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification =
+                new DefaultServiceSpec(
                         "placement",
                         Arrays.asList(TestTaskSetFactory.getTaskSet(
                                 Collections.emptyList(),
@@ -186,8 +182,8 @@ public class DefaultSchedulerTest {
 
     @Test(expected=ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() throws ConfigStoreException {
-        ServiceSpecification serviceSpecification =
-                new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification =
+                new DefaultServiceSpec (
                         "placement",
                         Arrays.asList(TestTaskSetFactory.getTaskSet(
                                 Collections.emptyList(),
@@ -202,8 +198,8 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testConstructConfigStoreWithRegisteredGoodCustomType() throws ConfigStoreException {
-        ServiceSpecification serviceSpecification =
-                new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification =
+                new DefaultServiceSpec(
                         "placement",
                         Arrays.asList(TestTaskSetFactory.getTaskSet(
                                 Collections.emptyList(),
@@ -263,7 +259,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskA cpu and mem requirements
-        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification = new DefaultServiceSpec(
                 SERVICE_NAME,
                 Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
@@ -295,7 +291,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskB cpu and mem requirements
-        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+        ServiceSpecification serviceSpec = new DefaultServiceSpec(
                 SERVICE_NAME,
                 Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
@@ -327,7 +323,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Double TaskB cpu requirements
-        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification = new DefaultServiceSpec(
                 SERVICE_NAME,
                 Arrays.asList(
                         TestTaskSetFactory.getTaskSet(
@@ -359,7 +355,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.awaitTermination();
 
         // Increase count of TaskA tasks.
-        ServiceSpecification serviceSpecification = new DefaultServiceSpecification(
+        ServiceSpec serviceSpecification = new DefaultServiceSpec(
                 SERVICE_NAME,
                 Arrays.asList(
                         TestTaskSetFactory.getTaskSet(

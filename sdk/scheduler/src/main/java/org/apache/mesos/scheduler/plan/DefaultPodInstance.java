@@ -1,5 +1,7 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.specification.PodInstance;
 import org.apache.mesos.specification.PodSpec;
 
@@ -23,5 +25,15 @@ public class DefaultPodInstance implements PodInstance {
     @Override
     public Integer getIndex() {
         return index;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

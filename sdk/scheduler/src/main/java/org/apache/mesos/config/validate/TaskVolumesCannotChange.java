@@ -1,62 +1,59 @@
 package org.apache.mesos.config.validate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.*;
+
+import java.util.*;
 
 /**
  * Validates that each TaskSpecification's volumes have not been modified.
  */
-public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSpecification> {
+public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSpec> {
+
 
     @Override
-    public Collection<ConfigurationValidationError> validate(
-            ServiceSpecification nullableOldConfig, ServiceSpecification newConfig) {
+    public Collection<ConfigurationValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
         List<ConfigurationValidationError> errors = new ArrayList<>();
-        Map<String, TaskSpecification> oldTasks =
+        Map<String, TaskSpec> oldTasks =
                 (nullableOldConfig == null) ? new HashMap<>() : getAllTasksByName(nullableOldConfig, errors);
-        Map<String, TaskSpecification> newTasks =
-                getAllTasksByName(newConfig, errors);
+        Map<String, TaskSpec> newTasks = getAllTasksByName(newConfig, errors);
+
         // Note: We're itentionally just comparing cases where the tasks in both TaskSpecs.
         // Enforcement of new/removed tasks should be performed in a separate Validator.
-        for (Map.Entry<String, TaskSpecification> oldEntry : oldTasks.entrySet()) {
-            TaskSpecification newTask = newTasks.get(oldEntry.getKey());
+        for (Map.Entry<String, TaskSpec> oldEntry : oldTasks.entrySet()) {
+            TaskSpec newTask = newTasks.get(oldEntry.getKey());
             if (newTask == null) {
                 // Task removed: Don't worry about it. We're just verifying that volumes don't change.
                 continue;
             }
+
             if (!TaskUtils.volumesEqual(oldEntry.getValue(), newTask)) {
                 errors.add(ConfigurationValidationError.transitionError(
                         String.format("TaskVolumes[taskname:%s]", newTask.getName()),
-                        oldEntry.getValue().getVolumes().toString(),
-                        newTask.getVolumes().toString(),
+                        TaskUtils.getVolumes(oldEntry.getValue()).toString(),
+                        TaskUtils.getVolumes(newTask).toString(),
                         "Volumes must be equal."));
             }
         }
+
         return errors;
     }
 
-    private static Map<String, TaskSpecification> getAllTasksByName(
-            ServiceSpecification service, List<ConfigurationValidationError> errors) {
-        Map<String, TaskSpecification> tasks = new HashMap<>();
-        for (TaskSet taskSet : service.getTaskSets()) {
-            for (TaskSpecification taskSpecification : taskSet.getTaskSpecifications()) {
-                TaskSpecification priorTask = tasks.put(taskSpecification.getName(), taskSpecification);
+    private static Map<String, TaskSpec> getAllTasksByName(
+            ServiceSpec service, List<ConfigurationValidationError> errors) {
+        Map<String, TaskSpec> tasks = new HashMap<>();
+        for (PodSpec podSpec : service.getPods()) {
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                TaskSpec priorTask = tasks.put(taskSpec.getName(), taskSpec);
                 if (priorTask != null) {
                     errors.add(ConfigurationValidationError.valueError(
-                            "TaskSpecifications", taskSpecification.getName(),
+                            "TaskSpecifications", taskSpec.getName(),
                             String.format("Duplicate TaskSpecifications named '%s' in Service '%s': %s %s",
-                                    taskSpecification.getName(), service.getName(), priorTask, taskSpecification)));
+                                    taskSpec.getName(), service.getName(), priorTask, taskSpec)));
                 }
             }
         }
+
         return tasks;
     }
 }

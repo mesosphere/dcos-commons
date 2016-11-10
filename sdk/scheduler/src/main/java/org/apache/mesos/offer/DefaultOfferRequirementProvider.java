@@ -41,6 +41,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         return OfferRequirement.create(
                 podInstance.getPod().getType(),
+                podInstance.getIndex(),
                 taskInfos,
                 Optional.of(executorInfo),
                 podInstance.getPod().getPlacementRule());
@@ -61,7 +62,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
-        String taskType = validateTaskRequirements(taskRequirements);
+        validateTaskRequirements(taskRequirements);
 
         ExecutorRequirement executorRequirement = null;
         if (executorInfoOptional.isPresent()) {
@@ -71,7 +72,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return OfferRequirement.create(
-                taskType,
+                podInstance.getPod().getType(),
+                podInstance.getIndex(),
                 taskRequirements,
                 executorRequirement,
                 podInstance.getPod().getPlacementRule());
@@ -124,7 +126,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         String taskType;
         try {
-            taskType = TaskUtils.getTaskType(taskInfo);
+            taskType = TaskUtils.getType(taskInfo);
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
@@ -159,21 +161,21 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return new TaskRequirement(taskInfo);
     }
 
-    private String validateTaskRequirements(List<TaskRequirement> taskRequirements) throws InvalidRequirementException {
+    private void validateTaskRequirements(List<TaskRequirement> taskRequirements) throws InvalidRequirementException {
         if (taskRequirements.isEmpty()) {
             throw new InvalidRequirementException("Failed to generate any TaskRequirements.");
         }
 
         String taskType = "";
         try {
-            taskType = TaskUtils.getTaskType(taskRequirements.get(0).getTaskInfo());
+            taskType = TaskUtils.getType(taskRequirements.get(0).getTaskInfo());
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
 
         for (TaskRequirement taskRequirement : taskRequirements) {
             try {
-                String localTaskType = TaskUtils.getTaskType(taskRequirement.getTaskInfo());
+                String localTaskType = TaskUtils.getType(taskRequirement.getTaskInfo());
                 if (!localTaskType.equals(taskType)) {
                     throw new InvalidRequirementException("TaskRequirements must have TaskTypes.");
                 }
@@ -181,8 +183,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 throw new InvalidRequirementException(e);
             }
         }
-
-        return taskType;
     }
 
     private List<Protos.Resource> getUpdatedResources(Protos.TaskInfo taskInfo, TaskSpec taskSpec)

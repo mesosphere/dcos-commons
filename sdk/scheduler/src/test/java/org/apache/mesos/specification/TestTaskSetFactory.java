@@ -64,8 +64,8 @@ public class TestTaskSetFactory {
                 Optional.empty());
     }
 
-    public static TaskSpecification getTaskSpecification() {
-        return getTaskSpecification(
+    public static TaskSpec getTaskSpec() {
+        return getTaskSpec(
                 TestConstants.TASK_NAME,
                 CMD.getValue(),
                 CPU,
@@ -73,14 +73,33 @@ public class TestTaskSetFactory {
                 DISK);
     }
 
-    public static TaskSpecification getTaskSpecification(
+    public static ResourceSet getResourceSet() {
+
+    }
+
+    public static PodSpec getPodSpec() {
+        return DefaultPodSpec.Builder.newBuilder()
+                .type(TestConstants.POD_TYPE)
+                .count(1)
+
+    }
+
+    public static TaskSpec getTaskSpec(
             String name,
             String cmd,
             double cpu,
             double mem,
             double disk) {
 
-        return new DefaultTaskSpecification(
+        return DefaultTaskSpec.newBuilder()
+                .name(name)
+                .goalState(TaskSpec.GoalState.RUNNING)
+                .resourceSetId(TestConstants.RESOURCE_SET_ID)
+                .pod(DefaultPodSpec.Builder.newBuilder()
+                .)
+
+
+        return new DefaultTaskSpec(
                 name,
                 TestConstants.TASK_TYPE,
                 getCommand(cmd),

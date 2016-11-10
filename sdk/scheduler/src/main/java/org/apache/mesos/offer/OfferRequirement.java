@@ -19,10 +19,11 @@ import java.util.Optional;
  * by the provided {@link PlacementRule}s.
  */
 public class OfferRequirement {
-    private final String taskType;
+    private final String type;
     private final Collection<TaskRequirement> taskRequirements;
     private final Optional<ExecutorRequirement> executorRequirementOptional;
     private final Optional<PlacementRule> placementRuleOptional;
+    private final Integer index;
 
     /**
      * Creates a new {@link OfferRequirement}.
@@ -37,12 +38,14 @@ public class OfferRequirement {
      */
     public static OfferRequirement create(
             String taskType,
+            Integer index,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional,
             Optional<PlacementRule> placementRuleOptional)
                     throws InvalidRequirementException {
         return new OfferRequirement(
                 taskType,
+                index,
                 getTaskRequirementsInternal(taskInfos),
                 executorInfoOptional.isPresent() ?
                         Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
@@ -54,57 +57,65 @@ public class OfferRequirement {
      * Creates a new {@link OfferRequirement} with provided executor requirement and empty placement
      * constraints.
      *
-     * @see #OfferRequirement(String, Collection, Optional, Optional)
+     * @see #OfferRequirement(String, Integer, Collection, Optional, Optional)
      */
     public static OfferRequirement create(
             String taskType,
+            Integer index,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional)
                     throws InvalidRequirementException {
-        return create(taskType, taskInfos, executorInfoOptional, Optional.empty());
+        return create(taskType, index, taskInfos, executorInfoOptional, Optional.empty());
     }
 
     /**
      * Creates a new {@link OfferRequirement} with empty executor requirement and empty placement
      * constraints.
      *
-     * @see #OfferRequirement(String, Collection, Optional, Optional)
+     * @see #OfferRequirement(String, Integer, Collection, Optional, Optional)
      */
-    public static OfferRequirement create (String taskType, Collection<TaskInfo> taskInfos)
+    public static OfferRequirement create (String taskType, Integer index, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
-        return create(taskType, taskInfos, Optional.empty());
+        return create(taskType, index, taskInfos, Optional.empty());
     }
 
     /**
      * Creates and returns a new {@link OfferRequirement} with any placement rules removed.
      */
     public OfferRequirement withoutPlacementRules() {
-        return new OfferRequirement(taskType, taskRequirements, executorRequirementOptional, Optional.empty());
+        return new OfferRequirement(type, index, taskRequirements, executorRequirementOptional, Optional.empty());
     }
 
     public static OfferRequirement create(
             String taskType,
+            Integer index,
             Collection<TaskRequirement> taskRequirements,
             ExecutorRequirement executorRequirement,
             Optional<PlacementRule> placementRuleOptional) {
 
-        return new OfferRequirement(taskType, taskRequirements, Optional.of(executorRequirement), placementRuleOptional);
+        return new OfferRequirement(taskType, index, taskRequirements, Optional.of(executorRequirement), placementRuleOptional);
     }
 
 
     private OfferRequirement(
-            String taskType,
+            String type,
+            Integer index,
             Collection<TaskRequirement> taskRequirements,
             Optional<ExecutorRequirement> executorRequirementOptional,
             Optional<PlacementRule> placementRuleOptional) {
-        this.taskType = taskType;
+        this.type = type;
+        this.index = index;
         this.taskRequirements = taskRequirements;
         this.executorRequirementOptional = executorRequirementOptional;
         this.placementRuleOptional = placementRuleOptional;
     }
 
-    public String getTaskType() {
-        return taskType;
+    public String getType() {
+        return type;
+    }
+
+    public Integer getIndex() {
+        return index;
     }
 
     public Collection<TaskRequirement> getTaskRequirements() {

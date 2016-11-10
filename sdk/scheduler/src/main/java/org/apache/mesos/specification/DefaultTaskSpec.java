@@ -1,5 +1,9 @@
 package org.apache.mesos.specification;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.offer.TaskUtils;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
@@ -88,6 +92,24 @@ public class DefaultTaskSpec implements TaskSpec {
     @Override
     public Collection<ConfigFileSpecification> getConfigFiles() {
         return configFiles;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof TaskSpecification)) {
+            return false;
+        }
+        return !TaskUtils.areDifferent(this, (TaskSpec) o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
 

@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class DefaultServiceSpecification implements ServiceSpecification {
 
-    private static final Comparator COMPARATOR = new Comparator();
-    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
      * Factory which performs the inverse of {@link DefaultServiceSpecification#getBytes()}.
@@ -77,21 +75,6 @@ public class DefaultServiceSpecification implements ServiceSpecification {
         }
     }
 
-    /**
-     * Comparer which checks for equality of {@link DefaultServiceSpecification}s.
-     */
-    public static class Comparator implements ConfigurationComparator<ServiceSpecification> {
-
-        /**
-         * Call {@link DefaultServiceSpecification#getComparatorInstance()} instead.
-         */
-        private Comparator() { }
-
-        @Override
-        public boolean equals(ServiceSpecification first, ServiceSpecification second) {
-            return EqualsBuilder.reflectionEquals(first, second);
-        }
-    }
 
     private final String name;
     private final List<TaskSet> taskSets;
@@ -114,23 +97,6 @@ public class DefaultServiceSpecification implements ServiceSpecification {
         return taskSets;
     }
 
-    @Override
-    public byte[] getBytes() throws ConfigStoreException {
-        try {
-            return toJsonString().getBytes(CHARSET);
-        } catch (Exception e) {
-            throw new ConfigStoreException("Failed to get JSON representation of service spec: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public String toJsonString() throws ConfigStoreException {
-        try {
-            return SerializationUtils.toJsonString(this);
-        } catch (IOException e) {
-            throw new ConfigStoreException(e);
-        }
-    }
 
     /**
      * Returns a {@link ConfigurationFactory} which may be used to deserialize
@@ -147,7 +113,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
             Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
         ConfigurationFactory<ServiceSpec> factory = new Factory(additionalSubtypesToRegister);
         // Serialize and then deserialize:
-        ServiceSpecification loopbackSpecification = factory.parse(serviceSpec.getBytes());
+        ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
             StringBuilder error = new StringBuilder();
@@ -163,13 +129,6 @@ public class DefaultServiceSpecification implements ServiceSpecification {
         return factory;
     }
 
-    /**
-     * Returns a {@link ConfigurationComparer} which may be used to compare
-     * {@link DefaultServiceSpecification}s.
-     */
-    public static ConfigurationComparator<ServiceSpecification> getComparatorInstance() {
-        return COMPARATOR;
-    }
 
     @Override
     public String toString() {

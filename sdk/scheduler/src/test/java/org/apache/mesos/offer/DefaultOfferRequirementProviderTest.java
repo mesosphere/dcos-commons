@@ -148,7 +148,7 @@ public class DefaultOfferRequirementProviderTest {
     public void testNewOfferRequirement() throws InvalidRequirementException {
         OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(podSpec);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getTaskType());
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
 
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();

@@ -175,13 +175,13 @@ public class TaskTypeRuleTest {
             throw new IllegalStateException(e);
         }
         taskBuilder.getSlaveIdBuilder().setValue(agent);
-        taskBuilder = TaskUtils.setTaskType(taskBuilder, type);
+        taskBuilder = TaskUtils.setType(taskBuilder, type);
         return taskBuilder.build();
     }
 
     private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
         try {
-            return OfferRequirement.create(TaskUtils.getTaskType(taskInfo), Arrays.asList(taskInfo));
+            return OfferRequirement.create(TaskUtils.getType(taskInfo), Arrays.asList(taskInfo));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

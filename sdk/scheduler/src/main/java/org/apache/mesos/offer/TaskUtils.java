@@ -5,14 +5,13 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,8 @@ public class TaskUtils {
     /**
      * Label key against which the Task Type is stored.
      */
-    private static final String TASK_TYPE_KEY = "task_type";
+    private static final String TYPE_KEY = "type";
+    private static final String INDEX_KEY = "index";
 
     private TaskUtils() {
         // do not instantiate
@@ -153,8 +153,8 @@ public class TaskUtils {
      * Stores the provided Task Type string into the {@link TaskInfo} as a {@link Label}. Any
      * existing stored task type is overwritten.
      */
-    public static TaskInfo.Builder setTaskType(TaskInfo.Builder taskBuilder, String taskType) {
-        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TASK_TYPE_KEY, taskType));
+    public static TaskInfo.Builder setType(TaskInfo.Builder taskBuilder, String taskType) {
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TYPE_KEY, taskType));
     }
 
     /**
@@ -162,12 +162,24 @@ public class TaskUtils {
      *
      * @throws TaskException if the type could not be found.
      */
-    public static String getTaskType(TaskInfo taskInfo) throws TaskException {
-        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_KEY);
+    public static String getType(TaskInfo taskInfo) throws TaskException {
+        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TYPE_KEY);
         if (!taskType.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + TYPE_KEY);
         }
         return taskType.get();
+    }
+
+    public static TaskInfo.Builder setIndex(TaskInfo.Builder taskBuilder, Integer index) {
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), INDEX_KEY, String.valueOf(index)));
+    }
+
+    public static Integer getIndex(TaskInfo taskInfo) throws TaskException {
+        Optional<String> index = findLabelValue(taskInfo.getLabels(), INDEX_KEY);
+        if (!index.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + INDEX_KEY);
+        }
+        return Integer.valueOf(index.get());
     }
 
     /**
@@ -228,15 +240,15 @@ public class TaskUtils {
      * Returns the {@link TaskSpecification} in the provided {@link DefaultServiceSpecification}
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
-    public static TaskSpecification getTaskSpecification(
-            ServiceSpecification serviceSpec, TaskInfo taskInfo) {
-        for (TaskSet taskSet : serviceSpec.getTaskSets()) {
-            for (TaskSpecification taskSpec : taskSet.getTaskSpecifications()) {
-                if (taskSpec.getName().equals(taskInfo.getName())) {
-                    return taskSpec;
-                }
+    public static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
+        String podType = TaskUtils.getType(taskInfo);
+
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            if (podSpec.getType().equals(podType)) {
+                return podSpec;
             }
         }
+
         return null;
     }
 
@@ -244,6 +256,49 @@ public class TaskUtils {
         return podSpec.getTasks().stream()
                 .filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
                 .findFirst();
+    }
+
+    public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
+        return stateStore.fetchTasks().stream()
+                .filter(taskInfo -> {
+                    try {
+                        return TaskUtils.getType(taskInfo).equals(podInstance.getName());
+                    } catch (TaskException e) {
+                        LOGGER.error("Encountered ");
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<Protos.TaskInfo> getTaskInfosShouldBeRunning(PodInstance podInstance, StateStore stateStore) {
+        List<Protos.TaskInfo> podTasks = getPodTasks(podInstance, stateStore);
+
+        List<Protos.TaskInfo> tasksShouldBeRunning = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : podTasks) {
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance.getPod());
+
+            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(TaskSpec.GoalState.RUNNING)) {
+                tasksShouldBeRunning.add(taskInfo);
+            }
+        }
+
+        return tasksShouldBeRunning;
+    }
+
+    public static Optional<Protos.ExecutorInfo> getExecutor(PodInstance podInstance, StateStore stateStore) {
+        List<Protos.TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podInstance, stateStore);
+
+        for (Protos.TaskInfo taskInfo : shouldBeRunningTasks) {
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskStatusOptional.isPresent() && taskStatusOptional.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
+                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
+                return Optional.of(taskInfo.getExecutor());
+            }
+        }
+
+        LOGGER.info("No running executor found.");
+        return Optional.empty();
     }
 
     /**
@@ -365,13 +420,12 @@ public class TaskUtils {
         driver.sendStatusUpdate(taskStatus);
     }
 
-    public static boolean areDifferent(
-            TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+    public static boolean areDifferent(TaskSpec oldTaskSpec, TaskSpec newTaskSpec) {
 
         // Names
 
-        String oldTaskName = oldTaskSpecification.getName();
-        String newTaskName = newTaskSpecification.getName();
+        String oldTaskName = oldTaskSpec.getName();
+        String newTaskName = newTaskSpec.getName();
         if (!Objects.equals(oldTaskName, newTaskName)) {
             LOGGER.info("Task names '{}' and '{}' are different.", oldTaskName, newTaskName);
             return true;
@@ -379,8 +433,8 @@ public class TaskUtils {
 
         // CommandInfos
 
-        Optional<CommandInfo> oldCommand = oldTaskSpecification.getCommand();
-        Optional<CommandInfo> newCommand = newTaskSpecification.getCommand();
+        Optional<CommandSpec> oldCommand = oldTaskSpec.getCommand();
+        Optional<CommandSpec> newCommand = newTaskSpec.getCommand();
         if (!Objects.equals(oldCommand, newCommand)) {
             LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
             return true;
@@ -388,8 +442,8 @@ public class TaskUtils {
 
         // ContainerInfos
 
-        Optional<ContainerInfo> oldContainer = oldTaskSpecification.getContainer();
-        Optional<ContainerInfo> newContainer = newTaskSpecification.getContainer();
+        Optional<ContainerSpec> oldContainer = oldTaskSpec.getContainer();
+        Optional<ContainerSpec> newContainer = newTaskSpec.getContainer();
         if (!Objects.equals(oldContainer, newContainer)) {
             LOGGER.info("Task containers '{}' and '{}' are different.", oldContainer, newContainer);
             return true;
@@ -397,8 +451,8 @@ public class TaskUtils {
 
         // Health checks
 
-        Optional<HealthCheck> oldHealthCheck = oldTaskSpecification.getHealthCheck();
-        Optional<HealthCheck> newHealthCheck = newTaskSpecification.getHealthCheck();
+        Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();
+        Optional<HealthCheckSpec> newHealthCheck = newTaskSpec.getHealthCheck();
         if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
             LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
             return true;
@@ -406,8 +460,8 @@ public class TaskUtils {
 
         // Resources (custom comparison)
 
-        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
-        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
+        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(getResources(oldTaskSpec));
+        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(getResources(newTaskSpec));
 
         if (oldResourceMap.size() != newResourceMap.size()) {
             LOGGER.info("Resource lengths are different for old resources: '{}' and new resources: '{}'",
@@ -430,27 +484,18 @@ public class TaskUtils {
 
         // Volumes (custom comparison)
 
-        if (!volumesEqual(oldTaskSpecification, newTaskSpecification)) {
+        if (!volumesEqual(oldTaskSpec, newTaskSpec)) {
             LOGGER.info("Task volumes '{}' and '{}' are different.",
-                    oldTaskSpecification.getVolumes(), newTaskSpecification.getVolumes());
+                    getVolumes(oldTaskSpec), getVolumes(newTaskSpec));
             return true;
         }
 
         // Config files
 
-        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
-        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
+        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
+        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
         if (!Objects.equals(oldConfigMap, newConfigMap)) {
             LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
-            return true;
-        }
-
-        // Placement constraints
-
-        Optional<PlacementRule> oldPlacement = oldTaskSpecification.getPlacement();
-        Optional<PlacementRule> newPlacement = newTaskSpecification.getPlacement();
-        if (!Objects.equals(oldPlacement, newPlacement)) {
-            LOGGER.info("Task placement constraints '{}' and '{}' are different.", oldPlacement, newPlacement);
             return true;
         }
 
@@ -463,8 +508,34 @@ public class TaskUtils {
      *
      * @return whether the volume lists are equal
      */
-    public static boolean volumesEqual(TaskSpecification first, TaskSpecification second) {
-        return CollectionUtils.isEqualCollection(first.getVolumes(), second.getVolumes());
+    public static boolean volumesEqual(TaskSpec first, TaskSpec second) {
+        return CollectionUtils.isEqualCollection(getVolumes(first), getVolumes(second));
+    }
+
+    public static Collection<VolumeSpecification> getVolumes(TaskSpec taskSpec) {
+        Optional<ResourceSet> resourceSetOptional = getResourceSet(taskSpec);
+
+        if (!resourceSetOptional.isPresent()) {
+            return Collections.emptyList();
+        }
+
+        return resourceSetOptional.get().getVolumes();
+    }
+
+    public static Collection<ResourceSpecification> getResources(TaskSpec taskSpec) {
+        Optional<ResourceSet> resourceSetOptional = getResourceSet(taskSpec);
+
+        if (!resourceSetOptional.isPresent()) {
+            return Collections.emptyList();
+        }
+
+        return resourceSetOptional.get().getResources();
+    }
+
+    public static Optional<ResourceSet> getResourceSet(TaskSpec taskSpec) {
+        return taskSpec.getPod().getResources().stream()
+                .filter(resourceSet -> resourceSet.getId().equals(taskSpec.getResourceSetId()))
+                .findFirst();
     }
 
     /**

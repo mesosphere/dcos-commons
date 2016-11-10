@@ -46,7 +46,6 @@ public class CustomPlanTest {
     @Mock private StateStore mockStateStore;
     @Mock private OfferRequirementProvider mockOfferRequirementProvider;
     @Mock private OfferRequirement mockOfferRequirement;
-    @Mock private TaskSpecificationProvider mockTaskSpecificationProvider;
 
     @Before
     public void beforeEach() {

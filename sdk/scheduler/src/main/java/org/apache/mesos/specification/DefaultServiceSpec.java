@@ -1,24 +1,29 @@
 package org.apache.mesos.specification;
 
-import java.util.Collection;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.mesos.config.ConfigurationComparator;
+
+import java.util.List;
 
 /**
  * Default implementation of {@link ServiceSpec}.
  */
 public class DefaultServiceSpec implements ServiceSpec {
+    private static final Comparator COMPARATOR = new Comparator();
+
     private String name;
     private String role;
     private String principal;
     private int apiPort;
     private String zookeeperConnection;
-    private Collection<PodSpec> pods;
+    private List<PodSpec> pods;
 
     DefaultServiceSpec(String name,
                        String role,
                        String principal,
                        int apiPort,
                        String zookeeperConnection,
-                       Collection<PodSpec> pods) {
+                       List<PodSpec> pods) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -53,8 +58,32 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public Collection<PodSpec> getPods() {
+    public List<PodSpec> getPods() {
         return pods;
+    }
+
+    /**
+     * Returns a {@link ConfigurationComparer} which may be used to compare
+     * {@link DefaultServiceSpecification}s.
+     */
+    public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
+        return COMPARATOR;
+    }
+
+    /**
+     * Comparer which checks for equality of {@link DefaultServiceSpecification}s.
+     */
+    public static class Comparator implements ConfigurationComparator<ServiceSpec> {
+
+        /**
+         * Call {@link DefaultServiceSpecification#getComparatorInstance()} instead.
+         */
+        private Comparator() { }
+
+        @Override
+        public boolean equals(ServiceSpec first, ServiceSpecsecond) {
+            return EqualsBuilder.reflectionEquals(first, second);
+        }
     }
 
     public static class Builder {
@@ -63,7 +92,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String principal;
         private int apiPort;
         private String zookeeperConnection;
-        private Collection<PodSpec> pods;
+        private List<PodSpec> pods;
 
         public static Builder newBuilder() {
             return new Builder();
@@ -97,7 +126,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             return this;
         }
 
-        public Builder pods(Collection<PodSpec> pods) {
+        public Builder pods(List<PodSpec> pods) {
             this.pods = pods;
             return this;
         }

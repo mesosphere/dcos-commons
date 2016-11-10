@@ -210,7 +210,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             ServiceSpec serviceSpecification) {
 
         try {
-            final String taskType = TaskUtils.getTaskType(taskInfo);
+            final String taskType = TaskUtils.getType(taskInfo);
 
             List<TaskSpec> taskSpecifications = serviceSpecification.getPods().stream()
                     .filter(pod -> pod.getType().equals(taskType))

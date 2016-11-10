@@ -70,7 +70,7 @@ public class ProcessTask implements ExecutorTask {
         this.taskInfo = taskInfo;
         String taskTypeTest;
         try {
-            taskTypeTest = TaskUtils.getTaskType(taskInfo);
+            taskTypeTest = TaskUtils.getType(taskInfo);
         } catch (TaskException e) {
             taskTypeTest = ""; // not found
         }

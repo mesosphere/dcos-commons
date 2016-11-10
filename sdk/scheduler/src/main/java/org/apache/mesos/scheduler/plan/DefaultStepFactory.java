@@ -8,13 +8,13 @@ import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.PodInstance;
-import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
@@ -58,8 +58,8 @@ public class DefaultStepFactory implements StepFactory {
                         taskInfoOptional.get().getName(),
                         Optional.of(
                                 offerRequirementProvider.getExistingOfferRequirement(
-                                        getTaskInfosShouldBeRunning(podInstance),
-                                        getExecutor(podInstance),
+                                        TaskUtils.getTaskInfosShouldBeRunning(podInstance, stateStore),
+                                        Optional.empty(),
                                         podInstance)),
                         status,
                         Collections.emptyList());
@@ -68,49 +68,6 @@ public class DefaultStepFactory implements StepFactory {
             LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
-    }
-
-    private List<Protos.TaskInfo> getTaskInfosShouldBeRunning(PodInstance podInstance) {
-        List<Protos.TaskInfo> podTasks = getPodTasks(podInstance);
-
-        List<Protos.TaskInfo> tasksShouldBeRunning = new ArrayList<>();
-        for (Protos.TaskInfo taskInfo : podTasks) {
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance.getPod());
-
-            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(TaskSpec.GoalState.RUNNING)) {
-                tasksShouldBeRunning.add(taskInfo);
-            }
-        }
-
-        return tasksShouldBeRunning;
-    }
-
-    private Optional<Protos.ExecutorInfo> getExecutor(PodInstance podInstance) {
-        List<Protos.TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podInstance);
-
-        for (Protos.TaskInfo taskInfo : shouldBeRunningTasks) {
-            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
-            if (taskStatusOptional.isPresent() && taskStatusOptional.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
-                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
-                return Optional.of(taskInfo.getExecutor());
-            }
-        }
-
-        LOGGER.info("No running executor found.");
-        return Optional.empty();
-    }
-
-    private List<Protos.TaskInfo> getPodTasks(PodInstance podInstance) {
-        return stateStore.fetchTasks().stream()
-                .filter(taskInfo -> {
-                    try {
-                        return TaskUtils.getTaskType(taskInfo).equals(podInstance.getName());
-                    } catch (TaskException e) {
-                        LOGGER.error("Encountered ");
-                        return false;
-                    }
-                })
-                .collect(Collectors.toList());
     }
 
     private Status getStatus(Protos.TaskInfo taskInfo) {

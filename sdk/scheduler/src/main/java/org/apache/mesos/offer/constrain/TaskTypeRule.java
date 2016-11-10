@@ -45,7 +45,7 @@ public class TaskTypeRule implements PlacementRule {
         @Override
         public String getTaskType(TaskInfo taskInfo) {
             try {
-                return TaskUtils.getTaskType(taskInfo);
+                return TaskUtils.getType(taskInfo);
             } catch (TaskException e) {
                 throw new IllegalArgumentException(String.format(
                         "Unable to extract task type label from provided TaskInfo: %s", taskInfo), e);

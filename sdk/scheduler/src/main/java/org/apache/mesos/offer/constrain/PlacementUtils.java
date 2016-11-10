@@ -69,12 +69,12 @@ public class PlacementUtils {
         // Check task types
         String taskInfoType;
         try {
-            taskInfoType = TaskUtils.getTaskType(taskInfo);
+            taskInfoType = TaskUtils.getType(taskInfo);
         } catch (TaskException e) {
             LOGGER.warn("Unable to extract task type from taskinfo", e);
             taskInfoType = null;
         }
-        if (!Objects.equal(taskInfoType, offerRequirement.getTaskType())) {
+        if (!Objects.equal(taskInfoType, offerRequirement.getType())) {
             return false;
         }
 

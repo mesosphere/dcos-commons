@@ -184,7 +184,8 @@ public class OfferEvaluator {
                             execInfoOptional,
                             fulfilledExecutorRequirementOptional,
                             offer,
-                            offerRequirement.getTaskType())));
+                            offerRequirement.getType(),
+                            offerRequirement.getIndex())));
         }
 
         List<OfferRecommendation> recommendations = new ArrayList<>();
@@ -425,7 +426,8 @@ public class OfferEvaluator {
             Optional<ExecutorInfo> execInfo,
             Optional<FulfilledRequirement> fulfilledExecutorRequirement,
             Offer launchOffer,
-            String taskType) {
+            String type,
+            Integer index) {
 
         List<Resource> fulfilledTaskResources = fulfilledTaskRequirement.getFulfilledResources();
         TaskInfo.Builder taskBuilder = TaskInfo
@@ -447,7 +449,8 @@ public class OfferEvaluator {
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
-        taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
+        taskBuilder = TaskUtils.setType(taskBuilder, type);
+        taskBuilder = TaskUtils.setIndex(taskBuilder, index);
 
         return TaskUtils.packTaskInfo(
                 ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources).build());

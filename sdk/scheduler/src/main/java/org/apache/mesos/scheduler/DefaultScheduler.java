@@ -8,7 +8,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.*;
 import org.apache.mesos.config.validate.ConfigurationValidator;
-import org.apache.mesos.config.validate.TaskSetsCannotShrink;
+import org.apache.mesos.config.validate.PodSpecsCannotShrink;
 import org.apache.mesos.config.validate.TaskVolumesCannotChange;
 import org.apache.mesos.curator.CuratorConfigStore;
 import org.apache.mesos.curator.CuratorStateStore;
@@ -27,6 +27,7 @@ import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.NeverFailureMonitor;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
+import org.apache.mesos.specification.DefaultServiceSpec;
 import org.apache.mesos.specification.DefaultServiceSpecification;
 import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.specification.ServiceSpecification;
@@ -63,7 +64,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    protected final Collection<ConfigurationValidator<ServiceSpecification>> configValidators;
+    protected final Collection<ConfigurationValidator<ServiceSpec>> configValidators;
     protected final Optional<Integer> permanentFailureTimeoutSec;
     protected final Integer destructiveRecoveryDelaySec;
 
@@ -193,7 +194,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            Collection<ConfigurationValidator<ServiceSpecification>> configValidators,
+            Collection<ConfigurationValidator<ServiceSpec>> configValidators,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         return new DefaultScheduler(
@@ -296,10 +297,10 @@ public class DefaultScheduler implements Scheduler, Observer {
      * This function may be used to get the default validators and add more to the list when
      * constructing the {@link DefaultScheduler}.
      */
-    public static List<ConfigurationValidator<ServiceSpecification>> defaultConfigValidators() {
+    public static List<ConfigurationValidator<ServiceSpec>> defaultConfigValidators() {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
-                new TaskSetsCannotShrink(),
+                new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange());
     }
 
@@ -324,7 +325,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            Collection<ConfigurationValidator<ServiceSpecification>> configValidators,
+            Collection<ConfigurationValidator<ServiceSpec>> configValidators,
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         this.serviceSpec = serviceSpec;
@@ -368,11 +369,11 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Updating config...");
-        ConfigurationUpdater<ServiceSpecification> configurationUpdater =
+        ConfigurationUpdater<ServiceSpec> configurationUpdater =
                 new DefaultConfigurationUpdater(
                         stateStore,
                         configStore,
-                        DefaultServiceSpecification.getComparatorInstance(),
+                        DefaultServiceSpec.getComparatorInstance(),
                         configValidators);
         final ConfigurationUpdater.UpdateResult configUpdateResult;
         try {
@@ -412,7 +413,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing recovery plan...");
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider),
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore, stateStore),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
