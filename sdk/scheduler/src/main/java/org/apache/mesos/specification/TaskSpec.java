@@ -23,7 +23,7 @@ public interface TaskSpec {
     Optional<CommandSpec> getCommand();
     Optional<ContainerSpec> getContainer();
 
-    Optional<HealthCheckSpec> getHealthCheck();
+    Collection<HealthCheckSpec> getHealthChecks();
     Collection<URI> getUris();
     Collection<ConfigFileSpecification> getConfigFiles();
 

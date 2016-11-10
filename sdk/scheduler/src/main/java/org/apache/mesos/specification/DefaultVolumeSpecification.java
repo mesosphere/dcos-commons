@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class DefaultVolumeSpecification extends DefaultResourceSpecification implements VolumeSpecification {
 
-    private static final String RESOURCE_NAME = "disk";
+    public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
     private final String containerPath;

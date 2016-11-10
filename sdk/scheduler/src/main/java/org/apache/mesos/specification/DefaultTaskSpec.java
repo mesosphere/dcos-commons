@@ -11,7 +11,7 @@ public class DefaultTaskSpec implements TaskSpec {
     private PodSpec pod;
     private CommandSpec commandSpec;
     private ContainerSpec containerSpec;
-    private HealthCheckSpec healthCheckSpec;
+    private Collection<HealthCheckSpec> healthCheckSpec;
     private Collection<URI> uris;
     private Collection<ConfigFileSpecification> configFiles;
 
@@ -76,8 +76,8 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
-    public Optional<HealthCheckSpec> getHealthCheck() {
-        return Optional.ofNullable(healthCheckSpec);
+    public Collection<HealthCheckSpec> getHealthChecks() {
+        return healthCheckSpec;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class DefaultTaskSpec implements TaskSpec {
         private PodSpec pod;
         private CommandSpec commandSpec;
         private ContainerSpec containerSpec;
-        private HealthCheckSpec healthCheckSpec;
+        private Collection<HealthCheckSpec> healthCheckSpec;
         private Collection<URI> uris;
         private Collection<ConfigFileSpecification> configFiles;
 
@@ -180,7 +180,7 @@ public class DefaultTaskSpec implements TaskSpec {
          * @param healthCheckSpec the {@code healthCheckSpec} to set
          * @return a reference to this Builder
          */
-        public Builder healthCheckSpec(HealthCheckSpec healthCheckSpec) {
+        public Builder healthCheckSpec(Collection<HealthCheckSpec> healthCheckSpec) {
             this.healthCheckSpec = healthCheckSpec;
             return this;
         }
