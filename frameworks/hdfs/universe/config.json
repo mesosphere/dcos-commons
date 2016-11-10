@@ -64,25 +64,25 @@
 				"secure_mode": {
 					"id": "http://hdfs/dcos/mesosphere.com/service/secure_mode",
 					"type": "boolean",
-					"description": "Enable HDFS Secure Mode",
+					"description": "Enable HDFS Secure Mode, which allows configuration of Kerberos.",
 					"default": false
 				},
 				"keytabs_uri": {
 					"id": "http://hdfs/dcos/mesosphere.com/service/keytabs_uri",
 					"type": "string",
-					"description": "The URI from which the Keytabs are downloaded.",
-					"default": "http://10.0.1.69:8788/keytabs.tar.gz"
+					"description": "The URI from which Keytabs tar.gz can be downloaded. Only relevant when secure_mode is enabled.",
+					"default": ""
 				},
 				"task_jre_uri": {
 					"id": "http://hdfs/dcos/mesosphere.com/service/task_jre_uri",
 					"type": "string",
 					"description": "The URI from which the JRE for all tasks is downloaded",
-					"default": "https://s3-us-west-2.amazonaws.com/infinity-artifacts/jre-8u91-linux-x64.tar.gz"
+					"default": "http://infinity-artifacts.s3.amazonaws.com/jre-8u91-linux-x64.tar.gz"
 				},
 				"user": {
 					"id": "http://hdfs/dcos/mesosphere.com/service/user",
 					"type": "string",
-					"description": "The user as which service and tasks are run.",
+					"description": "The user the service and tasks are run as.",
 					"default": "nobody"
 				}
 			},
