@@ -3,11 +3,10 @@ package org.apache.mesos.config;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.scheduler.DefaultScheduler;
-import org.apache.mesos.specification.DefaultServiceSpecification;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TestPodFactory;
+import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.TaskTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +26,7 @@ public class ConfigurationUpdaterTest {
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
+    private static final String TASK_A_POD_NAME = "POD-A";
     private static final String TASK_A_NAME = "A";
     private static final double TASK_A_CPU = 1.0;
     private static final double UPDATED_TASK_A_CPU = TASK_A_CPU + 1.0;
@@ -35,68 +35,66 @@ public class ConfigurationUpdaterTest {
     private static final String TASK_A_CMD = "echo " + TASK_A_NAME;
 
     private static final int TASK_B_COUNT = 2;
+    private static final String TASK_B_POD_NAME = "POD-B";
     private static final String TASK_B_NAME = "B";
     private static final double TASK_B_CPU = 2.0;
     private static final double TASK_B_MEM = 2000.0;
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
-    private static final ServiceSpecification ORIGINAL_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
-            SERVICE_NAME,
-            Arrays.asList(
-                    TestPodFactory.getTaskSet(
-                            TASK_A_NAME,
-                            TASK_A_COUNT,
-                            TASK_A_CMD,
-                            TASK_A_CPU,
-                            TASK_A_MEM,
-                            TASK_A_DISK),
-                    TestPodFactory.getTaskSet(
-                            TASK_B_NAME,
-                            TASK_B_COUNT,
-                            TASK_B_CMD,
-                            TASK_B_CPU,
-                            TASK_B_MEM,
-                            TASK_B_DISK)));
+    private static final PodSpec podA = TestPodFactory.getPodSpec(
+            TASK_A_POD_NAME,
+            TASK_A_NAME,
+            TASK_A_CMD,
+            TASK_A_COUNT,
+            TASK_A_CPU,
+            TASK_A_MEM,
+            TASK_A_DISK);
 
-    private static final ServiceSpecification UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
-            SERVICE_NAME,
-            Arrays.asList(
-                    TestPodFactory.getTaskSet(
-                            TASK_A_NAME,
-                            TASK_A_COUNT,
-                            TASK_A_CMD,
-                            UPDATED_TASK_A_CPU,
-                            TASK_A_MEM,
-                            TASK_A_DISK),
-                    TestPodFactory.getTaskSet(
-                            TASK_B_NAME,
-                            TASK_B_COUNT,
-                            TASK_B_CMD,
-                            TASK_B_CPU,
-                            TASK_B_MEM,
-                            TASK_B_DISK)));
+    private static final PodSpec podB = TestPodFactory.getPodSpec(
+            TASK_B_POD_NAME,
+            TASK_B_NAME,
+            TASK_B_CMD,
+            TASK_B_COUNT,
+            TASK_B_CPU,
+            TASK_B_MEM,
+            TASK_B_DISK);
 
-    private static final ServiceSpecification BAD_UPDATED_SERVICE_SPECIFICATION = new DefaultServiceSpecification(
-            SERVICE_NAME,
-            Arrays.asList(
-                    TestPodFactory.getTaskSet(
-                            TASK_A_NAME,
-                            TASK_A_COUNT,
-                            TASK_A_CMD,
-                            UPDATED_TASK_A_CPU,
-                            TASK_A_MEM,
-                            TASK_A_DISK),
-                    TestPodFactory.getTaskSet(
-                            TASK_B_NAME,
-                            TASK_B_COUNT - 1,
-                            TASK_B_CMD,
-                            TASK_B_CPU,
-                            TASK_B_MEM,
-                            TASK_B_DISK)));
+    private static final PodSpec updatedPodA = TestPodFactory.getPodSpec(
+            TASK_A_POD_NAME,
+            TASK_A_NAME,
+            TASK_A_CMD,
+            TASK_A_COUNT,
+            UPDATED_TASK_A_CPU,
+            TASK_A_MEM,
+            TASK_A_DISK);
+
+    private static final PodSpec badPodB = TestPodFactory.getPodSpec(
+            TASK_B_POD_NAME,
+            TASK_B_NAME,
+            TASK_B_CMD,
+            TASK_B_COUNT - 1,
+            TASK_B_CPU,
+            TASK_B_MEM,
+            TASK_B_DISK);
+
+    private static final ServiceSpec getServiceSpec(PodSpec podA, PodSpec podB) {
+        return DefaultServiceSpec.Builder.newBuilder()
+                .name(SERVICE_NAME)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .apiPort(0)
+                .zookeeperConnection("foo.bar.com")
+                .pods(Arrays.asList(podA, podB))
+                .build();
+    }
+
+    private static final ServiceSpec ORIGINAL_SERVICE_SPECIFICATION = getServiceSpec(podA, podB);
+    private static final ServiceSpec UPDATED_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB);
+    private static final ServiceSpec BAD_UPDATED_SERVICE_SPECIFICATION = getServiceSpec(podA, badPodB);
 
     @Mock private StateStore mockStateStore;
-    @Mock private ConfigStore<ServiceSpecification> mockConfigStore;
+    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
 
     @Before
     public void beforeEach() {
@@ -105,11 +103,11 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testZeroValidations() throws ConfigStoreException {
-        final ConfigurationUpdater<ServiceSpecification> configurationUpdater =
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater =
                 new DefaultConfigurationUpdater(
                         mockStateStore,
                         mockConfigStore,
-                        DefaultServiceSpecification.getComparatorInstance(),
+                        DefaultServiceSpec.getComparatorInstance(),
                         Collections.emptyList());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
@@ -122,8 +120,8 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testValidationDifferentConfigs() throws ConfigStoreException {
-        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -136,8 +134,8 @@ public class ConfigurationUpdaterTest {
     @Test
     public void testValidationSameConfig() throws ConfigStoreException {
         // strings are equal, so validation of ints is skipped:
-        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
@@ -147,8 +145,8 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testValidationSingleError() throws ConfigStoreException {
-        final ConfigurationUpdater<ServiceSpecification> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpecification.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);

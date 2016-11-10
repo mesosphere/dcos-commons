@@ -149,7 +149,6 @@ public class DefaultSchedulerTest {
     private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB);
     private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB);
     private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB);
-    private static final ServiceSpec SCALED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, scaledPodB);
 
     private static TestingServer testingServer;
 
