@@ -139,7 +139,7 @@ public class DefaultOfferRequirementProviderTest {
         when(taskSpec.getResourceSetId()).thenReturn(TestConstants.RESOURCE_SET_ID);
         when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
         when(taskSpec.getContainer()).thenReturn(Optional.empty());
-        when(taskSpec.getHealthChecks()).thenReturn(Optional.of(healthCheckSpec));
+        when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
 
         when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
 

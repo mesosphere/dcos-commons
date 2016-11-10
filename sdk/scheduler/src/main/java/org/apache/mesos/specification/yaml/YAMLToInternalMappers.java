@@ -114,10 +114,12 @@ public class YAMLToInternalMappers {
             configFiles.add(from(rawConfig));
         }
 
-        List<HealthCheckSpec> healthCheckSpecs = new ArrayList<>();
+        HealthCheckSpec healthCheckSpec = null;
         final LinkedHashMap<String, RawHealthCheck> healthChecks = rawTask.getHealthChecks();
         for (Map.Entry<String, RawHealthCheck> entry : healthChecks.entrySet()) {
-            healthCheckSpecs.add(from(entry.getValue(), entry.getKey()));
+            healthCheckSpec = from(entry.getValue(), entry.getKey());
+            // Only one entry. Sugar.
+            break;
         }
 
         return DefaultTaskSpec.newBuilder()
@@ -125,7 +127,7 @@ public class YAMLToInternalMappers {
                 .configFiles(configFiles)
                 .containerSpec(null /* TODO */)
                 .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
-                .healthCheckSpec(healthCheckSpecs)
+                .healthCheckSpec(healthCheckSpec)
                 .name(rawTask.getName())
                 .pod(podSpec)
                 .resourceSetId(rawTask.getResourceSet())

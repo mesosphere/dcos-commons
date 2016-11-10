@@ -117,8 +117,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setContainer(taskSpec.getContainer().get().getContainerInfo());
         }
 
-        if (taskSpec.getHealthChecks().isPresent()) {
-            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthChecks().get()));
+        if (taskSpec.getHealthCheck().isPresent()) {
+            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
         }
 
         return taskInfoBuilder.build();
