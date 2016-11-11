@@ -6,6 +6,7 @@ import org.apache.mesos.config.validate.ConfigurationValidationError;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.specification.DefaultPodSpec;
 import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.state.StateStore;
@@ -195,7 +196,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         if (targetSpecOptional.isPresent() && taskSpecOptional.isPresent()) {
             PodSpec targetSpec = targetSpecOptional.get();
             PodSpec taskSpec = taskSpecOptional.get();
-            boolean updateNeeded = !targetSpec.equals(taskSpec);
+            boolean updateNeeded = areDifferent(targetSpec, taskSpec);
             LOGGER.info("Compared target: {} to current: {}, update needed: {}", targetSpec, taskSpec, updateNeeded);
             return updateNeeded;
         } else {
@@ -218,6 +219,18 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             LOGGER.error("Failed to find existing TaskSpecification.", e);
             return Optional.empty();
         }
+    }
+
+    private boolean areDifferent(PodSpec podSpec1, PodSpec podSpec2) {
+        if (podSpec1.equals(podSpec2)) {
+            return false;
+        }
+
+        // Make counts equal, as only a difference in count should not effect an individual tasks.
+        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).build();
+        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).build();
+
+        return !podSpec1.equals(podSpec2);
     }
 
     /**
