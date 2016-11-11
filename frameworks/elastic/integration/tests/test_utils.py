@@ -288,5 +288,4 @@ def curl_api(method, http_port=DEFAULT_HTTP_PORT):
 
 
 def get_marathon_host():
-    return shakedown.get_marathon_tasks()[0]['statuses'][0]['container_status']['network_infos'][0]['ip_addresses'][0][
-        'ip_address']
+    return shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()

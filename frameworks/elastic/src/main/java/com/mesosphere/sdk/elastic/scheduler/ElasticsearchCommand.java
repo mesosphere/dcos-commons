@@ -16,25 +16,19 @@ class ElasticsearchCommand {
     private final String elasticsearchPlugins;
     private final String serviceName;
     private final int masterTransportPort;
-    private final int statsdUdpPort;
-    private final String statsdUdpHost;
 
     ElasticsearchCommand(String elasticsearchVerName,
                          String xpackUri,
                          String elasticsearchPlugins,
                          String serviceName,
                          int masterTransportPort,
-                         String statsdUri,
-                         int statsdUdpPort,
-                         String statsdUdpHost) {
+                         String statsdUri) {
         this.elasticsearchVerName = elasticsearchVerName;
         this.xpackUri = xpackUri;
         this.statsdUri = statsdUri;
         this.elasticsearchPlugins = elasticsearchPlugins;
         this.serviceName = serviceName;
         this.masterTransportPort = masterTransportPort;
-        this.statsdUdpHost = statsdUdpHost;
-        this.statsdUdpPort = statsdUdpPort;
     }
 
     String getCommandLineInvocation(String nodeName,
@@ -56,8 +50,8 @@ class ElasticsearchCommand {
         properties.setProperty("bootstrap.ignore_system_bootstrap_checks", Boolean.toString(true));
         properties.setProperty("bootstrap.memory_lock", Boolean.toString(true));
 
-        properties.setProperty("metrics.statsd.host", statsdUdpHost);
-        properties.setProperty("metrics.statsd.port", Integer.toString(statsdUdpPort));
+        properties.setProperty("metrics.statsd.host", "$STATSD_UDP_HOST");
+        properties.setProperty("metrics.statsd.port", "$STATSD_UDP_PORT");
 
         properties.putAll(nodeTypePropertyOverrides(nodeName));
 

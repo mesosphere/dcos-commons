@@ -74,13 +74,10 @@ class Elastic {
     private final ServiceSpecification serviceSpecification;
 
     Elastic() {
-        int statsdUdpPort = Integer.parseInt(System.getenv("STATSD_UDP_PORT"));
-        String statsdUdpHost = System.getenv("STATSD_UDP_HOST");
         String elasticsearchVerName = System.getenv("ELASTICSEARCH_VER_NAME");
         String elasticsearchPlugins = System.getenv("ELASTICSEARCH_PLUGINS");
         elasticsearchCommand = new ElasticsearchCommand(elasticsearchVerName, XPACK_URI,
-            elasticsearchPlugins, SERVICE_NAME, masterNodeTransportPort, STATSD_PLUGIN_URI,
-            statsdUdpPort, statsdUdpHost);
+            elasticsearchPlugins, SERVICE_NAME, masterNodeTransportPort, STATSD_PLUGIN_URI);
         String kibanaVerName = System.getenv("KIBANA_VER_NAME");
         kibanaCommand = new KibanaCommand(kibanaVerName, XPACK_URI);
         serviceSpecification = new DefaultServiceSpecification(SERVICE_NAME, createTaskSets());
