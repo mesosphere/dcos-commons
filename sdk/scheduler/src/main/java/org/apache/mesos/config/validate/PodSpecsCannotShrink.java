@@ -4,6 +4,7 @@ import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.ServiceSpec;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Sample configuration validator which validates that a ServiceSpecification's number of PodSpecs
@@ -14,44 +15,35 @@ public class PodSpecsCannotShrink implements ConfigurationValidator<ServiceSpec>
     @Override
     public Collection<ConfigurationValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
         List<ConfigurationValidationError> errors = new ArrayList<>();
-        Map<String, Integer> newTaskTypeCounts = new HashMap<>();
-        for (PodSpec podSpec : newConfig.getPods()) {
-            Integer prevValue = newTaskTypeCounts.put(podSpec.getType(), podSpec.getTasks().size());
-            if (prevValue != null) {
-                errors.add(ConfigurationValidationError.valueError(
-                        "PodSpec", podSpec.getType(),
-                        String.format("Duplicate PodSpecs named '%s' in Service '%s'",
-                                podSpec.getType(), newConfig.getName())));
-            }
-        }
-
         if (nullableOldConfig == null) {
             // No sizes to compare.
             return errors;
         }
 
+        Map<String, PodSpec> newPods = newConfig.getPods().stream()
+                .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
+
         // Check for PodSpecs in the old config which are missing or smaller in the new config.
         // Adding new PodSpecs or increasing the size of tasksets are allowed.
-        for (PodSpec podSpec : nullableOldConfig.getPods()) {
-            final String typeName = podSpec.getType();
-            int oldValue = podSpec.getTasks().size();
-            Integer newValue = newTaskTypeCounts.get(typeName);
-            if (newValue == null) {
+        for (PodSpec oldPod : nullableOldConfig.getPods()) {
+            PodSpec newPod = newPods.get(oldPod.getType());
+            if (newPod == null) {
                 errors.add(ConfigurationValidationError.transitionError(
-                        String.format("PodSpec[name:%s]", typeName),
-                        String.valueOf(oldValue),
+                        String.format("PodSpec[name:%s]", oldPod.getType()),
+                        String.valueOf(oldPod.getCount()),
                         "null",
                         String.format("New config is missing PodSpec named '%s' (expected present with >= %d tasks)",
-                                typeName, oldValue)));
-            } else if (newValue < oldValue) {
+                                oldPod.getType(), oldPod.getCount())));
+            } else if (newPod.getCount() < oldPod.getCount()) {
                 errors.add(ConfigurationValidationError.transitionError(
-                        String.format("PodSpec[setname:%s]", typeName),
-                        String.valueOf(oldValue),
-                        String.valueOf(newValue),
+                        String.format("PodSpec[setname:%s]", newPod.getType()),
+                        String.valueOf(oldPod.getCount()),
+                        String.valueOf(newPod.getCount()),
                         String.format("New config's PodSpec named '%s' has %d tasks, expected >=%d tasks",
-                                typeName, newValue, oldValue)));
+                                newPod.getType(), newPod.getCount(), oldPod.getCount())));
             }
         }
+
         return errors;
     }
 }
