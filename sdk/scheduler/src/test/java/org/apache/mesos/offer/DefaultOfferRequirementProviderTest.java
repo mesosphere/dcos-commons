@@ -78,6 +78,7 @@ public class DefaultOfferRequirementProviderTest {
         when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
 
         when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
+        when(taskSpec.getType()).thenReturn(TestConstants.POD_TYPE);
         when(taskSpec.getResourceSet()).thenReturn(resourceSet);
         when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
         when(taskSpec.getContainer()).thenReturn(Optional.empty());
@@ -161,29 +162,12 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertFalse(taskInfo.hasContainer());
     }
 
-    @Test(expected=InvalidRequirementException.class)
-    public void testExistingOfferRequirementEmpty() throws InvalidRequirementException {
-        PROVIDER.getExistingOfferRequirement(podInstance);
-    }
-
     @Test
-    public void testExistingOfferRequirementEmptyExecutor() throws InvalidRequirementException {
+    public void testExistingOfferRequirement() throws InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        //OfferRequirement offerRequirement =
-        //        PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.empty(), podInstance);
-        OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(podInstance);
-        Assert.assertNotNull(offerRequirement);
-    }
-
-    @Test
-    public void testExistingOfferRequirementExistingExecutor() throws InvalidRequirementException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        Protos.ExecutorInfo executorInfo = TaskTestUtils.getExistingExecutorInfo(cpu);
-        //OfferRequirement offerRequirement =
-        //        PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.of(executorInfo), podInstance);
+        String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
+        when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         OfferRequirement offerRequirement =
                 PROVIDER.getExistingOfferRequirement(podInstance);
         Assert.assertNotNull(offerRequirement);
