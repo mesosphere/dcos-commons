@@ -3,6 +3,7 @@ package org.apache.mesos.offer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.config.TaskConfigRouter;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,17 +21,21 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz";
 
     private final TaskConfigRouter taskConfigRouter;
+    private final StateStore stateStore;
     private final UUID targetConfigurationId;
 
     public DefaultOfferRequirementProvider(
-            TaskConfigRouter taskConfigRouter, UUID targetConfigurationId) {
+            TaskConfigRouter taskConfigRouter,
+            StateStore stateStore,
+            UUID targetConfigurationId) {
         this.taskConfigRouter = taskConfigRouter;
+        this.stateStore = stateStore;
         this.targetConfigurationId = targetConfigurationId;
     }
 
     @Override
     public OfferRequirement getNewOfferRequirement(PodInstance podInstance) throws InvalidRequirementException {
-        List<Protos.TaskInfo> taskInfos = getTaskInfos(podInstance.getPod());
+        List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance);
         Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
@@ -48,28 +53,29 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getExistingOfferRequirement(
-            List<Protos.TaskInfo> taskInfos,
-            Optional<Protos.ExecutorInfo> executorInfoOptional,
-            PodInstance podInstance) throws InvalidRequirementException {
+    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance) throws InvalidRequirementException {
+        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks();
+        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
+
+        for (TaskSpec taskSpec : taskSpecs) {
+            Optional<Protos.TaskInfo> taskInfoOptional =
+                    stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
+            if (taskInfoOptional.isPresent()) {
+                taskMap.put(taskInfoOptional.get(), taskSpec);
+            } else {
+                taskMap.put(getNewTaskInfo(podInstance, taskSpec), taskSpec);
+            }
+        }
 
         List<TaskRequirement> taskRequirements = new ArrayList<>();
-        for (Protos.TaskInfo taskInfo : taskInfos) {
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance.getPod());
-
-            if (taskSpecOptional.isPresent()) {
-                taskRequirements.add(getExistingTaskRequirement(taskInfo, taskSpecOptional.get()));
-            }
+        for (Map.Entry<Protos.TaskInfo, TaskSpec> taskPair : taskMap.entrySet()) {
+            taskRequirements.add(getExistingTaskRequirement(taskPair.getKey(), taskPair.getValue()));
         }
 
         validateTaskRequirements(taskRequirements);
 
-        ExecutorRequirement executorRequirement = null;
-        if (executorInfoOptional.isPresent()) {
-            executorRequirement = ExecutorRequirement.create(executorInfoOptional.get());
-        } else {
-            executorRequirement = ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod()).build());
-        }
+        ExecutorRequirement executorRequirement =
+                ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod()).build());
 
         return OfferRequirement.create(
                 podInstance.getPod().getType(),
@@ -80,20 +86,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
 
-    private List<Protos.TaskInfo> getTaskInfos(PodSpec podSpec) throws InvalidRequirementException {
+    private List<Protos.TaskInfo> getNewTaskInfos(PodInstance podInstance) throws InvalidRequirementException {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
-        for (TaskSpec taskSpec : podSpec.getTasks()) {
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
             if (taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING)) {
-                taskInfos.add(getTaskInfo(taskSpec));
+                taskInfos.add(getNewTaskInfo(podInstance, taskSpec));
             }
         }
 
         return taskInfos;
     }
 
-    private Protos.TaskInfo getTaskInfo(TaskSpec taskSpec) throws InvalidRequirementException {
+    private Protos.TaskInfo getNewTaskInfo(PodInstance podInstance, TaskSpec taskSpec) throws InvalidRequirementException {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
-                .setName(taskSpec.getName())
+                .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId())
                 .addAllResources(getNewResources(taskSpec));
@@ -158,7 +164,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
         }
 
-        return new TaskRequirement(taskInfo);
+        return new TaskRequirement(taskInfoBuilder.build());
     }
 
     private void validateTaskRequirements(List<TaskRequirement> taskRequirements) throws InvalidRequirementException {

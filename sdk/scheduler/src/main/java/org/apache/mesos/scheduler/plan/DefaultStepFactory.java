@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
@@ -38,10 +40,16 @@ public class DefaultStepFactory implements StepFactory {
     @Override
     public Step getStep(PodInstance podInstance) throws Step.InvalidStepException {
         LOGGER.info("Generating step for pod: {}", podInstance.getName());
-        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(podInstance.getName());
+
+
+        List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
+                .map(taskName -> stateStore.fetchTask(taskName))
+                .filter(taskInfoOptional -> taskInfoOptional.isPresent())
+                .map(taskInfoOptional -> taskInfoOptional.get())
+                .collect(Collectors.toList());
 
         try {
-            if (!taskInfoOptional.isPresent()) {
+            if (taskInfos.isEmpty()) {
                 LOGGER.info("Generating new step for: {}", podInstance.getName());
                 return new DefaultStep(
                         podInstance.getName(),
@@ -52,15 +60,11 @@ public class DefaultStepFactory implements StepFactory {
                 // Note: This path is for deploying new versions of tasks, unlike transient recovery
                 // which is only interested in relaunching tasks as they were. So while they omit
                 // placement rules in their OfferRequirement, we include them.
-                Status status = getStatus(taskInfoOptional.get());
+                Status status = getStatus(taskInfos);
                 LOGGER.info("Generating existing step for: {} with status: {}", podInstance.getName(), status);
                 return new DefaultStep(
-                        taskInfoOptional.get().getName(),
-                        Optional.of(
-                                offerRequirementProvider.getExistingOfferRequirement(
-                                        TaskUtils.getTaskInfosShouldBeRunning(podInstance, stateStore),
-                                        Optional.empty(),
-                                        podInstance)),
+                        podInstance.getName(),
+                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(podInstance)),
                         status,
                         Collections.emptyList());
             }
@@ -68,6 +72,20 @@ public class DefaultStepFactory implements StepFactory {
             LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
+    }
+
+    private Status getStatus(List<Protos.TaskInfo> taskInfos) {
+        List<Status> statuses = taskInfos.stream()
+                .map(taskInfo -> getStatus(taskInfo))
+                .collect(Collectors.toList());
+
+        for (Status status : statuses) {
+            if (!status.equals(Status.COMPLETE)) {
+                return Status.PENDING;
+            }
+        }
+
+        return Status.COMPLETE;
     }
 
     private Status getStatus(Protos.TaskInfo taskInfo) {

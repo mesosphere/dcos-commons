@@ -6,6 +6,7 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
@@ -33,12 +34,12 @@ public class DefaultOfferRequirementProviderTest {
             return offer;
         }
     };
-    private static final DefaultOfferRequirementProvider PROVIDER =
-            new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), UUID.randomUUID());
 
+    private static DefaultOfferRequirementProvider PROVIDER;
     private EnvironmentVariables environmentVariables;
 
     @Mock private TaskSpecification mockTaskSpecification;
+    @Mock private StateStore stateStore;
 
     @Mock private PodSpec podSpec;
     @Mock private PodInstance podInstance;
@@ -88,6 +89,8 @@ public class DefaultOfferRequirementProviderTest {
 
         when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
+
+        PROVIDER = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
     }
 
     /*
@@ -160,15 +163,17 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test(expected=InvalidRequirementException.class)
     public void testExistingOfferRequirementEmpty() throws InvalidRequirementException {
-        PROVIDER.getExistingOfferRequirement(Collections.emptyList(), Optional.empty(), podInstance);
+        PROVIDER.getExistingOfferRequirement(podInstance);
     }
 
     @Test
     public void testExistingOfferRequirementEmptyExecutor() throws InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        //OfferRequirement offerRequirement =
+        //        PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.empty(), podInstance);
         OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.empty(), podInstance);
+                PROVIDER.getExistingOfferRequirement(podInstance);
         Assert.assertNotNull(offerRequirement);
     }
 
@@ -177,8 +182,10 @@ public class DefaultOfferRequirementProviderTest {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
         Protos.ExecutorInfo executorInfo = TaskTestUtils.getExistingExecutorInfo(cpu);
+        //OfferRequirement offerRequirement =
+        //        PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.of(executorInfo), podInstance);
         OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(Arrays.asList(taskInfo), Optional.of(executorInfo), podInstance);
+                PROVIDER.getExistingOfferRequirement(podInstance);
         Assert.assertNotNull(offerRequirement);
     }
 

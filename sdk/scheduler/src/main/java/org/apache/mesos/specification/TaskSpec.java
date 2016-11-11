@@ -47,4 +47,8 @@ public interface TaskSpec {
         RUNNING,
         FINISHED
     }
+
+    static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
+        return podInstance.getName() + "-" + taskSpec.getName();
+    }
 }

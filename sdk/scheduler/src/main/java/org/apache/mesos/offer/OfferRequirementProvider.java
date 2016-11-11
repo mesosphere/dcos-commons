@@ -1,10 +1,6 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.specification.PodInstance;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * An OfferRequirementProvider generates OfferRequirements representing the requirements of a Container in two
@@ -12,9 +8,5 @@ import java.util.Optional;
  */
 public interface OfferRequirementProvider {
     OfferRequirement getNewOfferRequirement(PodInstance podInstance) throws InvalidRequirementException;
-
-    OfferRequirement getExistingOfferRequirement(
-            List<Protos.TaskInfo> taskInfos,
-            Optional<Protos.ExecutorInfo> executorInfoOptional,
-            PodInstance podInstance) throws InvalidRequirementException;
+    OfferRequirement getExistingOfferRequirement(PodInstance podInstance) throws InvalidRequirementException;
 }

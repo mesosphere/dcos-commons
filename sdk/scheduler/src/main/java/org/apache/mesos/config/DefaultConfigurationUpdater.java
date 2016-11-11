@@ -6,14 +6,13 @@ import org.apache.mesos.config.validate.ConfigurationValidationError;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.ServiceSpec;
-import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Handles the validation and update of a new configuration against a prior configuration, if any.
@@ -190,12 +189,12 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             return false;
         }
 
-        Optional<TaskSpec> targetSpecOptional = getTaskSpec(taskInfo, targetConfig);
-        Optional<TaskSpec> taskSpecOptional = getTaskSpec(taskInfo, taskConfig);
+        Optional<PodSpec> targetSpecOptional = getPodSpec(taskInfo, targetConfig);
+        Optional<PodSpec> taskSpecOptional = getPodSpec(taskInfo, taskConfig);
 
         if (targetSpecOptional.isPresent() && taskSpecOptional.isPresent()) {
-            TaskSpec targetSpec = targetSpecOptional.get();
-            TaskSpec taskSpec = taskSpecOptional.get();
+            PodSpec targetSpec = targetSpecOptional.get();
+            PodSpec taskSpec = taskSpecOptional.get();
             boolean updateNeeded = !targetSpec.equals(taskSpec);
             LOGGER.info("Compared target: {} to current: {}, update needed: {}", targetSpec, taskSpec, updateNeeded);
             return updateNeeded;
@@ -205,21 +204,16 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
     }
 
-    private Optional<TaskSpec> getTaskSpec(
+    private Optional<PodSpec> getPodSpec(
             Protos.TaskInfo taskInfo,
             ServiceSpec serviceSpecification) {
 
         try {
             final String taskType = TaskUtils.getType(taskInfo);
 
-            List<TaskSpec> taskSpecifications = serviceSpecification.getPods().stream()
+            return serviceSpecification.getPods().stream()
                     .filter(pod -> pod.getType().equals(taskType))
-                    .flatMap(pod -> pod.getTasks().stream())
-                    .collect(Collectors.toList());
-
-            return taskSpecifications.stream().filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
                     .findFirst();
-
         } catch (TaskException e) {
             LOGGER.error("Failed to find existing TaskSpecification.", e);
             return Optional.empty();

@@ -43,18 +43,13 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
 
         for (Map.Entry<PodInstance, List<Protos.TaskInfo>> podEntry : podMap.entrySet()) {
             PodInstance podInstance = podEntry.getKey();
-            List<Protos.TaskInfo> taskInfos = podEntry.getValue();
-            Optional<Protos.ExecutorInfo> executorInfoOptional = TaskUtils.getExecutor(podInstance, stateStore);
 
             // Note: We intentionally remove any placement rules when performing transient recovery.
             // We aren't interested in honoring placement rules, past or future. We just want to
             // get the task back up and running where it was before.
             transientRecoveryRequirements.add(
                     new DefaultRecoveryRequirement(
-                            offerRequirementProvider.getExistingOfferRequirement(
-                                    taskInfos,
-                                    executorInfoOptional,
-                                    podInstance),
+                            offerRequirementProvider.getExistingOfferRequirement(podInstance),
                             RecoveryRequirement.RecoveryType.TRANSIENT));
         }
 

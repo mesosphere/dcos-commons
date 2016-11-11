@@ -385,7 +385,9 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         LOGGER.info("Initializing globals...");
         offerRequirementProvider = new DefaultOfferRequirementProvider(
-                new DefaultTaskConfigRouter(), configUpdateResult.targetId);
+                new DefaultTaskConfigRouter(),
+                stateStore,
+                configUpdateResult.targetId);
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);

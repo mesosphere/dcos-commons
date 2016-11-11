@@ -38,7 +38,7 @@ public class TaskUtils {
     /**
      * Label key against which the Task Type is stored.
      */
-    private static final String TYPE_KEY = "type";
+    private static final String TYPE_KEY = "task_type";
     private static final String INDEX_KEY = "index";
 
     private TaskUtils() {
@@ -252,10 +252,10 @@ public class TaskUtils {
         return null;
     }
 
-    public static Optional<TaskSpec> getTaskSpec(Protos.TaskInfo taskInfo, PodSpec podSpec) {
-        return podSpec.getTasks().stream()
-                .filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
-                .findFirst();
+    public static List<String> getTaskNames(PodInstance podInstance) {
+        return podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
     }
 
     public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
@@ -276,7 +276,7 @@ public class TaskUtils {
 
         List<Protos.TaskInfo> tasksShouldBeRunning = new ArrayList<>();
         for (Protos.TaskInfo taskInfo : podTasks) {
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance.getPod());
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance);
 
             if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(TaskSpec.GoalState.RUNNING)) {
                 tasksShouldBeRunning.add(taskInfo);
@@ -284,6 +284,17 @@ public class TaskUtils {
         }
 
         return tasksShouldBeRunning;
+    }
+
+    private static Optional<TaskSpec> getTaskSpec(TaskInfo taskInfo, PodInstance podInstance) {
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
+            if (taskInfo.getName().equals(taskName)) {
+                return Optional.of(taskSpec);
+            }
+        }
+
+        return Optional.empty();
     }
 
     public static Optional<Protos.ExecutorInfo> getExecutor(PodInstance podInstance, StateStore stateStore) {

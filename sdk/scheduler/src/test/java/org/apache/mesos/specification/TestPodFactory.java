@@ -90,6 +90,7 @@ public class TestPodFactory {
                 .commandSpec(DefaultCommandSpec.newBuilder()
                         .value(cmd)
                         .uris(Collections.emptyList())
+                        .environment(Collections.emptyMap())
                         .build())
                 .configFiles(Collections.emptyList())
                 .type(TestConstants.POD_TYPE)
