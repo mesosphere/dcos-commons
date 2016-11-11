@@ -136,7 +136,7 @@ def test_bump_node_counts():
     wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT + 3)
 
 
-@pytest.mark.scheduler
+@pytest.mark.recovery
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = get_task_ids()
     shakedown.kill_process_on_host(get_marathon_host(), "scheduler.Main")

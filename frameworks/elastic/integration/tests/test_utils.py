@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from functools import wraps
 
 import dcos
@@ -43,119 +42,73 @@ def check_dcos_service_health():
     return shakedown.service_healthy(PACKAGE_NAME)
 
 
+def tasks_running_success_predicate(task_count):
+    tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    running_tasks = [t for t in tasks if t['state'] == TASK_RUNNING_STATE]
+    print('Waiting for {} healthy tasks, got {}/{}'.format(task_count, len(running_tasks), len(tasks)))
+    return len(running_tasks) == task_count
+
+
 def wait_for_dcos_tasks_health(task_count):
-    def fn():
-        try:
-            return shakedown.get_service_tasks(PACKAGE_NAME)
-        except dcos.errors.DCOSHTTPException:
-            return []
+    return shakedown.wait_for(lambda: tasks_running_success_predicate(task_count), timeout_seconds=WAIT_TIME_IN_SECONDS)
 
-    def success_predicate(tasks):
-        running_tasks = [t for t in tasks if t['state'] == TASK_RUNNING_STATE]
-        print('Waiting for {} healthy tasks, got {}/{}'.format(
-            task_count, len(running_tasks), len(tasks)))
-        return (
-            len(running_tasks) == task_count,
-            'Service did not become healthy'
-        )
 
-    return spin(fn, success_predicate)
+def index_health_success_predicate(index_name, color, http_port):
+    result = get_elasticsearch_index_health(index_name, http_port)
+    return result and result["status"] == color
 
 
 def check_elasticsearch_index_health(index_name, color, http_port=DEFAULT_HTTP_PORT):
-    def fn():
-        return get_elasticsearch_index_health(index_name, http_port)
+    return shakedown.wait_for(lambda: index_health_success_predicate(index_name, color, http_port),
+                              timeout_seconds=WAIT_TIME_IN_SECONDS)
 
-    def success_predicate(result):
-        return (
-            result and result["status"] == color, 'Index did not reach {}'.format(color)
-        )
 
-    return spin(fn, success_predicate)
+def expected_nodes_success_predicate():
+    result = get_elasticsearch_cluster_health()
+    return result and result["number_of_nodes"] == DEFAULT_NODE_COUNT
 
 
 def wait_for_expected_nodes_to_exist():
-    def fn():
-        return get_elasticsearch_cluster_health()
+    return shakedown.wait_for(lambda: expected_nodes_success_predicate, timeout_seconds=WAIT_TIME_IN_SECONDS)
 
-    def success_predicate(result):
-        return (
-            result and result["number_of_nodes"] == DEFAULT_NODE_COUNT,
-            'Cluster did not reach {} nodes'.format(DEFAULT_NODE_COUNT)
-        )
 
-    return spin(fn, success_predicate)
+def plugins_installed_success_predicate(plugin_name):
+    result = get_hosts_with_plugin(plugin_name)
+    return result is not None and len(result) == DEFAULT_NODE_COUNT
 
 
 def check_plugin_installed(plugin_name):
-    def fn():
-        return get_hosts_with_plugin(plugin_name)
+    return shakedown.wait_for(lambda: plugins_installed_success_predicate(plugin_name),
+                              timeout_seconds=WAIT_TIME_IN_SECONDS)
 
-    def success_predicate(result):
-        return (
-            result is not None and len(result) == DEFAULT_NODE_COUNT, 'Plugin {} was not installed'.format(plugin_name)
-        )
 
-    return spin(fn, success_predicate)
+def plugins_uninstalled_success_predicate(plugin_name):
+    result = get_hosts_with_plugin(plugin_name)
+    return result is not None and result == []
 
 
 def check_plugin_uninstalled(plugin_name):
-    def fn():
-        return get_hosts_with_plugin(plugin_name)
+    return shakedown.wait_for(lambda: plugins_uninstalled_success_predicate(plugin_name),
+                              timeout_seconds=WAIT_TIME_IN_SECONDS)
 
-    def success_predicate(result):
-        return (
-            result is not None and result == [], 'Plugin {} was not uninstalled'.format(plugin_name)
-        )
 
-    return spin(fn, success_predicate)
+def new_master_elected_success_predicate(initial_master):
+    result = get_elasticsearch_master()
+    return result.startswith("master") and result != initial_master
 
 
 def check_new_elasticsearch_master_elected(initial_master):
-    def fn():
-        return get_elasticsearch_master()
-
-    def success_predicate(result):
-        return (
-            result.startswith("master") and result != initial_master, 'New master not reelected'
-        )
-
-    return spin(fn, success_predicate)
+    return shakedown.wait_for(lambda: new_master_elected_success_predicate(initial_master),
+                              timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
 def marathon_update(config):
-    request(requests.put, marathon_api_url('apps/{}'.format(PACKAGE_NAME)), json=config, headers=REQUEST_HEADERS,
-            verify=False)
-
-
-def task_ids_dont_change(initial_task_ids):
-    def fn():
-        try:
-            return initial_task_ids == get_task_ids()
-        except dcos.errors.DCOSHTTPException:
-            return []
-
-    def success_predicate(tasks):
-        return (initial_task_ids == get_task_ids(), "Task IDs changed")
-
-    return (len(tasks) == 1 and tasks[0]['id'] != task_id, "Task ID didn't change.")
-
-    return spin(fn, success_predicate)
+    requests.put(marathon_api_url('apps/{}'.format(PACKAGE_NAME)), json=config, headers=REQUEST_HEADERS, verify=False)
 
 
 def get_task_ids():
     tasks = shakedown.get_service_tasks(PACKAGE_NAME)
     return [t['id'] for t in tasks]
-
-
-def request(request_fn, *args, **kwargs):
-    def success_predicate(response):
-        return (
-            response.status_code == 200,
-            'Request failed: %s' % response.content,
-        )
-
-    return spin(request_fn, success_predicate, *args, **kwargs)
 
 
 def get_elasticsearch_master():
@@ -223,27 +176,6 @@ def get_document(index_name, index_type, doc_id):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/{}/{}'".format(curl_api("GET"), index_name, index_type, doc_id))
     return output
-
-
-def spin(fn, success_predicate, *args, **kwargs):
-    end_time = time.time() + WAIT_TIME_IN_SECONDS
-    while time.time() < end_time:
-        try:
-            result = fn(*args, **kwargs)
-        except Exception as e:
-            is_successful, error_message = False, str(e)
-        else:
-            is_successful, error_message = success_predicate(result)
-
-        if is_successful:
-            print('Success state reached, exiting spin. prev_err={}'.format(error_message))
-            break
-        print('Waiting for success state... err={}'.format(error_message))
-        time.sleep(1)
-
-    assert is_successful, error_message
-
-    return result
 
 
 def uninstall():
