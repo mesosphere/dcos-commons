@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Specification for defining a command.
+ */
 @JsonDeserialize(as = DefaultCommandSpec.class)
 public interface CommandSpec {
     @JsonProperty("value")

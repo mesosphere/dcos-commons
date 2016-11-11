@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Default implementation of {@link PodSpec}.
+ */
 public class DefaultPodSpec implements PodSpec {
     private String type;
     private String user;
@@ -152,7 +155,8 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
-         * Sets the {@code placementRule} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code placementRule} and returns a reference to this Builder so that the methods can be chained
+         * together.
          *
          * @param placementRule the {@code placementRule} to set
          * @return a reference to this Builder

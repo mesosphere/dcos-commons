@@ -103,7 +103,8 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         }
 
         /**
-         * Sets the {@code maxConsecutiveFailures} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code maxConsecutiveFailures} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param maxConsecutiveFailures the {@code maxConsecutiveFailures} to set
          * @return a reference to this Builder
@@ -125,7 +126,8 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         }
 
         /**
-         * Sets the {@code interval} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code interval} and returns a reference to this Builder so that the methods can be chained
+         * together.
          *
          * @param interval the {@code interval} to set
          * @return a reference to this Builder
@@ -147,7 +149,8 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         }
 
         /**
-         * Sets the {@code gracePeriod} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code gracePeriod} and returns a reference to this Builder so that the methods can be chained
+         * together.
          *
          * @param gracePeriod the {@code gracePeriod} to set
          * @return a reference to this Builder

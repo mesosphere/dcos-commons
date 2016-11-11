@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Root of the parsed YAML object model.
@@ -544,9 +541,9 @@ class RawResourceSet {
 
 
 class RawPlan {
-    String name;
-    String strategy;
-    Collection<RawPhase> phases;
+    private String name;
+    private String strategy;
+    private List<RawPhase> phases;
 
     public String getName() {
         return name;
@@ -566,21 +563,21 @@ class RawPlan {
         this.strategy = strategy;
     }
 
-    public Collection<RawPhase> getPhases() {
+    public List<RawPhase> getPhases() {
         return phases;
     }
 
     @JsonProperty("phases")
-    public void setPhases(Collection<RawPhase> phases) {
+    public void setPhases(List<RawPhase> phases) {
         this.phases = phases;
     }
 }
 
 class RawPhase {
-    String name;
-    String strategy;
-    String pod;
-    Collection<String> steps;
+    private String name;
+    private String strategy;
+    private String pod;
+    private List<String> steps;
 
     public String getName() {
         return name;
@@ -600,12 +597,12 @@ class RawPhase {
         this.strategy = strategy;
     }
 
-    public Collection<String> getSteps() {
+    public List<String> getSteps() {
         return steps;
     }
 
     @JsonProperty("steps")
-    public void setSteps(Collection<String> steps) {
+    public void setSteps(List<String> steps) {
         this.steps = steps;
     }
 

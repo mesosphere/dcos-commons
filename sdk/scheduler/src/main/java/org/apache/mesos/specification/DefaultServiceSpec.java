@@ -193,6 +193,9 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
     }
 
+    /**
+     * Builder for DefaultServiceSpec.
+     */
     public static class Builder {
         private String name;
         private String role;

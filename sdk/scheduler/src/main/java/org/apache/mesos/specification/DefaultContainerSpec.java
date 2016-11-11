@@ -38,7 +38,8 @@ public class DefaultContainerSpec implements ContainerSpec {
         }
 
         /**
-         * Sets the {@code containerInfo} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code containerInfo} and returns a reference to this Builder so that the methods can be chained
+         * together.
          *
          * @param containerInfo the {@code containerInfo} to set
          * @return a reference to this Builder

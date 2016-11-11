@@ -302,7 +302,8 @@ public class TaskUtils {
 
         for (Protos.TaskInfo taskInfo : shouldBeRunningTasks) {
             Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
-            if (taskStatusOptional.isPresent() && taskStatusOptional.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
+            if (taskStatusOptional.isPresent()
+                    && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
                 LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
                 return Optional.of(taskInfo.getExecutor());
             }

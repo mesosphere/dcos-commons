@@ -2,15 +2,24 @@ package org.apache.mesos.specification.yaml;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.scheduler.plan.*;
+import org.apache.mesos.scheduler.plan.strategy.Strategy;
+import org.apache.mesos.scheduler.plan.strategy.StrategyFactory;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.state.StateStore;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * Adapter utilities for mapping Raw YAML objects to internal objects.
+ */
 public class YAMLToInternalMappers {
     private static final Collection<String> SCALARS = Arrays.asList("cpus", "mem");
 
@@ -54,20 +63,51 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    public static Phase from(RawPhase rawPhase) {
-//        final Collection<String> steps = rawPhase.getSteps();
-//        for (String step : steps) {
-//            new DefaultStep(step)
-//        }
-//        final String pod = rawPhase.getPod();
-//        final String strategy = rawPhase.getStrategy();
-//        final String name = rawPhase.getName();
-//        return new DefaultPhase(name)
-        return null;
+    public static Phase from(RawPhase rawPhase,
+                             PodSpec podSpec,
+                             ConfigStore configStore,
+                             StateStore stateStore,
+                             OfferRequirementProvider offerRequirementProvider) {
+        String name = rawPhase.getName();
+        String pod = rawPhase.getPod();
+        if (!Objects.equals(podSpec.getType(), pod)) {
+            throw new IllegalArgumentException("Phase refers to illegal pod: " + pod + " instead of: "
+                    + podSpec.getType());
+        }
+        Integer count = podSpec.getCount();
+
+        /**
+         * Case 1: Steps is empty. Run all.
+         */
+        final List<Step> steps = new LinkedList<>();
+        for (int i = 0; i < count; i++) {
+            final DefaultPodInstance podInstance = new DefaultPodInstance(podSpec, i);
+            try {
+                steps.add(new DefaultStepFactory(configStore, stateStore, offerRequirementProvider)
+                        .getStep(podInstance));
+            } catch (Step.InvalidStepException e) {
+                // TODO(mohit): Re-Throw and capture as plan error.
+            }
+        }
+
+        String strategy = rawPhase.getStrategy();
+        Strategy<Step> stepStrategy = StrategyFactory.generateForSteps(strategy);
+        return DefaultPhaseFactory.getPhase(name, steps, stepStrategy);
     }
 
-    public static Plan from(RawPlan rawPlan) {
-        return null;
+    public static Plan from(RawPlan rawPlan,
+                            PodSpec podSpec,
+                            ConfigStore configStore,
+                            StateStore stateStore,
+                            OfferRequirementProvider offerRequirementProvider) {
+        String name = rawPlan.getName();
+        final List<Phase> phases = rawPlan.getPhases().stream()
+                .map(rawPhase -> from(rawPhase, podSpec, configStore, stateStore, offerRequirementProvider))
+                .collect(Collectors.toList());
+        String strategy = rawPlan.getStrategy();
+        return DefaultPlanFactory.getPlan(name,
+                phases,
+                StrategyFactory.generateForPhase(strategy));
     }
 
     public static PodSpec from(RawPod rawPod, String role, String principal) throws Exception {
@@ -75,7 +115,7 @@ public class YAMLToInternalMappers {
 
         final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
                 .count(rawPod.getCount())
-                .placementRule(null /** TODO */)
+                .placementRule(null /** TODO(mohit) */)
                 .tasks(taskSpecs)
                 .type(rawPod.getName())
                 .user(rawPod.getUser())
@@ -100,7 +140,7 @@ public class YAMLToInternalMappers {
                     .setScalar(Protos.Value.Scalar.newBuilder().setValue(Double.parseDouble(value)))
                     .build();
         } else if ("disk".equalsIgnoreCase(name)) {
-            // TODO: Throw error
+            // TODO(mohit): Throw error
         }
 
         return new DefaultResourceSpecification(name, resourceValue, role, principal, envKey);
@@ -158,7 +198,7 @@ public class YAMLToInternalMappers {
         return DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpec)
                 .configFiles(configFiles)
-                .containerSpec(null /* TODO */)
+                .containerSpec(null /* TODO (mohit) */)
                 .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .name(rawTask.getName())

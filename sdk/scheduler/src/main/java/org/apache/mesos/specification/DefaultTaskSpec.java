@@ -10,6 +10,9 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * Default implementation of a {@link TaskSpec}.
+ */
 public class DefaultTaskSpec implements TaskSpec {
     private String name;
     private String type;
@@ -35,7 +38,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.name = name;
         this.type = type;
         this.goalState = goalState;
-        this.resourceSet= resourceSet;
+        this.resourceSet = resourceSet;
         this.commandSpec = commandSpec;
         this.containerSpec = containerSpec;
         this.healthCheckSpec = healthCheckSpec;
@@ -170,7 +173,8 @@ public class DefaultTaskSpec implements TaskSpec {
         }
 
         /**
-         * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param goalState the {@code goalState} to set
          * @return a reference to this Builder
@@ -186,7 +190,8 @@ public class DefaultTaskSpec implements TaskSpec {
         }
 
         /**
-         * Sets the {@code commandSpec} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code commandSpec} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param commandSpec the {@code commandSpec} to set
          * @return a reference to this Builder
@@ -197,7 +202,8 @@ public class DefaultTaskSpec implements TaskSpec {
         }
 
         /**
-         * Sets the {@code containerSpec} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code containerSpec} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param containerSpec the {@code containerSpec} to set
          * @return a reference to this Builder
@@ -208,7 +214,8 @@ public class DefaultTaskSpec implements TaskSpec {
         }
 
         /**
-         * Sets the {@code healthCheckSpec} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code healthCheckSpec} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param healthCheckSpec the {@code healthCheckSpec} to set
          * @return a reference to this Builder
@@ -230,7 +237,8 @@ public class DefaultTaskSpec implements TaskSpec {
         }
 
         /**
-         * Sets the {@code configFiles} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code configFiles} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param configFiles the {@code configFiles} to set
          * @return a reference to this Builder

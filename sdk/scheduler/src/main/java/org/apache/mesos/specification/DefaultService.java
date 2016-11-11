@@ -9,6 +9,7 @@ import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.scheduler.plan.Plan;
+import org.apache.mesos.specification.yaml.RawServiceSpecification;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
@@ -42,14 +43,18 @@ public class DefaultService implements Service {
 
     public DefaultService(String yamlSpecification) throws Exception {
         final PlanGenerator planGenerator = new DefaultPlanGenerator();
-        final ServiceSpec serviceSpecification = YAMLServiceSpecFactory.generateFromYAML(yamlSpecification);
-        register(serviceSpecification, planGenerator.generate(serviceSpecification));
+        final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
+                .generateRawSpecFromYAML(yamlSpecification);
+        final ServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
+        register(serviceSpec, planGenerator.generate(rawServiceSpecification));
     }
 
     public DefaultService(File pathToYamlSpecification) throws Exception {
         final PlanGenerator planGenerator = new DefaultPlanGenerator();
-        final ServiceSpec serviceSpecification = YAMLServiceSpecFactory.generateFromYAML(pathToYamlSpecification);
-        register(serviceSpecification, planGenerator.generate(serviceSpecification));
+        final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
+                .generateRawSpecFromYAML(pathToYamlSpecification);
+        final ServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
+        register(serviceSpec, planGenerator.generate(rawServiceSpecification));
     }
 
     /**

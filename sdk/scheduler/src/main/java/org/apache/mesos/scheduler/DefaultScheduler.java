@@ -98,8 +98,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Returns a new {@link DefaultScheduler} instance using the provided service-defined
      * {@link ServiceSpecification} and the default ZK location for framework state, and with the
      * provided custom {@link org.apache.mesos.offer.constrain.PlacementRule} classes which are used within the provided
-     * {@link ServiceSpecification}. Custom implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s MUST be
-     * serializable and deserializable by Jackson, and MUST be provided to support correctly
+     * {@link ServiceSpecification}. Custom implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s
+     * MUST be serializable and deserializable by Jackson, and MUST be provided to support correctly
      * identifying them in the serialized {@link ServiceSpecification}.
      *
      * @param serviceSpec specification containing service name and tasks to be deployed
@@ -124,7 +124,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Returns a new {@link DefaultScheduler} instance using the provided
      * {@link ServiceSpecification}, {@link ConfigStore}, and {@link StateStore}.
      *
-     * @param serviceSpecification specification containing service name and tasks to be deployed
+     * @param serviceSpec specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
      *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
      *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
