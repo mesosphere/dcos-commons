@@ -56,7 +56,11 @@ public class HostnameRule implements PlacementRule {
         if (matchers.size() == 1) {
             return require(matchers.iterator().next());
         }
-        return new OrRule(toHostnameRules(matchers));
+        List<PlacementRule> rules = new ArrayList<>();
+        for (StringMatcher matcher : matchers) {
+            rules.add(require(matcher));
+        }
+        return new OrRule(rules);
     }
 
     /**
@@ -133,16 +137,5 @@ public class HostnameRule implements PlacementRule {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    /**
-     * Converts the provided agent ids into {@link HostnameRule}s.
-     */
-    private static Collection<PlacementRule> toHostnameRules(Collection<StringMatcher> matchers) {
-        List<PlacementRule> rules = new ArrayList<>();
-        for (StringMatcher matcher : matchers) {
-            rules.add(require(matcher));
-        }
-        return rules;
     }
 }

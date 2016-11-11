@@ -4,33 +4,49 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 
+/**
+ * Implements support for generating {@link PlacementRule}s from Marathon-style constraint strings.
+ *
+ * @see https://mesosphere.github.io/marathon/docs/constraints.html
+ */
 public class MarathonConstraintParser {
 
-    private static final TypeReference<List<String>> LIST_TYPE_REFERENCE =
-            new TypeReference<List<String>>(){};
-    private static final TypeReference<List<List<String>>> LIST_LIST_TYPE_REFERENCE =
-            new TypeReference<List<List<String>>>(){};
+    private static final String HOSTNAME_FIELD = "hostname";
+    private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    static {
+        SUPPORTED_OPERATORS.put("UNIQUE", new UniqueOperator());
+        SUPPORTED_OPERATORS.put("CLUSTER", new ClusterOperator());
+        SUPPORTED_OPERATORS.put("GROUP_BY", new GroupByOperator());
+        SUPPORTED_OPERATORS.put("LIKE", new LikeOperator());
+        SUPPORTED_OPERATORS.put("UNLIKE", new UnlikeOperator());
+        SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
+    }
 
     /**
      * Creates a new constraint parser against the provided string.
      *
-     * @param constraint the json-formatted marathon-style constraint string
-     * @see https://mesosphere.github.io/marathon/docs/constraints.html
+     * @param marathonConstraints the json-formatted marathon-style constraint string, containing
+     *     one or more nested json lists of the form
+     *     {@code [["multi","list","value"],["hello","hi"]]},
+     *     or one or more nested colon-separated lists of the form
+     *     {@code multi:list:value,hello:hi}
+     * @throws IOException if the provided string couldn't be parsed as json, or if the parsed
+     *     content isn't valid or supported
      */
-    public static PlacementRule parse(String constraint) throws IOException {
-        List<List<String>> rows;
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            // First try list of strings (not technically legal but lets be lenient here)
-            rows = Arrays.asList(mapper.readValue(constraint, LIST_TYPE_REFERENCE));
-        } catch (IOException e) {
-            // Then try list of lists of strings (throw if this also fails)
-            rows = mapper.readValue(constraint, LIST_LIST_TYPE_REFERENCE);
+    public static PlacementRule parse(String marathonConstraints) throws IOException {
+        if (marathonConstraints.isEmpty()) {
+            // nothing to enforce
+            return new PassthroughRule();
         }
+        List<List<String>> rows = splitConstraints(marathonConstraints);
         if (rows.size() == 1) {
             return parseRow(rows.get(0));
         } else {
@@ -43,13 +59,223 @@ public class MarathonConstraintParser {
     }
 
     /**
-     * Converts the provided marathon constraint entry to a PlacementRule
+     * Converts the provided marathon constraint entry to a PlacementRule.
+     *
+     * @param row a list with size 2 or 3
+     * @throws IOException if the provided constraint entry is invalid
      */
     private static PlacementRule parseRow(List<String> row) throws IOException {
         if (row.size() < 2 || row.size() > 3) {
             throw new IOException(String.format(
-                    "Invalid number of entries in rule. Expected 2-3, got %s: %s",
+                    "Invalid number of entries in rule. Expected 2 or 3, got %s: %s",
                     row.size(), row));
         }
+        // row fields: fieldname, operatorname[, parameter]
+        final String fieldName = row.get(0);
+        final String operatorName = row.get(1);
+        final Optional<String> parameter = Optional.ofNullable(row.size() >= 3 ? row.get(2) : null);
+        Operator operator = SUPPORTED_OPERATORS.get(operatorName);
+        if (operator == null) {
+            throw new IOException(String.format(
+                    "Unsupported operator: '%s' in constraint: %s " +
+                    "(expected one of: UNIQUE, CLUSTER, GROUP_BY, LIKE, UNLIKE, or MAX_PER)",
+                    operatorName, row));
+        }
+        return operator.run(fieldName, operatorName, parameter);
+    }
+
+    /**
+     * Splits the provided marathon constraint statement into elements. Doesn't do any validation
+     * on the element contents.
+     * @param marathonConstraints
+     * @return
+     * @throws IOException
+     */
+    @VisibleForTesting
+    static List<List<String>> splitConstraints(String marathonConstraints) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        // The marathon doc uses a format like: '[["a", "b", "c"], ["d", "e"]]'
+        // Meanwhile the marathon web interface uses a format like: 'a:b:c,d:e'
+        try {
+            // First try: ["a", "b", "c"] (not technically correct but lets be lenient here)
+            return Arrays.asList(mapper.readValue(marathonConstraints, new TypeReference<List<String>>(){}));
+        } catch (IOException e1) {
+            try {
+                // Then try: [["a", "b", "c"], ["d", "e"]]
+                return mapper.readValue(marathonConstraints, new TypeReference<List<List<String>>>(){});
+            } catch (IOException e2) {
+                // Finally try: a:b:c,d:e
+                List<List<String>> rows = new ArrayList<>();
+                for (String row : Arrays.asList(marathonConstraints.split(","))) {
+                    rows.add(Arrays.asList(row.split(":")));
+                }
+                return rows;
+            }
+        }
+    }
+
+    /**
+     * Interface for generating a PlacementRule for a given marathon operator such as UNIQUE or CLUSTER.
+     */
+    private interface Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> parameter) throws IOException;
+    }
+
+    /**
+     * {@code UNIQUE} tells Marathon to enforce uniqueness of the attribute across all of an app's
+     * tasks. For example the following constraint ensures that there is only one app task running
+     * on each host: {@code [["hostname", "UNIQUE"]]}
+     */
+    private static class UniqueOperator implements Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> ignoredParameter) {
+            if (isHostname(fieldName)) {
+                return new MaxPerHostnameRule(1);
+            } else {
+                // Ensure that:
+                // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
+                // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
+                StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
+                return new AndRule(
+                        AttributeRule.require(matcher), new MaxPerAttributeRule(1, matcher));
+            }
+        }
+    }
+
+    /**
+     * {@code CLUSTER} allows you to run all of your app's tasks on agent nodes that share a certain
+     * attribute. This is useful for example if you have apps with special hardware needs, or if you
+     * want to run them on the same rack for low latency: {@code [["rack_id", "CLUSTER", "rack-1"]]}
+     *
+     * You can also use this attribute to tie an application to a specific node by using the
+     * hostname property: {@code [["hostname", "CLUSTER", "a.specific.node.com"]]}
+     */
+    private static class ClusterOperator implements Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> requiredParameter)
+                throws IOException {
+            String parameter = validateRequiredParameter(operatorName, requiredParameter);
+            if (isHostname(fieldName)) {
+                return HostnameRule.require(ExactMatcher.create(parameter));
+            } else {
+                return AttributeRule.require(ExactMatcher.createAttribute(fieldName, parameter));
+            }
+        }
+    }
+
+    /**
+     * {@code GROUP_BY} can be used to distribute tasks evenly across racks or datacenters for high
+     * availability: {@code [["rack_id", "GROUP_BY"]]}
+     *
+     * Marathon only knows about different values of the attribute (e.g. "rack_id") by analyzing
+     * incoming offers from Mesos. If tasks are not already spread across all possible values,
+     * specify the number of values in constraints. If you don't specify the number of values, you
+     * might find that the tasks are only distributed in one value, even though you are using the
+     * {@code GROUP_BY} constraint. For example, if you are spreading across 3 racks, use:
+     * {@code [["rack_id", "GROUP_BY", "3"]]}
+     *
+     * ---
+     *
+     * TLDR: The idea is to round-robin tasks during rollout across N distinct values (with N
+     * provided by the user). For example, avoid placing 2 instances against a given rack value
+     * until *all* racks have 1 instance. If N is unspecified, we will just make a best-effort
+     * attempt of comparing an incoming offer against the launched tasks.
+     */
+    private static class GroupByOperator implements Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> parameter)
+                throws IOException {
+            final Optional<Integer> num;
+            try {
+                num = Optional.ofNullable(parameter.isPresent() ?
+                        Integer.parseInt(parameter.get()) : null);
+            } catch (NumberFormatException e) {
+                throw new IOException(String.format(
+                        "Unable to parse max parameter as integer for '%s' operation: %s",
+                        operatorName, parameter), e);
+            }
+            if (isHostname(fieldName)) {
+                return new RoundRobinByHostnameRule(num);
+            } else {
+                return new RoundRobinByAttributeRule(fieldName, num);
+            }
+        }
+    }
+
+    /**
+     * {@code LIKE} accepts a regular expression as parameter, and allows you to run your tasks only
+     * on the agent nodes whose field values match the regular expression:
+     * {@code [["rack_id", "LIKE", "rack-[1-3]"]]}
+     *
+     * Note, the parameter is required, or you'll get a warning.
+     */
+    private static class LikeOperator implements Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> requiredParameter)
+                throws IOException {
+            String parameter = validateRequiredParameter(operatorName, requiredParameter);
+            if (isHostname(fieldName)) {
+                return HostnameRule.require(RegexMatcher.create(parameter));
+            } else {
+                return AttributeRule.require(RegexMatcher.createAttribute(fieldName, parameter));
+            }
+        }
+    }
+
+    /**
+     * Just like {@code LIKE} operator, but only run tasks on agent nodes whose field values don't
+     * match the regular expression: {@code [["rack_id", "UNLIKE", "rack-[7-9]"]]}
+     *
+     * Note, the parameter is required, or you'll get a warning.
+     */
+    private static class UnlikeOperator implements Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> requiredParameter)
+                throws IOException {
+            String parameter = validateRequiredParameter(operatorName, requiredParameter);
+            if (isHostname(fieldName)) {
+                return HostnameRule.avoid(RegexMatcher.create(parameter));
+            } else {
+                return AttributeRule.avoid(RegexMatcher.createAttribute(fieldName, parameter));
+            }
+        }
+    }
+
+    /**
+     * {@code MAX_PER} accepts a number as parameter which specifies the maximum size of each group.
+     * It can be used to limit tasks across racks or datacenters: {@code [["rack_id", "MAX_PER", "2"]]}
+     *
+     * Note, the parameter is required, or you'll get a warning.
+     */
+    private static class MaxPerOperator implements Operator {
+        public PlacementRule run(String fieldName, String operatorName, Optional<String> requiredParameter)
+                throws IOException {
+            final int max;
+            try {
+                max = Integer.parseInt(validateRequiredParameter(operatorName, requiredParameter));
+            } catch (NumberFormatException e) {
+                throw new IOException(String.format(
+                        "Unable to parse max parameter as integer for '%s' operation: %s",
+                        operatorName, requiredParameter), e);
+            }
+
+            if (isHostname(fieldName)) {
+                return new MaxPerHostnameRule(max);
+            } else {
+                // Ensure that:
+                // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
+                // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
+                StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
+                return new AndRule(
+                        AttributeRule.require(matcher), new MaxPerAttributeRule(max, matcher));
+            }
+        }
+    }
+
+    private static boolean isHostname(String fieldName) {
+        return HOSTNAME_FIELD.equalsIgnoreCase(fieldName);
+    }
+
+    private static String validateRequiredParameter(
+            String operatorName, Optional<String> requiredParameter) throws IOException {
+        if (!requiredParameter.isPresent()) {
+            throw new IOException(String.format("Missing required parameter for operator '%s'.", operatorName));
+        }
+        return requiredParameter.get();
     }
 }

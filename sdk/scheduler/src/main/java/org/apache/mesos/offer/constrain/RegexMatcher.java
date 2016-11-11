@@ -2,6 +2,8 @@ package org.apache.mesos.offer.constrain;
 
 import java.util.regex.Pattern;
 
+import org.apache.mesos.offer.AttributeStringUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -12,6 +14,10 @@ public class RegexMatcher implements StringMatcher {
 
     public static StringMatcher create(String pattern) {
         return new RegexMatcher(pattern);
+    }
+
+    public static StringMatcher createAttribute(String name, String value) {
+        return create(AttributeStringUtils.join(name, value));
     }
 
     private final Pattern pattern;
