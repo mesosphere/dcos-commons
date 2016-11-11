@@ -20,8 +20,14 @@ public class PodSpecsCannotShrink implements ConfigurationValidator<ServiceSpec>
             return errors;
         }
 
-        Map<String, PodSpec> newPods = newConfig.getPods().stream()
-                .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
+        Map<String, PodSpec> newPods;
+        try {
+            newPods = newConfig.getPods().stream()
+                    .collect(Collectors.toMap(podSpec -> podSpec.getType(), podSpec -> podSpec));
+        } catch (IllegalStateException e) {
+            errors.add(ConfigurationValidationError.valueError("PodSpecs", "null", "Duplicate pod types detected."));
+            return errors;
+        }
 
         // Check for PodSpecs in the old config which are missing or smaller in the new config.
         // Adding new PodSpecs or increasing the size of tasksets are allowed.

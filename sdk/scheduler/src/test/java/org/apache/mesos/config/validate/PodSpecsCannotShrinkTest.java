@@ -172,7 +172,7 @@ public class PodSpecsCannotShrinkTest {
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size()); // only checked against new config
-        Assert.assertEquals(2, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
+        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
         Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
     }
