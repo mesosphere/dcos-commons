@@ -14,7 +14,6 @@ public class DefaultTaskSpec implements TaskSpec {
     private String name;
     private String type;
     private GoalState goalState;
-    private PodSpec pod;
     private CommandSpec commandSpec;
     private ContainerSpec containerSpec;
     private HealthCheckSpec healthCheckSpec;
@@ -34,6 +33,7 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFiles) {
         this.name = name;
+        this.type = type;
         this.goalState = goalState;
         this.resourceSet= resourceSet;
         this.commandSpec = commandSpec;

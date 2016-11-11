@@ -89,7 +89,10 @@ public class TestPodFactory {
                 .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder()
                         .value(cmd)
+                        .uris(Collections.emptyList())
                         .build())
+                .configFiles(Collections.emptyList())
+                .type(TestConstants.POD_TYPE)
                 .build();
 
         return DefaultPodSpec.newBuilder()
