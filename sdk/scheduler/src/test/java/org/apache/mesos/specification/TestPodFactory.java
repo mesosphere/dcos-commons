@@ -82,23 +82,20 @@ public class TestPodFactory {
     }
 
     public static PodSpec getPodSpec(String type, String taskName, String cmd, int count, double cpu, double mem, double disk) {
-        PodSpec podSpec = DefaultPodSpec.newBuilder()
-                .type(type)
-                .count(count)
-                .resources(Arrays.asList(getResourceSet(cpu, mem, disk)))
-                .build();
-
+        ResourceSet resourceSet = getResourceSet(cpu, mem, disk);
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(taskName)
                 .goalState(TaskSpec.GoalState.RUNNING)
-                .resourceSetId(TestConstants.RESOURCE_SET_ID)
-                .pod(podSpec)
+                .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder()
                         .value(cmd)
                         .build())
                 .build();
 
-        return DefaultPodSpec.newBuilder((DefaultPodSpec) podSpec)
+        return DefaultPodSpec.newBuilder()
+                .type(type)
+                .count(count)
+                .resources(Arrays.asList(resourceSet))
                 .tasks(Arrays.asList(taskSpec))
                 .build();
     }

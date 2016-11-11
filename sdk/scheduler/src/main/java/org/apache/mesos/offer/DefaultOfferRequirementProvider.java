@@ -102,7 +102,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
 
         if (taskSpec.getCommand().isPresent()) {
-            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getPod().getType())
+            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getType())
                     .updateEnvironment(Protos.CommandInfo.newBuilder()
                             .setValue(taskSpec.getCommand().get().getValue()).build());
             taskInfoBuilder.setCommand(updatedCommand);
@@ -190,7 +190,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         Map<String, Protos.Resource> oldResourceMap = getResourceMap(taskInfo.getResourcesList());
 
-        ResourceSet resourceSet = getResourceSet(taskSpec);
+        ResourceSet resourceSet = taskSpec.getResourceSet();
         List<Protos.Resource> updatedResources = new ArrayList<>();
         for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
             Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
@@ -248,7 +248,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec)
             throws InvalidRequirementException {
-        ResourceSet resourceSet = getResourceSet(taskSpec);
+        ResourceSet resourceSet = taskSpec.getResourceSet();
         Collection<Protos.Resource> resources = new ArrayList<>();
 
         for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
@@ -281,18 +281,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return resources;
-    }
-
-    private static ResourceSet getResourceSet(TaskSpec taskSpec) throws InvalidRequirementException {
-        Optional<ResourceSet> resourceSetOptional = taskSpec.getPod().getResources().stream()
-                .filter(resourceSet -> resourceSet.getId().equals(taskSpec.getResourceSetId()))
-                .findFirst();
-
-        if (resourceSetOptional.isPresent()) {
-            return resourceSetOptional.get();
-        } else {
-            throw new InvalidRequirementException("Failed to find ResourceSet for TaskSpec: " + taskSpec);
-        }
     }
 
     private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {

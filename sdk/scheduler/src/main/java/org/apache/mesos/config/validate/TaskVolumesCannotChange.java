@@ -30,8 +30,8 @@ public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSp
             if (!TaskUtils.volumesEqual(oldEntry.getValue(), newTask)) {
                 errors.add(ConfigurationValidationError.transitionError(
                         String.format("TaskVolumes[taskname:%s]", newTask.getName()),
-                        TaskUtils.getVolumes(oldEntry.getValue()).toString(),
-                        TaskUtils.getVolumes(newTask).toString(),
+                        oldEntry.getValue().getResourceSet().getVolumes().toString(),
+                        newTask.getResourceSet().getVolumes().toString(),
                         "Volumes must be equal."));
             }
         }

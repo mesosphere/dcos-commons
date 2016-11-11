@@ -12,20 +12,22 @@ import java.util.Optional;
 
 public class DefaultTaskSpec implements TaskSpec {
     private String name;
+    private String type;
     private GoalState goalState;
-    private String resourceSetId;
     private PodSpec pod;
     private CommandSpec commandSpec;
     private ContainerSpec containerSpec;
     private HealthCheckSpec healthCheckSpec;
     private Collection<URI> uris;
     private Collection<ConfigFileSpecification> configFiles;
+    private ResourceSet resourceSet;
 
     @JsonCreator
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
+            @JsonProperty("type") String type,
             @JsonProperty("goal") GoalState goalState,
-            @JsonProperty("resource_set_id") String resourceSetId,
+            @JsonProperty("resource_set") ResourceSet resourceSet,
             @JsonProperty("command_spec") CommandSpec commandSpec,
             @JsonProperty("container_spec") ContainerSpec containerSpec,
             @JsonProperty("health_check_spec") HealthCheckSpec healthCheckSpec,
@@ -33,7 +35,7 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFiles) {
         this.name = name;
         this.goalState = goalState;
-        this.resourceSetId = resourceSetId;
+        this.resourceSet= resourceSet;
         this.commandSpec = commandSpec;
         this.containerSpec = containerSpec;
         this.healthCheckSpec = healthCheckSpec;
@@ -42,15 +44,16 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     private DefaultTaskSpec(Builder builder) {
-        this.name = builder.name;
-        this.goalState = builder.goalState;
-        this.resourceSetId = builder.resourceSetId;
-        this.pod = builder.pod;
-        this.commandSpec = builder.commandSpec;
-        this.containerSpec = builder.containerSpec;
-        this.healthCheckSpec = builder.healthCheckSpec;
-        this.uris = builder.uris;
-        this.configFiles = builder.configFiles;
+        this(
+                builder.name,
+                builder.type,
+                builder.goalState,
+                builder.resourceSet,
+                builder.commandSpec,
+                builder.containerSpec,
+                builder.healthCheckSpec,
+                builder.uris,
+                builder.configFiles);
     }
 
     public static Builder newBuilder() {
@@ -61,8 +64,6 @@ public class DefaultTaskSpec implements TaskSpec {
         Builder builder = new Builder();
         builder.name = copy.name;
         builder.goalState = copy.goalState;
-        builder.resourceSetId = copy.resourceSetId;
-        builder.pod = copy.pod;
         builder.commandSpec = copy.commandSpec;
         builder.containerSpec = copy.containerSpec;
         builder.healthCheckSpec = copy.healthCheckSpec;
@@ -77,18 +78,18 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
     public GoalState getGoal() {
         return goalState;
     }
 
     @Override
-    public String getResourceSetId() {
-        return resourceSetId;
-    }
-
-    @Override
-    public PodSpec getPod() {
-        return pod;
+    public ResourceSet getResourceSet() {
+        return resourceSet;
     }
 
     @Override
@@ -140,9 +141,9 @@ public class DefaultTaskSpec implements TaskSpec {
      */
     public static final class Builder {
         private String name;
+        private String type;
         private GoalState goalState;
-        private String resourceSetId;
-        private PodSpec pod;
+        private ResourceSet resourceSet;
         private CommandSpec commandSpec;
         private ContainerSpec containerSpec;
         private HealthCheckSpec healthCheckSpec;
@@ -163,6 +164,11 @@ public class DefaultTaskSpec implements TaskSpec {
             return this;
         }
 
+        public Builder type(String type) {
+            this.type = type;
+            return this;
+        }
+
         /**
          * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be chained together.
          *
@@ -174,25 +180,8 @@ public class DefaultTaskSpec implements TaskSpec {
             return this;
         }
 
-        /**
-         * Sets the {@code resourceSetId} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param resourceSetId the {@code resourceSetId} to set
-         * @return a reference to this Builder
-         */
-        public Builder resourceSetId(String resourceSetId) {
-            this.resourceSetId = resourceSetId;
-            return this;
-        }
-
-        /**
-         * Sets the {@code pod} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param pod the {@code pod} to set
-         * @return a reference to this Builder
-         */
-        public Builder pod(PodSpec pod) {
-            this.pod = pod;
+        public Builder resourceSet(ResourceSet resourceSet) {
+            this.resourceSet = resourceSet;
             return this;
         }
 

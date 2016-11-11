@@ -460,8 +460,10 @@ public class TaskUtils {
 
         // Resources (custom comparison)
 
-        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(getResources(oldTaskSpec));
-        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(getResources(newTaskSpec));
+        Map<String, ResourceSpecification> oldResourceMap =
+                getResourceSpecMap(oldTaskSpec.getResourceSet().getResources());
+        Map<String, ResourceSpecification> newResourceMap =
+                getResourceSpecMap(newTaskSpec.getResourceSet().getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
             LOGGER.info("Resource lengths are different for old resources: '{}' and new resources: '{}'",
@@ -486,7 +488,8 @@ public class TaskUtils {
 
         if (!volumesEqual(oldTaskSpec, newTaskSpec)) {
             LOGGER.info("Task volumes '{}' and '{}' are different.",
-                    getVolumes(oldTaskSpec), getVolumes(newTaskSpec));
+                    oldTaskSpec.getResourceSet().getVolumes(),
+                    newTaskSpec.getResourceSet().getVolumes());
             return true;
         }
 
@@ -509,33 +512,9 @@ public class TaskUtils {
      * @return whether the volume lists are equal
      */
     public static boolean volumesEqual(TaskSpec first, TaskSpec second) {
-        return CollectionUtils.isEqualCollection(getVolumes(first), getVolumes(second));
-    }
-
-    public static Collection<VolumeSpecification> getVolumes(TaskSpec taskSpec) {
-        Optional<ResourceSet> resourceSetOptional = getResourceSet(taskSpec);
-
-        if (!resourceSetOptional.isPresent()) {
-            return Collections.emptyList();
-        }
-
-        return resourceSetOptional.get().getVolumes();
-    }
-
-    public static Collection<ResourceSpecification> getResources(TaskSpec taskSpec) {
-        Optional<ResourceSet> resourceSetOptional = getResourceSet(taskSpec);
-
-        if (!resourceSetOptional.isPresent()) {
-            return Collections.emptyList();
-        }
-
-        return resourceSetOptional.get().getResources();
-    }
-
-    public static Optional<ResourceSet> getResourceSet(TaskSpec taskSpec) {
-        return taskSpec.getPod().getResources().stream()
-                .filter(resourceSet -> resourceSet.getId().equals(taskSpec.getResourceSetId()))
-                .findFirst();
+        return CollectionUtils.isEqualCollection(
+                first.getResourceSet().getVolumes(),
+                second.getResourceSet().getVolumes());
     }
 
     /**

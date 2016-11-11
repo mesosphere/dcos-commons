@@ -15,8 +15,8 @@ public class DefaultPodSpec implements PodSpec {
     private String user;
     private int count;
     private List<TaskSpec> tasks;
-    private Collection<ResourceSet> resources;
     private PlacementRule placementRule;
+    private Collection<ResourceSet> resources;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -24,18 +24,18 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("user") String user,
             @JsonProperty("count") int count,
             @JsonProperty("task_specs") List<TaskSpec> tasks,
-            @JsonProperty("resource_sets") Collection<ResourceSet> resources,
-            @JsonProperty("placement_rule") PlacementRule placementRule) {
+            @JsonProperty("placement_rule") PlacementRule placementRule,
+            @JsonProperty("resource_sets") Collection<ResourceSet> resources) {
         this.type = type;
         this.user = user;
         this.count = count;
         this.tasks = tasks;
-        this.resources = resources;
         this.placementRule = placementRule;
+        this.resources = resources;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count, builder.tasks, builder.resources, builder.placementRule);
+        this(builder.type, builder.user, builder.count, builder.tasks, builder.placementRule, builder.resources);
     }
 
     public static Builder newBuilder() {
@@ -48,7 +48,6 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.user;
         builder.count = copy.count;
         builder.tasks = copy.tasks;
-        builder.resources = copy.resources;
         builder.placementRule = copy.placementRule;
         return builder;
     }
@@ -102,8 +101,8 @@ public class DefaultPodSpec implements PodSpec {
         private String user;
         private int count;
         private List<TaskSpec> tasks;
-        private Collection<ResourceSet> resources;
         private PlacementRule placementRule;
+        private Collection<ResourceSet> resources;
 
         private Builder() {
         }
@@ -153,17 +152,6 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
-         * Sets the {@code resources} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param resources the {@code resources} to set
-         * @return a reference to this Builder
-         */
-        public Builder resources(Collection<ResourceSet> resources) {
-            this.resources = resources;
-            return this;
-        }
-
-        /**
          * Sets the {@code placementRule} and returns a reference to this Builder so that the methods can be chained together.
          *
          * @param placementRule the {@code placementRule} to set
@@ -171,6 +159,11 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder placementRule(PlacementRule placementRule) {
             this.placementRule = placementRule;
+            return this;
+        }
+
+        public Builder resources(Collection<ResourceSet> resources) {
+            this.resources = resources;
             return this;
         }
 

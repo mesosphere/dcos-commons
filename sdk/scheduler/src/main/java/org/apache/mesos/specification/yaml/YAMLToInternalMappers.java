@@ -71,19 +71,11 @@ public class YAMLToInternalMappers {
     }
 
     public static PodSpec from(RawPod rawPod, String role, String principal) throws Exception {
-        final Collection<ResourceSet> resourceSets = new LinkedList<>();
-        final Collection<RawResourceSet> rawResourceSets = rawPod.getResourceSets();
-
-        for (RawResourceSet rawResourceSet : rawResourceSets) {
-            resourceSets.add(from(rawResourceSet, role, principal));
-        }
-
         List<TaskSpec> taskSpecs = new ArrayList<>();
 
         final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
                 .count(rawPod.getCount())
                 .placementRule(null /** TODO */)
-                .resources(resourceSets)
                 .tasks(taskSpecs)
                 .type(rawPod.getName())
                 .user(rawPod.getUser())
@@ -170,8 +162,11 @@ public class YAMLToInternalMappers {
                 .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .name(rawTask.getName())
-                .pod(podSpec)
-                .resourceSetId(rawTask.getResourceSet())
+                .type(podSpec.getType())
+                .resourceSet(
+                        podSpec.getResources().stream()
+                                .filter(resourceSet -> resourceSet.getId().equals(rawTask.getResourceSet()))
+                                .findFirst().get())
                 .uris(uris)
                 .build();
     }

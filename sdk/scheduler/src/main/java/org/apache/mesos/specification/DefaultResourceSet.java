@@ -26,9 +26,10 @@ public class DefaultResourceSet implements ResourceSet {
     }
 
     private DefaultResourceSet(Builder builder) {
-        id = builder.id;
-        resources = builder.resources;
-        volumes = builder.volumes;
+        this(
+                builder.id,
+                builder.resources,
+                builder.volumes);
     }
 
     public static Builder newBuilder() {
@@ -37,7 +38,6 @@ public class DefaultResourceSet implements ResourceSet {
 
     public static Builder newBuilder(DefaultResourceSet copy) {
         Builder builder = new Builder();
-        builder.id = copy.id;
         builder.resources = copy.resources;
         builder.volumes = copy.volumes;
         return builder;
