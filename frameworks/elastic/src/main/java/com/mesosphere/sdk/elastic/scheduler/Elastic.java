@@ -37,6 +37,7 @@ class Elastic {
     private final double masterNodeCpus = Double.valueOf(System.getenv("MASTER_NODE_CPUS"));
     private final double masterNodeMem = Double.valueOf(System.getenv("MASTER_NODE_MEM"));
     private final double masterNodeDisk = Double.valueOf(System.getenv("MASTER_NODE_DISK"));
+    private final boolean masterNodeMountedDisk = Boolean.valueOf(System.getenv("MASTER_NODE_MOUNTED_DISK"));
     private final int masterNodeHeapMb = Integer.parseInt(System.getenv("MASTER_NODE_HEAP_MB"));
     private final int masterNodeHttpPort = Integer.parseInt(System.getenv("MASTER_NODE_HTTP_PORT"));
     private final int masterNodeTransportPort = Integer.parseInt(System.getenv("MASTER_NODE_TRANSPORT_PORT"));
@@ -44,6 +45,7 @@ class Elastic {
     private final double dataNodeCpus = Double.valueOf(System.getenv("DATA_NODE_CPUS"));
     private final double dataNodeMem = Double.valueOf(System.getenv("DATA_NODE_MEM"));
     private final double dataNodeDisk = Double.valueOf(System.getenv("DATA_NODE_DISK"));
+    private final boolean dataNodeMountedDisk = Boolean.valueOf(System.getenv("DATA_NODE_MOUNTED_DISK"));
     private final int dataNodeHeapMb = Integer.parseInt(System.getenv("DATA_NODE_HEAP_MB"));
     private final int dataNodeHttpPort = Integer.parseInt(System.getenv("DATA_NODE_HTTP_PORT"));
     private final int dataNodeTransportPort = Integer.parseInt(System.getenv("DATA_NODE_TRANSPORT_PORT"));
@@ -51,6 +53,7 @@ class Elastic {
     private final double ingestNodeCpus = Double.valueOf(System.getenv("INGEST_NODE_CPUS"));
     private final double ingestNodeMem = Double.valueOf(System.getenv("INGEST_NODE_MEM"));
     private final double ingestNodeDisk = Double.valueOf(System.getenv("INGEST_NODE_DISK"));
+    private final boolean ingestNodeMountedDisk = Boolean.valueOf(System.getenv("INGEST_NODE_MOUNTED_DISK"));
     private final int ingestNodeHeapMb = Integer.parseInt(System.getenv("INGEST_NODE_HEAP_MB"));
     private final int ingestNodeHttpPort = Integer.parseInt(System.getenv("INGEST_NODE_HTTP_PORT"));
     private final int ingestNodeTransportPort = Integer.parseInt(System.getenv("INGEST_NODE_TRANSPORT_PORT"));
@@ -58,6 +61,7 @@ class Elastic {
     private final double coordinatorNodeCpus = Double.valueOf(System.getenv("COORDINATOR_NODE_CPUS"));
     private final double coordinatorNodeMem = Double.valueOf(System.getenv("COORDINATOR_NODE_MEM"));
     private final double coordinatorNodeDisk = Double.valueOf(System.getenv("COORDINATOR_NODE_DISK"));
+    private final boolean coordinatorNodeMountedDisk = Boolean.valueOf(System.getenv("COORDINATOR_NODE_MOUNTED_DISK"));
     private final int coordinatorNodeHeapMb = Integer.parseInt(
         System.getenv("COORDINATOR_NODE_HEAP_MB"));
     private final int coordinatorNodeHttpPort = Integer.parseInt(System.getenv("COORDINATOR_NODE_HTTP_PORT"));
@@ -67,6 +71,7 @@ class Elastic {
     private final double kibanaCpus = Double.valueOf(System.getenv("KIBANA_CPUS"));
     private final double kibanaMem = Double.valueOf(System.getenv("KIBANA_MEM"));
     private final double kibanaDisk = Double.valueOf(System.getenv("KIBANA_DISK"));
+    private final boolean kibanaMountedDisk = Boolean.valueOf(System.getenv("KIBANA_MOUNTED_DISK"));
     private final int kibanaPort = Integer.parseInt(System.getenv("KIBANA_PORT"));
     private final String kibanaPassword = System.getenv("KIBANA_PASSWORD");
     private final ElasticsearchCommand elasticsearchCommand;
@@ -98,16 +103,16 @@ class Elastic {
         }
         List<DefaultTaskSet> requiredTaskSets = Arrays.asList(
             createElasticsearchTaskSet(MASTER_NODE_TYPE_NAME, MASTER_NODE_COUNT, masterNodeCpus, masterNodeDisk,
-                masterNodeMem, masterNodeHeapMb, masterNodeHttpPort, masterNodeTransportPort),
+                masterNodeMountedDisk, masterNodeMem, masterNodeHeapMb, masterNodeHttpPort, masterNodeTransportPort),
             createElasticsearchTaskSet(DATA_NODE_TYPE_NAME, dataNodeCount, dataNodeCpus, dataNodeDisk,
-                dataNodeMem, dataNodeHeapMb, dataNodeHttpPort, dataNodeTransportPort),
+                dataNodeMountedDisk, dataNodeMem, dataNodeHeapMb, dataNodeHttpPort, dataNodeTransportPort),
             createElasticsearchTaskSet(INGEST_NODE_TYPE_NAME, ingestNodeCount, ingestNodeCpus, ingestNodeDisk,
-                ingestNodeMem, ingestNodeHeapMb, ingestNodeHttpPort, ingestNodeTransportPort));
+                ingestNodeMountedDisk, ingestNodeMem, ingestNodeHeapMb, ingestNodeHttpPort, ingestNodeTransportPort));
         taskSets.addAll(requiredTaskSets);
         if (coordinatorNodeCount > 0) {
             taskSets.add(createElasticsearchTaskSet(COORDINATOR_NODE_TYPE_NAME, coordinatorNodeCount,
-                coordinatorNodeCpus, coordinatorNodeDisk, coordinatorNodeMem, coordinatorNodeHeapMb,
-                coordinatorNodeHttpPort, coordinatorNodeTransportPort));
+                coordinatorNodeCpus, coordinatorNodeDisk, coordinatorNodeMountedDisk, coordinatorNodeMem,
+                coordinatorNodeHeapMb, coordinatorNodeHttpPort, coordinatorNodeTransportPort));
         }
         return taskSets;
     }
@@ -125,7 +130,7 @@ class Elastic {
                 nodeTypeName,
                 createKibanaCommandInfo(i),
                 createResources(kibanaCpus, kibanaMem, Collections.singletonList(kibanaPort)),
-                createVolumeSpecifications(kibanaDisk, containerPath),
+                createVolumeSpecifications(kibanaDisk, containerPath, kibanaMountedDisk),
                 configFileSpecs,
                 Optional.of(TaskTypeRule.colocateWith(COORDINATOR_NODE_TYPE_NAME)),
                 Optional.of(createKibanaHealthCheck(kibanaPort)));
@@ -136,7 +141,8 @@ class Elastic {
     }
 
     private DefaultTaskSet createElasticsearchTaskSet(String nodeTypeName, int nodeCount, double cpu, double diskMb,
-                                                      double memMb, int heapSize, int httpPort, int transportPort) {
+                                                      boolean mountedDisk, double memMb, int heapSize, int httpPort,
+                                                      int transportPort) {
         String containerPath = createContainerPath(nodeTypeName);
         Collection<ConfigFileSpecification> configFileSpecs = new ArrayList<>();
         List<TaskSpecification> taskSpecifications = new ArrayList<>();
@@ -146,7 +152,7 @@ class Elastic {
                 nodeTypeName,
                 createElasticsearchCommandInfo(nodeTypeName, i, heapSize, httpPort, transportPort, containerPath),
                 createResources(cpu, memMb, Arrays.asList(httpPort, transportPort)),
-                createVolumeSpecifications(diskMb, containerPath),
+                createVolumeSpecifications(diskMb, containerPath, mountedDisk),
                 configFileSpecs,
                 Optional.of(TaskTypeRule.avoid(nodeTypeName)),
                 Optional.of(createElasticsearchHealthCheck(httpPort)));
@@ -186,10 +192,11 @@ class Elastic {
                 PRINCIPAL));
     }
 
-    private Collection<VolumeSpecification> createVolumeSpecifications(double diskMb, String containerPath) {
+    private Collection<VolumeSpecification> createVolumeSpecifications(double diskMb, String containerPath,
+                                                                       boolean mountedDisk) {
         VolumeSpecification volumeSpecification = new DefaultVolumeSpecification(
             diskMb,
-            VolumeSpecification.Type.ROOT,
+            mountedDisk ? VolumeSpecification.Type.MOUNT : VolumeSpecification.Type.ROOT,
             containerPath,
             ROLE,
             PRINCIPAL);

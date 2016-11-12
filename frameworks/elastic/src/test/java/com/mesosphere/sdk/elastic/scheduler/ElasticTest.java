@@ -40,6 +40,7 @@ public class ElasticTest {
         environmentVariables.set("MASTER_NODE_MEM", "2048");
         environmentVariables.set("MASTER_NODE_HEAP_MB", "1024");
         environmentVariables.set("MASTER_NODE_DISK", "5000");
+        environmentVariables.set("MASTER_NODE_MOUNTED_DISK", "false");
         environmentVariables.set("MASTER_NODE_HTTP_PORT", "9250");
         environmentVariables.set("MASTER_NODE_TRANSPORT_PORT", "9350");
         environmentVariables.set("DATA_NODE_COUNT", "2");
@@ -47,6 +48,7 @@ public class ElasticTest {
         environmentVariables.set("DATA_NODE_MEM", "2049");
         environmentVariables.set("DATA_NODE_HEAP_MB", "1025");
         environmentVariables.set("DATA_NODE_DISK", "5002");
+        environmentVariables.set("DATA_NODE_MOUNTED_DISK", "false");
         environmentVariables.set("DATA_NODE_HTTP_PORT", "9260");
         environmentVariables.set("DATA_NODE_TRANSPORT_PORT", "9360");
         environmentVariables.set("INGEST_NODE_COUNT", "1");
@@ -54,6 +56,7 @@ public class ElasticTest {
         environmentVariables.set("INGEST_NODE_MEM", "2050");
         environmentVariables.set("INGEST_NODE_HEAP_MB", "1026");
         environmentVariables.set("INGEST_NODE_DISK", "5003");
+        environmentVariables.set("INGEST_NODE_MOUNTED_DISK", "false");
         environmentVariables.set("INGEST_NODE_HTTP_PORT", "9270");
         environmentVariables.set("INGEST_NODE_TRANSPORT_PORT", "9370");
         environmentVariables.set("COORDINATOR_NODE_COUNT", "1");
@@ -61,12 +64,14 @@ public class ElasticTest {
         environmentVariables.set("COORDINATOR_NODE_MEM", "2051");
         environmentVariables.set("COORDINATOR_NODE_HEAP_MB", "1027");
         environmentVariables.set("COORDINATOR_NODE_DISK", "5004");
+        environmentVariables.set("COORDINATOR_NODE_MOUNTED_DISK", "false");
         environmentVariables.set("COORDINATOR_NODE_HTTP_PORT", "9280");
         environmentVariables.set("COORDINATOR_NODE_TRANSPORT_PORT", "9380");
         environmentVariables.set("KIBANA_COUNT", "1");
         environmentVariables.set("KIBANA_CPUS", "1.0");
         environmentVariables.set("KIBANA_MEM", "768");
         environmentVariables.set("KIBANA_DISK", "100");
+        environmentVariables.set("KIBANA_NODE_MOUNTED_DISK", "false");
         environmentVariables.set("KIBANA_PORT", "5601");
         environmentVariables.set("KIBANA_PASSWORD", "secret");
         environmentVariables.set("STATSD_UDP_PORT", "10001");

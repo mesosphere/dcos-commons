@@ -63,6 +63,11 @@
           "type": "integer",
           "default": 2000
         },
+        "mounted_disk": {
+          "type": "boolean",
+          "description": "Use mounted disk instead of root disk for storing data.",
+          "default": false
+        },
         "http_port": {
           "description": "HTTP port for master nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
@@ -119,6 +124,11 @@
           "description": "Node disk requirements (only respected with persistent volumes)",
           "type": "integer",
           "default": 5000
+        },
+        "mounted_disk": {
+          "type": "boolean",
+          "description": "Use mounted disk instead of root disk for storing data.",
+          "default": false
         },
         "http_port": {
           "description": "HTTP port for data nodes to listen on. Use 0 to let Mesos pick a port for you.",
@@ -178,6 +188,11 @@
           "type": "integer",
           "default": 2000
         },
+        "mounted_disk": {
+          "type": "boolean",
+          "description": "Use mounted disk instead of root disk for storing data.",
+          "default": false
+        },
         "http_port": {
           "description": "HTTP port for ingest nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
@@ -236,6 +251,11 @@
           "type": "integer",
           "default": 1000
         },
+        "mounted_disk": {
+          "type": "boolean",
+          "description": "Use mounted disk instead of root disk for storing data.",
+          "default": false
+        },
         "http_port": {
           "description": "HTTP port for coordinator nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
@@ -278,6 +298,11 @@
           "description": "Kibana disk requirements (minimal for logging)",
           "type": "integer",
           "default": 100
+        },
+        "mounted_disk": {
+          "type": "boolean",
+          "description": "Use mounted disk instead of root disk for storing data.",
+          "default": false
         },
         "port": {
           "description": "HTTP port for Kibana to listen on. Use 0 to let Mesos pick a port for you.",
