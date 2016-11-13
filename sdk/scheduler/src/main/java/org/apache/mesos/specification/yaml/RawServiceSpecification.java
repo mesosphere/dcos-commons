@@ -458,24 +458,24 @@ class RawHealthCheck {
     }
 
     @JsonProperty("interval")
-    public void setInterval(Duration interval) {
-        this.interval = interval;
+    public void setInterval(long intervalSecs) {
+        this.interval = Duration.ofSeconds(intervalSecs);
     }
 
     public Duration getGracePeriod() {
         return gracePeriod;
     }
 
-    @JsonProperty("gracePeriod")
-    public void setGracePeriod(Duration gracePeriod) {
-        this.gracePeriod = gracePeriod;
+    @JsonProperty("grace-period")
+    public void setGracePeriod(long gracePeriodSecs) {
+        this.gracePeriod = Duration.ofSeconds(gracePeriodSecs) ;
     }
 
     public Integer getMaxConsecutiveFailures() {
         return maxConsecutiveFailures;
     }
 
-    @JsonProperty("maxConsecutiveFailures")
+    @JsonProperty("max-consecutive-failures")
     public void setMaxConsecutiveFailures(Integer maxConsecutiveFailures) {
         this.maxConsecutiveFailures = maxConsecutiveFailures;
     }
@@ -485,8 +485,8 @@ class RawHealthCheck {
     }
 
     @JsonProperty("delay")
-    public void setDelay(Duration delay) {
-        this.delay = delay;
+    public void setDelay(long delaySecs) {
+        this.delay = Duration.ofSeconds(delaySecs);
     }
 
     public Duration getTimeout() {
@@ -494,8 +494,8 @@ class RawHealthCheck {
     }
 
     @JsonProperty("timeout")
-    public void setTimeout(Duration timeout) {
-        this.timeout = timeout;
+    public void setTimeout(long timeoutSecs) {
+        this.timeout = Duration.ofSeconds(timeoutSecs);
     }
 }
 

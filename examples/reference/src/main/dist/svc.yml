@@ -1,0 +1,53 @@
+name: "data-store"
+principal: "data-store-principal"
+api-port: 8080
+zookeeper: master.mesos:2181
+pods:
+  meta-data:
+    placement: "avoid-type: meta-data"
+    count: 2
+    user: nobody
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        env:
+          TASK_NAME: "meta-data"
+          CONTAINER_PATH_SUFFIX: "-container-path"
+          SLEEP_DURATION: "1000"
+        cpus: 0.1
+        memory: 512
+        health-checks:
+          check-up:
+            cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
+            interval: 5
+            grace-period: 30
+            max-consecutive-failures: 3
+        volumes:
+          - path: /data
+            type: ROOT
+            size: 2500
+
+  data:
+      placement: "avoid-type: data-store"
+      count: 3
+      user: nobody
+      tasks:
+        data-store-task:
+          goal: RUNNING
+          cmd: "echo hello"
+          env:
+            TASK_NAME: "data-store"
+            CONTAINER_PATH_SUFFIX: "-container-path"
+          cpus: 0.2
+          memory: 1024
+          health-checks:
+            check-up:
+              cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
+              interval: 5
+              grace-period: 30
+              max-consecutive-failures: 3
+          volumes:
+            - path: /data
+              type: MOUNT
+              size: 5000
