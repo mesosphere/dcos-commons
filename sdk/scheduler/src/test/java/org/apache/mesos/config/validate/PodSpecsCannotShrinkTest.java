@@ -22,7 +22,6 @@ public class PodSpecsCannotShrinkTest {
     @Mock private PodSpec mockPodSpec2;
     @Mock private PodSpec mockPodSpec22;
 
-
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
@@ -85,7 +84,6 @@ public class PodSpecsCannotShrinkTest {
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
     }
 
-
     @Test
     public void testTaskGrowth() throws InvalidRequirementException {
         ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
@@ -107,7 +105,6 @@ public class PodSpecsCannotShrinkTest {
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
     }
-
 
     @Test
     public void testPodRemove() throws InvalidRequirementException {
@@ -176,5 +173,4 @@ public class PodSpecsCannotShrinkTest {
         Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
     }
-
 }

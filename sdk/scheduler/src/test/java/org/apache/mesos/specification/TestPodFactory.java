@@ -4,10 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.testutils.TestConstants;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -101,6 +98,34 @@ public class TestPodFactory {
                 .count(count)
                 .resources(Arrays.asList(resourceSet))
                 .tasks(Arrays.asList(taskSpec))
+                .build();
+    }
+
+    public static PodSpec getPodSpec(String type, List<String> taskNames, String cmd, int count, double cpu, double mem, double disk) {
+        PodSpec podSpec = DefaultPodSpec.newBuilder()
+                .type(type)
+                .count(count)
+                .resources(Arrays.asList(getResourceSet(cpu, mem, disk)))
+                .build();
+
+        List<TaskSpec> taskSpecs = new ArrayList<>();
+        for (String taskName : taskNames) {
+            taskSpecs.add(
+                    DefaultTaskSpec.newBuilder()
+                    .name(taskName)
+                    .goalState(TaskSpec.GoalState.RUNNING)
+                    .resourceSet(getResourceSet(cpu, mem, disk))
+                    .commandSpec(DefaultCommandSpec.newBuilder()
+                            .value(cmd)
+                            .uris(Collections.emptyList())
+                            .build())
+                    .configFiles(Collections.emptyList())
+                    .build()
+            );
+        }
+
+        return DefaultPodSpec.newBuilder((DefaultPodSpec) podSpec)
+                .tasks(taskSpecs)
                 .build();
     }
 
