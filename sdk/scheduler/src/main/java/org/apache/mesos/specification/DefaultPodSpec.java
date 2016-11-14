@@ -45,13 +45,13 @@ public class DefaultPodSpec implements PodSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultPodSpec copy) {
+    public static Builder newBuilder(PodSpec copy) {
         Builder builder = new Builder();
-        builder.type = copy.type;
-        builder.user = copy.user;
-        builder.count = copy.count;
-        builder.tasks = copy.tasks;
-        builder.placementRule = copy.placementRule;
+        builder.type = copy.getType();
+        builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
+        builder.count = copy.getCount();
+        builder.tasks = copy.getTasks();
+        builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
         return builder;
     }
 
