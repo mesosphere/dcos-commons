@@ -183,7 +183,8 @@ public class YAMLToInternalMappers {
                 .build();
 
         List<ConfigFileSpecification> configFiles = new LinkedList<>();
-        for (RawConfiguration rawConfig : rawTask.getConfigurations()) {
+        Collection<RawConfiguration> rawConfigurations = rawTask.getConfigurations() == null ? Collections.emptyList() : rawTask.getConfigurations();
+        for (RawConfiguration rawConfig : rawConfigurations) {
             configFiles.add(from(rawConfig));
         }
 

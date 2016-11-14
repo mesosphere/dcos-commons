@@ -15,12 +15,14 @@ repositories {
 
 ext {
     mesosVer = "0.28.0"
+    junitVer = "4.12"
 }
 
 dependencies {
     compile project(":scheduler")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     compile "org.apache.mesos:mesos:${mesosVer}"
+    testCompile "junit:junit:${junitVer}"
 }
 
 distributions {
