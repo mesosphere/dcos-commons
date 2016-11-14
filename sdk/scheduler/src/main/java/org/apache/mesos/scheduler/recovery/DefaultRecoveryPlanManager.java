@@ -137,6 +137,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                                 taskInfo.getName(),
                                 Optional.empty(),
                                 Status.ERROR,
+                                null,
                                 Arrays.asList(ExceptionUtils.getStackTrace(e))));
                     }
                 })
@@ -158,7 +159,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 .map(recoveryRequirement -> new DefaultRecoveryStep(
                         taskInfo.getName(),
                         Status.PENDING,
-                        recoveryRequirements.get(0),
+                        recoveryRequirement.getPodInstance(),
+                        recoveryRequirement,
                         launchConstrainer))
                 .collect(Collectors.toList());
     }

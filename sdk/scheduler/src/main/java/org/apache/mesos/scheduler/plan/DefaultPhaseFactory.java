@@ -60,6 +60,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
                         PodInstance.getName(podSpec, i),
                         Optional.empty(),
                         Status.ERROR,
+                        podInstance,
                         Arrays.asList(ExceptionUtils.getStackTrace(e))));
             }
         }

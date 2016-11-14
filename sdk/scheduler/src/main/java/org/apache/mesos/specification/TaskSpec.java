@@ -44,6 +44,7 @@ public interface TaskSpec {
      * The allowed goal states for a Task.
      */
     enum GoalState {
+        NONE,
         RUNNING,
         FINISHED
     }

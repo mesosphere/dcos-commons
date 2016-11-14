@@ -76,7 +76,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     private RecoveryRequirement getRecoveryRequirement(OfferRequirement offerRequirement,
                                                        RecoveryRequirement.RecoveryType recoveryType) {
-        return new DefaultRecoveryRequirement(offerRequirement, recoveryType);
+        return new DefaultRecoveryRequirement(offerRequirement, recoveryType, null);
     }
 
     private static List<Offer> getOffers() {

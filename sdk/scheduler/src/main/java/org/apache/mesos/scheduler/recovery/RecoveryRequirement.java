@@ -1,6 +1,7 @@
 package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.specification.PodInstance;
 
 /**
  * Implementation of this interface allows RecoverySchedulers to make decisions about the scheduling of recovery of
@@ -21,4 +22,6 @@ public interface RecoveryRequirement {
     RecoveryType getRecoveryType();
 
     OfferRequirement getOfferRequirement();
+
+    PodInstance getPodInstance();
 }

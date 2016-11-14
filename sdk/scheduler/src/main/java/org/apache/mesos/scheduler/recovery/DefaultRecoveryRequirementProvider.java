@@ -59,7 +59,8 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
             transientRecoveryRequirements.add(
                     new DefaultRecoveryRequirement(
                             offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch),
-                            RecoveryRequirement.RecoveryType.TRANSIENT));
+                            RecoveryRequirement.RecoveryType.TRANSIENT,
+                            podInstance));
         }
 
         return transientRecoveryRequirements;
@@ -81,7 +82,8 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
             permanentRecoveryRequirements.add(
                     new DefaultRecoveryRequirement(
                             offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch),
-                            RecoveryRequirement.RecoveryType.PERMANENT));
+                            RecoveryRequirement.RecoveryType.PERMANENT,
+                            podInstance));
         }
 
         return permanentRecoveryRequirements;

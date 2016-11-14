@@ -53,6 +53,7 @@ public class DefaultStepFactory implements StepFactory {
                         podInstance.getName(),
                         Optional.of(offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch)),
                         Status.PENDING,
+                        podInstance,
                         Collections.emptyList());
             } else {
                 // Note: This path is for deploying new versions of tasks, unlike transient recovery
@@ -64,6 +65,7 @@ public class DefaultStepFactory implements StepFactory {
                         podInstance.getName(),
                         Optional.of(offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch)),
                         status,
+                        podInstance,
                         Collections.emptyList());
             }
         } catch (ConfigStoreException | TaskException | InvalidRequirementException e) {
@@ -108,7 +110,13 @@ public class DefaultStepFactory implements StepFactory {
 
     private boolean hasReachedGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo)
             throws Step.InvalidStepException {
-        TaskSpec.GoalState goalState = getGoalState(podInstance, taskInfo);
+        TaskSpec.GoalState goalState = null;
+        try {
+            goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
+        } catch (TaskException e) {
+            throw new Step.InvalidStepException(e);
+        }
+
         Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInfo.getName());
 
         if (!status.isPresent()) {
@@ -134,20 +142,4 @@ public class DefaultStepFactory implements StepFactory {
         }
     }
 
-    private TaskSpec.GoalState getGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo)
-            throws Step.InvalidStepException {
-
-        Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo);
-        if (taskSpec.isPresent()) {
-            return taskSpec.get().getGoal();
-        } else {
-            throw new Step.InvalidStepException("Failed to determine the goal state of Task: " + taskInfo.getName());
-        }
-    }
-
-    private Optional<TaskSpec> getTaskSpec(PodInstance podInstance, Protos.TaskInfo taskInfo) {
-        return podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskInfo.getName()))
-                .findFirst();
-    }
 }

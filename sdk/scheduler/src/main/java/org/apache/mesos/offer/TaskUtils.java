@@ -10,6 +10,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
@@ -688,6 +689,21 @@ public class TaskUtils {
      */
     public static CommandInfo.URI uri(String uri) {
         return CommandInfo.URI.newBuilder().setValue(uri).build();
+    }
+
+    public static TaskSpec.GoalState getGoalState(PodInstance podInstance, String taskName) throws TaskException {
+        Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskName);
+        if (taskSpec.isPresent()) {
+            return taskSpec.get().getGoal();
+        } else {
+            throw new TaskException("Failed to determine the goal state of Task: " + taskName);
+        }
+    }
+
+    public static Optional<TaskSpec> getTaskSpec(PodInstance podInstance, String taskName) {
+        return podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskName))
+                .findFirst();
     }
 
     /**
