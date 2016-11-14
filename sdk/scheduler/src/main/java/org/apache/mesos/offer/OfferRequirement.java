@@ -93,7 +93,8 @@ public class OfferRequirement {
             ExecutorRequirement executorRequirement,
             Optional<PlacementRule> placementRuleOptional) {
 
-        return new OfferRequirement(taskType, index, taskRequirements, Optional.of(executorRequirement), placementRuleOptional);
+        return new OfferRequirement(taskType, index, taskRequirements, Optional.of(executorRequirement),
+                placementRuleOptional);
     }
 
 

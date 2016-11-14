@@ -54,7 +54,8 @@ public class DefaultVipSpec implements VipSpec {
         }
 
         /**
-         * Sets the {@code applicationPort} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code applicationPort} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param applicationPort the {@code applicationPort} to set
          * @return a reference to this Builder

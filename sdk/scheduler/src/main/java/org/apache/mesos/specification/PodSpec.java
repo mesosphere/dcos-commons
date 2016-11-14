@@ -9,6 +9,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Specification for a Pod.
+ */
 @JsonDeserialize(as = DefaultPodSpec.class)
 public interface PodSpec {
     @JsonProperty("type")

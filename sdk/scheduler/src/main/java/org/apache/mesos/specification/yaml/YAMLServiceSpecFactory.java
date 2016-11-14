@@ -14,11 +14,16 @@ import java.nio.charset.Charset;
 public class YAMLServiceSpecFactory {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
-    public static final ServiceSpec generateFromYAML(File pathToYaml) throws Exception {
-        return generateFromYAML(FileUtils.readFileToString(pathToYaml, Charset.forName("UTF-8")));
+    public static final RawServiceSpecification generateRawSpecFromYAML(File pathToYaml) throws Exception {
+        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, Charset.forName("UTF-8")));
     }
 
-    public static final ServiceSpec generateFromYAML(String yaml) throws Exception {
-        return YAMLToInternalMappers.from(YAML_MAPPER.readValue(yaml.getBytes(), RawServiceSpecification.class));
+    public static final RawServiceSpecification generateRawSpecFromYAML(String yaml) throws Exception {
+        return YAML_MAPPER.readValue(yaml.getBytes(), RawServiceSpecification.class);
+    }
+
+    public static final ServiceSpec generateSpecFromYAML(RawServiceSpecification rawServiceSpecification)
+            throws Exception {
+        return YAMLToInternalMappers.from(rawServiceSpecification);
     }
 }

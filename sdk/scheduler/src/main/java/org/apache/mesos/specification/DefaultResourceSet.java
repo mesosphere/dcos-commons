@@ -91,7 +91,8 @@ public class DefaultResourceSet implements ResourceSet {
         }
 
         /**
-         * Sets the {@code resources} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code resources} and returns a reference to this Builder so that the methods can be chained
+         * together.
          *
          * @param resources the {@code resources} to set
          * @return a reference to this Builder

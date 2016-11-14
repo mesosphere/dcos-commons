@@ -97,7 +97,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return taskInfos;
     }
 
-    private Protos.TaskInfo getNewTaskInfo(PodInstance podInstance, TaskSpec taskSpec) throws InvalidRequirementException {
+    private Protos.TaskInfo getNewTaskInfo(PodInstance podInstance, TaskSpec taskSpec)
+            throws InvalidRequirementException {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(TaskUtils.emptyTaskId())

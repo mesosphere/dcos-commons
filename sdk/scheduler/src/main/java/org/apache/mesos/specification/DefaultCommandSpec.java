@@ -106,7 +106,8 @@ public class DefaultCommandSpec implements CommandSpec {
         }
 
         /**
-         * Sets the {@code environment} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code environment} and returns a reference to this Builder so that the methods can be chained
+         * together.
          *
          * @param environment the {@code environment} to set
          * @return a reference to this Builder
