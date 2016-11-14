@@ -8,14 +8,12 @@ import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.PodInstance;
+import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,8 +43,8 @@ public class DefaultStepFactory implements StepFactory {
                 .map(taskName -> stateStore.fetchTask(taskName))
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
                 .map(taskInfoOptional -> taskInfoOptional.get())
+                .filter(taskInfo -> tasksToLaunch.contains(taskInfo.getName()))
                 .collect(Collectors.toList());
-
 
         try {
             if (taskInfos.isEmpty()) {
@@ -60,7 +58,7 @@ public class DefaultStepFactory implements StepFactory {
                 // Note: This path is for deploying new versions of tasks, unlike transient recovery
                 // which is only interested in relaunching tasks as they were. So while they omit
                 // placement rules in their OfferRequirement, we include them.
-                Status status = getStatus(taskInfos);
+                Status status = getStatus(podInstance, taskInfos);
                 LOGGER.info("Generating existing step for: {} with status: {}", podInstance.getName(), status);
                 return new DefaultStep(
                         podInstance.getName(),
@@ -68,16 +66,19 @@ public class DefaultStepFactory implements StepFactory {
                         status,
                         Collections.emptyList());
             }
-        } catch (InvalidRequirementException e) {
+        } catch (ConfigStoreException | TaskException | InvalidRequirementException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
     }
 
-    private Status getStatus(List<Protos.TaskInfo> taskInfos) {
-        List<Status> statuses = taskInfos.stream()
-                .map(taskInfo -> getStatus(taskInfo))
-                .collect(Collectors.toList());
+    private Status getStatus(PodInstance podInstance, List<Protos.TaskInfo> taskInfos)
+            throws Step.InvalidStepException, ConfigStoreException, TaskException {
+
+        List<Status> statuses = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+           statuses.add(getStatus(podInstance, taskInfo));
+        }
 
         for (Status status : statuses) {
             if (!status.equals(Status.COMPLETE)) {
@@ -88,21 +89,65 @@ public class DefaultStepFactory implements StepFactory {
         return Status.COMPLETE;
     }
 
-    private Status getStatus(Protos.TaskInfo taskInfo) {
-        try {
-            if (isOnTarget(taskInfo)) {
-                return Status.COMPLETE;
-            }
-        } catch (ConfigStoreException | TaskException e) {
-            LOGGER.error("Failed to determine initial Step status so defaulting to PENDING.", e);
+    private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo)
+            throws TaskException, ConfigStoreException, Step.InvalidStepException {
+
+        if (isOnTarget(taskInfo) && hasReachedGoalState(podInstance, taskInfo)) {
+            return Status.COMPLETE;
+        } else {
+            return Status.PENDING;
         }
 
-        return Status.PENDING;
     }
 
     private boolean isOnTarget(Protos.TaskInfo taskInfo) throws ConfigStoreException, TaskException {
         UUID targetConfigId = configStore.getTargetConfig();
         UUID taskConfigId = TaskUtils.getTargetConfiguration(taskInfo);
         return targetConfigId.equals(taskConfigId);
+    }
+
+    private boolean hasReachedGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo)
+            throws Step.InvalidStepException {
+        TaskSpec.GoalState goalState = getGoalState(podInstance, taskInfo);
+        Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInfo.getName());
+
+        if (!status.isPresent()) {
+            return false;
+        }
+
+        if (goalState.equals(TaskSpec.GoalState.RUNNING)) {
+            switch (status.get().getState()) {
+                case TASK_RUNNING:
+                    return true;
+                default:
+                    return false;
+            }
+        } else if (goalState.equals(TaskSpec.GoalState.FINISHED)) {
+            switch (status.get().getState()) {
+                case TASK_FINISHED:
+                    return true;
+                default:
+                    return false;
+            }
+        } else {
+            throw new Step.InvalidStepException("Unexpected goal state encountered: " + goalState);
+        }
+    }
+
+    private TaskSpec.GoalState getGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo)
+            throws Step.InvalidStepException {
+
+        Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo);
+        if (taskSpec.isPresent()) {
+            return taskSpec.get().getGoal();
+        } else {
+            throw new Step.InvalidStepException("Failed to determine the goal state of Task: " + taskInfo.getName());
+        }
+    }
+
+    private Optional<TaskSpec> getTaskSpec(PodInstance podInstance, Protos.TaskInfo taskInfo) {
+        return podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskInfo.getName()))
+                .findFirst();
     }
 }

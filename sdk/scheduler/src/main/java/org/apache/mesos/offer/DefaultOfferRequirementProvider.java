@@ -45,7 +45,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 LOGGER.info("Suppressing launch of: {}", taskInfo.getName());
                 suppressedTaskInfos.add(TaskUtils.setTransient(taskInfo));
             } else {
-                suppressedTaskInfos.add(taskInfo);
+                suppressedTaskInfos.add(TaskUtils.clearTransient(taskInfo));
             }
         }
 
