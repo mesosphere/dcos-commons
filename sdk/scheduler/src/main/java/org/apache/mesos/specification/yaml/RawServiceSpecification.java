@@ -465,7 +465,7 @@ class RawHealthCheck {
 
     @JsonProperty("grace-period")
     public void setGracePeriod(long gracePeriodSecs) {
-        this.gracePeriod = Duration.ofSeconds(gracePeriodSecs) ;
+        this.gracePeriod = Duration.ofSeconds(gracePeriodSecs);
     }
 
     public Integer getMaxConsecutiveFailures() {

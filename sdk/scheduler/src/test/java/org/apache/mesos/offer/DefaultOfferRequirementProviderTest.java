@@ -88,7 +88,7 @@ public class DefaultOfferRequirementProviderTest {
         when(resourceSet.getResources()).thenReturn(Arrays.asList(resourceSpecification));
         when(resourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
 
-        when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
+        when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
 
         PROVIDER = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());

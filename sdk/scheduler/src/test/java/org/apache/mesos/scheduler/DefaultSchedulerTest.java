@@ -191,12 +191,13 @@ public class DefaultSchedulerTest {
     public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
         ServiceSpec serviceSpecification =
                 new DefaultServiceSpec(
-                        "placement",
-                        Arrays.asList(TestPodFactory.getTaskSet(
-                                Collections.emptyList(),
-                                Optional.of(TestPlacementUtils.ALL))));
-        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
-                .getPlacement().isPresent());
+                        TestConstants.SERVICE_NAME,
+                        TestConstants.ROLE,
+                        TestConstants.PRINCIPAL,
+                        0,
+                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
+                        Collections.emptyList());
+
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
                 testingServer.getConnectString(),

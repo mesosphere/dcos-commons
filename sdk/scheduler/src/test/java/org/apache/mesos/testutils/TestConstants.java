@@ -8,6 +8,7 @@ import org.apache.mesos.offer.TaskUtils;
  * This class encapsulates constants for tests.
  */
 public class TestConstants {
+    public static final String SERVICE_NAME = "service-name";
     public static final String CONTAINER_PATH = "test-container-path";
     public static final String EXECUTOR_NAME = "test-executor-name";
     public static final String HOSTNAME = "test-hostname";

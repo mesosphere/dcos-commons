@@ -53,7 +53,7 @@ public class DefaultService implements Service {
         final PlanGenerator planGenerator = new DefaultPlanGenerator();
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
                 .generateRawSpecFromYAML(pathToYamlSpecification);
-        final ServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
         register(serviceSpec, planGenerator.generate(rawServiceSpecification));
     }
 
@@ -63,11 +63,9 @@ public class DefaultService implements Service {
      */
     @Override
     public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
-
-    }
-
-    public void register(ServiceSpec serviceSpec) {
-        this.serviceSpec = serviceSpec;
+        this.serviceSpec = serviceSpecification;
+        this.apiPort = serviceSpecification.getApiPort();
+        this.zkConnectionString = serviceSpecification.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(serviceSpec, zkConnectionString);
         DefaultScheduler defaultScheduler;
         try {
@@ -82,6 +80,9 @@ public class DefaultService implements Service {
         }
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
+    }
+
+    public void register(ServiceSpec serviceSpec) {
 
     }
 
