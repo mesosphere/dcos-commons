@@ -1,78 +1,64 @@
-package org.apache.mesos.specification;
+package com.mesosphere.sdk.elastic.scheduler;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.api.JettyApiServer;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
-import org.apache.mesos.dcos.DcosConstants;
+import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
 import org.apache.mesos.scheduler.SchedulerUtils;
+import org.apache.mesos.specification.Service;
+import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
-/**
- * This class is a default implementation of the Service interface.  It serves mainly as an example
- * with hard-coded values for "user", and "master-uri", and failover timeouts.  More sophisticated
- * services may want to implement the Service interface directly.
- *
- * Customizing the runtime user for individual tasks may be accomplished by customizing the 'user'
- * field on CommandInfo returned by {@link TaskSpecification#getCommand()}.
- */
-public class DefaultService implements Service {
+public class ElasticService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
+    private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
+    private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     private static final String USER = "root";
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticService.class);
 
     private final int apiPort;
     private final String zkConnectionString;
+    private final Collection<ConfigurationValidator<ServiceSpecification>> configValidators;
 
     private StateStore stateStore;
     private ServiceSpecification serviceSpecification;
 
-    /**
-     * Creates a new instance which when registered will start a Jetty HTTP API service on the
-     * provided port, using {@link DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING} as the ZK
-     * connection string.
-     *
-     * @param apiPort the port to run the HTTP API service against, typically the 'PORT0' envvar
-     */
-    public DefaultService(int apiPort)  {
-        this(apiPort, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
-    }
-
-    /**
-     * Creates a new instance which when registered will start a Jetty HTTP API service on the
-     * provided port, with support for a custom ZK location for state storage.
-     *
-     * @param apiPort the port to run the HTTP API service against, typically the 'PORT0' envvar
-     * @param zkConnectionString zookeeper connection string to use, of the form "host:port"
-     */
-    public DefaultService(int apiPort, String zkConnectionString)  {
+    public ElasticService(int apiPort,
+                          String zkConnectionString,
+                          Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
         this.apiPort = apiPort;
         this.zkConnectionString = zkConnectionString;
+        List<ConfigurationValidator<ServiceSpecification>> validators =
+                new ArrayList<>(DefaultScheduler.defaultConfigValidators());
+
+        validators.addAll(configValidators);
+        this.configValidators = validators;
     }
 
-    /**
-     * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the
-     * {@code apiPort}.
-     */
     @Override
     public void register(ServiceSpecification serviceSpecification) {
         this.serviceSpecification = serviceSpecification;
         this.stateStore = DefaultScheduler.createStateStore(serviceSpecification, zkConnectionString);
         DefaultScheduler defaultScheduler;
         try {
+            ConfigStore<ServiceSpecification> configStore = DefaultScheduler.createConfigStore(
+                    serviceSpecification, zkConnectionString, Collections.emptyList());
             defaultScheduler = DefaultScheduler.create(
                     serviceSpecification,
                     stateStore,
-                    DefaultScheduler.createConfigStore(
-                            serviceSpecification, zkConnectionString, Collections.emptyList()));
+                    configStore,
+                    configValidators,
+                    Optional.of(PERMANENT_FAILURE_DELAY_SEC),
+                    DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create DefaultScheduler", e);
             throw new IllegalStateException(e);
@@ -82,25 +68,22 @@ public class DefaultService implements Service {
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JettyApiServer apiServer = null;
+        new Thread(() -> {
+            JettyApiServer apiServer = null;
+            try {
+                LOGGER.info("Starting API server.");
+                apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
+                apiServer.start();
+            } catch (Exception e) {
+                LOGGER.error("API Server failed with exception: ", e);
+            } finally {
+                LOGGER.info("API Server exiting.");
                 try {
-                    LOGGER.info("Starting API server.");
-                    apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
+                    if (apiServer != null) {
+                        apiServer.stop();
                     }
+                } catch (Exception e) {
+                    LOGGER.error("Failed to stop API server with exception: ", e);
                 }
             }
         }).start();
