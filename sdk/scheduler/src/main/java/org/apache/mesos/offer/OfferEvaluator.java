@@ -20,6 +20,8 @@ import com.google.inject.Inject;
 import com.google.protobuf.TextFormat;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The OfferEvaluator processes {@link Offer}s and produces {@link OfferRecommendation}s.
@@ -128,6 +130,7 @@ public class OfferEvaluator {
                 fulfilledExecutorRequirementOptional = FulfilledRequirement.fulfillRequirement(
                         execReq.getResourceRequirements(),
                         execReq.getDynamicPortRequirements(),
+                        execReq.getNamedVIPPortRequirements(),
                         offer,
                         pool);
 
@@ -162,6 +165,7 @@ public class OfferEvaluator {
                     FulfilledRequirement.fulfillRequirement(
                             taskReq.getResourceRequirements(),
                             taskReq.getDynamicPortRequirements(),
+                            taskReq.getNamedVIPPortRequirements(),
                             offer,
                             pool);
 
@@ -217,6 +221,7 @@ public class OfferEvaluator {
         public static Optional<FulfilledRequirement> fulfillRequirement(
                 Collection<ResourceRequirement> resourceRequirements,
                 Collection<DynamicPortRequirement> dynamicPortRequirements,
+                Collection<NamedVIPPortRequirement> namedVIPPortRequirements,
                 Offer offer,
                 MesosResourcePool pool) {
 
@@ -225,7 +230,11 @@ public class OfferEvaluator {
             List<OfferRecommendation> reserveRecommendations = new ArrayList<>();
             List<OfferRecommendation> createRecommendations = new ArrayList<>();
 
-            for (ResourceRequirement resReq : resourceRequirements) {
+            // Regular resources and named VIP ports behave the same as far as resource consumption is concerned,
+            // so handle them together.
+            Collection<ResourceRequirement> resourceAndVIPPortRequirements = Stream.concat(
+                    resourceRequirements.stream(), namedVIPPortRequirements.stream()).collect(Collectors.toList());
+            for (ResourceRequirement resReq : resourceAndVIPPortRequirements) {
                 Optional<MesosResource> mesResOptional = pool.consume(resReq);
                 if (!mesResOptional.isPresent()) {
                     logger.warn("Failed to satisfy resource requirement: {}",
@@ -442,12 +451,15 @@ public class OfferEvaluator {
                     .clearResources()
                     .addAllResources(selectedResources);
             execBuilder = ResourceUtils.updateEnvironment(execBuilder, selectedResources);
+            execBuilder = ResourceUtils.setDiscoveryInfo(execBuilder, selectedResources);
             taskBuilder.setExecutor(execBuilder);
         }
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
         taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
+
+        taskBuilder = ResourceUtils.setDiscoveryInfo(taskBuilder, fulfilledTaskResources);
 
         return TaskUtils.packTaskInfo(
                 ResourceUtils.updateEnvironment(taskBuilder, fulfilledTaskResources).build());
