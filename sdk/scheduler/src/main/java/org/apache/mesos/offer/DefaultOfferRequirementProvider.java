@@ -34,8 +34,21 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getNewOfferRequirement(PodInstance podInstance) throws InvalidRequirementException {
+    public OfferRequirement getNewOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
+            throws InvalidRequirementException {
+
         List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance);
+
+        List<Protos.TaskInfo> suppressedTaskInfos = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            if (!tasksToLaunch.contains(taskInfo.getName())) {
+                LOGGER.info("Suppressing launch of: {}", taskInfo.getName());
+                suppressedTaskInfos.add(TaskUtils.setTransient(taskInfo));
+            } else {
+                suppressedTaskInfos.add(taskInfo);
+            }
+        }
+
         Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
@@ -53,7 +66,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance) throws InvalidRequirementException {
+    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
+            throws InvalidRequirementException {
+
         List<TaskSpec> taskSpecs = podInstance.getPod().getTasks();
         Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
 

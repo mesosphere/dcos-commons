@@ -6,8 +6,10 @@ import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.specification.PodInstance;
 import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.TaskSpec;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class generates Phases given PhaseSpecifications.
@@ -45,8 +47,14 @@ public class DefaultPhaseFactory implements PhaseFactory {
         List<Step> steps = new ArrayList<>();
         for (int i = 0; i < podSpec.getCount(); i++) {
             PodInstance podInstance = new DefaultPodInstance(podSpec, i);
+
+            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .collect(Collectors.toList());
+
             try {
-                steps.add(stepFactory.getStep(podInstance));
+                steps.add(stepFactory.getStep(podInstance, tasksToLaunch));
             } catch (Step.InvalidStepException | InvalidRequirementException e) {
                 steps.add(new DefaultStep(
                         PodInstance.getName(podSpec, i),

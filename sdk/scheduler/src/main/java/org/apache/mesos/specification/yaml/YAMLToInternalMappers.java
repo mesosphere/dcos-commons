@@ -3,6 +3,7 @@ package org.apache.mesos.specification.yaml;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.scheduler.plan.*;
@@ -82,10 +83,16 @@ public class YAMLToInternalMappers {
         final List<Step> steps = new LinkedList<>();
         for (int i = 0; i < count; i++) {
             final DefaultPodInstance podInstance = new DefaultPodInstance(podSpec, i);
+
+            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .collect(Collectors.toList());
+
             try {
                 steps.add(new DefaultStepFactory(configStore, stateStore, offerRequirementProvider)
-                        .getStep(podInstance));
-            } catch (Step.InvalidStepException e) {
+                        .getStep(podInstance, tasksToLaunch));
+            } catch (Step.InvalidStepException | InvalidRequirementException e) {
                 // TODO(mohit): Re-Throw and capture as plan error.
             }
         }

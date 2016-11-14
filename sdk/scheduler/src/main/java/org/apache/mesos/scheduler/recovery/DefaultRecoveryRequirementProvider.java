@@ -8,12 +8,16 @@ import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.scheduler.plan.DefaultPodInstance;
-import org.apache.mesos.specification.*;
+import org.apache.mesos.specification.PodInstance;
+import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.ServiceSpec;
+import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the RecoveryRequirementProvider interface.
@@ -44,12 +48,17 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         for (Map.Entry<PodInstance, List<Protos.TaskInfo>> podEntry : podMap.entrySet()) {
             PodInstance podInstance = podEntry.getKey();
 
+            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .collect(Collectors.toList());
+
             // Note: We intentionally remove any placement rules when performing transient recovery.
             // We aren't interested in honoring placement rules, past or future. We just want to
             // get the task back up and running where it was before.
             transientRecoveryRequirements.add(
                     new DefaultRecoveryRequirement(
-                            offerRequirementProvider.getExistingOfferRequirement(podInstance),
+                            offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch),
                             RecoveryRequirement.RecoveryType.TRANSIENT));
         }
 
@@ -64,9 +73,14 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         Map<PodInstance, List<Protos.TaskInfo>> podMap = getPodMap(failedTasks);
 
         for (PodInstance podInstance : podMap.keySet()) {
+            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .collect(Collectors.toList());
+
             permanentRecoveryRequirements.add(
                     new DefaultRecoveryRequirement(
-                            offerRequirementProvider.getNewOfferRequirement(podInstance),
+                            offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch),
                             RecoveryRequirement.RecoveryType.PERMANENT));
         }
 

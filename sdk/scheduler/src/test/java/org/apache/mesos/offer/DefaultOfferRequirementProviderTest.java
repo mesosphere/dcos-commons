@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
 
@@ -150,7 +151,12 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testNewOfferRequirement() throws InvalidRequirementException {
-        OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(podInstance);
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+
+        OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
@@ -164,12 +170,17 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testExistingOfferRequirement() throws InvalidRequirementException {
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
         String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
         when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(podInstance);
+                PROVIDER.getExistingOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
     }
 

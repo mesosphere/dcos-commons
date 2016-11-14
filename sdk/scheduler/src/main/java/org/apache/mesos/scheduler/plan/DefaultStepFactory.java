@@ -38,9 +38,8 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     @Override
-    public Step getStep(PodInstance podInstance) throws Step.InvalidStepException {
+    public Step getStep(PodInstance podInstance, List<String> tasksToLaunch) throws Step.InvalidStepException, InvalidRequirementException {
         LOGGER.info("Generating step for pod: {}", podInstance.getName());
-
 
         List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
@@ -48,12 +47,13 @@ public class DefaultStepFactory implements StepFactory {
                 .map(taskInfoOptional -> taskInfoOptional.get())
                 .collect(Collectors.toList());
 
+
         try {
             if (taskInfos.isEmpty()) {
                 LOGGER.info("Generating new step for: {}", podInstance.getName());
                 return new DefaultStep(
                         podInstance.getName(),
-                        Optional.of(offerRequirementProvider.getNewOfferRequirement(podInstance)),
+                        Optional.of(offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch)),
                         Status.PENDING,
                         Collections.emptyList());
             } else {
@@ -64,7 +64,7 @@ public class DefaultStepFactory implements StepFactory {
                 LOGGER.info("Generating existing step for: {} with status: {}", podInstance.getName(), status);
                 return new DefaultStep(
                         podInstance.getName(),
-                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(podInstance)),
+                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch)),
                         status,
                         Collections.emptyList());
             }
