@@ -52,7 +52,7 @@ public class ElasticService implements Service {
         try {
             ConfigStore<ServiceSpecification> configStore = DefaultScheduler.createConfigStore(
                     serviceSpecification, zkConnectionString, Collections.emptyList());
-            defaultScheduler = DefaultScheduler.create(
+            defaultScheduler = ElasticScheduler.create(
                     serviceSpecification,
                     stateStore,
                     configStore,
@@ -60,14 +60,14 @@ public class ElasticService implements Service {
                     Optional.of(PERMANENT_FAILURE_DELAY_SEC),
                     DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
         } catch (ConfigStoreException e) {
-            LOGGER.error("Unable to create DefaultScheduler", e);
+            LOGGER.error("Unable to create ElasticScheduler", e);
             throw new IllegalStateException(e);
         }
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
 
-    private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
+    private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
         new Thread(() -> {
             JettyApiServer apiServer = null;
             try {
@@ -89,7 +89,7 @@ public class ElasticService implements Service {
         }).start();
     }
 
-    private static void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
+    private void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
         LOGGER.info("Registering framework: {}", frameworkInfo);
         SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
         driver.run();
