@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class ElasticService implements Service {
+class ElasticService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     private static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     private static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
@@ -32,9 +32,9 @@ public class ElasticService implements Service {
     private StateStore stateStore;
     private ServiceSpecification serviceSpecification;
 
-    public ElasticService(int apiPort,
-                          String zkConnectionString,
-                          Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
+    ElasticService(int apiPort,
+                   String zkConnectionString,
+                   Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
         this.apiPort = apiPort;
         this.zkConnectionString = zkConnectionString;
         List<ConfigurationValidator<ServiceSpecification>> validators =
@@ -46,25 +46,27 @@ public class ElasticService implements Service {
 
     @Override
     public void register(ServiceSpecification serviceSpecification) {
+        LOGGER.info("Registering ElasticService ServiceSpecification...");
+
         this.serviceSpecification = serviceSpecification;
         this.stateStore = DefaultScheduler.createStateStore(serviceSpecification, zkConnectionString);
-        DefaultScheduler defaultScheduler;
+        ElasticScheduler elasticScheduler;
         try {
             ConfigStore<ServiceSpecification> configStore = DefaultScheduler.createConfigStore(
                     serviceSpecification, zkConnectionString, Collections.emptyList());
-            defaultScheduler = ElasticScheduler.create(
+            elasticScheduler = new ElasticScheduler(
                     serviceSpecification,
                     stateStore,
                     configStore,
                     configValidators,
-                    Optional.of(PERMANENT_FAILURE_DELAY_SEC),
+                PERMANENT_FAILURE_DELAY_SEC,
                     DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create ElasticScheduler", e);
             throw new IllegalStateException(e);
         }
-        startApiServer(defaultScheduler, apiPort);
-        registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
+        startApiServer(elasticScheduler, apiPort);
+        registerFramework(elasticScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
 
     private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
