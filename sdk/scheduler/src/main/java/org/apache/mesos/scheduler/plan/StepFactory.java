@@ -3,7 +3,6 @@ package org.apache.mesos.scheduler.plan;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.specification.PodInstance;
-import org.apache.mesos.specification.TaskSpecification;
 
 import java.util.List;
 

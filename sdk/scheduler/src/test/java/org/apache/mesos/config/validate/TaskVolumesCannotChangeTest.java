@@ -20,7 +20,6 @@ public class TaskVolumesCannotChangeTest {
 
     @Mock private PodSpec mockPodSpec1;
     @Mock private PodSpec mockPodSpec2;
-    @Mock private TaskSpecification mockTaskSpec3;
 
     @Before
     public void beforeEach() {

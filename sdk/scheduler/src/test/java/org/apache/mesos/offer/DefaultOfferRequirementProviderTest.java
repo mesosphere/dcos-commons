@@ -39,7 +39,6 @@ public class DefaultOfferRequirementProviderTest {
     private static DefaultOfferRequirementProvider PROVIDER;
     private EnvironmentVariables environmentVariables;
 
-    @Mock private TaskSpecification mockTaskSpecification;
     @Mock private StateStore stateStore;
 
     @Mock private PodSpec podSpec;
@@ -182,22 +181,6 @@ public class DefaultOfferRequirementProviderTest {
         OfferRequirement offerRequirement =
                 PROVIDER.getExistingOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
-    }
-
-    private TaskSpecification setupMock(Protos.TaskInfo taskInfo) {
-        return setupMock(taskInfo, Optional.empty());
-    }
-
-    private TaskSpecification setupMock(Protos.TaskInfo taskInfo, Optional<PlacementRule> placement) {
-        when(mockTaskSpecification.getName()).thenReturn(taskInfo.getName());
-        when(mockTaskSpecification.getCommand()).thenReturn(Optional.of(taskInfo.getCommand()));
-        when(mockTaskSpecification.getContainer()).thenReturn(Optional.of(taskInfo.getContainer()));
-        when(mockTaskSpecification.getHealthCheck()).thenReturn(Optional.empty());
-        when(mockTaskSpecification.getResources()).thenReturn(getResources(taskInfo));
-        when(mockTaskSpecification.getVolumes()).thenReturn(getVolumes(taskInfo));
-        when(mockTaskSpecification.getConfigFiles()).thenReturn(Collections.emptyList());
-        when(mockTaskSpecification.getPlacement()).thenReturn(placement);
-        return mockTaskSpecification;
     }
 
     private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {

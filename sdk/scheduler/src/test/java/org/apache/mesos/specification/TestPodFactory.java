@@ -1,7 +1,6 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.testutils.TestConstants;
 
 import java.util.*;
@@ -10,56 +9,10 @@ import java.util.*;
  * This class provides TaskTypeSpecifications for testing purposes.
  */
 public class TestPodFactory {
-    public static final int COUNT = 1;
     public static final double CPU = 1.0;
     public static final double MEM = 1000.0;
     public static final double DISK = 2000.0;
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
-
-    public static TaskSet getTaskSet() {
-        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU, MEM, DISK);
-    }
-
-    public static TaskSet getUpdateTaskSet() {
-        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU + 1.0, MEM, DISK);
-    }
-
-    public static TaskSet getTaskSet(
-            Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRule> placement) {
-        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU, MEM, DISK, configs, placement);
-    }
-
-    public static TaskSet getTaskSet(
-            String name,
-            Integer count,
-            String cmd,
-            double cpu,
-            double mem,
-            double disk) {
-        return getTaskSet(name, count, cmd, cpu, mem, disk, Collections.emptyList(), Optional.empty());
-    }
-
-    public static TaskSet getTaskSet(
-            String name,
-            Integer count,
-            String cmd,
-            double cpu,
-            double mem,
-            double disk,
-            Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRule> placement) {
-
-        return DefaultTaskSet.create(
-                count,
-                name,
-                getCommand(cmd),
-                getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
-                configs,
-                placement,
-                Optional.empty());
-    }
 
     public static TaskSpec getTaskSpec() {
         return getTaskSpec(
@@ -101,34 +54,6 @@ public class TestPodFactory {
                 .build();
     }
 
-    public static PodSpec getPodSpec(String type, List<String> taskNames, String cmd, int count, double cpu, double mem, double disk) {
-        PodSpec podSpec = DefaultPodSpec.newBuilder()
-                .type(type)
-                .count(count)
-                .resources(Arrays.asList(getResourceSet(cpu, mem, disk)))
-                .build();
-
-        List<TaskSpec> taskSpecs = new ArrayList<>();
-        for (String taskName : taskNames) {
-            taskSpecs.add(
-                    DefaultTaskSpec.newBuilder()
-                    .name(taskName)
-                    .goalState(TaskSpec.GoalState.RUNNING)
-                    .resourceSet(getResourceSet(cpu, mem, disk))
-                    .commandSpec(DefaultCommandSpec.newBuilder()
-                            .value(cmd)
-                            .uris(Collections.emptyList())
-                            .build())
-                    .configFiles(Collections.emptyList())
-                    .build()
-            );
-        }
-
-        return DefaultPodSpec.newBuilder((DefaultPodSpec) podSpec)
-                .tasks(taskSpecs)
-                .build();
-    }
-
     public static TaskSpec getTaskSpec(
             String name,
             String cmd,
@@ -138,12 +63,6 @@ public class TestPodFactory {
         return getPodSpec(TestConstants.POD_TYPE, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
     }
 
-
-    private static Protos.CommandInfo getCommand(String cmd) {
-        return Protos.CommandInfo.newBuilder()
-                .setValue(cmd)
-                .build();
-    }
 
     static Collection<ResourceSpecification> getResources(
             double cpu,

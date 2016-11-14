@@ -1,14 +1,12 @@
 package org.apache.mesos.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.mesos.specification.DefaultTaskSet;
-import org.apache.mesos.specification.TaskSet;
+import com.google.common.collect.ImmutableMap;
+import org.apache.mesos.specification.DefaultPodSpec;
+import org.apache.mesos.specification.PodSpec;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -18,10 +16,10 @@ import static org.junit.Assert.assertTrue;
  */
 public class DefaultTaskConfigRouterTest {
 
-    private static final TaskSet TASK_SET_A = DefaultTaskSet.create("a", new ArrayList<>());
-    private static final TaskSet TASK_SET_B = DefaultTaskSet.create("b", new ArrayList<>());
-    private static final TaskSet TASK_SET_C = DefaultTaskSet.create("c", new ArrayList<>());
-    private static final TaskSet TASK_SET_D = DefaultTaskSet.create("d", new ArrayList<>());
+    private static final PodSpec TASK_SET_A = DefaultPodSpec.newBuilder().type("a").build();
+    private static final PodSpec TASK_SET_B = DefaultPodSpec.newBuilder().type("b").build();
+    private static final PodSpec TASK_SET_C = DefaultPodSpec.newBuilder().type("c").build();
+    private static final PodSpec TASK_SET_D = DefaultPodSpec.newBuilder().type("d").build();
 
     private static final Map<String, String> TEST_MAP = new HashMap<>();
     static {

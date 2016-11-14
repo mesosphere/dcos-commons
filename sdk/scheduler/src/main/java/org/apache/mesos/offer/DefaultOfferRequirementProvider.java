@@ -232,42 +232,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return updatedResources;
     }
 
-
-    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpecification taskSpecification) {
-        Collection<Protos.Resource> resources = new ArrayList<>();
-
-        for (ResourceSpecification resourceSpecification : taskSpecification.getResources()) {
-            resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
-        }
-
-        if (taskSpecification.getVolumes().size() > 0) {
-            for (VolumeSpecification volumeSpecification : taskSpecification.getVolumes()) {
-                switch (volumeSpecification.getType()) {
-                    case ROOT:
-                        resources.add(
-                                ResourceUtils.getDesiredRootVolume(
-                                        volumeSpecification.getRole(),
-                                        volumeSpecification.getPrincipal(),
-                                        volumeSpecification.getValue().getScalar().getValue(),
-                                        volumeSpecification.getContainerPath()));
-                        break;
-                    case MOUNT:
-                        resources.add(
-                                ResourceUtils.getDesiredMountVolume(
-                                        volumeSpecification.getRole(),
-                                        volumeSpecification.getPrincipal(),
-                                        volumeSpecification.getValue().getScalar().getValue(),
-                                        volumeSpecification.getContainerPath()));
-                        break;
-                    default:
-                        LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
-                }
-            }
-        }
-
-        return resources;
-    }
-
     private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec)
             throws InvalidRequirementException {
         ResourceSet resourceSet = taskSpec.getResourceSet();
@@ -327,47 +291,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return volumes;
     }
 
-    /**
-     * Creates an {@link org.apache.mesos.Protos.ExecutorInfo} that drives
-     * the {@link org.apache.mesos.executor.CustomExecutor}.
-     * @param taskSpecification The {@link TaskSpecification} used to setup relevant environment for the executor.
-     * @return The {@link org.apache.mesos.Protos.ExecutorInfo} to run
-     * the {@link org.apache.mesos.executor.CustomExecutor}
-     * @throws IllegalStateException
-     */
-    private Protos.ExecutorInfo getNewExecutorInfo(TaskSpecification taskSpecification) throws IllegalStateException {
-
-        Protos.CommandInfo.URI executorURI;
-        Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
-                .setName(taskSpecification.getName())
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-
-        String executorStr = System.getenv(EXECUTOR_URI);
-        if (executorStr == null) {
-            throw new IllegalStateException("Missing environment variable: " + EXECUTOR_URI);
-        }
-        executorURI = TaskUtils.uri(executorStr);
-
-        Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
-                .setValue("./executor/bin/executor")
-                .addUris(executorURI);
-
-        if (taskSpecification.getCommand().isPresent()) {
-            Protos.CommandInfo taskCommand = taskSpecification.getCommand().get();
-            commandInfoBuilder.addAllUris(taskCommand.getUrisList());
-
-            if (taskCommand.hasUser()) {
-                commandInfoBuilder.setUser(taskCommand.getUser());
-            }
-        }
-
-        // some version of the JRE is required to kickstart the executor
-        setJREVersion(commandInfoBuilder, taskSpecification);
-
-        executorInfoBuilder.setCommand(commandInfoBuilder.build());
-        return executorInfoBuilder.build();
-    }
-
     private Protos.ExecutorInfo.Builder getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
         Protos.CommandInfo.URI executorURI;
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
@@ -396,32 +319,4 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         executorInfoBuilder.setCommand(commandInfoBuilder.build());
         return executorInfoBuilder;
     }
-
-    /**
-     * Determines the version of the JRE to use for the custom executor.
-     * @param taskSpecification If a specific JRE is specified, it would be included in
-     * the env vars of this given {@link TaskSpecification}.
-     * @return The string containing the value of the env var indicating where the JRE lives
-     */
-    private void setJREVersion(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpecification taskSpecification) {
-
-        if (taskSpecification.getCommand().isPresent()) {
-            Protos.Environment.Variable.Builder javaHomeVariable =
-                    Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
-
-            Map<String, String> environment =
-                    TaskUtils.fromEnvironmentToMap(taskSpecification.getCommand().get().getEnvironment());
-            if (environment.containsKey(JAVA_HOME)) {
-                javaHomeVariable.setValue(environment.get(JAVA_HOME));
-            } else {
-                javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
-                commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
-            }
-
-            Protos.Environment.Builder environmentBuilder = Protos.Environment.newBuilder()
-                    .addVariables(javaHomeVariable);
-            commandInfoBuilder.setEnvironment(environmentBuilder);
-        }
-    }
-
 }
