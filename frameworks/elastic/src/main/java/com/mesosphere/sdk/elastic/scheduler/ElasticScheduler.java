@@ -3,10 +3,7 @@ package com.mesosphere.sdk.elastic.scheduler;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.scheduler.DefaultScheduler;
-import org.apache.mesos.scheduler.plan.DefaultPhaseFactory;
-import org.apache.mesos.scheduler.plan.DefaultPlanFactory;
-import org.apache.mesos.scheduler.plan.DefaultPlanManager;
-import org.apache.mesos.scheduler.plan.DefaultStepFactory;
+import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.specification.ServiceSpecification;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
@@ -25,13 +22,15 @@ public class ElasticScheduler extends DefaultScheduler {
     @Override
     protected void initializeDeploymentPlanManager() {
         LOGGER.info("Initializing Elastic deployment plan...");
-        deploymentPlanManager = new DefaultPlanManager(
-                new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
-                        configStore,
-                        stateStore,
-                        offerRequirementProvider,
-                        taskSpecificationProvider)))
-                        .getPlan(serviceSpecification));
+        DefaultStepFactory stepFactory = new DefaultStepFactory(
+                configStore,
+                stateStore,
+                offerRequirementProvider,
+                taskSpecificationProvider);
+        DefaultPhaseFactory phaseFactory = new DefaultPhaseFactory(stepFactory);
+        DefaultPlanFactory defaultPlanFactory = new DefaultPlanFactory(phaseFactory);
+        Plan plan = defaultPlanFactory.getPlan(serviceSpecification);
+        deploymentPlanManager = new DefaultPlanManager(plan);
     }
 
 }
