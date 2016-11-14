@@ -109,9 +109,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
 
         if (taskSpec.getCommand().isPresent()) {
-            Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getType())
+            final CommandSpec commandSpec = taskSpec.getCommand().get();
+            final Protos.Environment environment = TaskUtils.fromMapToEnvironment(commandSpec.getEnvironment());
+            final Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getType())
                     .updateEnvironment(Protos.CommandInfo.newBuilder()
-                            .setValue(taskSpec.getCommand().get().getValue()).build());
+                            .setValue(commandSpec.getValue())
+                            .setEnvironment(environment)
+                            .build());
             taskInfoBuilder.setCommand(updatedCommand);
         }
 
@@ -120,7 +124,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         if (taskSpec.getHealthCheck().isPresent()) {
-            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
+            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec));
         }
 
         return taskInfoBuilder.build();
@@ -162,7 +166,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         if (taskSpec.getHealthCheck().isPresent()) {
-            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec.getHealthCheck().get()));
+            taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec));
         }
 
         return new TaskRequirement(taskInfoBuilder.build());
@@ -372,6 +376,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.Environment.Variable.Builder javaHomeVariable =
                 Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
         javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
+
+        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder()
+                .addVariables(javaHomeVariable);
+        commandInfoBuilder.setEnvironment(envBuilder);
         commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
 
         if (podSpec.getUser().isPresent()) {

@@ -1,5 +1,11 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import java.time.Duration;
 
 /**
@@ -13,6 +19,24 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     private Duration interval;
     private Duration timeout;
     private Duration gracePeriod;
+
+    @JsonCreator
+    public DefaultHealthCheckSpec(
+            @JsonProperty("name") String name,
+            @JsonProperty("command") String command,
+            @JsonProperty("max_consecutive_failures") Integer maxConsecutiveFailures,
+            @JsonProperty("delay") Duration delay,
+            @JsonProperty("interval") Duration interval,
+            @JsonProperty("timeout") Duration timeout,
+            @JsonProperty("grace_period") Duration gracePeriod) {
+        this.name = name;
+        this.command = command;
+        this.maxConsecutiveFailures = maxConsecutiveFailures;
+        this.delay = delay;
+        this.interval = interval;
+        this.timeout = timeout;
+        this.gracePeriod = gracePeriod;
+    }
 
     private DefaultHealthCheckSpec(Builder builder) {
         name = builder.name;
@@ -51,6 +75,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     }
 
     @Override
+    @JsonProperty("max_consecutive_failures")
     public Integer getMaxConsecutiveFailures() {
         return maxConsecutiveFailures;
     }
@@ -75,6 +100,20 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         return gracePeriod;
     }
 
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
 
     /**
      * {@code DefaultHealthCheckSpec} builder static inner class.

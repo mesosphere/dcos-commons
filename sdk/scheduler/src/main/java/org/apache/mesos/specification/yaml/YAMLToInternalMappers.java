@@ -1,5 +1,6 @@
 package org.apache.mesos.specification.yaml;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.config.ConfigStore;
@@ -22,8 +23,9 @@ import java.util.stream.Collectors;
  */
 public class YAMLToInternalMappers {
     private static final Collection<String> SCALARS = Arrays.asList("cpus", "mem");
+    private static final String API_PORT_ENV = System.getenv("PORT0");
 
-    public static ServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
+    public static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
         final String role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
         final String principal = rawSvcSpec.getPrincipal();
 
@@ -35,9 +37,18 @@ public class YAMLToInternalMappers {
             pods.add(from(rawPod, role, principal));
         }
 
+        Integer apiPort = rawSvcSpec.getApiPort();
+        if (apiPort == null) {
+            if (API_PORT_ENV != null) {
+                apiPort = Integer.parseInt(API_PORT_ENV);
+            } else {
+                throw new RuntimeException("No API Port or PORT0 configured");
+            }
+        }
+
         return DefaultServiceSpec.Builder.newBuilder()
                 .name(rawSvcSpec.getName())
-                .apiPort(rawSvcSpec.getApiPort())
+                .apiPort(apiPort)
                 .principal(principal)
                 .zookeeperConnection(rawSvcSpec.getZookeeper())
                 .pods(pods)
@@ -87,6 +98,7 @@ public class YAMLToInternalMappers {
                         .getStep(podInstance));
             } catch (Step.InvalidStepException e) {
                 // TODO(mohit): Re-Throw and capture as plan error.
+                throw new RuntimeException(e);
             }
         }
 
@@ -112,17 +124,35 @@ public class YAMLToInternalMappers {
 
     public static PodSpec from(RawPod rawPod, String role, String principal) throws Exception {
         List<TaskSpec> taskSpecs = new ArrayList<>();
+        String podName = rawPod.getName();
+        Integer podInstanceCount = rawPod.getCount();
+        String placement = rawPod.getPlacement();
+        Collection<RawResourceSet> rawResourceSets = rawPod.getResourceSets();
+        String strategy = rawPod.getStrategy();
+        String user = rawPod.getUser();
+        LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
+
+//        if (CollectionUtils.isEmpty(rawResourceSets)) {
+//
+//        }
+
+        Collection<ResourceSet> resourceSets =
+                rawResourceSets.stream()
+                        .map(rawResourceSet -> from(rawResourceSet, role, principal))
+                        .collect(Collectors.toList());
 
         final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
-                .count(rawPod.getCount())
+                .count(podInstanceCount)
                 .placementRule(null /** TODO(mohit) */)
                 .tasks(taskSpecs)
-                .type(rawPod.getName())
-                .user(rawPod.getUser())
+                .type(podName)
+                .user(user)
+                .resources(resourceSets)
                 .build();
 
-        final LinkedHashMap<String, RawTask> rawTasks = rawPod.getTasks();
+        final LinkedHashMap<String, RawTask> rawTasks = tasks;
         for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
+            entry.getValue().setName(entry.getKey());
             taskSpecs.add(from(entry.getValue(), podSpec));
         }
 
@@ -137,10 +167,11 @@ public class YAMLToInternalMappers {
         Protos.Value resourceValue = null;
         if (SCALARS.contains(name)) {
             resourceValue = Protos.Value.newBuilder()
+                    .setType(Protos.Value.Type.SCALAR)
                     .setScalar(Protos.Value.Scalar.newBuilder().setValue(Double.parseDouble(value)))
                     .build();
-        } else if ("disk".equalsIgnoreCase(name)) {
-            // TODO(mohit): Throw error
+//        } else if ("disk".equalsIgnoreCase(name)) {
+//            // TODO(mohit): Throw error
         }
 
         return new DefaultResourceSpecification(name, resourceValue, role, principal, envKey);
@@ -175,25 +206,29 @@ public class YAMLToInternalMappers {
             uris.add(new URI(uriStr));
         }
 
-        final DefaultCommandSpec commandSpec = DefaultCommandSpec.newBuilder()
+        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder();
+        if (podSpec.getUser().isPresent()) {
+            commandSpecBuilder.user(podSpec.getUser().get());
+        }
+        final DefaultCommandSpec commandSpec = commandSpecBuilder
                 .environment(rawTask.getEnv())
                 .uris(uris)
-                .user(podSpec.getUser().get())
                 .value(rawTask.getCmd())
                 .build();
 
         List<ConfigFileSpecification> configFiles = new LinkedList<>();
-        Collection<RawConfiguration> rawConfigurations = rawTask.getConfigurations() == null ? Collections.emptyList() : rawTask.getConfigurations();
+        Collection<RawConfiguration> rawConfigurations =
+                rawTask.getConfigurations() == null ? Collections.emptyList() : rawTask.getConfigurations();
         for (RawConfiguration rawConfig : rawConfigurations) {
             configFiles.add(from(rawConfig));
         }
 
         HealthCheckSpec healthCheckSpec = null;
         final LinkedHashMap<String, RawHealthCheck> healthChecks = rawTask.getHealthChecks();
-        for (Map.Entry<String, RawHealthCheck> entry : healthChecks.entrySet()) {
+
+        if (CollectionUtils.isNotEmpty(healthChecks.entrySet())) {
+            Map.Entry<String, RawHealthCheck> entry = healthChecks.entrySet().iterator().next();
             healthCheckSpec = from(entry.getValue(), entry.getKey());
-            // Only one entry. Sugar.
-            break;
         }
 
         return DefaultTaskSpec.newBuilder()

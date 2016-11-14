@@ -1,20 +1,41 @@
 package org.apache.mesos.offer;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.specification.CommandSpec;
 import org.apache.mesos.specification.HealthCheckSpec;
+import org.apache.mesos.specification.TaskSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Created by gabriel on 11/8/16.
+ * Utilities for HealthCheck.
  */
 public class HealthCheckUtils {
-    public static Protos.HealthCheck getHealthCheck(HealthCheckSpec healthCheckSpec) {
-        return Protos.HealthCheck.newBuilder()
+    private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckUtils.class);
+
+    public static Protos.HealthCheck getHealthCheck(TaskSpec taskSpec) {
+        if (!taskSpec.getHealthCheck().isPresent()) {
+            LOGGER.info("No health checks defined for taskSpec: {}", taskSpec.getName());
+            return null;
+        }
+
+        Protos.HealthCheck.Builder builder = Protos.HealthCheck.newBuilder();
+        Protos.CommandInfo.Builder commandBuilder = Protos.CommandInfo.newBuilder();
+
+        if (taskSpec.getCommand().isPresent()) {
+            CommandSpec commandSpec = taskSpec.getCommand().get();
+            Protos.Environment environment = TaskUtils.fromMapToEnvironment(commandSpec.getEnvironment());
+            commandBuilder.setEnvironment(environment);
+        }
+
+        HealthCheckSpec healthCheckSpec = taskSpec.getHealthCheck().get();
+        return builder
                 .setDelaySeconds(healthCheckSpec.getDelay().getSeconds())
                 .setIntervalSeconds(healthCheckSpec.getInterval().getSeconds())
                 .setTimeoutSeconds(healthCheckSpec.getTimeout().getSeconds())
                 .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
                 .setGracePeriodSeconds(healthCheckSpec.getGracePeriod().getSeconds())
-                .setCommand(Protos.CommandInfo.newBuilder().setValue(healthCheckSpec.getCommand()))
+                .setCommand(commandBuilder.setValue(healthCheckSpec.getCommand()))
                 .build();
     }
 }
