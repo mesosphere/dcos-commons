@@ -8,9 +8,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Splitter;
+
+import jersey.repackaged.com.google.common.collect.Lists;
 
 /**
  * Implements support for generating {@link PlacementRule}s from Marathon-style constraint strings.
@@ -18,6 +24,8 @@ import com.google.common.annotations.VisibleForTesting;
  * @see https://mesosphere.github.io/marathon/docs/constraints.html
  */
 public class MarathonConstraintParser {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MarathonConstraintParser.class);
 
     private static final String HOSTNAME_FIELD = "hostname";
     private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -28,6 +36,10 @@ public class MarathonConstraintParser {
         SUPPORTED_OPERATORS.put("LIKE", new LikeOperator());
         SUPPORTED_OPERATORS.put("UNLIKE", new UnlikeOperator());
         SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
+    }
+
+    private MarathonConstraintParser() {
+        // do not instantiate
     }
 
     /**
@@ -81,7 +93,9 @@ public class MarathonConstraintParser {
                     "(expected one of: UNIQUE, CLUSTER, GROUP_BY, LIKE, UNLIKE, or MAX_PER)",
                     operatorName, row));
         }
-        return operator.run(fieldName, operatorName, parameter);
+        PlacementRule rule = operator.run(fieldName, operatorName, parameter);
+        LOGGER.info("Marathon-style row '{}' resulted in placement rule: '{}'", row, rule);
+        return rule;
     }
 
     /**
@@ -98,17 +112,25 @@ public class MarathonConstraintParser {
         // Meanwhile the marathon web interface uses a format like: 'a:b:c,d:e'
         try {
             // First try: ["a", "b", "c"] (not technically correct but lets be lenient here)
-            return Arrays.asList(mapper.readValue(marathonConstraints, new TypeReference<List<String>>(){}));
-        } catch (IOException e1) {
+            List<String> row = mapper.readValue(marathonConstraints, new TypeReference<List<String>>(){});
+            LOGGER.debug("Flat list '{}' => single row: '{}'", marathonConstraints, row);
+            return Arrays.asList(row);
+        } catch (IOException | ClassCastException e1) {
             try {
                 // Then try: [["a", "b", "c"], ["d", "e"]]
-                return mapper.readValue(marathonConstraints, new TypeReference<List<List<String>>>(){});
-            } catch (IOException e2) {
+                List<List<String>> rows =
+                        mapper.readValue(marathonConstraints, new TypeReference<List<List<String>>>(){});
+                LOGGER.debug("Nested list '{}' => {} rows: '{}'", marathonConstraints, rows.size(), rows);
+                return rows;
+            } catch (IOException | ClassCastException e2) { // May throw ClassCastException as well as IOException
                 // Finally try: a:b:c,d:e
+                // Note: We use Guava's Splitter rather than String.split(regex) in order to correctly
+                // handle empty trailing fields like 'a:b:' => ['a', 'b', ''] (shouldn't come up but just in case).
                 List<List<String>> rows = new ArrayList<>();
-                for (String row : Arrays.asList(marathonConstraints.split(","))) {
-                    rows.add(Arrays.asList(row.split(":")));
+                for (String rowStr : Splitter.on(',').trimResults().split(marathonConstraints)) {
+                    rows.add(Lists.newArrayList(Splitter.on(':').trimResults().split(rowStr)));
                 }
+                LOGGER.debug("Comma/colon-separated '{}' => {} rows: '{}'", marathonConstraints, rows.size(), rows);
                 return rows;
             }
         }

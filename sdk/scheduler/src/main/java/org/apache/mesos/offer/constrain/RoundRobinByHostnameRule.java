@@ -91,32 +91,35 @@ public class RoundRobinByHostnameRule implements PlacementRule {
             hostnameCounts.put(taskHostname, (value == null) ? 1 : value + 1);
         }
 
-        int maxHostnameCount = 0;
-        int minHostnameCount = Integer.MAX_VALUE;
+        int maxKnownHostnameCount = 0;
+        int minKnownHostnameCount = Integer.MAX_VALUE;
         for (Integer count : hostnameCounts.values()) {
-            if (count > maxHostnameCount) {
-                maxHostnameCount = count;
+            if (count > maxKnownHostnameCount) {
+                maxKnownHostnameCount = count;
             }
-            if (count < minHostnameCount) {
-                minHostnameCount = count;
+            if (count < minKnownHostnameCount) {
+                minKnownHostnameCount = count;
             }
         }
-        if (minHostnameCount == Integer.MAX_VALUE) {
-            minHostnameCount = 0;
+        if (minKnownHostnameCount == Integer.MAX_VALUE) {
+            minKnownHostnameCount = 0;
         }
         Integer offerHostnameCount = hostnameCounts.get(offer.getHostname());
         if (offerHostnameCount == null) {
             offerHostnameCount = 0;
         }
+        LOGGER.info("Hostname counts: {}, knownMin: {}, knownMax: {}, offer: {}",
+                hostnameCounts, minKnownHostnameCount, maxKnownHostnameCount, offerHostnameCount);
 
-        if (minHostnameCount == maxHostnameCount || offerHostnameCount < maxHostnameCount) {
-            // all (known) nodes are full at the current level,
-            // or this offer's node is not full at the current level
+        if (minKnownHostnameCount == maxKnownHostnameCount
+                || offerHostnameCount <= minKnownHostnameCount) {
+            // all (known) nodes are full at the current level, or this offer is on a node which is
+            // at the smallest number of tasks (or below if we haven't expanded to this node yet)
             if (agentCountOptional.isPresent()
                     && hostnameCounts.size() < agentCountOptional.get()) {
                 // we know that there are other nodes out there which have nothing on them at all.
                 // only launch here if this node also has nothing on it.
-                if (maxHostnameCount == 0) {
+                if (offerHostnameCount == 0) {
                     return offer;
                 } else {
                     return offer.toBuilder().clearResources().build();

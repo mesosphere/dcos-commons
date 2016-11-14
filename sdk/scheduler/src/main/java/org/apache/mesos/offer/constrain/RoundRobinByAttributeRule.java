@@ -13,6 +13,8 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.AttributeStringUtils;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,6 +43,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *  parameter.
  */
 public class RoundRobinByAttributeRule implements PlacementRule {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RoundRobinByAttributeRule.class);
 
     private final String attributeName;
     private final Optional<Integer> attributeValueCountOptional;
@@ -71,7 +75,7 @@ public class RoundRobinByAttributeRule implements PlacementRule {
             return offer.toBuilder().clearResources().build();
         }
 
-        // search across tasks, keeping counts on a per-hostname basis.
+        // search across tasks, keeping value counts on a per-value basis.
         // attribute value (for selected attribute name) => # of instances on attribute value
         Map<String, Integer> attributeValueCounts = new HashMap<>();
         for (TaskInfo task : tasks) {
@@ -95,32 +99,35 @@ public class RoundRobinByAttributeRule implements PlacementRule {
             attributeValueCounts.put(taskAttributeValue, (value == null) ? 1 : value + 1);
         }
 
-        int maxValueCount = 0;
-        int minValueCount = Integer.MAX_VALUE;
+        int maxKnownValueCount = 0;
+        int minKnownValueCount = Integer.MAX_VALUE;
         for (Integer count : attributeValueCounts.values()) {
-            if (count > maxValueCount) {
-                maxValueCount = count;
+            if (count > maxKnownValueCount) {
+                maxKnownValueCount = count;
             }
-            if (count < minValueCount) {
-                minValueCount = count;
+            if (count < minKnownValueCount) {
+                minKnownValueCount = count;
             }
         }
-        if (minValueCount == Integer.MAX_VALUE) {
-            minValueCount = 0;
+        if (minKnownValueCount == Integer.MAX_VALUE) {
+            minKnownValueCount = 0;
         }
         Integer offerValueCount = attributeValueCounts.get(offerValue);
         if (offerValueCount == null) {
             offerValueCount = 0;
         }
+        LOGGER.info("Attribute counts: {}, knownMin: {}, knownMax: {}, offer: {}",
+                attributeValueCounts, minKnownValueCount, maxKnownValueCount, offerValueCount);
 
-        if (minValueCount == maxValueCount || offerValueCount < maxValueCount) {
-            // all (known) attribute values are full at the current level,
-            // or this offer's value is not full at the current level
+        if (minKnownValueCount == maxKnownValueCount
+                || offerValueCount <= minKnownValueCount) {
+            // all (known) attribute values are full at the current level, or this offer is on a value
+            // which is at the smallest number of tasks (or below if we haven't expanded to this value yet)
             if (attributeValueCountOptional.isPresent()
                     && attributeValueCounts.size() < attributeValueCountOptional.get()) {
                 // we know that there are other attribute values out there which have nothing on them at all.
                 // only launch here if this value also has nothing on it.
-                if (maxValueCount == 0) {
+                if (offerValueCount == 0) {
                     return offer;
                 } else {
                     return offer.toBuilder().clearResources().build();

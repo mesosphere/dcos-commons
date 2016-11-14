@@ -21,22 +21,23 @@ public class PlacementUtilsTest {
 
     @Test
     public void testGetAgentPlacementRule() {
-        Optional<PlacementRule> rule =PlacementUtils.getAgentPlacementRule(
+        Optional<PlacementRule> rule = PlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Collections.emptyList());
         assertFalse(rule.isPresent());
         rule = PlacementUtils.getAgentPlacementRule(
                 Arrays.asList("avoidme", "avoidme2"),
                 Collections.emptyList());
-        assertTrue(rule.get() instanceof NotRule);
+        assertEquals("NotRule{rule=OrRule{rules=[AgentRule{agentId=avoidme}, AgentRule{agentId=avoidme2}]}}", rule.get().toString());
         rule = PlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList("colocateme", "colocateme2"));
-        assertTrue(rule.get() instanceof OrRule);
+        assertEquals("OrRule{rules=[AgentRule{agentId=colocateme}, AgentRule{agentId=colocateme2}]}", rule.get().toString());
         rule = PlacementUtils.getAgentPlacementRule(
                 Arrays.asList("avoidme", "avoidme2"),
                 Arrays.asList("colocateme", "colocateme2"));
-        assertTrue(rule.get() instanceof AndRule);
+        assertEquals("AndRule{rules=[NotRule{rule=OrRule{rules=[AgentRule{agentId=avoidme}, AgentRule{agentId=avoidme2}]}}, " +
+                "OrRule{rules=[AgentRule{agentId=colocateme}, AgentRule{agentId=colocateme2}]}]}", rule.get().toString());
     }
 
     @Test
