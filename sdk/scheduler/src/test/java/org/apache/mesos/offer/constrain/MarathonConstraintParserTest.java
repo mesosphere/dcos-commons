@@ -183,13 +183,38 @@ public class MarathonConstraintParserTest {
     }
 
     @Test(expected = IOException.class)
-    public void testBadRequiredParamMaxPer() throws IOException {
+    public void testBadParamMaxPer() throws IOException {
         MarathonConstraintParser.parse("rack_id:MAX_PER:foo"); // expected int
     }
 
     @Test(expected = IOException.class)
-    public void testBadCommand() throws IOException {
+    public void testMissingParamCluster() throws IOException {
+        MarathonConstraintParser.parse("rack_id:CLUSTER"); // expected param
+    }
+
+    @Test(expected = IOException.class)
+    public void testMissingParamLike() throws IOException {
+        MarathonConstraintParser.parse("rack_id:LIKE"); // expected param
+    }
+
+    @Test(expected = IOException.class)
+    public void testMissingParamUnlike() throws IOException {
+        MarathonConstraintParser.parse("rack_id:UNLIKE"); // expected param
+    }
+
+    @Test(expected = IOException.class)
+    public void testMissingParamMaxPer() throws IOException {
+        MarathonConstraintParser.parse("rack_id:MAX_PER"); // expected param
+    }
+
+    @Test(expected = IOException.class)
+    public void testUnknownCommand() throws IOException {
         MarathonConstraintParser.parse("rack_id:FOO:foo");
+    }
+
+    @Test(expected = IOException.class)
+    public void testTooManyElemenents() throws IOException {
+        MarathonConstraintParser.parse("rack_id:LIKE:foo:bar");
     }
 
     // Avoid needing \"'s throughout json strings:
