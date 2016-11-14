@@ -209,11 +209,11 @@ class Elastic {
         final String cmd = elasticsearchCommand.getCommandLineInvocation(OfferUtils.idToName(nodeTypeName, nodeId),
             httpPort, transportPort, containerPath);
 
+        Map<String, String> environmentMap = new HashMap<>();
         // ES_JAVA_OPTS used by Elasticsearch to manage heap
-        Protos.Environment.Variable heapEnvVar = OfferUtils.createEnvironmentVariable("ES_JAVA_OPTS",
-            OfferUtils.elasticsearchHeapOpts(heapSize));
+        environmentMap.put("ES_JAVA_OPTS", OfferUtils.elasticsearchHeapOpts(heapSize));
         // FRAMEWORK_NAME env var needed by dns_utils/wait_dns.sh
-        Protos.Environment.Variable fwNameEnvVar = OfferUtils.createEnvironmentVariable("FRAMEWORK_NAME", SERVICE_NAME);
+        environmentMap.put("FRAMEWORK_NAME", SERVICE_NAME);
         return Protos.CommandInfo.newBuilder()
             .setValue(cmd)
             .setUser(FRAMEWORK_USER)
@@ -223,31 +223,25 @@ class Elastic {
             .addUris(TaskUtils.uri(XPACK_URI))
             .addUris(TaskUtils.uri(DIAGNOSTICS_URI))
             .addUris(TaskUtils.uri(STATSD_PLUGIN_URI))
-            .setEnvironment(Protos.Environment.newBuilder().addAllVariables(Arrays.asList(heapEnvVar, fwNameEnvVar)))
+            .setEnvironment(TaskUtils.fromMapToEnvironment(environmentMap))
             .build();
     }
 
     private Protos.CommandInfo createKibanaCommandInfo(int nodeId) {
         final String cmd = kibanaCommand.getCommandLineInvocation();
-//        TODO: fromMapToEnvironment
-        Protos.Environment.Variable esUrlEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_ELASTICSEARCH_URL",
-            String.format("http://master-0.%s.mesos:%d", SERVICE_NAME, masterNodeHttpPort));
-        Protos.Environment.Variable nodeNameEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_SERVER_NAME",
-            OfferUtils.idToName("kibana", nodeId));
-        Protos.Environment.Variable passwordEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_PASSWORD",
-            kibanaPassword);
-        Protos.Environment.Variable portEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_PORT",
-            Integer.toString(kibanaPort));
-        Protos.Environment.Variable keyEnvVar = OfferUtils.createEnvironmentVariable("KIBANA_ENCRYPTION_KEY",
-            FRAMEWORK_ID);
-        List<Protos.Environment.Variable> envVars = Arrays.asList(esUrlEnvVar, nodeNameEnvVar, passwordEnvVar,
-            portEnvVar, keyEnvVar);
+        Map<String, String> environmentMap = new HashMap<>();
+        String master = String.format("http://master-0.%s.mesos:%d", SERVICE_NAME, masterNodeHttpPort);
+        environmentMap.put("KIBANA_ELASTICSEARCH_URL", master);
+        environmentMap.put("KIBANA_SERVER_NAME", OfferUtils.idToName("kibana", nodeId));
+        environmentMap.put("KIBANA_PASSWORD", kibanaPassword);
+        environmentMap.put("KIBANA_PORT", Integer.toString(kibanaPort));
+        environmentMap.put("KIBANA_ENCRYPTION_KEY", FRAMEWORK_ID);
         return Protos.CommandInfo.newBuilder()
             .setValue(cmd)
             .setUser(FRAMEWORK_USER)
             .addUris(TaskUtils.uri(KIBANA_URI))
             .addUris(TaskUtils.uri(XPACK_URI))
-            .setEnvironment(Protos.Environment.newBuilder().addAllVariables(envVars))
+            .setEnvironment(TaskUtils.fromMapToEnvironment(environmentMap))
             .build();
     }
 
