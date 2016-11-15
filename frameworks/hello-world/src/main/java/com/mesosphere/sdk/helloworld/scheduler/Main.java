@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.hello_world.scheduler;
+package com.mesosphere.sdk.helloworld.scheduler;
 
 import org.apache.mesos.specification.DefaultService;
 

@@ -34,4 +34,4 @@ distributions {
     }
 }
 
-mainClassName = 'com.mesosphere.sdk.hello_world.scheduler.Main'
+mainClassName = 'com.mesosphere.sdk.helloworld.scheduler.Main'
