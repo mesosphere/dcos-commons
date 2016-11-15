@@ -10,7 +10,6 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
