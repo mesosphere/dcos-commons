@@ -1,0 +1,3 @@
+[console_scripts]
+dcos-data-store = bin_wrapper:main
+

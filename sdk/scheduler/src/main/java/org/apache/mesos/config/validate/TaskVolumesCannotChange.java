@@ -44,7 +44,7 @@ public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSp
         Map<String, TaskSpec> tasks = new HashMap<>();
         for (PodSpec podSpec : service.getPods()) {
             for (TaskSpec taskSpec : podSpec.getTasks()) {
-                TaskSpec priorTask = tasks.put(taskSpec.getName(), taskSpec);
+                TaskSpec priorTask = tasks.put(podSpec.getType() + "-" + taskSpec.getName(), taskSpec);
                 if (priorTask != null) {
                     errors.add(ConfigurationValidationError.valueError(
                             "TaskSpecifications", taskSpec.getName(),
