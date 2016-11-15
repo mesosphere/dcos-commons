@@ -4,6 +4,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.testutils.TestConstants;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -15,12 +16,25 @@ public class TestPodFactory {
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
 
     public static TaskSpec getTaskSpec() {
+        return getTaskSpec(TestConstants.TASK_NAME);
+    }
+
+    public static TaskSpec getTaskSpec(String name) {
         return getTaskSpec(
-                TestConstants.TASK_NAME,
+                name,
                 CMD.getValue(),
                 CPU,
                 MEM,
                 DISK);
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            double cpu,
+            double mem,
+            double disk) {
+        return getPodSpec(TestConstants.POD_TYPE, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
     }
 
     public static ResourceSet getResourceSet(double cpu, double mem, double disk) {
@@ -54,14 +68,19 @@ public class TestPodFactory {
                 .build();
     }
 
-    public static TaskSpec getTaskSpec(
-            String name,
-            String cmd,
-            double cpu,
-            double mem,
-            double disk) {
-        return getPodSpec(TestConstants.POD_TYPE, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
+    public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
+        List<ResourceSet> resourceSets = taskSpecs.stream()
+                .map(taskSpec -> taskSpec.getResourceSet())
+                .collect(Collectors.toList());
+
+        return DefaultPodSpec.newBuilder()
+                .type(type)
+                .count(count)
+                .resources(resourceSets)
+                .tasks(taskSpecs)
+                .build();
     }
+
 
 
     static Collection<ResourceSpecification> getResources(

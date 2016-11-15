@@ -43,7 +43,13 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
             throws InvalidRequirementException {
 
         List<RecoveryRequirement> transientRecoveryRequirements = new ArrayList<>();
-        Map<PodInstance, List<Protos.TaskInfo>> podMap = getPodMap(stoppedTasks);
+        Map<PodInstance, List<Protos.TaskInfo>> podMap = null;
+        try {
+            podMap = getPodMap(stoppedTasks);
+        } catch (TaskException e) {
+            LOGGER.error("Failed to generate pod map.", e);
+            return Collections.emptyList();
+        }
 
         for (Map.Entry<PodInstance, List<Protos.TaskInfo>> podEntry : podMap.entrySet()) {
             PodInstance podInstance = podEntry.getKey();
@@ -71,7 +77,13 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
             throws InvalidRequirementException {
 
         List<RecoveryRequirement> permanentRecoveryRequirements = new ArrayList<>();
-        Map<PodInstance, List<Protos.TaskInfo>> podMap = getPodMap(failedTasks);
+        Map<PodInstance, List<Protos.TaskInfo>> podMap = null;
+        try {
+            podMap = getPodMap(failedTasks);
+        } catch (TaskException e) {
+            LOGGER.error("Failed to generate pod map.", e);
+            return Collections.emptyList();
+        }
 
         for (PodInstance podInstance : podMap.keySet()) {
             List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
@@ -89,24 +101,21 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         return permanentRecoveryRequirements;
     }
 
-    private Map<PodInstance, List<Protos.TaskInfo>> getPodMap(List<Protos.TaskInfo> taskInfos) {
+    private Map<PodInstance, List<Protos.TaskInfo>> getPodMap(List<Protos.TaskInfo> taskInfos) throws TaskException {
         Map<PodInstance, List<Protos.TaskInfo>> podMap = new HashMap<>();
 
         for (Protos.TaskInfo taskInfo : taskInfos) {
-            try {
-                PodInstance podInstance = getPodInstance(taskInfo);
-                List<Protos.TaskInfo> taskList = podMap.get(podInstance);
+            PodInstance podInstance = getPodInstance(taskInfo);
+            List<Protos.TaskInfo> taskList = podMap.get(podInstance);
 
-                if (taskList == null) {
-                    taskList = Arrays.asList(taskInfo);
-                } else {
-                    taskList.add(taskInfo);
-                }
-
-                podMap.put(podInstance, taskList);
-            } catch (TaskException e) {
-                LOGGER.error("Failed to construct PodInstance for: {}", taskInfo);
+            if (taskList == null) {
+                taskList = Arrays.asList(taskInfo);
+            } else {
+                taskList = new ArrayList<>(taskList);
+                taskList.add(taskInfo);
             }
+
+            podMap.put(podInstance, taskList);
         }
 
         return podMap;

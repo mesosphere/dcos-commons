@@ -1,5 +1,6 @@
 package org.apache.mesos.scheduler.recovery;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -28,8 +29,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -50,9 +49,12 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest {
-    private static final TaskInfo TASK_INFO = TaskTestUtils.getTaskInfo(Arrays.asList(
+
+    private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
-            ResourceTestUtils.getDesiredMem(TestPodFactory.MEM)));
+            ResourceTestUtils.getDesiredMem(TestPodFactory.MEM));
+
+    private static final TaskInfo TASK_INFO = TaskTestUtils.getTaskInfo(resources);
     private static final Collection<TaskInfo> TASK_INFOS = Collections.singletonList(TASK_INFO);
 
     private DefaultRecoveryPlanManager recoveryManager;
@@ -168,7 +170,7 @@ public class DefaultRecoveryPlanManagerTest {
 
     @Test
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void ifStoppededDoRelaunch() throws Exception {
+    public void ifStoppedDoRelaunch() throws Exception {
         final List<Offer> offers = getOffers();
         final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(
                 OfferRequirement.create(TestConstants.TASK_TYPE, TestConstants.TASK_INDEX, TASK_INFOS));
@@ -492,4 +494,5 @@ public class DefaultRecoveryPlanManagerTest {
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
     }
+
 }

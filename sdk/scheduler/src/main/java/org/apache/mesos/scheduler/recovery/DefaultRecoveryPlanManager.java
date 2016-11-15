@@ -123,25 +123,36 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return DefaultPlanFactory.getPlan(RECOVERY_ELEMENT_NAME, Arrays.asList(phase), new SerialStrategy<>());
     }
 
-    private List<Step> createSteps(Collection<String> dirtyAssets) {
-        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore).stream()
-                .filter(taskInfo -> !dirtyAssets.contains(taskInfo.getName()))
-                .map(taskInfo -> {
-                    try {
-                        return createSteps(TaskUtils.unpackTaskInfo(taskInfo));
-                    } catch (
-                            TaskException |
-                            InvalidRequirementException |
-                            InvalidProtocolBufferException e) {
-                        return Arrays.asList(new DefaultStep(
+    List<Step> createSteps(Collection<String> dirtyAssets) {
+        Collection<Protos.TaskInfo> taskInfos = StateStoreUtils.fetchTasksNeedingRecovery(stateStore);
+
+        List<Step> steps = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            try {
+                steps.addAll(createSteps(TaskUtils.unpackTaskInfo(taskInfo)));
+            } catch (TaskException | InvalidRequirementException | InvalidProtocolBufferException e) {
+                steps.add(
+                        new DefaultStep(
                                 taskInfo.getName(),
                                 Optional.empty(),
                                 Status.ERROR,
                                 null,
                                 Arrays.asList(ExceptionUtils.getStackTrace(e))));
-                    }
-                })
-                .flatMap(steps -> steps.stream())
+            }
+        }
+
+
+        return steps;
+    }
+
+    private List<Step> createSteps(List<RecoveryRequirement> recoveryRequirements) {
+        return recoveryRequirements.stream()
+                .map(recoveryRequirement -> new DefaultRecoveryStep(
+                        recoveryRequirement.getPodInstance().getName(),
+                        Status.PENDING,
+                        recoveryRequirement.getPodInstance(),
+                        recoveryRequirement,
+                        launchConstrainer))
                 .collect(Collectors.toList());
     }
 
