@@ -9,12 +9,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.OfferRequirement;
-import org.apache.mesos.offer.TaskException;
-import org.apache.mesos.offer.TaskUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * This rule ensures that the given Offer is colocated with (or never colocated with) the specified
@@ -25,48 +22,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  * two are never colocated.
  */
 public class TaskTypeRule implements PlacementRule {
-
-    /**
-     * Given a {@link TaskInfo}, returns a type string for that task. This must be implemented by
-     * the developer, or see {@link TaskIDDashConverter} for a sample implementation which expects
-     * task ids of the form "tasktypehere-0__uuid".
-     */
-    @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-    public interface TaskTypeConverter {
-        public String getTaskType(TaskInfo taskInfo);
-    }
-
-    /**
-     * Implementation of {@link TaskTypeConverter} which expects a Label which provides the task type.
-     *
-     * @throws IllegalArgumentException if the provided task doesn't have a task type label
-     */
-    public static class TaskTypeLabelConverter implements TaskTypeConverter {
-        @Override
-        public String getTaskType(TaskInfo taskInfo) {
-            try {
-                return TaskUtils.getTaskType(taskInfo);
-            } catch (TaskException e) {
-                throw new IllegalArgumentException(String.format(
-                        "Unable to extract task type label from provided TaskInfo: %s", taskInfo), e);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return String.format("TaskTypeLabelConverter{}");
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
 
     /**
      * Returns a {@link PlacementRule} which enforces avoidance of tasks which have the provided
@@ -86,7 +41,7 @@ public class TaskTypeRule implements PlacementRule {
      * Calls {@link #avoid(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.
      */
     public static PlacementRule avoid(String typeToAvoid) {
-        return avoid(typeToAvoid, new TaskTypeLabelConverter());
+        return avoid(typeToAvoid, null);
     }
 
     /**
@@ -108,7 +63,7 @@ public class TaskTypeRule implements PlacementRule {
      * Calls {@link #colocateWith(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.
      */
     public static PlacementRule colocateWith(String typeToColocateWith) {
-        return colocateWith(typeToColocateWith, new TaskTypeLabelConverter());
+        return colocateWith(typeToColocateWith, null);
     }
 
     /**
@@ -129,6 +84,9 @@ public class TaskTypeRule implements PlacementRule {
             @JsonProperty("converter") TaskTypeConverter typeConverter,
             @JsonProperty("behavior") BehaviorType behaviorType) {
         this.typeToFind = typeToFind;
+        if (typeConverter == null) { // null when unspecified in serialized data
+            typeConverter = new TaskTypeLabelConverter();
+        }
         this.typeConverter = typeConverter;
         this.behaviorType = behaviorType;
     }
