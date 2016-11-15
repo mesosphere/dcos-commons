@@ -14,5 +14,6 @@ import java.util.List;
  * TaskSpecification change is detected for a Task.
  */
 public interface StepFactory {
-    Step getStep(PodInstance podInstance, List<String> tasksToLaunch) throws Step.InvalidStepException, InvalidRequirementException;
+    Step getStep(PodInstance podInstance, List<String> tasksToLaunch)
+        throws Step.InvalidStepException, InvalidRequirementException;
 }

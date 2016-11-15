@@ -12,7 +12,7 @@ REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
 # Path to reference scheduler:
-REFERENCE_DIR=${REPO_ROOT_DIR}/examples/reference
+REFERENCE_DIR=${REPO_ROOT_DIR}/frameworks/hello-world
 
 # Build/upload reference scheduler artifact if one is not directly provided:
 if [ -z "$STUB_UNIVERSE_URL" ]; then

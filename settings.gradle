@@ -6,8 +6,8 @@ project(":sdk/scheduler").name = "scheduler"
 include 'sdk/executor'
 project(":sdk/executor").name = "executor"
 
-include 'examples/reference'
-project(":examples/reference").name = "reference"
+include 'frameworks/hello-world'
+project(":frameworks/hello-world").name = "hello-world"
 
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
