@@ -10,6 +10,7 @@ import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.constrain.*;
+import org.apache.mesos.specification.validation.UniquePodType;
 import org.apache.mesos.util.ValidationUtils;
 
 import javax.validation.Valid;
@@ -27,21 +28,22 @@ import java.util.List;
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
 
-    @NotNull
-    @Size(min = 1)
+    @NotNull(message = "Service name cannot be empty")
+    @Size(min = 1, message = "Service name cannot be empty")
     private String name;
     private String role;
     private String principal;
 
     @NotNull
-    @Min(0)
+    @Min(value = 0, message = "API port value should be >= 0")
     private Integer apiPort;
 
     private String zookeeperConnection;
 
     @Valid
     @NotNull
-    @Size(min = 1)
+    @Size(min = 1, message = "Atleast one pod should be configured.")
+    @UniquePodType(message = "Pod types must be unique")
     private List<PodSpec> pods;
 
     @Valid

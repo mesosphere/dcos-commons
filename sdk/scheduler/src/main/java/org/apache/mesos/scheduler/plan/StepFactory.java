@@ -16,5 +16,5 @@ import java.util.List;
  */
 public interface StepFactory {
     Step getStep(PodInstance podInstance, List<String> tasksToLaunch)
-        throws Step.InvalidStepException, InvalidRequirementException;
+            throws Step.InvalidStepException, InvalidRequirementException;
 }

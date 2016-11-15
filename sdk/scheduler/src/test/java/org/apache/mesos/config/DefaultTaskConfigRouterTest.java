@@ -14,12 +14,18 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DefaultTaskConfigRouter}.
  */
 public class DefaultTaskConfigRouterTest {
-    private static List<TaskSpec> taskSpecs = Arrays.asList(mock(TaskSpec.class));
+    private static TaskSpec mockTaskSpec = mock(TaskSpec.class);
+    private static List<TaskSpec> taskSpecs = Arrays.asList(mockTaskSpec);
+
+    static {
+        when(mockTaskSpec.getName()).thenReturn("mockTask");
+    }
 
     private static final PodSpec TASK_SET_A = DefaultPodSpec.newBuilder()
             .type("a")

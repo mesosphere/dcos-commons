@@ -39,6 +39,22 @@ pods:
             max-consecutive-failures: 3
             delay: 0
             timeout: 10
+      meta-data-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        resource-set: meta-data-resources
+        env:
+          TASK_NAME: "meta-data"
+          CONTAINER_PATH_SUFFIX: "-container-path"
+          SLEEP_DURATION: "1000"
+        health-checks:
+          check-up:
+            cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
+            interval: 5
+            grace-period: 30
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10
   data-store:
     placement: "avoid-type: data-store"
     count: 3

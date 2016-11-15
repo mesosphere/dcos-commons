@@ -39,7 +39,7 @@ pods:
             max-consecutive-failures: 3
             delay: 0
             timeout: 10
-  data-store:
+  meta-data:
     placement: "avoid-type: data-store"
     count: 3
     resource-sets:
