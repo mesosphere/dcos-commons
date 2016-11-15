@@ -107,7 +107,7 @@ public class HostnameRule implements PlacementRule {
 
     @Override
     public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
-        if (matcher.match(offer.getHostname())) {
+        if (matcher.matches(offer.getHostname())) {
             return offer;
         } else {
             // hostname mismatch: return empty offer
