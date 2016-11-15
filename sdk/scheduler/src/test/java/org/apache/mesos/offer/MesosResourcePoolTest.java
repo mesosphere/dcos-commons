@@ -126,6 +126,27 @@ public class MesosResourcePoolTest {
     }
 
     @Test
+    public void testConsumeNamedVIPPort() throws NamedVIPPortRequirement.NamedVIPPortException {
+        Resource desiredNamedVIPPort = NamedVIPPortRequirement.getDesiredNamedVIPPort(
+                TestConstants.VIP_KEY,
+                TestConstants.VIP_NAME,
+                (long) 10002,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        NamedVIPPortRequirement namedVIPPortRequirement = new NamedVIPPortRequirement(desiredNamedVIPPort);
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10005);
+        Offer offer = OfferTestUtils.getOffer(offeredPorts);
+        MesosResourcePool pool = new MesosResourcePool(offer);
+
+        MesosResource mesosResource = pool.consume(namedVIPPortRequirement).get();
+        Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
+        Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
+        Assert.assertEquals(10002, range.getBegin());
+        Assert.assertEquals(10002, range.getEnd());
+    }
+
+    @Test
     public void testReleaseAtomicResource() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);
         Resource releaseResource = ResourceTestUtils.getExpectedMountVolume(1000);

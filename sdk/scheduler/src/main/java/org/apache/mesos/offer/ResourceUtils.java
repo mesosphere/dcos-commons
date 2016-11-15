@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -222,6 +223,90 @@ public class ResourceUtils {
                 .build();
 
         return labelBuilder.build();
+    }
+
+    public static Resource setVIPPortName(Resource resource, String key, String name) {
+        Labels labels = setVIPPortName(resource.getReservation().getLabels(), key, name);
+
+        return Resource.newBuilder(resource)
+                .setReservation(
+                        ReservationInfo.newBuilder(resource.getReservation())
+                                .clearLabels()
+                                .setLabels(labels))
+                .build();
+    }
+
+    private static Labels setVIPPortName(Labels labels, String key, String name) {
+        Labels.Builder labelsBuilder = Labels.newBuilder(labels);
+        labelsBuilder.addLabels(
+                        Label.newBuilder()
+                            .setKey(MesosResource.VIP_LABEL_NAME_KEY)
+                            .setValue(key))
+                .addLabels(
+                        Label.newBuilder()
+                            .setKey(MesosResource.VIP_LABEL_VALUE_KEY)
+                            .setValue(name))
+                .build();
+
+        return labelsBuilder.build();
+    }
+
+    /**
+     * Populates {@link DiscoveryInfo} with necessary information to create VIP if the provided {@link TaskInfo}
+     * has a port associated with a named VIP.
+     */
+    public static TaskInfo.Builder setDiscoveryInfo(TaskInfo.Builder taskBuilder, Collection<Resource> resources) {
+        for (Resource r : resources) {
+            if (RequirementUtils.isNamedVIPPort(r)) {
+                DiscoveryInfo.Builder discoveryBuilder = DiscoveryInfo.newBuilder()
+                        .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                        .setName(taskBuilder.getName())
+                        .setPorts(Ports.newBuilder()
+                                .addPorts(Port.newBuilder()
+                                        .setNumber((int) r.getRanges().getRange(0).getBegin())
+                                        .setProtocol("tcp")
+                                        .setLabels(getVIPPortLabel(r))));
+
+                taskBuilder.setDiscovery(discoveryBuilder);
+            }
+        }
+
+        return taskBuilder;
+    }
+
+    /**
+     * Populates {@link DiscoveryInfo} with necessary information to create VIP if the provided {@link ExecutorInfo}
+     * has a port associated with a named VIP.
+     */
+    public static ExecutorInfo.Builder setDiscoveryInfo(
+            ExecutorInfo.Builder execBuilder, Collection<Resource> resources) {
+        for (Resource r : resources) {
+            if (RequirementUtils.isNamedVIPPort(r)) {
+                DiscoveryInfo.Builder discoveryBuilder = DiscoveryInfo.newBuilder()
+                        .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                        .setName(execBuilder.getName())
+                        .setPorts(Ports.newBuilder()
+                                .addPorts(Port.newBuilder()
+                                        .setNumber((int) r.getRanges().getRange(0).getBegin())
+                                        .setProtocol("tcp")
+                                        .setLabels(getVIPPortLabel(r))));
+
+                execBuilder.setDiscovery(discoveryBuilder);
+            }
+        }
+
+        return execBuilder;
+    }
+
+    private static Labels getVIPPortLabel(Resource r) {
+        return Labels.newBuilder()
+                .addLabels(Label.newBuilder()
+                        .setKey(NamedVIPPortRequirement.getVIPLabelKey(r))
+                        .setValue(
+                                NamedVIPPortRequirement.getVIPLabelValue(r) +
+                                        ":" +
+                                        r.getRanges().getRange(0).getBegin()))
+                .build();
     }
 
     public static Protos.Environment getEnvironment(List<Resource> resources) {
