@@ -10,8 +10,6 @@ import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.constrain.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,7 +20,6 @@ import java.util.List;
  * Default implementation of {@link ServiceSpec}.
  */
 public class DefaultServiceSpec implements ServiceSpec {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceSpec.class);
     private static final Comparator COMPARATOR = new Comparator();
 
     private String name;
@@ -31,6 +28,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     private int apiPort;
     private String zookeeperConnection;
     private List<PodSpec> pods;
+    private ReplacementFailurePolicy replacementFailurePolicy;
 
     @JsonCreator
     public DefaultServiceSpec(
@@ -39,13 +37,15 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("principal") String principal,
             @JsonProperty("api_port") int apiPort,
             @JsonProperty("zookeeper") String zookeeperConnection,
-            @JsonProperty("pod_specs") List<PodSpec> pods) {
+            @JsonProperty("pod_specs") List<PodSpec> pods,
+            @JsonProperty("replacement_failure_policy") ReplacementFailurePolicy replacementFailurePolicy) {
         this.name = name;
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
         this.zookeeperConnection = zookeeperConnection;
         this.pods = pods;
+        this.replacementFailurePolicy = replacementFailurePolicy;
     }
 
     @Override
@@ -79,6 +79,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
+    public ReplacementFailurePolicy getReplacementFailurePolicy() {
+        return replacementFailurePolicy;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -104,7 +109,8 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * Call {@link DefaultServiceSpecification#getComparatorInstance()} instead.
          */
-        private Comparator() { }
+        private Comparator() {
+        }
 
         @Override
         public boolean equals(ServiceSpec first, ServiceSpec second) {
@@ -117,9 +123,10 @@ public class DefaultServiceSpec implements ServiceSpec {
      * {@link DefaultServiceSpecification}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
-     * @param serviceSpec specification to test for successful serialization/deserialization
+     * @param serviceSpec                  specification to test for successful serialization/deserialization
      * @param additionalSubtypesToRegister any class subtypes which should be registered with
-     *     Jackson for deserialization. any custom placement rule implementations must be provided
+     *                                     Jackson for deserialization. any custom placement rule implementations
+     *                                     must be provided
      * @throws ConfigStoreException if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getFactory(
@@ -203,10 +210,12 @@ public class DefaultServiceSpec implements ServiceSpec {
         private int apiPort;
         private String zookeeperConnection;
         private List<PodSpec> pods;
+        private ReplacementFailurePolicy replacementFailurePolicy;
 
         public static Builder newBuilder() {
             return new Builder();
         }
+
         public static Builder newBuilder(DefaultServiceSpec spec) {
             return new Builder();
         }
@@ -241,8 +250,14 @@ public class DefaultServiceSpec implements ServiceSpec {
             return this;
         }
 
+        public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
+            this.replacementFailurePolicy = replacementFailurePolicy;
+            return this;
+        }
+
         public DefaultServiceSpec build() {
-            return new DefaultServiceSpec(name, role, principal, apiPort, zookeeperConnection, pods);
+            return new DefaultServiceSpec(name, role, principal, apiPort, zookeeperConnection, pods,
+                    replacementFailurePolicy);
         }
     }
 }

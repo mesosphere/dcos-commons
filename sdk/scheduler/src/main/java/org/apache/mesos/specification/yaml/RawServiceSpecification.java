@@ -16,6 +16,7 @@ public class RawServiceSpecification {
     private String zookeeper;
     private LinkedHashMap<String, RawPod> pods;
     private Collection<RawPlan> plans;
+    private RawReplacementFailurePolicy replacementFailurePolicy;
 
     public String getName() {
         return name;
@@ -69,6 +70,38 @@ public class RawServiceSpecification {
     @JsonProperty("plans")
     public void setPlans(Collection<RawPlan> plans) {
         this.plans = plans;
+    }
+
+    public RawReplacementFailurePolicy getReplacementFailurePolicy() {
+        return replacementFailurePolicy;
+    }
+
+    @JsonProperty("replacement-failure-policy")
+    public void setReplacementFailurePolicy(RawReplacementFailurePolicy replacementFailurePolicy) {
+        this.replacementFailurePolicy = replacementFailurePolicy;
+    }
+}
+
+class RawReplacementFailurePolicy {
+    private Integer permanentFailureTimoutMs;
+    private Integer minReplaceDelayMs;
+
+    public Integer getPermanentFailureTimoutMs() {
+        return permanentFailureTimoutMs;
+    }
+
+    @JsonProperty("permanent-failure-timeout-ms")
+    public void setPermanentFailureTimoutMs(Integer permanentFailureTimoutMs) {
+        this.permanentFailureTimoutMs = permanentFailureTimoutMs;
+    }
+
+    public Integer getMinReplaceDelayMs() {
+        return minReplaceDelayMs;
+    }
+
+    @JsonProperty("min-replace-delay-ms")
+    public void setMinReplaceDelayMs(Integer minReplaceDelayMs) {
+        this.minReplaceDelayMs = minReplaceDelayMs;
     }
 }
 

@@ -2,6 +2,9 @@ name: "data-store"
 principal: "data-store-principal"
 zookeeper: master.mesos:2181
 api-port: 8080
+replacement-failure-policy:
+  permanent-failure-timeout-ms: 10
+  min-replace-delay-ms: 10
 pods:
   meta-data:
     placement: "avoid-type: meta-data"

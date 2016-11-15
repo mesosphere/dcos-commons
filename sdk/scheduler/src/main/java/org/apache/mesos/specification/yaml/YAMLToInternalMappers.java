@@ -46,7 +46,20 @@ public class YAMLToInternalMappers {
             }
         }
 
-        return DefaultServiceSpec.Builder.newBuilder()
+        RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
+        DefaultServiceSpec.Builder builder = DefaultServiceSpec.Builder.newBuilder();
+
+        if (replacementFailurePolicy != null) {
+            Integer minReplaceDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
+            Integer permanentFailureTimoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
+
+            builder.replacementFailurePolicy(ReplacementFailurePolicy.newBuilder()
+                    .minReplaceDelayMs(minReplaceDelayMs)
+                    .permanentFailureTimoutMs(permanentFailureTimoutMs)
+                    .build());
+        }
+
+        return builder
                 .name(rawSvcSpec.getName())
                 .apiPort(apiPort)
                 .principal(principal)
