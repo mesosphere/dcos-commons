@@ -41,14 +41,14 @@ type NodeHandler struct {
 
 func (cmd *NodeHandler) runReplace(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("name", cmd.name)
-	cli.HTTPPutQuery("v1/nodes/replace", query.Encode())
+	query.Set("replace", "true")
+	cli.HTTPPostQuery(fmt.Sprintf("v1/tasks/restart/%s", cmd.name), query.Encode())
 	return nil
 }
 func (cmd *NodeHandler) runRestart(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("name", cmd.name)
-	cli.HTTPPutQuery("v1/nodes/restart", query.Encode())
+	query.Set("replace", "false")
+	cli.HTTPPostQuery(fmt.Sprintf("v1/tasks/restart/%s", cmd.name), query.Encode())
 	return nil
 }
 func handleNodeSection(app *kingpin.Application, modName string) {
