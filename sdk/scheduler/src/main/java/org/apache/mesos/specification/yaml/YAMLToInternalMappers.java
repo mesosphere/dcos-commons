@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
  */
 public class YAMLToInternalMappers {
     private static final Collection<String> SCALARS = Arrays.asList("cpus", "mem");
-    private static final String API_PORT_ENV = System.getenv("PORT0");
 
     public static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
         final String role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
@@ -35,15 +34,6 @@ public class YAMLToInternalMappers {
             final RawPod rawPod = entry.getValue();
             rawPod.setName(entry.getKey());
             pods.add(from(rawPod, role, principal));
-        }
-
-        Integer apiPort = rawSvcSpec.getApiPort();
-        if (apiPort == null) {
-            if (API_PORT_ENV != null) {
-                apiPort = Integer.parseInt(API_PORT_ENV);
-            } else {
-                throw new RuntimeException("No API Port or PORT0 configured");
-            }
         }
 
         RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
@@ -61,7 +51,7 @@ public class YAMLToInternalMappers {
 
         return builder
                 .name(rawSvcSpec.getName())
-                .apiPort(apiPort)
+                .apiPort(rawSvcSpec.getApiPort())
                 .principal(principal)
                 .zookeeperConnection(rawSvcSpec.getZookeeper())
                 .pods(pods)

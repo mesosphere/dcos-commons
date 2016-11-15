@@ -47,7 +47,7 @@ public class TaskUtils {
 
     /**
      * Converts the unique {@link TaskID} into a Framework defined task name.
-     *
+     * <p>
      * For example: "instance-0__aoeu5678" => "instance-0"
      */
     public static String toTaskName(TaskID taskId) throws TaskException {
@@ -64,7 +64,7 @@ public class TaskUtils {
 
     /**
      * Converts the Framework defined task name into a unique {@link TaskID}.
-     *
+     * <p>
      * For example: "instance-0" => "instance-0__aoeu5678"
      */
     public static TaskID toTaskId(String taskName) {
@@ -208,7 +208,7 @@ public class TaskUtils {
     /**
      * Sets a {@link Label} indicating the target configuration for the provided {@link TaskInfo}.
      *
-     * @param taskInfoBuilder is the TaskInfo which will have the appropriate configuration {@link Label} set.
+     * @param taskInfoBuilder       is the TaskInfo which will have the appropriate configuration {@link Label} set.
      * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}
      */
     public static TaskInfo.Builder setTargetConfiguration(
@@ -336,7 +336,7 @@ public class TaskUtils {
             // keep things reasonable without being a perfect check.
             throw new IllegalStateException(String.format(
                     "Provided config template content of %dB across %d files exceeds limit of %dB. "
-                    + "Reduce the size of your config templates by at least %dB.",
+                            + "Reduce the size of your config templates by at least %dB.",
                     totalSize, configs.size(), CONFIG_TEMPLATE_LIMIT_BYTES,
                     totalSize - CONFIG_TEMPLATE_LIMIT_BYTES));
         }
@@ -363,11 +363,11 @@ public class TaskUtils {
     }
 
     /**
-      * Extracts the environment variables given in the {@link Environment}.
-      *
-      * @param environment The {@link Environment} to extract environment variables from
-      * @return The map containing environment variables
-      */
+     * Extracts the environment variables given in the {@link Environment}.
+     *
+     * @param environment The {@link Environment} to extract environment variables from
+     * @return The map containing environment variables
+     */
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
         Map<String, String> map = new HashMap<>();
 
@@ -386,17 +386,17 @@ public class TaskUtils {
      * @param environmentMap The map to extract environment variables from
      * @return The {@link Environment} containing the extracted environment variables
      */
-     public static Protos.Environment fromMapToEnvironment(Map<String, String> environmentMap) {
-         Collection<Protos.Environment.Variable> vars = environmentMap
-            .entrySet()
-            .stream()
-            .map(entrySet -> Protos.Environment.Variable.newBuilder()
-                 .setName(entrySet.getKey())
-                 .setValue(entrySet.getValue()).build())
-            .collect(Collectors.toList());
+    public static Protos.Environment fromMapToEnvironment(Map<String, String> environmentMap) {
+        Collection<Protos.Environment.Variable> vars = environmentMap
+                .entrySet()
+                .stream()
+                .map(entrySet -> Protos.Environment.Variable.newBuilder()
+                        .setName(entrySet.getKey())
+                        .setValue(entrySet.getValue()).build())
+                .collect(Collectors.toList());
 
-         return Protos.Environment.newBuilder().addAllVariables(vars).build();
-     }
+        return Protos.Environment.newBuilder().addAllVariables(vars).build();
+    }
 
 
     public static void sendStatus(ExecutorDriver driver,
@@ -651,7 +651,7 @@ public class TaskUtils {
             if (prevValue != null) {
                 throw new IllegalArgumentException(String.format(
                         "Resources for a given task may not share the same name. " +
-                        "name:'%s' oldResource:'%s' newResource:'%s'",
+                                "name:'%s' oldResource:'%s' newResource:'%s'",
                         resourceSpecification.getName(), prevValue, resourceSpecification));
             }
         }
@@ -674,7 +674,7 @@ public class TaskUtils {
             if (prevValue != null) {
                 throw new IllegalArgumentException(String.format(
                         "Config templates for a given task may not share the same path. " +
-                        "path:'%s' oldContent:'%s' newContent:'%s'",
+                                "path:'%s' oldContent:'%s' newContent:'%s'",
                         configSpecification.getRelativePath(), prevValue, configSpecification.getTemplateContent()));
             }
         }
@@ -716,9 +716,9 @@ public class TaskUtils {
     /**
      * Injects the proper data into the given config template and writes the populated template to disk.
      *
-     * @param relativePath The path to write the file
+     * @param relativePath    The path to write the file
      * @param templateContent The content of the config template
-     * @param environment The environment from which to extract the injection data
+     * @param environment     The environment from which to extract the injection data
      * @throws IOException if the data can't be written to disk
      */
     private static void writeConfigFile(
@@ -751,5 +751,20 @@ public class TaskUtils {
             }
             throw new IOException(String.format("Can't write to file %s: %s", relativePath, e));
         }
+    }
+
+    /**
+     * Renders a given Mustache template using the provided environment map.
+     *
+     * @param templateContent String representation of template.
+     * @param environment     Map of environment variables.
+     * @return Rendered Mustache template String.
+     */
+    public static String applyEnvToMustache(String templateContent, Map<String, String> environment) {
+        StringWriter writer = new StringWriter();
+        MustacheFactory mf = new DefaultMustacheFactory();
+        Mustache mustache = mf.compile(new StringReader(templateContent), "configTemplate");
+        mustache.execute(writer, environment);
+        return writer.toString();
     }
 }
