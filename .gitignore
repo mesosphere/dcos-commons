@@ -28,8 +28,6 @@ build/
 # gradle subprojects
 sdk/core/build
 sdk/executor/build
-examples/*/build
-examples/*/dcos-commons-tools
 frameworks/*/build
 frameworks/*/dcos-commons-tools/
 
