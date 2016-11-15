@@ -6,11 +6,11 @@ import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.scheduler.plan.Step;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
@@ -782,5 +782,9 @@ public class TaskUtils {
         Mustache mustache = mf.compile(new StringReader(templateContent), "configTemplate");
         mustache.execute(writer, environment);
         return writer.toString();
+    }
+
+    public static boolean isMustacheFullyRendered(String templateContent) {
+        return StringUtils.isEmpty(templateContent) || !templateContent.matches("\\{\\{.*\\}\\}");
     }
 }

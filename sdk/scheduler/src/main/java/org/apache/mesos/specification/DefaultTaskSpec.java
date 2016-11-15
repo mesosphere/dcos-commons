@@ -37,6 +37,7 @@ public class DefaultTaskSpec implements TaskSpec {
 
     private Collection<ConfigFileSpecification> configFiles;
     @Valid
+    @NotNull
     private ResourceSet resourceSet;
 
     @JsonCreator

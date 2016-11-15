@@ -173,21 +173,22 @@ public class PodSpecsCannotShrinkTest {
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec1))
+                .pods(Arrays.asList(mockPodSpec1))
                 .apiPort(8080)
                 .build();
 
         ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc2")
+                .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .pods(Arrays.asList(mockPodSpec1))
                 .apiPort(8080)
                 .build();
 
-        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size()); // only checked against new config
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
-        Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
+        // only checked against new config
+        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec2, serviceSpec2).size());
     }
 }

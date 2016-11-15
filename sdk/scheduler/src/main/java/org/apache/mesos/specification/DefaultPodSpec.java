@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.specification.validation.UniqueResourceSet;
+import org.apache.mesos.specification.validation.UniqueTaskName;
 import org.apache.mesos.util.ValidationUtils;
 
 import javax.validation.Valid;
@@ -29,10 +31,12 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Valid
     @Size(min = 1)
+    @UniqueTaskName(message = "Task names must be unique")
     private List<TaskSpec> tasks;
     @Valid
     private PlacementRule placementRule;
     @Valid
+    @UniqueResourceSet
     private Collection<ResourceSet> resources;
 
     @JsonCreator
@@ -66,6 +70,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.count = copy.getCount();
         builder.tasks = copy.getTasks();
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
+        builder.resources = copy.getResources();
         return builder;
     }
 
