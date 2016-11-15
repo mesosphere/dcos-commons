@@ -36,7 +36,8 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     @Override
-    public Step getStep(PodInstance podInstance, List<String> tasksToLaunch) throws Step.InvalidStepException, InvalidRequirementException {
+    public Step getStep(PodInstance podInstance, List<String> tasksToLaunch)
+            throws Step.InvalidStepException, InvalidRequirementException {
         LOGGER.info("Generating step for pod: {}", podInstance.getName());
 
         List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
