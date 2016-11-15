@@ -39,7 +39,7 @@ public class TaskUtils {
     /**
      * Label key against which the offer agent's hostname is stored.
      */
-    private static final String HOSTNAME_KEY = "hostname";
+    private static final String OFFER_HOSTNAME_KEY = "offer_hostname";
 
     /**
      * Label key against which the Task Type is stored.
@@ -204,7 +204,7 @@ public class TaskUtils {
      */
     public static TaskInfo.Builder setHostname(TaskInfo.Builder taskBuilder, Offer launchOffer) {
         return taskBuilder.setLabels(
-                withLabelSet(taskBuilder.getLabels(), HOSTNAME_KEY, launchOffer.getHostname()));
+                withLabelSet(taskBuilder.getLabels(), OFFER_HOSTNAME_KEY, launchOffer.getHostname()));
     }
 
     /**
@@ -212,9 +212,9 @@ public class TaskUtils {
      * embedded in the provided {@link TaskInfo}.
      */
     public static String getHostname(TaskInfo taskInfo) throws TaskException {
-        Optional<String> hostname = findLabelValue(taskInfo.getLabels(), HOSTNAME_KEY);
+        Optional<String> hostname = findLabelValue(taskInfo.getLabels(), OFFER_HOSTNAME_KEY);
         if (!hostname.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + HOSTNAME_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + OFFER_HOSTNAME_KEY);
         }
         return hostname.get();
     }
