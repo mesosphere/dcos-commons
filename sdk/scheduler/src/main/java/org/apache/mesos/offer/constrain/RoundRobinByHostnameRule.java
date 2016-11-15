@@ -70,7 +70,7 @@ public class RoundRobinByHostnameRule implements PlacementRule {
         Map<String, Integer> hostnameCounts = new HashMap<>();
         for (TaskInfo task : tasks) {
             // only tally tasks which match the task matcher (eg 'index-.*')
-            if (!taskFilter.match(task.getName())) {
+            if (!taskFilter.matches(task.getName())) {
                 continue;
             }
             if (PlacementUtils.areEquivalent(task, offerRequirement)) {

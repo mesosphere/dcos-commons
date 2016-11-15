@@ -12,5 +12,5 @@ public interface StringMatcher {
     /**
      * Returns whether the provided string matches some internal criteria.
      */
-    public boolean match(String value);
+    public boolean matches(String value);
 }

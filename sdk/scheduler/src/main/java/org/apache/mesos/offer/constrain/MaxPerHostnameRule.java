@@ -80,7 +80,7 @@ public class MaxPerHostnameRule implements PlacementRule {
         int offerHostnameTaskCounts = 0;
         for (TaskInfo task : tasks) {
             // only tally tasks which match the task matcher (eg 'index-.*')
-            if (!taskFilter.match(task.getName())) {
+            if (!taskFilter.matches(task.getName())) {
                 continue;
             }
             if (PlacementUtils.areEquivalent(task, offerRequirement)) {

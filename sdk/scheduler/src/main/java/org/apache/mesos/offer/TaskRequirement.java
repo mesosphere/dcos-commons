@@ -13,6 +13,7 @@ public class TaskRequirement {
     private final TaskInfo taskInfo;
     private final Collection<ResourceRequirement> resourceRequirements;
     private Collection<DynamicPortRequirement> dynamicPortRequirements;
+    private Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
         validateTaskInfo(unverifiedTaskInfo);
@@ -24,6 +25,8 @@ public class TaskRequirement {
                 RequirementUtils.getResourceRequirements(taskInfo.getResourcesList());
         this.dynamicPortRequirements =
                 RequirementUtils.getDynamicPortRequirements(taskInfo.getResourcesList());
+        this.namedVIPPortRequirements =
+                RequirementUtils.getNamedVIPPortRequirements(taskInfo.getResourcesList());
     }
 
     public TaskInfo getTaskInfo() {
@@ -36,6 +39,10 @@ public class TaskRequirement {
 
     public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
         return dynamicPortRequirements;
+    }
+
+    public Collection<NamedVIPPortRequirement> getNamedVIPPortRequirements() {
+        return namedVIPPortRequirements;
     }
 
     public Collection<String> getResourceIds() {

@@ -28,7 +28,7 @@ public class RegexMatcher implements StringMatcher {
     }
 
     @Override
-    public boolean match(String value) {
+    public boolean matches(String value) {
         return pattern.matcher(value).matches();
     }
 
