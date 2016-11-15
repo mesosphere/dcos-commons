@@ -39,7 +39,7 @@ public class TestPodFactory {
 
     public static ResourceSet getResourceSet(double cpu, double mem, double disk) {
         return DefaultResourceSet.newBuilder()
-                .id(TestConstants.RESOURCE_SET_ID)
+                .id(TestConstants.RESOURCE_SET_ID + "__" + UUID.randomUUID())
                 .resources(getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL))
                 .volumes(getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL))
                 .build();
