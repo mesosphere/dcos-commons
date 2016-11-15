@@ -8,20 +8,20 @@ replacement-failure-policy:
 pods:
   meta-data:
     placement: "avoid-type: meta-data"
-    count: {{METADATA_COUNT}}
+    count: 2
     resource-sets:
       - id: meta-data-resources
         resources:
           - name: cpus
-            value: {{METADATA_CPUS}}
+            value: 0.1
             env-key: "CPUS"
           - name: mem
-            value: {{METADATA_MEM}}
+            value: 512
             env-key: "MEM"
         volumes:
-          - path: "meta-data-container-path"
+          - path: "/meta-data-container-path"
             type: ROOT
-            size: {{METADATA_DISK}}
+            size: 5000
     tasks:
       meta-data-task:
         goal: RUNNING
@@ -30,7 +30,7 @@ pods:
         env:
           TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"
-          SLEEP_DURATION: {{SLEEP_DURATION}}
+          SLEEP_DURATION: "1000"
         health-checks:
           check-up:
             cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
@@ -42,20 +42,20 @@ pods:
 
   data-store:
     placement: "avoid-type: data-store"
-    count: {{DATA_COUNT}}
+    count: 3
     resource-sets:
       - id: data-store-resources
         resources:
           - name: cpus
-            value: {{DATA_CPUS}}
+            value: 0.2
             env-key: "CPUS"
           - name: mem
-            value: {{DATA_MEM}}
+            value: 1024
             env-key: "MEM"
         volumes:
-          - path: "data-store-container-path"
+          - path: "/data-store-container-path"
             type: ROOT
-            size: {{DATA_DISK}}
+            size: 5000
     tasks:
       data-store-task:
         goal: RUNNING
@@ -64,7 +64,7 @@ pods:
         env:
           TASK_NAME: "data-store"
           CONTAINER_PATH_SUFFIX: "-container-path"
-          SLEEP_DURATION: {{SLEEP_DURATION}}
+          SLEEP_DURATION: "1000"
         health-checks:
           check-up:
             cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"

@@ -3,6 +3,7 @@ package org.apache.mesos.specification.yaml;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.io.FileUtils;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.DefaultServiceSpec;
 import org.apache.mesos.specification.ServiceSpec;
 
@@ -19,8 +20,9 @@ public class YAMLServiceSpecFactory {
         return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, Charset.forName("UTF-8")));
     }
 
-    public static final RawServiceSpecification generateRawSpecFromYAML(String yaml) throws Exception {
-        return YAML_MAPPER.readValue(yaml.getBytes(), RawServiceSpecification.class);
+    public static final RawServiceSpecification generateRawSpecFromYAML(final String yaml) throws Exception {
+        final String yamlWithEnv = TaskUtils.applyEnvToMustache(yaml, System.getenv());
+        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(), RawServiceSpecification.class);
     }
 
     public static final DefaultServiceSpec generateSpecFromYAML(RawServiceSpecification rawServiceSpecification)

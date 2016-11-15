@@ -3,7 +3,6 @@ package org.apache.mesos.specification.yaml;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.time.Duration;
 import java.util.*;
 
 /**
@@ -16,6 +15,7 @@ public class RawServiceSpecification {
     private String zookeeper;
     private LinkedHashMap<String, RawPod> pods;
     private Collection<RawPlan> plans;
+    private RawReplacementFailurePolicy replacementFailurePolicy;
 
     public String getName() {
         return name;
@@ -69,6 +69,38 @@ public class RawServiceSpecification {
     @JsonProperty("plans")
     public void setPlans(Collection<RawPlan> plans) {
         this.plans = plans;
+    }
+
+    public RawReplacementFailurePolicy getReplacementFailurePolicy() {
+        return replacementFailurePolicy;
+    }
+
+    @JsonProperty("replacement-failure-policy")
+    public void setReplacementFailurePolicy(RawReplacementFailurePolicy replacementFailurePolicy) {
+        this.replacementFailurePolicy = replacementFailurePolicy;
+    }
+}
+
+class RawReplacementFailurePolicy {
+    private Integer permanentFailureTimoutMs;
+    private Integer minReplaceDelayMs;
+
+    public Integer getPermanentFailureTimoutMs() {
+        return permanentFailureTimoutMs;
+    }
+
+    @JsonProperty("permanent-failure-timeout-ms")
+    public void setPermanentFailureTimoutMs(Integer permanentFailureTimoutMs) {
+        this.permanentFailureTimoutMs = permanentFailureTimoutMs;
+    }
+
+    public Integer getMinReplaceDelayMs() {
+        return minReplaceDelayMs;
+    }
+
+    @JsonProperty("min-replace-delay-ms")
+    public void setMinReplaceDelayMs(Integer minReplaceDelayMs) {
+        this.minReplaceDelayMs = minReplaceDelayMs;
     }
 }
 
@@ -426,10 +458,10 @@ class RawVip {
 class RawHealthCheck {
     String name;
     String cmd;
-    Duration interval;
-    Duration gracePeriod;
-    Duration delay;
-    Duration timeout;
+    Integer interval;
+    Integer gracePeriod;
+    Integer delay;
+    Integer timeout;
     Integer maxConsecutiveFailures;
 
     public String getName() {
@@ -450,22 +482,22 @@ class RawHealthCheck {
         this.cmd = cmd;
     }
 
-    public Duration getInterval() {
+    public Integer getInterval() {
         return interval;
     }
 
     @JsonProperty("interval")
-    public void setInterval(long intervalSecs) {
-        this.interval = Duration.ofSeconds(intervalSecs);
+    public void setInterval(Integer intervalSecs) {
+        this.interval = intervalSecs;
     }
 
-    public Duration getGracePeriod() {
+    public Integer getGracePeriod() {
         return gracePeriod;
     }
 
     @JsonProperty("grace-period")
-    public void setGracePeriod(long gracePeriodSecs) {
-        this.gracePeriod = Duration.ofSeconds(gracePeriodSecs);
+    public void setGracePeriod(Integer gracePeriodSecs) {
+        this.gracePeriod = gracePeriodSecs;
     }
 
     public Integer getMaxConsecutiveFailures() {
@@ -477,22 +509,22 @@ class RawHealthCheck {
         this.maxConsecutiveFailures = maxConsecutiveFailures;
     }
 
-    public Duration getDelay() {
+    public Integer getDelay() {
         return delay;
     }
 
     @JsonProperty("delay")
-    public void setDelay(long delaySecs) {
-        this.delay = Duration.ofSeconds(delaySecs);
+    public void setDelay(int delaySecs) {
+        this.delay = delaySecs;
     }
 
-    public Duration getTimeout() {
+    public Integer getTimeout() {
         return timeout;
     }
 
     @JsonProperty("timeout")
-    public void setTimeout(long timeoutSecs) {
-        this.timeout = Duration.ofSeconds(timeoutSecs);
+    public void setTimeout(Integer timeoutSecs) {
+        this.timeout = timeoutSecs;
     }
 }
 

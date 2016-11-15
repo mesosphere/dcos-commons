@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.util.ValidationUtils;
 
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.Optional;
  * Default implementation of {@link CommandSpec}.
  */
 public class DefaultCommandSpec implements CommandSpec {
+    @NotNull
     private String value;
     private Map<String, String> environment;
     private String user;
@@ -145,7 +148,9 @@ public class DefaultCommandSpec implements CommandSpec {
          * @return a {@code DefaultCommandSpec} built with parameters of this {@code DefaultCommandSpec.Builder}
          */
         public DefaultCommandSpec build() {
-            return new DefaultCommandSpec(this);
+            DefaultCommandSpec defaultCommandSpec = new DefaultCommandSpec(this);
+            ValidationUtils.validate(defaultCommandSpec);
+            return defaultCommandSpec;
         }
     }
 }

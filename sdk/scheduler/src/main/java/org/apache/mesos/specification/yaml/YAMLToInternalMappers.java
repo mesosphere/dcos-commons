@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
  */
 public class YAMLToInternalMappers {
     private static final Collection<String> SCALARS = Arrays.asList("cpus", "mem");
-    private static final String API_PORT_ENV = System.getenv("PORT0");
 
     public static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
         final String role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
@@ -38,18 +37,22 @@ public class YAMLToInternalMappers {
             pods.add(from(rawPod, role, principal));
         }
 
-        Integer apiPort = rawSvcSpec.getApiPort();
-        if (apiPort == null) {
-            if (API_PORT_ENV != null) {
-                apiPort = Integer.parseInt(API_PORT_ENV);
-            } else {
-                throw new RuntimeException("No API Port or PORT0 configured");
-            }
+        RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
+        DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder();
+
+        if (replacementFailurePolicy != null) {
+            Integer minReplaceDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
+            Integer permanentFailureTimoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
+
+            builder.replacementFailurePolicy(ReplacementFailurePolicy.newBuilder()
+                    .minReplaceDelayMs(minReplaceDelayMs)
+                    .permanentFailureTimoutMs(permanentFailureTimoutMs)
+                    .build());
         }
 
-        return DefaultServiceSpec.Builder.newBuilder()
+        return builder
                 .name(rawSvcSpec.getName())
-                .apiPort(apiPort)
+                .apiPort(rawSvcSpec.getApiPort())
                 .principal(principal)
                 .zookeeperConnection(rawSvcSpec.getZookeeper())
                 .pods(pods)
@@ -148,6 +151,12 @@ public class YAMLToInternalMappers {
                         .map(rawResourceSet -> from(rawResourceSet, role, principal))
                         .collect(Collectors.toList());
 
+        final LinkedHashMap<String, RawTask> rawTasks = tasks;
+        for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
+            entry.getValue().setName(entry.getKey());
+            taskSpecs.add(from(entry.getValue(), Optional.ofNullable(user), podName, resourceSets));
+        }
+
         final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
                 .count(podInstanceCount)
                 .placementRule(null /** TODO(mohit) */)
@@ -156,12 +165,6 @@ public class YAMLToInternalMappers {
                 .user(user)
                 .resources(resourceSets)
                 .build();
-
-        final LinkedHashMap<String, RawTask> rawTasks = tasks;
-        for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
-            entry.getValue().setName(entry.getKey());
-            taskSpecs.add(from(entry.getValue(), podSpec));
-        }
 
         return podSpec;
     }
@@ -206,7 +209,10 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    public static TaskSpec from(RawTask rawTask, PodSpec podSpec) throws Exception {
+    public static TaskSpec from(RawTask rawTask,
+                                Optional<String> user,
+                                String podType,
+                                Collection<ResourceSet> resourceSets) throws Exception {
         Collection<URI> uris = new ArrayList<>();
 
         for (String uriStr : rawTask.getUris()) {
@@ -214,8 +220,8 @@ public class YAMLToInternalMappers {
         }
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder();
-        if (podSpec.getUser().isPresent()) {
-            commandSpecBuilder.user(podSpec.getUser().get());
+        if (user.isPresent()) {
+            commandSpecBuilder.user(user.get());
         }
         final DefaultCommandSpec commandSpec = commandSpecBuilder
                 .environment(rawTask.getEnv())
@@ -245,9 +251,9 @@ public class YAMLToInternalMappers {
                 .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .name(rawTask.getName())
-                .type(podSpec.getType())
+                .type(podType)
                 .resourceSet(
-                        podSpec.getResources().stream()
+                        resourceSets.stream()
                                 .filter(resourceSet -> resourceSet.getId().equals(rawTask.getResourceSet()))
                                 .findFirst().get())
                 .uris(uris)

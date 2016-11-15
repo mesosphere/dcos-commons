@@ -27,8 +27,7 @@ import org.apache.mesos.scheduler.recovery.TaskFailureListener;
 import org.apache.mesos.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.NeverFailureMonitor;
 import org.apache.mesos.scheduler.recovery.monitor.TimedFailureMonitor;
-import org.apache.mesos.specification.DefaultServiceSpec;
-import org.apache.mesos.specification.ServiceSpec;
+import org.apache.mesos.specification.*;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
@@ -139,36 +138,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 serviceSpec,
                 stateStore,
                 configStore,
-                defaultConfigValidators(),
-                Optional.of(PERMANENT_FAILURE_DELAY_SEC),
-                DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
-    }
-
-    /**
-     * Returns a new {@link DefaultScheduler} instance using the provided
-     * {@code frameworkName} and {@link PlanManager} stack, and the default ZK location for
-     * framework state.
-     *
-     * @param serviceSpec specification containing service name and tasks to be deployed
-     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
-     *      task has failed, or an empty {@link Optional} to disable this detection
-     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
-     *      recovery operations such as destroying a failed task
-     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
-     *      unrecognized deserialization type
-     * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
-     */
-    public static DefaultScheduler create(
-            ServiceSpec serviceSpec,
-            Optional<Integer> permanentFailureTimeoutSec,
-            Integer destructiveRecoveryDelaySec) throws ConfigStoreException {
-        return create(
-                serviceSpec,
-                createStateStore(serviceSpec),
-                createConfigStore(serviceSpec),
-                defaultConfigValidators(),
-                permanentFailureTimeoutSec,
-                destructiveRecoveryDelaySec);
+                defaultConfigValidators());
     }
 
     /**
@@ -183,24 +153,25 @@ public class DefaultScheduler implements Scheduler, Observer {
      *     has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
      *     SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configValidators configuration validators to be used when evaluating config changes
-     * @param permanentFailureTimeoutSec minimum duration to wait in seconds before deciding that a
-     *     task has failed, or an empty {@link Optional} to disable this detection
-     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
-     *     recovery operations such as destroying a failed task
      */
     public static DefaultScheduler create(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            Collection<ConfigurationValidator<ServiceSpec>> configValidators,
-            Optional<Integer> permanentFailureTimeoutSec,
-            Integer destructiveRecoveryDelaySec) {
+            Collection<ConfigurationValidator<ServiceSpec>> configValidators) {
+        ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
+        Integer permanentFailureTimeoutSec = PERMANENT_FAILURE_DELAY_SEC;
+        int destructiveRecoveryDelaySec = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC;
+        if (replacementFailurePolicy != null) {
+            permanentFailureTimeoutSec = replacementFailurePolicy.getPermanentFailureTimoutMs();
+            destructiveRecoveryDelaySec = replacementFailurePolicy.getMinReplaceDelayMs();
+        }
         return new DefaultScheduler(
                 serviceSpec,
                 stateStore,
                 configStore,
                 configValidators,
-                permanentFailureTimeoutSec,
+                Optional.of(permanentFailureTimeoutSec),
                 destructiveRecoveryDelaySec);
     }
 

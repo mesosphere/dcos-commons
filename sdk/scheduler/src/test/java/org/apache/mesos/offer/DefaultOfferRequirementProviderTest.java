@@ -17,7 +17,6 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,10 +69,10 @@ public class DefaultOfferRequirementProviderTest {
 
         when(healthCheckSpec.getCommand()).thenReturn(TestConstants.HEALTH_CHECK_CMD);
         when(healthCheckSpec.getMaxConsecutiveFailures()).thenReturn(3);
-        when(healthCheckSpec.getDelay()).thenReturn(Duration.ZERO);
-        when(healthCheckSpec.getInterval()).thenReturn(Duration.ZERO);
-        when(healthCheckSpec.getTimeout()).thenReturn(Duration.ZERO);
-        when(healthCheckSpec.getGracePeriod()).thenReturn(Duration.ZERO);
+        when(healthCheckSpec.getDelay()).thenReturn(0);
+        when(healthCheckSpec.getInterval()).thenReturn(0);
+        when(healthCheckSpec.getTimeout()).thenReturn(0);
+        when(healthCheckSpec.getGracePeriod()).thenReturn(0);
 
         when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
 

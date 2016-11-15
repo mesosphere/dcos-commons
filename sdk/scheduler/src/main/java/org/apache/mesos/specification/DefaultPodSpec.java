@@ -5,7 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.util.ValidationUtils;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -14,18 +19,27 @@ import java.util.Optional;
  * Default implementation of {@link PodSpec}.
  */
 public class DefaultPodSpec implements PodSpec {
+    @NotNull
+    @Size(min = 1)
     private String type;
     private String user;
-    private int count;
+    @NotNull
+    @Min(0)
+    private Integer count;
+    @NotNull
+    @Valid
+    @Size(min = 1)
     private List<TaskSpec> tasks;
+    @Valid
     private PlacementRule placementRule;
+    @Valid
     private Collection<ResourceSet> resources;
 
     @JsonCreator
     public DefaultPodSpec(
             @JsonProperty("type") String type,
             @JsonProperty("user") String user,
-            @JsonProperty("count") int count,
+            @JsonProperty("count") Integer count,
             @JsonProperty("task_specs") List<TaskSpec> tasks,
             @JsonProperty("placement_rule") PlacementRule placementRule,
             @JsonProperty("resource_sets") Collection<ResourceSet> resources) {
@@ -102,7 +116,7 @@ public class DefaultPodSpec implements PodSpec {
     public static final class Builder {
         private String type;
         private String user;
-        private int count;
+        private Integer count;
         private List<TaskSpec> tasks;
         private PlacementRule placementRule;
         private Collection<ResourceSet> resources;
@@ -138,7 +152,7 @@ public class DefaultPodSpec implements PodSpec {
          * @param count the {@code count} to set
          * @return a reference to this Builder
          */
-        public Builder count(int count) {
+        public Builder count(Integer count) {
             this.count = count;
             return this;
         }
@@ -177,7 +191,9 @@ public class DefaultPodSpec implements PodSpec {
          * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
          */
         public DefaultPodSpec build() {
-            return new DefaultPodSpec(this);
+            DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);
+            ValidationUtils.validate(defaultPodSpec);
+            return defaultPodSpec;
         }
     }
 }

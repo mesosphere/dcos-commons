@@ -30,11 +30,11 @@ public class HealthCheckUtils {
 
         HealthCheckSpec healthCheckSpec = taskSpec.getHealthCheck().get();
         return builder
-                .setDelaySeconds(healthCheckSpec.getDelay().getSeconds())
-                .setIntervalSeconds(healthCheckSpec.getInterval().getSeconds())
-                .setTimeoutSeconds(healthCheckSpec.getTimeout().getSeconds())
+                .setDelaySeconds(healthCheckSpec.getDelay())
+                .setIntervalSeconds(healthCheckSpec.getInterval())
+                .setTimeoutSeconds(healthCheckSpec.getTimeout())
                 .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
-                .setGracePeriodSeconds(healthCheckSpec.getGracePeriod().getSeconds())
+                .setGracePeriodSeconds(healthCheckSpec.getGracePeriod())
                 .setCommand(commandBuilder.setValue(healthCheckSpec.getCommand()))
                 .build();
     }

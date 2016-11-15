@@ -1,12 +1,12 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.util.ValidationUtils;
 
 /**
  * This class provides a default implementation of the VolumeSpecification interface.
@@ -40,6 +40,8 @@ public class DefaultVolumeSpecification extends DefaultResourceSpecification imp
         super(name, value, role, principal, envKey);
         this.type = type;
         this.containerPath = containerPath;
+
+        ValidationUtils.validate(this);
     }
 
     @Override

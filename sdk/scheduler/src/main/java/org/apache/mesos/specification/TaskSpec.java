@@ -8,9 +8,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * Created by gabriel on 11/7/16.
+ * Specification for a Task.
  */
-
 @JsonDeserialize(as = DefaultTaskSpec.class)
 public interface TaskSpec {
     @JsonProperty("name")

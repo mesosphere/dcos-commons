@@ -16,11 +16,16 @@ import static org.mockito.Mockito.when;
 public class PodSpecsCannotShrinkTest {
     private static final ConfigurationValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotShrink();
 
-    @Mock private TaskSpec taskSpec;
-    @Mock private PodSpec mockPodSpec1;
-    @Mock private PodSpec mockPodSpec11;
-    @Mock private PodSpec mockPodSpec2;
-    @Mock private PodSpec mockPodSpec22;
+    @Mock
+    private TaskSpec taskSpec;
+    @Mock
+    private PodSpec mockPodSpec1;
+    @Mock
+    private PodSpec mockPodSpec11;
+    @Mock
+    private PodSpec mockPodSpec2;
+    @Mock
+    private PodSpec mockPodSpec22;
 
     @Before
     public void beforeEach() {
@@ -41,18 +46,20 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testMatchingSize() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
         VALIDATOR.validate(serviceSpec1, serviceSpec2);
 
@@ -64,18 +71,20 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testPodGrowth() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
+                .apiPort(8080)
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
@@ -86,18 +95,20 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testTaskGrowth() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec11))
+                .apiPort(8080)
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
@@ -108,18 +119,20 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testPodRemove() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1))
+                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
@@ -131,18 +144,20 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testSetRename() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec22))
+                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(serviceSpec1, serviceSpec2).size());
@@ -154,18 +169,20 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testDuplicateSet() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
                 .name("svc1")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec1))
+                .apiPort(8080)
                 .build();
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.Builder.newBuilder()
+        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
                 .name("svc2")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
+                .apiPort(8080)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(serviceSpec1, serviceSpec2).size()); // only checked against new config

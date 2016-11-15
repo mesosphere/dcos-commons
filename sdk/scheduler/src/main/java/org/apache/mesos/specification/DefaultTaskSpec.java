@@ -5,7 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.util.ValidationUtils;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
@@ -14,14 +18,25 @@ import java.util.Optional;
  * Default implementation of a {@link TaskSpec}.
  */
 public class DefaultTaskSpec implements TaskSpec {
+    @NotNull
+    @Size(min = 1)
     private String name;
+    @NotNull
+    @Size(min = 1)
     private String type;
+    @NotNull
     private GoalState goalState;
+    @Valid
     private CommandSpec commandSpec;
+    @Valid
     private ContainerSpec containerSpec;
+    @Valid
     private HealthCheckSpec healthCheckSpec;
+
     private Collection<URI> uris;
+
     private Collection<ConfigFileSpecification> configFiles;
+    @Valid
     private ResourceSet resourceSet;
 
     @JsonCreator
@@ -254,7 +269,9 @@ public class DefaultTaskSpec implements TaskSpec {
          * @return a {@code DefaultTaskSpec} built with parameters of this {@code DefaultTaskSpec.Builder}
          */
         public DefaultTaskSpec build() {
-            return new DefaultTaskSpec(this);
+            DefaultTaskSpec defaultTaskSpec = new DefaultTaskSpec(this);
+            ValidationUtils.validate(defaultTaskSpec);
+            return defaultTaskSpec;
         }
     }
 }

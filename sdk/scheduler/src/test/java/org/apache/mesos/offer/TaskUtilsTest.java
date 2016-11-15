@@ -1,24 +1,30 @@
 package org.apache.mesos.offer;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.specification.*;
+import org.apache.mesos.specification.ConfigFileSpecification;
+import org.apache.mesos.specification.DefaultConfigFileSpecification;
+import org.apache.mesos.specification.TaskSpec;
+import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * This class tests the TaskUtils class.
  */
 public class TaskUtilsTest {
+    @Rule
+    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     private static final String testTaskName = "test-task-name";
     private static final String testTaskId = "test-task-id";
     private static final String testAgentId = "test-agent-id";
@@ -30,12 +36,12 @@ public class TaskUtilsTest {
         Assert.assertEquals(testTaskName, TaskUtils.toTaskName(validTaskId));
     }
 
-    @Test(expected=TaskException.class)
+    @Test(expected = TaskException.class)
     public void testInvalidToTaskName() throws Exception {
         TaskUtils.toTaskName(getTaskId(testTaskName + "_id"));
     }
 
-    @Test(expected=TaskException.class)
+    @Test(expected = TaskException.class)
     public void testGetTargetConfigurationFailure() throws Exception {
         TaskUtils.getTargetConfiguration(getTestTaskInfo());
     }
@@ -226,7 +232,7 @@ public class TaskUtilsTest {
         Assert.assertEquals(configs, TaskUtils.getConfigFiles(taskBuilder.build()));
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testSetTemplatesTooBig() throws InvalidProtocolBufferException {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
         StringBuilder sb = new StringBuilder();
@@ -271,7 +277,7 @@ public class TaskUtilsTest {
         Assert.assertTrue(TaskUtils.getOfferAttributeStrings(tb.build()).isEmpty());
     }
 
-    @Test(expected=TaskException.class)
+    @Test(expected = TaskException.class)
     public void testGetMissingTaskTypeFails() throws TaskException {
         TaskUtils.getType(getTestTaskInfo());
     }
@@ -283,6 +289,17 @@ public class TaskUtilsTest {
         Assert.assertEquals("", TaskUtils.getType(TaskUtils.setType(
                 getTestTaskInfo().toBuilder(), "").build()));
 
+    }
+
+    @Test
+    public void testApplyEnvToMustache() throws IOException {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        String yaml = FileUtils.readFileToString(file);
+        Assert.assertTrue(yaml.contains("api-port: {{PORT0}}"));
+        String renderedYaml = TaskUtils.applyEnvToMustache(yaml, System.getenv());
+        Assert.assertTrue(renderedYaml.contains("api-port: 8080"));
     }
 
     private static Protos.TaskID getTaskId(String value) {

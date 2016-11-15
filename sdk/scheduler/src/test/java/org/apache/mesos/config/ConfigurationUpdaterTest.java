@@ -79,7 +79,7 @@ public class ConfigurationUpdaterTest {
             TASK_B_DISK);
 
     private static final ServiceSpec getServiceSpec(PodSpec podA, PodSpec podB) {
-        return DefaultServiceSpec.Builder.newBuilder()
+        return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
