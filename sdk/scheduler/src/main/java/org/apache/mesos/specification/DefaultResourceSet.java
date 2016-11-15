@@ -5,14 +5,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.Collection;
 
 /**
  * Default implementation of {@link ResourceSet}.
  */
 public class DefaultResourceSet implements ResourceSet {
+    @NotNull
+    @Size(min = 1)
     private String id;
+    @NotNull
+    @Size(min = 1)
+    @Valid
     private Collection<ResourceSpecification> resources;
+    @Valid
     private Collection<VolumeSpecification> volumes;
 
     @JsonCreator

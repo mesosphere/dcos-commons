@@ -1,11 +1,15 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.util.ValidationUtils;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Default implementation of {@link ContainerSpec}.
  */
 public class DefaultContainerSpec implements ContainerSpec {
+    @NotNull
     private Protos.ContainerInfo containerInfo;
 
     private DefaultContainerSpec(Builder builder) {
@@ -55,7 +59,9 @@ public class DefaultContainerSpec implements ContainerSpec {
          * @return a {@code DefaultContainerSpec} built with parameters of this {@code DefaultContainerSpec.Builder}
          */
         public DefaultContainerSpec build() {
-            return new DefaultContainerSpec(this);
+            DefaultContainerSpec defaultContainerSpec = new DefaultContainerSpec(this);
+            ValidationUtils.validate(defaultContainerSpec);
+            return defaultContainerSpec;
         }
     }
 }

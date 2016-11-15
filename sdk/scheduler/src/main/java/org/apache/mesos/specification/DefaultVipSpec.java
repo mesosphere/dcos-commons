@@ -1,12 +1,24 @@
 package org.apache.mesos.specification;
 
+import org.apache.mesos.util.ValidationUtils;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 /**
  * Default implementation of {@link VipSpec}.
  */
 public class DefaultVipSpec implements VipSpec {
-    private int applicationPort;
+    @NotNull
+    @Min(0)
+    private Integer applicationPort;
+    @NotNull
+    @Size(min = 1, message = "prefix cannot be empty.")
     private String vipName;
-    private int vipPort;
+    @NotNull
+    @Min(0)
+    private Integer vipPort;
 
     private DefaultVipSpec(Builder builder) {
         applicationPort = builder.applicationPort;
@@ -93,7 +105,9 @@ public class DefaultVipSpec implements VipSpec {
          * @return a {@code DefaultVipSpec} built with parameters of this {@code DefaultVipSpec.Builder}
          */
         public DefaultVipSpec build() {
-            return new DefaultVipSpec(this);
+            DefaultVipSpec defaultVipSpec = new DefaultVipSpec(this);
+            ValidationUtils.validate(defaultVipSpec);
+            return defaultVipSpec;
         }
     }
 }

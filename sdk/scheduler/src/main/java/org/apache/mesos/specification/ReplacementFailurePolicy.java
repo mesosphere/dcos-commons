@@ -3,12 +3,17 @@ package org.apache.mesos.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.util.ValidationUtils;
+
+import javax.validation.constraints.Min;
 
 /**
  * Destructive Replacement Failure Policy configuration.
  */
 public class ReplacementFailurePolicy {
+    @Min(0)
     private Integer permanentFailureTimoutMs;
+    @Min(0)
     private Integer minReplaceDelayMs;
 
     public ReplacementFailurePolicy(
@@ -101,7 +106,9 @@ public class ReplacementFailurePolicy {
          * {@code ReplacementFailurePolicy.Builder}
          */
         public ReplacementFailurePolicy build() {
-            return new ReplacementFailurePolicy(this);
+            ReplacementFailurePolicy replacementFailurePolicy = new ReplacementFailurePolicy(this);
+            ValidationUtils.validate(replacementFailurePolicy);
+            return replacementFailurePolicy;
         }
     }
 }

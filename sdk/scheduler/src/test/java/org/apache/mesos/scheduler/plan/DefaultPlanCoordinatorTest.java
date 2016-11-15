@@ -104,7 +104,7 @@ public class DefaultPlanCoordinatorTest {
 
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
-        serviceSpecification = DefaultServiceSpec.Builder.newBuilder()
+        serviceSpecification = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
@@ -122,7 +122,7 @@ public class DefaultPlanCoordinatorTest {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
-        serviceSpecificationB = DefaultServiceSpec.Builder.newBuilder()
+        serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)

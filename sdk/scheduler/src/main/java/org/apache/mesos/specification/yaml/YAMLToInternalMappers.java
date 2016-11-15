@@ -37,7 +37,7 @@ public class YAMLToInternalMappers {
         }
 
         RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
-        DefaultServiceSpec.Builder builder = DefaultServiceSpec.Builder.newBuilder();
+        DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder();
 
         if (replacementFailurePolicy != null) {
             Integer minReplaceDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
@@ -144,6 +144,12 @@ public class YAMLToInternalMappers {
                         .map(rawResourceSet -> from(rawResourceSet, role, principal))
                         .collect(Collectors.toList());
 
+        final LinkedHashMap<String, RawTask> rawTasks = tasks;
+        for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
+            entry.getValue().setName(entry.getKey());
+            taskSpecs.add(from(entry.getValue(), Optional.ofNullable(user), podName, resourceSets));
+        }
+
         final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
                 .count(podInstanceCount)
                 .placementRule(null /** TODO(mohit) */)
@@ -152,12 +158,6 @@ public class YAMLToInternalMappers {
                 .user(user)
                 .resources(resourceSets)
                 .build();
-
-        final LinkedHashMap<String, RawTask> rawTasks = tasks;
-        for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
-            entry.getValue().setName(entry.getKey());
-            taskSpecs.add(from(entry.getValue(), podSpec));
-        }
 
         return podSpec;
     }
@@ -202,7 +202,10 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    public static TaskSpec from(RawTask rawTask, PodSpec podSpec) throws Exception {
+    public static TaskSpec from(RawTask rawTask,
+                                Optional<String> user,
+                                String podType,
+                                Collection<ResourceSet> resourceSets) throws Exception {
         Collection<URI> uris = new ArrayList<>();
 
         for (String uriStr : rawTask.getUris()) {
@@ -210,8 +213,8 @@ public class YAMLToInternalMappers {
         }
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder();
-        if (podSpec.getUser().isPresent()) {
-            commandSpecBuilder.user(podSpec.getUser().get());
+        if (user.isPresent()) {
+            commandSpecBuilder.user(user.get());
         }
         final DefaultCommandSpec commandSpec = commandSpecBuilder
                 .environment(rawTask.getEnv())
@@ -241,9 +244,9 @@ public class YAMLToInternalMappers {
                 .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .name(rawTask.getName())
-                .type(podSpec.getType())
+                .type(podType)
                 .resourceSet(
-                        podSpec.getResources().stream()
+                        resourceSets.stream()
                                 .filter(resourceSet -> resourceSet.getId().equals(rawTask.getResourceSet()))
                                 .findFirst().get())
                 .uris(uris)

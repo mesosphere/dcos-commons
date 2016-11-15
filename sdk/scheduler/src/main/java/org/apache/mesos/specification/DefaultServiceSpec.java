@@ -10,7 +10,12 @@ import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.constrain.*;
+import org.apache.mesos.util.ValidationUtils;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -22,12 +27,24 @@ import java.util.List;
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
 
+    @NotNull
+    @Size(min = 1)
     private String name;
     private String role;
     private String principal;
-    private int apiPort;
+
+    @NotNull
+    @Min(0)
+    private Integer apiPort;
+
     private String zookeeperConnection;
+
+    @Valid
+    @NotNull
+    @Size(min = 1)
     private List<PodSpec> pods;
+
+    @Valid
     private ReplacementFailurePolicy replacementFailurePolicy;
 
     @JsonCreator
@@ -46,6 +63,32 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.zookeeperConnection = zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
+    }
+
+    private DefaultServiceSpec(Builder builder) {
+        name = builder.name;
+        role = builder.role;
+        principal = builder.principal;
+        apiPort = builder.apiPort;
+        zookeeperConnection = builder.zookeeperConnection;
+        pods = builder.pods;
+        replacementFailurePolicy = builder.replacementFailurePolicy;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static Builder newBuilder(DefaultServiceSpec copy) {
+        Builder builder = new Builder();
+        builder.name = copy.name;
+        builder.role = copy.role;
+        builder.principal = copy.principal;
+        builder.apiPort = copy.apiPort;
+        builder.zookeeperConnection = copy.zookeeperConnection;
+        builder.pods = copy.pods;
+        builder.replacementFailurePolicy = copy.replacementFailurePolicy;
+        return builder;
     }
 
     @Override
@@ -201,63 +244,109 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Builder for DefaultServiceSpec.
+     * {@code DefaultServiceSpec} builder static inner class.
      */
-    public static class Builder {
+    public static final class Builder {
         private String name;
         private String role;
         private String principal;
-        private int apiPort;
+        private Integer apiPort;
         private String zookeeperConnection;
         private List<PodSpec> pods;
         private ReplacementFailurePolicy replacementFailurePolicy;
 
-        public static Builder newBuilder() {
-            return new Builder();
+        private Builder() {
         }
 
-        public static Builder newBuilder(DefaultServiceSpec spec) {
-            return new Builder();
-        }
-
+        /**
+         * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param name the {@code name} to set
+         * @return a reference to this Builder
+         */
         public Builder name(String name) {
             this.name = name;
             return this;
         }
 
+        /**
+         * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param role the {@code role} to set
+         * @return a reference to this Builder
+         */
         public Builder role(String role) {
             this.role = role;
             return this;
         }
 
+        /**
+         * Sets the {@code principal} and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param principal the {@code principal} to set
+         * @return a reference to this Builder
+         */
         public Builder principal(String principal) {
             this.principal = principal;
             return this;
         }
 
-        public Builder apiPort(int apiPort) {
+        /**
+         * Sets the {@code apiPort} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param apiPort the {@code apiPort} to set
+         * @return a reference to this Builder
+         */
+        public Builder apiPort(Integer apiPort) {
             this.apiPort = apiPort;
             return this;
         }
 
+        /**
+         * Sets the {@code zookeeperConnection} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param zookeeperConnection the {@code zookeeperConnection} to set
+         * @return a reference to this Builder
+         */
         public Builder zookeeperConnection(String zookeeperConnection) {
             this.zookeeperConnection = zookeeperConnection;
             return this;
         }
 
+        /**
+         * Sets the {@code pods} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param pods the {@code pods} to set
+         * @return a reference to this Builder
+         */
         public Builder pods(List<PodSpec> pods) {
             this.pods = pods;
             return this;
         }
 
+        /**
+         * Sets the {@code replacementFailurePolicy} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param replacementFailurePolicy the {@code replacementFailurePolicy} to set
+         * @return a reference to this Builder
+         */
         public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
             this.replacementFailurePolicy = replacementFailurePolicy;
             return this;
         }
 
+        /**
+         * Returns a {@code DefaultServiceSpec} built from the parameters previously set.
+         *
+         * @return a {@code DefaultServiceSpec} built with parameters of this {@code DefaultServiceSpec.Builder}
+         */
         public DefaultServiceSpec build() {
-            return new DefaultServiceSpec(name, role, principal, apiPort, zookeeperConnection, pods,
-                    replacementFailurePolicy);
+            DefaultServiceSpec defaultServiceSpec = new DefaultServiceSpec(this);
+            ValidationUtils.validate(defaultServiceSpec);
+            return defaultServiceSpec;
         }
     }
 }
