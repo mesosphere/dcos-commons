@@ -14,8 +14,18 @@
           "description": "The user to run the Elasticsearch service instance and own the sandbox.",
           "type": "string",
           "default": "core"
+        },
+        "plan_strategy": {
+          "description": "Elasticsearch and Kibana rollout strategy. [PARALLEL, SERIAL]",
+          "type": "string",
+          "default": "PARALLEL"
         }
-      }
+      },
+      "required": [
+        "name",
+        "user",
+        "plan_strategy"
+      ]
     },
     "elasticsearch": {
       "description": "Elasticsearch service configuration properties",
