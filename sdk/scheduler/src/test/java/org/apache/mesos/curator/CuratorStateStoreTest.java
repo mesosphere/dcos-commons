@@ -72,7 +72,7 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testFetchEmptyFrameworkId() throws Exception {
-        Assert.assertFalse(store.fetchFrameworkId().isPresent());
+        assertFalse(store.fetchFrameworkId().isPresent());
     }
 
     @Test
@@ -85,7 +85,7 @@ public class CuratorStateStoreTest {
     public void testStoreClearFetchFrameworkId() throws Exception {
         store.storeFrameworkId(FRAMEWORK_ID);
         store.clearFrameworkId();
-        Assert.assertFalse(store.fetchFrameworkId().isPresent());
+        assertFalse(store.fetchFrameworkId().isPresent());
     }
 
     @Test
@@ -107,7 +107,7 @@ public class CuratorStateStoreTest {
 
     @Test
     public void testFetchMissingTask() throws Exception {
-        Assert.assertFalse(store.fetchTask(TASK_NAME).isPresent());
+        assertFalse(store.fetchTask(TASK_NAME).isPresent());
     }
 
     @Test
@@ -140,7 +140,7 @@ public class CuratorStateStoreTest {
     public void testStoreClearFetchTask() throws Exception {
         store.storeTasks(createTasks(TASK_NAME));
         store.clearTask(TASK_NAME);
-        Assert.assertFalse(store.fetchTask(TASK_NAME).isPresent());
+        assertFalse(store.fetchTask(TASK_NAME).isPresent());
     }
 
     @Test

@@ -13,6 +13,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -68,9 +70,12 @@ public class DefaultPodSpec implements PodSpec {
         builder.type = copy.getType();
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
-        builder.tasks = copy.getTasks();
+        builder.tasks = new ArrayList<>();
+        builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
-        builder.resources = copy.getResources();
+        ArrayList<ResourceSet> resourcesCopy = new ArrayList<>();
+        resourcesCopy.addAll(copy.getResources());
+        builder.resources = resourcesCopy;
         return builder;
     }
 

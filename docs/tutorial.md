@@ -55,7 +55,7 @@ and `data-{0-1}` are the executors.
 
 ## Requirements
 - JDK 8
-- Gradle 3.1 (recommended)
+- Gradle 3.2 (recommended)
 - AWS account with S3 upload permissions
 - [`aws` CLI](https://aws.amazon.com/cli/)
 
@@ -88,7 +88,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
+    gradleVersion = '3.2'
 }
 
 mainClassName = 'com.mesosphere.sdk.reference.scheduler.Main'

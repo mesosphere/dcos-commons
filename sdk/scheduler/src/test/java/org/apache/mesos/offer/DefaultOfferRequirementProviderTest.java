@@ -35,7 +35,7 @@ public class DefaultOfferRequirementProviderTest {
         }
     };
 
-    private static DefaultOfferRequirementProvider PROVIDER;
+    private DefaultOfferRequirementProvider provider;
     private EnvironmentVariables environmentVariables;
 
     @Mock private StateStore stateStore;
@@ -90,7 +90,7 @@ public class DefaultOfferRequirementProviderTest {
         when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
 
-        PROVIDER = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
+        provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
     }
 
     /*
@@ -154,7 +154,7 @@ public class DefaultOfferRequirementProviderTest {
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
 
-        OfferRequirement offerRequirement = PROVIDER.getNewOfferRequirement(podInstance, tasksToLaunch);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
@@ -178,7 +178,7 @@ public class DefaultOfferRequirementProviderTest {
         String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
         when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(podInstance, tasksToLaunch);
+                provider.getExistingOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
     }
 

@@ -11,12 +11,15 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.offer.constrain.TestPlacementUtils;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.plan.Step;
+import org.apache.mesos.specification.DefaultPodSpec;
 import org.apache.mesos.specification.DefaultServiceSpec;
 import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.ServiceSpec;
@@ -130,31 +133,20 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    private static final PodSpec scaledPodB = TestPodFactory.getPodSpec(
-            TASK_B_POD_NAME,
-            TestConstants.RESOURCE_SET_ID + "-B",
-            TASK_B_NAME,
-            TASK_B_CMD,
-            TASK_B_COUNT + 1,
-            TASK_B_CPU,
-            TASK_B_MEM,
-            TASK_B_DISK);
-
-    private static final ServiceSpec getServiceSpec(PodSpec podA, PodSpec podB) {
+    private static final DefaultServiceSpec.Builder getServiceSpec(PodSpec... pods) {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .apiPort(0)
                 .zookeeperConnection("foo.bar.com")
-                .pods(Arrays.asList(podA, podB))
-                .build();
+                .pods(Arrays.asList(pods));
     }
 
-    private static final ServiceSpec SERVICE_SPECIFICATION = getServiceSpec(podA, podB);
-    private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB);
-    private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB);
-    private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB);
+    private static final ServiceSpec SERVICE_SPECIFICATION = getServiceSpec(podA, podB).build();
+    private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
+    private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
+    private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
 
     private static TestingServer testingServer;
 
@@ -192,19 +184,14 @@ public class DefaultSchedulerTest {
         Assert.assertNotNull(defaultScheduler);
     }
 
-    /*
     @Test(expected=ConfigStoreException.class)
     public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
-        ServiceSpec serviceSpecification =
-                new DefaultServiceSpec(
-                        TestConstants.SERVICE_NAME,
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL,
-                        0,
-                        DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
-                        Collections.emptyList(),
-                        new ReplacementFailurePolicy(0, 0));
-
+        ServiceSpec serviceSpecification = getServiceSpec(
+                DefaultPodSpec.newBuilder(podA)
+                        .placementRule(TestPlacementUtils.ALL)
+                        .build())
+                .build();
+        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
                 testingServer.getConnectString(),
@@ -213,14 +200,12 @@ public class DefaultSchedulerTest {
 
     @Test(expected=ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() throws ConfigStoreException {
-        ServiceSpec serviceSpecification =
-                new DefaultServiceSpec(
-                        "placement",
-                        Arrays.asList(TestPodFactory.getTaskSet(
-                                Collections.emptyList(),
-                                Optional.of(new PlacementRuleMissingEquality()))));
-        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
-                .getPlacement().isPresent());
+        ServiceSpec serviceSpecification = getServiceSpec(
+                DefaultPodSpec.newBuilder(podA)
+                        .placementRule(new PlacementRuleMissingEquality())
+                        .build())
+                .build();
+        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
                 testingServer.getConnectString(),
@@ -229,14 +214,12 @@ public class DefaultSchedulerTest {
 
     @Test(expected=ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() throws ConfigStoreException {
-        ServiceSpec serviceSpecification =
-                new DefaultServiceSpec (
-                        "placement",
-                        Arrays.asList(TestPodFactory.getTaskSet(
-                                Collections.emptyList(),
-                                Optional.of(new PlacementRuleMismatchedAnnotations("hi")))));
-        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
-                .getPlacement().isPresent());
+        ServiceSpec serviceSpecification = getServiceSpec(
+                DefaultPodSpec.newBuilder(podA)
+                        .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
+                        .build())
+                .build();
+        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
                 testingServer.getConnectString(),
@@ -245,20 +228,17 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testConstructConfigStoreWithRegisteredGoodCustomType() throws ConfigStoreException {
-        ServiceSpec serviceSpecification =
-                new DefaultServiceSpec(
-                        "placement",
-                        Arrays.asList(TestPodFactory.getTaskSet(
-                                Collections.emptyList(),
-                                Optional.of(TestPlacementUtils.ALL))));
-        Assert.assertTrue(serviceSpecification.getTaskSets().get(0).getTaskSpecifications().get(0)
-                .getPlacement().isPresent());
+        ServiceSpec serviceSpecification = getServiceSpec(
+                DefaultPodSpec.newBuilder(podA)
+                        .placementRule(TestPlacementUtils.ALL)
+                        .build())
+                .build();
+        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
                 testingServer.getConnectString(),
                 Arrays.asList(TestPlacementUtils.ALL.getClass()));
     }
-    */
 
     @Test
     public void testEmptyOffers() {
