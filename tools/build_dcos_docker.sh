@@ -19,10 +19,10 @@ if [ ! -f "dcos_generate_config.sh" ]; then
 fi
 
 echo "### Destroying pre-existing VM, if any"
-#vagrant destroy
+vagrant destroy
 
 echo "### Building VM"
-#vagrant/resize-disk.sh 20480
+vagrant/resize-disk.sh 20480
 
 echo "### Launching cluster and installing tools in VM"
 vagrant ssh <<- EOF
