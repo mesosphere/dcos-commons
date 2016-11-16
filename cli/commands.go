@@ -235,15 +235,15 @@ func (cmd *StateHandler) RunFrameworkId(c *kingpin.ParseContext) error {
 	return nil
 }
 func (cmd *StateHandler) RunStatus(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/state/tasks/status/%s", cmd.TaskName)))
+	PrintJSON(HTTPGet(fmt.Sprintf("v1/tasks/status/%s", cmd.TaskName)))
 	return nil
 }
 func (cmd *StateHandler) RunTask(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/state/tasks/info/%s", cmd.TaskName)))
+	PrintJSON(HTTPGet(fmt.Sprintf("v1/tasks/info/%s", cmd.TaskName)))
 	return nil
 }
 func (cmd *StateHandler) RunTasks(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/state/tasks"))
+	PrintJSON(HTTPGet("v1/tasks"))
 	return nil
 }
 
