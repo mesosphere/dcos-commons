@@ -31,7 +31,7 @@ fi
 
 _notify_github success "Build succeeded"
 
-$ROOT_DIR/tools/ci_upload.py \
+$ROOT_DIR/tools/publish_aws.py \
   hello-world \
   universe/ \
   build/distributions/*.zip \
