@@ -11,7 +11,7 @@
             "default":"data-store"
           },
           "sleep" : {
-            "description":"The sleep duration before Tasks exit.",
+            "description":"The sleep duration in seconds before tasks exit.",
             "type":"number",
             "default":1000
           }
@@ -38,12 +38,12 @@
           },
           "count":{
             "description":"Number of nodes to run",
-            "type":"number",
+            "type":"integer",
             "default":2
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
-            "type":"constraint",
+            "type":"string",
             "default":""
           }
         },
@@ -75,12 +75,12 @@
           },
           "count":{
             "description":"Number of nodes to run",
-            "type":"number",
+            "type":"integer",
             "default":3
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
-            "type":"constraint",
+            "type":"string",
             "default":""
           }
         },
