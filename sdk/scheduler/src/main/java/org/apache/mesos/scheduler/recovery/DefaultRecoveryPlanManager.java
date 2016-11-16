@@ -33,11 +33,11 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     protected volatile Plan plan;
 
-    private final StateStore stateStore;
-    private final RecoveryRequirementProvider recoveryReqProvider;
-    private final FailureMonitor failureMonitor;
-    private final LaunchConstrainer launchConstrainer;
-    private final Object planLock = new Object();
+    protected final StateStore stateStore;
+    protected final RecoveryRequirementProvider recoveryReqProvider;
+    protected final FailureMonitor failureMonitor;
+    protected final LaunchConstrainer launchConstrainer;
+    protected final Object planLock = new Object();
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,

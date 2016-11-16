@@ -115,7 +115,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         if (taskSpec.getCommand().isPresent()) {
             final CommandSpec commandSpec = taskSpec.getCommand().get();
-            final Protos.Environment environment = TaskUtils.fromMapToEnvironment(commandSpec.getEnvironment());
+            Protos.Environment environment = getEnvironment(podInstance, taskSpec);
+
             final Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskSpec.getType())
                     .updateEnvironment(Protos.CommandInfo.newBuilder()
                             .setValue(commandSpec.getValue())
@@ -131,7 +132,24 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return taskInfoBuilder.build();
     }
 
+    private Protos.Environment getEnvironment(PodInstance podInstance, TaskSpec taskSpec) {
+        if (taskSpec.getCommand().isPresent()) {
+            Protos.Environment environment =
+                    TaskUtils.fromMapToEnvironment(taskSpec.getCommand().get().getEnvironment());
 
+            // Inject Pod Instance Index
+            environment = environment.toBuilder()
+                    .addVariables(Protos.Environment.Variable.newBuilder()
+                            .setName("POD_INSTANCE_INDEX")
+                            .setValue(String.valueOf(podInstance.getIndex()))
+                            .build())
+                    .build();
+
+            return environment;
+        }
+
+        return null;
+    }
 
     private TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo, TaskSpec taskSpec)
             throws InvalidRequirementException {
