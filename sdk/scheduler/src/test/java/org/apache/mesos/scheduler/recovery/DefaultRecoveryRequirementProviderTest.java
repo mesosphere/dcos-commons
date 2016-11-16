@@ -56,7 +56,7 @@ public class DefaultRecoveryRequirementProviderTest {
     private EnvironmentVariables environmentVariables;
 
     private StateStore stateStore;
-    private ConfigStore configStore;
+    private ConfigStore<ServiceSpec> configStore;
     private DefaultRecoveryRequirementProvider recoveryRequirementProvider;
     private OfferRequirementProvider offerRequirementProvider;
 

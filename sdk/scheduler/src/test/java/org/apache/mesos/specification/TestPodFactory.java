@@ -83,8 +83,6 @@ public class TestPodFactory {
                 .build();
     }
 
-
-
     static Collection<ResourceSpecification> getResources(
             double cpu,
             double mem,
