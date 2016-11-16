@@ -321,18 +321,18 @@ repo containing our single package.
 
 ```bash
 ~ $ cd /path/to/dcos-commons
-dcos-commons $ ./tools/ci_upload.py \
+dcos-commons $ ./tools/publish_aws.py \
       data-store \
       universe/ \
       reference-scheduler/build/distributions/scheduler.zip
 ```
 
-`./ci_upload.py` uploads the artifact to S3, rewrites the package to
+`./publish_aws.py` uploads the artifact to S3, rewrites the package to
 include links to the artifact, creates a repo containing that package,
 and uploads that repo to S3.  The end result is a URL for a DC/OS
 repo.
 
-We now add this repo to our cluster:
+We now add the repo URL printed by `publish_aws.py` to our cluster:
 
 ```bash
 $ dcos package repo add --index=0 dev-repo <repo_url>
