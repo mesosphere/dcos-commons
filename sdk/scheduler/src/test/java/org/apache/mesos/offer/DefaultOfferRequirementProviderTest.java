@@ -80,7 +80,6 @@ public class DefaultOfferRequirementProviderTest {
         when(taskSpec.getType()).thenReturn(TestConstants.POD_TYPE);
         when(taskSpec.getResourceSet()).thenReturn(resourceSet);
         when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
-        when(taskSpec.getContainer()).thenReturn(Optional.empty());
         when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
         when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
 

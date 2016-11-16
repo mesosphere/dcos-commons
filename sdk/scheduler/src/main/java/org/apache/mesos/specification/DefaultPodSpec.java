@@ -30,6 +30,9 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Min(0)
     private Integer count;
+    @Valid
+    @Size(max = 1)
+    private ContainerSpec container;
     @NotNull
     @Valid
     @Size(min = 1)
@@ -46,19 +49,21 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("type") String type,
             @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
+            @JsonProperty("container") ContainerSpec container,
             @JsonProperty("task_specs") List<TaskSpec> tasks,
             @JsonProperty("placement_rule") PlacementRule placementRule,
             @JsonProperty("resource_sets") Collection<ResourceSet> resources) {
         this.type = type;
         this.user = user;
         this.count = count;
+        this.container = container;
         this.tasks = tasks;
         this.placementRule = placementRule;
         this.resources = resources;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count, builder.tasks, builder.placementRule, builder.resources);
+        this(builder.type, builder.user, builder.count, builder.container, builder.tasks, builder.placementRule, builder.resources);
     }
 
     public static Builder newBuilder() {
@@ -70,6 +75,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.type = copy.getType();
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
+        builder.container = copy.getContainer().isPresent() ? copy.getContainer().get() : null;
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
@@ -92,6 +98,11 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public Integer getCount() {
         return count;
+    }
+
+    @Override
+    public Optional<ContainerSpec> getContainer() {
+        return Optional.ofNullable(container);
     }
 
     @Override
@@ -127,6 +138,7 @@ public class DefaultPodSpec implements PodSpec {
         private String type;
         private String user;
         private Integer count;
+        private ContainerSpec container;
         private List<TaskSpec> tasks;
         private PlacementRule placementRule;
         private Collection<ResourceSet> resources;
@@ -164,6 +176,17 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder count(Integer count) {
             this.count = count;
+            return this;
+        }
+
+        /**
+         * Sets the {@code container} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param container the {@code container} to set
+         * @return a reference to this Builder
+         */
+        public Builder container(ContainerSpec container) {
+            this.container = container;
             return this;
         }
 

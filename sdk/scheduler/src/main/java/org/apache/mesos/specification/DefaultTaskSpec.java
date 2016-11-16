@@ -29,8 +29,6 @@ public class DefaultTaskSpec implements TaskSpec {
     @Valid
     private CommandSpec commandSpec;
     @Valid
-    private ContainerSpec containerSpec;
-    @Valid
     private HealthCheckSpec healthCheckSpec;
 
     private Collection<URI> uris;
@@ -47,7 +45,6 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("goal") GoalState goalState,
             @JsonProperty("resource_set") ResourceSet resourceSet,
             @JsonProperty("command_spec") CommandSpec commandSpec,
-            @JsonProperty("container_spec") ContainerSpec containerSpec,
             @JsonProperty("health_check_spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFiles) {
@@ -56,7 +53,6 @@ public class DefaultTaskSpec implements TaskSpec {
         this.goalState = goalState;
         this.resourceSet = resourceSet;
         this.commandSpec = commandSpec;
-        this.containerSpec = containerSpec;
         this.healthCheckSpec = healthCheckSpec;
         this.uris = uris;
         this.configFiles = configFiles;
@@ -69,7 +65,6 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.goalState,
                 builder.resourceSet,
                 builder.commandSpec,
-                builder.containerSpec,
                 builder.healthCheckSpec,
                 builder.uris,
                 builder.configFiles);
@@ -84,7 +79,6 @@ public class DefaultTaskSpec implements TaskSpec {
         builder.name = copy.name;
         builder.goalState = copy.goalState;
         builder.commandSpec = copy.commandSpec;
-        builder.containerSpec = copy.containerSpec;
         builder.healthCheckSpec = copy.healthCheckSpec;
         builder.uris = copy.uris;
         builder.configFiles = copy.configFiles;
@@ -114,11 +108,6 @@ public class DefaultTaskSpec implements TaskSpec {
     @Override
     public Optional<CommandSpec> getCommand() {
         return Optional.ofNullable(commandSpec);
-    }
-
-    @Override
-    public Optional<ContainerSpec> getContainer() {
-        return Optional.ofNullable(containerSpec);
     }
 
     @Override
@@ -164,7 +153,6 @@ public class DefaultTaskSpec implements TaskSpec {
         private GoalState goalState;
         private ResourceSet resourceSet;
         private CommandSpec commandSpec;
-        private ContainerSpec containerSpec;
         private HealthCheckSpec healthCheckSpec;
         private Collection<URI> uris;
         private Collection<ConfigFileSpecification> configFiles;
@@ -214,18 +202,6 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder commandSpec(CommandSpec commandSpec) {
             this.commandSpec = commandSpec;
-            return this;
-        }
-
-        /**
-         * Sets the {@code containerSpec} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param containerSpec the {@code containerSpec} to set
-         * @return a reference to this Builder
-         */
-        public Builder containerSpec(ContainerSpec containerSpec) {
-            this.containerSpec = containerSpec;
             return this;
         }
 

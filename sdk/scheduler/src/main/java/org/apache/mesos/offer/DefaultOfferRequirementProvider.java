@@ -124,10 +124,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setCommand(updatedCommand);
         }
 
-        if (taskSpec.getContainer().isPresent()) {
-            taskInfoBuilder.setContainer(taskSpec.getContainer().get().getContainerInfo());
-        }
-
         if (taskSpec.getHealthCheck().isPresent()) {
             taskInfoBuilder.setHealthCheck(HealthCheckUtils.getHealthCheck(taskSpec));
         }
@@ -164,10 +160,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
                     .updateEnvironment(CommandUtils.getCommandInfo(taskSpec.getCommand().get()));
             taskInfoBuilder.setCommand(updatedCommand);
-        }
-
-        if (taskSpec.getContainer().isPresent()) {
-            taskInfoBuilder.setContainer(taskSpec.getContainer().get().getContainerInfo());
         }
 
         if (taskSpec.getHealthCheck().isPresent()) {
@@ -290,6 +282,15 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
+
+        if (podSpec.getContainer().isPresent()) {
+            executorInfoBuilder.setContainer(
+                    Protos.ContainerInfo.newBuilder()
+                            .setType(Protos.ContainerInfo.Type.MESOS)
+                            .setDocker(Protos.ContainerInfo.DockerInfo.newBuilder()
+                                .setImage(podSpec.getContainer().get().getImageName()))
+            );
+        }
 
         String executorStr = System.getenv(EXECUTOR_URI);
         if (executorStr == null) {

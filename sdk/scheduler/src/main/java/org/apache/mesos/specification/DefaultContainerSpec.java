@@ -10,58 +10,14 @@ import javax.validation.constraints.NotNull;
  */
 public class DefaultContainerSpec implements ContainerSpec {
     @NotNull
-    private Protos.ContainerInfo containerInfo;
+    private String imageName;
 
-    private DefaultContainerSpec(Builder builder) {
-        containerInfo = builder.containerInfo;
-    }
-
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    public static Builder newBuilder(DefaultContainerSpec copy) {
-        Builder builder = new Builder();
-        builder.containerInfo = copy.containerInfo;
-        return builder;
+    public DefaultContainerSpec(String imageName) {
+        this.imageName = imageName;
     }
 
     @Override
-    public Protos.ContainerInfo getContainerInfo() {
-        return containerInfo;
-    }
-
-
-    /**
-     * {@code DefaultContainerSpec} builder static inner class.
-     */
-    public static final class Builder {
-        private Protos.ContainerInfo containerInfo;
-
-        private Builder() {
-        }
-
-        /**
-         * Sets the {@code containerInfo} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param containerInfo the {@code containerInfo} to set
-         * @return a reference to this Builder
-         */
-        public Builder containerInfo(Protos.ContainerInfo containerInfo) {
-            this.containerInfo = containerInfo;
-            return this;
-        }
-
-        /**
-         * Returns a {@code DefaultContainerSpec} built from the parameters previously set.
-         *
-         * @return a {@code DefaultContainerSpec} built with parameters of this {@code DefaultContainerSpec.Builder}
-         */
-        public DefaultContainerSpec build() {
-            DefaultContainerSpec defaultContainerSpec = new DefaultContainerSpec(this);
-            ValidationUtils.validate(defaultContainerSpec);
-            return defaultContainerSpec;
-        }
+    public String getImageName() {
+        return imageName;
     }
 }
