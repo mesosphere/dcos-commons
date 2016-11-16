@@ -238,7 +238,7 @@ public class TaskUtils {
     }
 
     /**
-     * Returns the {@link TaskSpecification} in the provided {@link DefaultServiceSpecification}
+     * Returns the {@link TaskSpec} in the provided {@link DefaultServiceSpec}
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
     public static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
@@ -520,7 +520,7 @@ public class TaskUtils {
 
     /**
      * Utility method for checking if volumes changed between the two provided
-     * {@link TaskSpecification}s.
+     * {@link TaskSpec}s.
      *
      * @return whether the volume lists are equal
      */

@@ -4,7 +4,7 @@ import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.specification.PodSpec;
 
 /**
- * A PhaseFactory transforms {@link TaskSet}s into {@link Phase}s.
+ * A PhaseFactory transforms {@link PodSpec}s into {@link Phase}s.
  */
 public interface PhaseFactory {
     Phase getPhase(PodSpec podSpec);

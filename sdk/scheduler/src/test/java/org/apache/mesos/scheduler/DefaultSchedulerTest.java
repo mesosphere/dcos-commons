@@ -31,11 +31,11 @@ import org.awaitility.Awaitility;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.rules.DisableOnDebug;
+import org.junit.rules.TestRule;
+import org.junit.rules.Timeout;
 import org.mockito.*;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    //@Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    @Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
@@ -202,7 +202,8 @@ public class DefaultSchedulerTest {
                         TestConstants.PRINCIPAL,
                         0,
                         DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
-                        Collections.emptyList());
+                        Collections.emptyList(),
+                        new ReplacementFailurePolicy(0, 0));
 
         DefaultScheduler.createConfigStore(
                 serviceSpecification,

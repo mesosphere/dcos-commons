@@ -139,20 +139,20 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Returns a {@link ConfigurationComparer} which may be used to compare
-     * {@link DefaultServiceSpecification}s.
+     * Returns a {@link ConfigurationComparator} which may be used to compare
+     * {@link DefaultServiceSpec}s.
      */
     public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
         return COMPARATOR;
     }
 
     /**
-     * Comparer which checks for equality of {@link DefaultServiceSpecification}s.
+     * Comparer which checks for equality of {@link DefaultServiceSpec}s.
      */
     public static class Comparator implements ConfigurationComparator<ServiceSpec> {
 
         /**
-         * Call {@link DefaultServiceSpecification#getComparatorInstance()} instead.
+         * Call {@link DefaultServiceSpec#getComparatorInstance()} instead.
          */
         private Comparator() {
         }
@@ -165,7 +165,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     /**
      * Returns a {@link ConfigurationFactory} which may be used to deserialize
-     * {@link DefaultServiceSpecification}s, which has been confirmed to successfully and
+     * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
      * @param serviceSpec                  specification to test for successful serialization/deserialization
@@ -196,7 +196,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Factory which performs the inverse of {@link DefaultServiceSpecification#getBytes()}.
+     * Factory which performs the inverse of {@link DefaultServiceSpec#getBytes()}.
      */
     public static class Factory implements ConfigurationFactory<ServiceSpec> {
 
@@ -217,7 +217,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private final ObjectMapper objectMapper;
 
         /**
-         * @see DefaultServiceSpecification#getFactoryInstance()
+         * @see DefaultServiceSpec#getFactory(ServiceSpec, Collection)
          */
         private Factory(Collection<Class<?>> additionalSubtypes) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());

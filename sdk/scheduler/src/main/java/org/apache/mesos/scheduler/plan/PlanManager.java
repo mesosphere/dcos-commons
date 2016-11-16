@@ -12,7 +12,7 @@ import java.util.Set;
  * PlanManager is the management interface for {@link Plan}s.  Its main purpose is to apply {@link Strategy} objects to
  * {@link Element}s.
  *
- * A {@PlanManager} is an {@Observable}.  It notifies its observers when its plan changes.
+ * A {@link PlanManager} is an {@link Observable}.  It notifies its observers when its plan changes.
  */
 public interface PlanManager extends Observer, Observable {
     /**

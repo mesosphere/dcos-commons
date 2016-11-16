@@ -97,7 +97,7 @@ public class ResourceCleaner {
     }
 
     /**
-     * Returns a list of all expected resources, which are extracted from all {@link TaskInfo}s
+     * Returns a list of all expected resources, which are extracted from all {@link org.apache.mesos.Protos.TaskInfo}s
      * produced by the provided {@link StateStore}.
      */
     private static Collection<Resource> getExpectedResources(StateStore stateStore)
@@ -152,8 +152,8 @@ public class ResourceCleaner {
     /**
      * Returns an ID -> Resource mapping of all disk resources listed in the provided {@link Offer},
      * or an empty list of no disk resources are found.
-     * @param offer
-     * @return
+     * @param offer The Offer being deconstructed.
+     * @return The map of resources from the {@link Offer}
      */
     private static Map<String, Resource> getPersistentVolumesById(Offer offer) {
         Map<String, Resource> volumes = new HashMap<String, Resource>();

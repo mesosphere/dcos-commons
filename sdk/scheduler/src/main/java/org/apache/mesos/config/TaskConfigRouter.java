@@ -10,7 +10,7 @@ public interface TaskConfigRouter {
 
     /**
      * Convenience method for retrieving a {@link ConfigNamespace} against the provided
-     * {@link TaskSet}'s name.
+     * {@link PodSpec}'s type.
      */
     static ConfigNamespace getConfig(TaskConfigRouter router, PodSpec podSpec) {
         return router.getConfig(podSpec.getType());

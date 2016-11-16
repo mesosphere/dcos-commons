@@ -41,8 +41,8 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * This scheduler when provided with a ServiceSpecification will deploy the service and recover from encountered faults
- * when possible.  Changes to the ServiceSpecification will result in rolling configuration updates, or the creation of
+ * This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
+ * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
 public class DefaultScheduler implements Scheduler, Observer {
@@ -79,7 +79,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Returns a new {@link DefaultScheduler} instance using the provided service-defined
-     * {@link ServiceSpecification} and the default ZK location for framework state.
+     * {@link ServiceSpec} and the default ZK location for framework state.
      *
      * @param serviceSpec specification containing service name and tasks to be deployed
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
@@ -93,11 +93,11 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Returns a new {@link DefaultScheduler} instance using the provided service-defined
-     * {@link ServiceSpecification} and the default ZK location for framework state, and with the
+     * {@link ServiceSpec} and the default ZK location for framework state, and with the
      * provided custom {@link org.apache.mesos.offer.constrain.PlacementRule} classes which are used within the provided
-     * {@link ServiceSpecification}. Custom implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s
+     * {@link ServiceSpec}. Custom implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s
      * MUST be serializable and deserializable by Jackson, and MUST be provided to support correctly
-     * identifying them in the serialized {@link ServiceSpecification}.
+     * identifying them in the serialized {@link ServiceSpec}.
      *
      * @param serviceSpec specification containing service name and tasks to be deployed
      * @param customDeserializationSubtypes custom placement rule implementations which support
@@ -119,7 +119,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     /**
      * Returns a new {@link DefaultScheduler} instance using the provided
-     * {@link ServiceSpecification}, {@link ConfigStore}, and {@link StateStore}.
+     * {@link ServiceSpec}, {@link ConfigStore}, and {@link StateStore}.
      *
      * @param serviceSpec specification containing service name and tasks to be deployed
      * @param stateStore framework state storage, which must not be written to before the scheduler
@@ -191,7 +191,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createStateStore(ServiceSpecification, String)} with the specification name as the
+     * Calls {@link #createStateStore(ServiceSpec, String)} with the specification name as the
      * {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
@@ -211,7 +211,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
-     *     {@link DefaultServiceSpecification}, mainly useful for deserializing custom
+     *     {@link DefaultServiceSpec}, mainly useful for deserializing custom
      *     implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s.
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *     unrecognized deserialization type
@@ -227,11 +227,11 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createConfigStore(ServiceSpecification, String, Collection))} with the specification name as
+     * Calls {@link #createConfigStore(ServiceSpec, String, Collection))} with the specification name as
      * the {@code frameworkName} and with a reasonable default for {@code zkConnectionString}.
      *
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
-     *     {@link DefaultServiceSpecification}, mainly useful for deserializing custom
+     *     {@link DefaultServiceSpec}, mainly useful for deserializing custom
      *     implementations of {@link org.apache.mesos.offer.constrain.PlacementRule}s.
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *     unrecognized deserialization type
@@ -247,7 +247,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Calls {@link #createConfigStore(ServiceSpecification, Collection)} with an empty list of
+     * Calls {@link #createConfigStore(ServiceSpec, Collection)} with an empty list of
      * custom deserialization types.
      *
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an

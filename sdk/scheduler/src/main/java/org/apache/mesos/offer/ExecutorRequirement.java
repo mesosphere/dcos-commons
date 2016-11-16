@@ -1,12 +1,12 @@
 package org.apache.mesos.offer;
 
-import java.util.Collection;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.executor.ExecutorTaskException;
 import org.apache.mesos.executor.ExecutorUtils;
+
+import java.util.Collection;
 
 /**
  * An ExecutorRequirement encapsulates the needed resources an Executor must
@@ -96,9 +96,8 @@ public class ExecutorRequirement {
     /**
      * Checks that the ExecutorInfo is valid at the point of requirement construction, making it
      * easier for the framework developer to trace problems in their implementation. These checks
-     * reflect requirements enforced elsewhere, eg in {@link StateStore}.
+     * reflect requirements enforced elsewhere, eg in {@link org.apache.mesos.state.StateStore}.
      *
-     * @return a validated ExecutorInfo
      * @throws InvalidRequirementException if the ExecutorInfo is malformed
      */
     private static void validateExecutorInfo(ExecutorInfo executorInfo)

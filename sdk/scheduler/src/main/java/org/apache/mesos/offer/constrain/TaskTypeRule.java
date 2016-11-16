@@ -28,7 +28,7 @@ public class TaskTypeRule implements PlacementRule {
 
     /**
      * Given a {@link TaskInfo}, returns a type string for that task. This must be implemented by
-     * the developer, or see {@link TaskIDDashConverter} for a sample implementation which expects
+     * the developer, or see {@link TaskTypeConverter} for a sample implementation which expects
      * task ids of the form "tasktypehere-0__uuid".
      */
     @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
@@ -38,8 +38,6 @@ public class TaskTypeRule implements PlacementRule {
 
     /**
      * Implementation of {@link TaskTypeConverter} which expects a Label which provides the task type.
-     *
-     * @throws IllegalArgumentException if the provided task doesn't have a task type label
      */
     public static class TaskTypeLabelConverter implements TaskTypeConverter {
         @Override

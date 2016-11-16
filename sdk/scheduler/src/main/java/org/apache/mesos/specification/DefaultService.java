@@ -26,7 +26,7 @@ import java.util.Optional;
  * services may want to implement the Service interface directly.
  * <p>
  * Customizing the runtime user for individual tasks may be accomplished by customizing the 'user'
- * field on CommandInfo returned by {@link TaskSpecification#getCommand()}.
+ * field on CommandInfo returned by {@link TaskSpec#getCommand()}.
  */
 public class DefaultService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;

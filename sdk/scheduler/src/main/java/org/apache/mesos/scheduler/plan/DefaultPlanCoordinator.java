@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Default implementation of PlanCoordinator.
  *
- * A {@DefaultPlanCoordinator} is an {@Observable} and will forward updates from its plans.
+ * A {@link DefaultPlanCoordinator} is an {@link Observable} and will forward updates from its plans.
  */
 public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
