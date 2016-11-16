@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Created by gabriel on 11/15/16.
+ * This class tests the {@link DefaultStepFactory} class.
  */
 public class DefaultStepFactoryTest {
     private static final TaskSpec taskSpec0 =

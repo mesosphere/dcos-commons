@@ -30,7 +30,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 11/15/16.
+ * This class tests the {@link DefaultRecoveryRequirementProvider} class.
  */
 public class DefaultRecoveryRequirementProviderTest {
     private static final TaskSpec taskSpec0 =

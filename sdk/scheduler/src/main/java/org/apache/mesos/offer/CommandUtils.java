@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by gabriel on 11/9/16.
+ * This class provides utility methods for the construction of {@link org.apache.mesos.Protos.CommandInfo} protobufs
+ * from {@link CommandSpec}s.
  */
 public class CommandUtils {
     public static Protos.CommandInfo getCommandInfo(CommandSpec commandSpec) {

@@ -6,7 +6,7 @@ import org.apache.mesos.specification.PodInstance;
 import org.apache.mesos.specification.PodSpec;
 
 /**
- * Created by gabriel on 11/9/16.
+ * This class is a default implementation of the {@link PodInstance} interface.
  */
 public class DefaultPodInstance implements PodInstance {
     private final PodSpec podSpec;
