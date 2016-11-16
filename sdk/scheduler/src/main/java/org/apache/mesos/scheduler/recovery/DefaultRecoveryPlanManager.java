@@ -1,7 +1,5 @@
 package org.apache.mesos.scheduler.recovery;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.TaskException;
@@ -18,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -124,25 +123,48 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     List<Step> createSteps(Collection<String> dirtyAssets) {
-        Collection<Protos.TaskInfo> taskInfos = StateStoreUtils.fetchTasksNeedingRecovery(stateStore);
+        Collection<String> pods = StateStoreUtils.fetchTasksNeedingRecovery(stateStore).stream()
+                .map(t -> {
+                    try {
+                        return TaskUtils.getType(t);
+                    } catch (TaskException e) {
+                        return null;
+                    }
+                })
+                .filter(t -> t != null)
+                .distinct()
+                .collect(Collectors.toList());
 
-        List<Step> steps = new ArrayList<>();
-        for (Protos.TaskInfo taskInfo : taskInfos) {
+        Predicate<Protos.TaskInfo> isPodRecoverable = t -> {
+            Optional<Protos.TaskStatus> status = stateStore.fetchStatus(t.getName());
+            return !dirtyAssets.contains(t.getName()) && status.isPresent() &&
+                    TaskUtils.needsRecovery(status.get());
+        };
+        Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
+                FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
+
+        List<RecoveryRequirement> recoveryRequirements = new ArrayList<>();
+        for (String pod : pods) {
+            List<Protos.TaskInfo> podTasks = new ArrayList<>(StateStoreUtils.fetchTasksFromPod(stateStore, pod));
+
+            if (!podTasks.stream().allMatch(isPodRecoverable)) {
+                continue;
+            }
+
             try {
-                steps.addAll(createSteps(TaskUtils.unpackTaskInfo(taskInfo)));
-            } catch (TaskException | InvalidRequirementException | InvalidProtocolBufferException e) {
-                steps.add(
-                        new DefaultStep(
-                                taskInfo.getName(),
-                                Optional.empty(),
-                                Status.ERROR,
-                                null,
-                                Arrays.asList(ExceptionUtils.getStackTrace(e))));
+                if (podTasks.stream().allMatch(isPodPermanentlyFailed)) {
+                    recoveryRequirements.addAll(
+                            recoveryReqProvider.getPermanentRecoveryRequirements(podTasks));
+                } else if (podTasks.stream().noneMatch(isPodPermanentlyFailed)) {
+                    recoveryRequirements.addAll(
+                            recoveryReqProvider.getTransientRecoveryRequirements(podTasks));
+                }
+            } catch (InvalidRequirementException e) {
+                continue;
             }
         }
 
-
-        return steps;
+        return createSteps(recoveryRequirements);
     }
 
     private List<Step> createSteps(List<RecoveryRequirement> recoveryRequirements) {
