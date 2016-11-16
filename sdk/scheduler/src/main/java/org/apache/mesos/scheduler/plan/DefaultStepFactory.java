@@ -40,6 +40,8 @@ public class DefaultStepFactory implements StepFactory {
             throws Step.InvalidStepException, InvalidRequirementException {
         LOGGER.info("Generating step for pod: {}", podInstance.getName());
 
+        validate(podInstance, tasksToLaunch);
+
         List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
@@ -72,6 +74,23 @@ public class DefaultStepFactory implements StepFactory {
         } catch (ConfigStoreException | TaskException | InvalidRequirementException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
+        }
+    }
+
+    private void validate(PodInstance podInstance, List<String> tasksToLaunch) throws Step.InvalidStepException {
+        List<TaskSpec> taskSpecsToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> tasksToLaunch.contains(TaskSpec.getInstanceName(podInstance, taskSpec)))
+                .collect(Collectors.toList());
+
+        List<String> resourceSetIds = taskSpecsToLaunch.stream()
+                .map(taskSpec -> taskSpec.getResourceSet().getId())
+                .collect(Collectors.toList());
+
+        Set<String> resourceSetIdsSet = new HashSet<>(resourceSetIds);
+
+        if (resourceSetIdsSet.size() < resourceSetIds.size()) {
+            throw new Step.InvalidStepException(
+                    "Attempted to launch multiple Tasks using the same resource set id: " + resourceSetIds);
         }
     }
 
