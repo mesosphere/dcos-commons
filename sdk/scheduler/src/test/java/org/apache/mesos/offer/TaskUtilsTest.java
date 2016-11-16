@@ -297,7 +297,7 @@ public class TaskUtilsTest {
     public void testApplyEnvToMustache() throws IOException {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
         Assert.assertTrue(yaml.contains("api-port: {{PORT0}}"));
         String renderedYaml = TaskUtils.applyEnvToMustache(yaml, System.getenv());

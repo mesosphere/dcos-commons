@@ -17,9 +17,9 @@ public class YAMLServiceSpecFactoryTest {
     public void testGenerateSpecFromYAML() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateSpecFromYAML(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
     }
@@ -28,7 +28,7 @@ public class YAMLServiceSpecFactoryTest {
     public void testGenerateRawSpecFromYAMLFile() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         Assert.assertNotNull(rawServiceSpecification);
         Assert.assertEquals(new Integer(8080), rawServiceSpecification.getApiPort());
@@ -38,7 +38,7 @@ public class YAMLServiceSpecFactoryTest {
     public void testGenerateRawSpecFromYAMLString() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
         RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(yaml);
         Assert.assertNotNull(rawServiceSpecification);

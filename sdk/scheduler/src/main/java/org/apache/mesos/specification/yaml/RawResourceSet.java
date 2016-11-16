@@ -1,7 +1,5 @@
 package org.apache.mesos.specification.yaml;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Collection;
 
 /**
@@ -9,43 +7,48 @@ import java.util.Collection;
  */
 public class RawResourceSet {
     String id;
-    Collection<RawResource> resources;
+    Double cpus;
+    Integer memory;
+    Collection<RawPort> ports;
     Collection<RawVolume> volumes;
-    Collection<RawVip> vips;
 
     public String getId() {
         return id;
     }
 
-    @JsonProperty("id")
     public void setId(String id) {
         this.id = id;
-    }
-
-    public Collection<RawResource> getResources() {
-        return resources;
-    }
-
-    @JsonProperty("resources")
-    public void setResources(Collection<RawResource> resources) {
-        this.resources = resources;
     }
 
     public Collection<RawVolume> getVolumes() {
         return volumes;
     }
 
-    @JsonProperty("volumes")
     public void setVolumes(Collection<RawVolume> volumes) {
         this.volumes = volumes;
     }
 
-    public Collection<RawVip> getVips() {
-        return vips;
+    public Double getCpus() {
+        return cpus;
     }
 
-    @JsonProperty("vips")
-    public void setVips(Collection<RawVip> vips) {
-        this.vips = vips;
+    public void setCpus(Double cpus) {
+        this.cpus = cpus;
+    }
+
+    public Integer getMemory() {
+        return memory;
+    }
+
+    public void setMemory(Integer memory) {
+        this.memory = memory;
+    }
+
+    public Collection<RawPort> getPorts() {
+        return ports;
+    }
+
+    public void setPorts(Collection<RawPort> ports) {
+        this.ports = ports;
     }
 }

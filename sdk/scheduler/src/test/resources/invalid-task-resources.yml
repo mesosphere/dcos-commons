@@ -1,42 +1,31 @@
-name:
+name: "data-store"
 principal: "data-store-principal"
 zookeeper: master.mesos:2181
-api-port:
+api-port: {{PORT0}}
 replacement-failure-policy:
-  permanent-failure-timeout-ms: -1
-  min-replace-delay-ms: -1
+  permanent-failure-timeout-ms: 10
+  min-replace-delay-ms: 10
 pods:
   meta-data:
-    placement: "avoid-type: data-store"
-    count: 3
+    placement: "avoid-type: meta-data"
+    count: 2
     resource-sets:
-      data-store-resources:
+      meta-data-resources:
         cpus: 0.1
         memory: 512
         ports:
           - name: http
             port: 8080
         volumes:
-          - path: "data-store-container-path"
-            type: ROOT
-            size: 5000
-      data-store-resources:
-        cpus: 0.1
-        memory: 512
-        ports:
-          - name: http
-            port: 8080
-        volumes:
-          - path: "data-store-container-path"
+          - path: "meta-data-container-path"
             type: ROOT
             size: 5000
     tasks:
-      data-store-task:
+      meta-data-task:
         goal: RUNNING
         cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
-        resource-set: data-store-resources
         env:
-          TASK_NAME: "data-store"
+          TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
         health-checks:
