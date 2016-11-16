@@ -39,7 +39,7 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testUniqueOperator() throws IOException {
-        // marathon doc:
+        // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(unescape("[['hostname', 'UNIQUE']]")).toString();
         assertEquals("MaxPerHostnameRule{max=1, task_filter=AnyMatcher{}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['hostname', 'UNIQUE']")).toString());
@@ -54,13 +54,13 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testClusterOperator() throws IOException {
-        // marathon doc:
+        // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(unescape("[['rack_id', 'CLUSTER', 'rack-1']]")).toString();
         assertEquals("AttributeRule{matcher=ExactMatcher{str='rack_id:rack-1'}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['rack_id', 'CLUSTER', 'rack-1']")).toString());
         assertEquals(constraintStr, MarathonConstraintParser.parse("rack_id:CLUSTER:rack-1").toString());
 
-        // marathon doc:
+        // example from marathon documentation:
         constraintStr = MarathonConstraintParser.parse(unescape("[['hostname', 'CLUSTER', 'a.specific.node.com']]")).toString();
         assertEquals("HostnameRule{matcher=ExactMatcher{str='a.specific.node.com'}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['hostname', 'CLUSTER', 'a.specific.node.com']")).toString());
@@ -69,13 +69,13 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testGroupByOperator() throws IOException {
-        // marathon doc:
+        // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(unescape("[['rack_id', 'GROUP_BY']]")).toString();
         assertEquals("RoundRobinByAttributeRule{attribute=rack_id, attribute_count=Optional.empty, task_filter=AnyMatcher{}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['rack_id', 'GROUP_BY']")).toString());
         assertEquals(constraintStr, MarathonConstraintParser.parse("rack_id:GROUP_BY").toString());
 
-        // marathon doc:
+        // example from marathon documentation:
         constraintStr = MarathonConstraintParser.parse(unescape("[['rack_id', 'GROUP_BY', '3']]")).toString();
         assertEquals("RoundRobinByAttributeRule{attribute=rack_id, attribute_count=Optional[3], task_filter=AnyMatcher{}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['rack_id', 'GROUP_BY', '3']")).toString());
@@ -94,7 +94,7 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testLikeOperator() throws IOException {
-        // marathon doc:
+        // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(unescape("[['rack_id', 'LIKE', 'rack-[1-3]']]")).toString();
         assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack_id:rack-[1-3]'}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['rack_id', 'LIKE', 'rack-[1-3]']")).toString());
@@ -108,7 +108,7 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testUnlikeOperator() throws IOException {
-        // marathon doc:
+        // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(unescape("[['rack_id', 'UNLIKE', 'rack-[7-9]']]")).toString();
         assertEquals("NotRule{rule=AttributeRule{matcher=RegexMatcher{pattern='rack_id:rack-[7-9]'}}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(unescape("['rack_id', 'UNLIKE', 'rack-[7-9]']")).toString());
@@ -122,7 +122,7 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testMaxPerOperator() throws IOException {
-        // marathon doc:
+        // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(unescape("[['rack_id', 'MAX_PER', '2']]")).toString();
         assertEquals("AndRule{rules=[AttributeRule{matcher=RegexMatcher{pattern='rack_id:.*'}}, " +
                 "MaxPerAttributeRule{max=2, matcher=RegexMatcher{pattern='rack_id:.*'}, task_filter=AnyMatcher{}}]}", constraintStr);
