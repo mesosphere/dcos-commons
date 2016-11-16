@@ -12,7 +12,7 @@ import org.apache.mesos.config.validate.PodSpecsCannotShrink;
 import org.apache.mesos.config.validate.TaskVolumesCannotChange;
 import org.apache.mesos.curator.CuratorConfigStore;
 import org.apache.mesos.curator.CuratorStateStore;
-import org.apache.mesos.dcos.DCOSCertInstaller;
+import org.apache.mesos.dcos.DcosCertInstaller;
 import org.apache.mesos.dcos.DcosConstants;
 import org.apache.mesos.offer.*;
 import org.apache.mesos.reconciliation.DefaultReconciler;
@@ -327,7 +327,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeDeploymentPlanManager();
         initializeRecoveryPlanManager();
         initializeResources();
-        DCOSCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
+        DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
         final List<PlanManager> planManagers = Arrays.asList(
                 deploymentPlanManager,
                 recoveryPlanManager);

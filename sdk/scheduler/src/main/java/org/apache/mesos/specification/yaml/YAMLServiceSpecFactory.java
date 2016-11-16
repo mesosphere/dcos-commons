@@ -9,15 +9,17 @@ import org.apache.mesos.specification.ServiceSpec;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Generates {@link ServiceSpec} from a given YAML definition.
  */
 public class YAMLServiceSpecFactory {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     public static final RawServiceSpecification generateRawSpecFromYAML(File pathToYaml) throws Exception {
-        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, Charset.forName("UTF-8")));
+        return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET));
     }
 
     public static final RawServiceSpecification generateRawSpecFromYAML(final String yaml) throws Exception {
@@ -25,7 +27,7 @@ public class YAMLServiceSpecFactory {
         if (!TaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }
-        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(), RawServiceSpecification.class);
+        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpecification.class);
     }
 
     public static final DefaultServiceSpec generateSpecFromYAML(RawServiceSpecification rawServiceSpecification)

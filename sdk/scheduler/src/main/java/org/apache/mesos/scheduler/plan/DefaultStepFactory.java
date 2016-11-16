@@ -1,8 +1,8 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigTargetStore;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
@@ -22,15 +22,15 @@ import java.util.stream.Collectors;
 public class DefaultStepFactory implements StepFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
 
-    private final ConfigStore configStore;
+    private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultStepFactory(
-            ConfigStore configStore,
+            ConfigTargetStore configTargetStore,
             StateStore stateStore,
             OfferRequirementProvider offerRequirementProvider) {
-        this.configStore = configStore;
+        this.configTargetStore = configTargetStore;
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
     }
@@ -104,7 +104,7 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     private boolean isOnTarget(Protos.TaskInfo taskInfo) throws ConfigStoreException, TaskException {
-        UUID targetConfigId = configStore.getTargetConfig();
+        UUID targetConfigId = configTargetStore.getTargetConfig();
         UUID taskConfigId = TaskUtils.getTargetConfiguration(taskInfo);
         return targetConfigId.equals(taskConfigId);
     }

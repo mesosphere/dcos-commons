@@ -13,8 +13,8 @@ import java.nio.file.Paths;
 /**
  * Facilitates installation of DC/OS cert inside framework's JRE.
  */
-public class DCOSCertInstaller {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DCOSCertInstaller.class);
+public class DcosCertInstaller {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DcosCertInstaller.class);
 
     public static final String DEFAULT_JRE_KEYSTORE_PASS = "changeit";
     public static final String CERT_PATH = ".ssl/ca.crt";

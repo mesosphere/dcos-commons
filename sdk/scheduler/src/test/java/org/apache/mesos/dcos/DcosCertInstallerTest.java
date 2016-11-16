@@ -20,7 +20,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Mockito.when;
 
-public class DCOSCertInstallerTest {
+public class DcosCertInstallerTest {
     static Set<PosixFilePermission> keytoolPermissions = new HashSet<>();
 
     static {
@@ -33,7 +33,7 @@ public class DCOSCertInstallerTest {
     private String keytool = "exit 0";
 
     @Mock
-    DCOSCertInstaller.ProcessRunner mockProcessRunner;
+    DcosCertInstaller.ProcessRunner mockProcessRunner;
 
     @Before
     public void init() throws Exception {
@@ -59,7 +59,7 @@ public class DCOSCertInstallerTest {
         Files.write(path, keytool.getBytes("UTF-8"));
         Files.setPosixFilePermissions(path, keytoolPermissions);
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
-        Assert.assertTrue(DCOSCertInstaller.installCertificate(jrePath, mockProcessRunner));
+        Assert.assertTrue(DcosCertInstaller.installCertificate(jrePath, mockProcessRunner));
     }
 
     @Test
@@ -68,20 +68,20 @@ public class DCOSCertInstallerTest {
         Files.write(path, keytool.getBytes("UTF-8"));
         Files.setPosixFilePermissions(path, keytoolPermissions);
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(1);
-        Assert.assertFalse(DCOSCertInstaller.installCertificate(jrePath, mockProcessRunner));
+        Assert.assertFalse(DcosCertInstaller.installCertificate(jrePath, mockProcessRunner));
     }
 
     @Test
     public void testInstallCertificateFailureNoJRE() throws Exception {
         FileUtils.deleteQuietly(new File(jrePath));
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
-        Assert.assertFalse(DCOSCertInstaller.installCertificate(jrePath, mockProcessRunner));
+        Assert.assertFalse(DcosCertInstaller.installCertificate(jrePath, mockProcessRunner));
     }
 
     @Test
     public void testInstallCertificateFailureNoCert() throws Exception {
         FileUtils.deleteQuietly(new File(".ssl"));
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
-        Assert.assertFalse(DCOSCertInstaller.installCertificate(jrePath, mockProcessRunner));
+        Assert.assertFalse(DcosCertInstaller.installCertificate(jrePath, mockProcessRunner));
     }
 }

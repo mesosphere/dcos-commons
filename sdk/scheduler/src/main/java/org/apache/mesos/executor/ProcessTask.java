@@ -185,7 +185,7 @@ public class ProcessTask implements ExecutorTask {
     }
 
     protected boolean isAlive() {
-        return (process != null) ? process.isAlive() : false;
+        return process != null && process.isAlive();
     }
 
     protected void sigTerm() {

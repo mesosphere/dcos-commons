@@ -3,7 +3,7 @@ package org.apache.mesos.specification.yaml;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigTargetStore;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.SchedulerUtils;
@@ -80,7 +80,7 @@ public class YAMLToInternalMappers {
 
     public static Phase from(RawPhase rawPhase,
                              PodSpec podSpec,
-                             ConfigStore configStore,
+                             ConfigTargetStore configTargetStore,
                              StateStore stateStore,
                              OfferRequirementProvider offerRequirementProvider) {
         String name = rawPhase.getName();
@@ -104,7 +104,7 @@ public class YAMLToInternalMappers {
                     .collect(Collectors.toList());
 
             try {
-                steps.add(new DefaultStepFactory(configStore, stateStore, offerRequirementProvider)
+                steps.add(new DefaultStepFactory(configTargetStore, stateStore, offerRequirementProvider)
                         .getStep(podInstance, tasksToLaunch));
             } catch (Step.InvalidStepException | InvalidRequirementException e) {
                 // TODO(mohit): Re-Throw and capture as plan error.
@@ -119,12 +119,12 @@ public class YAMLToInternalMappers {
 
     public static Plan from(RawPlan rawPlan,
                             PodSpec podSpec,
-                            ConfigStore configStore,
+                            ConfigTargetStore configTargetStore,
                             StateStore stateStore,
                             OfferRequirementProvider offerRequirementProvider) {
         String name = rawPlan.getName();
         final List<Phase> phases = rawPlan.getPhases().stream()
-                .map(rawPhase -> from(rawPhase, podSpec, configStore, stateStore, offerRequirementProvider))
+                .map(rawPhase -> from(rawPhase, podSpec, configTargetStore, stateStore, offerRequirementProvider))
                 .collect(Collectors.toList());
         String strategy = rawPlan.getStrategy();
         return DefaultPlanFactory.getPlan(name,
@@ -136,9 +136,7 @@ public class YAMLToInternalMappers {
         List<TaskSpec> taskSpecs = new ArrayList<>();
         String podName = rawPod.getName();
         Integer podInstanceCount = rawPod.getCount();
-        String placement = rawPod.getPlacement();
         Collection<RawResourceSet> rawResourceSets = rawPod.getResourceSets();
-        String strategy = rawPod.getStrategy();
         String user = rawPod.getUser();
         LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
 

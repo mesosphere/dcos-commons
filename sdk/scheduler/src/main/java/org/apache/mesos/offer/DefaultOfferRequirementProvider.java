@@ -39,16 +39,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance);
 
-        List<Protos.TaskInfo> suppressedTaskInfos = new ArrayList<>();
-        for (Protos.TaskInfo taskInfo : taskInfos) {
-            if (!tasksToLaunch.contains(taskInfo.getName())) {
-                LOGGER.info("Suppressing launch of: {}", taskInfo.getName());
-                suppressedTaskInfos.add(TaskUtils.setTransient(taskInfo));
-            } else {
-                suppressedTaskInfos.add(TaskUtils.clearTransient(taskInfo));
-            }
-        }
-
         Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
