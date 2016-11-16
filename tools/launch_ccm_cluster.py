@@ -20,6 +20,7 @@ import os
 import pprint
 import random
 import string
+import subprocess
 import sys
 import time
 
@@ -230,12 +231,14 @@ class CCMLauncher(object):
   agents={} private/{} public
   duration={} minutes
   mountvols={}
+  permissions={}
   channel={}
   template={}'''.format(
       cluster_name,
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
+      config.permissions,
       config.ccm_channel,
       config.cf_template))
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
@@ -257,6 +260,7 @@ class CCMLauncher(object):
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
+        logger.info('Cluster is now RUNNING: {}'.format(cluster_info))
 
         if config.mount_volumes:
             logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
@@ -267,6 +271,25 @@ class CCMLauncher(object):
             import enable_mount_volumes
             enable_mount_volumes.main(stack_id)
             sys.stdout = stdout
+
+        if config.permissions:
+            logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
+
+            def run_script(scriptname, args = []):
+                logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
+                # force total redirect to stderr:
+                stdout = sys.stdout
+                sys.stdout = sys.stderr
+                script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
+                subprocess.check_call(['bash', script_path] + args)
+                sys.stdout = stdout
+
+            run_script('create_service_account.sh', ['--strict'])
+            # Examples of what individual tests should run. See respective projects' "test.sh":
+            #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
+            #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
+            #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
+            #run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
         # we fetch the token once up-front because on Open clusters it must be reused.
         # given that, we may as well use the same flow across both Open and EE.
@@ -318,18 +341,20 @@ class StartConfig(object):
             aws_region = 'eu-central-1',
             admin_location = '0.0.0.0/0',
             cloud_provider = '0', # https://mesosphere.atlassian.net/browse/TEST-231
-            mount_volumes = False):
+            mount_volumes = False,
+            permissions = False):
         self.name_prefix = name_prefix
         self.duration_mins = int(os.environ.get('CCM_DURATION_MINS', duration_mins))
         self.ccm_channel = os.environ.get('CCM_CHANNEL', ccm_channel)
         self.cf_template = os.environ.get('CCM_TEMPLATE', cf_template)
-        self.start_timeout_mins = os.environ.get('CCM_TIMEOUT_MINS', start_timeout_mins)
+        self.start_timeout_mins = int(os.environ.get('CCM_TIMEOUT_MINS', start_timeout_mins))
         self.public_agents = int(os.environ.get('CCM_PUBLIC_AGENTS', public_agents))
         self.private_agents = int(os.environ.get('CCM_AGENTS', private_agents))
         self.aws_region = os.environ.get('CCM_AWS_REGION', aws_region)
         self.admin_location = os.environ.get('CCM_ADMIN_LOCATION', admin_location)
         self.cloud_provider = os.environ.get('CCM_CLOUD_PROVIDER', cloud_provider)
         self.mount_volumes = bool(os.environ.get('CCM_MOUNT_VOLUMES', mount_volumes))
+        self.permissions = os.environ.get('SECURITY', '') == 'strict'
         self.template_url = os.environ.get('DCOS_TEMPLATE_URL', None)
         if not description:
             description = 'A test cluster with {} private/{} public agents'.format(

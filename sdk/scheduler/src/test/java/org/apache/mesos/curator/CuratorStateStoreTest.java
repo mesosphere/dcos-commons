@@ -488,20 +488,6 @@ public class CuratorStateStoreTest {
         store.storeProperty(GOOD_PROPERTY_KEY, null);
     }
 
-    @Test
-    public void testTaskLostNeedsRecovery() {
-        Protos.TaskInfo testTask = createTask(TASK_NAME);
-        store.storeTasks(Arrays.asList(testTask));
-        assertEquals(0, store.fetchTasksNeedingRecovery().size());
-        store.storeStatus(
-                Protos.TaskStatus.newBuilder()
-                        .setTaskId(testTask.getTaskId())
-                        .setState(Protos.TaskState.TASK_LOST)
-                        .build());
-        assertEquals(1, store.fetchTasksNeedingRecovery().size());
-        assertEquals(testTask, store.fetchTasksNeedingRecovery().iterator().next());
-    }
-
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {
         return TASK_STATUS.toBuilder().setTaskId(taskId).build();
     }

@@ -19,100 +19,99 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The OfferAccepter accepts OfferRecommendations.
- * This means that it extracts the Mesos Operations encapsulated by the OfferRecommendations
- * and accepts Offers with thos Operations
+ * The OfferAccepter extracts the Mesos Operations encapsulated by the OfferRecommendation and accepts Offers with those
+ * Operations.
  */
 public class OfferAccepter {
-  private static final Logger logger = LoggerFactory.getLogger(OfferAccepter.class);
+    private static final Logger logger = LoggerFactory.getLogger(OfferAccepter.class);
 
-  private Collection<OperationRecorder> recorders;
+    private Collection<OperationRecorder> recorders;
 
-  public OfferAccepter(OperationRecorder recorder) {
-    this(Arrays.asList(recorder));
-  }
-
-  public OfferAccepter(List<OperationRecorder> recorders) {
-    this.recorders = recorders;
-  }
-
-  @Inject
-  public OfferAccepter(Set<OperationRecorder> recorders) {
-    this.recorders = recorders;
-  }
-
-  public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
-    return accept(driver, recommendations, getFilters());
-  }
-
-  public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations, Filters filters) {
-    if (CollectionUtils.isEmpty(recommendations)) {
-      logger.warn("No recommendations, nothing to do");
-      return new ArrayList<>();
+    public OfferAccepter(OperationRecorder recorder) {
+        this(Arrays.asList(recorder));
     }
 
-    List<OfferID> offerIds = getOfferIds(recommendations);
-    List<Operation> operations = getOperations(recommendations);
-
-    logOperations(operations);
-
-    try {
-      record(recommendations);
-    } catch (Exception ex) {
-      logger.error("Failed to record Operations so not launching Task", ex);
-      return new ArrayList<>();
+    public OfferAccepter(List<OperationRecorder> recorders) {
+        this.recorders = recorders;
     }
 
-    if (CollectionUtils.isNotEmpty(operations)) {
-      driver.acceptOffers(offerIds, operations, filters);
-    } else {
-      logger.warn("No Operations to perform.");
+    @Inject
+    public OfferAccepter(Set<OperationRecorder> recorders) {
+        this.recorders = recorders;
     }
 
-    return offerIds;
-  }
-
-  private void record(List<OfferRecommendation> recommendations) throws Exception {
-    for (OfferRecommendation recommendation : recommendations) {
-      for (OperationRecorder recorder : recorders) {
-        recorder.record(recommendation.getOperation(), recommendation.getOffer());
-      }
-    }
-  }
-
-  private static List<Operation> getOperations(List<OfferRecommendation> recommendations) {
-    List<Operation> operations = new ArrayList<>();
-
-    for (OfferRecommendation recommendation : recommendations) {
-      if (recommendation instanceof LaunchOfferRecommendation &&
-          ((LaunchOfferRecommendation) recommendation).isTransient()) {
-        logger.info("Skipping launch of transient Operation: {}",
-            TextFormat.shortDebugString(recommendation.getOperation()));
-      } else {
-        operations.add(recommendation.getOperation());
-      }
+    public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
+        return accept(driver, recommendations, getFilters());
     }
 
-    return operations;
-  }
+    public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations, Filters filters) {
+        if (CollectionUtils.isEmpty(recommendations)) {
+            logger.warn("No recommendations, nothing to do");
+            return new ArrayList<>();
+        }
 
-  private static List<OfferID> getOfferIds(List<OfferRecommendation> recommendations) {
-    Set<OfferID> offerIdSet = new HashSet<>();
+        List<OfferID> offerIds = getOfferIds(recommendations);
+        List<Operation> operations = getOperations(recommendations);
 
-    for (OfferRecommendation recommendation : recommendations) {
-      offerIdSet.add(recommendation.getOffer().getId());
+        logOperations(operations);
+
+        try {
+            record(recommendations);
+        } catch (Exception ex) {
+            logger.error("Failed to record Operations so not launching Task", ex);
+            return new ArrayList<>();
+        }
+
+        if (CollectionUtils.isNotEmpty(operations)) {
+            driver.acceptOffers(offerIds, operations, filters);
+        } else {
+            logger.warn("No Operations to perform.");
+        }
+
+        return offerIds;
     }
 
-    return new ArrayList<>(offerIdSet);
-  }
-
-  private static void logOperations(List<Operation> operations) {
-    for (Operation op : operations) {
-      logger.info("Performing Operation: {}", TextFormat.shortDebugString(op));
+    private void record(List<OfferRecommendation> recommendations) throws Exception {
+        for (OfferRecommendation recommendation : recommendations) {
+            for (OperationRecorder recorder : recorders) {
+                recorder.record(recommendation.getOperation(), recommendation.getOffer());
+            }
+        }
     }
-  }
 
-  private static Filters getFilters() {
-    return Filters.newBuilder().setRefuseSeconds(1).build();
-  }
+    private static List<Operation> getOperations(List<OfferRecommendation> recommendations) {
+        List<Operation> operations = new ArrayList<>();
+
+        for (OfferRecommendation recommendation : recommendations) {
+            if (recommendation instanceof LaunchOfferRecommendation &&
+                    ((LaunchOfferRecommendation) recommendation).isTransient()) {
+                logger.info("Skipping launch of transient Operation: {}",
+                        TextFormat.shortDebugString(recommendation.getOperation()));
+            } else {
+                operations.add(recommendation.getOperation());
+            }
+        }
+
+        return operations;
+    }
+
+    private static List<OfferID> getOfferIds(List<OfferRecommendation> recommendations) {
+        Set<OfferID> offerIdSet = new HashSet<>();
+
+        for (OfferRecommendation recommendation : recommendations) {
+            offerIdSet.add(recommendation.getOffer().getId());
+        }
+
+        return new ArrayList<>(offerIdSet);
+    }
+
+    private static void logOperations(List<Operation> operations) {
+        for (Operation op : operations) {
+            logger.info("Performing Operation: {}", TextFormat.shortDebugString(op));
+        }
+    }
+
+    private static Filters getFilters() {
+        return Filters.newBuilder().setRefuseSeconds(1).build();
+    }
 }

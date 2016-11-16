@@ -1,8 +1,6 @@
 package org.apache.mesos.offer;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.config.TaskConfigRouter;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
@@ -22,13 +20,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz";
 
     private final TaskConfigRouter taskConfigRouter;
+    private final UUID targetConfigurationId;
 
-    public DefaultOfferRequirementProvider() {
-        this(new DefaultTaskConfigRouter());
-    }
-
-    public DefaultOfferRequirementProvider(TaskConfigRouter taskConfigRouter) {
+    public DefaultOfferRequirementProvider(
+            TaskConfigRouter taskConfigRouter, UUID targetConfigurationId) {
         this.taskConfigRouter = taskConfigRouter;
+        this.targetConfigurationId = targetConfigurationId;
     }
 
     @Override
@@ -41,6 +38,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setSlaveId(TaskUtils.emptyAgentId())
                 .addAllResources(getNewResources(taskSpecification));
 
+        TaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
 
         if (taskSpecification.getCommand().isPresent()) {
@@ -57,7 +55,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setHealthCheck(taskSpecification.getHealthCheck().get());
         }
 
-        return new OfferRequirement(
+        return OfferRequirement.create(
                 taskSpecification.getType(),
                 Arrays.asList(taskInfoBuilder.build()),
                 Optional.of(getExecutorInfo(taskSpecification)),
@@ -69,7 +67,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     public OfferRequirement getExistingOfferRequirement(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
             throws InvalidRequirementException {
 
-        validateVolumes(taskInfo, taskSpecification);
         Map<String, Protos.Resource> oldResourceMap = getResourceMap(taskInfo.getResourcesList());
 
         List<Protos.Resource> updatedResources = new ArrayList<>();
@@ -103,6 +100,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setTaskId(TaskUtils.emptyTaskId())
                 .setSlaveId(TaskUtils.emptyAgentId());
 
+        TaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
         TaskUtils.setConfigFiles(taskInfoBuilder, taskSpecification.getConfigFiles());
 
         if (taskSpecification.getCommand().isPresent()) {
@@ -120,36 +118,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         try {
-            return new OfferRequirement(
+            return OfferRequirement.create(
                     TaskUtils.getTaskType(taskInfo),
                     Arrays.asList(taskInfoBuilder.build()),
                     Optional.of(getExecutorInfo(taskSpecification)),
                     taskSpecification.getPlacement());
         } catch (TaskException e) {
-            throw new InvalidRequirementException(e);
-        }
-    }
-
-    private static void validateVolumes(Protos.TaskInfo taskInfo, TaskSpecification taskSpecification)
-            throws InvalidRequirementException {
-
-        try {
-            TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
-            Collection<VolumeSpecification> oldVolumes = oldTaskSpecification.getVolumes();
-            Collection<VolumeSpecification> newVolumes = taskSpecification.getVolumes();
-
-            if (oldVolumes.size() > 0 && newVolumes.size() > 0) {
-                if (!CollectionUtils.isEqualCollection(oldVolumes, newVolumes)){
-                    throw new InvalidRequirementException(
-                            String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
-                                    oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
-                }
-            } else if (!(oldVolumes.size() == 0 && newVolumes.size() == 0)) {
-                throw new InvalidRequirementException(
-                        String.format("Volumes must be equal.  Old volumes: '%s', New volumes: '%s'",
-                                oldTaskSpecification.getVolumes(), taskSpecification.getVolumes()));
-            }
-        } catch (InvalidTaskSpecificationException | TaskException e) {
             throw new InvalidRequirementException(e);
         }
     }

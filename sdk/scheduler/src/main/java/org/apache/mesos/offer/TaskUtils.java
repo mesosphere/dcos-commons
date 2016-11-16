@@ -11,7 +11,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,6 +225,22 @@ public class TaskUtils {
     }
 
     /**
+     * Returns the {@link TaskSpecification} in the provided {@link DefaultServiceSpecification}
+     * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
+     */
+    public static TaskSpecification getTaskSpecification(
+            ServiceSpecification serviceSpec, TaskInfo taskInfo) {
+        for (TaskSet taskSet : serviceSpec.getTaskSets()) {
+            for (TaskSpecification taskSpec : taskSet.getTaskSpecifications()) {
+                if (taskSpec.getName().equals(taskInfo.getName())) {
+                    return taskSpec;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
      * Any templates with matching paths will be overwritten.
      *
@@ -425,8 +441,8 @@ public class TaskUtils {
 
         // Placement constraints
 
-        Optional<PlacementRuleGenerator> oldPlacement = oldTaskSpecification.getPlacement();
-        Optional<PlacementRuleGenerator> newPlacement = newTaskSpecification.getPlacement();
+        Optional<PlacementRule> oldPlacement = oldTaskSpecification.getPlacement();
+        Optional<PlacementRule> newPlacement = newTaskSpecification.getPlacement();
         if (!Objects.equals(oldPlacement, newPlacement)) {
             LOGGER.info("Task placement constraints '{}' and '{}' are different.", oldPlacement, newPlacement);
             return true;

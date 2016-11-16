@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -22,9 +22,9 @@ public interface TaskSpecification {
     String getName();
 
     /**
-     * The type of a TaskSpecification should be the name of the {@link TaskSet} to which it belongs.
+     * The tyep of a TaskSpecification should be the name of the {@link TaskSet} to which it belongs.
      *
-     * @return the type of the TaskSpecification
+     * @return the name of the TaskSet of which this TaskSpecification is a member.
      */
     @JsonProperty("type")
     String getType();
@@ -83,9 +83,8 @@ public interface TaskSpecification {
      * another task", "ensure instances are only launched on nodes with attribute X", etc. This may
      * return an empty {@code Optional} if no specific placement rules are applicable.
      *
-     * See the documentation for {@link PlacementRuleGenerator} and {@link PlacementRule} for more
-     * information.
+     * See the documentation for {@link PlacementRule} for more information.
      */
     @JsonProperty("placement")
-    Optional<PlacementRuleGenerator> getPlacement();
+    Optional<PlacementRule> getPlacement();
 }

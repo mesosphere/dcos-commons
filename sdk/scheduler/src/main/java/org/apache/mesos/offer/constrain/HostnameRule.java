@@ -8,9 +8,10 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -19,15 +20,130 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class HostnameRule implements PlacementRule {
 
-    private final String hostname;
+    /**
+     * Requires that a task be placed on the provided hostname.
+     *
+     * @param hostname hostname of the mesos agent to require
+     */
+    public static PlacementRule requireExact(String hostname) {
+        return require(toExactMatchers(hostname));
+    }
 
-    public HostnameRule(String hostname) {
-        this.hostname = hostname;
+    /**
+     * Requires that a task be placed on one of the provided hostnames.
+     *
+     * @param hostnames hostnames of the mesos agents to require
+     */
+    public static PlacementRule requireExact(Collection<String> hostnames) {
+        return require(toExactMatchers(hostnames));
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided hostnames.
+     *
+     * @param hostnames hostnames of the mesos agents to require
+     */
+    public static PlacementRule requireExact(String... hostnames) {
+        return require(toExactMatchers(hostnames));
+    }
+
+    /**
+     * Requires that a task be placed on the provided hostname.
+     *
+     * @param matcher matcher for hostname of the mesos agent to require
+     */
+    public static PlacementRule require(StringMatcher matcher) {
+        return new HostnameRule(matcher);
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to require
+     */
+    public static PlacementRule require(Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return require(matchers.iterator().next());
+        }
+        return new OrRule(toHostnameRules(matchers));
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to require
+     */
+    public static PlacementRule require(StringMatcher... matchers) {
+        return require(Arrays.asList(matchers));
+    }
+
+    /**
+     * Requires that a task NOT be placed on the provided hostname.
+     *
+     * @param hostname hostname of the mesos agent to avoid
+     */
+    public static PlacementRule avoidExact(String hostname) {
+        return avoid(toExactMatchers(hostname));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided hostnames.
+     *
+     * @param hostnames hostnames of the mesos agents to avoid
+     */
+    public static PlacementRule avoidExact(Collection<String> hostnames) {
+        return avoid(toExactMatchers(hostnames));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided hostnames.
+     *
+     * @param hostnames hostnames of the mesos agents to avoid
+     */
+    public static PlacementRule avoidExact(String... hostnames) {
+        return avoid(toExactMatchers(hostnames));
+    }
+
+    /**
+     * Requires that a task NOT be placed on the provided hostname.
+     *
+     * @param matcher matcher for hostname of the mesos agent to avoid
+     */
+    public static PlacementRule avoid(StringMatcher matcher) {
+        return new NotRule(require(matcher));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to avoid
+     */
+    public static PlacementRule avoid(Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return avoid(matchers.iterator().next());
+        }
+        return new NotRule(require(matchers));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to avoid
+     */
+    public static PlacementRule avoid(StringMatcher... matchers) {
+        return avoid(Arrays.asList(matchers));
+    }
+
+    private final StringMatcher matcher;
+
+    @JsonCreator
+    private HostnameRule(@JsonProperty("matcher") StringMatcher matcher) {
+        this.matcher = matcher;
     }
 
     @Override
-    public Offer filter(Offer offer) {
-        if (hostname.equals(offer.getHostname())) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+        if (matcher.matches(offer.getHostname())) {
             return offer;
         } else {
             // hostname mismatch: return empty offer
@@ -35,9 +151,14 @@ public class HostnameRule implements PlacementRule {
         }
     }
 
+    @JsonProperty("matcher")
+    private StringMatcher getMatcher() {
+        return matcher;
+    }
+
     @Override
     public String toString() {
-        return String.format("HostnameRule{hostname=%s}", hostname);
+        return String.format("HostnameRule{matcher=%s}", matcher);
     }
 
     @Override
@@ -51,160 +172,30 @@ public class HostnameRule implements PlacementRule {
     }
 
     /**
-     * Ensures that the given Offer is located at the provided hostname.
+     * Converts the provided hostnames into {@link ExactMatcher}s.
      */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class RequireHostnameGenerator extends PassthroughGenerator {
-
-        private final String hostname;
-
-        @JsonCreator
-        public RequireHostnameGenerator(@JsonProperty("hostname") String hostname) {
-            super(new HostnameRule(hostname));
-            this.hostname = hostname;
-        }
-
-        @JsonProperty("hostname")
-        private String getHostname() {
-            return hostname;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("RequireHostnameGenerator{hostname=%s}", hostname);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Ensures that the given Offer is NOT located on the specified hostname.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class AvoidHostnameGenerator extends PassthroughGenerator {
-
-        private final String hostname;
-
-        @JsonCreator
-        public AvoidHostnameGenerator(@JsonProperty("hostname") String hostname) {
-            super(new NotRule(new HostnameRule(hostname)));
-            this.hostname = hostname;
-        }
-
-        @JsonProperty("hostname")
-        private String getHostname() {
-            return hostname;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("AvoidHostnameGenerator{hostname=%s}", hostname);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Ensures that the given Offer is located at one of the specified hostnames.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class RequireHostnamesGenerator extends PassthroughGenerator {
-
-        private final Collection<String> hostnames;
-
-        @JsonCreator
-        public RequireHostnamesGenerator(@JsonProperty("hostnames") Collection<String> hostnames) {
-            super(new OrRule(toHostnameRules(hostnames)));
-            this.hostnames = hostnames;
-        }
-
-        public RequireHostnamesGenerator(String... hostnames) {
-            this(Arrays.asList(hostnames));
-        }
-
-        @JsonProperty("hostnames")
-        private Collection<String> getHostnames() {
-            return hostnames;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("RequireHostnamesGenerator{hostname=%s}", hostnames);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Ensures that the given Offer is NOT located on any of the specified hostnames.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class AvoidHostnamesGenerator extends PassthroughGenerator {
-
-        private final Collection<String> hostnames;
-
-        @JsonCreator
-        public AvoidHostnamesGenerator(@JsonProperty("hostnames") Collection<String> hostnames) {
-            super(new NotRule(new OrRule(toHostnameRules(hostnames))));
-            this.hostnames = hostnames;
-        }
-
-        public AvoidHostnamesGenerator(String... hostnames) {
-            this(Arrays.asList(hostnames));
-        }
-
-        @JsonProperty("hostnames")
-        private Collection<String> getHostnames() {
-            return hostnames;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("AvoidHostnamesGenerator{hostname=%s}", hostnames);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Converts the provided agent ids into {@link HostnameRule}s.
-     */
-    private static Collection<PlacementRule> toHostnameRules(Collection<String> hostnames) {
-        List<PlacementRule> rules = new ArrayList<>();
+    private static Collection<StringMatcher> toExactMatchers(Collection<String> hostnames) {
+        List<StringMatcher> matchers = new ArrayList<>();
         for (String hostname : hostnames) {
-            rules.add(new HostnameRule(hostname));
+            matchers.add(ExactMatcher.create(hostname));
+        }
+        return matchers;
+    }
+
+    /**
+     * Converts the provided hostnames into {@link ExactMatcher}s.
+     */
+    private static Collection<StringMatcher> toExactMatchers(String... hostnames) {
+        return toExactMatchers(Arrays.asList(hostnames));
+    }
+
+    /**
+     * Converts the provided matchers into {@link HostnameRule}s.
+     */
+    private static Collection<PlacementRule> toHostnameRules(Collection<StringMatcher> matchers) {
+        List<PlacementRule> rules = new ArrayList<>();
+        for (StringMatcher matcher : matchers) {
+            rules.add(require(matcher));
         }
         return rules;
     }

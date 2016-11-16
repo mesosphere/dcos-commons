@@ -4,7 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -32,7 +32,6 @@ public class DefaultTaskSet implements TaskSet {
         return create(
                 count,
                 name,
-                type,
                 Optional.empty(),
                 Optional.of(command),
                 resources,
@@ -45,18 +44,16 @@ public class DefaultTaskSet implements TaskSet {
     public static DefaultTaskSet create(
             int count,
             String name,
-            String type,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         return create(
                 count,
                 name,
-                type,
                 Optional.empty(),
                 Optional.of(command),
                 resources,
@@ -69,18 +66,16 @@ public class DefaultTaskSet implements TaskSet {
     public static DefaultTaskSet create(
             int count,
             String name,
-            String type,
             Protos.ContainerInfo container,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         return create(
                 count,
                 name,
-                type,
                 Optional.of(container),
                 Optional.empty(),
                 resources,
@@ -93,19 +88,17 @@ public class DefaultTaskSet implements TaskSet {
     public static DefaultTaskSet create(
             int count,
             String name,
-            String type,
             Protos.ContainerInfo container,
             Protos.CommandInfo command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         return create(
                 count,
                 name,
-                type,
                 Optional.of(container),
                 Optional.of(command),
                 resources,
@@ -118,20 +111,19 @@ public class DefaultTaskSet implements TaskSet {
     private static DefaultTaskSet create(
             int count,
             String name,
-            String type,
             Optional<Protos.ContainerInfo> container,
             Optional<Protos.CommandInfo> command,
             Collection<ResourceSpecification> resources,
             Collection<VolumeSpecification> volumes,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placementOptional,
+            Optional<PlacementRule> placementOptional,
             Optional<Protos.HealthCheck> healthCheck) {
 
         List<TaskSpecification> taskSpecifications = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             taskSpecifications.add(new DefaultTaskSpecification(
                     name + "-" + i,
-                    type,
+                    name,
                     container,
                     command,
                     resources,

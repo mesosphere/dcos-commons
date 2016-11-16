@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,21 +16,23 @@ import java.util.Optional;
  */
 public class DefaultServiceSpecificationTest {
     private static final String SERVICE_NAME = "test-service-name";
-    private static final PlacementRuleGenerator HUGE_GENERATOR = new AndRule.Generator(Arrays.asList(
-            new MaxPerAttributeGenerator(3, AttributeSelector.createRegexSelector(".+")),
-            new HostnameRule.AvoidHostnameGenerator("avoidhost"),
-            new HostnameRule.RequireHostnamesGenerator("requirehost1", "requirehost2"),
-            new AgentRule.RequireAgentsGenerator("requireagent1", "requireagent2"),
-            new AgentRule.AvoidAgentGenerator("avoidagent"),
-            new AttributeRule.Generator(AttributeSelector.createStringSelector("hello")),
-            new OrRule.Generator(Arrays.asList(
-                    new MaxPerAttributeGenerator(3, AttributeSelector.createStringSelector("hi")),
-                    new HostnameRule.AvoidHostnamesGenerator("avoidhost1", "avoidhost2"),
-                    new HostnameRule.RequireHostnameGenerator("requirehost"),
-                    new AgentRule.RequireAgentGenerator("requireagent"),
-                    new AgentRule.AvoidAgentsGenerator("avoidagent1", "avoidagent2"),
-                    TaskTypeGenerator.createAvoid("avoidme"),
-                    new NotRule.Generator(TaskTypeGenerator.createColocate("colocateme"))))));
+    private static final PlacementRule HUGE_RULE = new AndRule(Arrays.asList(
+            new MaxPerAttributeRule(3, AnyMatcher.create()),
+            new MaxPerAttributeRule(3, ExactMatcher.create("foo"), RegexMatcher.create("index-.*")),
+            new MaxPerAttributeRule(3, RegexMatcher.create(".+"), AnyMatcher.create()),
+            HostnameRule.avoid(ExactMatcher.create("avoidhost")),
+            HostnameRule.require(RegexMatcher.create("requirehost1"), AnyMatcher.create()),
+            AgentRule.require("requireagent1", "requireagent2"),
+            AgentRule.avoid("avoidagent"),
+            new AttributeRule(ExactMatcher.create("hello")),
+            new OrRule(Arrays.asList(
+                    new MaxPerAttributeRule(3, ExactMatcher.create("hi")),
+                    HostnameRule.avoid(RegexMatcher.create("avoidhost1"), ExactMatcher.create("avoidhost2")),
+                    HostnameRule.require(AnyMatcher.create()),
+                    AgentRule.require("requireagent"),
+                    AgentRule.avoid("avoidagent1", "avoidagent2"),
+                    TaskTypeRule.avoid("avoidme"),
+                    new NotRule(TaskTypeRule.colocateWith("colocateme"))))));
     private static final List<TaskSet> TASK_SETS = Arrays.asList(
             TestTaskSetFactory.getTaskSet(Arrays.asList(
                     new DefaultConfigFileSpecification(
@@ -38,7 +41,7 @@ public class DefaultServiceSpecificationTest {
                     new DefaultConfigFileSpecification(
                             "../relative/path/to/config2",
                             "this is a second config template")),
-                    Optional.of(HUGE_GENERATOR)));
+                    Optional.of(HUGE_RULE)));
 
     private DefaultServiceSpecification serviceSpecification;
 
@@ -60,6 +63,7 @@ public class DefaultServiceSpecificationTest {
     @Test
     public void testSerializeDeserialize() throws Exception {
         Assert.assertEquals(ReflectionToStringBuilder.toString(serviceSpecification), serviceSpecification,
-                DefaultServiceSpecification.getFactoryInstance().parse(serviceSpecification.getBytes()));
+                DefaultServiceSpecification.getFactory(serviceSpecification, Collections.emptyList())
+                        .parse(serviceSpecification.getBytes()));
     }
 }

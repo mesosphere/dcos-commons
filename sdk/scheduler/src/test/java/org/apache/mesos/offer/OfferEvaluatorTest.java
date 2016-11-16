@@ -5,7 +5,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.executor.ExecutorUtils;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.offer.constrain.PlacementUtils;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testutils.*;
@@ -73,7 +73,7 @@ public class OfferEvaluatorTest {
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL);
 
-        OfferRequirement offerReq = new OfferRequirement(
+        OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredDynamicPort)));
@@ -102,10 +102,10 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(String.valueOf(10000), variable.getValue());
 
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
-        fulfilledPortResource = taskInfo.getResources(0);
-        Assert.assertEquals(1, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+        Resource fulfilledCpuResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledCpuResource.getReservation().getLabels().getLabelsCount());
 
-        resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        resourceIdLabel = fulfilledCpuResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
@@ -128,7 +128,7 @@ public class OfferEvaluatorTest {
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL);
 
-        OfferRequirement offerReq = new OfferRequirement(
+        OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(TaskTestUtils.getTaskInfo(Arrays.asList(desiredCpu, desiredTaskDynamicPort))),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorDynamicPort)));
@@ -184,12 +184,121 @@ public class OfferEvaluatorTest {
     }
 
     @Test
+    public void testReserveTaskNamedVIPPort() throws InvalidRequirementException {
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource desiredNamedVIPPort = NamedVIPPortRequirement.getDesiredNamedVIPPort(
+                TestConstants.VIP_KEY,
+                TestConstants.VIP_NAME,
+                (long) 10000,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredNamedVIPPort);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredPorts)));
+
+        Assert.assertEquals(2, recommendations.size());
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledPortResource = taskInfo.getResources(0);
+        Assert.assertEquals(3, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
+
+        Label namedVIPPortKeyLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("vip_key", namedVIPPortKeyLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_KEY, namedVIPPortKeyLabel.getValue());
+
+        Label namedVIPPortNameLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("vip_value", namedVIPPortNameLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_NAME, namedVIPPortNameLabel.getValue());
+
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(2);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
+        Assert.assertEquals(discoveryInfo.getName(), taskInfo.getName());
+        Assert.assertEquals(discoveryInfo.getVisibility(), DiscoveryInfo.Visibility.EXTERNAL);
+
+        Port discoveryPort = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(discoveryPort.getProtocol(), "tcp");
+        Assert.assertEquals(discoveryPort.getNumber(), 10000);
+        Label vipLabel = discoveryPort.getLabels().getLabels(0);
+        Assert.assertEquals(vipLabel.getKey(), "VIP_TEST");
+        Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + ":10000");
+    }
+
+    @Test
+    public void testReserveExecutorNamedVIPPort() throws InvalidRequirementException {
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+
+        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        Resource desiredNamedVIPPort = NamedVIPPortRequirement.getDesiredNamedVIPPort(
+                TestConstants.VIP_KEY,
+                TestConstants.VIP_NAME,
+                (long) 10000,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerReq = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
+                Optional.of(TaskTestUtils.getExecutorInfo(desiredNamedVIPPort)));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerReq,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredCpu, offeredPorts))));
+
+        Assert.assertEquals(3, recommendations.size());
+
+        Operation launchOperation = recommendations.get(2).getOperation();
+        ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
+        Resource fulfilledPortResource = executorInfo.getResources(0);
+        Assert.assertEquals(3, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
+
+        Label namedVIPPortKeyLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("vip_key", namedVIPPortKeyLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_KEY, namedVIPPortKeyLabel.getValue());
+
+        Label namedVIPPortNameLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("vip_value", namedVIPPortNameLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_NAME, namedVIPPortNameLabel.getValue());
+
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(2);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledCpuResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledCpuResource.getReservation().getLabels().getLabelsCount());
+
+        resourceIdLabel = fulfilledCpuResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        DiscoveryInfo discoveryInfo = executorInfo.getDiscovery();
+        Assert.assertEquals(discoveryInfo.getName(), executorInfo.getName());
+        Assert.assertEquals(discoveryInfo.getVisibility(), DiscoveryInfo.Visibility.EXTERNAL);
+
+        Port discoveryPort = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(discoveryPort.getProtocol(), "tcp");
+        Assert.assertEquals(discoveryPort.getNumber(), 10000);
+        Label vipLabel = discoveryPort.getLabels().getLabels(0);
+        Assert.assertEquals(vipLabel.getKey(), "VIP_TEST");
+        Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + ":10000");
+    }
+
+    @Test
     public void testReserveTaskExecutorInsufficient() throws InvalidRequirementException {
         Resource desiredTaskCpu = ResourceTestUtils.getDesiredCpu(1.0);
         Resource desiredExecutorCpu = desiredTaskCpu;
         Resource insufficientOfferedResource = ResourceUtils.getUnreservedScalar("cpus", 1.0);
 
-        OfferRequirement offerReq = new OfferRequirement(
+        OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(TaskTestUtils.getTaskInfo(desiredTaskCpu)),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredExecutorCpu)));
@@ -487,7 +596,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(desiredExecutorResource);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                new OfferRequirement(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo)),
+                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo)),
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredTaskResource, offeredExecutorResource))));
         Assert.assertEquals(3, recommendations.size());
 
@@ -556,7 +665,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExistingExecutorInfo(desiredExecutorResource);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                new OfferRequirement(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo)),
+                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo)),
                 Arrays.asList(OfferTestUtils.getOffer(
                         TestConstants.EXECUTOR_ID,
                         Arrays.asList(offeredTaskResource, offeredExecutorResource))));
@@ -799,7 +908,7 @@ public class OfferEvaluatorTest {
                 .build());
 
         OfferRequirement offerRequirement =
-                new OfferRequirement(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), execInfo);
+                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), execInfo);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -820,7 +929,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExistingExecutorInfo(expectedExecutorMem);
 
         OfferRequirement offerRequirement =
-                new OfferRequirement(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo));
+                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -844,7 +953,7 @@ public class OfferEvaluatorTest {
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(expectedExecutorMem);
 
         OfferRequirement offerRequirement =
-                new OfferRequirement(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo));
+                OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(taskInfo), Optional.of(execInfo));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 offerRequirement,
@@ -867,7 +976,7 @@ public class OfferEvaluatorTest {
         TaskInfo taskInfo0 = TaskTestUtils.getTaskInfo(desiredTask0Cpu);
         TaskInfo taskInfo1 = TaskTestUtils.getTaskInfo(desiredTask1Cpu);
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(desiredExecutorCpu);
-        OfferRequirement offerRequirement = new OfferRequirement(
+        OfferRequirement offerRequirement = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(taskInfo0, taskInfo1),
                 Optional.of(execInfo));
@@ -913,8 +1022,8 @@ public class OfferEvaluatorTest {
     private static OfferRequirement getOfferRequirement(
             Protos.Resource resource, List<String> avoidAgents, List<String> collocateAgents)
                     throws InvalidRequirementException {
-        Optional<PlacementRuleGenerator> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
-        return new OfferRequirement(
+        Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
+        return OfferRequirement.create(
                 TestConstants.TASK_TYPE,
                 Arrays.asList(TaskTestUtils.getTaskInfo(resource)),
                 Optional.empty(),

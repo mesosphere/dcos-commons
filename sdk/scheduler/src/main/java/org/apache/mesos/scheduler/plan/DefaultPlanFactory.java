@@ -1,10 +1,15 @@
 package org.apache.mesos.scheduler.plan;
 
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
 import org.apache.mesos.specification.ServiceSpecification;
+import org.apache.mesos.specification.TaskSpecificationProvider;
+import org.apache.mesos.state.StateStore;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +19,17 @@ import java.util.stream.Collectors;
 public class DefaultPlanFactory implements PlanFactory {
     private final StrategyGenerator<Phase> strategyGenerator;
     private final PhaseFactory phaseFactory;
+
+    public DefaultPlanFactory(
+            ConfigStore configStore,
+            StateStore stateStore,
+            OfferRequirementProvider offerRequirementProvider,
+            TaskSpecificationProvider taskSpecificationProvider,
+            StrategyGenerator<Phase> strategyGenerator) {
+        this(new DefaultPhaseFactory(
+                new DefaultStepFactory(configStore, stateStore, offerRequirementProvider, taskSpecificationProvider)),
+                strategyGenerator);
+    }
 
     public DefaultPlanFactory(PhaseFactory phaseFactory) {
         this(phaseFactory, new SerialStrategy.Generator<>());
@@ -25,7 +41,11 @@ public class DefaultPlanFactory implements PlanFactory {
     }
 
     public static Plan getPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
-        return new DefaultPlan(name, phases, strategy);
+        return getPlan(name, phases, strategy, Collections.emptyList());
+    }
+
+    public static Plan getPlan(String name, List<Phase> phases, Strategy<Phase> strategy, List<String> errors) {
+        return new DefaultPlan(name, phases, strategy, errors);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.apache.mesos.specification;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
+import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.testutils.TestConstants;
 
 import java.util.Arrays;
@@ -13,7 +13,6 @@ import java.util.Optional;
  * This class provides TaskTypeSpecifications for testing purposes.
  */
 public class TestTaskSetFactory {
-    public static final String NAME = "test-task-type";
     public static final int COUNT = 1;
     public static final double CPU = 1.0;
     public static final double MEM = 1000.0;
@@ -21,13 +20,17 @@ public class TestTaskSetFactory {
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
 
     public static TaskSet getTaskSet() {
-        return getTaskSet(NAME, COUNT, CMD.getValue(), CPU, MEM, DISK);
+        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU, MEM, DISK);
+    }
+
+    public static TaskSet getUpdateTaskSet() {
+        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU + 1.0, MEM, DISK);
     }
 
     public static TaskSet getTaskSet(
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placement) {
-        return getTaskSet(NAME, COUNT, CMD.getValue(), CPU, MEM, DISK, configs, placement);
+            Optional<PlacementRule> placement) {
+        return getTaskSet(TestConstants.TASK_TYPE, COUNT, CMD.getValue(), CPU, MEM, DISK, configs, placement);
     }
 
     public static TaskSet getTaskSet(
@@ -48,12 +51,11 @@ public class TestTaskSetFactory {
             double mem,
             double disk,
             Collection<ConfigFileSpecification> configs,
-            Optional<PlacementRuleGenerator> placement) {
+            Optional<PlacementRule> placement) {
 
         return DefaultTaskSet.create(
                 count,
                 name,
-                TestConstants.TASK_TYPE,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),
@@ -64,7 +66,7 @@ public class TestTaskSetFactory {
 
     public static TaskSpecification getTaskSpecification() {
         return getTaskSpecification(
-                NAME,
+                TestConstants.TASK_NAME,
                 CMD.getValue(),
                 CPU,
                 MEM,
@@ -80,7 +82,7 @@ public class TestTaskSetFactory {
 
         return new DefaultTaskSpecification(
                 name,
-                NAME,
+                TestConstants.TASK_TYPE,
                 getCommand(cmd),
                 getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL),
                 getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL),

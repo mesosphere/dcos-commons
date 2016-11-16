@@ -8,31 +8,92 @@ import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This rule enforces that a task be placed on a provided agent ID, or enforces that the task avoid
- * that agent ID.
+ * that agent ID, depending on the factory method used.
  */
 public class AgentRule implements PlacementRule {
 
     private final String agentId;
 
-    public AgentRule(String agentId) {
+    /**
+     * Requires that a task be placed on the provided agent.
+     *
+     * @param agentId mesos ID of the agent to require
+     */
+    public static PlacementRule require(String agentId) {
+        return new AgentRule(agentId);
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided agents.
+     *
+     * @param agentIds mesos ID of the agents to require
+     */
+    public static PlacementRule require(Collection<String> agentIds) {
+        return new OrRule(toAgentRules(agentIds));
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided agents.
+     *
+     * @param agentIds mesos ID of the agents to require
+     */
+    public static PlacementRule require(String... agentIds) {
+        return require(Arrays.asList(agentIds));
+    }
+
+    /**
+     * Requires that a task NOT be placed on the provided agent.
+     *
+     * @param agentId mesos ID of the agent to avoid
+     */
+    public static PlacementRule avoid(String agentId) {
+        return new NotRule(require(agentId));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided agents.
+     *
+     * @param agentIds mesos ID of the agents to avoid
+     */
+    public static PlacementRule avoid(Collection<String> agentIds) {
+        return new NotRule(require(agentIds));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided agents.
+     *
+     * @param agentIds mesos ID of the agents to avoid
+     */
+    public static PlacementRule avoid(String... agentIds) {
+        return avoid(Arrays.asList(agentIds));
+    }
+
+    @JsonCreator
+    private AgentRule(@JsonProperty("agent_id") String agentId) {
         this.agentId = agentId;
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         if (offer.getSlaveId().getValue().equals(agentId)) {
             return offer;
         } else {
             // agent mismatch: return empty offer
             return offer.toBuilder().clearResources().build();
         }
+    }
+
+    @JsonProperty("agent_id")
+    private String getAgentId() {
+        return agentId;
     }
 
     @Override
@@ -48,154 +109,6 @@ public class AgentRule implements PlacementRule {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    /**
-     * Ensures that the given Offer is located on the specified agent ID.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class RequireAgentGenerator extends PassthroughGenerator {
-
-        private final String agentId;
-
-        @JsonCreator
-        public RequireAgentGenerator(@JsonProperty("agent_id") String agentId) {
-            super(new AgentRule(agentId));
-            this.agentId = agentId;
-        }
-
-        @JsonProperty("agent_id")
-        private String getAgentId() {
-            return agentId;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("RequireAgentGenerator{agentId=%s}", agentId);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Ensures that the given Offer is NOT located on the specified agent ID.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class AvoidAgentGenerator extends PassthroughGenerator {
-
-        private final String agentId;
-
-        @JsonCreator
-        public AvoidAgentGenerator(@JsonProperty("agent_id") String agentId) {
-            super(new NotRule(new AgentRule(agentId)));
-            this.agentId = agentId;
-        }
-
-        @JsonProperty("agent_id")
-        private String getAgentId() {
-            return agentId;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("AvoidAgentGenerator{agentId=%s}", agentId);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Ensures that the given Offer is located on one of the specified agent IDs.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class RequireAgentsGenerator extends PassthroughGenerator {
-
-        private final Collection<String> agentIds;
-
-        @JsonCreator
-        public RequireAgentsGenerator(@JsonProperty("agent_ids") Collection<String> agentIds) {
-            super(new OrRule(toAgentRules(agentIds)));
-            this.agentIds = agentIds;
-        }
-
-        public RequireAgentsGenerator(String... agentIds) {
-            this(Arrays.asList(agentIds));
-        }
-
-        @JsonProperty("agent_ids")
-        private Collection<String> getAgentIds() {
-            return agentIds;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("RequireAgentsGenerator{agentIds=%s}", agentIds);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
-    /**
-     * Ensures that the given Offer is NOT located on any of the specified agent IDs.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class AvoidAgentsGenerator extends PassthroughGenerator {
-
-        private final Collection<String> agentIds;
-
-        @JsonCreator
-        public AvoidAgentsGenerator(@JsonProperty("agent_ids") Collection<String> agentIds) {
-            super(new NotRule(new OrRule(toAgentRules(agentIds))));
-            this.agentIds = agentIds;
-        }
-
-        public AvoidAgentsGenerator(String... agentIds) {
-            this(Arrays.asList(agentIds));
-        }
-
-        @JsonProperty("agent_ids")
-        private Collection<String> getAgentIds() {
-            return agentIds;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("AvoidAgentsGenerator{agentIds=%s}", agentIds);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
     }
 
     /**

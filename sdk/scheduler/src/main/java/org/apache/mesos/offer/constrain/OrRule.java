@@ -1,10 +1,8 @@
 package org.apache.mesos.offer.constrain;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -12,6 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,7 +22,8 @@ public class OrRule implements PlacementRule {
 
     private final Collection<PlacementRule> rules;
 
-    public OrRule(Collection<PlacementRule> rules) {
+    @JsonCreator
+    public OrRule(@JsonProperty("rules") Collection<PlacementRule> rules) {
         this.rules = rules;
     }
 
@@ -32,10 +32,10 @@ public class OrRule implements PlacementRule {
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         Set<Resource> resourceUnion = new HashSet<>();
         for (PlacementRule rule : rules) {
-            Offer filtered = rule.filter(offer);
+            Offer filtered = rule.filter(offer, offerRequirement, tasks);
             for (Resource resource : filtered.getResourcesList()) {
                 resourceUnion.add(resource);
             }
@@ -58,6 +58,11 @@ public class OrRule implements PlacementRule {
         return offerBuilder.build();
     }
 
+    @JsonProperty("rules")
+    private Collection<PlacementRule> getRules() {
+        return rules;
+    }
+
     @Override
     public String toString() {
         return String.format("OrRule{rules=%s}", rules);
@@ -71,51 +76,5 @@ public class OrRule implements PlacementRule {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    /**
-     * Wraps the result of the provided {@link PlacementRuleGenerator}s in an {@link OrRule}.
-     */
-    public static class Generator implements PlacementRuleGenerator {
-
-        private final Collection<PlacementRuleGenerator> generators;
-
-        @JsonCreator
-        public Generator(@JsonProperty("generators") Collection<PlacementRuleGenerator> ruleGenerators) {
-            this.generators = ruleGenerators;
-        }
-
-        public Generator(PlacementRuleGenerator... ruleGenerators) {
-            this(Arrays.asList(ruleGenerators));
-        }
-
-        @Override
-        public PlacementRule generate(Collection<TaskInfo> tasks) {
-            List<PlacementRule> rules = new ArrayList<>();
-            for (PlacementRuleGenerator ruleGenerator : generators) {
-                rules.add(ruleGenerator.generate(tasks));
-            }
-            return new OrRule(rules);
-        }
-
-        @JsonProperty("generators")
-        private Collection<PlacementRuleGenerator> getGenerators() {
-            return generators;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("OrRuleGenerator{generators=%s}", generators);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
     }
 }

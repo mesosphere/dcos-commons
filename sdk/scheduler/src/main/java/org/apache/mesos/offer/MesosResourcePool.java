@@ -181,6 +181,9 @@ public class MesosResourcePool {
             } else {
                 reservedPool.remove(resourceRequirement.getResourceId());
             }
+        } else {
+           logger.warn("Failed to find reserved resource: {}, in available resources: {}",
+                   resourceRequirement.getResourceId(), reservedPool.keySet());
         }
 
         return Optional.ofNullable(mesosResource);

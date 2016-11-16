@@ -1,13 +1,16 @@
 package org.apache.mesos.offer.constrain;
 
+import java.util.Collection;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.offer.AttributeStringUtils;
+import org.apache.mesos.offer.OfferRequirement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -17,17 +20,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class AttributeRule implements PlacementRule {
 
-    private final AttributeSelector attributeSelector;
+    private final StringMatcher matcher;
 
-    public AttributeRule(AttributeSelector attributeSelector) {
-        this.attributeSelector = attributeSelector;
+    @JsonCreator
+    public AttributeRule(@JsonProperty("matcher") StringMatcher matcher) {
+        this.matcher = matcher;
     }
 
     @Override
-    public Offer filter(Offer offer) {
+    public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
-            if (attributeSelector.select(attributeString)) {
+            if (matcher.matches(attributeString)) {
                 // match found. return entire offer as-is
                 return offer;
             }
@@ -36,9 +40,14 @@ public class AttributeRule implements PlacementRule {
         return offer.toBuilder().clearResources().build();
     }
 
+    @JsonProperty("matcher")
+    private StringMatcher getMatcher() {
+        return matcher;
+    }
+
     @Override
     public String toString() {
-        return String.format("AttributeRule{selector=%s}", attributeSelector);
+        return String.format("AttributeRule{matcher=%s}", matcher);
     }
 
     @Override
@@ -49,40 +58,5 @@ public class AttributeRule implements PlacementRule {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    /**
-     * A generator which returns an {@link AttributeRule} for the provided attribute.
-     */
-    @JsonIgnoreProperties(PassthroughGenerator.RULE_NAME) // don't include in serialization
-    public static class Generator extends PassthroughGenerator {
-
-        private final AttributeSelector attributeSelector;
-
-        @JsonCreator
-        public Generator(@JsonProperty("selector") AttributeSelector attributeSelector) {
-            super(new AttributeRule(attributeSelector));
-            this.attributeSelector = attributeSelector;
-        }
-
-        @JsonProperty("selector")
-        private AttributeSelector getSelector() {
-            return attributeSelector;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("AttributeRuleGenerator{selector=%s}", attributeSelector);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
     }
 }

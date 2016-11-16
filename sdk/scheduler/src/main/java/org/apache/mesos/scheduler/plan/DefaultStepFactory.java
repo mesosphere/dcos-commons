@@ -1,34 +1,42 @@
 package org.apache.mesos.scheduler.plan;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.offer.*;
-import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.InvalidTaskSpecificationException;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.offer.InvalidRequirementException;
+import org.apache.mesos.offer.OfferRequirementProvider;
+import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.TaskSpecificationProvider;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
- * This class is a default implementation of the StepFactory interface.
+ * This class is a default implementation of the {@link StepFactory} interface.
  */
 public class DefaultStepFactory implements StepFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
 
+    private final ConfigStore configStore;
     private final StateStore stateStore;
     private final OfferRequirementProvider offerRequirementProvider;
+    private final TaskSpecificationProvider taskSpecificationProvider;
 
-    public DefaultStepFactory(StateStore stateStore) {
-        this(stateStore, new DefaultOfferRequirementProvider());
-    }
-
-    public DefaultStepFactory(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
+    public DefaultStepFactory(
+            ConfigStore configStore,
+            StateStore stateStore,
+            OfferRequirementProvider offerRequirementProvider,
+            TaskSpecificationProvider taskSpecificationProvider) {
+        this.configStore = configStore;
         this.stateStore = stateStore;
         this.offerRequirementProvider = offerRequirementProvider;
+        this.taskSpecificationProvider = taskSpecificationProvider;
     }
 
     @Override
@@ -45,39 +53,39 @@ public class DefaultStepFactory implements StepFactory {
                         Status.PENDING,
                         Collections.emptyList());
             } else {
-                Protos.TaskInfo taskInfo = TaskUtils.unpackTaskInfo(taskInfoOptional.get());
-                TaskSpecification oldTaskSpecification = DefaultTaskSpecification.create(taskInfo);
-                Status status = getStatus(oldTaskSpecification, taskSpecification);
+                // Note: This path is for deploying new versions of tasks, unlike transient recovery
+                // which is only interested in relaunching tasks as they were. So while they omit
+                // placement rules in their OfferRequirement, we include them.
+                Status status = getStatus(taskInfoOptional.get());
                 LOGGER.info("Generating existing step for: {} with status: {}", taskSpecification.getName(), status);
                 return new DefaultStep(
-                        taskSpecification.getName(),
-                        Optional.of(offerRequirementProvider
-                                .getExistingOfferRequirement(taskInfo, taskSpecification)),
+                        taskInfoOptional.get().getName(),
+                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(
+                                taskInfoOptional.get(), taskSpecification)),
                         status,
                         Collections.emptyList());
             }
-        } catch (InvalidTaskSpecificationException | InvalidRequirementException | TaskException e) {
-            LOGGER.error("Failed to generate TaskSpecification for existing Task with exception: ", e);
-            throw new Step.InvalidStepException(e);
-        } catch (InvalidProtocolBufferException e) {
-            LOGGER.error(String.format("Failed to unpack taskInfo: %s", taskInfoOptional), e);
+        } catch (InvalidRequirementException e) {
+            LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
     }
 
-    private Status getStatus(TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
-        LOGGER.info("Getting status for oldTask: " + oldTaskSpecification + " newTask: " + newTaskSpecification);
-        if (TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification)) {
-            return Status.PENDING;
-        } else {
-            Protos.TaskState taskState = stateStore.fetchStatus(newTaskSpecification.getName()).get().getState();
-            switch (taskState) {
-                case TASK_STAGING:
-                case TASK_STARTING:
-                    return Status.IN_PROGRESS;
-                default:
-                    return Status.COMPLETE;
+    private Status getStatus(Protos.TaskInfo taskInfo) {
+        try {
+            if (isOnTarget(taskInfo)) {
+                return Status.COMPLETE;
             }
+        } catch (ConfigStoreException | TaskException e) {
+            LOGGER.error("Failed to determine initial Step status so defaulting to PENDING.", e);
         }
+
+        return Status.PENDING;
+    }
+
+    private boolean isOnTarget(Protos.TaskInfo taskInfo) throws ConfigStoreException, TaskException {
+        UUID targetConfigId = configStore.getTargetConfig();
+        UUID taskConfigId = TaskUtils.getTargetConfiguration(taskInfo);
+        return targetConfigId.equals(taskConfigId);
     }
 }

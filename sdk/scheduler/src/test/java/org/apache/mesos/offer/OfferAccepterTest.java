@@ -23,109 +23,109 @@ import static org.mockito.Mockito.*;
 
 public class OfferAccepterTest {
 
-  @Mock
-  private SchedulerDriver driver;
+    @Mock
+    private SchedulerDriver driver;
 
-  @Before
-  public void initMocks() {
-    MockitoAnnotations.initMocks(this);
-  }
-
-  @Test
-  public void testConstructor() {
-    OfferAccepter accepter = new OfferAccepter(new TestOperationRecorder());
-    Assert.assertNotNull(accepter);
-  }
-
-  @Test
-  public void testLaunchTransient() {
-    Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
-    Offer offer = OfferTestUtils.getOffer(resource);
-    TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
-    taskInfo = TaskUtils.setTransient(taskInfo);
-
-    TestOperationRecorder recorder = new TestOperationRecorder();
-    OfferAccepter accepter = new OfferAccepter(recorder);
-    accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
-    Assert.assertEquals(1, recorder.getLaunches().size());
-    verify(driver, times(0)).acceptOffers(
-        anyCollectionOf(OfferID.class),
-        anyCollectionOf(Operation.class),
-        anyObject());
-  }
-
-  @Test
-  public void testClearTransient() {
-    Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
-    Offer offer = OfferTestUtils.getOffer(resource);
-    TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
-    taskInfo = TaskUtils.setTransient(taskInfo);
-
-    TestOperationRecorder recorder = new TestOperationRecorder();
-    OfferAccepter accepter = new OfferAccepter(recorder);
-    accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
-    Assert.assertEquals(1, recorder.getLaunches().size());
-    verify(driver, times(0)).acceptOffers(
-        anyCollectionOf(OfferID.class),
-        anyCollectionOf(Operation.class),
-        anyObject());
-
-    taskInfo = TaskUtils.clearTransient(taskInfo);
-    accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
-    Assert.assertEquals(2, recorder.getLaunches().size());
-    verify(driver, times(1)).acceptOffers(
-        anyCollectionOf(OfferID.class),
-        anyCollectionOf(Operation.class),
-        anyObject());
-  }
-
-  public static class TestOperationRecorder implements OperationRecorder {
-    private List<Operation> reserves = new ArrayList<>();
-    private List<Operation> unreserves = new ArrayList<>();
-    private List<Operation> creates = new ArrayList<>();
-    private List<Operation> destroys = new ArrayList<>();
-    private List<Operation> launches = new ArrayList<>();
-
-    public void record(Operation operation, Offer offer) throws Exception {
-      switch (operation.getType()) {
-        case UNRESERVE:
-          unreserves.add(operation);
-          break;
-        case RESERVE:
-          reserves.add(operation);
-          break;
-        case CREATE:
-          creates.add(operation);
-          break;
-        case DESTROY:
-          destroys.add(operation);
-          break;
-        case LAUNCH:
-          launches.add(operation);
-          break;
-        default:
-          throw new Exception("Unknown operation type encountered");
-      }
+    @Before
+    public void initMocks() {
+        MockitoAnnotations.initMocks(this);
     }
 
-    public List<Operation> getReserves() {
-      return reserves;
+    @Test
+    public void testConstructor() {
+        OfferAccepter accepter = new OfferAccepter(new TestOperationRecorder());
+        Assert.assertNotNull(accepter);
     }
 
-    public List<Operation> getUnreserves() {
-      return unreserves;
+    @Test
+    public void testLaunchTransient() {
+        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Offer offer = OfferTestUtils.getOffer(resource);
+        TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
+        taskInfo = TaskUtils.setTransient(taskInfo);
+
+        TestOperationRecorder recorder = new TestOperationRecorder();
+        OfferAccepter accepter = new OfferAccepter(recorder);
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
+        Assert.assertEquals(1, recorder.getLaunches().size());
+        verify(driver, times(0)).acceptOffers(
+                anyCollectionOf(OfferID.class),
+                anyCollectionOf(Operation.class),
+                anyObject());
     }
 
-    public List<Operation> getCreates() {
-      return creates;
+    @Test
+    public void testClearTransient() {
+        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Offer offer = OfferTestUtils.getOffer(resource);
+        TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
+        taskInfo = TaskUtils.setTransient(taskInfo);
+
+        TestOperationRecorder recorder = new TestOperationRecorder();
+        OfferAccepter accepter = new OfferAccepter(recorder);
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
+        Assert.assertEquals(1, recorder.getLaunches().size());
+        verify(driver, times(0)).acceptOffers(
+                anyCollectionOf(OfferID.class),
+                anyCollectionOf(Operation.class),
+                anyObject());
+
+        taskInfo = TaskUtils.clearTransient(taskInfo);
+        accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
+        Assert.assertEquals(2, recorder.getLaunches().size());
+        verify(driver, times(1)).acceptOffers(
+                anyCollectionOf(OfferID.class),
+                anyCollectionOf(Operation.class),
+                anyObject());
     }
 
-    public List<Operation> getDestroys() {
-      return destroys;
-    }
+    public static class TestOperationRecorder implements OperationRecorder {
+        private List<Operation> reserves = new ArrayList<>();
+        private List<Operation> unreserves = new ArrayList<>();
+        private List<Operation> creates = new ArrayList<>();
+        private List<Operation> destroys = new ArrayList<>();
+        private List<Operation> launches = new ArrayList<>();
 
-    public List<Operation> getLaunches() {
-      return launches;
+        public void record(Operation operation, Offer offer) throws Exception {
+            switch (operation.getType()) {
+                case UNRESERVE:
+                    unreserves.add(operation);
+                    break;
+                case RESERVE:
+                    reserves.add(operation);
+                    break;
+                case CREATE:
+                    creates.add(operation);
+                    break;
+                case DESTROY:
+                    destroys.add(operation);
+                    break;
+                case LAUNCH:
+                    launches.add(operation);
+                    break;
+                default:
+                    throw new Exception("Unknown operation type encountered");
+            }
+        }
+
+        public List<Operation> getReserves() {
+            return reserves;
+        }
+
+        public List<Operation> getUnreserves() {
+            return unreserves;
+        }
+
+        public List<Operation> getCreates() {
+            return creates;
+        }
+
+        public List<Operation> getDestroys() {
+            return destroys;
+        }
+
+        public List<Operation> getLaunches() {
+            return launches;
+        }
     }
-  }
 }

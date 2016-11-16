@@ -3,23 +3,28 @@ package org.apache.mesos.specification;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigurationComparator;
 import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
+import org.apache.mesos.offer.constrain.*;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This class is a default implementation of the ServiceSpecification interface.
  */
 public class DefaultServiceSpecification implements ServiceSpecification {
 
-    private static final Factory FACTORY = new Factory();
+    private static final Comparator COMPARATOR = new Comparator();
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**
@@ -28,18 +33,70 @@ public class DefaultServiceSpecification implements ServiceSpecification {
     public static class Factory implements ConfigurationFactory<ServiceSpecification> {
 
         /**
-         * Call {@link DefaultServiceSpecification#getFactoryInstance()} instead.
+         * Subtypes to be registered by defaults. This list should include all
+         * {@link PlacementRule}s that are included in the library.
          */
-        private Factory() { }
+        private static final Collection<Class<?>> defaultRegisteredSubtypes = Arrays.asList(
+                // Rules:
+                AgentRule.class,
+                AndRule.class,
+                AttributeRule.class,
+                HostnameRule.class,
+                MaxPerAttributeRule.class,
+                NotRule.class,
+                OrRule.class,
+                TaskTypeRule.class,
+                // Matchers:
+                AnyMatcher.class,
+                ExactMatcher.class,
+                RegexMatcher.class,
+                // TaskTypeConverters:
+                TaskTypeLabelConverter.class);
+
+        private final ObjectMapper objectMapper;
+
+        /**
+         * @see DefaultServiceSpecification#getFactoryInstance()
+         */
+        private Factory(Collection<Class<?>> additionalSubtypes) {
+            objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+            for (Class<?> subtype : defaultRegisteredSubtypes) {
+                objectMapper.registerSubtypes(subtype);
+            }
+            for (Class<?> subtype : additionalSubtypes) {
+                objectMapper.registerSubtypes(subtype);
+            }
+        }
 
         @Override
         public ServiceSpecification parse(byte[] bytes) throws ConfigStoreException {
             try {
-                return SerializationUtils.fromJsonString(new String(bytes, CHARSET), DefaultServiceSpecification.class);
+                return SerializationUtils.fromString(
+                        new String(bytes, CHARSET), DefaultServiceSpecification.class, objectMapper);
             } catch (IOException e) {
                 throw new ConfigStoreException(
                         "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
             }
+        }
+
+        public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
+            return defaultRegisteredSubtypes;
+        }
+    }
+
+    /**
+     * Comparer which checks for equality of {@link DefaultServiceSpecification}s.
+     */
+    public static class Comparator implements ConfigurationComparator<ServiceSpecification> {
+
+        /**
+         * Call {@link DefaultServiceSpecification#getComparatorInstance()} instead.
+         */
+        private Comparator() { }
+
+        @Override
+        public boolean equals(ServiceSpecification first, ServiceSpecification second) {
+            return EqualsBuilder.reflectionEquals(first, second);
         }
     }
 
@@ -74,16 +131,51 @@ public class DefaultServiceSpecification implements ServiceSpecification {
     }
 
     @Override
-    public String toJsonString() throws Exception {
-        return SerializationUtils.toJsonString(this);
+    public String toJsonString() throws ConfigStoreException {
+        try {
+            return SerializationUtils.toJsonString(this);
+        } catch (IOException e) {
+            throw new ConfigStoreException(e);
+        }
     }
 
     /**
      * Returns a {@link ConfigurationFactory} which may be used to deserialize
+     * {@link DefaultServiceSpecification}s, which has been confirmed to successfully and
+     * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
+     *
+     * @param testSpecification specification to test for successful serialization/deserialization
+     * @param additionalSubtypesToRegister any class subtypes which should be registered with
+     *     Jackson for deserialization. any custom placement rule implementations must be provided
+     * @throws ConfigStoreException if testing the provided specification fails
+     */
+    public static ConfigurationFactory<ServiceSpecification> getFactory(
+            ServiceSpecification testSpecification,
+            Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
+        ConfigurationFactory<ServiceSpecification> factory = new Factory(additionalSubtypesToRegister);
+        // Serialize and then deserialize:
+        ServiceSpecification loopbackSpecification = factory.parse(testSpecification.getBytes());
+        // Verify that equality works:
+        if (!loopbackSpecification.equals(testSpecification)) {
+            StringBuilder error = new StringBuilder();
+            error.append("Equality test failed: Loopback result is not equal to original:\n");
+            error.append("- Original:\n");
+            error.append(testSpecification.toJsonString());
+            error.append('\n');
+            error.append("- Result:\n");
+            error.append(loopbackSpecification.toJsonString());
+            error.append('\n');
+            throw new ConfigStoreException(error.toString());
+        }
+        return factory;
+    }
+
+    /**
+     * Returns a {@link ConfigurationComparer} which may be used to compare
      * {@link DefaultServiceSpecification}s.
      */
-    public static ConfigurationFactory<ServiceSpecification> getFactoryInstance() {
-        return FACTORY;
+    public static ConfigurationComparator<ServiceSpecification> getComparatorInstance() {
+        return COMPARATOR;
     }
 
     @Override

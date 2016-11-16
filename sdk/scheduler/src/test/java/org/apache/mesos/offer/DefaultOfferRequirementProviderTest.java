@@ -1,206 +1,153 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.Protos;
-import org.apache.mesos.offer.constrain.PassthroughGenerator;
-import org.apache.mesos.offer.constrain.PassthroughRule;
-import org.apache.mesos.offer.constrain.PlacementRuleGenerator;
-import org.apache.mesos.specification.DefaultTaskSpecification;
-import org.apache.mesos.specification.InvalidTaskSpecificationException;
+import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.specification.DefaultResourceSpecification;
+import org.apache.mesos.specification.DefaultVolumeSpecification;
+import org.apache.mesos.specification.ResourceSpecification;
 import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.VolumeSpecification;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
+
+import static org.mockito.Mockito.when;
 
 /**
  * This class tests the DefaultOfferRequirementProvider.
  */
 public class DefaultOfferRequirementProviderTest {
-    private static final int DISK_SIZE_MB = 1000;
     private static final double CPU = 1.0;
     private static final double MEM = 1024.0;
-    private static final PlacementRuleGenerator ALLOW_ALL = new PassthroughGenerator(new PassthroughRule("test"));
-    private DefaultOfferRequirementProvider defaultOfferRequirementProvider;
+    private static final PlacementRule ALLOW_ALL = new PlacementRule() {
+        @Override
+        public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+            return offer;
+        }
+    };
+    private static final DefaultOfferRequirementProvider PROVIDER =
+            new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), UUID.randomUUID());
+
     private EnvironmentVariables environmentVariables;
+
+    @Mock
+    private TaskSpecification mockTaskSpecification;
 
     @Before
     public void beforeEach() {
-        defaultOfferRequirementProvider = new DefaultOfferRequirementProvider();
+        MockitoAnnotations.initMocks(this);
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
     }
 
-    @Test(expected=InvalidTaskSpecificationException.class)
-    public void testEmptyTaskInfo() throws InvalidTaskSpecificationException, TaskException {
-        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
-                .setTaskId(TestConstants.TASK_ID)
-                .setName(TestConstants.TASK_NAME)
-                .setSlaveId(TestConstants.AGENT_ID);
-        DefaultTaskSpecification.create(taskInfoBuilder.build());
-    }
-
-    @Test(expected=TaskException.class)
-    public void testEmptyLabel() throws InvalidTaskSpecificationException, TaskException {
-        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
-                .setTaskId(TestConstants.TASK_ID)
-                .setCommand(TestConstants.COMMAND_INFO)
-                .setName(TestConstants.TASK_NAME)
-                .setSlaveId(TestConstants.AGENT_ID);
-        DefaultTaskSpecification.create(taskInfoBuilder.build());
-    }
-
     @Test
-    public void testCommandTaskInfo()
-            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
-        Protos.TaskInfo tempTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(tempTaskInfo)
-                .clearContainer()
-                .addResources(mem)
-                .build();
-
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
-        OfferRequirement offerRequirement = defaultOfferRequirementProvider.getNewOfferRequirement(taskSpecification);
-
-        Assert.assertEquals(TestConstants.TASK_TYPE, taskSpecification.getType());
-        Assert.assertEquals(false, taskSpecification.getContainer().isPresent());
-        Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
-
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
-    }
-
-    @Test
-    public void testContainerTaskInfo()
-            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
-        Protos.TaskInfo tempTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(tempTaskInfo)
-                .clearCommand()
-                .addResources(mem)
-                .build();
-
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
-        OfferRequirement offerRequirement = defaultOfferRequirementProvider.getNewOfferRequirement(taskSpecification);
-
-        Assert.assertEquals(TestConstants.TASK_TYPE, taskSpecification.getType());
-        Assert.assertEquals(false, taskSpecification.getCommand().isPresent());
-        Assert.assertEquals(true, taskSpecification.getContainer().isPresent());
-
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
-    }
-
-    @Test
-    public void testCommandContainerTaskInfo()
-            throws InvalidTaskSpecificationException, TaskException, InvalidRequirementException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
-        Protos.TaskInfo tempTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(tempTaskInfo)
-                .addResources(mem)
-                .build();
-
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
-        OfferRequirement offerRequirement = defaultOfferRequirementProvider.getNewOfferRequirement(taskSpecification);
-
-        Assert.assertEquals(TestConstants.TASK_TYPE, taskSpecification.getType());
-        Assert.assertEquals(true, taskSpecification.getCommand().isPresent());
-        Assert.assertEquals(true, taskSpecification.getContainer().isPresent());
-
-        Assert.assertEquals(TestConstants.TASK_TYPE, offerRequirement.getTaskType());
-    }
-
-    @Test
-    public void testUnchangedVolumes()
-            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
-        Protos.Resource volume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB);
-        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(volume));
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
-
-        OfferRequirement offerRequirement =
-                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
-        Assert.assertNotNull(offerRequirement);
-        Assert.assertTrue(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
-    }
-
-    @Test(expected=InvalidRequirementException.class)
-    public void testChangedVolumes()
-            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
-        Protos.Resource oldVolume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB);
-        Protos.Resource newVolume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB + 500);
-        Protos.TaskInfo oldTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(oldVolume));
-        Protos.TaskInfo newTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(newVolume));
-        TaskSpecification newTaskSpecification = DefaultTaskSpecification.create(newTaskInfo);
-
-        defaultOfferRequirementProvider.getExistingOfferRequirement(oldTaskInfo, newTaskSpecification);
-    }
-
-    @Test(expected=InvalidRequirementException.class)
-    public void testEmptyVolume() throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.Resource oldVolume = ResourceTestUtils.getExpectedMountVolume(DISK_SIZE_MB);
-        Protos.TaskInfo oldTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(oldVolume));
-        Protos.TaskInfo newTaskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        TaskSpecification newTaskSpecification = DefaultTaskSpecification.create(newTaskInfo);
-
-        defaultOfferRequirementProvider.getExistingOfferRequirement(oldTaskInfo, newTaskSpecification);
-    }
-
-    @Test
-    public void testNoVolumes() throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo);
-
-        OfferRequirement offerRequirement =
-                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
-        Assert.assertNotNull(offerRequirement);
-        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
-        Assert.assertFalse(offerRequirement.getPlacementRuleGeneratorOptional().isPresent());
-    }
-
-    @Test
-    public void testPlacementPassthru()
-            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
+    public void testPlacementPassthru() throws InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
 
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(taskInfo, Optional.of(ALLOW_ALL));
+        TaskSpecification taskSpecification = setupMock(taskInfo, Optional.of(ALLOW_ALL));
 
         OfferRequirement offerRequirement =
-                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
+                PROVIDER.getExistingOfferRequirement(taskInfo, taskSpecification);
         Assert.assertNotNull(offerRequirement);
         Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
         Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
-        Assert.assertTrue(offerRequirement.getPlacementRuleGeneratorOptional().isPresent());
+        Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
     @Test
-    public void testAddNewDesiredResource()
-            throws InvalidTaskSpecificationException, InvalidRequirementException, TaskException {
+    public void testAddNewDesiredResource() throws InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
         Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
         Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
 
         // Add memory requirement to the new TaskSpecification
-        TaskSpecification taskSpecification = DefaultTaskSpecification.create(
-                Protos.TaskInfo.newBuilder(taskInfo)
-                .addResources(mem)
-                .build());
+        TaskSpecification taskSpecification = setupMock(taskInfo.toBuilder().addResources(mem).build());
 
         OfferRequirement offerRequirement =
-                defaultOfferRequirementProvider.getExistingOfferRequirement(taskInfo, taskSpecification);
+                PROVIDER.getExistingOfferRequirement(taskInfo, taskSpecification);
         Assert.assertNotNull(offerRequirement);
         Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
         Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
+    }
+
+    private TaskSpecification setupMock(Protos.TaskInfo taskInfo) {
+        return setupMock(taskInfo, Optional.empty());
+    }
+
+    private TaskSpecification setupMock(Protos.TaskInfo taskInfo, Optional<PlacementRule> placement) {
+        when(mockTaskSpecification.getName()).thenReturn(taskInfo.getName());
+        when(mockTaskSpecification.getCommand()).thenReturn(Optional.of(taskInfo.getCommand()));
+        when(mockTaskSpecification.getContainer()).thenReturn(Optional.of(taskInfo.getContainer()));
+        when(mockTaskSpecification.getHealthCheck()).thenReturn(Optional.empty());
+        when(mockTaskSpecification.getResources()).thenReturn(getResources(taskInfo));
+        when(mockTaskSpecification.getVolumes()).thenReturn(getVolumes(taskInfo));
+        when(mockTaskSpecification.getConfigFiles()).thenReturn(Collections.emptyList());
+        when(mockTaskSpecification.getPlacement()).thenReturn(placement);
+        return mockTaskSpecification;
+    }
+
+    private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {
+        Collection<ResourceSpecification> resourceSpecifications = new ArrayList<>();
+        for (Protos.Resource resource : taskInfo.getResourcesList()) {
+            if (!resource.hasDisk()) {
+                resourceSpecifications.add(
+                        new DefaultResourceSpecification(
+                                resource.getName(),
+                                ValueUtils.getValue(resource),
+                                resource.getRole(),
+                                resource.getReservation().getPrincipal()));
+            }
+        }
+        return resourceSpecifications;
+    }
+
+    private static Collection<VolumeSpecification> getVolumes(Protos.TaskInfo taskInfo) {
+        Collection<VolumeSpecification> volumeSpecifications = new ArrayList<>();
+        for (Protos.Resource resource : taskInfo.getResourcesList()) {
+            if (resource.hasDisk()) {
+                volumeSpecifications.add(
+                        new DefaultVolumeSpecification(
+                                resource.getScalar().getValue(),
+                                getVolumeType(resource.getDisk()),
+                                resource.getDisk().getVolume().getContainerPath(),
+                                resource.getRole(),
+                                resource.getReservation().getPrincipal()));
+            }
+        }
+
+        return volumeSpecifications;
+    }
+
+    private static VolumeSpecification.Type getVolumeType(Protos.Resource.DiskInfo diskInfo) {
+        if (diskInfo.hasSource()) {
+            Protos.Resource.DiskInfo.Source.Type type = diskInfo.getSource().getType();
+            switch (type) {
+                case MOUNT:
+                    return VolumeSpecification.Type.MOUNT;
+                case PATH:
+                    return VolumeSpecification.Type.PATH;
+                default:
+                    throw new IllegalArgumentException("unexpected type: " + type);
+            }
+        } else {
+            return VolumeSpecification.Type.ROOT;
+        }
     }
 }

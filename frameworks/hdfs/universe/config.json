@@ -124,6 +124,32 @@
 				"heap"
 			]
 		},
+		"zkfc_process": {
+			"type": "object",
+			"description": "HDFS ZKFC process configuration properties",
+			"properties": {
+				"cpus": {
+					"type": "number",
+					"description": "The number of cpu shares allocated to the ZKFC process",
+					"default": 0.5
+				},
+				"mem": {
+					"type": "integer",
+					"description": "The amount of memory, in MB, allocated to the ZKFC process",
+					"default": 512
+				},
+				"disk": {
+					"type": "integer",
+					"description": "The amount of disk, in MB, allocated to the ZKFC process",
+					"default": 5120
+				},
+				"count": {
+					"type": "integer",
+					"description": "The number of ZKFC processes to launch",
+					"default": 2
+				}
+			}
+		},
 		"journal_node": {
 			"id": "http://hdfs/dcos/mesosphere.com/journal_node",
 			"type": "object",

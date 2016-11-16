@@ -79,7 +79,7 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testEvaluateNoRecommendations() throws InvalidRequirementException {
-        OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
+        OfferRequirement requirement = OfferRequirement.create(TestConstants.TASK_TYPE, TASKINFOS);
         TestOfferStep step = new TestOfferStep(requirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(new ArrayList<>());
@@ -92,7 +92,7 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
-        OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
+        OfferRequirement requirement = OfferRequirement.create(TestConstants.TASK_TYPE, TASKINFOS);
         TestOfferStep step = new TestOfferStep(requirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
@@ -106,7 +106,7 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
-        OfferRequirement requirement = new OfferRequirement(TestConstants.TASK_TYPE, TASKINFOS);
+        OfferRequirement requirement = OfferRequirement.create(TestConstants.TASK_TYPE, TASKINFOS);
         TestOfferStep step = new TestOfferStep(requirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(requirement, OFFERS)).thenReturn(RECOMMENDATIONS);
