@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.offer.ValueUtils;
@@ -86,10 +85,6 @@ class Elastic {
         String kibanaVerName = System.getenv("KIBANA_VER_NAME");
         kibanaCommand = new KibanaCommand(kibanaVerName, XPACK_URI);
         serviceSpecification = new DefaultServiceSpecification(SERVICE_NAME, createTaskSets());
-    }
-
-    List<ConfigurationValidator<ServiceSpecification>> configValidators() {
-        return Collections.singletonList(new HeapCannotExceedHalfMem());
     }
 
     ServiceSpecification getServiceSpecification() {
