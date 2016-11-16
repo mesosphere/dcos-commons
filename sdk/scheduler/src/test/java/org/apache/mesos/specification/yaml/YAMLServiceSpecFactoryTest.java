@@ -9,6 +9,8 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.io.File;
 
+import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+
 public class YAMLServiceSpecFactoryTest {
     @Rule
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
@@ -29,7 +31,7 @@ public class YAMLServiceSpecFactoryTest {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        RawServiceSpecification rawServiceSpecification = generateRawSpecFromYAML(file);
         Assert.assertNotNull(rawServiceSpecification);
         Assert.assertEquals(new Integer(8080), rawServiceSpecification.getApiPort());
     }
@@ -40,7 +42,7 @@ public class YAMLServiceSpecFactoryTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
-        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(yaml);
+        RawServiceSpecification rawServiceSpecification = generateRawSpecFromYAML(yaml);
         Assert.assertNotNull(rawServiceSpecification);
         Assert.assertEquals(new Integer(8080), rawServiceSpecification.getApiPort());
     }
