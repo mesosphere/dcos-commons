@@ -116,6 +116,20 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void invalidTaskSpecNoResource() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
+        try {
+            YAMLServiceSpecFactory
+                    .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertTrue(constraintViolations.size() > 0);
+        }
+    }
+
+    @Test
     public void invalidResourceSetName() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
