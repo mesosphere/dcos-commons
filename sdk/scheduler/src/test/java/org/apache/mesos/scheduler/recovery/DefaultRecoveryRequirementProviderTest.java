@@ -33,8 +33,10 @@ import java.util.stream.Collectors;
  * Created by gabriel on 11/15/16.
  */
 public class DefaultRecoveryRequirementProviderTest {
-    private static final TaskSpec taskSpec0 = TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0);
-    private static final TaskSpec taskSpec1 = TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 1);
+    private static final TaskSpec taskSpec0 =
+            TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID + 0);
+    private static final TaskSpec taskSpec1 =
+            TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1);
     private static final PodSpec POD_SPEC =
             TestPodFactory.getPodSpec(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1));
 

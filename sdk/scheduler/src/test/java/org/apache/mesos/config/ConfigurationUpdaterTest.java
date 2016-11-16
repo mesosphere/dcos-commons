@@ -44,6 +44,7 @@ public class ConfigurationUpdaterTest {
 
     private static final PodSpec podA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
             TASK_A_COUNT,
@@ -53,6 +54,7 @@ public class ConfigurationUpdaterTest {
 
     private static final PodSpec podB = TestPodFactory.getPodSpec(
             TASK_B_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
             TASK_B_COUNT,
@@ -62,6 +64,7 @@ public class ConfigurationUpdaterTest {
 
     private static final PodSpec updatedPodA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
             TASK_A_CMD,
             TASK_A_COUNT,
@@ -71,6 +74,7 @@ public class ConfigurationUpdaterTest {
 
     private static final PodSpec badPodB = TestPodFactory.getPodSpec(
             TASK_B_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
             TASK_B_CMD,
             TASK_B_COUNT - 1,

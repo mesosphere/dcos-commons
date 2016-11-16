@@ -16,12 +16,13 @@ public class TestPodFactory {
     public static final Protos.CommandInfo CMD = Protos.CommandInfo.newBuilder().setValue("echo test-cmd").build();
 
     public static TaskSpec getTaskSpec() {
-        return getTaskSpec(TestConstants.TASK_NAME);
+        return getTaskSpec(TestConstants.TASK_NAME, TestConstants.RESOURCE_SET_ID);
     }
 
-    public static TaskSpec getTaskSpec(String name) {
+    public static TaskSpec getTaskSpec(String name, String resourceSetId) {
         return getTaskSpec(
                 name,
+                resourceSetId,
                 CMD.getValue(),
                 CPU,
                 MEM,
@@ -30,23 +31,24 @@ public class TestPodFactory {
 
     public static TaskSpec getTaskSpec(
             String name,
+            String resourceSetId,
             String cmd,
             double cpu,
             double mem,
             double disk) {
-        return getPodSpec(TestConstants.POD_TYPE, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
+        return getPodSpec(TestConstants.POD_TYPE, resourceSetId, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
     }
 
-    public static ResourceSet getResourceSet(double cpu, double mem, double disk) {
+    public static ResourceSet getResourceSet(String id, double cpu, double mem, double disk) {
         return DefaultResourceSet.newBuilder()
-                .id(TestConstants.RESOURCE_SET_ID + "__" + UUID.randomUUID())
+                .id(id)
                 .resources(getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL))
                 .volumes(getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL))
                 .build();
     }
 
-    public static PodSpec getPodSpec(String type, String taskName, String cmd, int count, double cpu, double mem, double disk) {
-        ResourceSet resourceSet = getResourceSet(cpu, mem, disk);
+    public static PodSpec getPodSpec(String type, String resourceSetId, String taskName, String cmd, int count, double cpu, double mem, double disk) {
+        ResourceSet resourceSet = getResourceSet(resourceSetId, cpu, mem, disk);
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(taskName)
                 .goalState(TaskSpec.GoalState.RUNNING)

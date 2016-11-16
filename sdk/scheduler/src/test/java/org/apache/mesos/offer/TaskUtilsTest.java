@@ -66,6 +66,7 @@ public class TaskUtilsTest {
         TaskSpec newTaskSpecification =
                 TestPodFactory.getTaskSpec(
                         "new" + TestConstants.TASK_NAME,
+                        oldTaskSpecification.getResourceSet().getId(),
                         TestPodFactory.CMD.getValue(),
                         TestPodFactory.CPU,
                         TestPodFactory.MEM,
@@ -80,6 +81,7 @@ public class TaskUtilsTest {
         TaskSpec newTaskSpecification =
                 TestPodFactory.getTaskSpec(
                         TestConstants.TASK_NAME,
+                        oldTaskSpecification.getResourceSet().getId(),
                         TestPodFactory.CMD.getValue() + " && echo foo",
                         TestPodFactory.CPU,
                         TestPodFactory.MEM,
