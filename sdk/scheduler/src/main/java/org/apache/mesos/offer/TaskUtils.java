@@ -453,15 +453,6 @@ public class TaskUtils {
             return true;
         }
 
-        // ContainerInfos
-
-        Optional<ContainerSpec> oldContainer = oldTaskSpec.getContainer();
-        Optional<ContainerSpec> newContainer = newTaskSpec.getContainer();
-        if (!Objects.equals(oldContainer, newContainer)) {
-            LOGGER.info("Task containers '{}' and '{}' are different.", oldContainer, newContainer);
-            return true;
-        }
-
         // Health checks
 
         Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();

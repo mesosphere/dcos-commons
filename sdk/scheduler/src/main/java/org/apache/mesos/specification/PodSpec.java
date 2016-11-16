@@ -20,6 +20,9 @@ public interface PodSpec {
     @JsonProperty("count")
     Integer getCount();
 
+    @JsonProperty("container")
+    Optional<ContainerSpec> getContainer();
+
     @JsonProperty("user")
     Optional<String> getUser();
 

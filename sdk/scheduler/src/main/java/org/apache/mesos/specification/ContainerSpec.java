@@ -7,7 +7,6 @@ import org.apache.mesos.Protos;
  * Spec for defining a Container.
  */
 public interface ContainerSpec {
-    // TODO: Remove protobuf from interface
-    @JsonProperty("container")
-    Protos.ContainerInfo getContainerInfo();
+    @JsonProperty("imageName")
+    String getImageName();
 }

@@ -139,6 +139,7 @@ public class YAMLToInternalMappers {
         String podName = rawPod.getName();
         Integer podInstanceCount = rawPod.getCount();
         String placement = rawPod.getPlacement();
+        RawContainer container = rawPod.getContainer();
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         String strategy = rawPod.getStrategy();
         String user = rawPod.getUser();
@@ -169,9 +170,15 @@ public class YAMLToInternalMappers {
                     principal));
         }
 
+        if (!container.getImageName().isEmpty() && container.getImageName() == "") {
+            throw new IllegalStateException("Can't specify an empty container image");
+        }
+        ContainerSpec containerSpec = new DefaultContainerSpec(container.getImageName());
+
         final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
                 .count(podInstanceCount)
                 .placementRule(null /** TODO(mohit) */)
+                .container(containerSpec)
                 .tasks(taskSpecs)
                 .type(podName)
                 .user(user)
@@ -282,7 +289,6 @@ public class YAMLToInternalMappers {
         return builder
                 .commandSpec(commandSpec)
                 .configFiles(configFiles)
-                .containerSpec(null /* TODO (mohit) */)
                 .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(goal)))
                 .healthCheckSpec(healthCheckSpec)
                 .name(taskName)

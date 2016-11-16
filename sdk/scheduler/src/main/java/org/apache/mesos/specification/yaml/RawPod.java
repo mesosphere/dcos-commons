@@ -12,6 +12,7 @@ public class RawPod {
     private String name;
     private String placement;
     private Integer count;
+    private RawContainer container;
     private String strategy;
     private String user;
     private WriteOnceLinkedHashMap<String, RawTask> tasks;
@@ -51,6 +52,15 @@ public class RawPod {
     @JsonProperty("count")
     public void setCount(Integer count) {
         this.count = count;
+    }
+
+    public RawContainer getContainer() {
+        return container;
+    }
+
+    @JsonProperty("container")
+    public void setContainer(RawContainer container) {
+        this.container = container;
     }
 
     public String getStrategy() {

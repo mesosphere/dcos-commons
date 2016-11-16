@@ -27,9 +27,6 @@ public interface TaskSpec {
     @JsonProperty("command_spec")
     Optional<CommandSpec> getCommand();
 
-    @JsonProperty("container_spec")
-    Optional<ContainerSpec> getContainer();
-
     @JsonProperty("health_check_spec")
     Optional<HealthCheckSpec> getHealthCheck();
 
