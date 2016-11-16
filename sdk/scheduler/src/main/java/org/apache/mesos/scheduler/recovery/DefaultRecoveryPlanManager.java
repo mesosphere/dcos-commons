@@ -135,31 +135,41 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 .distinct()
                 .collect(Collectors.toList());
 
+        logger.info("Found pods needing recovery: " + pods);
+
         Predicate<Protos.TaskInfo> isPodRecoverable = t -> {
             Optional<Protos.TaskStatus> status = stateStore.fetchStatus(t.getName());
             return !dirtyAssets.contains(t.getName()) && status.isPresent() &&
                     TaskUtils.needsRecovery(status.get());
         };
+
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
                 FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
 
         List<RecoveryRequirement> recoveryRequirements = new ArrayList<>();
         for (String pod : pods) {
             List<Protos.TaskInfo> podTasks = new ArrayList<>(StateStoreUtils.fetchTasksFromPod(stateStore, pod));
+            logger.info(
+                    "Recovering pod tasks: {}",
+                    podTasks.stream().map(taskInfo -> taskInfo.getName()).collect(Collectors.toList()));
 
             if (!podTasks.stream().allMatch(isPodRecoverable)) {
+                logger.warn("Pod: '{}' is not recoverable.", pod);
                 continue;
             }
 
             try {
                 if (podTasks.stream().allMatch(isPodPermanentlyFailed)) {
+                    logger.info("Recovering permanently failed pod: '{}'", pod);
                     recoveryRequirements.addAll(
                             recoveryReqProvider.getPermanentRecoveryRequirements(podTasks));
                 } else if (podTasks.stream().noneMatch(isPodPermanentlyFailed)) {
+                    logger.info("Recovering transiently failed pod: '{}'", pod);
                     recoveryRequirements.addAll(
                             recoveryReqProvider.getTransientRecoveryRequirements(podTasks));
                 }
             } catch (InvalidRequirementException e) {
+                logger.error("Failed to generate recovery requirement for pod: '{}'", pod, e);
                 continue;
             }
         }
