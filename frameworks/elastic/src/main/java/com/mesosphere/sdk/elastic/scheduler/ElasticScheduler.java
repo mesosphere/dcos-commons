@@ -50,4 +50,8 @@ class ElasticScheduler extends DefaultScheduler {
         deploymentPlanManager = new DefaultPlanManager(plan);
     }
 
+    PlanManager getDeploymentPlanManager() {
+        return deploymentPlanManager;
+    }
+
 }
