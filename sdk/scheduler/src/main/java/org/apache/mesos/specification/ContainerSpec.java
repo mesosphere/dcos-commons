@@ -1,12 +1,14 @@
 package org.apache.mesos.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.mesos.Protos;
 
 /**
  * Spec for defining a Container.
  */
+@JsonDeserialize(as = DefaultContainerSpec.class)
 public interface ContainerSpec {
-    @JsonProperty("imageName")
+    @JsonProperty("image-name")
     String getImageName();
 }
