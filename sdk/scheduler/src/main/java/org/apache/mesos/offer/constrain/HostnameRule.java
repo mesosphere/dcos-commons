@@ -20,15 +20,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class HostnameRule implements PlacementRule {
 
-    private final String hostname;
-
     /**
      * Requires that a task be placed on the provided hostname.
      *
      * @param hostname hostname of the mesos agent to require
      */
-    public static PlacementRule require(String hostname) {
-        return new HostnameRule(hostname);
+    public static PlacementRule requireExact(String hostname) {
+        return require(toExactMatchers(hostname));
     }
 
     /**
@@ -36,8 +34,8 @@ public class HostnameRule implements PlacementRule {
      *
      * @param hostnames hostnames of the mesos agents to require
      */
-    public static PlacementRule require(Collection<String> hostnames) {
-        return new OrRule(toHostnameRules(hostnames));
+    public static PlacementRule requireExact(Collection<String> hostnames) {
+        return require(toExactMatchers(hostnames));
     }
 
     /**
@@ -45,8 +43,38 @@ public class HostnameRule implements PlacementRule {
      *
      * @param hostnames hostnames of the mesos agents to require
      */
-    public static PlacementRule require(String... hostnames) {
-        return require(Arrays.asList(hostnames));
+    public static PlacementRule requireExact(String... hostnames) {
+        return require(toExactMatchers(hostnames));
+    }
+
+    /**
+     * Requires that a task be placed on the provided hostname.
+     *
+     * @param matcher matcher for hostname of the mesos agent to require
+     */
+    public static PlacementRule require(StringMatcher matcher) {
+        return new HostnameRule(matcher);
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to require
+     */
+    public static PlacementRule require(Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return require(matchers.iterator().next());
+        }
+        return new OrRule(toHostnameRules(matchers));
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to require
+     */
+    public static PlacementRule require(StringMatcher... matchers) {
+        return require(Arrays.asList(matchers));
     }
 
     /**
@@ -54,8 +82,8 @@ public class HostnameRule implements PlacementRule {
      *
      * @param hostname hostname of the mesos agent to avoid
      */
-    public static PlacementRule avoid(String hostname) {
-        return new NotRule(require(hostname));
+    public static PlacementRule avoidExact(String hostname) {
+        return avoid(toExactMatchers(hostname));
     }
 
     /**
@@ -63,8 +91,8 @@ public class HostnameRule implements PlacementRule {
      *
      * @param hostnames hostnames of the mesos agents to avoid
      */
-    public static PlacementRule avoid(Collection<String> hostnames) {
-        return new NotRule(require(hostnames));
+    public static PlacementRule avoidExact(Collection<String> hostnames) {
+        return avoid(toExactMatchers(hostnames));
     }
 
     /**
@@ -72,18 +100,50 @@ public class HostnameRule implements PlacementRule {
      *
      * @param hostnames hostnames of the mesos agents to avoid
      */
-    public static PlacementRule avoid(String... hostnames) {
-        return avoid(Arrays.asList(hostnames));
+    public static PlacementRule avoidExact(String... hostnames) {
+        return avoid(toExactMatchers(hostnames));
     }
+
+    /**
+     * Requires that a task NOT be placed on the provided hostname.
+     *
+     * @param matcher matcher for hostname of the mesos agent to avoid
+     */
+    public static PlacementRule avoid(StringMatcher matcher) {
+        return new NotRule(require(matcher));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to avoid
+     */
+    public static PlacementRule avoid(Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return avoid(matchers.iterator().next());
+        }
+        return new NotRule(require(matchers));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided hostnames.
+     *
+     * @param matchers matchers for hostnames of the mesos agents to avoid
+     */
+    public static PlacementRule avoid(StringMatcher... matchers) {
+        return avoid(Arrays.asList(matchers));
+    }
+
+    private final StringMatcher matcher;
 
     @JsonCreator
-    private HostnameRule(@JsonProperty("hostname") String hostname) {
-        this.hostname = hostname;
+    private HostnameRule(@JsonProperty("matcher") StringMatcher matcher) {
+        this.matcher = matcher;
     }
 
     @Override
     public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
-        if (hostname.equals(offer.getHostname())) {
+        if (matcher.matches(offer.getHostname())) {
             return offer;
         } else {
             // hostname mismatch: return empty offer
@@ -91,14 +151,14 @@ public class HostnameRule implements PlacementRule {
         }
     }
 
-    @JsonProperty("hostname")
-    private String getHostname() {
-        return hostname;
+    @JsonProperty("matcher")
+    private StringMatcher getMatcher() {
+        return matcher;
     }
 
     @Override
     public String toString() {
-        return String.format("HostnameRule{hostname=%s}", hostname);
+        return String.format("HostnameRule{matcher=%s}", matcher);
     }
 
     @Override
@@ -112,12 +172,30 @@ public class HostnameRule implements PlacementRule {
     }
 
     /**
-     * Converts the provided agent ids into {@link HostnameRule}s.
+     * Converts the provided hostnames into {@link ExactMatcher}s.
      */
-    private static Collection<PlacementRule> toHostnameRules(Collection<String> hostnames) {
-        List<PlacementRule> rules = new ArrayList<>();
+    private static Collection<StringMatcher> toExactMatchers(Collection<String> hostnames) {
+        List<StringMatcher> matchers = new ArrayList<>();
         for (String hostname : hostnames) {
-            rules.add(new HostnameRule(hostname));
+            matchers.add(ExactMatcher.create(hostname));
+        }
+        return matchers;
+    }
+
+    /**
+     * Converts the provided hostnames into {@link ExactMatcher}s.
+     */
+    private static Collection<StringMatcher> toExactMatchers(String... hostnames) {
+        return toExactMatchers(Arrays.asList(hostnames));
+    }
+
+    /**
+     * Converts the provided matchers into {@link HostnameRule}s.
+     */
+    private static Collection<PlacementRule> toHostnameRules(Collection<StringMatcher> matchers) {
+        List<PlacementRule> rules = new ArrayList<>();
+        for (StringMatcher matcher : matchers) {
+            rules.add(require(matcher));
         }
         return rules;
     }

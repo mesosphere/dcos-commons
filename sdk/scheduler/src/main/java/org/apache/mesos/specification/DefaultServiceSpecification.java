@@ -37,6 +37,7 @@ public class DefaultServiceSpecification implements ServiceSpecification {
          * {@link PlacementRule}s that are included in the library.
          */
         private static final Collection<Class<?>> defaultRegisteredSubtypes = Arrays.asList(
+                // Rules:
                 AgentRule.class,
                 AndRule.class,
                 AttributeRule.class,
@@ -44,7 +45,13 @@ public class DefaultServiceSpecification implements ServiceSpecification {
                 MaxPerAttributeRule.class,
                 NotRule.class,
                 OrRule.class,
-                TaskTypeRule.class);
+                TaskTypeRule.class,
+                // Matchers:
+                AnyMatcher.class,
+                ExactMatcher.class,
+                RegexMatcher.class,
+                // TaskTypeConverters:
+                TaskTypeLabelConverter.class);
 
         private final ObjectMapper objectMapper;
 

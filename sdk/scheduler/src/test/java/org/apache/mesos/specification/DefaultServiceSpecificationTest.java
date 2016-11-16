@@ -17,16 +17,18 @@ import java.util.Optional;
 public class DefaultServiceSpecificationTest {
     private static final String SERVICE_NAME = "test-service-name";
     private static final PlacementRule HUGE_RULE = new AndRule(Arrays.asList(
-            new MaxPerAttributeRule(3, AttributeSelector.createRegexSelector(".+")),
-            HostnameRule.avoid("avoidhost"),
-            HostnameRule.require("requirehost1", "requirehost2"),
+            new MaxPerAttributeRule(3, AnyMatcher.create()),
+            new MaxPerAttributeRule(3, ExactMatcher.create("foo"), RegexMatcher.create("index-.*")),
+            new MaxPerAttributeRule(3, RegexMatcher.create(".+"), AnyMatcher.create()),
+            HostnameRule.avoid(ExactMatcher.create("avoidhost")),
+            HostnameRule.require(RegexMatcher.create("requirehost1"), AnyMatcher.create()),
             AgentRule.require("requireagent1", "requireagent2"),
             AgentRule.avoid("avoidagent"),
-            new AttributeRule(AttributeSelector.createStringSelector("hello")),
+            new AttributeRule(ExactMatcher.create("hello")),
             new OrRule(Arrays.asList(
-                    new MaxPerAttributeRule(3, AttributeSelector.createStringSelector("hi")),
-                    HostnameRule.avoid("avoidhost1", "avoidhost2"),
-                    HostnameRule.require("requirehost"),
+                    new MaxPerAttributeRule(3, ExactMatcher.create("hi")),
+                    HostnameRule.avoid(RegexMatcher.create("avoidhost1"), ExactMatcher.create("avoidhost2")),
+                    HostnameRule.require(AnyMatcher.create()),
                     AgentRule.require("requireagent"),
                     AgentRule.avoid("avoidagent1", "avoidagent2"),
                     TaskTypeRule.avoid("avoidme"),

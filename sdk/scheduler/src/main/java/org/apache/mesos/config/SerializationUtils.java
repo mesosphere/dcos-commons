@@ -68,7 +68,7 @@ public class SerializationUtils {
      * @throws IOException if conversion fails
      */
     public static <T> String toYamlString(T value) throws IOException {
-        return toString(value, DEFAULT_JSON_MAPPER);
+        return toString(value, DEFAULT_YAML_MAPPER);
     }
 
     /**
