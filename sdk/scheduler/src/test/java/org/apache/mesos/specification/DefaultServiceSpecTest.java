@@ -18,10 +18,30 @@ public class DefaultServiceSpecTest {
     public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Test
-    public void valid() throws Exception {
+    public void validExhaustive() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+    }
+
+    @Test
+    public void validMinimal() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+    }
+
+    @Test
+    public void validSimple() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
@@ -62,7 +82,7 @@ public class DefaultServiceSpecTest {
     public void invalidPodNamePojo() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = YAMLServiceSpecFactory
                 .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         try {
@@ -98,7 +118,7 @@ public class DefaultServiceSpecTest {
     public void invalidTaskNamePojo() throws Exception {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("test.yml.mustache").getFile());
+        File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = YAMLServiceSpecFactory
                 .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         try {
@@ -137,9 +157,12 @@ public class DefaultServiceSpecTest {
         try {
             YAMLServiceSpecFactory
                     .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertTrue(constraintViolations.size() > 0);
+        } catch (JsonMappingException e) {
+            if (e.getCause() instanceof ConstraintViolationException) {
+                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
+                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
+                Assert.assertTrue(constraintViolations.size() > 0);
+            }
         }
     }
 }

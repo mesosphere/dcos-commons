@@ -10,16 +10,14 @@ pods:
     placement: "avoid-type: meta-data"
     count: 2
     resource-sets:
-      - id: meta-data-resources
-        resources:
-          - name: cpus
-            value: 0.1
-            env-key: "CPUS"
-          - name: mem
-            value: 512
-            env-key: "MEM"
+      meta-data-resources:
+        cpus: 0.1
+        memory: 512
+        ports:
+          - name: http
+            port: 8080
         volumes:
-          - path: "/meta-data-container-path"
+          - path: "meta-data-container-path"
             type: ROOT
             size: 5000
     tasks:

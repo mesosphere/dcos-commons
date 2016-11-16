@@ -1,6 +1,7 @@
 package org.apache.mesos.specification.yaml;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.config.ConfigStore;
@@ -12,6 +13,7 @@ import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.scheduler.plan.strategy.StrategyFactory;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -137,19 +139,23 @@ public class YAMLToInternalMappers {
         String podName = rawPod.getName();
         Integer podInstanceCount = rawPod.getCount();
         String placement = rawPod.getPlacement();
-        Collection<RawResourceSet> rawResourceSets = rawPod.getResourceSets();
+        WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         String strategy = rawPod.getStrategy();
         String user = rawPod.getUser();
         LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
 
-//        if (CollectionUtils.isEmpty(rawResourceSets)) {
-//
-//        }
+        final Collection<ResourceSet> resourceSets = new ArrayList<>();
+        if (MapUtils.isNotEmpty(rawResourceSets)) {
+            resourceSets.addAll(rawResourceSets.entrySet().stream()
+                    .map(rawResourceSetEntry -> {
+                        String rawResourceSetName = rawResourceSetEntry.getKey();
+                        RawResourceSet rawResourceSet = rawResourceSets.get(rawResourceSetName);
+                        rawResourceSet.setId(rawResourceSetName);
+                        return from(rawResourceSet, role, principal);
+                    })
+                    .collect(Collectors.toList()));
+        }
 
-        Collection<ResourceSet> resourceSets =
-                rawResourceSets.stream()
-                        .map(rawResourceSet -> from(rawResourceSet, role, principal))
-                        .collect(Collectors.toList());
 
         final LinkedHashMap<String, RawTask> rawTasks = tasks;
         for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
@@ -194,25 +200,21 @@ public class YAMLToInternalMappers {
     }
 
     public static ResourceSet from(RawResourceSet rawResourceSet, String role, String principal) {
+        Double cpus = rawResourceSet.getCpus();
+        Integer memory = rawResourceSet.getMemory();
+        Collection<RawPort> ports = rawResourceSet.getPorts();
+        String id = rawResourceSet.getId();
         final Collection<RawVolume> rawVolumes = rawResourceSet.getVolumes();
-        final Collection<RawResource> rawResources = rawResourceSet.getResources();
+
 
         final Collection<ResourceSpecification> resources = new LinkedList<>();
         final Collection<VolumeSpecification> volumes = new LinkedList<>();
-
-        for (RawResource rawResource : rawResources) {
-            resources.add(from(rawResource, role, principal));
-        }
 
         for (RawVolume rawVolume : rawVolumes) {
             volumes.add(from(rawVolume, role, principal));
         }
 
-        return DefaultResourceSet.newBuilder()
-                .id(rawResourceSet.getId())
-                .resources(resources)
-                .volumes(volumes)
-                .build();
+        return from(id, cpus, memory, ports, rawVolumes, role, principal);
     }
 
     public static TaskSpec from(RawTask rawTask,
@@ -261,7 +263,7 @@ public class YAMLToInternalMappers {
         HealthCheckSpec healthCheckSpec = null;
         final LinkedHashMap<String, RawHealthCheck> healthChecks = rawTaskHealthChecks;
 
-        if (CollectionUtils.isNotEmpty(healthChecks.entrySet())) {
+        if (MapUtils.isNotEmpty(healthChecks)) {
             Map.Entry<String, RawHealthCheck> entry = healthChecks.entrySet().iterator().next();
             healthCheckSpec = from(entry.getValue(), entry.getKey());
         }
@@ -274,50 +276,7 @@ public class YAMLToInternalMappers {
                             .filter(resourceSet -> resourceSet.getId().equals(resourceSetName))
                             .findFirst().get());
         } else {
-            DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder();
-
-            if (CollectionUtils.isNotEmpty(rawVolumes)) {
-                resourceSetBuilder.volumes(rawVolumes.stream()
-                        .map(rawVolume -> from(rawVolume, role, principal))
-                        .collect(Collectors.toList()));
-            } else {
-                resourceSetBuilder.volumes(Collections.emptyList());
-            }
-
-            Collection<ResourceSpecification> resources = new ArrayList<>();
-
-            if (cpus != null) {
-                resources.add(DefaultResourceSpecification.newBuilder()
-                        .name("cpus")
-                        .role(role)
-                        .principal(principal)
-                        .value(Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus))
-                                .build())
-                        .build());
-            }
-
-            if (memory != null) {
-                resources.add(DefaultResourceSpecification.newBuilder()
-                        .name("mem")
-                        .role(role)
-                        .principal(principal)
-                        .value(Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(memory))
-                                .build())
-                        .build());
-            }
-
-            if (CollectionUtils.isNotEmpty(ports)) {
-                ports.stream().map(rawPort -> resources.add(from(rawPort, role, principal)));
-            }
-
-            builder.resourceSet(resourceSetBuilder
-                    .id(taskName + "-resource-set")
-                    .resources(resources)
-                    .build());
+            builder.resourceSet(from(taskName + "-resource-set", cpus, memory, ports, rawVolumes, role, principal));
         }
 
         return builder
@@ -329,6 +288,61 @@ public class YAMLToInternalMappers {
                 .name(taskName)
                 .type(podType)
                 .uris(uris)
+                .build();
+    }
+
+    public static DefaultResourceSet from(
+            String id,
+            Double cpus,
+            Integer memory,
+            Collection<RawPort> ports,
+            Collection<RawVolume> rawVolumes,
+            String role,
+            String principal) {
+
+        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder();
+
+        if (CollectionUtils.isNotEmpty(rawVolumes)) {
+            resourceSetBuilder.volumes(rawVolumes.stream()
+                    .map(rawVolume -> from(rawVolume, role, principal))
+                    .collect(Collectors.toList()));
+        } else {
+            resourceSetBuilder.volumes(Collections.emptyList());
+        }
+
+        Collection<ResourceSpecification> resources = new ArrayList<>();
+
+        if (cpus != null) {
+            resources.add(DefaultResourceSpecification.newBuilder()
+                    .name("cpus")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus))
+                            .build())
+                    .build());
+        }
+
+        if (memory != null) {
+            resources.add(DefaultResourceSpecification.newBuilder()
+                    .name("mem")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(memory))
+                            .build())
+                    .build());
+        }
+
+        if (CollectionUtils.isNotEmpty(ports)) {
+            ports.stream().map(rawPort -> resources.add(from(rawPort, role, principal)));
+        }
+
+        return resourceSetBuilder
+                .id(id)
+                .resources(resources)
                 .build();
     }
 

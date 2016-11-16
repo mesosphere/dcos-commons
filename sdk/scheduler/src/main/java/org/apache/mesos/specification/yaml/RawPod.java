@@ -3,7 +3,6 @@ package org.apache.mesos.specification.yaml;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 
 /**
@@ -16,7 +15,7 @@ public class RawPod {
     private String strategy;
     private String user;
     private WriteOnceLinkedHashMap<String, RawTask> tasks;
-    private Collection<RawResourceSet> resourceSets;
+    private WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
 
     public String getName() {
         return name;
@@ -27,12 +26,12 @@ public class RawPod {
         this.name = name;
     }
 
-    public Collection<RawResourceSet> getResourceSets() {
+    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
         return resourceSets;
     }
 
     @JsonProperty("resource-sets")
-    public void setResourceSets(Collection<RawResourceSet> resourceSets) {
+    public void setResourceSets(WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets) {
         this.resourceSets = resourceSets;
     }
 

@@ -10,28 +10,24 @@ pods:
     placement: "avoid-type: data-store"
     count: 3
     resource-sets:
-      - id: data-store-resources
-        resources:
-          - name: cpus
-            value: 0.2
-            env-key: "CPUS"
-          - name: mem
-            value: 1024
-            env-key: "MEM"
+      data-store-resources:
+        cpus: 0.1
+        memory: 512
+        ports:
+          - name: http
+            port: 8080
         volumes:
-          - path: "/data-store-container-path"
+          - path: "data-store-container-path"
             type: ROOT
             size: 5000
-      - id: data-store-resources
-        resources:
-          - name: cpus
-            value: 0.2
-            env-key: "CPUS"
-          - name: mem
-            value: 1024
-            env-key: "MEM"
+      data-store-resources:
+        cpus: 0.1
+        memory: 512
+        ports:
+          - name: http
+            port: 8080
         volumes:
-          - path: "/data-store-container-path"
+          - path: "data-store-container-path"
             type: ROOT
             size: 5000
     tasks:

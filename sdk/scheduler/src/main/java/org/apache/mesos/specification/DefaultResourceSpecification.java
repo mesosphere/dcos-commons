@@ -98,7 +98,7 @@ public class DefaultResourceSpecification implements ResourceSpecification {
 
     @Override
     public Optional<String> getEnvKey() {
-        return Optional.of(envKey);
+        return Optional.ofNullable(envKey);
     }
 
     @Override
