@@ -32,35 +32,26 @@ class ElasticService implements Service {
     private StateStore stateStore;
     private ServiceSpecification serviceSpecification;
 
-    ElasticService(int apiPort,
-                   String zkConnectionString,
-                   Collection<ConfigurationValidator<ServiceSpecification>> configValidators) {
+    ElasticService(int apiPort, String zkConnectionString) {
         this.apiPort = apiPort;
         this.zkConnectionString = zkConnectionString;
         List<ConfigurationValidator<ServiceSpecification>> validators =
                 new ArrayList<>(DefaultScheduler.defaultConfigValidators());
-
-        validators.addAll(configValidators);
+        validators.addAll(configValidators());
         this.configValidators = validators;
     }
 
     @Override
     public void register(ServiceSpecification serviceSpecification) {
         LOGGER.info("Registering ElasticService ServiceSpecification...");
-
         this.serviceSpecification = serviceSpecification;
         this.stateStore = DefaultScheduler.createStateStore(serviceSpecification, zkConnectionString);
         ElasticScheduler elasticScheduler;
         try {
             ConfigStore<ServiceSpecification> configStore = DefaultScheduler.createConfigStore(
                     serviceSpecification, zkConnectionString, Collections.emptyList());
-            elasticScheduler = new ElasticScheduler(
-                    serviceSpecification,
-                    stateStore,
-                    configStore,
-                    configValidators,
-                PERMANENT_FAILURE_DELAY_SEC,
-                    DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
+            elasticScheduler = new ElasticScheduler(serviceSpecification, stateStore, configStore, configValidators,
+                    PERMANENT_FAILURE_DELAY_SEC, DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC);
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create ElasticScheduler", e);
             throw new IllegalStateException(e);
@@ -113,5 +104,9 @@ class ElasticService implements Service {
         }
 
         return fwkInfoBuilder.build();
+    }
+
+    private List<ConfigurationValidator<ServiceSpecification>> configValidators() {
+        return Collections.singletonList(new HeapCannotExceedHalfMem());
     }
 }

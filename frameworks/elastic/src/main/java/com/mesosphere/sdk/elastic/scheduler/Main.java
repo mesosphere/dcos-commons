@@ -20,8 +20,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         LOGGER.info("Starting Elastic scheduler with args: " + Arrays.asList(args));
         Elastic elastic = new Elastic();
-        Service service = new ElasticService(API_PORT, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING,
-                elastic.configValidators());
+        Service service = new ElasticService(API_PORT, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
         service.register(elastic.getServiceSpecification());
     }
 
