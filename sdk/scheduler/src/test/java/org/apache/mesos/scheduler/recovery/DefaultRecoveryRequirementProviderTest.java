@@ -161,5 +161,18 @@ public class DefaultRecoveryRequirementProviderTest {
 
         List<Step> steps = recoveryPlanManager.createSteps(Collections.emptyList());
         Assert.assertEquals(1, steps.size());
+
+        // Test that dirtied asset prevents pod recovery
+        steps = recoveryPlanManager.createSteps(Arrays.asList(taskInfos.get(0).getName()));
+        Assert.assertEquals(0, steps.size());
+
+        // Test that incomplete pod failure prevents pod recovery
+        final Protos.TaskStatus failedStatus2 = TaskTestUtils.generateStatus(
+                taskInfos.get(1).getTaskId(),
+                Protos.TaskState.TASK_RUNNING);
+
+        stateStore.storeStatus(failedStatus2);
+        steps = recoveryPlanManager.createSteps(Collections.emptyList());
+        Assert.assertEquals(0, steps.size());
     }
 }
