@@ -36,7 +36,7 @@ class HeapCannotExceedHalfMem implements ConfigurationValidator<ServiceSpecifica
             if (heapExceedsHalfMem(taskHeap, mem)) {
                 String format = "Elasticsearch %s node heap size %d exceeds half memory size %d in Service '%s'";
                 String message = String.format(format, taskSet.getName(), taskHeap, mem, newConfig.getName());
-                errors.add(ConfigurationValidationError.valueError("TaskSets", taskSet.getName(), message));
+                errors.add(ConfigurationValidationError.valueError("JVM Heap", taskSet.getName(), message));
             }
         }
         return errors;

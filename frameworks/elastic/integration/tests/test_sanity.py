@@ -104,25 +104,6 @@ def test_plugin_install_and_uninstall(default_populated_index):
     check_plugin_uninstalled(plugin_name)
 
 
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
-@pytest.mark.recovery
-def test_change_master_ports(default_populated_index):
-    config = get_elasticsearch_config()
-    master_transport_port = int(config['env']['MASTER_NODE_TRANSPORT_PORT'])
-    new_master_transport_port = master_transport_port + 73
-    config['env']['MASTER_NODE_TRANSPORT_PORT'] = str(new_master_transport_port)
-    master_http_port = int(config['env']['MASTER_NODE_HTTP_PORT'])
-    new_master_http_port = master_http_port + 73
-    config['env']['MASTER_NODE_HTTP_PORT'] = str(new_master_http_port)
-    marathon_update(config)
-    check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", new_master_http_port)
-
-    config['env']['MASTER_NODE_HTTP_PORT'] = str(master_http_port)
-    config['env']['MASTER_NODE_TRANSPORT_PORT'] = str(master_transport_port)
-    marathon_update(config)
-    check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green", master_http_port)
-
-
 @pytest.mark.recovery
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = get_task_ids()

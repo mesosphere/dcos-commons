@@ -107,6 +107,6 @@ class ElasticService implements Service {
     }
 
     private List<ConfigurationValidator<ServiceSpecification>> configValidators() {
-        return Collections.singletonList(new HeapCannotExceedHalfMem());
+        return Arrays.asList(new HeapCannotExceedHalfMem(), new MasterTransportPortCannotChange());
     }
 }
