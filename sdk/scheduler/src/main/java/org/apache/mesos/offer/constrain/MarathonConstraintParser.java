@@ -43,18 +43,36 @@ public class MarathonConstraintParser {
     }
 
     /**
-     * Creates a new constraint parser against the provided string.
+     * ANDs the provided marathon-style constraint string onto the provided hard-coded
+     * {@link PlacementRule}, or returns the provided {@link PlacementRule} as-is if the
+     * marathon-style constraint is {@code null} or empty.
      *
-     * @param marathonConstraints the json-formatted marathon-style constraint string, containing
-     *     one or more nested json lists of the form
-     *     {@code [["multi","list","value"],["hello","hi"]]},
-     *     or one or more nested colon-separated lists of the form
-     *     {@code multi:list:value,hello:hi}
-     * @throws IOException if the provided string couldn't be parsed as json, or if the parsed
+     * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
+     *     content isn't valid or supported
+     */
+    public static PlacementRule parseWith(PlacementRule rule, String marathonConstraints)
+            throws IOException {
+        PlacementRule marathonRule = parse(marathonConstraints);
+        if (marathonRule instanceof PassthroughRule) {
+            return rule; // pass-through original rule
+        }
+        return new AndRule(rule, marathonRule);
+    }
+
+    /**
+     * Creates and returns a new {@link PlacementRule} against the provided marathon-style
+     * constraint string. Returns a {@link PassthroughRule} if the provided constraint string is
+     * {@code null} or empty.
+     *
+     * @param marathonConstraints the marathon-style constraint string, containing one or more
+     *     nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
+     *     or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
+     *     or a {@code null} or empty value if no constraint is defined
+     * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
      *     content isn't valid or supported
      */
     public static PlacementRule parse(String marathonConstraints) throws IOException {
-        if (marathonConstraints.isEmpty()) {
+        if (marathonConstraints == null || marathonConstraints.isEmpty()) {
             // nothing to enforce
             return new PassthroughRule();
         }
