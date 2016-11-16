@@ -63,6 +63,7 @@ public class DefaultOfferRequirementProviderTest {
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
         when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
         when(podSpec.getUser()).thenReturn(Optional.empty());
+        when(podSpec.getContainer()).thenReturn(Optional.empty());
 
         when(podInstance.getPod()).thenReturn(podSpec);
         when(podInstance.getIndex()).thenReturn(0);

@@ -170,15 +170,15 @@ public class YAMLToInternalMappers {
                     principal));
         }
 
-        if (!container.getImageName().isEmpty() && container.getImageName() == "") {
-            throw new IllegalStateException("Can't specify an empty container image");
-        }
-        ContainerSpec containerSpec = new DefaultContainerSpec(container.getImageName());
+        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder();
 
-        final DefaultPodSpec podSpec = DefaultPodSpec.newBuilder()
+        if (container != null) {
+            builder.container(new DefaultContainerSpec(container.getImageName()));
+        }
+
+        final DefaultPodSpec podSpec = builder
                 .count(podInstanceCount)
                 .placementRule(null /** TODO(mohit) */)
-                .container(containerSpec)
                 .tasks(taskSpecs)
                 .type(podName)
                 .user(user)

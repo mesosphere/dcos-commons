@@ -31,7 +31,6 @@ public class DefaultPodSpec implements PodSpec {
     @Min(0)
     private Integer count;
     @Valid
-    @Size(max = 1)
     private ContainerSpec container;
     @NotNull
     @Valid
@@ -63,7 +62,8 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count, builder.container, builder.tasks, builder.placementRule, builder.resources);
+        this(builder.type, builder.user, builder.count, builder.container,
+                builder.tasks, builder.placementRule, builder.resources);
     }
 
     public static Builder newBuilder() {
@@ -180,7 +180,8 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
-         * Sets the {@code container} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the {@code container} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param container the {@code container} to set
          * @return a reference to this Builder

@@ -9,14 +9,12 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     resource-sets:
-      - id: hello-resources
-        resources:
-          - name: cpus
-            value: {{HELLO_CPUS}}
-            env-key: "CPUS"
-          - name: mem
-            value: {{HELLO_MEM}}
-            env-key: "MEM"
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        ports:
+          - name: http
+            port: 8080
         volumes:
           - path: "hello-container-path"
             type: ROOT
@@ -40,14 +38,12 @@ pods:
   world:
     count: {{WORLD_COUNT}}
     resource-sets:
-      - id: world-resources
-        resources:
-          - name: cpus
-            value: {{WORLD_CPUS}}
-            env-key: "CPUS"
-          - name: mem
-            value: {{WORLD_MEM}}
-            env-key: "MEM"
+      world-resources:
+        cpus: {{WORLD_CPUS}}
+        memory: {{WORLD_MEM}}
+        ports:
+          - name: http
+            port: 8080
         volumes:
           - path: "world-container-path"
             type: ROOT
