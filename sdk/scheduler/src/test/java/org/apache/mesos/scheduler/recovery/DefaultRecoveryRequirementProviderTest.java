@@ -125,7 +125,7 @@ public class DefaultRecoveryRequirementProviderTest {
     }
 
     @Test
-    public void testRecoveryPlanManagerTransientlyFailedPod() throws InvalidRequirementException {
+    public void testRecoveryPlanManagerTransientlyFailedPod() throws InvalidRequirementException, TaskException {
         List<String> taskNames = POD_SPEC.getTasks().stream()
                 .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
@@ -155,6 +155,7 @@ public class DefaultRecoveryRequirementProviderTest {
 
         DefaultRecoveryPlanManager recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
+                configStore,
                 recoveryRequirementProvider,
                 new UnconstrainedLaunchConstrainer(),
                 new NeverFailureMonitor());

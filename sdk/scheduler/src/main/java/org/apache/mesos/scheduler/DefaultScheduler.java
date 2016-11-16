@@ -384,6 +384,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing recovery plan...");
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
+                configStore,
                 new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore, stateStore),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()

@@ -8,12 +8,15 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.*;
+import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.plan.*;
 import org.apache.mesos.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import org.apache.mesos.scheduler.recovery.monitor.TestingFailureMonitor;
+import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
@@ -61,6 +64,7 @@ public class DefaultRecoveryPlanManagerTest {
     private RecoveryRequirementProvider recoveryRequirementProvider;
     private OfferAccepter offerAccepter;
     private StateStore stateStore;
+    private ConfigStore<ServiceSpec> configStore;
     private SchedulerDriver schedulerDriver;
     private TestingFailureMonitor failureMonitor;
     private TestingLaunchConstrainer launchConstrainer;
@@ -111,9 +115,14 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore = new CuratorStateStore(
                 "test-framework-name",
                 testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(
+                mock(ServiceSpec.class),
+                testingServer.getConnectString(),
+                Collections.emptyList());
         taskFailureListener = mock(TaskFailureListener.class);
         recoveryManager = spy(new DefaultRecoveryPlanManager(
                 stateStore,
+                configStore,
                 recoveryRequirementProvider,
                 launchConstrainer,
                 failureMonitor));

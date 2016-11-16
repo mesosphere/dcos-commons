@@ -45,7 +45,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         List<RecoveryRequirement> transientRecoveryRequirements = new ArrayList<>();
         Map<PodInstance, List<Protos.TaskInfo>> podMap = null;
         try {
-            podMap = getPodMap(stoppedTasks);
+            podMap = TaskUtils.getPodMap(configStore, stoppedTasks);
         } catch (TaskException e) {
             LOGGER.error("Failed to generate pod map.", e);
             return Collections.emptyList();
@@ -79,7 +79,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         List<RecoveryRequirement> permanentRecoveryRequirements = new ArrayList<>();
         Map<PodInstance, List<Protos.TaskInfo>> podMap = null;
         try {
-            podMap = getPodMap(failedTasks);
+            podMap = TaskUtils.getPodMap(configStore, failedTasks);
         } catch (TaskException e) {
             LOGGER.error("Failed to generate pod map.", e);
             return Collections.emptyList();
@@ -99,52 +99,5 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
         }
 
         return permanentRecoveryRequirements;
-    }
-
-    private Map<PodInstance, List<Protos.TaskInfo>> getPodMap(List<Protos.TaskInfo> taskInfos) throws TaskException {
-        Map<PodInstance, List<Protos.TaskInfo>> podMap = new HashMap<>();
-
-        for (Protos.TaskInfo taskInfo : taskInfos) {
-            PodInstance podInstance = getPodInstance(taskInfo);
-            List<Protos.TaskInfo> taskList = podMap.get(podInstance);
-
-            if (taskList == null) {
-                taskList = Arrays.asList(taskInfo);
-            } else {
-                taskList = new ArrayList<>(taskList);
-                taskList.add(taskInfo);
-            }
-
-            podMap.put(podInstance, taskList);
-        }
-
-        return podMap;
-    }
-
-    private PodInstance getPodInstance(Protos.TaskInfo taskInfo) throws TaskException {
-        PodSpec podSpec = getPodSpec(taskInfo);
-        Integer index = TaskUtils.getIndex(taskInfo);
-
-        return new DefaultPodInstance(podSpec, index);
-    }
-
-    public PodSpec getPodSpec(Protos.TaskInfo taskInfo) throws TaskException {
-        UUID configId = TaskUtils.getTargetConfiguration(taskInfo);
-        ServiceSpec serviceSpec;
-
-        try {
-            serviceSpec = configStore.fetch(configId);
-        } catch (ConfigStoreException e) {
-            throw new TaskException(String.format(
-                    "Unable to retrieve ServiceSpecification ID %s referenced by TaskInfo[%s]",
-                    configId, taskInfo.getName()), e);
-        }
-
-        PodSpec podSpec = TaskUtils.getPodSpec(serviceSpec, taskInfo);
-        if (podSpec == null) {
-            throw new TaskException(String.format(
-                    "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
-        }
-        return podSpec;
     }
 }

@@ -11,6 +11,8 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.scheduler.plan.DefaultPodInstance;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
@@ -777,5 +779,61 @@ public class TaskUtils {
 
     public static boolean isMustacheFullyRendered(String templateContent) {
         return StringUtils.isEmpty(templateContent) || !templateContent.matches("\\{\\{.*\\}\\}");
+    }
+
+    public static Map<PodInstance, List<Protos.TaskInfo>> getPodMap(
+            ConfigStore<ServiceSpec> configStore,
+            Collection<TaskInfo> taskInfos)
+            throws TaskException {
+        Map<PodInstance, List<Protos.TaskInfo>> podMap = new HashMap<>();
+
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            PodInstance podInstance = getPodInstance(configStore, taskInfo);
+            List<Protos.TaskInfo> taskList = podMap.get(podInstance);
+
+            if (taskList == null) {
+                taskList = Arrays.asList(taskInfo);
+            } else {
+                taskList = new ArrayList<>(taskList);
+                taskList.add(taskInfo);
+            }
+
+            podMap.put(podInstance, taskList);
+        }
+
+        return podMap;
+    }
+
+    public static PodInstance getPodInstance(
+            ConfigStore<ServiceSpec> configStore,
+            Protos.TaskInfo taskInfo) throws TaskException {
+
+        PodSpec podSpec = getPodSpec(configStore, taskInfo);
+        Integer index = TaskUtils.getIndex(taskInfo);
+
+        return new DefaultPodInstance(podSpec, index);
+    }
+
+    public static PodSpec getPodSpec(
+            ConfigStore<ServiceSpec> configStore,
+            Protos.TaskInfo taskInfo) throws TaskException {
+
+        UUID configId = TaskUtils.getTargetConfiguration(taskInfo);
+        ServiceSpec serviceSpec;
+
+        try {
+            serviceSpec = configStore.fetch(configId);
+        } catch (ConfigStoreException e) {
+            throw new TaskException(String.format(
+                    "Unable to retrieve ServiceSpecification ID %s referenced by TaskInfo[%s]",
+                    configId, taskInfo.getName()), e);
+        }
+
+        PodSpec podSpec = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        if (podSpec == null) {
+            throw new TaskException(String.format(
+                    "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
+        }
+        return podSpec;
     }
 }
