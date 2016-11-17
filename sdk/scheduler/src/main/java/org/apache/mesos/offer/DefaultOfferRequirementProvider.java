@@ -75,13 +75,21 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         List<TaskRequirement> taskRequirements = new ArrayList<>();
         for (Map.Entry<Protos.TaskInfo, TaskSpec> taskPair : taskMap.entrySet()) {
-            taskRequirements.add(getExistingTaskRequirement(taskPair.getKey(), taskPair.getValue()));
+            taskRequirements.add(getExistingTaskRequirement(taskPair.getKey(), taskPair.getValue(), podInstance));
         }
 
         validateTaskRequirements(taskRequirements);
 
+        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
+        Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
+
+        podInstance.getPod().getTasks()
+                .forEach(taskSpec -> execCmdBuilder.addAllUris(CommandUtils.getUris(taskSpec.getCommand().get())));
+
+        Protos.ExecutorInfo executorInfo = execBuilder.setCommand(execCmdBuilder).build();
+
         ExecutorRequirement executorRequirement =
-                ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod()).build());
+                ExecutorRequirement.create(executorInfo);
 
         return OfferRequirement.create(
                 podInstance.getPod().getType(),
@@ -158,7 +166,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return null;
     }
 
-    private TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo, TaskSpec taskSpec)
+    private TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo, TaskSpec taskSpec, PodInstance podInstance)
             throws InvalidRequirementException {
 
         String taskType;
@@ -184,6 +192,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         if (taskSpec.getCommand().isPresent()) {
             Protos.CommandInfo updatedCommand = taskConfigRouter.getConfig(taskType)
                     .updateEnvironment(CommandUtils.getCommandInfo(taskSpec.getCommand().get()));
+            updatedCommand =
+                    CommandUtils.addEnvVar(
+                            updatedCommand,
+                            POD_INSTANCE_INDEX_KEY,
+                            String.valueOf(podInstance.getIndex()));
             taskInfoBuilder.setCommand(updatedCommand);
         }
 

@@ -390,6 +390,10 @@ public class TaskUtils {
      * @return The {@link Environment} containing the extracted environment variables
      */
     public static Protos.Environment fromMapToEnvironment(Map<String, String> environmentMap) {
+        if (environmentMap == null) {
+            return Environment.getDefaultInstance();
+        }
+
         Collection<Protos.Environment.Variable> vars = environmentMap
                 .entrySet()
                 .stream()
