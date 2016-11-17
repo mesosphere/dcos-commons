@@ -6,11 +6,18 @@ Mesosphere DCOS Commons
 This project is a collection of classes and utilities necessary for building a DCOS service.  It is written in Java and
 is Java 1.8+ compatible. 
 
-#### Prerequisites:
+Quick start
+--------------------------
+
+These steps will launch a 3 Agent DC/OS cluster within a VM on your local system, then build, publish, and install the example 'hello-world' service to that cluster.
+
+#### Prerequisites
  - A workstation with 8GB memory
  - Git
  - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
  - [Vagrant](https://www.vagrantup.com/downloads.html)`
+
+#### Steps
 
 1. `git clone -b pods https://github.com/mesosphere/dcos-commons.git`
 2. `cd dcos-commons/ && ./build-dcos-docker.sh`
