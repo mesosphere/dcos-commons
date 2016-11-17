@@ -14,9 +14,6 @@ TASK_RUNNING_STATE = 'TASK_RUNNING'
 DEFAULT_TASK_COUNT = 5 # 2 metadata nodes, 3 data nodes
 
 
-strict_mode = os.getenv('SECURITY', 'permissive')
-
-
 def check_health(expected_tasks = DEFAULT_TASK_COUNT):
     def fn():
         try:
@@ -58,6 +55,7 @@ def get_deployment_plan():
 
 
 def install(package_version=None):
+    strict_mode = os.getenv('SECURITY', 'permissive')
     if strict_mode == 'strict':
         shakedown.install_package_and_wait(
             package_name=PACKAGE_NAME,
