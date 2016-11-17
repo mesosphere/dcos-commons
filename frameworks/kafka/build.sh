@@ -10,7 +10,7 @@ ROOT_DIR=$SCRIPT_DIR/../..
 
 # GitHub notifier config
 _notify_github() {
-    GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:hello-world $2
+    GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:kafka $2
 }
 
 _notify_github pending "Build running"
@@ -32,10 +32,10 @@ fi
 _notify_github success "Build succeeded"
 
 $ROOT_DIR/tools/publish_aws.py \
-  hello-world \
+  kafka \
   universe/ \
   build/distributions/*.zip \
-  cli/dcos-hello-world/dcos-hello-world-darwin \
-  cli/dcos-hello-world/dcos-hello-world-linux \
-  cli/dcos-hello-world/dcos-hello-world.exe \
+  cli/dcos-kafka/dcos-kafka-darwin \
+  cli/dcos-kafka/dcos-kafka-linux \
+  cli/dcos-kafka/dcos-kafka.exe \
   cli/python/dist/*.whl

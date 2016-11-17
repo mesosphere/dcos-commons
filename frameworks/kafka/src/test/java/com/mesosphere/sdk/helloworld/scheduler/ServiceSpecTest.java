@@ -4,6 +4,8 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigurationUpdater;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.specification.DefaultServiceSpec;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
@@ -69,19 +71,26 @@ public class ServiceSpecTest {
                 testingServer.getConnectString(),
                 Collections.emptyList());
 
-       Protos.FrameworkID FRAMEWORK_ID =
+        Protos.FrameworkID FRAMEWORK_ID =
                 Protos.FrameworkID.newBuilder()
                         .setValue("test-framework-id")
                         .build();
 
-       Protos.MasterInfo MASTER_INFO =
+        Protos.MasterInfo MASTER_INFO =
                 Protos.MasterInfo.newBuilder()
                         .setId("test-master-id")
                         .setIp(0)
                         .setPort(0)
                         .build();
 
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(serviceSpec, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
+                .updateConfig(serviceSpec, stateStore, configStore);
+
+        OfferRequirementProvider offerRequirementProvider = DefaultScheduler
+                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+
+        DefaultScheduler defaultScheduler = DefaultScheduler
+                .create(serviceSpec, stateStore, configStore, offerRequirementProvider);
         defaultScheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
     }
 }

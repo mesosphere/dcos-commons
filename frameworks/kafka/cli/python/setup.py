@@ -6,7 +6,7 @@ import sys
 # These are the only things you should need to edit:
 
 # 1. Name used for the frontend executable in [pyenv]/bin. MUST be prefixed by 'dcos-':
-exe_name = 'dcos-hello-world'
+exe_name = 'dcos-kafka'
 
 # 2. Paths to the executables, relative to this file:
 relative_bin_paths = [

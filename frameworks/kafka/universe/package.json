@@ -1,6 +1,6 @@
 {
   "packagingVersion": "2.0",
-  "name": "hello-world",
+  "name": "kafka",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
   "description": "An example implementation of a stateful service using the DC/OS SDK",

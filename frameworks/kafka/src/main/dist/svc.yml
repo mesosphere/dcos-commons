@@ -17,9 +17,7 @@ pods:
             type: ROOT
             size: {{BROKER_DISK}}
         goal: RUNNING
-        cmd: "exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
-        env:
-          CONFIG_TEMPLATE_PATH: $MESOS_SANDBOX/scheduler
+        cmd: "env && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
         uris:
           - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
         configurations:
