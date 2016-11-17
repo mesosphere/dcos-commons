@@ -26,9 +26,6 @@ pods:
         cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
-        ports:
-          - name: http
-            port: 8080
         volumes:
           - path: "world-container-path"
             type: ROOT
