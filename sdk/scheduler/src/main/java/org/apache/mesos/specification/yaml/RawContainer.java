@@ -12,7 +12,7 @@ public class RawContainer {
         return imageName;
     }
 
-    @JsonProperty("imageName")
+    @JsonProperty("image-name")
     public void setImageName(String imageName) {
         this.imageName = imageName;
     }

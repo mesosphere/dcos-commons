@@ -112,6 +112,8 @@ public class YAMLToInternalMappers {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder();
 
         if (container != null) {
+            System.out.println("HELLO");
+            System.out.println(container.toString());
             builder.container(new DefaultContainerSpec(container.getImageName()));
         }
 
