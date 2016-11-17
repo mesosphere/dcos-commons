@@ -9,7 +9,7 @@ import shakedown
 DEFAULT_HTTP_PORT = 9200
 
 PACKAGE_NAME = 'elastic'
-WAIT_TIME_IN_SECONDS = 1200
+WAIT_TIME_IN_SECONDS = 300
 DEFAULT_TASK_COUNT = 8
 DEFAULT_NODE_COUNT = 7
 DEFAULT_INDEX_NAME = 'customer'
@@ -65,11 +65,15 @@ def check_elasticsearch_index_health(index_name, color, http_port=DEFAULT_HTTP_P
 
 def expected_nodes_success_predicate():
     result = get_elasticsearch_cluster_health()
-    return result and result["number_of_nodes"] == DEFAULT_NODE_COUNT
+    if result is None:
+        return False
+    node_count = result["number_of_nodes"]
+    print('Waiting for {} healthy nodes, got {}'.format(node_count, DEFAULT_NODE_COUNT))
+    return node_count == DEFAULT_NODE_COUNT
 
 
 def wait_for_expected_nodes_to_exist():
-    return shakedown.wait_for(lambda: expected_nodes_success_predicate, timeout_seconds=WAIT_TIME_IN_SECONDS)
+    return shakedown.wait_for(lambda: expected_nodes_success_predicate(), timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
 def plugins_installed_success_predicate(plugin_name):
@@ -167,7 +171,8 @@ def delete_index(index_name):
 @as_json
 def create_document(index_name, index_type, doc_id, params):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/{}/{}' -d '{}'".format(curl_api("PUT"), index_name, index_type, doc_id, json.dumps(params)))
+        "{}/{}/{}/{}?refresh=wait_for' -d '{}'".format(curl_api("PUT"), index_name, index_type, doc_id,
+                                                       json.dumps(params)))
     return output
 
 
