@@ -7,7 +7,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
 
 if [ ! -d "dcos-docker" ]; then
-    git clone -b commons-tweaks https://github.com/nickbp/dcos-docker.git
+    git clone https://github.com/NimaVaziri/dcos-docker.git
 fi
 cd dcos-docker/
 DCOS_DOCKER_DIR=$(pwd)
@@ -25,7 +25,8 @@ echo "### Destroying pre-existing VM, if any"
 vagrant destroy
 
 echo "### Building VM"
-DCOS_BOX_VERSION="" DCOS_BOX_URL="" vagrant/resize-disk.sh 20480
+#DCOS_BOX_VERSION="" DCOS_BOX_URL="" \
+vagrant/resize-disk.sh 20480
 
 echo "### Launching cluster and installing tools in VM"
 vagrant ssh <<- EOF
@@ -35,8 +36,8 @@ vagrant ssh <<- EOF
   make PUBLIC_AGENTS=0 AGENTS=${AGENTS} &&
 
   echo '### Install git/nano' &&
-  sudo yum install git nano &&
-  sudo yum clean &&
+  yes | sudo yum install git nano &&
+  sudo yum clean all &&
 
   echo '### Install Golang' &&
   if [ ! -f go1.7.3.linux-amd64.tar.gz ]; then
@@ -58,6 +59,9 @@ vagrant ssh <<- EOF
       curl -O https://bootstrap.pypa.io/get-pip.py
   fi &&
   sudo python get-pip.py &&
+
+	echo '### Install virtualenv' &&
+	sudo pip install virtualenv &&
 
   echo '### Install DC/OS CLI' &&
   if [ ! -f dcos ]; then
