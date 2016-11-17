@@ -16,6 +16,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
     private static final String EXECUTOR_URI = "EXECUTOR_URI";
     private static final String JAVA_HOME = "JAVA_HOME";
+    private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
     private static final String DEFAULT_JAVA_HOME = "jre1.8.0_91";
     private static final String DEFAULT_JAVA_URI =
             "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz";
@@ -134,13 +135,19 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private Protos.Environment getEnvironment(PodInstance podInstance, TaskSpec taskSpec) {
         if (taskSpec.getCommand().isPresent()) {
-            Protos.Environment environment =
-                    TaskUtils.fromMapToEnvironment(taskSpec.getCommand().get().getEnvironment());
+            CommandSpec commandSpec = taskSpec.getCommand().get();
+
+            Protos.Environment environment;
+            if (commandSpec.getEnvironment() != null) {
+                environment = TaskUtils.fromMapToEnvironment(taskSpec.getCommand().get().getEnvironment());
+            } else {
+                environment = Protos.Environment.getDefaultInstance();
+            }
 
             // Inject Pod Instance Index
             environment = environment.toBuilder()
                     .addVariables(Protos.Environment.Variable.newBuilder()
-                            .setName("POD_INSTANCE_INDEX")
+                            .setName(POD_INSTANCE_INDEX_KEY)
                             .setValue(String.valueOf(podInstance.getIndex()))
                             .build())
                     .build();
