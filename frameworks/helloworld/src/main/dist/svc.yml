@@ -22,7 +22,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
@@ -51,7 +51,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> world-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
         resource-set: world-resources
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
