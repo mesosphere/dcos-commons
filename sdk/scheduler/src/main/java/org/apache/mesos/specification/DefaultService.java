@@ -60,20 +60,22 @@ public class DefaultService implements Service {
     }
 
     private void init(RawServiceSpecification rawServiceSpecification) throws Exception {
-        this.stateStore = DefaultScheduler.createStateStore(serviceSpec, zkConnectionString);
+        this.serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
+        this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
+
         try {
-            this.configTargetStore = DefaultScheduler.createConfigStore(
-                    serviceSpec, zkConnectionString, Collections.emptyList());
+            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString, Arrays.asList());
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create DefaultScheduler", e);
             throw new IllegalStateException(e);
         }
         PlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore, offerRequirementProvider);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
-        Collection<RawPlan> rawPlans = rawServiceSpecification.getPlans().values();
         List<Plan> plans = new LinkedList<>();
-        for (RawPlan rawPlan : rawPlans) {
-            plans.add(planGenerator.generate(rawPlan, serviceSpec.getPods()));
+        if (rawServiceSpecification.getPlans() != null) {
+            Collection<RawPlan> rawPlans = rawServiceSpecification.getPlans().values();
+            for (RawPlan rawPlan : rawPlans) {
+                plans.add(planGenerator.generate(rawPlan, serviceSpec.getPods()));
+            }
         }
         register(serviceSpec, plans);
     }
