@@ -1,6 +1,4 @@
 import dcos.http
-import inspect
-import os
 import pytest
 import shakedown
 
@@ -10,6 +8,7 @@ from tests.test_utils import (
     check_health,
     get_marathon_config,
     get_deployment_plan,
+    install,
     marathon_api_url,
     request,
     uninstall,
@@ -17,20 +16,10 @@ from tests.test_utils import (
 )
 
 
-strict_mode = os.getenv('SECURITY', 'permissive')
-
-
 def setup_module(module):
     uninstall()
 
-    if strict_mode == 'strict':
-        shakedown.install_package_and_wait(
-            package_name=PACKAGE_NAME,
-            options_file=os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + "/strict.json")
-    else:
-        shakedown.install_package_and_wait(
-            package_name=PACKAGE_NAME,
-            options_file=None)
+    install()
 
     check_health()
 
