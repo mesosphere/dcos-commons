@@ -61,6 +61,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
     protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
     protected final ServiceSpec serviceSpec;
+    protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final Collection<ConfigurationValidator<ServiceSpec>> configValidators;
@@ -99,6 +100,36 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider) {
         return create(
                 serviceSpec,
+                Collections.emptyList(),
+                stateStore,
+                configStore,
+                offerRequirementProvider,
+                defaultConfigValidators());
+    }
+
+    /**
+     * Returns a new {@link DefaultScheduler} instance using the provided
+     * {@link ServiceSpec}, {@link ConfigStore}, and {@link StateStore}.
+     *
+     * @param serviceSpec specification containing service name and tasks to be deployed
+     *
+     * @param stateStore  framework state storage, which must not be written to before the scheduler
+     *                    has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @param configStore framework config storage, which must not be written to before the scheduler
+     *                    has been registered with mesos as indicated by a call to {@link DefaultScheduler#registered(
+     *SchedulerDriver, org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * @see #createStateStore(String, String)
+     */
+    public static DefaultScheduler create(
+            ServiceSpec serviceSpec,
+            Collection<Plan> plans,
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            OfferRequirementProvider offerRequirementProvider) {
+        return create(
+                serviceSpec,
+                plans,
                 stateStore,
                 configStore,
                 offerRequirementProvider,
@@ -122,6 +153,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static DefaultScheduler create(
             ServiceSpec serviceSpec,
+            Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
@@ -135,6 +167,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         return new DefaultScheduler(
                 serviceSpec,
+                plans,
                 stateStore,
                 configStore,
                 offerRequirementProvider,
@@ -291,6 +324,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
+            Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
@@ -298,6 +332,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             Optional<Integer> permanentFailureTimeoutSec,
             Integer destructiveRecoveryDelaySec) {
         this.serviceSpec = serviceSpec;
+        this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.offerRequirementProvider = offerRequirementProvider;
@@ -351,12 +386,18 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected void initializeDeploymentPlanManager() {
         LOGGER.info("Initializing deployment plan...");
-        deploymentPlanManager = new DefaultPlanManager(
-                new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
-                        configStore,
-                        stateStore,
-                        offerRequirementProvider)))
-                        .getPlan(serviceSpec));
+        Optional<Plan> deploy = plans.stream().filter(plan -> Objects.equals(plan.getName(), "deploy")).findFirst();
+        Plan deployPlan;
+        if (!deploy.isPresent()) {
+             deployPlan = new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
+                    configStore,
+                    stateStore,
+                    offerRequirementProvider)))
+                    .getPlan(serviceSpec);
+        } else {
+            deployPlan = deploy.get();
+        }
+        deploymentPlanManager = new DefaultPlanManager(deployPlan);
     }
 
     /**

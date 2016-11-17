@@ -64,6 +64,8 @@ public class DefaultService implements Service {
 
     private void init(RawServiceSpecification rawServiceSpecification) throws Exception {
         this.serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
+        this.apiPort = serviceSpec.getApiPort();
+        this.zkConnectionString = serviceSpec.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
 
         try {
@@ -97,11 +99,10 @@ public class DefaultService implements Service {
     @Override
     public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
         this.serviceSpec = serviceSpecification;
-        this.apiPort = serviceSpecification.getApiPort();
-        this.zkConnectionString = serviceSpecification.getZookeeperConnection();
 
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
-                serviceSpec,
+                serviceSpecification,
+                plans,
                 stateStore,
                 configTargetStore,
                 offerRequirementProvider);
