@@ -58,9 +58,10 @@ public class DefaultPlanGenerator implements PlanGenerator {
         PodSpec podSpec = podSpecOptnl.get();
         Integer count = podSpec.getCount();
 
-        Phase phase = null;
+        Phase phase;
         final List<Step> steps = new LinkedList<>();
         if (CollectionUtils.isEmpty(rawSteps)) {
+            // Generate steps from pod's tasks that are in RUNNING state.
             for (int i = 0; i < count; i++) {
                 DefaultPodInstance podInstance = new DefaultPodInstance(podSpec, i);
                 final List<TaskSpec> taskSpecs = podSpec.getTasks();

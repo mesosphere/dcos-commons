@@ -4,11 +4,9 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.api.JettyApiServer;
-import org.apache.mesos.config.*;
-import org.apache.mesos.config.validate.ConfigurationValidator;
-import org.apache.mesos.config.validate.PodSpecsCannotShrink;
-import org.apache.mesos.config.validate.TaskVolumesCannotChange;
-import org.apache.mesos.offer.DefaultOfferRequirementProvider;
+import org.apache.mesos.config.ConfigStore;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigurationUpdater;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
@@ -18,12 +16,12 @@ import org.apache.mesos.specification.yaml.RawPlan;
 import org.apache.mesos.specification.yaml.RawServiceSpecification;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.mesos.state.StateStore;
-import org.apache.mesos.util.WriteOnceLinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -63,7 +61,7 @@ public class DefaultService implements Service {
     }
 
     private void init(RawServiceSpecification rawServiceSpecification) throws Exception {
-        this.serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
+        this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
         this.apiPort = serviceSpec.getApiPort();
         this.zkConnectionString = serviceSpec.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
@@ -81,14 +79,17 @@ public class DefaultService implements Service {
         offerRequirementProvider = DefaultScheduler
                 .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
 
-        PlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore, offerRequirementProvider);
+        DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore,
+                offerRequirementProvider);
         this.plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
-            Collection<RawPlan> rawPlans = rawServiceSpecification.getPlans().values();
-            for (RawPlan rawPlan : rawPlans) {
-                plans.add(planGenerator.generate(rawPlan, serviceSpec.getPods()));
-            }
+            List<RawPlan> rawPlans = YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification);
+            List<Plan> realPlans = rawPlans.stream()
+                    .map(rawPlan -> planGenerator.generate(rawPlan, serviceSpec.getPods()))
+                    .collect(Collectors.toList());
+            this.plans.addAll(realPlans);
         }
+
         register(serviceSpec, plans);
     }
 

@@ -21,7 +21,7 @@ public class YAMLServiceSpecFactoryTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(generateRawSpecFromYAML(file));
+                .generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
     }

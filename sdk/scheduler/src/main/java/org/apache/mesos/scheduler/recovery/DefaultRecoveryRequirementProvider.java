@@ -2,21 +2,21 @@ package org.apache.mesos.scheduler.recovery;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.ConfigStoreException;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.scheduler.plan.DefaultPodInstance;
 import org.apache.mesos.specification.PodInstance;
-import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.specification.TaskSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

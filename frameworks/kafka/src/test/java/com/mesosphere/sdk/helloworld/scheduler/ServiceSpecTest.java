@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Collections;
 
 import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
@@ -24,7 +25,8 @@ public class ServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Mock private SchedulerDriver mockSchedulerDriver;
+    @Mock
+    private SchedulerDriver mockSchedulerDriver;
 
     @BeforeClass
     public static void beforeAll() {
@@ -34,7 +36,8 @@ public class ServiceSpecTest {
         environmentVariables.set("BROKER_CPUS", "0.1");
         environmentVariables.set("BROKER_MEM", "512");
         environmentVariables.set("BROKER_DISK", "5000");
-        environmentVariables.set("CONFIG_TEMPLATE_PATH", "/Users/gabriel/code/mesosphere/dcos-commons/frameworks/kafka/src/main/dist");
+        URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
+        environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
     @Before
@@ -48,7 +51,7 @@ public class ServiceSpecTest {
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(generateRawSpecFromYAML(file));
+                .generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -60,7 +63,7 @@ public class ServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(generateRawSpecFromYAML(file));
+                .generateServiceSpec(generateRawSpecFromYAML(file));
 
         TestingServer testingServer = new TestingServer();
         StateStore stateStore = DefaultScheduler.createStateStore(
