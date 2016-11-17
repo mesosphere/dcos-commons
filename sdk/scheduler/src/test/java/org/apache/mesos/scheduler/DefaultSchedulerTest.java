@@ -12,18 +12,16 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigurationUpdater;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.offer.constrain.TestPlacementUtils;
 import org.apache.mesos.scheduler.plan.Plan;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.plan.Step;
-import org.apache.mesos.specification.DefaultPodSpec;
-import org.apache.mesos.specification.DefaultServiceSpec;
-import org.apache.mesos.specification.PodSpec;
-import org.apache.mesos.specification.ServiceSpec;
-import org.apache.mesos.specification.TestPodFactory;
+import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.testing.CuratorTestUtils;
@@ -59,10 +57,14 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
-    @Mock private SchedulerDriver mockSchedulerDriver;
-    @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
-    @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    @Mock
+    private SchedulerDriver mockSchedulerDriver;
+    @Captor
+    private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
+    @Captor
+    private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -152,6 +154,7 @@ public class DefaultSchedulerTest {
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
+    private OfferRequirementProvider offerRequirementProvider;
     private DefaultScheduler defaultScheduler;
     private EnvironmentVariables environmentVariables;
 
@@ -175,7 +178,11 @@ public class DefaultSchedulerTest {
                 SERVICE_SPECIFICATION,
                 testingServer.getConnectString(),
                 Collections.emptyList());
-        defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
+                .updateConfig(SERVICE_SPECIFICATION, stateStore, configStore);
+        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
+        defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, stateStore,
+                configStore, offerRequirementProvider);
         register();
     }
 
@@ -184,7 +191,7 @@ public class DefaultSchedulerTest {
         Assert.assertNotNull(defaultScheduler);
     }
 
-    @Test(expected=ConfigStoreException.class)
+    @Test(expected = ConfigStoreException.class)
     public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
@@ -198,7 +205,7 @@ public class DefaultSchedulerTest {
                 Collections.emptyList());
     }
 
-    @Test(expected=ConfigStoreException.class)
+    @Test(expected = ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
@@ -212,7 +219,7 @@ public class DefaultSchedulerTest {
                 Arrays.asList(PlacementRuleMissingEquality.class));
     }
 
-    @Test(expected=ConfigStoreException.class)
+    @Test(expected = ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
@@ -286,7 +293,11 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
+                .updateConfig(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
+        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
+        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
+                configStore, offerRequirementProvider);
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -298,8 +309,11 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
+                .updateConfig(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore, configStore);
+        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
+        defaultScheduler = DefaultScheduler.create(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore,
+                configStore, offerRequirementProvider);
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -312,7 +326,8 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.create(SCALED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
+        defaultScheduler = DefaultScheduler.create(SCALED_POD_A_SERVICE_SPECIFICATION, stateStore,
+                configStore, offerRequirementProvider);
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -420,17 +435,17 @@ public class DefaultSchedulerTest {
                     int launchOp = 0;
                     for (Protos.Offer.Operation operation : operationSet) {
                         switch (operation.getType()) {
-                        case RESERVE:
-                            ++reserveOp;
-                            break;
-                        case CREATE:
-                            ++createOp;
-                            break;
-                        case LAUNCH:
-                            ++launchOp;
-                            break;
-                        default:
-                            Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
+                            case RESERVE:
+                                ++reserveOp;
+                                break;
+                            case CREATE:
+                                ++createOp;
+                                break;
+                            case LAUNCH:
+                                ++launchOp;
+                                break;
+                            default:
+                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(), false);
                         }
                     }
                     if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
@@ -477,7 +492,11 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
         // Perform Configuration Update
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
+                .updateConfig(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
+        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
+        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
+                configStore, offerRequirementProvider);
         register();
         plan = defaultScheduler.deploymentPlanManager.getPlan();
         stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
@@ -679,7 +698,9 @@ public class DefaultSchedulerTest {
         defaultScheduler.statusUpdate(mockSchedulerDriver, runningStatus);
     }
 
-    /** Installs the service. */
+    /**
+     * Installs the service.
+     */
     private List<Protos.TaskID> install() {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
@@ -697,10 +718,12 @@ public class DefaultSchedulerTest {
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
         public Offer filter(Offer offer, OfferRequirement offerRequirement,
-                Collection<TaskInfo> tasks) {
+                            Collection<TaskInfo> tasks) {
             return offer;
         }
-    };
+    }
+
+    ;
 
     private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
 
@@ -713,7 +736,7 @@ public class DefaultSchedulerTest {
 
         @Override
         public Offer filter(Offer offer, OfferRequirement offerRequirement,
-                Collection<TaskInfo> tasks) {
+                            Collection<TaskInfo> tasks) {
             return offer;
         }
 
@@ -731,5 +754,7 @@ public class DefaultSchedulerTest {
         public int hashCode() {
             return HashCodeBuilder.reflectionHashCode(this);
         }
-    };
+    }
+
+    ;
 }

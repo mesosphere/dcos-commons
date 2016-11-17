@@ -4,9 +4,11 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.api.JettyApiServer;
-import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.ConfigStoreException;
-import org.apache.mesos.config.ConfigTargetStore;
+import org.apache.mesos.config.*;
+import org.apache.mesos.config.validate.ConfigurationValidator;
+import org.apache.mesos.config.validate.PodSpecsCannotShrink;
+import org.apache.mesos.config.validate.TaskVolumesCannotChange;
+import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
@@ -41,6 +43,7 @@ public class DefaultService implements Service {
 
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
+    private List<Plan> plans;
     private ConfigStore<ServiceSpec> configTargetStore;
     private OfferRequirementProvider offerRequirementProvider;
 
@@ -66,11 +69,18 @@ public class DefaultService implements Service {
         try {
             configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString, Arrays.asList());
         } catch (ConfigStoreException e) {
-            LOGGER.error("Unable to create DefaultScheduler", e);
+            LOGGER.error("Unable to create config store", e);
             throw new IllegalStateException(e);
         }
+
+        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
+                .updateConfig(serviceSpec, stateStore, configTargetStore);
+
+        offerRequirementProvider = DefaultScheduler
+                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+
         PlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore, offerRequirementProvider);
-        List<Plan> plans = new LinkedList<>();
+        this.plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
             Collection<RawPlan> rawPlans = rawServiceSpecification.getPlans().values();
             for (RawPlan rawPlan : rawPlans) {
@@ -93,14 +103,20 @@ public class DefaultService implements Service {
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
                 serviceSpec,
                 stateStore,
-                configTargetStore);
+                configTargetStore,
+                offerRequirementProvider);
 
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
 
-    public void register(ServiceSpec serviceSpec) {
+    public ServiceSpec getServiceSpec() {
+        return serviceSpec;
+    }
 
+
+    public List<Plan> getPlans() {
+        return plans;
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
@@ -151,5 +167,4 @@ public class DefaultService implements Service {
 
         return fwkInfoBuilder.build();
     }
-
 }
