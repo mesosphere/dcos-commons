@@ -60,7 +60,6 @@ set -e
 
 error_msg() {
     echo "Failed to build the cluster: Exited early at \$0:\$1"
-    echo "To try again, re-run this script"
 }
 trap 'error_msg \${LINENO}' ERR
 
@@ -80,7 +79,7 @@ fi &&
 sudo tar -C /usr/local -xzf ${ARTIFACT_GOLANG} &&
 sudo ln -s /usr/local/go/bin/go /usr/local/bin/go &&
 
-echo '### Install UPX' &&
+echo '### Install upx' &&
 if [ ! -f ${ARTIFACT_UPX} ]; then
     curl -O http://upx.sourceforge.net/download/${ARTIFACT_UPX}
 fi &&
@@ -117,7 +116,7 @@ echo 'export PATH=/home/vagrant:\$JAVA_HOME/bin:/usr/local/bin:\$PATH' >> ~/.bas
 echo 'cd /vagrant/' >> ~/.bash_profile &&
 . ~/.bash_profile &&
 
-echo '### Point CLI to Cluster' &&
+echo '### Point CLI to cluster' &&
 dcos config set core.dcos_url ${CLUSTER_URL} &&
 
 echo '### Configure cluster SSH key' &&
@@ -126,7 +125,7 @@ chmod 700 /home/vagrant/.ssh &&
 cp /vagrant/genconf/ssh_key /home/vagrant/.ssh/id_rsa &&
 chmod 600 /home/vagrant/.ssh/id_rsa &&
 
-echo '### Wait for Cluster to finish coming up' &&
+echo '### Wait for cluster to finish coming up' &&
 make postflight
 EOF
 chmod +x start.sh
