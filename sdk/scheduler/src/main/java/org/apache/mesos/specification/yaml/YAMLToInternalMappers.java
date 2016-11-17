@@ -4,15 +4,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.config.ConfigTargetStore;
-import org.apache.mesos.offer.InvalidRequirementException;
-import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.SchedulerUtils;
-import org.apache.mesos.scheduler.plan.*;
-import org.apache.mesos.scheduler.plan.strategy.Strategy;
-import org.apache.mesos.scheduler.plan.strategy.StrategyFactory;
 import org.apache.mesos.specification.*;
-import org.apache.mesos.state.StateStore;
 import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
 import java.io.File;
@@ -78,60 +71,6 @@ public class YAMLToInternalMappers {
                 .maxConsecutiveFailures(rawHealthCheck.getMaxConsecutiveFailures())
                 .timeout(rawHealthCheck.getTimeout())
                 .build();
-    }
-
-    public static Phase from(RawPhase rawPhase,
-                             PodSpec podSpec,
-                             ConfigTargetStore configTargetStore,
-                             StateStore stateStore,
-                             OfferRequirementProvider offerRequirementProvider) {
-        String name = rawPhase.getName();
-        String pod = rawPhase.getPod();
-        if (!Objects.equals(podSpec.getType(), pod)) {
-            throw new IllegalArgumentException("Phase refers to illegal pod: " + pod + " instead of: "
-                    + podSpec.getType());
-        }
-        Integer count = podSpec.getCount();
-
-        /**
-         * Case 1: Steps is empty. Run all.
-         */
-        final List<Step> steps = new LinkedList<>();
-        for (int i = 0; i < count; i++) {
-            final DefaultPodInstance podInstance = new DefaultPodInstance(podSpec, i);
-
-            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
-                    .collect(Collectors.toList());
-
-            try {
-                steps.add(new DefaultStepFactory(configTargetStore, stateStore, offerRequirementProvider)
-                        .getStep(podInstance, tasksToLaunch));
-            } catch (Step.InvalidStepException | InvalidRequirementException e) {
-                // TODO(mohit): Re-Throw and capture as plan error.
-                throw new RuntimeException(e);
-            }
-        }
-
-        String strategy = rawPhase.getStrategy();
-        Strategy<Step> stepStrategy = StrategyFactory.generateForSteps(strategy);
-        return DefaultPhaseFactory.getPhase(name, steps, stepStrategy);
-    }
-
-    public static Plan from(RawPlan rawPlan,
-                            PodSpec podSpec,
-                            ConfigTargetStore configTargetStore,
-                            StateStore stateStore,
-                            OfferRequirementProvider offerRequirementProvider) {
-        String name = rawPlan.getName();
-        final List<Phase> phases = rawPlan.getPhases().stream()
-                .map(rawPhase -> from(rawPhase, podSpec, configTargetStore, stateStore, offerRequirementProvider))
-                .collect(Collectors.toList());
-        String strategy = rawPlan.getStrategy();
-        return DefaultPlanFactory.getPlan(name,
-                phases,
-                StrategyFactory.generateForPhase(strategy));
     }
 
     public static PodSpec from(RawPod rawPod, String role, String principal) throws Exception {

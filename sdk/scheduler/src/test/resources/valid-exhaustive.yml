@@ -68,3 +68,29 @@ pods:
             max-consecutive-failures: 3
             delay: 0
             timeout: 10
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      journal-deploy:
+        strategy: serial
+        pod: journal
+      nn-deploy:
+        strategy: serial
+        pod: nn
+        steps:
+          - podInstance: 0
+            tasks: [format]
+          - podInstance: 0
+            tasks: [server]
+          - podInstance: 1
+            tasks: [format]
+          - podInstance: 1
+            tasks: [server]
+      dn-deploy:
+        strategy: serial
+        pod: dn
+        steps:
+          - tasks: [format]
+          - tasks: [blah]

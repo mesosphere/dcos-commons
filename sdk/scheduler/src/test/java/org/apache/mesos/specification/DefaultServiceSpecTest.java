@@ -1,6 +1,7 @@
 package org.apache.mesos.specification;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import org.apache.mesos.specification.yaml.RawServiceSpecification;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -22,8 +23,9 @@ public class DefaultServiceSpecTest {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
+        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                .generateSpecFromYAML(rawServiceSpecification);
         Assert.assertNotNull(serviceSpec);
     }
 

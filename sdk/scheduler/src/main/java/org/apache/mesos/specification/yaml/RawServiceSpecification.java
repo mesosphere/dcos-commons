@@ -3,7 +3,6 @@ package org.apache.mesos.specification.yaml;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 
 /**
@@ -15,7 +14,7 @@ public class RawServiceSpecification {
     private Integer apiPort;
     private String zookeeper;
     private WriteOnceLinkedHashMap<String, RawPod> pods;
-    private Collection<RawPlan> plans;
+    private WriteOnceLinkedHashMap<String, RawPlan> plans;
     private RawReplacementFailurePolicy replacementFailurePolicy;
 
     public String getName() {
@@ -63,12 +62,12 @@ public class RawServiceSpecification {
         this.pods = pods;
     }
 
-    public Collection<RawPlan> getPlans() {
+    public WriteOnceLinkedHashMap<String, RawPlan> getPlans() {
         return plans;
     }
 
     @JsonProperty("plans")
-    public void setPlans(Collection<RawPlan> plans) {
+    public void setPlans(WriteOnceLinkedHashMap<String, RawPlan> plans) {
         this.plans = plans;
     }
 
