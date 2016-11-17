@@ -164,7 +164,7 @@ httpd.serve_forever()
 
         os.chmod(httpd_py_path, 0744)
         logger.info('Launching HTTPD: {}'.format(httpd_py_path))
-        subprocess.Popen([httpd_py_path])
+        subprocess.Popen([httpd_py_path, "2&1>", "/dev/null"])
 
         return 'http://{}:{}'.format(self._http_host, port)
 
