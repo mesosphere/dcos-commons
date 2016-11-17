@@ -166,7 +166,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return null;
     }
 
-    private TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo, TaskSpec taskSpec, PodInstance podInstance)
+    private TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo,
+                                                       TaskSpec taskSpec,
+                                                       PodInstance podInstance)
             throws InvalidRequirementException {
 
         String taskType;

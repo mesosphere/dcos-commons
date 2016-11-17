@@ -26,6 +26,7 @@ import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
@@ -51,6 +52,7 @@ import static org.mockito.Mockito.*;
  * <li>When a failed task launches, it no longer shows up as failed</li>
  * </ul>
  */
+@Ignore
 public class DefaultRecoveryPlanManagerTest {
 
     private static final List<Resource> resources = Arrays.asList(

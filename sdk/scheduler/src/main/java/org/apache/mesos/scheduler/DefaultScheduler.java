@@ -389,6 +389,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         Optional<Plan> deploy = plans.stream().filter(plan -> Objects.equals(plan.getName(), "deploy")).findFirst();
         Plan deployPlan;
         if (!deploy.isPresent()) {
+            LOGGER.info("No deploy plan provided. Generating one");
              deployPlan = new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
                     configStore,
                     stateStore,

@@ -21,11 +21,12 @@ public class DefaultServiceSpecTest {
     @Test
     public void validExhaustive() throws Exception {
         environmentVariables.set("PORT0", "8080");
+
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(rawServiceSpecification);
+                .generateServiceSpec(rawServiceSpecification);
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -35,7 +36,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -45,7 +46,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -56,7 +57,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-replacement-failure-policy.yml").getFile());
         try {
             YAMLServiceSpecFactory
-                    .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                    .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -70,7 +71,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());
         try {
             YAMLServiceSpecFactory
-                    .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                    .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         } catch (JsonMappingException e) {
             if (e.getCause() instanceof ConstraintViolationException) {
                 ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
@@ -86,7 +87,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         try {
             List<PodSpec> pods = defaultServiceSpec.getPods();
             pods.add(pods.get(0));
@@ -106,7 +107,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-task-name.yml").getFile());
         try {
             YAMLServiceSpecFactory
-                    .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                    .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         } catch (JsonMappingException e) {
             if (e.getCause() instanceof ConstraintViolationException) {
                 ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
@@ -122,7 +123,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         try {
             List<PodSpec> pods = defaultServiceSpec.getPods();
             PodSpec aPod = pods.get(0);
@@ -144,7 +145,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
         try {
             YAMLServiceSpecFactory
-                    .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                    .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -158,7 +159,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-resource-set-name.yml").getFile());
         try {
             YAMLServiceSpecFactory
-                    .generateSpecFromYAML(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+                    .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         } catch (JsonMappingException e) {
             if (e.getCause() instanceof ConstraintViolationException) {
                 ConstraintViolationException cause = (ConstraintViolationException) e.getCause();

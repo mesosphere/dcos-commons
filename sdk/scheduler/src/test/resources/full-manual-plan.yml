@@ -1,38 +1,38 @@
 name: "hello-world"
 principal: "hello-world-principal"
 zookeeper: master.mesos:2181
-api-port: {{PORT0}}
+api-port: 8080
 replacement-failure-policy:
   permanent-failure-timeout-ms: 10
   min-replace-delay-ms: 10
 pods:
   hello:
-    count: {{HELLO_COUNT}}
+    count: 2
     resource-sets:
       hello-resources:
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
+        cpus: 1
+        memory: 256
         ports:
           - name: http
             port: 8080
         volumes:
           - path: "hello-container-path"
             type: ROOT
-            size: {{HELLO_DISK}}
+            size: 1024
       once-resources:
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
+        cpus: 1
+        memory: 256
         volumes:
           - path: "once-container-path"
             type: ROOT
-            size: {{HELLO_DISK}}
+            size: 1024
     tasks:
       server:
         goal: RUNNING
         cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
+          SLEEP_DURATION: 1000
         health-checks:
           check-up:
             cmd: "stat hello-container-path/output"
@@ -46,25 +46,25 @@ pods:
         cmd: "echo 'I run only once' >> once-container-path/runonce"
         resource-set: once-resources
   world:
-    count: {{WORLD_COUNT}}
+    count: 2
     resource-sets:
       world-resources:
-        cpus: {{WORLD_CPUS}}
-        memory: {{WORLD_MEM}}
+        cpus: 1
+        memory: 256
         ports:
           - name: http
             port: 8080
         volumes:
           - path: "world-container-path"
             type: ROOT
-            size: {{WORLD_DISK}}
+            size: 1024
     tasks:
       server:
         goal: RUNNING
         cmd: "echo $TASK_NAME >> world-container-path/output && sleep $SLEEP_DURATION"
         resource-set: world-resources
         env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
+          SLEEP_DURATION: 1000
         health-checks:
           check-up:
             cmd: "stat world-container-path/output"

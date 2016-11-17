@@ -53,7 +53,7 @@ public class ServiceSpecTest {
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(generateRawSpecFromYAML(file));
+                .generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -65,7 +65,7 @@ public class ServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateSpecFromYAML(generateRawSpecFromYAML(file));
+                .generateServiceSpec(generateRawSpecFromYAML(file));
 
         TestingServer testingServer = new TestingServer();
         StateStore stateStore = DefaultScheduler.createStateStore(
