@@ -7,9 +7,9 @@
     }
   },
   "images": {
-    "icon-small": "https://github.com/dcos/dcos-ui/raw/master/src/img/services/icon-service-default-small.png",
-    "icon-medium": "https://github.com/dcos/dcos-ui/raw/master/src/img/services/icon-service-default-medium.png",
-    "icon-large": "https://github.com/dcos/dcos-ui/raw/master/src/img/services/icon-service-default-large.png"
+    "icon-small": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-small.png?raw=true",
+    "icon-medium": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-medium.png?raw=true",
+    "icon-large": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-large.png?raw=true"
   },
   "cli":{
     "binaries":{
