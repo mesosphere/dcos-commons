@@ -51,6 +51,6 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
         hello-world \
         universe/ \
         build/distributions/*.zip \
-        cli/dcos-hello-world/dcos-hello-world-* \
+        cli/dcos-hello-world/dcos-hello-world* \
         cli/python/dist/*.whl
 fi

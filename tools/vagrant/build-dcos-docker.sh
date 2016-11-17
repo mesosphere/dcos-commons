@@ -34,11 +34,16 @@ vagrant ssh <<- EOF
   rm -f dcos-genconf.* &&
   make PUBLIC_AGENTS=0 AGENTS=${AGENTS} &&
 
+  echo '### Install git/nano' &&
+  sudo yum install git nano &&
+  sudo yum clean &&
+
   echo '### Install Golang' &&
   if [ ! -f go1.7.3.linux-amd64.tar.gz ]; then
     curl -O https://storage.googleapis.com/golang/go1.7.3.linux-amd64.tar.gz
   fi &&
   sudo tar -C /usr/local -xzf go1.7.3.linux-amd64.tar.gz &&
+  sudo ln -s /usr/local/go/bin/go /usr/local/bin/go &&
 
   echo '### Install UPX' &&
   if [ ! -f upx-3.91-amd64_linux.tar.bz2 ]; then
