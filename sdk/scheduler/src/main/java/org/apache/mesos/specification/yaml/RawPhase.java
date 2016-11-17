@@ -2,7 +2,9 @@ package org.apache.mesos.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Raw YAML phase.
@@ -11,7 +13,7 @@ public class RawPhase {
     private String name;
     private String strategy;
     private String pod;
-    private List<String> steps;
+    private List<RawStep> steps;
 
     public String getName() {
         return name;
@@ -31,12 +33,12 @@ public class RawPhase {
         this.strategy = strategy;
     }
 
-    public List<String> getSteps() {
+    public List<RawStep> getSteps() {
         return steps;
     }
 
     @JsonProperty("steps")
-    public void setSteps(List<String> steps) {
+    public void setSteps(List<RawStep> steps) {
         this.steps = steps;
     }
 

@@ -4,21 +4,24 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.api.JettyApiServer;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.config.ConfigTargetStore;
+import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.scheduler.SchedulerDriverFactory;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.scheduler.plan.Plan;
+import org.apache.mesos.specification.yaml.RawPlan;
 import org.apache.mesos.specification.yaml.RawServiceSpecification;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.util.WriteOnceLinkedHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -38,23 +41,41 @@ public class DefaultService implements Service {
 
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
+    private ConfigStore<ServiceSpec> configTargetStore;
+    private OfferRequirementProvider offerRequirementProvider;
 
-    public DefaultService() {}
+    public DefaultService() {
+    }
 
     public DefaultService(String yamlSpecification) throws Exception {
-        final PlanGenerator planGenerator = new DefaultPlanGenerator();
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
                 .generateRawSpecFromYAML(yamlSpecification);
-        final ServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
-        register(serviceSpec, planGenerator.generate(rawServiceSpecification));
+        init(rawServiceSpecification);
     }
 
     public DefaultService(File pathToYamlSpecification) throws Exception {
-        final PlanGenerator planGenerator = new DefaultPlanGenerator();
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
                 .generateRawSpecFromYAML(pathToYamlSpecification);
+        init(rawServiceSpecification);
+    }
+
+    private void init(RawServiceSpecification rawServiceSpecification) throws Exception {
+        this.stateStore = DefaultScheduler.createStateStore(serviceSpec, zkConnectionString);
+        try {
+            this.configTargetStore = DefaultScheduler.createConfigStore(
+                    serviceSpec, zkConnectionString, Collections.emptyList());
+        } catch (ConfigStoreException e) {
+            LOGGER.error("Unable to create DefaultScheduler", e);
+            throw new IllegalStateException(e);
+        }
+        PlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore, offerRequirementProvider);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateSpecFromYAML(rawServiceSpecification);
-        register(serviceSpec, planGenerator.generate(rawServiceSpecification));
+        Collection<RawPlan> rawPlans = rawServiceSpecification.getPlans().values();
+        List<Plan> plans = new LinkedList<>();
+        for (RawPlan rawPlan : rawPlans) {
+            plans.add(planGenerator.generate(rawPlan, serviceSpec.getPods()));
+        }
+        register(serviceSpec, plans);
     }
 
     /**
@@ -66,18 +87,12 @@ public class DefaultService implements Service {
         this.serviceSpec = serviceSpecification;
         this.apiPort = serviceSpecification.getApiPort();
         this.zkConnectionString = serviceSpecification.getZookeeperConnection();
-        this.stateStore = DefaultScheduler.createStateStore(serviceSpec, zkConnectionString);
-        DefaultScheduler defaultScheduler;
-        try {
-            defaultScheduler = DefaultScheduler.create(
-                    serviceSpec,
-                    stateStore,
-                    DefaultScheduler.createConfigStore(
-                            serviceSpec, zkConnectionString, Collections.emptyList()));
-        } catch (ConfigStoreException e) {
-            LOGGER.error("Unable to create DefaultScheduler", e);
-            throw new IllegalStateException(e);
-        }
+
+        DefaultScheduler defaultScheduler = DefaultScheduler.create(
+                serviceSpec,
+                stateStore,
+                configTargetStore);
+
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }

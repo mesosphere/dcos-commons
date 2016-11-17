@@ -1,8 +1,7 @@
 package org.apache.mesos.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
+import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
 /**
  * Raw YAML plan.
@@ -10,7 +9,7 @@ import java.util.List;
 public class RawPlan {
     private String name;
     private String strategy;
-    private List<RawPhase> phases;
+    private WriteOnceLinkedHashMap<String, RawPhase> phases;
 
     public String getName() {
         return name;
@@ -30,12 +29,12 @@ public class RawPlan {
         this.strategy = strategy;
     }
 
-    public List<RawPhase> getPhases() {
+    public WriteOnceLinkedHashMap<String, RawPhase> getPhases() {
         return phases;
     }
 
     @JsonProperty("phases")
-    public void setPhases(List<RawPhase> phases) {
+    public void setPhases(WriteOnceLinkedHashMap<String, RawPhase> phases) {
         this.phases = phases;
     }
 }
