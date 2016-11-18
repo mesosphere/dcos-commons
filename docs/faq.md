@@ -54,7 +54,7 @@ Frequently Asked Questions
 
 * __Can I contribute to the DC/OS SDK?__
 
-  Yes, contributions to the SDK are welcome! See [CONTRIBUTING](https://gist.github.com/keithchambers/3e848d52c94d2e26b7374c9140195bb4).
+  Yes, contributions to the SDK are welcome! See [CONTRIBUTING](CONTRIBUTING.md).
 
 * __Will the DC/OS SDK work with Apache Mesos (without DC/OS)?__
 
