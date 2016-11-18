@@ -24,7 +24,7 @@ if os.environ.get('SECURITY', '') == 'strict':
     }
 else:
     print('Using default test configuration')
-    PRINCIPAL = 'hdfs-principal'
+    PRINCIPAL = 'hello-world-principal'
     DEFAULT_OPTIONS_DICT = {}
 
 
@@ -85,7 +85,6 @@ def uninstall():
         'docker run mesosphere/janitor /janitor.py '
         '-r hello-world-role -p hello-world-principal -z dcos-service-hello-world '
         '--auth_token={}'.format(
-            PRINCIPAL,
             shakedown.run_dcos_command(
                 'config show core.dcos_acs_token'
             )[0].strip()
