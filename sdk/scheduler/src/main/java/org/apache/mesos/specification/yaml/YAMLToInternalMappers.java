@@ -77,10 +77,9 @@ public class YAMLToInternalMappers {
         List<TaskSpec> taskSpecs = new ArrayList<>();
         String podName = rawPod.getName();
         Integer podInstanceCount = rawPod.getCount();
-        String placement = rawPod.getPlacement();
+        // String placement = rawPod.getPlacement();
         RawContainer container = rawPod.getContainer();
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
-        String strategy = rawPod.getStrategy();
         String user = rawPod.getUser();
         LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
 
@@ -154,14 +153,6 @@ public class YAMLToInternalMappers {
         String id = rawResourceSet.getId();
         final Collection<RawVolume> rawVolumes = rawResourceSet.getVolumes();
 
-
-        final Collection<ResourceSpecification> resources = new LinkedList<>();
-        final Collection<VolumeSpecification> volumes = new LinkedList<>();
-
-        for (RawVolume rawVolume : rawVolumes) {
-            volumes.add(from(rawVolume, role, principal));
-        }
-
         return from(id, cpus, memory, ports, rawVolumes, role, principal);
     }
 
@@ -183,7 +174,6 @@ public class YAMLToInternalMappers {
         Double cpus = rawTask.getCpus();
         Integer memory = rawTask.getMemory();
         Collection<RawPort> ports = rawTask.getPorts();
-        String image = rawTask.getImage();
         Collection<RawVolume> rawVolumes = rawTask.getVolumes();
 
         Collection<URI> uris = new ArrayList<>();
