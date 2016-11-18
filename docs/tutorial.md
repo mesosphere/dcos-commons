@@ -481,7 +481,7 @@ example service has `TaskSet`s encapsulating `meta-data` and `data`
 Tasks in that order.  The deployment plan above has the respective
 `meta-data` and `data` Phases.
 
-In its default configuration, the two `data` Tasks and three `meta-data`
+In its default configuration, the two `meta-data` Tasks and three `data`
 Tasks are launched.  We can see that a Block has been created
 encapsulating each of those tasks.  The names of Blocks map to the names
 of the `TaskSpecification` objects within a `TaskSet`.  The status of a

@@ -193,4 +193,37 @@ public class AttributeStringUtilsTest {
         expect.add("keys:[1000-1500]");
         assertEquals(expect, strs);
     }
+
+    @Test
+    public void testSplitJoinSingleAttribute() {
+        AttributeStringUtils.NameValue nv = AttributeStringUtils.split(":");
+        assertEquals("", nv.name);
+        assertEquals("", nv.value);
+        assertEquals(":", AttributeStringUtils.join(nv.name, nv.value));
+
+        nv = AttributeStringUtils.split("foo:");
+        assertEquals("foo", nv.name);
+        assertEquals("", nv.value);
+        assertEquals("foo:", AttributeStringUtils.join(nv.name, nv.value));
+
+        nv = AttributeStringUtils.split(":bar");
+        assertEquals("", nv.name);
+        assertEquals("bar", nv.value);
+        assertEquals(":bar", AttributeStringUtils.join(nv.name, nv.value));
+
+        nv = AttributeStringUtils.split("foo:bar");
+        assertEquals("foo", nv.name);
+        assertEquals("bar", nv.value);
+        assertEquals("foo:bar", AttributeStringUtils.join(nv.name, nv.value));
+
+        nv = AttributeStringUtils.split("foo:bar:baz");
+        assertEquals("foo", nv.name);
+        assertEquals("bar:baz", nv.value);
+        assertEquals("foo:bar:baz", AttributeStringUtils.join(nv.name, nv.value));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSplitSingleAttributeFails() {
+        AttributeStringUtils.split("foobar");
+    }
 }

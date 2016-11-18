@@ -1,6 +1,9 @@
 package org.apache.mesos.offer.constrain;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -20,18 +23,82 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class AttributeRule implements PlacementRule {
 
-    private final AttributeSelector attributeSelector;
+    /**
+     * Requires that a task be placed on the provided attribute matcher.
+     *
+     * @param matcher matcher for attribute to require
+     */
+    public static PlacementRule require(StringMatcher matcher) {
+        return new AttributeRule(matcher);
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided attribute matchers.
+     *
+     * @param matchers matchers for attributes to require
+     */
+    public static PlacementRule require(Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return require(matchers.iterator().next());
+        }
+        List<PlacementRule> rules = new ArrayList<>();
+        for (StringMatcher matcher : matchers) {
+            rules.add(require(matcher));
+        }
+        return new OrRule(rules);
+    }
+
+    /**
+     * Requires that a task be placed on one of the provided attribute matchers.
+     *
+     * @param matchers matchers for attributes to require
+     */
+    public static PlacementRule require(StringMatcher... matchers) {
+        return require(Arrays.asList(matchers));
+    }
+
+    /**
+     * Requires that a task NOT be placed on the provided attribute matcher.
+     *
+     * @param matcher matcher for attribute to avoid
+     */
+    public static PlacementRule avoid(StringMatcher matcher) {
+        return new NotRule(require(matcher));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided attribute matchers.
+     *
+     * @param matchers matchers for attributes to avoid
+     */
+    public static PlacementRule avoid(Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return avoid(matchers.iterator().next());
+        }
+        return new NotRule(require(matchers));
+    }
+
+    /**
+     * Requires that a task NOT be placed on any of the provided attribute matchers.
+     *
+     * @param matchers matchers for attributes to avoid
+     */
+    public static PlacementRule avoid(StringMatcher... matchers) {
+        return avoid(Arrays.asList(matchers));
+    }
+
+    private final StringMatcher matcher;
 
     @JsonCreator
-    public AttributeRule(@JsonProperty("selector") AttributeSelector attributeSelector) {
-        this.attributeSelector = attributeSelector;
+    private AttributeRule(@JsonProperty("matcher") StringMatcher matcher) {
+        this.matcher = matcher;
     }
 
     @Override
     public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
-            if (attributeSelector.select(attributeString)) {
+            if (matcher.matches(attributeString)) {
                 // match found. return entire offer as-is
                 return offer;
             }
@@ -40,14 +107,14 @@ public class AttributeRule implements PlacementRule {
         return offer.toBuilder().clearResources().build();
     }
 
-    @JsonProperty("selector")
-    private AttributeSelector getSelector() {
-        return attributeSelector;
+    @JsonProperty("matcher")
+    private StringMatcher getMatcher() {
+        return matcher;
     }
 
     @Override
     public String toString() {
-        return String.format("AttributeRule{selector=%s}", attributeSelector);
+        return String.format("AttributeRule{matcher=%s}", matcher);
     }
 
     @Override

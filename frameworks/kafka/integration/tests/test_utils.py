@@ -1,7 +1,10 @@
 import time
 
 import dcos
+import inspect
+import os
 import shakedown
+import subprocess
 
 
 PACKAGE_NAME = 'hello-world'
@@ -51,10 +54,24 @@ def get_deployment_plan():
     return spin(fn, success_predicate)
 
 
+def install(package_version=None):
+    strict_mode = os.getenv('SECURITY', 'permissive')
+    if strict_mode == 'strict':
+        shakedown.install_package_and_wait(
+            package_name=PACKAGE_NAME,
+            package_version=package_version,
+            options_file=os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) + "/strict.json")
+    else:
+        shakedown.install_package_and_wait(
+            package_name=PACKAGE_NAME,
+            package_version=package_version,
+            options_file=None)
+
+
 def uninstall():
     print('Uninstalling/janitoring {}'.format(PACKAGE_NAME))
     try:
-        shakedown.uninstall_package_and_wait(PACKAGE_NAME, app_id=PACKAGE_NAME)
+        shakedown.uninstall_package_and_wait(PACKAGE_NAME, service_name=PACKAGE_NAME)
     except (dcos.errors.DCOSException, ValueError) as e:
         print('Got exception when uninstalling package, continuing with janitor anyway: {}'.format(e))
 
@@ -110,6 +127,10 @@ def marathon_api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 
 
+def marathon_api_url_with_param(basename, path_param):
+    return '{}/{}'.format(marathon_api_url(basename), path_param)
+
+
 def request(request_fn, *args, **kwargs):
     def success_predicate(response):
         return (
@@ -118,3 +139,10 @@ def request(request_fn, *args, **kwargs):
         )
 
     return spin(request_fn, success_predicate, *args, **kwargs)
+
+
+def run_dcos_cli_cmd(cmd):
+    print('Running {}'.format(cmd))
+    stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
+    print(stdout)
+    return stdout

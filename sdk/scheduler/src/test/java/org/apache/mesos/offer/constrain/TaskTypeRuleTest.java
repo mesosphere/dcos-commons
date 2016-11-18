@@ -7,7 +7,6 @@ import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.offer.constrain.TaskTypeRule.TaskTypeLabelConverter;
 import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
@@ -163,6 +162,20 @@ public class TaskTypeRuleTest {
         rule = TaskTypeRule.colocateWith(MATCH_TYPE);
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
+    }
+
+    @Test
+    public void testDeserializeNoOptionalConverter() throws IOException {
+        String str = "{ '@type': 'TaskTypeRule', 'type': 'foo', 'behavior': 'AVOID' }".replace('\'', '"');
+        SerializationUtils.fromString(str,
+                PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
+    }
+
+    @Test
+    public void testDeserializeAllParams() throws IOException {
+        String str = "{ '@type': 'TaskTypeRule', 'type': 'foo', 'converter': { '@type': 'TaskTypeLabelConverter' }, 'behavior': 'AVOID' }".replace('\'', '"');
+        SerializationUtils.fromString(str,
+                PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }
 
     private static TaskInfo getTask(String type, String id, String agent) {

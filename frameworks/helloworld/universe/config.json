@@ -11,7 +11,7 @@
             "default":"hello-world"
           },
           "sleep" : {
-            "description":"The sleep duration before Tasks exit.",
+            "description":"The sleep duration in seconds before tasks exit.",
             "type":"number",
             "default":1000
           }
@@ -29,17 +29,22 @@
           "mem":{
             "description":"Node mem requirements",
             "type":"integer",
-            "default":512
+            "default":256
           },
           "disk":{
             "description":"Broker disk requirements (only respected with persistent volumes)",
             "type":"integer",
-            "default":2500
+            "default":25
           },
           "count":{
             "description":"Number of nodes to run",
-            "type":"number",
+            "type":"integer",
             "default":2
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
           }
         },
         "required":[
@@ -61,17 +66,22 @@
           "mem":{
             "description":"Node mem requirements",
             "type":"integer",
-            "default":1024
+            "default":512
           },
           "disk":{
             "description":"Broker disk requirements (only respected with persistent volumes)",
             "type":"integer",
-            "default":5000
+            "default":50
           },
           "count":{
             "description":"Number of nodes to run",
-            "type":"number",
+            "type":"integer",
             "default":3
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
           }
         },
         "required":[

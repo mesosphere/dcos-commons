@@ -21,10 +21,13 @@ public class HostnameRuleTest {
     private static final String HOST_1 = "host-1-uuid";
     private static final String HOST_2 = "host-2-uuid";
     private static final String HOST_3 = "host-3-uuid";
+    private static final StringMatcher HOST_MATCHER_1 = ExactMatcher.create(HOST_1);
+    private static final StringMatcher HOST_MATCHER_2 = ExactMatcher.create(HOST_2);
+    private static final StringMatcher HOST_MATCHER_3 = ExactMatcher.create(HOST_3);
 
     @Test
     public void testRequireHostname() {
-        PlacementRule rule = HostnameRule.require(HOST_1);
+        PlacementRule rule = HostnameRule.require(HOST_MATCHER_1);
         Offer filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -32,7 +35,7 @@ public class HostnameRuleTest {
         filtered = rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
 
-        rule = HostnameRule.require(HOST_2);
+        rule = HostnameRule.require(HOST_MATCHER_2);
         filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -43,7 +46,7 @@ public class HostnameRuleTest {
 
     @Test
     public void testAvoidHostname() {
-        PlacementRule rule = HostnameRule.avoid(HOST_1);
+        PlacementRule rule = HostnameRule.avoid(HOST_MATCHER_1);
         Offer filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -51,7 +54,7 @@ public class HostnameRuleTest {
         filtered = rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
 
-        rule = HostnameRule.avoid(HOST_2);
+        rule = HostnameRule.avoid(HOST_MATCHER_2);
         filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -62,7 +65,7 @@ public class HostnameRuleTest {
 
     @Test
     public void testRequireHostnames() {
-        PlacementRule rule = HostnameRule.require(HOST_1, HOST_3);
+        PlacementRule rule = HostnameRule.require(HOST_MATCHER_1, HOST_MATCHER_3);
         Offer filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -70,7 +73,7 @@ public class HostnameRuleTest {
         filtered = rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
 
-        rule = HostnameRule.require(HOST_2, HOST_3);
+        rule = HostnameRule.require(HOST_MATCHER_2, HOST_MATCHER_3);
         filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -81,7 +84,7 @@ public class HostnameRuleTest {
 
     @Test
     public void testAvoidHostnames() {
-        PlacementRule rule = HostnameRule.avoid(HOST_1, HOST_3);
+        PlacementRule rule = HostnameRule.avoid(HOST_MATCHER_1, HOST_MATCHER_3);
         Offer filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -89,7 +92,7 @@ public class HostnameRuleTest {
         filtered = rule.filter(offerWithHost(HOST_3), REQ, Collections.emptyList());
         assertEquals(0, filtered.getResourcesCount());
 
-        rule = HostnameRule.avoid(HOST_2, HOST_3);
+        rule = HostnameRule.avoid(HOST_MATCHER_2, HOST_MATCHER_3);
         filtered = rule.filter(offerWithHost(HOST_1), REQ, Collections.emptyList());
         assertEquals(3, filtered.getResourcesCount());
         filtered = rule.filter(offerWithHost(HOST_2), REQ, Collections.emptyList());
@@ -100,19 +103,19 @@ public class HostnameRuleTest {
 
     @Test
     public void testSerializeDeserialize() throws IOException {
-        PlacementRule rule = HostnameRule.avoid(HOST_1, HOST_3);
+        PlacementRule rule = HostnameRule.avoid(HOST_MATCHER_1, HOST_MATCHER_3);
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = HostnameRule.require(HOST_1, HOST_3);
+        rule = HostnameRule.require(HOST_MATCHER_1, HOST_MATCHER_3);
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = HostnameRule.avoid(HOST_1);
+        rule = HostnameRule.avoid(HOST_MATCHER_1);
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = HostnameRule.require(HOST_3);
+        rule = HostnameRule.require(HOST_MATCHER_3);
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }

@@ -61,7 +61,7 @@ public class PlacementUtils {
     }
 
     /**
-     * Returns whether the provided {@link TaskInfo},representing a previously-launched task,
+     * Returns whether the provided {@link TaskInfo}, representing a previously-launched task,
      * has a matching the task name and task type within the provided {@link OfferRequirement},
      * representing a new task about to be launched.
      */

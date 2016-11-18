@@ -14,6 +14,7 @@ import java.util.Collection;
  */
 public class ExecutorRequirement {
     private final Collection<DynamicPortRequirement> dynamicPortRequirements;
+    private final Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
     private ExecutorInfo executorInfo;
     private Collection<ResourceRequirement> resourceRequirements;
 
@@ -59,8 +60,8 @@ public class ExecutorRequirement {
         this.resourceRequirements =
                 RequirementUtils.getResourceRequirements(executorInfo.getResourcesList());
         // These are managed in a separate collection, since the actual ports can only be fulfilled at offer time.
-        this.dynamicPortRequirements =
-                RequirementUtils.getDynamicPortRequirements(executorInfo.getResourcesList());
+        this.dynamicPortRequirements = RequirementUtils.getDynamicPortRequirements(executorInfo.getResourcesList());
+        this.namedVIPPortRequirements = RequirementUtils.getNamedVIPPortRequirements(executorInfo.getResourcesList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -73,6 +74,10 @@ public class ExecutorRequirement {
 
     public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
         return dynamicPortRequirements;
+    }
+
+    public Collection<NamedVIPPortRequirement> getNamedVIPPortRequirements() {
+        return namedVIPPortRequirements;
     }
 
     public Collection<String> getResourceIds() {

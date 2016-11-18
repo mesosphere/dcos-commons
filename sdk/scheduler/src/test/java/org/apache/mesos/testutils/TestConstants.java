@@ -29,6 +29,8 @@ public class TestConstants {
     public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);
     public static final Protos.TaskID TASK_ID = TaskUtils.toTaskId(TASK_NAME);
     public static final String PORT_NAME = "test-port-name";
+    public static final String VIP_KEY = "VIP_TEST";
+    public static final String VIP_NAME = "testvip";
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()

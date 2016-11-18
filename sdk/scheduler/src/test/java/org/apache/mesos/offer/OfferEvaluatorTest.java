@@ -103,10 +103,10 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(String.valueOf(10000), variable.getValue());
 
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
-        fulfilledPortResource = taskInfo.getResources(0);
-        Assert.assertEquals(1, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+        Resource fulfilledCpuResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledCpuResource.getReservation().getLabels().getLabelsCount());
 
-        resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        resourceIdLabel = fulfilledCpuResource.getReservation().getLabels().getLabels(0);
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         Assert.assertEquals(0, taskInfo.getCommand().getEnvironment().getVariablesCount());
@@ -183,6 +183,115 @@ public class OfferEvaluatorTest {
         Environment.Variable taskVariable = command.getEnvironment().getVariables(0);
         Assert.assertEquals(taskPortName, taskVariable.getName());
         Assert.assertEquals(String.valueOf(11000), taskVariable.getValue());
+    }
+
+    @Test
+    public void testReserveTaskNamedVIPPort() throws InvalidRequirementException {
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+        Resource desiredNamedVIPPort = NamedVIPPortRequirement.getDesiredNamedVIPPort(
+                TestConstants.VIP_KEY,
+                TestConstants.VIP_NAME,
+                (long) 10000,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredNamedVIPPort);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(offeredPorts)));
+
+        Assert.assertEquals(2, recommendations.size());
+
+        Operation launchOperation = recommendations.get(1).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledPortResource = taskInfo.getResources(0);
+        Assert.assertEquals(3, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
+
+        Label namedVIPPortKeyLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("vip_key", namedVIPPortKeyLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_KEY, namedVIPPortKeyLabel.getValue());
+
+        Label namedVIPPortNameLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("vip_value", namedVIPPortNameLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_NAME, namedVIPPortNameLabel.getValue());
+
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(2);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
+        Assert.assertEquals(discoveryInfo.getName(), taskInfo.getName());
+        Assert.assertEquals(discoveryInfo.getVisibility(), DiscoveryInfo.Visibility.EXTERNAL);
+
+        Port discoveryPort = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(discoveryPort.getProtocol(), "tcp");
+        Assert.assertEquals(discoveryPort.getNumber(), 10000);
+        Label vipLabel = discoveryPort.getLabels().getLabels(0);
+        Assert.assertEquals(vipLabel.getKey(), "VIP_TEST");
+        Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + ":10000");
+    }
+
+    @Test
+    public void testReserveExecutorNamedVIPPort() throws InvalidRequirementException {
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
+
+        Resource desiredCpu = ResourceTestUtils.getDesiredCpu(1.0);
+        Resource desiredNamedVIPPort = NamedVIPPortRequirement.getDesiredNamedVIPPort(
+                TestConstants.VIP_KEY,
+                TestConstants.VIP_NAME,
+                (long) 10000,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+
+        OfferRequirement offerReq = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
+                Optional.of(TaskTestUtils.getExecutorInfo(desiredNamedVIPPort)));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                offerReq,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredCpu, offeredPorts))));
+
+        Assert.assertEquals(3, recommendations.size());
+
+        Operation launchOperation = recommendations.get(2).getOperation();
+        ExecutorInfo executorInfo = launchOperation.getLaunch().getTaskInfos(0).getExecutor();
+        Resource fulfilledPortResource = executorInfo.getResources(0);
+        Assert.assertEquals(3, fulfilledPortResource.getReservation().getLabels().getLabelsCount());
+
+        Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
+
+        Label namedVIPPortKeyLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("vip_key", namedVIPPortKeyLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_KEY, namedVIPPortKeyLabel.getValue());
+
+        Label namedVIPPortNameLabel = fulfilledPortResource.getReservation().getLabels().getLabels(1);
+        Assert.assertEquals("vip_value", namedVIPPortNameLabel.getKey());
+        Assert.assertEquals(TestConstants.VIP_NAME, namedVIPPortNameLabel.getValue());
+
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(2);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledCpuResource = taskInfo.getResources(0);
+        Assert.assertEquals(1, fulfilledCpuResource.getReservation().getLabels().getLabelsCount());
+
+        resourceIdLabel = fulfilledCpuResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        DiscoveryInfo discoveryInfo = executorInfo.getDiscovery();
+        Assert.assertEquals(discoveryInfo.getName(), executorInfo.getName());
+        Assert.assertEquals(discoveryInfo.getVisibility(), DiscoveryInfo.Visibility.EXTERNAL);
+
+        Port discoveryPort = discoveryInfo.getPorts().getPorts(0);
+        Assert.assertEquals(discoveryPort.getProtocol(), "tcp");
+        Assert.assertEquals(discoveryPort.getNumber(), 10000);
+        Label vipLabel = discoveryPort.getLabels().getLabels(0);
+        Assert.assertEquals(vipLabel.getKey(), "VIP_TEST");
+        Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + ":10000");
     }
 
     @Test

@@ -260,6 +260,7 @@ class CCMLauncher(object):
         dns_address = cluster_info.get('DnsAddress', '')
         if not dns_address:
             raise Exception('CCM cluster_info is missing DnsAddress: {}'.format(cluster_info))
+        logger.info('Cluster is now RUNNING: {}'.format(cluster_info))
 
         if config.mount_volumes:
             logger.info('Enabling mount volumes for cluster {} (stack id {})'.format(cluster_id, stack_id))
@@ -273,12 +274,22 @@ class CCMLauncher(object):
 
         if config.permissions:
             logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
-            # force total redirect to stderr:
-            stdout = sys.stdout
-            sys.stdout = sys.stderr
-            script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'setup_permissions.sh')
-            subprocess.check_call(['bash', script_path])
-            sys.stdout = stdout
+
+            def run_script(scriptname, args = []):
+                logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
+                # force total redirect to stderr:
+                stdout = sys.stdout
+                sys.stdout = sys.stderr
+                script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
+                subprocess.check_call(['bash', script_path] + args)
+                sys.stdout = stdout
+
+            run_script('create_service_account.sh', ['--strict'])
+            # Examples of what individual tests should run. See respective projects' "test.sh":
+            #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
+            #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
+            #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
+            #run_script('setup_permissions.sh', 'nobody spark-role'.split())
 
         # we fetch the token once up-front because on Open clusters it must be reused.
         # given that, we may as well use the same flow across both Open and EE.

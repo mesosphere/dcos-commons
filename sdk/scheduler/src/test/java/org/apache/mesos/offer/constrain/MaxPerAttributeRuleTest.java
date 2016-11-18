@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 public class MaxPerAttributeRuleTest {
 
     private static final String ATTR_PATTERN = "^footext:.*$";
-    private static final AttributeSelector ATTR_SELECTOR = AttributeSelector.createRegexSelector(ATTR_PATTERN);
+    private static final StringMatcher ATTR_MATCHER = RegexMatcher.create(ATTR_PATTERN);
 
     private static final Offer OFFER_NO_ATTRS = getOfferWithResources();
     private static final Offer OFFER_ATTR_MATCH_1;
@@ -68,7 +68,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitZero() {
-        PlacementRule rule = new MaxPerAttributeRule(0, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(0, ATTR_MATCHER);
 
         assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
         assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
@@ -83,7 +83,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitZeroWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(0, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(0, ATTR_MATCHER);
 
         assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ_WITH_TASK_NO_ATTRS, TASKS).getResourcesCount());
         assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ_WITH_TASK_NO_ATTRS, TASKS).getResourcesCount());
@@ -138,7 +138,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitOne() {
-        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_MATCHER);
 
         assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
         assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
@@ -153,7 +153,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitOneWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_MATCHER);
 
         assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ_WITH_TASK_NO_ATTRS, TASKS).getResourcesCount());
         assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ_WITH_TASK_NO_ATTRS, TASKS).getResourcesCount());
@@ -207,8 +207,39 @@ public class MaxPerAttributeRuleTest {
     }
 
     @Test
+    public void testLimitOneWithTaskFilter() {
+        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_MATCHER, RegexMatcher.create("match-.*"));
+
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ, TASKS).getResourcesCount());
+
+        rule = new MaxPerAttributeRule(1, ATTR_MATCHER, ExactMatcher.create("match-1"));
+
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ, TASKS).getResourcesCount());
+
+        rule = new MaxPerAttributeRule(1, ATTR_MATCHER, ExactMatcher.create("match-2"));
+
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 0, rule.filter(OFFER_ATTR_MATCH_2, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ, TASKS).getResourcesCount());
+
+        rule = new MaxPerAttributeRule(1, ATTR_MATCHER, ExactMatcher.create("mismatch"));
+
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_2, REQ, TASKS).getResourcesCount());
+        assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MISMATCH, REQ, TASKS).getResourcesCount());
+    }
+
+    @Test
     public void testLimitTwo() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
 
         assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ, TASKS).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ, TASKS).getResourcesCount());
@@ -223,7 +254,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitTwoWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
 
         assertEquals(rule.toString(), 2, rule.filter(OFFER_NO_ATTRS, REQ_WITH_TASK_NO_ATTRS, TASKS).getResourcesCount());
         assertEquals(rule.toString(), 2, rule.filter(OFFER_ATTR_MATCH_1, REQ_WITH_TASK_NO_ATTRS, TASKS).getResourcesCount());
@@ -278,7 +309,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitTwoDuplicates() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
 
         Collection<TaskInfo> tasks = Arrays.asList(
                 TASK_NO_ATTRS, TASK_EMPTY_ATTRS,
@@ -316,7 +347,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testLimitTwoDuplicatesWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
 
         Collection<TaskInfo> tasks = Arrays.asList(
                 TASK_NO_ATTRS, TASK_EMPTY_ATTRS,
@@ -414,13 +445,27 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testSerializeDeserialize() throws IOException {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_SELECTOR);
+        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = new MaxPerAttributeRule(0, ATTR_SELECTOR);
+        rule = new MaxPerAttributeRule(0, ATTR_MATCHER, RegexMatcher.create("hello"));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
+    }
+
+    @Test
+    public void testDeserializeNoOptionalTaskFilter() throws IOException {
+        String str = "{ '@type': 'MaxPerAttributeRule', 'max': 2, 'matcher': { '@type': 'AnyMatcher' } }".replace('\'', '"');
+        SerializationUtils.fromString(str,
+                PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
+    }
+
+    @Test
+    public void testDeserializeAllParams() throws IOException {
+        String str = "{ '@type': 'MaxPerAttributeRule', 'max': 2, 'matcher': { '@type': 'AnyMatcher' }, 'task_filter': { '@type': 'ExactMatcher', 'string': 'foo' } }".replace('\'', '"');
+        SerializationUtils.fromString(str,
+                PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }
 
     private static TaskInfo getTask(String id, Offer offer) {
