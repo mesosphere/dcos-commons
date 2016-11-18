@@ -1,0 +1,49 @@
+#!/bin/sh
+
+if [ -z $1 ]; then
+	echo "You must provide the name of the project as the first argument"
+	echo "Usage: ./new-service <dir-path>/<project-name>"
+	echo "Example: ./new-service examples/kafka"
+	exit 1
+elif [ -d $1 ]; then
+	echo "A project with the given name already exists. Choose a different name"
+	exit 1
+fi
+
+PROJECT_NAME=$(basename $1)
+PROJECT_PATH=$(dirname $1)
+
+if [ ! -d $PROJECT_PATH ]; then
+	mkdir -p $PROJECT_PATH
+fi
+
+cp -R frameworks/helloworld $1
+rm -rf $1/build
+rm -rf $1/cli/python/build/lib/bin_wrapper/binaries
+rm -rf $1/cli/dcos-hello-world/dcos-*
+rm -rf $1/cli/python/dist/bin_wrapper-0.0.1-py2.py3-none-any.whl
+mv $1/cli/dcos-hello-world $1/cli/dcos-$PROJECT_NAME
+
+if [ ! -d $1 ]; then
+	echo "Failed to create new project"
+	exit 1
+fi
+
+find $1 -type f -exec sed -i.bak "s/hello[-]*world/$PROJECT_NAME/g" {} \;
+find $1 -type f -name *.bak -exec rm {} \;
+
+if [ $? -eq 0 ]; then
+	echo "" >> settings.gradle
+	if grep -q $PROJECT_NAME settings.gradle 
+	then
+	  echo "include '$1'" >> settings.gradle
+	  echo "project(\":$1\").name = \"$1\"" >> settings.gradle
+	else
+	  echo "include '$1'" >> settings.gradle
+	  echo "project(\":$1\").name = \"$PROJECT_NAME\"" >> settings.gradle
+	fi
+	echo "New project created successfully"
+else
+	echo "Failed to create new project"
+	exit 1
+fi
