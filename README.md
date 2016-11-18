@@ -37,7 +37,7 @@ From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-
   ```
   cd dcos-commons/ && ./build-dcos-docker.sh
   ```
-4. Visit your [DC/OS dashboard](http://172.17.0.2/) to verify your development environment is running,
+4. Visit the DC/OS cluster [dashboard](http://172.17.0.2/) to verify your development environment is running.
 
 5. Enter your development environment.
   ```
