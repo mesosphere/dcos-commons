@@ -60,8 +60,8 @@ public class DefaultRecoveryPlanManagerTest {
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
             ResourceTestUtils.getDesiredMem(TestPodFactory.MEM));
 
-    private static TaskInfo TASK_INFO = TaskTestUtils.getTaskInfo(resources);
-    private static Collection<TaskInfo> TASK_INFOS = Collections.singletonList(TASK_INFO);
+    private TaskInfo TASK_INFO = TaskTestUtils.getTaskInfo(resources);
+    private Collection<TaskInfo> TASK_INFOS = Collections.singletonList(TASK_INFO);
 
     private DefaultRecoveryPlanManager recoveryManager;
     private RecoveryRequirementProvider recoveryRequirementProvider;
@@ -78,16 +78,6 @@ public class DefaultRecoveryPlanManagerTest {
     private ServiceSpec serviceSpec;
 
     private static TestingServer testingServer;
-
-
-    private RecoveryRequirement getRecoveryRequirement(OfferRequirement offerRequirement) {
-        return getRecoveryRequirement(offerRequirement, RecoveryRequirement.RecoveryType.NONE);
-    }
-
-    private RecoveryRequirement getRecoveryRequirement(OfferRequirement offerRequirement,
-                                                       RecoveryRequirement.RecoveryType recoveryType) {
-        return new DefaultRecoveryRequirement(offerRequirement, recoveryType, null);
-    }
 
     private RecoveryRequirement getRecoveryRequirement(OfferRequirement offerRequirement,
                                                        RecoveryRequirement.RecoveryType recoveryType,
