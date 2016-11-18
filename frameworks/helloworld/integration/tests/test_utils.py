@@ -9,7 +9,7 @@ PACKAGE_NAME = 'hello-world'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-DEFAULT_TASK_COUNT = 5 # 2 metadata nodes, 3 data nodes
+DEFAULT_TASK_COUNT = 5 # 2 hello nodes, 3 world nodes
 
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'
@@ -28,7 +28,7 @@ else:
     DEFAULT_OPTIONS_DICT = {}
 
 
-def check_health():
+def check_health(expected_tasks = DEFAULT_TASK_COUNT):
     def fn():
         try:
             return shakedown.get_service_tasks(PACKAGE_NAME)

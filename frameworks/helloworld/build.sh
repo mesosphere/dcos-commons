@@ -54,6 +54,3 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
         cli/dcos-hello-world/dcos-hello-world* \
         cli/python/dist/*.whl
 fi
-
-echo "Install your package via the following command"
-echo "dcos package install <package-name>"

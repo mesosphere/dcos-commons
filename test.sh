@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. As such this focuses on executing tests for the Reference Scheduler.
+# dcos-commons. As such this focuses on executing tests for the Hello World Scheduler.
 # Individual projects/examples within the repository may have their own test scripts for exercising
 # additional custom functionality.
 
@@ -11,13 +11,13 @@ set -e
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
-# Path to reference scheduler:
-REFERENCE_DIR=${REPO_ROOT_DIR}/frameworks/hello-world
+# Path to hello world scheduler:
+REFERENCE_DIR=${REPO_ROOT_DIR}/frameworks/helloworld
 
 # Build/upload reference scheduler artifact if one is not directly provided:
 if [ -z "$STUB_UNIVERSE_URL" ]; then
-    # Build/upload reference scheduler:
-    ${REFERENCE_DIR}/build.sh | tee ${REPO_ROOT_DIR}/reference-build-output
+    # Build/upload hello world scheduler:
+    ${REFERENCE_DIR}/build.sh aws | tee ${REPO_ROOT_DIR}/reference-build-output
     export STUB_UNIVERSE_URL=$(tail -n 1 ${REPO_ROOT_DIR}/reference-build-output)
     rm -f ${REPO_ROOT_DIR}/reference-build-output
     echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"

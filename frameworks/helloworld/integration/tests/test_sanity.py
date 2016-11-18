@@ -34,49 +34,49 @@ def test_install_worked():
 
 
 @pytest.mark.sanity
-def test_bump_metadata_cpus():
+def test_bump_hello_cpus():
     check_health()
-    meta_data_ids = get_task_ids('meta-data')
-    print('meta-data ids: ' + str(meta_data_ids))
+    hello_ids = get_task_ids('hello')
+    print('hello ids: ' + str(hello_ids))
 
-    data_ids = get_task_ids('data')
-    print('data ids: ' + str(data_ids))
+    world_ids = get_task_ids('world')
+    print('world ids: ' + str(world_ids))
 
     config = get_marathon_config()
-    cpus = float(config['env']['METADATA_CPU'])
-    config['env']['METADATA_CPU'] = str(cpus + 0.1)
+    cpus = float(config['env']['HELLO_CPUS'])
+    config['env']['HELLO_CPUS'] = str(cpus + 0.1)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
-    tasks_updated('meta-data', meta_data_ids)
-    tasks_not_updated('data', data_ids)
+    tasks_updated('hello', hello_ids)
+    tasks_not_updated('world', world_ids)
 
     check_health()
 
 
 @pytest.mark.sanity
-def test_bump_data_nodes():
+def test_bump_world_nodes():
     check_health()
 
-    meta_data_ids = get_task_ids('meta-data')
-    print('meta-data ids: ' + str(meta_data_ids))
+    hello_ids = get_task_ids('hello')
+    print('hello ids: ' + str(hello_ids))
 
-    data_ids = get_task_ids('data')
-    print('data ids: ' + str(data_ids))
+    world_ids = get_task_ids('world')
+    print('world ids: ' + str(world_ids))
 
     config = get_marathon_config()
-    dataNodeCount = int(config['env']['DATA_COUNT']) + 1
-    config['env']['DATA_COUNT'] = str(dataNodeCount)
+    worldNodeCount = int(config['env']['WORLD_COUNT']) + 1
+    config['env']['WORLD_COUNT'] = str(worldNodeCount)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
     check_health(DEFAULT_TASK_COUNT + 1)
-    tasks_not_updated('meta-data', meta_data_ids)
-    tasks_not_updated('data', data_ids)
+    tasks_not_updated('hello', hello_ids)
+    tasks_not_updated('world', world_ids)
 
 
 def get_task_ids(prefix):
