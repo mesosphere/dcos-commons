@@ -78,14 +78,14 @@ public class MarathonConstraintParser {
         }
         List<List<String>> rows = splitConstraints(marathonConstraints);
         if (rows.size() == 1) {
+            // skip AndRule:
             return parseRow(rows.get(0));
-        } else {
-            List<PlacementRule> rowRules = new ArrayList<>();
-            for (List<String> row : rows) {
-                rowRules.add(parseRow(row));
-            }
-            return new AndRule(rowRules);
         }
+        List<PlacementRule> rowRules = new ArrayList<>();
+        for (List<String> row : rows) {
+            rowRules.add(parseRow(row));
+        }
+        return new AndRule(rowRules);
     }
 
     /**
@@ -129,7 +129,8 @@ public class MarathonConstraintParser {
         // The marathon doc uses a format like: '[["a", "b", "c"], ["d", "e"]]'
         // Meanwhile the marathon web interface uses a format like: 'a:b:c,d:e'
         try {
-            // First try: ["a", "b", "c"] (not technically correct but lets be lenient here)
+            // First try: ["a", "b", "c"]
+            // This format technically isn't present in the Marathon docs, but we're being lenient here.
             List<String> row = mapper.readValue(marathonConstraints, new TypeReference<List<String>>(){});
             LOGGER.debug("Flat list '{}' => single row: '{}'", marathonConstraints, row);
             return Arrays.asList(row);

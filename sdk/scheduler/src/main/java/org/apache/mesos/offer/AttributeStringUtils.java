@@ -65,7 +65,7 @@ public class AttributeStringUtils {
      * @see #split(String) which does the opposite
      */
     public static String join(String name, String value) {
-        return String.format("%s%c%s", name, ATTRIBUTE_KEYVAL_SEPARATOR, value);
+        return String.join(String.valueOf(ATTRIBUTE_KEYVAL_SEPARATOR), name, value);
     }
 
     /**
