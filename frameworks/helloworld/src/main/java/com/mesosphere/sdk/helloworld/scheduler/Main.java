@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Hello World Service.
+ * Multi-Pod Hello World Service.
  */
 public class Main {
     private static final String SLEEP_DURATION_KEY = "SLEEP_DURATION";
