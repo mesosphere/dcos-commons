@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.DefaultServiceSpec;
 import org.apache.mesos.specification.ServiceSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -19,6 +21,7 @@ import java.util.Set;
  * Generates {@link ServiceSpec} from a given YAML definition.
  */
 public class YAMLServiceSpecFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLServiceSpecFactory.class);
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
@@ -28,6 +31,7 @@ public class YAMLServiceSpecFactory {
 
     public static final RawServiceSpecification generateRawSpecFromYAML(final String yaml) throws Exception {
         final String yamlWithEnv = TaskUtils.applyEnvToMustache(yaml, System.getenv());
+        LOGGER.info("Rendered ServiceSpec: {}", yamlWithEnv);
         if (!TaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }
