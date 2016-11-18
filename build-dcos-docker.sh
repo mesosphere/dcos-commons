@@ -54,7 +54,7 @@ DCOS_BOX_URL="file:/$(pwd)/${ARTIFACT_BOX_BASE}" vagrant/resize-disk.sh ${VM_DIS
 
 echo "### Launching cluster and installing tools in VM"
 # Note: every variable that isn't escaped with a backslash is injected from THIS script.
-cat > start.sh <<EOF
+cat > setup.sh <<EOF
 #!/bin/bash
 set -e
 
@@ -113,7 +113,6 @@ echo '### Configure env' &&
 echo 'export GOPATH=/home/vagrant/go' >> ~/.bash_profile &&
 echo 'export JAVA_HOME=\$(echo /opt/jdk*)' >> ~/.bash_profile &&
 echo 'export PATH=/home/vagrant:\$JAVA_HOME/bin:/usr/local/bin:\$PATH' >> ~/.bash_profile &&
-echo 'cd /vagrant/' >> ~/.bash_profile &&
 . ~/.bash_profile &&
 
 echo '### Point CLI to cluster' &&
@@ -128,8 +127,52 @@ chmod 600 /home/vagrant/.ssh/id_rsa &&
 echo '### Wait for cluster to finish coming up' &&
 make postflight
 EOF
-chmod +x start.sh
-vagrant ssh -c "/vagrant/start.sh"
+chmod +x setup.sh
+vagrant ssh -c "/vagrant/setup.sh"
+
+echo "### Copying start-dcos.sh into image"
+cat > start-dcos.sh <<EOF
+#!/bin/bash
+
+STOPPED_MASTERS=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-master | sort)
+STOPPED_PUB_AGENTS=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-pubagent | sort)
+STOPPED_PRIV_AGENTS=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-agent | sort)
+
+restart_nodes() {
+    for node in \$1; do
+        docker start \$node
+        sleep 2
+    done
+}
+
+echo "Launching \$(echo \$STOPPED_MASTERS | wc -w) master(s)"
+restart_nodes "\$STOPPED_MASTERS"
+
+# mystery: need to kick 'make' before starting agents, or else this happens:
+# dcos-docker-agent1 mesos-agent[3545]:   3546 systemd.cpp:325] Started systemd slice 'mesos_executors.slice'
+# dcos-docker-agent1 mesos-agent[3545]: Failed to initialize systemd: Failed to locate systemd cgroups hierarchy: does not exist
+
+NUM_STOPPED_PUB_AGENTS=\$(echo \$STOPPED_PUB_AGENTS | wc -w)
+if [ \$NUM_STOPPED_PUB_AGENTS -eq 0 ]; then
+    echo "No public agents to launch"
+else
+    echo "Launching \$NUM_STOPPED_PUB_AGENTS public agents"
+    PUBLIC_AGENTS=\$NUM_STOPPED_PUB_AGENTS make -C dcos-docker/ public_agent
+    restart_nodes "\$STOPPED_PUB_AGENTS"
+fi
+
+NUM_STOPPED_PRIV_AGENTS=\$(echo \$STOPPED_PRIV_AGENTS | wc -w)
+if [ \$NUM_STOPPED_PRIV_AGENTS -eq 0 ]; then
+    echo "No private agents to launch"
+else
+    echo "Launching \$NUM_STOPPED_PRIV_AGENTS private agents"
+    AGENTS=\$NUM_STOPPED_PRIV_AGENTS make -C dcos-docker/ agent
+    restart_nodes "\$STOPPED_PRIV_AGENTS"
+fi
+EOF
+chmod +x start-dcos.sh
+# copy makefile (+ file dependency) from dcos-docker repo for 'kick':
+vagrant ssh -c "cp /vagrant/start-dcos.sh /vagrant/Makefile /vagrant/common.mk ~"
 
 ${SCRIPT_DIR}/node-route.sh
 
