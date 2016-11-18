@@ -7,6 +7,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.config.*;
+import org.apache.mesos.config.api.ConfigResource;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.config.validate.PodSpecsCannotShrink;
 import org.apache.mesos.config.validate.TaskVolumesCannotChange;
@@ -424,6 +425,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore, new JsonPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
+        resources.add(new ConfigResource<ServiceSpec>(configStore));
         resourcesQueue.put(resources);
     }
 
