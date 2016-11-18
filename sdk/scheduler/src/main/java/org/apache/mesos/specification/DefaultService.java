@@ -1,5 +1,6 @@
 package org.apache.mesos.specification;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -41,56 +42,69 @@ public class DefaultService implements Service {
 
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
-    private List<Plan> plans;
+    private Collection<Plan> plans;
     private ConfigStore<ServiceSpec> configTargetStore;
     private OfferRequirementProvider offerRequirementProvider;
 
     public DefaultService() {
     }
 
-    public DefaultService(String yamlSpecification) throws Exception {
+    public DefaultService(String yamlString) throws Exception {
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(yamlSpecification);
-        init(rawServiceSpecification);
+                .generateRawSpecFromYAML(yamlString);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
+        register(serviceSpec, plans);
     }
 
-    public DefaultService(File pathToYamlSpecification) throws Exception {
+    public DefaultService(File yamlFile) throws Exception {
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(pathToYamlSpecification);
-        init(rawServiceSpecification);
+                .generateRawSpecFromYAML(yamlFile);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
+        register(serviceSpec, plans);
     }
 
-    private void init(RawServiceSpecification rawServiceSpecification) throws Exception {
-        this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        this.apiPort = serviceSpec.getApiPort();
-        this.zkConnectionString = serviceSpec.getZookeeperConnection();
+    public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
+        register(serviceSpec, plans);
+    }
+
+    private void init(ServiceSpec serviceSpec, Collection<Plan> plans) throws Exception {
+        this.serviceSpec = serviceSpec;
+        this.plans = plans;
+        this.apiPort = this.serviceSpec.getApiPort();
+        this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
 
         try {
-            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString, Arrays.asList());
+            configTargetStore = DefaultScheduler
+                    .createConfigStore(this.serviceSpec, zkConnectionString, Arrays.asList());
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create config store", e);
             throw new IllegalStateException(e);
         }
 
         ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configTargetStore);
+                .updateConfig(this.serviceSpec, stateStore, configTargetStore);
 
         offerRequirementProvider = DefaultScheduler
                 .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+    }
 
+    @VisibleForTesting
+    protected Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
+            throws Exception {
         DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore,
                 offerRequirementProvider);
-        this.plans = new LinkedList<>();
+        List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
             List<RawPlan> rawPlans = YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification);
             List<Plan> realPlans = rawPlans.stream()
                     .map(rawPlan -> planGenerator.generate(rawPlan, serviceSpec.getPods()))
                     .collect(Collectors.toList());
-            this.plans.addAll(realPlans);
+            plans.addAll(realPlans);
         }
-
-        register(serviceSpec, plans);
+        return plans;
     }
 
     /**
@@ -99,7 +113,13 @@ public class DefaultService implements Service {
      */
     @Override
     public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
-        this.serviceSpec = serviceSpecification;
+        try {
+            init(serviceSpecification, plans);
+        } catch (Exception e) {
+            LOGGER.error("Error registering serviceSpecification: " + serviceSpecification
+                    + " with plans: " + plans, e);
+            throw new IllegalStateException(e);
+        }
 
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
                 serviceSpecification,
@@ -117,7 +137,7 @@ public class DefaultService implements Service {
     }
 
 
-    public List<Plan> getPlans() {
+    public Collection<Plan> getPlans() {
         return plans;
     }
 
