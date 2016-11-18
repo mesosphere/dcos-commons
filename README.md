@@ -27,7 +27,7 @@ The __DC/OS SDK__ is a collection of tools, libraries, and documentation for pac
 ===============
 ### Quick Start
 
-From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [VirtualBox](https://www.virtualbox.org/wiki/Downloads), and [Vagrant](https://www.vagrantup.com/downloads.html), run:
+From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [VirtualBox 5.0.x](https://www.virtualbox.org/wiki/Download_Old_Builds_5_0), and [Vagrant 1.8.4](https://releases.hashicorp.com/vagrant/1.8.4/), run:
 
 1. Download the DC/OS SDK.
   ```
