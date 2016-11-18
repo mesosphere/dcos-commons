@@ -6,6 +6,7 @@ DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
 DEFAULT_SETTINGS_MAPPINGS = {
     "settings": {
+        "index.unassigned.node_left.delayed_timeout": "0",
         "number_of_shards": DEFAULT_NUMBER_OF_SHARDS,
         "number_of_replicas": DEFAULT_NUMBER_OF_REPLICAS},
     "mappings": {

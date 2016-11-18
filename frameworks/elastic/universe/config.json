@@ -46,7 +46,7 @@
         "cpus": {
           "description": "Node cpu requirements",
           "type": "number",
-          "default": 0.5
+          "default": 1.0
         },
         "mem": {
           "description": "Node mem requirements",
@@ -108,12 +108,12 @@
         "cpus": {
           "description": "Node cpu requirements",
           "type": "number",
-          "default": 0.5
+          "default": 1.0
         },
         "mem": {
           "description": "Node mem requirements",
           "type": "integer",
-          "default": 1024
+          "default": 4096
         },
         "heap": {
           "description": "The Elasticsearch process JVM heap configuration object",
@@ -122,7 +122,7 @@
             "size": {
               "type": "integer",
               "description": "The amount of JVM heap, in MB, allocated to the Elasticsearch node process.",
-              "default": 512
+              "default": 2048
             }
           },
           "additionalProperties": false,
@@ -133,7 +133,7 @@
         "disk": {
           "description": "Node disk requirements (only respected with persistent volumes)",
           "type": "integer",
-          "default": 5000
+          "default": 10000
         },
         "mounted_disk": {
           "type": "boolean",
@@ -234,12 +234,12 @@
         "cpus": {
           "description": "Node cpu requirements",
           "type": "number",
-          "default": 0.5
+          "default": 1.0
         },
         "mem": {
           "description": "Node mem requirements",
           "type": "integer",
-          "default": 1024
+          "default": 2048
         },
         "heap": {
           "description": "The Elasticsearch process JVM heap configuration object",
@@ -248,7 +248,7 @@
             "size": {
               "type": "integer",
               "description": "The amount of JVM heap, in MB, allocated to the Elasticsearch node process.",
-              "default": 512
+              "default": 1024
             }
           },
           "additionalProperties": false,
