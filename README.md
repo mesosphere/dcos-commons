@@ -1,7 +1,6 @@
 <p align="left">
   <img src="https://cl.ly/023Z3t2N1j1K/download/dcos-sdk-logo.png" width="250"/>
 </p>
-=========
 [__Quick Start__](README.md#quick-start) |
 [__FAQ__](docs/faq.md) |
 [__Javadocs__](http://mesosphere.github.io/dcos-commons/api/) |
