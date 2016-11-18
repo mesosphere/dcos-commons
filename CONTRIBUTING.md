@@ -1,12 +1,13 @@
 Contributors Guide
 ==================
-[__Quick Start__!](README.md#quick-start) |
+[__Quick Start__](README.md#quick-start) |
+[__FAQ__](docs/faq.md) |
 [__Javadocs__](http://mesosphere.github.io/dcos-commons/api/) |
 [__Contributing__!](CONTRIBUTING.md) |
 [__Slack__](http://chat.dcos.io)
 
 ==================
-Discuss contributions to DC/OS SDK using GitHub [issues](https://dcosjira.atlassian.net/secure/Dashboard.jspa) and make contributions with GitHub [pull requests](https://github.com/mesosphere/dcos-commons/pulls).
+Discuss contributions to DC/OS SDK using GitHub [issues](https://github.com/mesosphere/dcos-commons/issues) and make contributions with GitHub [pull requests](https://github.com/mesosphere/dcos-commons/pulls).
 
 ### Proposing Features
 If you would like to propose a new feature or a significant change, first open an issue to discuss it.
