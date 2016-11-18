@@ -457,6 +457,7 @@ public class OfferEvaluator {
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         taskBuilder = TaskUtils.setOfferAttributes(taskBuilder, launchOffer);
+        taskBuilder = TaskUtils.setHostname(taskBuilder, launchOffer);
         taskBuilder = TaskUtils.setTaskType(taskBuilder, taskType);
 
         taskBuilder = ResourceUtils.setDiscoveryInfo(taskBuilder, fulfilledTaskResources);

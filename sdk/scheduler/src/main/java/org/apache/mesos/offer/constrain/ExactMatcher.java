@@ -2,6 +2,7 @@ package org.apache.mesos.offer.constrain;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.offer.AttributeStringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -13,6 +14,10 @@ public class ExactMatcher implements StringMatcher {
 
     public static StringMatcher create(String str) {
         return new ExactMatcher(str);
+    }
+
+    public static StringMatcher createAttribute(String name, String value) {
+        return create(AttributeStringUtils.join(name, value));
     }
 
     private final String str;

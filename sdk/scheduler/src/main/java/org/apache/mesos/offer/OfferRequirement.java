@@ -70,7 +70,7 @@ public class OfferRequirement {
      *
      * @see #OfferRequirement(String, Collection, Optional, Optional)
      */
-    public static OfferRequirement create (String taskType, Collection<TaskInfo> taskInfos)
+    public static OfferRequirement create(String taskType, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
         return create(taskType, taskInfos, Optional.empty());
     }

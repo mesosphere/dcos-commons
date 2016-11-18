@@ -37,6 +37,11 @@ public class TaskUtils {
     private static final String OFFER_ATTRIBUTES_KEY = "offer_attributes";
 
     /**
+     * Label key against which the offer agent's hostname is stored.
+     */
+    private static final String OFFER_HOSTNAME_KEY = "offer_hostname";
+
+    /**
      * Label key against which the Task Type is stored.
      */
     private static final String TASK_TYPE_KEY = "task_type";
@@ -191,6 +196,27 @@ public class TaskUtils {
             return new ArrayList<>();
         }
         return AttributeStringUtils.toStringList(joinedAttributes.get());
+    }
+
+    /**
+     * Stores the {@link Attribute}s from the provided {@link Offer} into the {@link TaskInfo} as a
+     * {@link Label}. Any existing stored attributes are overwritten.
+     */
+    public static TaskInfo.Builder setHostname(TaskInfo.Builder taskBuilder, Offer launchOffer) {
+        return taskBuilder.setLabels(
+                withLabelSet(taskBuilder.getLabels(), OFFER_HOSTNAME_KEY, launchOffer.getHostname()));
+    }
+
+    /**
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * embedded in the provided {@link TaskInfo}.
+     */
+    public static String getHostname(TaskInfo taskInfo) throws TaskException {
+        Optional<String> hostname = findLabelValue(taskInfo.getLabels(), OFFER_HOSTNAME_KEY);
+        if (!hostname.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + OFFER_HOSTNAME_KEY);
+        }
+        return hostname.get();
     }
 
     /**

@@ -3,12 +3,14 @@ package com.mesosphere.sdk.reference.scheduler;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.ResourceUtils;
 import org.apache.mesos.offer.ValueUtils;
+import org.apache.mesos.offer.constrain.MarathonConstraintParser;
 import org.apache.mesos.offer.constrain.TaskTypeRule;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,12 +31,14 @@ public class Main {
     private static final double TASK_METADATA_CPU = Double.valueOf(System.getenv("METADATA_CPU"));
     private static final double TASK_METADATA_MEM_MB = Double.valueOf(System.getenv("METADATA_MEM"));
     private static final double TASK_METADATA_DISK_MB = Double.valueOf(System.getenv("METADATA_DISK"));
+    private static final String TASK_METADATA_CONSTRAINT = System.getenv("METADATA_CONSTRAINT");
 
     private static final String TASK_DATA_NAME = "data";
     private static final int TASK_DATA_COUNT = Integer.parseInt(System.getenv("DATA_COUNT"));
     private static final double TASK_DATA_CPU = Double.valueOf(System.getenv("DATA_CPU"));
     private static final double TASK_DATA_MEM_MB = Double.valueOf(System.getenv("DATA_MEM"));
     private static final double TASK_DATA_DISK_MB = Double.valueOf(System.getenv("DATA_DISK"));
+    private static final String TASK_DATA_CONSTRAINT = System.getenv("DATA_CONSTRAINT");
 
     private static final double SLEEP_DURATION = Double.valueOf(System.getenv("SLEEP_DURATION"));
 
@@ -46,7 +50,7 @@ public class Main {
         new DefaultService(API_PORT).register(getServiceSpecification());
     }
 
-    private static ServiceSpecification getServiceSpecification() {
+    private static ServiceSpecification getServiceSpecification() throws IOException {
         return new DefaultServiceSpecification(
                 SERVICE_NAME,
                 Arrays.asList(
@@ -58,7 +62,8 @@ public class Main {
                                 // no config info/template files
                                 Collections.emptyList(),
                                 // avoid colocating with other metadata instances (<=1 instance/agent):
-                                Optional.of(TaskTypeRule.avoid(TASK_METADATA_NAME)),
+                                Optional.of(MarathonConstraintParser.parseWith(
+                                        TaskTypeRule.avoid(TASK_METADATA_NAME), TASK_METADATA_CONSTRAINT)),
                                 Optional.of(getHealthCheck(TASK_METADATA_NAME))),
                         DefaultTaskSet.create(TASK_DATA_COUNT,
                                 TASK_DATA_NAME,
@@ -68,7 +73,8 @@ public class Main {
                                 // no config info/template files
                                 Collections.emptyList(),
                                 // avoid colocating with other data instances (<=1 instance/agent):
-                                Optional.of(TaskTypeRule.avoid(TASK_DATA_NAME)),
+                                Optional.of(MarathonConstraintParser.parseWith(
+                                        TaskTypeRule.avoid(TASK_DATA_NAME), TASK_DATA_CONSTRAINT)),
                                 Optional.of(getHealthCheck(TASK_DATA_NAME)))));
     }
 
