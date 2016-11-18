@@ -2,7 +2,10 @@ import os
 import time
 
 import dcos
+import inspect
+import os
 import shakedown
+import subprocess
 
 
 PACKAGE_NAME = 'hello-world'
@@ -150,6 +153,10 @@ def marathon_api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 
 
+def marathon_api_url_with_param(basename, path_param):
+    return '{}/{}'.format(marathon_api_url(basename), path_param)
+
+
 def request(request_fn, *args, **kwargs):
     def success_predicate(response):
         return (
@@ -158,3 +165,10 @@ def request(request_fn, *args, **kwargs):
         )
 
     return spin(request_fn, success_predicate, *args, **kwargs)
+
+
+def run_dcos_cli_cmd(cmd):
+    print('Running {}'.format(cmd))
+    stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
+    print(stdout)
+    return stdout
