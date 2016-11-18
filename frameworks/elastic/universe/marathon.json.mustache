@@ -1,7 +1,7 @@
 {
   "id": "{{service.name}}",
-  "cpus": 1.0,
-  "mem": 1230,
+  "cpus": 0.5,
+  "mem": 1024,
   "instances": 1,
   "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env &&./scheduler/bin/elastic",
   "labels": {

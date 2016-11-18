@@ -27,6 +27,11 @@ OPTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'op
 COMPLETE_CLUSTER_OPTIONS_FILE = os.path.join(OPTIONS_DIR, 'complete.json')
 
 
+def gc_frameworks():
+    for host in shakedown.get_private_agents():
+        shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
+
+
 def as_json(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
