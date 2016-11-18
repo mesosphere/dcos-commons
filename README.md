@@ -37,24 +37,24 @@ From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-
   ```
   cd dcos-commons/ && ./build-dcos-docker.sh
   ```
-4. Visit the DC/OS cluster [dashboard](http://172.17.0.2/) to verify your development environment is running.
+  * Visit the DC/OS cluster [dashboard](http://172.17.0.2/) to verify your development environment is running.
 
-5. Enter your development environment.
+3. Enter your development environment.
   ```
   cd dcos-docker/ && vagrant ssh
   ```
   
-6. Build your hello-world example project.
+4. Build your hello-world example project.
   ```
   cd /dcos-commons/frameworks/helloworld/ && ./build.sh local
   ```
   
-7. Start your hello-world DC/OS service.
+5. Start your hello-world DC/OS service.
   ```
   dcos package install hello-world
   ```
   
-8. Explore your hello-world service.
+6. Explore your hello-world service.
   * Visit the [dashboard](http://172.17.0.2/#/services/%2Fhello-world/) to see your hello-world service running.
   * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
 
