@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
+import org.apache.mesos.scheduler.Observable;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
  * optionally contain a List of errors associated with the phase.
  *
- * A {@DefaultPlan} is an {@Observable} and will forward updates from its {@Phase}s.
+ * A {@link DefaultPlan} is an {@link Observable} and will forward updates from its {@link Phase}s.
  */
 public class DefaultPlan extends ChainedObserver implements Plan {
 

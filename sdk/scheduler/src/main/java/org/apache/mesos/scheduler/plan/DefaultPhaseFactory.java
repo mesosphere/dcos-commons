@@ -1,32 +1,24 @@
 package org.apache.mesos.scheduler.plan;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
-import org.apache.mesos.scheduler.plan.strategy.StrategyGenerator;
-import org.apache.mesos.specification.TaskSet;
+import org.apache.mesos.specification.PodInstance;
+import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.TaskSpec;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * This class generates Phases given PhaseSpecifications.
  */
 public class DefaultPhaseFactory implements PhaseFactory {
-
     private final StepFactory stepFactory;
-    private final StrategyGenerator<Step> strategyGenerator;
 
     public DefaultPhaseFactory(StepFactory stepFactory) {
-        this(stepFactory, new SerialStrategy.Generator<>());
-    }
-
-    public DefaultPhaseFactory(StepFactory stepFactory, StrategyGenerator<Step> strategyGenerator) {
         this.stepFactory = stepFactory;
-        this.strategyGenerator = strategyGenerator;
     }
 
     public static Phase getPhase(String name, List<Step> steps, Strategy<Step> strategy) {
@@ -38,39 +30,41 @@ public class DefaultPhaseFactory implements PhaseFactory {
     }
 
     @Override
-    public Phase getPhase(TaskSet taskSet) {
-        return getPhase(taskSet, strategyGenerator.generate());
-    }
-
-    @Override
-    public Phase getPhase(TaskSet taskSet, Strategy<Step> strategy) {
+    public Phase getPhase(PodSpec podSpec, Strategy<Step> strategy) {
         return new DefaultPhase(
-                taskSet.getName(),
-                getSteps(taskSet),
+                podSpec.getType(),
+                getSteps(podSpec),
                 strategy,
                 Collections.emptyList());
     }
 
     @Override
-    public List<Phase> getPhases(List<TaskSet> taskSets, StrategyGenerator<Step> strategyGenerator) {
-        return taskSets.stream()
-                .map(taskSet -> getPhase(taskSet, strategyGenerator.generate()))
-                .collect(Collectors.toList());
+    public Phase getPhase(PodSpec podSpec) {
+        return getPhase(podSpec, new SerialStrategy<>());
     }
 
-    private List<Step> getSteps(TaskSet taskSet) {
-        return taskSet.getTaskSpecifications().stream()
-                .map(taskSpec -> {
-                    try {
-                        return stepFactory.getStep(taskSpec);
-                    } catch (Step.InvalidStepException e) {
-                        return new DefaultStep(
-                                taskSpec.getName(),
-                                Optional.empty(),
-                                Status.ERROR,
-                                Arrays.asList(ExceptionUtils.getStackTrace(e)));
-                    }
-                })
-                .collect(Collectors.toList());
+    private List<Step> getSteps(PodSpec podSpec) {
+        List<Step> steps = new ArrayList<>();
+        for (int i = 0; i < podSpec.getCount(); i++) {
+            PodInstance podInstance = new DefaultPodInstance(podSpec, i);
+
+            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .collect(Collectors.toList());
+
+            try {
+                steps.add(stepFactory.getStep(podInstance, tasksToLaunch));
+            } catch (Step.InvalidStepException | InvalidRequirementException e) {
+                steps.add(new DefaultStep(
+                        PodInstance.getName(podSpec, i),
+                        Optional.empty(),
+                        Status.ERROR,
+                        podInstance,
+                        Arrays.asList(ExceptionUtils.getStackTrace(e))));
+            }
+        }
+
+        return steps;
     }
 }

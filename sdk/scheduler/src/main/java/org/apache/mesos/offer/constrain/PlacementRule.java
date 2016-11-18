@@ -42,8 +42,8 @@ public interface PlacementRule {
      * Must be explicitly implemented by all PlacementRules.
      *
      * @see org.apache.mesos.offer.TaskUtils#areDifferent(
-     * org.apache.mesos.specification.TaskSpecification,
-     * org.apache.mesos.specification.TaskSpecification)
+     * org.apache.mesos.specification.TaskSpec,
+     * org.apache.mesos.specification.TaskSpec)
      */
     boolean equals(Object o);
 }

@@ -3,7 +3,6 @@ apply plugin: 'checkstyle'
 apply plugin: 'pmd'
 apply plugin: 'jacoco'
 
-
 tasks.withType(FindBugs) {
   excludeFilter = file("$rootProject.projectDir/gradle/findbugs/excludeFilter.xml")
   maxHeapSize = '1024m'
@@ -14,16 +13,30 @@ tasks.withType(FindBugs) {
 }
 
 checkstyle {
-  configFile = file("$rootProject.projectDir/gradle/checkstyle/checkstyle.xml")
-  sourceSets = [project.sourceSets.main] // disable style checks on tests
+    configFile = file("$rootProject.projectDir/gradle/checkstyle/checkstyle.xml")
+    sourceSets = [project.sourceSets.main] // disable style checks on tests
 }
 
 pmd {
-  ruleSets = [
-    'java-basic',
-    'java-braces',
-    'java-clone',
-    'java-finalizers',
-    'java-imports'
-  ]
+    ruleSets = [
+        'java-basic',
+        'java-braces',
+        'java-clone',
+        'java-finalizers',
+        'java-imports'
+    ]
+}
+
+// Include unit test report in 'check'
+// (jacoco itself depends on 'test')
+check.dependsOn jacocoTestReport
+jacocoTestReport {
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: 'org/apache/mesos/testing/**')
+        })
+    }
+    reports {
+        html.destination "${buildDir}/jacoco"
+    }
 }

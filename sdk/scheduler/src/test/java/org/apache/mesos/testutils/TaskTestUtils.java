@@ -21,8 +21,18 @@ public class TaskTestUtils {
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setCommand(TestConstants.COMMAND_INFO)
                 .setContainer(TestConstants.CONTAINER_INFO);
-        builder = TaskUtils.setTaskType(builder, TestConstants.TASK_TYPE);
+        builder = TaskUtils.setType(builder, TestConstants.TASK_TYPE);
         return builder.addAllResources(resources).build();
+    }
+
+    public static List<Protos.TaskInfo> getPodTaskInfos(
+            List<Protos.Resource> resources0,
+            List<Protos.Resource> resources1) {
+
+        Protos.TaskInfo taskInfo0 = getTaskInfo(resources0);
+        Protos.TaskInfo taskInfo1 = getTaskInfo(resources1);
+
+        return Arrays.asList(taskInfo0, taskInfo1);
     }
 
     public static Protos.ExecutorInfo getExecutorInfo(Protos.Resource resource) {

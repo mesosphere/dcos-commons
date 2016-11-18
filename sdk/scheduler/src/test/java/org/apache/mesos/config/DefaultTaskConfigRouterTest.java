@@ -1,27 +1,52 @@
 package org.apache.mesos.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.mesos.specification.DefaultTaskSet;
-import org.apache.mesos.specification.TaskSet;
+import com.google.common.collect.ImmutableMap;
+import org.apache.mesos.specification.DefaultPodSpec;
+import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.TaskSpec;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link DefaultTaskConfigRouter}.
  */
 public class DefaultTaskConfigRouterTest {
+    private static TaskSpec mockTaskSpec = mock(TaskSpec.class);
+    private static List<TaskSpec> taskSpecs = Arrays.asList(mockTaskSpec);
 
-    private static final TaskSet TASK_SET_A = DefaultTaskSet.create("a", new ArrayList<>());
-    private static final TaskSet TASK_SET_B = DefaultTaskSet.create("b", new ArrayList<>());
-    private static final TaskSet TASK_SET_C = DefaultTaskSet.create("c", new ArrayList<>());
-    private static final TaskSet TASK_SET_D = DefaultTaskSet.create("d", new ArrayList<>());
+    static {
+        when(mockTaskSpec.getName()).thenReturn("mockTask");
+    }
+
+    private static final PodSpec TASK_SET_A = DefaultPodSpec.newBuilder()
+            .type("a")
+            .count(0)
+            .tasks(taskSpecs)
+            .build();
+    private static final PodSpec TASK_SET_B = DefaultPodSpec.newBuilder()
+            .type("b")
+            .count(0)
+            .tasks(taskSpecs)
+            .build();
+    private static final PodSpec TASK_SET_C = DefaultPodSpec.newBuilder()
+            .type("c")
+            .count(0)
+            .tasks(taskSpecs)
+            .build();
+    private static final PodSpec TASK_SET_D = DefaultPodSpec.newBuilder()
+            .type("d")
+            .count(0)
+            .tasks(taskSpecs)
+            .build();
 
     private static final Map<String, String> TEST_MAP = new HashMap<>();
     static {

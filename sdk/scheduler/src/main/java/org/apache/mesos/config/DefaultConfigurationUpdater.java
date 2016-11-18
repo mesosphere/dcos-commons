@@ -6,33 +6,33 @@ import org.apache.mesos.config.validate.ConfigurationValidationError;
 import org.apache.mesos.config.validate.ConfigurationValidator;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.specification.ServiceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
+import org.apache.mesos.specification.DefaultPodSpec;
+import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Handles the validation and update of a new configuration against a prior configuration, if any.
  * In the case of the DefaultConfigurationUpdater, configurations are ServiceSpecifications.
  */
-public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpecification> {
+public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationUpdater.class);
 
     private final StateStore stateStore;
-    private final ConfigStore<ServiceSpecification> configStore;
-    private final ConfigurationComparator<ServiceSpecification> configComparator;
-    private final Collection<ConfigurationValidator<ServiceSpecification>> validators;
+    private final ConfigStore<ServiceSpec> configStore;
+    private final ConfigurationComparator<ServiceSpec> configComparator;
+    private final Collection<ConfigurationValidator<ServiceSpec>> validators;
 
     public DefaultConfigurationUpdater(
             StateStore stateStore,
-            ConfigStore<ServiceSpecification> configStore,
-            ConfigurationComparator<ServiceSpecification> configComparator,
-            Collection<ConfigurationValidator<ServiceSpecification>> validators) {
+            ConfigStore<ServiceSpec> configStore,
+            ConfigurationComparator<ServiceSpec> configComparator,
+            Collection<ConfigurationValidator<ServiceSpec>> validators) {
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.configComparator = configComparator;
@@ -40,7 +40,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     }
 
     @Override
-    public UpdateResult updateConfiguration(ServiceSpecification candidateConfig) throws ConfigStoreException {
+    public UpdateResult updateConfiguration(ServiceSpec candidateConfig) throws ConfigStoreException {
         // Get the currently stored target configuration
         UUID targetConfigId;
         try {
@@ -50,7 +50,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             targetConfigId = null;
         }
 
-        ServiceSpecification targetConfig;
+        ServiceSpec targetConfig;
         if (targetConfigId != null) {
             targetConfig = configStore.fetch(targetConfigId);
         } else {
@@ -87,7 +87,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
         // validators to always have a say in whether a given configuration is valid, regardless of
         // whether it's considered equal by the ConfigComparator.
-        for (ConfigurationValidator<ServiceSpecification> validator : validators) {
+        for (ConfigurationValidator<ServiceSpec> validator : validators) {
             errors.addAll(validator.validate(targetConfig, candidateConfig));
         }
 
@@ -133,7 +133,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
      * and updates the embedded config version label in those tasks to point to the current target
      * configuration.
      */
-    private void cleanupDuplicateAndUnusedConfigs(ServiceSpecification targetConfig, UUID targetConfigId)
+    private void cleanupDuplicateAndUnusedConfigs(ServiceSpec targetConfig, UUID targetConfigId)
             throws ConfigStoreException {
         List<Protos.TaskInfo> taskInfosToUpdate = new ArrayList<>();
         Set<UUID> neededConfigs = new HashSet<>();
@@ -153,7 +153,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                 LOGGER.info("Task {} configuration ID matches target: {}",
                         taskInfo.getName(), taskConfigId);
             } else {
-                final ServiceSpecification taskConfig = configStore.fetch(taskConfigId);
+                final ServiceSpec taskConfig = configStore.fetch(taskConfigId);
                 if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
                     // Task is effectively already on the target config. Update task's config ID to match target,
                     // and allow the duplicate config to be dropped from configStore.
@@ -181,8 +181,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
     private boolean needsConfigUpdate(
             Protos.TaskInfo taskInfo,
-            ServiceSpecification targetConfig,
-            ServiceSpecification taskConfig) {
+            ServiceSpec targetConfig,
+            ServiceSpec taskConfig) {
         LOGGER.info("Checking whether config update is needed for task: {}", taskInfo.getName());
 
         if (targetConfig.equals(taskConfig)) {
@@ -190,13 +190,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             return false;
         }
 
-        Optional<TaskSpecification> targetSpecOptional = getTaskSpec(taskInfo, targetConfig);
-        Optional<TaskSpecification> taskSpecOptional = getTaskSpec(taskInfo, taskConfig);
+        Optional<PodSpec> targetSpecOptional = getPodSpec(taskInfo, targetConfig);
+        Optional<PodSpec> taskSpecOptional = getPodSpec(taskInfo, taskConfig);
 
         if (targetSpecOptional.isPresent() && taskSpecOptional.isPresent()) {
-            TaskSpecification targetSpec = targetSpecOptional.get();
-            TaskSpecification taskSpec = taskSpecOptional.get();
-            boolean updateNeeded = !targetSpec.equals(taskSpec);
+            PodSpec targetSpec = targetSpecOptional.get();
+            PodSpec taskSpec = taskSpecOptional.get();
+            boolean updateNeeded = areDifferent(targetSpec, taskSpec);
             LOGGER.info("Compared target: {} to current: {}, update needed: {}", targetSpec, taskSpec, updateNeeded);
             return updateNeeded;
         } else {
@@ -205,25 +205,32 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
     }
 
-    private Optional<TaskSpecification> getTaskSpec(
+    private Optional<PodSpec> getPodSpec(
             Protos.TaskInfo taskInfo,
-            ServiceSpecification serviceSpecification) {
+            ServiceSpec serviceSpecification) {
 
         try {
-            final String taskType = TaskUtils.getTaskType(taskInfo);
+            final String taskType = TaskUtils.getType(taskInfo);
 
-            List<TaskSpecification> taskSpecifications = serviceSpecification.getTaskSets().stream()
-                    .filter(taskSet -> taskSet.getName().equals(taskType))
-                    .flatMap(taskSet -> taskSet.getTaskSpecifications().stream())
-                    .collect(Collectors.toList());
-
-            return taskSpecifications.stream().filter(taskSpec -> taskSpec.getName().equals(taskInfo.getName()))
+            return serviceSpecification.getPods().stream()
+                    .filter(pod -> pod.getType().equals(taskType))
                     .findFirst();
-
         } catch (TaskException e) {
             LOGGER.error("Failed to find existing TaskSpecification.", e);
             return Optional.empty();
         }
+    }
+
+    private boolean areDifferent(PodSpec podSpec1, PodSpec podSpec2) {
+        if (podSpec1.equals(podSpec2)) {
+            return false;
+        }
+
+        // Make counts equal, as only a difference in count should not effect an individual tasks.
+        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).build();
+        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).build();
+
+        return !podSpec1.equals(podSpec2);
     }
 
     /**

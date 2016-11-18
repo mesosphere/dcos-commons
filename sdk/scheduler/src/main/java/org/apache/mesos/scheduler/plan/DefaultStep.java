@@ -5,9 +5,13 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.offer.OfferRequirement;
+import org.apache.mesos.offer.TaskException;
+import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.scheduler.DefaultObservable;
 import org.apache.mesos.scheduler.plan.strategy.ParallelStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
+import org.apache.mesos.specification.PodInstance;
+import org.apache.mesos.specification.TaskSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +28,7 @@ public class DefaultStep extends DefaultObservable implements Step {
     private final List<String> errors;
     private final Strategy strategy = new ParallelStrategy();
     private final Object statusLock = new Object();
+    private final PodInstance podInstance;
     private Status status;
     private Map<Protos.TaskID, Status> tasks = new HashMap<>();
 
@@ -31,10 +36,12 @@ public class DefaultStep extends DefaultObservable implements Step {
             String name,
             Optional<OfferRequirement> offerRequirementOptional,
             Status status,
+            PodInstance podInstance,
             List<String> errors) {
         this.name = name;
         this.offerRequirementOptional = offerRequirementOptional;
         this.status = status;
+        this.podInstance = podInstance;
         this.errors = errors;
 
         setStatus(status); // Log initial status
@@ -153,12 +160,8 @@ public class DefaultStep extends DefaultObservable implements Step {
         }
 
         switch (status.getState()) {
-            case TASK_RUNNING:
-                tasks.replace(status.getTaskId(), Status.COMPLETE);
-                break;
             case TASK_ERROR:
             case TASK_FAILED:
-            case TASK_FINISHED:
             case TASK_KILLED:
             case TASK_KILLING:
                 tasks.replace(status.getTaskId(), Status.ERROR);
@@ -169,10 +172,35 @@ public class DefaultStep extends DefaultObservable implements Step {
             case TASK_STARTING:
                 tasks.replace(status.getTaskId(), Status.IN_PROGRESS);
                 break;
+            case TASK_RUNNING:
+                try {
+                    if (TaskUtils.getGoalState(
+                            podInstance,
+                            TaskUtils.toTaskName(status.getTaskId())).equals(TaskSpec.GoalState.RUNNING)) {
+                        tasks.replace(status.getTaskId(), Status.COMPLETE);
+                    } else {
+                        tasks.replace(status.getTaskId(), Status.IN_PROGRESS);
+                    }
+                } catch (TaskException e) {
+                    logger.error("Failed to update status.", e);
+                }
+                break;
+            case TASK_FINISHED:
+                try {
+                    if (TaskUtils.getGoalState(
+                            podInstance,
+                            TaskUtils.toTaskName(status.getTaskId())).equals(TaskSpec.GoalState.RUNNING)) {
+                        tasks.replace(status.getTaskId(), Status.COMPLETE);
+                    } else {
+                        tasks.replace(status.getTaskId(), Status.PENDING);
+                    }
+                } catch (TaskException e) {
+                    logger.error("Failed to update status.", e);
+                }
+                break;
             default:
                 logger.warn("Failed to process unexpected state: " + status.getState());
         }
-
 
         setStatus(getStatus(tasks));
     }

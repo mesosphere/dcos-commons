@@ -1,18 +1,15 @@
 package org.apache.mesos.offer;
 
-import org.apache.mesos.offer.constrain.PlacementRule;
-import org.apache.mesos.specification.DefaultResourceSpecification;
-import org.apache.mesos.specification.DefaultVolumeSpecification;
-import org.apache.mesos.specification.ResourceSpecification;
-import org.apache.mesos.specification.TaskSpecification;
-import org.apache.mesos.specification.VolumeSpecification;
-import org.apache.mesos.testutils.ResourceTestUtils;
-import org.apache.mesos.testutils.TaskTestUtils;
-import org.apache.mesos.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.config.DefaultTaskConfigRouter;
+import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.specification.*;
+import org.apache.mesos.state.StateStore;
+import org.apache.mesos.testutils.ResourceTestUtils;
+import org.apache.mesos.testutils.TaskTestUtils;
+import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,12 +17,8 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
 
@@ -41,21 +34,66 @@ public class DefaultOfferRequirementProviderTest {
             return offer;
         }
     };
-    private static final DefaultOfferRequirementProvider PROVIDER =
-            new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), UUID.randomUUID());
 
+    private DefaultOfferRequirementProvider provider;
     private EnvironmentVariables environmentVariables;
 
-    @Mock
-    private TaskSpecification mockTaskSpecification;
+    @Mock private StateStore stateStore;
+
+    @Mock private PodSpec podSpec;
+    @Mock private PodInstance podInstance;
+    @Mock private HealthCheckSpec healthCheckSpec;
+    @Mock private CommandSpec commandSpec;
+    @Mock private TaskSpec taskSpec;
+    @Mock private ResourceSet resourceSet;
+
+    private ResourceSpecification resourceSpecification = new DefaultResourceSpecification(
+            "cpus",
+            ValueUtils.getValue(ResourceTestUtils.getDesiredCpu(1.0)),
+            TestConstants.ROLE,
+            TestConstants.PRINCIPAL,
+            "CPUS");
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
+
+        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
+        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(podSpec.getUser()).thenReturn(Optional.empty());
+        when(podSpec.getContainer()).thenReturn(Optional.empty());
+
+        when(podInstance.getPod()).thenReturn(podSpec);
+        when(podInstance.getIndex()).thenReturn(0);
+
+        when(healthCheckSpec.getCommand()).thenReturn(TestConstants.HEALTH_CHECK_CMD);
+        when(healthCheckSpec.getMaxConsecutiveFailures()).thenReturn(3);
+        when(healthCheckSpec.getDelay()).thenReturn(0);
+        when(healthCheckSpec.getInterval()).thenReturn(0);
+        when(healthCheckSpec.getTimeout()).thenReturn(0);
+        when(healthCheckSpec.getGracePeriod()).thenReturn(0);
+
+        when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
+
+        when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
+        when(taskSpec.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(taskSpec.getResourceSet()).thenReturn(resourceSet);
+        when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
+        when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
+        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
+
+        when(resourceSet.getResources()).thenReturn(Arrays.asList(resourceSpecification));
+        when(resourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+
+        when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
+        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
+
+        provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
     }
 
+    /*
     @Test
     public void testPlacementPassthru() throws InvalidRequirementException {
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
@@ -87,20 +125,61 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
     }
 
-    private TaskSpecification setupMock(Protos.TaskInfo taskInfo) {
-        return setupMock(taskInfo, Optional.empty());
+    @Test(expected=InvalidRequirementException.class)
+    public void testNewOfferRequirementEmptyResourceSets() throws InvalidRequirementException {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getResources()).thenReturn(Collections.emptyList());
+        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(podSpec.getUser()).thenReturn(Optional.empty());
+
+        CommandSpec commandSpec = mock(CommandSpec.class);
+        when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
+
+        TaskSpec taskSpec = mock(TaskSpec.class);
+        when(taskSpec.getName()).thenReturn("task_spec_name");
+        when(taskSpec.getPod()).thenReturn(podSpec);
+        when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
+        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
+
+        when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
+
+        PROVIDER.getNewOfferRequirement(pod);
+    }
+    */
+
+    @Test
+    public void testNewOfferRequirement() throws InvalidRequirementException {
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+
+        TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
+        TaskInfo taskInfo = taskRequirement.getTaskInfo();
+        Assert.assertEquals(TestConstants.TASK_CMD, taskInfo.getCommand().getValue());
+        Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
+        Assert.assertFalse(taskInfo.hasContainer());
     }
 
-    private TaskSpecification setupMock(Protos.TaskInfo taskInfo, Optional<PlacementRule> placement) {
-        when(mockTaskSpecification.getName()).thenReturn(taskInfo.getName());
-        when(mockTaskSpecification.getCommand()).thenReturn(Optional.of(taskInfo.getCommand()));
-        when(mockTaskSpecification.getContainer()).thenReturn(Optional.of(taskInfo.getContainer()));
-        when(mockTaskSpecification.getHealthCheck()).thenReturn(Optional.empty());
-        when(mockTaskSpecification.getResources()).thenReturn(getResources(taskInfo));
-        when(mockTaskSpecification.getVolumes()).thenReturn(getVolumes(taskInfo));
-        when(mockTaskSpecification.getConfigFiles()).thenReturn(Collections.emptyList());
-        when(mockTaskSpecification.getPlacement()).thenReturn(placement);
-        return mockTaskSpecification;
+    @Test
+    public void testExistingOfferRequirement() throws InvalidRequirementException {
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
+        when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
+        OfferRequirement offerRequirement =
+                provider.getExistingOfferRequirement(podInstance, tasksToLaunch);
+        Assert.assertNotNull(offerRequirement);
     }
 
     private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {
@@ -112,7 +191,8 @@ public class DefaultOfferRequirementProviderTest {
                                 resource.getName(),
                                 ValueUtils.getValue(resource),
                                 resource.getRole(),
-                                resource.getReservation().getPrincipal()));
+                                resource.getReservation().getPrincipal(),
+                                resource.getName().toUpperCase()));
             }
         }
         return resourceSpecifications;
@@ -128,7 +208,8 @@ public class DefaultOfferRequirementProviderTest {
                                 getVolumeType(resource.getDisk()),
                                 resource.getDisk().getVolume().getContainerPath(),
                                 resource.getRole(),
-                                resource.getReservation().getPrincipal()));
+                                resource.getReservation().getPrincipal(),
+                                resource.getName().toUpperCase()));
             }
         }
 

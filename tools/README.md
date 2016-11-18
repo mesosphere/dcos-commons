@@ -6,7 +6,8 @@ Common tools which automate the process of uploading, testing, and releasing DC/
 
 Build/release tools:
 
-- **[ci_upload.py](#ci_uploadpy)**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package and uploads it along with the provided artifacts to a dev S3 bucket (ideally a directory with expiration configured to 7d or so).
+- **[publish_aws.py](#publish_awspy)**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package and uploads it along with the provided artifacts to a dev S3 bucket (ideally a directory with expiration configured to 7d or so).
+- **[publish_http.py](#publish_httppy)**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package and hosts it from a local HTTP server along with any provided artifacts.
 - **[release_builder.py](#release_builderpy)**: Given an uploaded stub universe URL and a version string, transfers the artifacts to a more permanent 'release' S3 bucket and creates a PR against [Universe](https://github.com/mesosphere/universe/).
 
 Test tools:
@@ -19,7 +20,7 @@ Misc utilities:
 - **[dcos_login.py](#dcos_loginpy)**: Log into a DC/OS cluster using default/test credentials. Autodetects DC/OS Open vs DC/OS Enterprise.
 - **[print_package_tag.py](#print_package_tagpy)**: Return the Git repo SHA for the provided package on the cluster.
 - **[github_update.py](#github_updatepy)**: Update a GitHub PR status with the progress of a build. Used by the above scripts, and may be used in your own build scripts to provide a nicer CI experience in PRs.
-- **[universe_builder.py](#universe_builderpy)**: Underlying script which builds a `stub-universe.zip` given the necessary template data (package name, version, upload dir, ...). This is called by `ci_upload.py` after autogenerating an upload directory.
+- **[universe_builder.py](#universe_builderpy)**: Underlying script which builds a `stub-universe.zip` given the necessary template data (package name, version, upload dir, ...). This is called by `publish_aws.py` and `publish_http.py` after autogenerating an upload directory.
 
 These utilities are designed to be used both in automated CI flows, as well as locally on developer workstations.
 
@@ -84,7 +85,7 @@ For some examples of this, take a look at `package.json` for [Kafka](https://git
 
 If you are providing binary CLI modules with your service, the tooling supports automatically populating the package template with any required `sha256sum` values.
 
-The expected placeholder format is `{{sha256:yourfile.ext}}`, where `yourfile.ext` is one of the files which was passed to `ci_upload.py`. Multiple files of the same name are not supported, as they all get uploaded to the same directory anyway. For example:
+The expected placeholder format is `{{sha256:yourfile.ext}}`, where `yourfile.ext` is one of the files which was passed to `publish_aws.py` or `publish_http.py`. Multiple files of the same name are not supported, as they all get uploaded to the same directory anyway. For example:
 
 Before:
 ```
@@ -110,11 +111,11 @@ For some examples of this, take a look at `resource.json` for [Kafka](https://gi
 
 You may include custom placeholders of the form `{{custom-placeholder}}` anywhere in your template. This can be useful for e.g. passing the path to a per-build docker tag, a randomly generated key, or anything else that you expect to change on a per-build basis.
 
-These parameters can then be filled in by passing a `TEMPLATE_CUSTOM_PLACEHOLDER` environment variable with the desired value when calling `ci_upload.py`. You can learn more about this feature in the documentation for `ci_upload.py`, below.
+These parameters can then be filled in by passing a `TEMPLATE_CUSTOM_PLACEHOLDER` environment variable with the desired value when calling `publish_aws.py` or `publish_http.py`. You can learn more about this feature in the documentation for `publish_aws.py` and `publish_http.py`, below.
 
 ### Build script and artifacts
 
-Ideally you should have some script in your project repository which defines how the project is built. This script would do any work to build the artifacts, then call `ci_upload.py` with the paths to those artifacts provided so that they're uploaded along with the stub universe. This script can be then be instantiated by any CI that you might have.
+Ideally you should have some script in your project repository which defines how the project is built. This script would do any work to build the artifacts, then call `publish_aws.py` or `publish_http.py` with the paths to those artifacts provided so that they're uploaded along with the stub universe. This script can be then be instantiated by any CI that you might have.
 
 We specifically recommend including this script in the project repository alongside your code. This will allow adding/modifying/removing artifacts from your build on a per-commit basis in lockstep with code changes, whereas a single external script would cause synchronization issues between branches which may each have different artifacts.
 
@@ -144,7 +145,7 @@ This is a fairly minimal detail, but it can't hurt to have some automation aroun
 
 What follows is a more detailed description of what each utility does and how it can be used:
 
-### ci_upload.py
+### publish_aws.py
 
 Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and upload the whole set to S3. This is useful for quickly getting a local build up and available for installation in a DC/OS cluster. This tool relies on `universe_builder.py`, which is described below.
 
@@ -155,7 +156,7 @@ Note that this uses the `aws` CLI to perform the upload. You must have `aws` ins
 #### Usage
 
 ```
-$ ./ci_upload.py <package-name> <template-package-dir> [artifact files ...]
+$ ./publish_aws.py <package-name> <template-package-dir> [artifact files ...]
 ```
 
 Example:
@@ -165,7 +166,7 @@ $ AWS_ACCESS_KEY_ID=devKeyId \
 AWS_SECRET_ACCESS_KEY=devKeySecret \
 S3_BUCKET=devBucket \
 S3_DIR_PATH=dcosArtifacts/dev \
-./ci_upload.py \
+./publish_aws.py \
     kafka \
     dcos-kafka-service/universe \
     dcos-kafka-service/scheduler.zip \
@@ -202,11 +203,64 @@ Optional:
 - `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
 - `DRY_RUN`: Refrain from actually uploading anything to S3.
 
+### publish_http.py
+
+Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and run an HTTP service against those artifacts after copying them into a temporary directory. This is useful for quickly getting a local build up and available for installation in a local DC/OS cluster (running in [dcos-docker](https://github.com/dcos/dcos-docker)). This tool relies on `universe_builder.py`, which is described below.
+
+The resulting uploaded stub universe URL is logged to stdout (while all other logging is to stderr). If a `dcos` CLI is available in the local path, this utility automatically adds the universe URL to that CLI. This reduces work needed to try out new builds on a local cluster.
+
+#### Usage
+
+```
+$ ./publish_http.py <package-name> <template-package-dir> [artifact files ...]
+```
+
+Example:
+
+```
+$ ./publish_http.py \
+    kafka \
+    dcos-kafka-service/universe \
+    dcos-kafka-service/scheduler.zip \
+    dcos-kafka-service/executor.zip \
+    dcos-kafka-service/cli/dcos-kafka.exe \
+    dcos-kafka-service/cli/dcos-kafka-dawin \
+    dcos-kafka-service/cli/dcos-kafka-linux
+
+[...]
+---
+Built and copied stub universe:
+http://172.17.0.1:53416/stub-universe-kafka.zip
+---
+Copying 5 artifacts into /tmp/dcos-http-kafka/:
+- /tmp/dcos-http-kafka/scheduler.zip
+- /tmp/dcos-http-kafka/executor.zip
+- /tmp/dcos-http-kafka/dcos-kafka.exe
+- /tmp/dcos-http-kafka/dcos-kafka-darwin
+- /tmp/dcos-http-kafka/dcos-kafka-linux
+[STATUS] upload:kafka success: Uploaded stub universe and 5 artifacts
+[STATUS] URL: http://172.17.0.1:53416/stub-universe-kafka.zip
+http://172.17.0.1:53416/stub-universe-kafka.zip
+Checking for duplicate repositories: kafka-local/http://172.17.0.1:53416/stub-universe-kafka.zip
+Adding repository: kafka-local http://172.17.0.1:53416/stub-universe-kafka.zip
+$ dcos package install kafka
+[... normal usage from here ...]
+```
+
+#### Environment variables
+
+Optional:
+- `HTTP_DIR` (default: `/tmp/dcos-http-<pkgname>/`): Local path to be hosted by the HTTP daemon.
+- `HTTP_HOST` (default: `172.17.0.1`, the IP used in dcos-docker): Host endpoint to be used by HTTP daemon.
+- `HTTP_PORT` (default: `0` for an ephemeral port): Port to be used by HTTP daemon.
+- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
+- `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
+
 ### release_builder.py
 
 Takes a Universe 2.x-format package built by `universe_builder.py`, copies its artifacts to a production S3 location, and automatically builds a Universe 3.x-format PR against [https://github.com/mesosphere/universe](Universe) which reflects the production location. After you've finished your testing and have a 'gold' build, use this to release to DC/OS.
 
-The only needed parameters are a `stub-universe.zip` (built by `ci_upload.py`, or directly by `universe_builder.py`) and a version string to be used for the released package (eg `1.2.3-4.5.6`). This tool only interacts with build artifacts and does not have any dependency on the originating source repository.
+The only needed parameters are a `stub-universe.zip` (built by `publish_aws.py`, or directly by `universe_builder.py`) and a version string to be used for the released package (eg `1.2.3-4.5.6`). This tool only interacts with build artifacts and does not have any dependency on the originating source repository.
 
 Only artifacts which share the same directory path as the `stub-universe.zip` itself are copied. This allows for artifacts which are not built as a part of every release, but are instead shared across builds (e.g. a JVM package).
 

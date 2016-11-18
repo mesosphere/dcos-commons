@@ -355,7 +355,7 @@ public class MaxPerHostnameRuleTest {
 
     private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
         try {
-            return OfferRequirement.create(TaskUtils.getTaskType(taskInfo), Arrays.asList(taskInfo));
+            return OfferRequirement.create(TaskUtils.getType(taskInfo), 0, Arrays.asList(taskInfo));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

@@ -44,5 +44,9 @@ public interface Step extends Element {
         public InvalidStepException(Exception e) {
             super(e);
         }
+
+        public InvalidStepException(String s) {
+            super(s);
+        }
     }
 }

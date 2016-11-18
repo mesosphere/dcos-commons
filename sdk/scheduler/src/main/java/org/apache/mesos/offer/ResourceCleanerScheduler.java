@@ -4,7 +4,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.scheduler.plan.*;
 
 import java.util.*;
 

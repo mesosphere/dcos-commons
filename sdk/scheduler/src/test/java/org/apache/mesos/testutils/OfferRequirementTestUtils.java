@@ -24,6 +24,6 @@ public class OfferRequirementTestUtils {
     }
 
     public static OfferRequirement getOfferRequirement(List<Protos.Resource> resources) throws InvalidRequirementException {
-        return OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(TaskTestUtils.getTaskInfo(resources)));
+        return OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(TaskTestUtils.getTaskInfo(resources)));
     }
 }

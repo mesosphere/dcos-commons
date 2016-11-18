@@ -92,7 +92,7 @@ public class OfferRequirementTest {
         TaskInfo taskInfo = TaskTestUtils.getTaskInfo(cpu);
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(cpu);
         OfferRequirement offerRequirement = OfferRequirement.create(
-                "taskType", Arrays.asList(taskInfo), Optional.of(execInfo));
+                "taskType", 0, Arrays.asList(taskInfo), Optional.of(execInfo));
         Resource executorResource = offerRequirement
                 .getExecutorRequirementOptional().get()
                 .getExecutorInfo()

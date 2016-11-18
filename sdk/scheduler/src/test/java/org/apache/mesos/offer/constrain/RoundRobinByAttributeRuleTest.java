@@ -35,9 +35,9 @@ public class RoundRobinByAttributeRuleTest {
     static {
         OfferRequirement req = null, req1 = null, req2 = null;
         try {
-            req = OfferRequirement.create(TestConstants.TASK_TYPE, Collections.emptyList());
-            req1 = OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(getTaskInfo("1", "value")));
-            req2 = OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(getTaskInfo("2", "value")));
+            req = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
+            req1 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("1", "value")));
+            req2 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("2", "value")));
         } catch (InvalidRequirementException e) {
             fail(e.toString());
         }
