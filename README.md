@@ -1,6 +1,8 @@
 <p align="left">
   <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/>
 </p>
+![Status](https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square)
+
 [__Quick Start__](README.md#quick-start) |
 [__FAQ__](docs/faq.md) |
 [__Javadocs__](http://mesosphere.github.io/dcos-commons/api/) |
