@@ -248,6 +248,7 @@ public class OfferEvaluatorTest {
 
         OfferRequirement offerReq = OfferRequirement.create(
                 TestConstants.TASK_TYPE,
+                0,
                 Arrays.asList(TaskTestUtils.getTaskInfo(desiredCpu)),
                 Optional.of(TaskTestUtils.getExecutorInfo(desiredNamedVIPPort)));
 

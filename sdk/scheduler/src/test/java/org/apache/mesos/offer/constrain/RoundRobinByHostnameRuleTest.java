@@ -33,9 +33,9 @@ public class RoundRobinByHostnameRuleTest {
     static {
         OfferRequirement req = null, req1 = null, req2 = null;
         try {
-            req = OfferRequirement.create(TestConstants.TASK_TYPE, Collections.emptyList());
-            req1 = OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(getTaskInfo("1", "host")));
-            req2 = OfferRequirement.create(TestConstants.TASK_TYPE, Arrays.asList(getTaskInfo("2", "host")));
+            req = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
+            req1 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("1", "host")));
+            req2 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("2", "host")));
         } catch (InvalidRequirementException e) {
             fail(e.toString());
         }

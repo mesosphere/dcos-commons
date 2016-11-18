@@ -207,12 +207,18 @@ public class DefaultServiceSpec implements ServiceSpec {
         private static final Collection<Class<?>> defaultRegisteredSubtypes = Arrays.asList(
                 AgentRule.class,
                 AndRule.class,
+                AnyMatcher.class,
                 AttributeRule.class,
+                ExactMatcher.class,
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
+                MaxPerHostnameRule.class,
                 NotRule.class,
                 OrRule.class,
-                TaskTypeRule.class);
+                PassthroughRule.class,
+                RegexMatcher.class,
+                TaskTypeRule.class,
+                TaskTypeLabelConverter.class);
 
         private final ObjectMapper objectMapper;
 

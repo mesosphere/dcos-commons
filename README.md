@@ -19,7 +19,7 @@ These steps will launch a 3 Agent DC/OS cluster within a VM on your local system
 
 #### Steps
 
-1. `git clone -b pods https://github.com/mesosphere/dcos-commons.git`
+1. `git clone https://github.com/mesosphere/dcos-commons.git`
 2. `cd dcos-commons/ && ./build-dcos-docker.sh`
 3. Visit http://172.17.0.2/ to view the cluster dashboard.
 4. `cd dcos-docker/ && vagrant ssh`
