@@ -31,7 +31,7 @@ fi
 
 _notify_github success "Build succeeded"
 
-./dcos-commons-tools/ci_upload.py \
+$ROOT_DIR/tools/ci_upload.py \
   reference \
   universe/ \
   build/distributions/*.zip \
