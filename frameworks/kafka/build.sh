@@ -31,11 +31,29 @@ fi
 
 _notify_github success "Build succeeded"
 
-$ROOT_DIR/tools/publish_aws.py \
-  kafka \
-  universe/ \
-  build/distributions/*.zip \
-  cli/dcos-kafka/dcos-kafka-darwin \
-  cli/dcos-kafka/dcos-kafka-linux \
-  cli/dcos-kafka/dcos-kafka.exe \
-  cli/python/dist/*.whl
+case "$1" in
+    local)
+        echo "Launching HTTP artifact server"
+        PUBLISH_SCRIPT=$ROOT_DIR/tools/publish_http.py
+        ;;
+    aws)
+        echo "Uploading to S3"
+        PUBLISH_SCRIPT=$ROOT_DIR/tools/publish_aws.py
+        ;;
+    *)
+        echo "Skipping publish step."
+        echo "Run script as '$0 local' to share build with docker cluster, or '$0 aws' to upload to aws."
+        ;;
+esac
+
+if [ -n "$PUBLISH_SCRIPT" ]; then
+    $PUBLISH_SCRIPT \
+        kafka \
+        universe/ \
+        build/distributions/*.zip \
+        cli/dcos-kafka/dcos-kafka* \
+        cli/python/dist/*.whl
+fi
+
+echo "Install your package via the following command"
+echo "dcos package install <package-name>"
