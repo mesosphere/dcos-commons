@@ -5,7 +5,7 @@
 [__Quick Start__](README.md#quick-start) |
 [__FAQ__](docs/faq.md) |
 [__Javadocs__](http://mesosphere.github.io/dcos-commons/api/) |
-[__Contributing__!](CONTRIBUTING.md) |
+[__Contributing__](CONTRIBUTING.md) |
 [__Slack__](http://chat.dcos.io)
 
 =========
