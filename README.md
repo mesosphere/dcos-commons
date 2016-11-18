@@ -15,7 +15,7 @@ These steps will launch a 3 Agent DC/OS cluster within a VM on your local system
  - A workstation with 8GB memory
  - Git
  - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
- - [Vagrant](https://www.vagrantup.com/downloads.html)`
+ - [Vagrant](https://www.vagrantup.com/downloads.html)
 
 #### Steps
 
@@ -41,7 +41,7 @@ Publishing locally
 Using dcos-commons
 --------------------------
 
-The releases are hosted at the Maven repository at `downloads.mesosphere.com`. A sample `build.gradle` is provided below.
+The releases are hosted in the Maven repository at `downloads.mesosphere.com`. A sample `build.gradle` is provided below.
 ```
 repositories {
   // other repositories
