@@ -1,57 +1,71 @@
-Mesosphere DCOS Commons
-======================
+<p align="left">
+  <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/>
+</p>
+[__Quick Start__](README.md#quick-start) |
+[__FAQ__](docs/faq.md) |
+[__Javadocs__](http://mesosphere.github.io/dcos-commons/api/) |
+[__Contributing__](CONTRIBUTING.md) |
+[__Slack__](http://chat.dcos.io)
 
-[![Build Status](https://jenkins.mesosphere.com/service/jenkins/buildStatus/icon?job=dcos-commons/infinity-dcos-commons-master)](https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons/job/infinity-dcos-commons-master/)
+=========
+[DC/OS](https://dcos.io) is a datacenter operating system for running distributed services, such as databases. Like most operating systems, DC/OS has a package manager and package repository, so services can be installed with 1-click.
 
-This project is a collection of classes and utilities necessary for building a DCOS service.  It is written in Java and
-is Java 1.8+ compatible. 
+The __DC/OS SDK__ is a collection of tools, libraries, and documentation for packaging services for DC/OS. With the SDK, you can easily integrate stateful services developed in any programing language.
+ 
+### Benefits
 
-Quick start
---------------------------
+* __Simple and Flexible__: The SDK provides the simplicity of a declarative YAML API as well as the flexibility to use the full Java programming language. 
 
-These steps will launch a 3 Agent DC/OS cluster within a VM on your local system, then build, publish, and install the example 'hello-world' service to that cluster.
+* __Automate Maintenance__: Some services, such as databases, need to be maintained. With the SDK, you can automate maintenance routines to simplify operations.
 
-#### Prerequisites
- - A workstation with 8GB memory
- - Git
- - [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
- - [Vagrant](https://www.vagrantup.com/downloads.html)
+* __Available and Durable__: When infrastructure fails, you need to recover without data loss or performance impact. With the SDK, you define custom detection, safety, and performance semantics so your services heal themselves.
 
-#### Steps
+* __Production-Proven__: Building reliable distributed services is hard. Some of the most demanding web services in the world use services built with the SDK for their mission-critical databases and messaging systems.
 
-1. `git clone https://github.com/mesosphere/dcos-commons.git`
-2. `cd dcos-commons/ && ./build-dcos-docker.sh`
-3. Visit http://172.17.0.2/ to view the cluster dashboard.
-4. `cd dcos-docker/ && vagrant ssh`
-5. `cd /dcos-commons/frameworks/helloworld/ && ./build.sh local`
-6. `dcos package install hello-world`
+===============
+### Quick Start
 
-Visit http://172.17.0.2/#/services/%2Fhello-world/ to see your `hello-world` service running, or run `dcos hello-world -h` to see available commands provided by `hello-world` CLI module.
+From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [VirtualBox](https://www.virtualbox.org/wiki/Downloads), and [Vagrant](https://www.vagrantup.com/downloads.html), run:
 
-Building dcos-commons
---------------------------
+1. Download the DC/OS SDK.
+  ```
+  git clone https://github.com/mesosphere/dcos-commons.git
+  ```
+  
+2. Create your local development environment.
+  ```
+  cd dcos-commons/ && ./build-dcos-docker.sh
+  ```
+  * Visit the DC/OS cluster [dashboard](http://172.17.0.2/) to verify your development environment is running.
 
-`./gradlew build`
+3. Enter your development environment.
+  ```
+  cd dcos-docker/ && vagrant ssh
+  ```
+  
+4. Build your hello-world example project.
+  ```
+  cd /dcos-commons/frameworks/helloworld/ && ./build.sh local
+  ```
+  
+5. Start your hello-world DC/OS service.
+  ```
+  dcos package install hello-world
+  ```
+  
+6. Explore your hello-world service.
+  * Visit the [dashboard](http://172.17.0.2/#/services/%2Fhello-world/) to see your hello-world service running.
+  * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
 
-Publishing locally
---------------------------
+===============
+### References
+* Developer Guide ... *coming soon!*
+* [Javadocs](http://mesosphere.github.io/dcos-commons/api/index.html)
 
-`./gradlew publishToMavenLocal`
+===============
+### Contributions
+Contributions are welcome! See [CONTRIBUTING](CONTRIBUTING.md).
 
-Using dcos-commons
---------------------------
-
-The releases are hosted in the Maven repository at `downloads.mesosphere.com`. A sample `build.gradle` is provided below.
-```
-repositories {
-  // other repositories
-  maven {
-    url "http://downloads.mesosphere.com/maven/"
-  }
-}
-
-dependencies {
-  // other dependencies
-  compile "mesosphere:dcos-commons:+"
-}
-```
+===============
+### License
+DC/OS SDK is licensed under the Apache License, Version 2.0.
