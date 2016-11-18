@@ -1,5 +1,5 @@
 <p align="left">
-  <img src="https://cl.ly/023Z3t2N1j1K/download/dcos-sdk-logo.png" width="250"/>
+  <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/>
 </p>
 [__Quick Start__](README.md#quick-start) |
 [__FAQ__](docs/faq.md) |
