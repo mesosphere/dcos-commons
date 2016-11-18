@@ -65,6 +65,10 @@ public class DefaultService implements Service {
         register(serviceSpec, plans);
     }
 
+    public DefaultService(ServiceSpec serviceSpec) {
+        register(serviceSpec, Collections.emptyList());
+    }
+
     public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
         register(serviceSpec, plans);
     }
