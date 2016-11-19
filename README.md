@@ -22,7 +22,7 @@ The __DC/OS SDK__ is a collection of tools, libraries, and documentation for pac
 
 * __Available and Durable__: When infrastructure fails, you need to recover without data loss or performance impact. With the SDK, you define custom detection, safety, and performance semantics so your services heal themselves.
 
-* __Production-Proven__: Building reliable distributed services is hard. Some of the most demanding web services in the world use services built with the SDK for their mission-critical databases and messaging systems.
+* __Production-Proven__: Building reliable distributed services is hard. Some of the most demanding web services in the world, like Uber, use services built with the SDK for their mission-critical databases and messaging systems.
 
 ===============
 ### Quick Start

@@ -30,7 +30,7 @@ cd $EXE_NAME/
 # this may be omitted in 1.6+, left here for compatibility with 1.5:
 export GO15VENDOREXPERIMENT=1
 
-go get -u
+go get
 
 # available GOOS/GOARCH permutations are listed at:
 # https://golang.org/doc/install/source#environment
