@@ -36,4 +36,4 @@ distributions {
     }
 }
 
-mainClassName = 'com.mesosphere.sdk.reference.scheduler.Main'
+mainClassName = 'com.mesosphere.sdk.polymorph.scheduler.Main'

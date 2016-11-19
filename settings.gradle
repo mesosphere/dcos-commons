@@ -12,5 +12,5 @@ project(":frameworks/helloworld").name = "helloworld"
 include 'frameworks/kafka'
 project(":frameworks/kafka").name = "kafka"
 
-include 'frameworks/reference-framework'
-project(":frameworks/reference-framework").name = "reference-framework"
+include 'frameworks/polymorph-framework'
+project(":frameworks/polymorph-framework").name = "polymorph-framework"

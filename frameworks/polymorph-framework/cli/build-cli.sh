@@ -10,7 +10,7 @@ fi
 
 # The name of the binary produced by Go:
 if [ -z "$EXE_NAME" ]; then
-    EXE_NAME="dcos-reference-framework"
+    EXE_NAME="dcos-polymorph-framework"
 fi
 
 print_file_and_shasum() {

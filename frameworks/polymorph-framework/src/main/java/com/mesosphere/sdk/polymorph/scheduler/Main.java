@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.reference.scheduler;
+package com.mesosphere.sdk.polymorph.scheduler;
 
 import org.apache.mesos.specification.DefaultService;
 import org.slf4j.Logger;
@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 /**
- * Reference Framework.
+ * Polymorph Framework.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);

@@ -91,7 +91,7 @@ task wrapper(type: Wrapper) {
     gradleVersion = '3.2'
 }
 
-mainClassName = 'com.mesosphere.sdk.reference.scheduler.Main'
+mainClassName = 'Main'
 ```
 
 # Define a Service

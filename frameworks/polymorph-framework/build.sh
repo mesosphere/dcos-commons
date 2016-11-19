@@ -10,7 +10,7 @@ ROOT_DIR=$SCRIPT_DIR/../..
 
 # GitHub notifier config
 _notify_github() {
-    GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:reference-framework $2
+    GIT_REPOSITORY_ROOT=$ROOT_DIR $ROOT_DIR/tools/github_update.py $1 build:polymorph-framework $2
 }
 
 _notify_github pending "Build running"
@@ -48,9 +48,9 @@ esac
 
 if [ -n "$PUBLISH_SCRIPT" ]; then
     $PUBLISH_SCRIPT \
-        reference-framework \
+        polymorph-framework \
         universe/ \
         build/distributions/*.zip \
-        cli/dcos-reference-framework/dcos-reference-framework* \
+        cli/dcos-polymorph-framework/dcos-polymorph-framework* \
         cli/python/dist/*.whl
 fi
