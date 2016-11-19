@@ -161,8 +161,14 @@ class AWSPublisher(object):
 
         self._spam_universe_url(universe_url)
 
-        # print to stdout, while the rest was all stderr:
+        # print to stdout, while the rest is all stderr:
         print(universe_url)
+
+        logger.info('---')
+        logger.info('Install your package using the following commands:')
+        logger.info('dcos package repo add --index=0 {}-aws {}'.format(self._pkg_name, universe_url))
+        logger.info('dcos package install {}'.format(self._pkg_name))
+
         return universe_url
 
 
