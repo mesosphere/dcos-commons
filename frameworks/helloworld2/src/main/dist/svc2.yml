@@ -17,9 +17,10 @@ pods:
             size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-       ports:
+        ports:
          - name: test
            port: {{HELLO_PORT}}
+
   world:
     count: {{WORLD_COUNT}}
     resource-sets:
@@ -34,10 +35,21 @@ pods:
       server:
         goal: RUNNING
         cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
-        resource-sets: world-resource
+        resource-set: world-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-checks:
           check-hello:
             cmd: "stat hello-container-path/output"
             max-consecutive-failures: {{WORLD_FAILS}}
+            
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-deploy:
+        strategy: serial
+        pod: hello
+      world-deploy:
+        strategy: serial
+        pod: world
