@@ -36,17 +36,17 @@
             "type":"integer",
             "default":25
           },
-	 "port":{
+          "port":{
             "description":"Port number",
             "type":"integer",
             "default":4444
           },
-	"vip_name":{
+          "vip_name":{
             "description":"Virtual IP name",
             "type":"string",
             "default":"helloworld"
           },
-	"vip-port":{
+          "vip-port":{
             "description":"Virtual IP port",
             "type":"integer",
             "default":9999
@@ -67,7 +67,7 @@
           "mem",
           "disk",
           "count",
-	  "port"
+          "port"
         ]
       },
       "world":{
@@ -94,7 +94,7 @@
             "type":"integer",
             "default":3
           },
-	"failst":{
+          "fails":{
             "description":"Maximum number of consequtive failures in health check",
             "type":"integer",
             "default":3
@@ -110,7 +110,7 @@
           "mem",
           "disk",
           "count",
-	  "fails"
+          "fails"
         ]
       }
     }
