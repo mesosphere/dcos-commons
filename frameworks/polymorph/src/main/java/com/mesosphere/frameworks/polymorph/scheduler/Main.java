@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.polymorph.scheduler;
+package com.mesosphere.frameworks.polymorph.scheduler;
 
 import org.apache.mesos.specification.DefaultService;
 import org.slf4j.Logger;

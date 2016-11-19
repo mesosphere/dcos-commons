@@ -1,4 +1,4 @@
-group 'com.mesosphere.sdk'
+group 'com.mesosphere.frameworks'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
@@ -36,4 +36,4 @@ distributions {
     }
 }
 
-mainClassName = 'com.mesosphere.sdk.polymorph.scheduler.Main'
+mainClassName = 'com.mesosphere.frameworks.polymorph.scheduler.Main'

@@ -1,9 +1,9 @@
 {
   "packagingVersion": "2.0",
-  "name": "polymorph-framework",
+  "name": "polymorph",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
-  "description": "Polymorph service takes in a YAML service description of a stateful distributed system and makes is operational on DC/OS.",
+  "description": "Polymorph framework takes in a YAML service description of a stateful distributed system and makes it operational on DC/OS.",
   "selected": false,
   "framework": true,
   "tags": ["polymorph"],

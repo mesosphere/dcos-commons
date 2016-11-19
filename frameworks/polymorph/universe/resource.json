@@ -15,23 +15,23 @@
     "binaries":{
       "darwin":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-polymorph-framework-darwin}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-polymorph-darwin}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-polymorph-framework-darwin"
+          "url":"{{artifact-dir}}/dcos-polymorph-darwin"
         }
       },
       "linux":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-polymorph-framework-linux}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-polymorph-linux}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-polymorph-framework-linux"
+          "url":"{{artifact-dir}}/dcos-polymorph-linux"
         }
       },
       "windows":{
         "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-polymorph-framework.exe}}" } ],
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-polymorph.exe}}" } ],
           "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-polymorph-framework.exe"
+          "url":"{{artifact-dir}}/dcos-polymorph.exe"
         }
       }
     }

@@ -14,7 +14,7 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	cli.HandleCommonArgs(app, "polymorph-framework", "Polymorph DC/OS CLI Module", []string{"foo", "bar"})
+	cli.HandleCommonArgs(app, "polymorph", "Polymorph DC/OS CLI Module", []string{"foo", "bar"})
 	handleExampleSection(app)
 
 	// Omit modname:
