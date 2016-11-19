@@ -17,16 +17,15 @@ pods:
             size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-	ports:
-	  - name: test
-	    port: {{HELLO_PORT}}
-
+       ports:
+         - name: test
+           port: {{HELLO_PORT}}
   world:
     count: {{WORLD_COUNT}}
     resource-sets:
       world-resource:
         cpus: {{WORLD_CPUS}}
-       	memory: {{WORLD_MEM}}
+        memory: {{WORLD_MEM}}
         volumes:
           - path: "world-container-path"
             type: ROOT
@@ -35,10 +34,10 @@ pods:
       server:
         goal: RUNNING
         cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
-	resource-sets: world-resource
+        resource-sets: world-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-	health-checks:
-	  check-hello:
-	    cmd: "stat hello-container-path/output"
+        health-checks:
+          check-hello:
+            cmd: "stat hello-container-path/output"
             max-consecutive-failures: {{WORLD_FAILS}}
