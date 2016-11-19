@@ -39,14 +39,8 @@ find $1 -type f -name *.bak -exec rm {} \;
 
 if [ $? -eq 0 ]; then
 	echo "" >> settings.gradle
-	if grep -q $PROJECT_NAME settings.gradle 
-	then
-	  echo "include '$1'" >> settings.gradle
-	  echo "project(\":$1\").name = \"$1\"" >> settings.gradle
-	else
-	  echo "include '$1'" >> settings.gradle
-	  echo "project(\":$1\").name = \"$PROJECT_NAME\"" >> settings.gradle
-	fi
+	echo "include '$1'" >> settings.gradle
+	echo "project(\":$1\").name = \"$PROJECT_NAME\"" >> settings.gradle
 	echo "New project created successfully"
 else
 	echo "Failed to create new project"
