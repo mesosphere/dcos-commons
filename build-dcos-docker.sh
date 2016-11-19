@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# capture anonymous metrics for reporting
+curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
+
 # abort script at first error:
 set -e
 
@@ -186,3 +189,7 @@ echo "Rebuild routes: ${SCRIPT_DIR}/node-route.sh"
 echo "Delete VM:      pushd ${DCOS_DOCKER_DIR} && vagrant destroy && popd"
 echo "Delete data:    rm -rf ${DCOS_DOCKER_DIR}"
 echo "---"
+
+# capture anonymous metrics for reporting
+curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
+
