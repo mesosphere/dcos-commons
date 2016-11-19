@@ -41,10 +41,6 @@ pods:
         health-checks:
           check-hello:
             cmd: "stat hello-container-path/output"
-            interval: 5
-            grace-period: 30
-            delay: 0
-            timeout: 10
             max-consecutive-failures: {{WORLD_FAILS}}
             
 plans:
