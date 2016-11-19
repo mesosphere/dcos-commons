@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.helloworld.scheduler;
+package com.mesosphere.sdk.kafka.scheduler;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Collections;
 
 import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
@@ -31,15 +32,12 @@ public class ServiceSpecTest {
     public static void beforeAll() {
         environmentVariables.set("EXECUTOR_URI", "");
         environmentVariables.set("PORT0", "8080");
-        environmentVariables.set("SLEEP_DURATION", "1000");
-        environmentVariables.set("HELLO_COUNT", "2");
-        environmentVariables.set("HELLO_CPUS", "0.1");
-        environmentVariables.set("HELLO_MEM", "512");
-        environmentVariables.set("HELLO_DISK", "5000");
-        environmentVariables.set("WORLD_COUNT", "3");
-        environmentVariables.set("WORLD_CPUS", "0.2");
-        environmentVariables.set("WORLD_MEM", "1024");
-        environmentVariables.set("WORLD_DISK", "5000");
+        environmentVariables.set("BROKER_COUNT", "2");
+        environmentVariables.set("BROKER_CPUS", "0.1");
+        environmentVariables.set("BROKER_MEM", "512");
+        environmentVariables.set("BROKER_DISK", "5000");
+        URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
+        environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
     @Before

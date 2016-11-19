@@ -1,0 +1,21 @@
+{
+  "type":"object",
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS service configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"reference-framework"
+          },
+          "specification-uri" : {
+            "description":"The URL to service specification.",
+            "type":"string",
+            "default":""
+          }
+        }
+      }
+    }
+}
