@@ -18,7 +18,7 @@ UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
 CLI_EXE_NAME=${CLI_EXE_NAME:=dcos-${FRAMEWORK_NAME}}
 
 TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT_DIR=$(realpath ${TOOLS_DIR}/..)
+REPO_ROOT_DIR=$(dirname $TOOLS_DIR) # note: need an absolute path for REPO_CLI_RELATIVE_PATH below
 
 # GitHub notifier config
 _notify_github() {
