@@ -11,23 +11,23 @@ cd $REPO_ROOT_DIR
 
 # GitHub notifier config
 _notify_github() {
-    $REPO_ROOT_DIR/tools/github_update.py $1 build $2
+    $REPO_ROOT_DIR/tools/github_update.py $1 build:sdk $2
 }
 
 # Build steps for SDK libraries:
 
-_notify_github pending "Build running"
+_notify_github pending "SDK build running"
 
 ./gradlew clean jar
 if [ $? -ne 0 ]; then
-  _notify_github failure "Gradle build failed"
+  _notify_github failure "SDK build failed"
   exit 1
 fi
 
 ./gradlew check
 if [ $? -ne 0 ]; then
-  _notify_github failure "Unit tests failed"
+  _notify_github failure "SDK unit tests failed"
   exit 1
 fi
 
-_notify_github success "Build succeeded"
+_notify_github success "SDK build succeeded"
