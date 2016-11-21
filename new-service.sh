@@ -6,7 +6,7 @@ if [ $# -lt 1 ]; then
     echo "Example: ./new-service.sh frameworks/kafka"
     exit 1
 elif [ -d $1 ]; then
-    echo "A project with the given name already exists. Choose a different name"
+    echo "A project with the given name '$1' already exists. Choose a different name"
     exit 1
 fi
 
@@ -36,14 +36,8 @@ find $1 -type f -name *.bak -exec rm {} \;
 
 if [ $? -eq 0 ]; then
     echo "" >> settings.gradle
-    if grep -q $PROJECT_NAME settings.gradle
-    then
-	echo "include '$1'" >> settings.gradle
-	echo "project(\":$1\").name = \"$1\"" >> settings.gradle
-    else
-	echo "include '$1'" >> settings.gradle
-	echo "project(\":$1\").name = \"$PROJECT_NAME\"" >> settings.gradle
-    fi
+    echo "include '$1'" >> settings.gradle
+    echo "project(\":$1\").name = \"$PROJECT_NAME\"" >> settings.gradle
     echo "New project created successfully"
 else
     echo "Failed to create new project"
