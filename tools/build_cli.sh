@@ -40,6 +40,7 @@ if [ -z "$GOPATH" ]; then
 fi
 
 GO_VERSION=$(go version | awk '{print $3}')
+UPX_BINARY="" # only enabled for go1.7+
 echo "Detected $(which go): $GO_VERSION, GOPATH: $GOPATH"
 case "$GO_VERSION" in
     go1.[7-9]*|go1.1[0-9]*|go[2-9]*) # go1.7+, go2+ (must come before go1.0-go1.4: support e.g. go1.10)
@@ -69,7 +70,7 @@ fi
 
 build_cli() {
     EXE_OUTPUT=${CLI_EXE_NAME}$2
-    if [ "$1" == "darwin" ]; then
+    if [ "$1" = "darwin" ]; then
         # do not compress darwin binaries: upx compression results in 'Killed: 9'
         echo "Building $1 CLI: $EXE_OUTPUT (stripped)"
         # available GOOS/GOARCH permutations are listed at:

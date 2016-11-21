@@ -17,8 +17,13 @@ HELLOWORLD_DIR=${REPO_ROOT_DIR}/frameworks/helloworld
 # Build/upload hello world scheduler artifact if one is not directly provided:
 if [ -z "$STUB_UNIVERSE_URL" ]; then
     # Build/upload hello world scheduler:
-    ${HELLOWORLD_DIR}/build.sh aws | tee ${REPO_ROOT_DIR}/helloworld-build-output
-    export STUB_UNIVERSE_URL=$(tail -n 1 ${REPO_ROOT_DIR}/helloworld-build-output)
+    UNIVERSE_URL_FILE=${REPO_ROOT_DIR}/helloworld-universe-url
+    UNIVERSE_URL_FILE=$UNIVERSE_URL_FILE ${HELLOWORLD_DIR}/build.sh aws
+    if [ ! -f "${UNIVERSE_URL_FILE}" ]; then
+        echo "Missing universe URL file: $UNIVERSE_URL_FILE"
+        exit 1
+    fi
+    export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_FILE)
     rm -f ${REPO_ROOT_DIR}/helloworld-build-output
     echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"
 else
