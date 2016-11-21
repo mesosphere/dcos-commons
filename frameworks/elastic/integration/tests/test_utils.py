@@ -1,5 +1,4 @@
 import json
-import os
 from functools import wraps
 
 import dcos
@@ -22,9 +21,6 @@ TASK_RUNNING_STATE = 'TASK_RUNNING'
 REQUEST_HEADERS = {
     'authorization': 'token=%s' % DCOS_TOKEN
 }
-
-OPTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'options')
-COMPLETE_CLUSTER_OPTIONS_FILE = os.path.join(OPTIONS_DIR, 'complete.json')
 
 
 def gc_frameworks():
