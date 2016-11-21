@@ -71,10 +71,13 @@ def get_deployment_plan():
     return spin(fn, success_predicate)
 
 
-def install(additional_options = {}):
+def install(package_version=None, package_name=PACKAGE_NAME, additional_options = {}):
     merged_options = _nested_dict_merge(DEFAULT_OPTIONS_DICT, additional_options)
     print('Installing {} with options: {}'.format(PACKAGE_NAME, merged_options))
-    shakedown.install_package_and_wait(PACKAGE_NAME, options_json=merged_options)
+    shakedown.install_package_and_wait(
+        package_name=PACKAGE_NAME,
+        package_version=package_version,
+        options_json=merged_options)
 
 
 def uninstall():
