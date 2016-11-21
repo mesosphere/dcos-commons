@@ -12,14 +12,19 @@ REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
 # Path to hello world scheduler:
-REFERENCE_DIR=${REPO_ROOT_DIR}/frameworks/helloworld
+HELLOWORLD_DIR=${REPO_ROOT_DIR}/frameworks/helloworld
 
-# Build/upload reference scheduler artifact if one is not directly provided:
+# Build/upload hello world scheduler artifact if one is not directly provided:
 if [ -z "$STUB_UNIVERSE_URL" ]; then
     # Build/upload hello world scheduler:
-    ${REFERENCE_DIR}/build.sh aws | tee ${REPO_ROOT_DIR}/reference-build-output
-    export STUB_UNIVERSE_URL=$(tail -n 1 ${REPO_ROOT_DIR}/reference-build-output)
-    rm -f ${REPO_ROOT_DIR}/reference-build-output
+    UNIVERSE_URL_PATH=${REPO_ROOT_DIR}/helloworld-universe-url
+    UNIVERSE_URL_PATH=$UNIVERSE_URL_PATH ${HELLOWORLD_DIR}/build.sh aws
+    if [ ! -f "${UNIVERSE_URL_PATH}" ]; then
+        echo "Missing universe URL file: $UNIVERSE_URL_PATH"
+        exit 1
+    fi
+    export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
+    rm -f $UNIVERSE_URL_PATH
     echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"
 else
     echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
@@ -38,11 +43,11 @@ else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
 fi
 
-# Run shakedown tests in reference scheduler directory:
+# Run shakedown tests in helloworld scheduler directory:
 ${REPO_ROOT_DIR}/tools/run_tests.py \
                 shakedown \
-                ${REFERENCE_DIR}/integration/tests/ \
-                ${REFERENCE_DIR}/integration/requirements.txt
+                ${HELLOWORLD_DIR}/integration/tests/ \
+                ${HELLOWORLD_DIR}/integration/requirements.txt
 
 # Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
 # Don't wait for the cluster to complete teardown.

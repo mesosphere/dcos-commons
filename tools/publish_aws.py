@@ -112,20 +112,21 @@ class AWSPublisher(object):
 
 
     def _spam_universe_url(self, universe_url):
-        if 'WORKSPACE' in os.environ:
-            # write jenkins properties file to $WORKSPACE/stub-universe.properties:
-            properties_file = open(os.path.join(os.environ['WORKSPACE'], '{}.properties'.format(self._pkg_version)), 'w')
+        # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
+        jenkins_workspace_path = os.environ.get('WORKSPACE', '')
+        if jenkins_workspace_path:
+            properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
             properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
             properties_file.flush()
             properties_file.close()
-        custom_universes_path = os.environ.get('CUSTOM_UNIVERSES_PATH', '')
-        if custom_universes_path:
-            # write custom universes file for dcos-tests:
-            custom_universes_file = open(custom_universes_path, 'w')
-            properties_file.write('stub {}\n'.format(universe_url))
-            properties_file.flush()
-            properties_file.close()
+        # write URL to provided text file path:
+        universe_url_path = os.environ.get('UNIVERSE_URL_PATH', '')
+        if universe_url_path:
+            universe_url_file = open(universe_url_path, 'w')
+            universe_url_file.write('{}\n'.format(universe_url))
+            universe_url_file.flush()
+            universe_url_file.close()
         num_artifacts = len(self._artifact_paths)
         if num_artifacts > 1:
             suffix = 's'
@@ -161,8 +162,14 @@ class AWSPublisher(object):
 
         self._spam_universe_url(universe_url)
 
-        # print to stdout, while the rest was all stderr:
+        # print to stdout, while the rest is all stderr:
         print(universe_url)
+
+        logger.info('---')
+        logger.info('Install your package using the following commands:')
+        logger.info('dcos package repo add --index=0 {}-aws {}'.format(self._pkg_name, universe_url))
+        logger.info('dcos package install {}'.format(self._pkg_name))
+
         return universe_url
 
 
