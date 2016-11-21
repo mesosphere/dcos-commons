@@ -8,7 +8,6 @@
 #   HTTP_HOST (default: 172.17.0.1, which is the ip of the VM when running dcos-docker)
 #   HTTP_PORT (default: 0, for an ephemeral port)
 
-#TODO prune unused:
 import json
 import logging
 import os
@@ -17,7 +16,6 @@ import shutil
 import socket
 import subprocess
 import sys
-import tempfile
 
 import github_update
 import universe_builder
@@ -70,13 +68,21 @@ class HTTPPublisher(object):
 
 
     def _spam_universe_url(self, universe_url):
-        if 'WORKSPACE' in os.environ:
-            # write jenkins properties file to $WORKSPACE/stub-universe.properties:
-            properties_file = open(os.path.join(os.environ['WORKSPACE'], '{}.properties'.format(self._pkg_version)), 'w')
+        # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
+        jenkins_workspace_path = os.environ.get('WORKSPACE', '')
+        if jenkins_workspace_path:
+            properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
             properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
             properties_file.flush()
             properties_file.close()
+        # write URL to provided text file path:
+        universe_url_path = os.environ.get('UNIVERSE_URL_PATH', '')
+        if universe_url_path:
+            universe_url_file = open(universe_url_path, 'w')
+            universe_url_file.write('{}\n'.format(universe_url))
+            universe_url_file.flush()
+            universe_url_file.close()
         num_artifacts = len(self._artifact_paths)
         if num_artifacts > 1:
             suffix = 's'
@@ -120,8 +126,9 @@ class HTTPPublisher(object):
 
         self._spam_universe_url(universe_url)
 
-        # print to stdout, while the rest was all stderr:
+        # print to stdout, while the rest is all stderr:
         print(universe_url)
+
         return universe_url
 
     def launch_http(self):
@@ -178,7 +185,7 @@ httpd.serve_forever()
 
         repo_name = self._pkg_name + '-local'
         # check for any preexisting universes and remove them -- the cluster requires no duplicate uris
-        logger.info('Checking for duplicate repositories: {}/{}'.format(repo_name, repo_url))
+        logger.info('Checking for duplicate repositories: name={}, url={}'.format(repo_name, repo_url))
         cur_universes = subprocess.check_output('dcos package repo list --json'.split()).decode('utf-8')
         for repo in json.loads(cur_universes)['repositories']:
             # {u'name': u'Universe', u'uri': u'https://universe.mesosphere.com/repo'}
@@ -210,12 +217,19 @@ def main(argv):
 Package:         {}
 Template path:   {}
 Artifacts:       {}
-###'''.format(package_name, package_dir_path, ','.join(artifact_paths)))
+###'''.format(package_name, package_dir_path, ', '.join(artifact_paths)))
 
     publisher = HTTPPublisher(package_name, package_dir_path, artifact_paths)
     http_url_root = publisher.launch_http()
     universe_url = publisher.build(http_url_root)
-    publisher.add_repo_to_cli(universe_url)
+    repo_added = publisher.add_repo_to_cli(universe_url)
+    logger.info('---')
+    if repo_added:
+        logger.info('Install your package using the following command:')
+    else:
+        logger.info('Install your package using the following commands:')
+        logger.info('dcos package repo add --index=0 {}-aws {}'.format(self._pkg_name, universe_url))
+    logger.info('dcos package install {}'.format(self._pkg_name))
     return 0
 
 
