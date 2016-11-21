@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 # This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. As such this focuses on executing tests for the Hello World Scheduler.
-# Individual projects/examples within the repository may have their own test scripts for exercising
-# additional custom functionality.
+# dcos-commons. The script builds the Hello World framework, packages and uploads it, then runs its
+# integration tests against a newly-launched cluster.
 
 # Exit immediately on errors -- the helper scripts all emit github statuses internally
 set -e

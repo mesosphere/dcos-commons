@@ -102,7 +102,9 @@ REPO_NAME=dcos-commons # CI dir does not match repo name
 GOPATH_MESOSPHERE=$GOPATH/src/github.com/mesosphere
 rm -rf $GOPATH_MESOSPHERE/$REPO_NAME
 mkdir -p $GOPATH_MESOSPHERE
-ln -T -s $REPO_ROOT_DIR $GOPATH_MESOSPHERE/$REPO_NAME
+pushd $GOPATH_MESOSPHERE
+ln -s $REPO_ROOT_DIR $REPO_NAME
+popd
 echo "Created symlink $GOPATH_MESOSPHERE/$REPO_NAME -> $REPO_ROOT_DIR"
 
 # run get/build from within GOPATH:

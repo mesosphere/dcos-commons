@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# This script does a full build/upload of dcos-commons artifacts.
-# This script is invoked by Jenkins CI, but may also be run locally on a dev system.
+# This script does a full build/test of SDK artifacts. This does not upload the artifacts, instead
+# see test.sh. This script (and test.sh) are executed by CI upon pull requests to the repository, or
+# may be run locally by developers.
 
 # Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
 set +e
