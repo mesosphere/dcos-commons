@@ -41,23 +41,25 @@ fi
 
 GO_VERSION=$(go version | awk '{print $3}')
 UPX_BINARY="" # only enabled for go1.7+
-echo "Detected $(which go): $GO_VERSION, GOPATH: $GOPATH"
 case "$GO_VERSION" in
     go1.[7-9]*|go1.1[0-9]*|go[2-9]*) # go1.7+, go2+ (must come before go1.0-go1.4: support e.g. go1.10)
+        echo "Detected Go 1.7.x+: $(which go) $GO_VERSION"
         UPX_BINARY="$(which upx-ucl)"
         ;;
     go0.*|go1.[0-4]*) # go0.*, go1.0-go1.4
-        echo "${GO_VERSION} is too old. Go 1.5+ required."
+        echo "Detected Go <=1.4. This is too old, please install Go 1.5+: $(which go) $GO_VERSION"
         exit 1
         ;;
     go1.5*) # go1.5
+        echo "Detected Go 1.5.x: $(which go) $GO_VERSION"
         export GO15VENDOREXPERIMENT=1
         ;;
     go1.6*) # go1.6
+        echo "Detected Go 1.6.x: $(which go) $GO_VERSION"
         # no experiment, but also no UPX
         ;;
     *) # ???
-        echo "Unrecognized go version: $GO_VERSION"
+        echo "Unrecognized go version: $(which go) $GO_VERSION"
         exit 1
         ;;
 esac
@@ -95,6 +97,7 @@ build_cli() {
 }
 
 # Configure GOPATH with dcos-commons symlink (rather than having it pull master):
+echo "Creating GOPATH symlink into dcos-commons: $GOPATH"
 REPO_NAME=dcos-commons # CI dir does not match repo name
 GOPATH_MESOSPHERE=$GOPATH/src/github.com/mesosphere
 rm -rf $GOPATH_MESOSPHERE/$REPO_NAME
@@ -113,6 +116,7 @@ popd
 # ---
 
 # python (wraps above binaries for compatibility with DC/OS 1.7 and universe-2.x):
+echo "Building Python CLI wrapper (DC/OS 1.7 / universe-2.x compatibility)"
 pushd ${TOOLS_DIR}/pythoncli
 rm -rf dist/ binaries/
 EXE_BUILD_DIR=$CLI_DIR/$CLI_EXE_NAME/ python setup.py bdist_wheel
