@@ -44,7 +44,7 @@ UPX_BINARY="" # only enabled for go1.7+
 case "$GO_VERSION" in
     go1.[7-9]*|go1.1[0-9]*|go[2-9]*) # go1.7+, go2+ (must come before go1.0-go1.4: support e.g. go1.10)
         echo "Detected Go 1.7.x+: $(which go) $GO_VERSION"
-        UPX_BINARY="$(which upx-ucl)"
+        UPX_BINARY="$(which upx || which upx-ucl || echo '')" # avoid error code if upx isn't installed
         ;;
     go0.*|go1.[0-4]*) # go0.*, go1.0-go1.4
         echo "Detected Go <=1.4. This is too old, please install Go 1.5+: $(which go) $GO_VERSION"
