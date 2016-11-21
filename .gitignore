@@ -2,6 +2,9 @@ target/
 *.pyc
 .cache/
 
+# dcos-docker artifacts
+dcos-docker/
+
 # leftovers from running tools directly
 tools/env/
 tools/cluster-*.properties
@@ -28,8 +31,6 @@ build/
 # gradle subprojects
 sdk/core/build
 sdk/executor/build
-examples/*/build
-examples/*/dcos-commons-tools
 frameworks/*/build
 frameworks/*/dcos-commons-tools/
 

@@ -150,7 +150,7 @@ public interface StateStore {
      *
      * @param key must be a non-blank String without any forward slashes ('/')
      * @param value The value should be a byte array no larger than 1MB (1024 * 1024 bytes)
-     * @throw StateStoreException if the key or value fail validation, or if storing the data otherwise fails
+     * @throws StateStoreException if the key or value fail validation, or if storing the data otherwise fails
      * @see StateStoreUtils#validateKey(String)
      * @see StateStoreUtils#validateValue(byte[])
      */
@@ -161,7 +161,7 @@ public interface StateStore {
      * key} is found.
      *
      * @param key must be a non-blank String without any forward slashes ('/')
-     * @throw StateStoreException if no data was found for the requested key, or if fetching the data otherwise fails
+     * @throws StateStoreException if no data was found for the requested key, or if fetching the data otherwise fails
      * @see StateStoreUtils#validateKey(String)
      */
     byte[] fetchProperty(String key) throws StateStoreException;
@@ -190,7 +190,7 @@ public interface StateStore {
     /**
      * Sets the suppression state of the framework.
      *
-     * @param suppressed
+     * @param suppressed indicates whether Offers should be supppressed.
      * @throws StateStoreException
      */
     void setSuppressed(final boolean suppressed) throws StateStoreException;

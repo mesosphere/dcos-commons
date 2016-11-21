@@ -6,12 +6,15 @@ import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.offer.constrain.PlacementRule;
+import org.apache.mesos.config.ConfigStoreException;
+import org.apache.mesos.scheduler.plan.DefaultPodInstance;
 import org.apache.mesos.specification.*;
+import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +39,15 @@ public class TaskUtils {
     private static final String OFFER_ATTRIBUTES_KEY = "offer_attributes";
 
     /**
+     * Label key against which the offer agent's hostname is stored.
+     */
+    private static final String OFFER_HOSTNAME_KEY = "offer_hostname";
+
+    /**
      * Label key against which the Task Type is stored.
      */
-    private static final String TASK_TYPE_KEY = "task_type";
+    private static final String TYPE_KEY = "task_type";
+    private static final String INDEX_KEY = "index";
 
     private TaskUtils() {
         // do not instantiate
@@ -46,7 +55,7 @@ public class TaskUtils {
 
     /**
      * Converts the unique {@link TaskID} into a Framework defined task name.
-     *
+     * <p>
      * For example: "instance-0__aoeu5678" => "instance-0"
      */
     public static String toTaskName(TaskID taskId) throws TaskException {
@@ -63,7 +72,7 @@ public class TaskUtils {
 
     /**
      * Converts the Framework defined task name into a unique {@link TaskID}.
-     *
+     * <p>
      * For example: "instance-0" => "instance-0__aoeu5678"
      */
     public static TaskID toTaskId(String taskName) {
@@ -152,8 +161,8 @@ public class TaskUtils {
      * Stores the provided Task Type string into the {@link TaskInfo} as a {@link Label}. Any
      * existing stored task type is overwritten.
      */
-    public static TaskInfo.Builder setTaskType(TaskInfo.Builder taskBuilder, String taskType) {
-        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TASK_TYPE_KEY, taskType));
+    public static TaskInfo.Builder setType(TaskInfo.Builder taskBuilder, String taskType) {
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TYPE_KEY, taskType));
     }
 
     /**
@@ -161,12 +170,24 @@ public class TaskUtils {
      *
      * @throws TaskException if the type could not be found.
      */
-    public static String getTaskType(TaskInfo taskInfo) throws TaskException {
-        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_KEY);
+    public static String getType(TaskInfo taskInfo) throws TaskException {
+        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TYPE_KEY);
         if (!taskType.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + TYPE_KEY);
         }
         return taskType.get();
+    }
+
+    public static TaskInfo.Builder setIndex(TaskInfo.Builder taskBuilder, Integer index) {
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), INDEX_KEY, String.valueOf(index)));
+    }
+
+    public static Integer getIndex(TaskInfo taskInfo) throws TaskException {
+        Optional<String> index = findLabelValue(taskInfo.getLabels(), INDEX_KEY);
+        if (!index.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + INDEX_KEY);
+        }
+        return Integer.valueOf(index.get());
     }
 
     /**
@@ -193,9 +214,30 @@ public class TaskUtils {
     }
 
     /**
+     * Stores the {@link Attribute}s from the provided {@link Offer} into the {@link TaskInfo} as a
+     * {@link Label}. Any existing stored attributes are overwritten.
+     */
+    public static TaskInfo.Builder setHostname(TaskInfo.Builder taskBuilder, Offer launchOffer) {
+        return taskBuilder.setLabels(
+                withLabelSet(taskBuilder.getLabels(), OFFER_HOSTNAME_KEY, launchOffer.getHostname()));
+    }
+
+    /**
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * embedded in the provided {@link TaskInfo}.
+     */
+    public static String getHostname(TaskInfo taskInfo) throws TaskException {
+        Optional<String> hostname = findLabelValue(taskInfo.getLabels(), OFFER_HOSTNAME_KEY);
+        if (!hostname.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + OFFER_HOSTNAME_KEY);
+        }
+        return hostname.get();
+    }
+
+    /**
      * Sets a {@link Label} indicating the target configuration for the provided {@link TaskInfo}.
      *
-     * @param taskInfoBuilder is the TaskInfo which will have the appropriate configuration {@link Label} set.
+     * @param taskInfoBuilder       is the TaskInfo which will have the appropriate configuration {@link Label} set.
      * @param targetConfigurationId is the ID referencing a particular Configuration in the {@link ConfigStore}
      */
     public static TaskInfo.Builder setTargetConfiguration(
@@ -224,19 +266,80 @@ public class TaskUtils {
     }
 
     /**
-     * Returns the {@link TaskSpecification} in the provided {@link DefaultServiceSpecification}
+     * Returns the {@link TaskSpec} in the provided {@link DefaultServiceSpec}
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
-    public static TaskSpecification getTaskSpecification(
-            ServiceSpecification serviceSpec, TaskInfo taskInfo) {
-        for (TaskSet taskSet : serviceSpec.getTaskSets()) {
-            for (TaskSpecification taskSpec : taskSet.getTaskSpecifications()) {
-                if (taskSpec.getName().equals(taskInfo.getName())) {
-                    return taskSpec;
-                }
+    public static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
+        String podType = TaskUtils.getType(taskInfo);
+
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            if (podSpec.getType().equals(podType)) {
+                return podSpec;
             }
         }
+
         return null;
+    }
+
+    public static List<String> getTaskNames(PodInstance podInstance) {
+        return podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+    }
+
+    public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
+        return stateStore.fetchTasks().stream()
+                .filter(taskInfo -> {
+                    try {
+                        return TaskUtils.getType(taskInfo).equals(podInstance.getName());
+                    } catch (TaskException e) {
+                        LOGGER.error("Encountered ");
+                        return false;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<Protos.TaskInfo> getTaskInfosShouldBeRunning(PodInstance podInstance, StateStore stateStore) {
+        List<Protos.TaskInfo> podTasks = getPodTasks(podInstance, stateStore);
+
+        List<Protos.TaskInfo> tasksShouldBeRunning = new ArrayList<>();
+        for (Protos.TaskInfo taskInfo : podTasks) {
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance);
+
+            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(TaskSpec.GoalState.RUNNING)) {
+                tasksShouldBeRunning.add(taskInfo);
+            }
+        }
+
+        return tasksShouldBeRunning;
+    }
+
+    private static Optional<TaskSpec> getTaskSpec(TaskInfo taskInfo, PodInstance podInstance) {
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
+            if (taskInfo.getName().equals(taskName)) {
+                return Optional.of(taskSpec);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<Protos.ExecutorInfo> getExecutor(PodInstance podInstance, StateStore stateStore) {
+        List<Protos.TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podInstance, stateStore);
+
+        for (Protos.TaskInfo taskInfo : shouldBeRunningTasks) {
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskStatusOptional.isPresent()
+                    && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
+                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
+                return Optional.of(taskInfo.getExecutor());
+            }
+        }
+
+        LOGGER.info("No running executor found.");
+        return Optional.empty();
     }
 
     /**
@@ -262,7 +365,7 @@ public class TaskUtils {
             // keep things reasonable without being a perfect check.
             throw new IllegalStateException(String.format(
                     "Provided config template content of %dB across %d files exceeds limit of %dB. "
-                    + "Reduce the size of your config templates by at least %dB.",
+                            + "Reduce the size of your config templates by at least %dB.",
                     totalSize, configs.size(), CONFIG_TEMPLATE_LIMIT_BYTES,
                     totalSize - CONFIG_TEMPLATE_LIMIT_BYTES));
         }
@@ -289,11 +392,11 @@ public class TaskUtils {
     }
 
     /**
-      * Extracts the environment variables given in the {@link Environment}.
-      *
-      * @param environment The {@link Environment} to extract environment variables from
-      * @return The map containing environment variables
-      */
+     * Extracts the environment variables given in the {@link Environment}.
+     *
+     * @param environment The {@link Environment} to extract environment variables from
+     * @return The map containing environment variables
+     */
     public static Map<String, String> fromEnvironmentToMap(Protos.Environment environment) {
         Map<String, String> map = new HashMap<>();
 
@@ -312,17 +415,21 @@ public class TaskUtils {
      * @param environmentMap The map to extract environment variables from
      * @return The {@link Environment} containing the extracted environment variables
      */
-     public static Protos.Environment fromMapToEnvironment(Map<String, String> environmentMap) {
-         Collection<Protos.Environment.Variable> vars = environmentMap
-            .entrySet()
-            .stream()
-            .map(entrySet -> Protos.Environment.Variable.newBuilder()
-                 .setName(entrySet.getKey())
-                 .setValue(entrySet.getValue()).build())
-            .collect(Collectors.toList());
+    public static Protos.Environment fromMapToEnvironment(Map<String, String> environmentMap) {
+        if (environmentMap == null) {
+            return Environment.getDefaultInstance();
+        }
 
-         return Protos.Environment.newBuilder().addAllVariables(vars).build();
-     }
+        Collection<Protos.Environment.Variable> vars = environmentMap
+                .entrySet()
+                .stream()
+                .map(entrySet -> Protos.Environment.Variable.newBuilder()
+                        .setName(entrySet.getKey())
+                        .setValue(entrySet.getValue()).build())
+                .collect(Collectors.toList());
+
+        return Protos.Environment.newBuilder().addAllVariables(vars).build();
+    }
 
 
     public static void sendStatus(ExecutorDriver driver,
@@ -358,13 +465,12 @@ public class TaskUtils {
         driver.sendStatusUpdate(taskStatus);
     }
 
-    public static boolean areDifferent(
-            TaskSpecification oldTaskSpecification, TaskSpecification newTaskSpecification) {
+    public static boolean areDifferent(TaskSpec oldTaskSpec, TaskSpec newTaskSpec) {
 
         // Names
 
-        String oldTaskName = oldTaskSpecification.getName();
-        String newTaskName = newTaskSpecification.getName();
+        String oldTaskName = oldTaskSpec.getName();
+        String newTaskName = newTaskSpec.getName();
         if (!Objects.equals(oldTaskName, newTaskName)) {
             LOGGER.info("Task names '{}' and '{}' are different.", oldTaskName, newTaskName);
             return true;
@@ -372,26 +478,17 @@ public class TaskUtils {
 
         // CommandInfos
 
-        Optional<CommandInfo> oldCommand = oldTaskSpecification.getCommand();
-        Optional<CommandInfo> newCommand = newTaskSpecification.getCommand();
+        Optional<CommandSpec> oldCommand = oldTaskSpec.getCommand();
+        Optional<CommandSpec> newCommand = newTaskSpec.getCommand();
         if (!Objects.equals(oldCommand, newCommand)) {
             LOGGER.info("Task commands '{}' and '{}' are different.", oldCommand, newCommand);
             return true;
         }
 
-        // ContainerInfos
-
-        Optional<ContainerInfo> oldContainer = oldTaskSpecification.getContainer();
-        Optional<ContainerInfo> newContainer = newTaskSpecification.getContainer();
-        if (!Objects.equals(oldContainer, newContainer)) {
-            LOGGER.info("Task containers '{}' and '{}' are different.", oldContainer, newContainer);
-            return true;
-        }
-
         // Health checks
 
-        Optional<HealthCheck> oldHealthCheck = oldTaskSpecification.getHealthCheck();
-        Optional<HealthCheck> newHealthCheck = newTaskSpecification.getHealthCheck();
+        Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();
+        Optional<HealthCheckSpec> newHealthCheck = newTaskSpec.getHealthCheck();
         if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
             LOGGER.info("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
             return true;
@@ -399,8 +496,10 @@ public class TaskUtils {
 
         // Resources (custom comparison)
 
-        Map<String, ResourceSpecification> oldResourceMap = getResourceSpecMap(oldTaskSpecification.getResources());
-        Map<String, ResourceSpecification> newResourceMap = getResourceSpecMap(newTaskSpecification.getResources());
+        Map<String, ResourceSpecification> oldResourceMap =
+                getResourceSpecMap(oldTaskSpec.getResourceSet().getResources());
+        Map<String, ResourceSpecification> newResourceMap =
+                getResourceSpecMap(newTaskSpec.getResourceSet().getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
             LOGGER.info("Resource lengths are different for old resources: '{}' and new resources: '{}'",
@@ -423,27 +522,19 @@ public class TaskUtils {
 
         // Volumes (custom comparison)
 
-        if (!volumesEqual(oldTaskSpecification, newTaskSpecification)) {
+        if (!volumesEqual(oldTaskSpec, newTaskSpec)) {
             LOGGER.info("Task volumes '{}' and '{}' are different.",
-                    oldTaskSpecification.getVolumes(), newTaskSpecification.getVolumes());
+                    oldTaskSpec.getResourceSet().getVolumes(),
+                    newTaskSpec.getResourceSet().getVolumes());
             return true;
         }
 
         // Config files
 
-        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpecification.getConfigFiles());
-        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpecification.getConfigFiles());
+        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
+        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
         if (!Objects.equals(oldConfigMap, newConfigMap)) {
             LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
-            return true;
-        }
-
-        // Placement constraints
-
-        Optional<PlacementRule> oldPlacement = oldTaskSpecification.getPlacement();
-        Optional<PlacementRule> newPlacement = newTaskSpecification.getPlacement();
-        if (!Objects.equals(oldPlacement, newPlacement)) {
-            LOGGER.info("Task placement constraints '{}' and '{}' are different.", oldPlacement, newPlacement);
             return true;
         }
 
@@ -452,12 +543,14 @@ public class TaskUtils {
 
     /**
      * Utility method for checking if volumes changed between the two provided
-     * {@link TaskSpecification}s.
+     * {@link TaskSpec}s.
      *
      * @return whether the volume lists are equal
      */
-    public static boolean volumesEqual(TaskSpecification first, TaskSpecification second) {
-        return CollectionUtils.isEqualCollection(first.getVolumes(), second.getVolumes());
+    public static boolean volumesEqual(TaskSpec first, TaskSpec second) {
+        return CollectionUtils.isEqualCollection(
+                first.getResourceSet().getVolumes(),
+                second.getResourceSet().getVolumes());
     }
 
     /**
@@ -591,7 +684,7 @@ public class TaskUtils {
             if (prevValue != null) {
                 throw new IllegalArgumentException(String.format(
                         "Resources for a given task may not share the same name. " +
-                        "name:'%s' oldResource:'%s' newResource:'%s'",
+                                "name:'%s' oldResource:'%s' newResource:'%s'",
                         resourceSpecification.getName(), prevValue, resourceSpecification));
             }
         }
@@ -614,7 +707,7 @@ public class TaskUtils {
             if (prevValue != null) {
                 throw new IllegalArgumentException(String.format(
                         "Config templates for a given task may not share the same path. " +
-                        "path:'%s' oldContent:'%s' newContent:'%s'",
+                                "path:'%s' oldContent:'%s' newContent:'%s'",
                         configSpecification.getRelativePath(), prevValue, configSpecification.getTemplateContent()));
             }
         }
@@ -628,6 +721,21 @@ public class TaskUtils {
      */
     public static CommandInfo.URI uri(String uri) {
         return CommandInfo.URI.newBuilder().setValue(uri).build();
+    }
+
+    public static TaskSpec.GoalState getGoalState(PodInstance podInstance, String taskName) throws TaskException {
+        Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskName);
+        if (taskSpec.isPresent()) {
+            return taskSpec.get().getGoal();
+        } else {
+            throw new TaskException("Failed to determine the goal state of Task: " + taskName);
+        }
+    }
+
+    public static Optional<TaskSpec> getTaskSpec(PodInstance podInstance, String taskName) {
+        return podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskName))
+                .findFirst();
     }
 
     /**
@@ -656,9 +764,9 @@ public class TaskUtils {
     /**
      * Injects the proper data into the given config template and writes the populated template to disk.
      *
-     * @param relativePath The path to write the file
+     * @param relativePath    The path to write the file
      * @param templateContent The content of the config template
-     * @param environment The environment from which to extract the injection data
+     * @param environment     The environment from which to extract the injection data
      * @throws IOException if the data can't be written to disk
      */
     private static void writeConfigFile(
@@ -691,5 +799,80 @@ public class TaskUtils {
             }
             throw new IOException(String.format("Can't write to file %s: %s", relativePath, e));
         }
+    }
+
+    /**
+     * Renders a given Mustache template using the provided environment map.
+     *
+     * @param templateContent String representation of template.
+     * @param environment     Map of environment variables.
+     * @return Rendered Mustache template String.
+     */
+    public static String applyEnvToMustache(String templateContent, Map<String, String> environment) {
+        StringWriter writer = new StringWriter();
+        MustacheFactory mf = new DefaultMustacheFactory();
+        Mustache mustache = mf.compile(new StringReader(templateContent), "configTemplate");
+        mustache.execute(writer, environment);
+        return writer.toString();
+    }
+
+    public static boolean isMustacheFullyRendered(String templateContent) {
+        return StringUtils.isEmpty(templateContent) || !templateContent.matches("\\{\\{.*\\}\\}");
+    }
+
+    public static Map<PodInstance, List<Protos.TaskInfo>> getPodMap(
+            ConfigStore<ServiceSpec> configStore,
+            Collection<TaskInfo> taskInfos)
+            throws TaskException {
+        Map<PodInstance, List<Protos.TaskInfo>> podMap = new HashMap<>();
+
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            PodInstance podInstance = getPodInstance(configStore, taskInfo);
+            List<Protos.TaskInfo> taskList = podMap.get(podInstance);
+
+            if (taskList == null) {
+                taskList = Arrays.asList(taskInfo);
+            } else {
+                taskList = new ArrayList<>(taskList);
+                taskList.add(taskInfo);
+            }
+
+            podMap.put(podInstance, taskList);
+        }
+
+        return podMap;
+    }
+
+    public static PodInstance getPodInstance(
+            ConfigStore<ServiceSpec> configStore,
+            Protos.TaskInfo taskInfo) throws TaskException {
+
+        PodSpec podSpec = getPodSpec(configStore, taskInfo);
+        Integer index = TaskUtils.getIndex(taskInfo);
+
+        return new DefaultPodInstance(podSpec, index);
+    }
+
+    public static PodSpec getPodSpec(
+            ConfigStore<ServiceSpec> configStore,
+            Protos.TaskInfo taskInfo) throws TaskException {
+
+        UUID configId = TaskUtils.getTargetConfiguration(taskInfo);
+        ServiceSpec serviceSpec;
+
+        try {
+            serviceSpec = configStore.fetch(configId);
+        } catch (ConfigStoreException e) {
+            throw new TaskException(String.format(
+                    "Unable to retrieve ServiceSpecification ID %s referenced by TaskInfo[%s]",
+                    configId, taskInfo.getName()), e);
+        }
+
+        PodSpec podSpec = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        if (podSpec == null) {
+            throw new TaskException(String.format(
+                    "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
+        }
+        return podSpec;
     }
 }

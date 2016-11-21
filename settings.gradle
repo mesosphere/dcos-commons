@@ -6,8 +6,8 @@ project(":sdk/scheduler").name = "scheduler"
 include 'sdk/executor'
 project(":sdk/executor").name = "executor"
 
-include 'examples/reference'
-project(":examples/reference").name = "reference"
+include 'frameworks/helloworld'
+project(":frameworks/helloworld").name = "helloworld"
 
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
@@ -15,3 +15,5 @@ project(":frameworks/hdfs").name = "hdfs"
 include 'frameworks/elastic'
 project(':frameworks/elastic').name = 'elastic'
 
+include 'frameworks/kafka'
+project(":frameworks/kafka").name = "kafka"

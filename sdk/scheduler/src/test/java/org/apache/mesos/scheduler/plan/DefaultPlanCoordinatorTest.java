@@ -12,10 +12,9 @@ import org.apache.mesos.offer.OfferEvaluator;
 import org.apache.mesos.scheduler.DefaultTaskKiller;
 import org.apache.mesos.scheduler.TaskKiller;
 import org.apache.mesos.scheduler.recovery.TaskFailureListener;
-import org.apache.mesos.specification.DefaultServiceSpecification;
-import org.apache.mesos.specification.TaskSet;
-import org.apache.mesos.specification.TaskSpecificationProvider;
-import org.apache.mesos.specification.TestTaskSetFactory;
+import org.apache.mesos.specification.DefaultServiceSpec;
+import org.apache.mesos.specification.PodSpec;
+import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
@@ -30,8 +29,8 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@code DefaultPlanCoordinator}.
@@ -45,17 +44,50 @@ public class DefaultPlanCoordinatorTest {
     public static final int INSUFFICIENT_DISK = 1;
     private static TestingServer testingServer;
 
-    private List<TaskSet> taskSets;
-    private List<TaskSet> taskSetsB;
-    private DefaultServiceSpecification serviceSpecification;
-    private DefaultServiceSpecification serviceSpecificationB;
+    private static final int TASK_A_COUNT = 1;
+    private static final String TASK_A_POD_NAME = "POD-A";
+    private static final String TASK_A_NAME = "A";
+    private static final double TASK_A_CPU = 1.0;
+    private static final double TASK_A_MEM = 1000.0;
+    private static final double TASK_A_DISK = 1500.0;
+    private static final String TASK_A_CMD = "echo " + TASK_A_NAME;
+
+    private static final int TASK_B_COUNT = 2;
+    private static final String TASK_B_POD_NAME = "POD-B";
+    private static final String TASK_B_NAME = "B";
+    private static final double TASK_B_CPU = 2.0;
+    private static final double TASK_B_MEM = 2000.0;
+    private static final double TASK_B_DISK = 2500.0;
+    private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
+
+    private static final PodSpec podA = TestPodFactory.getPodSpec(
+            TASK_A_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-A",
+            TASK_A_NAME,
+            TASK_A_CMD,
+            TASK_A_COUNT,
+            TASK_A_CPU,
+            TASK_A_MEM,
+            TASK_A_DISK);
+
+    private static final PodSpec podB = TestPodFactory.getPodSpec(
+            TASK_B_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-B",
+            TASK_B_NAME,
+            TASK_B_CMD,
+            TASK_B_COUNT,
+            TASK_B_CPU,
+            TASK_B_MEM,
+            TASK_B_DISK);
+
+    private DefaultServiceSpec serviceSpecification;
+    private DefaultServiceSpec serviceSpecificationB;
     private OfferAccepter offerAccepter;
     private StateStore stateStore;
     private TaskKiller taskKiller;
     private DefaultPlanScheduler planScheduler;
     private TaskFailureListener taskFailureListener;
     private SchedulerDriver schedulerDriver;
-    private TaskSpecificationProvider taskSpecificationProvider;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
     private EnvironmentVariables environmentVariables;
@@ -65,39 +97,41 @@ public class DefaultPlanCoordinatorTest {
         testingServer = new TestingServer();
     }
 
+
     @Before
     public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
         offerAccepter = spy(new OfferAccepter(Arrays.asList()));
+
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
-        taskSpecificationProvider = mock(TaskSpecificationProvider.class);
-        taskSets = Arrays.asList(TestTaskSetFactory.getTaskSet());
-        taskSetsB = Arrays.asList(TestTaskSetFactory.getTaskSet(
-                TestConstants.TASK_TYPE + "-B",
-                TestTaskSetFactory.COUNT,
-                TestTaskSetFactory.CMD.getValue(),
-                TestTaskSetFactory.CPU,
-                TestTaskSetFactory.MEM,
-                TestTaskSetFactory.DISK));
-        serviceSpecification = new DefaultServiceSpecification(
-                SERVICE_NAME,
-                taskSets);
+        serviceSpecification = DefaultServiceSpec.newBuilder()
+                .name(SERVICE_NAME)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .apiPort(0)
+                .zookeeperConnection("foo.bar.com")
+                .pods(Arrays.asList(podA))
+                .build();
         stateStore = new CuratorStateStore(
                 serviceSpecification.getName(),
                 testingServer.getConnectString());
         stepFactory = new DefaultStepFactory(
                 mock(ConfigStore.class),
                 stateStore,
-                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), UUID.randomUUID()),
-                taskSpecificationProvider);
+                new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), stateStore, UUID.randomUUID()));
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
         planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
-        serviceSpecificationB = new DefaultServiceSpecification(
-                SERVICE_NAME + "-B",
-                taskSetsB);
+        serviceSpecificationB = DefaultServiceSpec.newBuilder()
+                .name(SERVICE_NAME + "-B")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .apiPort(0)
+                .zookeeperConnection("foo.bar.com")
+                .pods(Arrays.asList(podB))
+                .build();
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
     }

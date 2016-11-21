@@ -5,6 +5,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.plan.DefaultStep;
 import org.apache.mesos.scheduler.plan.Status;
 import org.apache.mesos.scheduler.recovery.constrain.LaunchConstrainer;
+import org.apache.mesos.specification.PodInstance;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -24,12 +25,14 @@ public class DefaultRecoveryStep extends DefaultStep {
     public DefaultRecoveryStep(
             String name,
             Status status,
+            PodInstance podInstance,
             RecoveryRequirement recoveryRequirement,
             LaunchConstrainer launchConstrainer) {
         super(
                 name,
                 Optional.of(recoveryRequirement.getOfferRequirement()),
                 status,
+                podInstance,
                 Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.recoveryRequirement = recoveryRequirement;

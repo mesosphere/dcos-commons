@@ -61,7 +61,7 @@ public class PlacementUtils {
     }
 
     /**
-     * Returns whether the provided {@link TaskInfo},representing a previously-launched task,
+     * Returns whether the provided {@link TaskInfo}, representing a previously-launched task,
      * has a matching the task name and task type within the provided {@link OfferRequirement},
      * representing a new task about to be launched.
      */
@@ -69,12 +69,12 @@ public class PlacementUtils {
         // Check task types
         String taskInfoType;
         try {
-            taskInfoType = TaskUtils.getTaskType(taskInfo);
+            taskInfoType = TaskUtils.getType(taskInfo);
         } catch (TaskException e) {
             LOGGER.warn("Unable to extract task type from taskinfo", e);
             taskInfoType = null;
         }
-        if (!Objects.equal(taskInfoType, offerRequirement.getTaskType())) {
+        if (!Objects.equal(taskInfoType, offerRequirement.getType())) {
             return false;
         }
 

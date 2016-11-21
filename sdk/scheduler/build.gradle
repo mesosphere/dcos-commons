@@ -29,6 +29,8 @@ ext {
     jerseyVer = "2.23.2";
     jsonProviderVer = "2.2.3"
     mustacheVer = "0.9.2"
+    hibernateValidatorVer = "5.3.2.Final"
+    elVer = "2.2.4"
 }
 
 task sourceJar(type: Jar) {
@@ -97,6 +99,9 @@ dependencies {
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.eclipse.jetty:jetty-servlet:${jettyServletVer}"
     compile "com.github.spullara.mustache.java:compiler:${mustacheVer}"
+    compile "org.hibernate:hibernate-validator:${hibernateValidatorVer}"
+    compile "javax.el:javax.el-api:${elVer}"
+    compile "org.glassfish.web:javax.el:${elVer}"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"

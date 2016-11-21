@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
 
 /**
@@ -62,6 +63,26 @@ public class StateStoreUtils {
                 results.add(info);
             }
         }
+        return results;
+    }
+
+    public static Collection<TaskInfo> fetchTasksFromPod(StateStore stateStore, String pod) throws StateStoreException {
+        Collection<TaskInfo> allInfos = stateStore.fetchTasks();
+
+        List<TaskInfo> results = new ArrayList<>();
+        for (TaskInfo info : allInfos) {
+            String taskPod = null;
+            try {
+                taskPod = TaskUtils.getType(info);
+            } catch (TaskException e) {
+                continue;
+            }
+
+            if (pod.equals(taskPod)) {
+                results.add(info);
+            }
+        }
+
         return results;
     }
 

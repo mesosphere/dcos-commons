@@ -1,0 +1,55 @@
+name: "${SERVICE_NAME}"
+principal: "${SERVICE_PRINCIPAL}"
+pods:
+  - name: pod-type-a
+    placement: "avoid-type: task-a"
+    count: 5
+    tasks:
+      - name: task-a
+        goal: RUNNING
+        cmd: "echo hello"
+        image: ubuntu:16.04
+        uris:
+          - "${ARTIFACT_1}"
+          - "${ARTIFACT_2}"
+        env:
+          TASK_A_ENV_KEY: "${SCHEDULER_ENV_VALUE}"
+        cpus: 1.3
+        memory: 1024
+        ports:
+          - name: http
+            port: 8080
+            vip:
+              prefix: task-a
+              port: 4040
+          - name: admin
+            port: 0
+        configurations:
+          - template: config.yaml.tmpl
+            dest: /config/path/config.yaml
+        health-checks:
+          - name: check-up
+            cmd: "curl -f http://localhost:<port>/check-up"
+            interval: 5
+            grace-period: 30
+            max-consecutive-failures: 3
+    volumes:
+      - path: /data/path-foo
+        type: MOUNT
+        size: 500000
+      - path: /data/path-tools
+        type: MOUNT
+        size: 5000
+plans:
+  - name: deploy
+    strategy: parallel
+    phases:
+      - name: A-phase
+        strategy: parallel
+        pod: pod-type-a
+        steps:
+          - task-a
+          - task-foo-a
+      - name: B-phase
+        strategy: serial
+        pod: pod-type-b

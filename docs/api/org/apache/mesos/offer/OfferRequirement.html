@@ -135,13 +135,13 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/apache/mesos/offer/OfferRequirement.html#OfferRequirement-java.lang.String-java.util.Collection-">OfferRequirement</a></span>(java.lang.String&nbsp;taskType,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/apache/mesos/offer/OfferRequirement.html#OfferRequirement-java.lang.String-java.util.Collection-">OfferRequirement</a></span>(java.lang.String&nbsp;type,
                 java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</code>
 <div class="block">Creates a new OfferRequirement with empty executor requirement and empty placement constraints.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/apache/mesos/offer/OfferRequirement.html#OfferRequirement-java.lang.String-java.util.Collection-java.util.Optional-">OfferRequirement</a></span>(java.lang.String&nbsp;taskType,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/apache/mesos/offer/OfferRequirement.html#OfferRequirement-java.lang.String-java.util.Collection-java.util.Optional-">OfferRequirement</a></span>(java.lang.String&nbsp;type,
                 java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos,
                 java.util.Optional&lt;ExecutorInfo&gt;&nbsp;executorInfoOptional)</code>
 <div class="block">Creates a new OfferRequirement with provided executor requirement and empty placement
@@ -149,7 +149,7 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/apache/mesos/offer/OfferRequirement.html#OfferRequirement-java.lang.String-java.util.Collection-java.util.Optional-java.util.Optional-">OfferRequirement</a></span>(java.lang.String&nbsp;taskType,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../org/apache/mesos/offer/OfferRequirement.html#OfferRequirement-java.lang.String-java.util.Collection-java.util.Optional-java.util.Optional-">OfferRequirement</a></span>(java.lang.String&nbsp;type,
                 java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos,
                 java.util.Optional&lt;ExecutorInfo&gt;&nbsp;executorInfoOptional,
                 java.util.Optional&lt;<a href="../../../../org/apache/mesos/offer/constrain/PlacementRuleGenerator.html" title="interface in org.apache.mesos.offer.constrain">PlacementRuleGenerator</a>&gt;&nbsp;placementRuleGeneratorOptional)</code>
@@ -227,7 +227,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>OfferRequirement</h4>
-<pre>public&nbsp;OfferRequirement(java.lang.String&nbsp;taskType,
+<pre>public&nbsp;OfferRequirement(java.lang.String&nbsp;type,
                         java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos,
                         java.util.Optional&lt;ExecutorInfo&gt;&nbsp;executorInfoOptional,
                         java.util.Optional&lt;<a href="../../../../org/apache/mesos/offer/constrain/PlacementRuleGenerator.html" title="interface in org.apache.mesos.offer.constrain">PlacementRuleGenerator</a>&gt;&nbsp;placementRuleGeneratorOptional)
@@ -235,7 +235,7 @@ extends java.lang.Object</pre>
 <div class="block">Creates a new OfferRequirement.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>taskType</code> - the task type name from the TaskSet, used for placement filtering</dd>
+<dd><code>type</code> - the task type name from the TaskSet, used for placement filtering</dd>
 <dd><code>taskInfos</code> - the 'draft' <code>TaskInfo</code>s from which task requirements should be generated</dd>
 <dd><code>executorInfoOptional</code> - the executor from which an executor requirement should be
      generated, if any</dd>
@@ -253,7 +253,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>OfferRequirement</h4>
-<pre>public&nbsp;OfferRequirement(java.lang.String&nbsp;taskType,
+<pre>public&nbsp;OfferRequirement(java.lang.String&nbsp;type,
                         java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos,
                         java.util.Optional&lt;ExecutorInfo&gt;&nbsp;executorInfoOptional)
                  throws <a href="../../../../org/apache/mesos/offer/InvalidRequirementException.html" title="class in org.apache.mesos.offer">InvalidRequirementException</a></pre>
@@ -273,7 +273,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>OfferRequirement</h4>
-<pre>public&nbsp;OfferRequirement(java.lang.String&nbsp;taskType,
+<pre>public&nbsp;OfferRequirement(java.lang.String&nbsp;type,
                         java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)
                  throws <a href="../../../../org/apache/mesos/offer/InvalidRequirementException.html" title="class in org.apache.mesos.offer">InvalidRequirementException</a></pre>
 <div class="block">Creates a new OfferRequirement with empty executor requirement and empty placement constraints.</div>

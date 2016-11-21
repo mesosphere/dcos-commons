@@ -7,7 +7,6 @@ plugins {
 
 allprojects {
     apply plugin: 'java'
-    apply plugin: 'jacoco'
     apply plugin: 'maven'
     apply plugin: 'eclipse'
     apply plugin: 'idea'
@@ -26,7 +25,7 @@ allprojects {
     // at ANY TIME as changes are merged into master. They represent a fully unstable API.
     // ---
     group = "mesosphere"
-    version = "0.8.1-SNAPSHOT"
+    version = "0.9.0-SNAPSHOT"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -41,7 +40,7 @@ allprojects {
     compileTestJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 
     task wrapper(type: Wrapper) {
-        gradleVersion = '3.1'
+        gradleVersion = '3.2'
     }
 
     idea {
@@ -64,20 +63,6 @@ allprojects {
     test {
         testLogging {
             events "passed", "skipped", "failed"
-        }
-    }
-
-    // Include unit test report in 'check'
-    // (jacoco itself depends on 'test')
-    check.dependsOn jacocoTestReport
-    jacocoTestReport {
-        afterEvaluate {
-            classDirectories = files(classDirectories.files.collect {
-                fileTree(dir: it, exclude: 'org/apache/mesos/testing/**')
-            })
-        }
-        reports {
-            html.destination "${buildDir}/jacoco"
         }
     }
 }

@@ -3,6 +3,7 @@ package org.apache.mesos.offer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.state.StateStore;
 
 import java.util.Collection;
 
@@ -57,9 +58,6 @@ public class TaskRequirement {
      * Checks that the TaskInfo is valid at the point of requirement construction, making it
      * easier for the framework developer to trace problems in their implementation. These checks
      * reflect requirements enforced elsewhere, eg in {@link StateStore}.
-     *
-     * @return a validated TaskInfo
-     * @throws InvalidRequirementException if the TaskInfo is malformed
      */
     private static void validateTaskInfo(TaskInfo taskInfo)
             throws InvalidRequirementException {

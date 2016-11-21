@@ -12,9 +12,9 @@ import java.time.Duration;
  */
 public class TimedLaunchConstrainerTest {
     private static final Duration MIN_DELAY = Duration.ofMillis(3000);
-    private static final RecoveryRequirement NO_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.NONE);
-    private static final RecoveryRequirement TRANSIENT_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.TRANSIENT);
-    private static final RecoveryRequirement PERMANENT_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.PERMANENT);
+    private static final RecoveryRequirement NO_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.NONE, null);
+    private static final RecoveryRequirement TRANSIENT_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.TRANSIENT, null);
+    private static final RecoveryRequirement PERMANENT_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.PERMANENT, null);
     private TimedLaunchConstrainer timedLaunchConstrainer;
 
     private static class TestTimedLaunchConstrainer extends TimedLaunchConstrainer {

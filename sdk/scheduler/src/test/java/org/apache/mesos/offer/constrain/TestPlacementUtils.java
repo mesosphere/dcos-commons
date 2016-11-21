@@ -1,7 +1,9 @@
 package org.apache.mesos.offer.constrain;
 
-import java.util.Collection;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
@@ -10,12 +12,9 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.OfferRequirement;
-import org.apache.mesos.specification.DefaultServiceSpecification;
+import org.apache.mesos.specification.DefaultServiceSpec;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
+import java.util.Collection;
 
 /**
  * Utilities for testing placement constraints.
@@ -59,7 +58,7 @@ public class TestPlacementUtils {
     public static final ObjectMapper OBJECT_MAPPER;
     static {
         OBJECT_MAPPER = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        for (Class<?> c : DefaultServiceSpecification.Factory.getDefaultRegisteredSubtypes()) {
+        for (Class<?> c : DefaultServiceSpec.Factory.getDefaultRegisteredSubtypes()) {
             OBJECT_MAPPER.registerSubtypes(c);
         }
         OBJECT_MAPPER.registerSubtypes(AllTestRule.class);

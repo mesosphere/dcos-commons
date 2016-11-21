@@ -1,0 +1,49 @@
+name:
+principal: "data-store-principal"
+zookeeper: master.mesos:2181
+api-port:
+replacement-failure-policy:
+  permanent-failure-timeout-ms: -1
+  min-replace-delay-ms: -1
+pods:
+  meta-data:
+    placement: "avoid-type: data-store"
+    count: 3
+    resource-sets:
+      data-store-resources:
+        cpus: 0.1
+        memory: 512
+        ports:
+          - name: http
+            port: 8080
+        volumes:
+          - path: "data-store-container-path"
+            type: ROOT
+            size: 5000
+      data-store-resources:
+        cpus: 0.1
+        memory: 512
+        ports:
+          - name: http
+            port: 8080
+        volumes:
+          - path: "data-store-container-path"
+            type: ROOT
+            size: 5000
+    tasks:
+      data-store-task:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
+        resource-set: data-store-resources
+        env:
+          TASK_NAME: "data-store"
+          CONTAINER_PATH_SUFFIX: "-container-path"
+          SLEEP_DURATION: "1000"
+        health-checks:
+          check-up:
+            cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
+            interval: 5
+            grace-period: 30
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10

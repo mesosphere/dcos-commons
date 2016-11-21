@@ -1,7 +1,6 @@
 package org.apache.mesos.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.offer.OfferRequirement;
 import org.apache.mesos.scheduler.recovery.RecoveryRequirement;
 
 /**
@@ -23,10 +22,10 @@ public interface LaunchConstrainer {
     void launchHappened(Operation launchOperation, RecoveryRequirement.RecoveryType recoveryType);
 
     /**
-     * Determines whether the given {@link OfferRequirement} can be launchHappened right now.
+     * Determines whether the given {@link RecoveryRequirement} can be launchHappened right now.
      *
-     * @param offerRequirement
+     * @param recoveryRequirement The {@link RecoveryRequirement} to be examined.
      * @return True if the offer is safe to launch immediately, false if it should wait
      */
-    boolean canLaunch(RecoveryRequirement offerRequirement);
+    boolean canLaunch(RecoveryRequirement recoveryRequirement);
 }

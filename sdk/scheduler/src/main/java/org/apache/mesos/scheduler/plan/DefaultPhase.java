@@ -4,6 +4,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
+import org.apache.mesos.scheduler.Observable;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
  * The Default Phase implementation tracks {@link Step}s both by their UUID and by their ordering. It is an immutable
  * class.
  *
- * A {@DefaultPhase} is an {@Observable} and will forward updates from its steps.
+ * A {@link DefaultPhase} is an {@link Observable} and will forward updates from its steps.
  */
 public class DefaultPhase extends ChainedObserver implements Phase {
 

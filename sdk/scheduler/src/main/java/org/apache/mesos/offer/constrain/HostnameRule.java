@@ -41,7 +41,7 @@ public class HostnameRule implements PlacementRule {
     /**
      * Requires that a task be placed on one of the provided hostnames.
      *
-     * @param hostnames hostnames of the mesos agents to require
+     * @param hostnames for hostnames of the mesos agents to require
      */
     public static PlacementRule requireExact(String... hostnames) {
         return require(toExactMatchers(hostnames));

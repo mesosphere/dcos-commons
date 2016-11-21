@@ -1,6 +1,7 @@
 package org.apache.mesos.offer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
@@ -13,6 +14,19 @@ import org.apache.mesos.Protos.Value;
  * http://mesos.apache.org/documentation/latest/attributes-resources/
  */
 public class AttributeStringUtils {
+
+    /**
+     * A utility class which pairs an attribute name with an attribute value.
+     */
+    public static class NameValue {
+        public final String name;
+        public final String value;
+
+        private NameValue(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
 
     private static final String ATTRIBUTE_LIST_SEPARATOR = ";";
     private static final char ATTRIBUTE_KEYVAL_SEPARATOR = ':';
@@ -46,7 +60,43 @@ public class AttributeStringUtils {
     }
 
     /**
-     * Converts the provided attribute into a string which follows the format defined by Mesos:
+     * Converts the provided name + value strings to an attribute string.
+     *
+     * @see #split(String) which does the opposite
+     */
+    public static String join(String name, String value) {
+        return String.join(String.valueOf(ATTRIBUTE_KEYVAL_SEPARATOR), name, value);
+    }
+
+    /**
+     * Returns the name and value from the provided attribute string.
+     *
+     * @see #join(String, String) which does the opposite
+     */
+    public static NameValue split(String attribute) {
+        String[] split = attribute.split(String.valueOf(ATTRIBUTE_KEYVAL_SEPARATOR), 2);
+        if (split.length != 2) {
+            throw new IllegalArgumentException(String.format(
+                    "Unable to split attribute into name%cvalue elements: attribute=%s result=%s",
+                    ATTRIBUTE_KEYVAL_SEPARATOR, attribute, Arrays.toString(split)));
+        }
+        return new NameValue(split[0], split[1]);
+    }
+
+    /**
+     * Converts the provided attribute's name + value into a string which follows the format defined
+     * by Mesos.
+     *
+     * @see #valueString(Attribute)
+     */
+    public static String toString(Attribute attribute) throws IllegalArgumentException {
+        return String.format("%s%c%s",
+                attribute.getName(), ATTRIBUTE_KEYVAL_SEPARATOR, valueString(attribute));
+    }
+
+    /**
+     * Converts the provided attribute's value into a string which follows the format defined by
+     * Mesos:
      * <code>
      * attributes : attribute ( ";" attribute )*
      * attribute : text ":" ( scalar | range | text )
@@ -67,10 +117,8 @@ public class AttributeStringUtils {
      * @throws IllegalArgumentException if some part of the provided attributes couldn't be
      * serialized
      */
-    public static String toString(Attribute attribute) throws IllegalArgumentException {
+    public static String valueString(Attribute attribute) throws IllegalArgumentException {
         StringBuffer buf = new StringBuffer();
-        buf.append(attribute.getName());
-        buf.append(ATTRIBUTE_KEYVAL_SEPARATOR);
         switch (attribute.getType()) {
         case RANGES: {
             // "ports:[21000-24000,30000-34000]"

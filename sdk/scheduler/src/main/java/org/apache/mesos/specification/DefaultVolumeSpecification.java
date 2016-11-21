@@ -1,25 +1,31 @@
 package org.apache.mesos.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.util.ValidationUtils;
 
 /**
  * This class provides a default implementation of the VolumeSpecification interface.
  */
 public class DefaultVolumeSpecification extends DefaultResourceSpecification implements VolumeSpecification {
 
-    private static final String RESOURCE_NAME = "disk";
+    public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
     private final String containerPath;
 
-    public DefaultVolumeSpecification(double diskSize, Type type, String containerPath, String role, String principal) {
-        this(type, containerPath, RESOURCE_NAME, scalarValue(diskSize), role, principal);
+    public DefaultVolumeSpecification(
+            double diskSize,
+            Type type,
+            String containerPath,
+            String role,
+            String principal,
+            String envKey) {
+        this(type, containerPath, RESOURCE_NAME, scalarValue(diskSize), role, principal, envKey);
     }
 
     @JsonCreator
@@ -29,10 +35,13 @@ public class DefaultVolumeSpecification extends DefaultResourceSpecification imp
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
-            @JsonProperty("principal")  String principal) {
-        super(name, value, role, principal);
+            @JsonProperty("principal")  String principal,
+            @JsonProperty("env_key")  String envKey) {
+        super(name, value, role, principal, envKey);
         this.type = type;
         this.containerPath = containerPath;
+
+        ValidationUtils.validate(this);
     }
 
     @Override
