@@ -6,8 +6,11 @@ The goal of this quick-start guide is to introduce key concepts which we'll use 
 In this tutorial, we'll build a `hello-world` service. The `hello-world` service will be composed of 2 instances of
 `helloworld` pod, each running a single `server` task. 
 
-### Declarative YAML Service Specification
-Let's get started by declaratively modeling our service using a YAML specification file:
+### Step 1 - Initialize service project
+TODO(Nima): Provide steps for initialzing a DC/OS SDK Service project.
+
+### Step 2 - Declarative YAML Service Specification
+Let's get started by declaratively modeling our service using a YAML specification file. Please create a file `service.yml` inside your project's `src/main/dist` directory:
 
 ```yaml
 name: "hello-world"
@@ -62,11 +65,11 @@ volumes:
     size: 64
 ```
 
-### Declarative Java Service Specification
+### Step 2 - Declarative Java Service Specification
 
-Alternatively, you can defined `hello-world` service specification in Java using:
+Alternatively, you can define `hello-world` service specification in Java using:
 ```java
-ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
+ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()#
   .name("hello-world")
   .principal("helloworld-principal")
   .zookeeperConnection("master.mesos:2181")
@@ -86,4 +89,69 @@ ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
         .memory(32.0)
         .addVolume("ROOT", 64.0, "helloworld-container-path")
         .build()).build()).build()).build();
+```
+
+### Step 3 - Writing executable class
+
+To make the declarative service specification executable, we need to initialize an instance of `Service` with the specification. For example:
+
+#### YAML Specification
+
+We can create an instance of `DefaultService` with the path of `service.yml` as following example demonstrates:
+```java
+package com.mesosphere.sdk.helloworld.scheduler;
+
+import org.apache.mesos.specification.DefaultService;
+
+import java.io.File;
+
+/**
+ * Main using YAML specification.
+ */
+public class Main {
+    public static void main(String[] args) throws Exception {
+      File serviceSpecYamlPath = new File(args[0]);
+      Service service = new DefaultService(serviceSpecYamlPath);
+    }
+}
+```
+
+#### Java Specification
+Alternatively, we can create an instance of `DefaultService` with the POJO service specification as following example demonstrates:
+
+```java
+package com.mesosphere.sdk.helloworld.scheduler;
+
+import org.apache.mesos.specification.DefaultService;
+
+import java.io.File;
+
+/**
+ * Main using YAML specification.
+ */
+public class Main {
+    public static void main(String[] args) throws Exception {
+      ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()#
+        .name("hello-world")
+        .principal("helloworld-principal")
+        .zookeeperConnection("master.mesos:2181")
+        .apiPort(8080)
+        .addPod(DefaultPodSpec.newBuilder()
+          .count(2)
+          .addTask(DefaultTaskSpec.newBuilder()
+            .name("server")
+            .goalState(TaskSpec.GoalState.RUNNING)
+            .commandSpec(DefaultCommandSpec.newBuilder()
+              .value("echo 'Hello World!' >> helloworld-container-volume/output && sleep 10")
+              .build())
+            .resourceSet(DefaultResourceSet
+              .newBuilder("helloworld-role", "helloworld-principal")
+              .id("helloworld-resources")
+              .cpus(1.0)
+              .memory(32.0)
+              .addVolume("ROOT", 64.0, "helloworld-container-path")
+              .build()).build()).build()).build();
+      Service service = new DefaultService(helloWorldSpec);
+    }
+}
 ```
