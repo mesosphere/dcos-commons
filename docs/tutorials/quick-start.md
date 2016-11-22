@@ -66,7 +66,7 @@ volumes:
 
 Alternatively, you can defined `hello-world` service specification in Java using:
 ```java
-new DefaultService(DefaultServiceSpec.newBuilder()
+ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
   .name("hello-world")
   .principal("helloworld-principal")
   .zookeeperConnection("master.mesos:2181")
@@ -85,5 +85,5 @@ new DefaultService(DefaultServiceSpec.newBuilder()
         .cpus(1.0)
         .memory(32.0)
         .addVolume("ROOT", 64.0, "helloworld-container-path")
-        .build()).build()).build()).build());
+        .build()).build()).build()).build();
 ```
