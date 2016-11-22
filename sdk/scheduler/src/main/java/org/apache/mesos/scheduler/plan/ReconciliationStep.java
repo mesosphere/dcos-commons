@@ -40,10 +40,10 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public Optional<OfferRequirement> start() {
+    public Optional<OfferRequirement> getOfferRequirement() {
         try {
             reconciler.start();
-            setStatus(Status.IN_PROGRESS);
+            setStatus(Status.PREPARED);
         } catch (Exception ex) {
             setStatus(Status.PENDING);
             logger.error("Failed to retrieve TaskStatus Set to proceed with reconciliation.", ex);
@@ -55,8 +55,13 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
         if (!operations.isEmpty()) {
             throw new UnsupportedOperationException(
-                    "updateOfferStatus() not expected: start() always returns null");
+                    "updateOfferStatus() not expected: getOfferRequirement() always returns null");
         }
+    }
+
+    @Override
+    public Set<String> getDirtyAssets() {
+        return Collections.emptySet();
     }
 
     @Override

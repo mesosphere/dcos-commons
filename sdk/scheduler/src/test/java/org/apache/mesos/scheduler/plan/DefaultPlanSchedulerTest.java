@@ -64,9 +64,9 @@ public class DefaultPlanSchedulerTest {
     @Test
     public void testNonPendingStep() {
         TestStep step = new TestStep();
-        step.setStatus(Status.IN_PROGRESS);
+        step.setStatus(Status.PREPARED);
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class DefaultPlanSchedulerTest {
         TestStep step = new TestStep();
         step.setStatus(Status.PENDING);
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
-        assertTrue(step.isPending());
+        assertTrue(step.isPrepared());
     }
 
     @Test
@@ -87,7 +87,7 @@ public class DefaultPlanSchedulerTest {
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.operations.isEmpty());
         verify(mockOfferEvaluator).evaluate(requirement, OFFERS);
-        assertTrue(step.isPending());
+        assertTrue(step.isPrepared());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class DefaultPlanSchedulerTest {
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.operations.isEmpty());
         verify(mockOfferAccepter).accept(mockSchedulerDriver, RECOMMENDATIONS);
-        assertTrue(step.isPending());
+        assertTrue(step.isPrepared());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class DefaultPlanSchedulerTest {
 
         assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)));
         assertFalse(step.operations.isEmpty());
-        assertTrue(step.isInProgress());
+        assertTrue(step.isStarting());
     }
 
     private static class TestOfferStep extends TestStep {
@@ -128,8 +128,8 @@ public class DefaultPlanSchedulerTest {
         }
 
         @Override
-        public Optional<OfferRequirement> start() {
-            super.start();
+        public Optional<OfferRequirement> getOfferRequirement() {
+            super.getOfferRequirement();
             if (requirement == null) {
                 return Optional.empty();
             } else {
