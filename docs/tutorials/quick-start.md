@@ -1,10 +1,13 @@
 ## DC/OS SDK Quick Start
 
+### Overview
 The goal of this quick-start guide is to introduce key concepts which we'll use for modeling real stateful services.
 
 In this tutorial, we'll build a `hello-world` service. The `hello-world` service will be composed of 2 instances of
-`helloworld` pod, each running a single `server` task. Let's get started by declaratively modeling our service using 
-a YAML specification file:
+`helloworld` pod, each running a single `server` task. 
+
+### Declarative YAML Service Specification
+Let's get started by declaratively modeling our service using a YAML specification file:
 
 ```yaml
 name: "hello-world"
@@ -17,7 +20,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 1"
+        cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
         cpus: 0.5
         memory: 32
         volumes:
@@ -45,7 +48,7 @@ pods:
 tasks:
   server:
     goal: RUNNING
-    cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 1"
+    cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
     cpus: 0.5
     memory: 32
 ```
@@ -59,3 +62,28 @@ volumes:
     size: 64
 ```
 
+### Declarative Java Service Specification
+
+Alternatively, you can defined `hello-world` service specification in Java using:
+```java
+new DefaultService(DefaultServiceSpec.newBuilder()
+  .name("hello-world")
+  .principal("helloworld-principal")
+  .zookeeperConnection("master.mesos:2181")
+  .apiPort(8080)
+  .addPod(DefaultPodSpec.newBuilder()
+    .count(2)
+    .addTask(DefaultTaskSpec.newBuilder()
+      .name("server")
+      .goalState(TaskSpec.GoalState.RUNNING)
+      .commandSpec(DefaultCommandSpec.newBuilder()
+        .value("echo 'Hello World!' >> helloworld-container-volume/output && sleep 10")
+        .build())
+      .resourceSet(DefaultResourceSet
+        .newBuilder("helloworld-role", "helloworld-principal")
+        .id("helloworld-resources")
+        .cpus(1.0)
+        .memory(32.0)
+        .addVolume("ROOT", 64.0, "helloworld-container-path")
+        .build()).build()).build()).build());
+```
