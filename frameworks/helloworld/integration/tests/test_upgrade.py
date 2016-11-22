@@ -28,7 +28,7 @@ def teardown_module(module):
     uninstall()
 
 
-@pytest.mark.upgrade
+@pytest.mark.sanity
 def test_upgrade():
     test_version = get_pkg_version()
     print('Found test version: {}'.format(test_version))

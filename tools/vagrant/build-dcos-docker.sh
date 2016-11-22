@@ -10,7 +10,7 @@
 # If the 'package' argument is specified, the resulting image is halted and packaged into a .box file.
 
 # capture anonymous metrics for reporting
-curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
 
 # abort script at first error:
 set -e
@@ -202,4 +202,4 @@ if [ "$1" = "package" ]; then
 fi
 
 # capture anonymous metrics for reporting
-curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1

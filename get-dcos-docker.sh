@@ -11,7 +11,7 @@
 # - BOX_PATH: Local path to use for .box image (useful if installing from USB stick)
 
 # capture anonymous metrics for reporting
-curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
 
 # abort script at first error:
 set -e
@@ -68,4 +68,4 @@ echo "Delete data:    rm -rf ${VAGRANT_DIR}/*.box && vagrant box remove $BOX_NAM
 echo "---"
 
 # capture anonymous metrics for reporting
-curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
