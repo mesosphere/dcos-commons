@@ -2,7 +2,10 @@ import os
 import time
 
 import dcos
+import inspect
+import os
 import shakedown
+import subprocess
 
 
 PACKAGE_NAME = 'hello-world'
@@ -68,10 +71,13 @@ def get_deployment_plan():
     return spin(fn, success_predicate)
 
 
-def install(additional_options = {}):
+def install(package_version=None, package_name=PACKAGE_NAME, additional_options = {}):
     merged_options = _nested_dict_merge(DEFAULT_OPTIONS_DICT, additional_options)
     print('Installing {} with options: {}'.format(PACKAGE_NAME, merged_options))
-    shakedown.install_package_and_wait(PACKAGE_NAME, options_json=merged_options)
+    shakedown.install_package_and_wait(
+        package_name=PACKAGE_NAME,
+        package_version=package_version,
+        options_json=merged_options)
 
 
 def uninstall():
@@ -150,6 +156,10 @@ def marathon_api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 
 
+def marathon_api_url_with_param(basename, path_param):
+    return '{}/{}'.format(marathon_api_url(basename), path_param)
+
+
 def request(request_fn, *args, **kwargs):
     def success_predicate(response):
         return (
@@ -158,3 +168,10 @@ def request(request_fn, *args, **kwargs):
         )
 
     return spin(request_fn, success_predicate, *args, **kwargs)
+
+
+def run_dcos_cli_cmd(cmd):
+    print('Running {}'.format(cmd))
+    stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
+    print(stdout)
+    return stdout
