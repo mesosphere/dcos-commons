@@ -7,7 +7,26 @@ In this tutorial, we'll build a `hello-world` service. The `hello-world` service
 `helloworld` pod, running a single `server` task.
 
 ### Step 1 - Initialize service project
-TODO(Nima): Provide steps for initialzing a DC/OS SDK Service project.
+Get started by forking: https://github.com/mesosphere/dcos-commons, and cloning it on your workstation. Change your working directory to `dcos-commons` and then issue following command to create a new project:
+
+```bash
+./new-service.sh frameworks/hello-world
+```
+
+Above command will generate a new project at location `frameworks/hello-world/`:
+
+```bash
+$ ls -l frameworks/hello-world/
+total 12
+-rw-r--r--  1 mohit staff  68 Nov 22 14:49 README.md
+drwxr-xr-x 12 mohit staff 408 Nov 18 13:47 build
+-rw-r--r--  1 mohit staff 876 Nov 22 14:49 build.gradle
+-rwxr-xr-x  1 mohit staff 487 Nov 22 14:49 build.sh
+drwxr-xr-x  3 mohit staff 102 Nov 22 14:49 cli
+drwxr-xr-x  4 mohit staff 136 Nov 22 14:49 integration
+drwxr-xr-x  4 mohit staff 136 Nov 22 14:49 src
+drwxr-xr-x  7 mohit staff 238 Nov 22 14:49 universe
+```
 
 ### Step 2 - Declarative YAML Service Specification
 Let's get started by declaratively modeling our service using a YAML specification file. Please create a file `service.yml` inside your project's `src/main/dist` directory:
@@ -157,3 +176,5 @@ public class Main {
 ```
 
 And, now we are ready to take the `helloworld` service for a spin.
+
+### Step 4 - Build and Run
