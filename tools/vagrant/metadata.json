@@ -1,0 +1,19 @@
+{
+  "name": "mesosphere/dcos-docker-sdk",
+  "description": "DC/OS framework development environment, containing a cluster and dev tools",
+  "versions": [
+    {
+      "version": "20161121-213020",
+      "status": "active",
+      "description_markdown": "initial release, needs size optimizations and auto-start",
+      "providers": [
+        {
+          "name": "virtualbox",
+          "url": "https://downloads.mesosphere.com/dcos-docker-sdk/dcos-docker-sdk-20161121-213020.box",
+          "checksum_type": "sha1",
+          "checksum": "e44aca7e80c29870403da7de621842ebe727011a"
+        }
+      ]
+    }
+  ]
+}

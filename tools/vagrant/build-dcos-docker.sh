@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Creates a Vagrant/Virtualbox VM containing:
+# - A 3-node DC/OS cluster
+# - All the development tools needed to build the SDK from within the image (if desired)
+# ===
+# Syntax:
+#   build-dcos-docker.sh [package]
+#
+# If the 'package' argument is specified, the resulting image is halted and packaged into a .box file.
+
 # capture anonymous metrics for reporting
 curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
 
@@ -37,7 +46,7 @@ DCOS_DOCKER_DIR=$(pwd)
 
 # Manually fetch/install base box: Allow on-disk caching of box file (usb stick scenario)
 if [ $(vagrant box list | grep mesosphere/dcos-centos-virtualbox | wc -l) -eq 0 ]; then
-    echo "### Downloading base box image"
+    echo "### Downloading/adding base box image"
     if [ ! -f ${ARTIFACT_BOX_BASE} ]; then
         curl -O https://downloads.dcos.io/dcos-vagrant/${ARTIFACT_BOX_BASE}
     fi
@@ -50,10 +59,11 @@ if [ ! -f ${ARTIFACT_DCOS_INSTALLER} ]; then
 fi
 
 echo "### Destroying pre-existing VM, if any"
-vagrant destroy
+vagrant destroy # intentionally allowing confirmation prompt in case the user didn't actually want to do this
+vagrant box remove mesosphere/dcos-docker-sdk
 
 echo "### Building VM"
-DCOS_BOX_URL="file:/$(pwd)/${ARTIFACT_BOX_BASE}" vagrant/resize-disk.sh ${VM_DISK_SIZE:=20480}
+DCOS_BOX_URL="file://$(pwd)/${ARTIFACT_BOX_BASE}" vagrant/resize-disk.sh ${VM_DISK_SIZE:=20480}
 
 echo "### Launching cluster and installing tools in VM"
 # Note: every variable that isn't escaped with a backslash is injected from THIS script.
@@ -127,6 +137,11 @@ chmod 700 /home/vagrant/.ssh &&
 cp /vagrant/genconf/ssh_key /home/vagrant/.ssh/id_rsa &&
 chmod 600 /home/vagrant/.ssh/id_rsa &&
 
+echo '### Clean up some unnecessary files' &&
+sudo rm -rf /usr/src/ &&
+sudo rm -rf /root/.cache &&
+sudo rm -f /home/vagrant/VBoxGuestAdditions_*.iso &&
+
 echo '### Wait for cluster to finish coming up' &&
 make postflight
 EOF
@@ -137,45 +152,33 @@ echo "### Copying start-dcos.sh into image"
 cat > start-dcos.sh <<EOF
 #!/bin/bash
 
-STOPPED_MASTERS=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-master | sort)
-STOPPED_PUB_AGENTS=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-pubagent | sort)
-STOPPED_PRIV_AGENTS=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-agent | sort)
-
-restart_nodes() {
-    for node in \$1; do
-        docker start \$node
-        sleep 2
-    done
+restart_if_needed() {
+    STOPPED_NODES=\$(docker ps -a -f status=exited | awk '{print \$NF}' | grep dcos-docker-\${1} | sort)
+    NUM_STOPPED_NODES=\$(echo \$STOPPED_NODES | wc -w)
+    if [ \$NUM_STOPPED_NODES -eq 0 ]; then
+        echo "- No \${1}s to launch"
+    else
+        echo "- Launching \$NUM_STOPPED_NODES \$1(s)"
+        for node in \$STOPPED_NODES; do
+            docker start \$node
+            sleep 2
+        done
+    fi
 }
 
-echo "Launching \$(echo \$STOPPED_MASTERS | wc -w) master(s)"
-restart_nodes "\$STOPPED_MASTERS"
+restart_if_needed master
 
-# mystery: need to kick 'make' before starting agents, or else this happens:
+# The following step must be completed before restarting agents, or else this happens:
 # dcos-docker-agent1 mesos-agent[3545]:   3546 systemd.cpp:325] Started systemd slice 'mesos_executors.slice'
 # dcos-docker-agent1 mesos-agent[3545]: Failed to initialize systemd: Failed to locate systemd cgroups hierarchy: does not exist
+echo "- Setting up agent prerequisites"
+sudo systemctl start mesos_executors.slice
 
-NUM_STOPPED_PUB_AGENTS=\$(echo \$STOPPED_PUB_AGENTS | wc -w)
-if [ \$NUM_STOPPED_PUB_AGENTS -eq 0 ]; then
-    echo "No public agents to launch"
-else
-    echo "Launching \$NUM_STOPPED_PUB_AGENTS public agents"
-    PUBLIC_AGENTS=\$NUM_STOPPED_PUB_AGENTS make -C dcos-docker/ public_agent
-    restart_nodes "\$STOPPED_PUB_AGENTS"
-fi
-
-NUM_STOPPED_PRIV_AGENTS=\$(echo \$STOPPED_PRIV_AGENTS | wc -w)
-if [ \$NUM_STOPPED_PRIV_AGENTS -eq 0 ]; then
-    echo "No private agents to launch"
-else
-    echo "Launching \$NUM_STOPPED_PRIV_AGENTS private agents"
-    AGENTS=\$NUM_STOPPED_PRIV_AGENTS make -C dcos-docker/ agent
-    restart_nodes "\$STOPPED_PRIV_AGENTS"
-fi
+restart_if_needed pubagent
+restart_if_needed agent
 EOF
 chmod +x start-dcos.sh
-# copy makefile (+ file dependency) from dcos-docker repo for 'kick':
-vagrant ssh -c "cp /vagrant/start-dcos.sh /vagrant/Makefile /vagrant/common.mk ~"
+vagrant ssh -c "cp /vagrant/start-dcos.sh ~"
 
 ${SCRIPT_DIR}/node-route.sh
 
@@ -185,11 +188,18 @@ echo ""
 echo "Log into VM:    pushd ${DCOS_DOCKER_DIR} && vagrant ssh && popd"
 echo "Build example:  Log into VM, then: cd /dcos-commons/frameworks/helloworld && ./build.sh local"
 echo ""
-echo "Rebuild routes: ${SCRIPT_DIR}/node-route.sh"
+echo "Repair routes:  ${SCRIPT_DIR}/node-route.sh # (use this if VM connectivity is lost)"
 echo "Delete VM:      pushd ${DCOS_DOCKER_DIR} && vagrant destroy && popd"
 echo "Delete data:    rm -rf ${DCOS_DOCKER_DIR}"
 echo "---"
 
+if [ "$1" = "package" ]; then
+    echo "Packaging built image into .box file."
+    vagrant package --output dcos-docker-sdk-$(date -u +%Y%m%d-%H%M%S).box dcos-docker
+    echo "Package created. Removing installed images."
+    vagrant destroy -f
+    vagrant box remove mesosphere/dcos-centos-virtualbox
+fi
+
 # capture anonymous metrics for reporting
 curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
-
