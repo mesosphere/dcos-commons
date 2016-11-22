@@ -90,6 +90,7 @@ ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()#
         .addVolume("ROOT", 64.0, "helloworld-container-path")
         .build()).build()).build()).build();
 ```
+TODO(mohit): Introduce concept of resource sets.
 
 ### Step 3 - Writing executable class
 
@@ -127,7 +128,7 @@ import org.apache.mesos.specification.DefaultService;
 import java.io.File;
 
 /**
- * Main using YAML specification.
+ * Main using Java specification.
  */
 public class Main {
     public static void main(String[] args) throws Exception {
