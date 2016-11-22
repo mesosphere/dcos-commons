@@ -245,19 +245,23 @@ public class DefaultPlanCoordinatorTest {
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);
 
-        planB.getChildren().get(0).getChildren().get(0).setStatus(Status.IN_PROGRESS);
+        Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
+        planB.getChildren().get(0).getChildren().get(0).setStatus(Status.PREPARED);
 
         // PlanA and PlanB have similar asset names. PlanA is configured to run before PlanB.
-        // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in IN_PROGRESS.
+        // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in PREPARED.
         // PlanCoordinator should ensure that PlanA PlanManager knows about PlanB's (and any other configured plan's)
         // dirty assets.
         Assert.assertEquals(
-                0,
+                1,
                 coordinator.processOffers(
                         schedulerDriver,
                         getOffers(
                                 SUFFICIENT_CPUS,
                                 SUFFICIENT_MEM,
                                 SUFFICIENT_DISK)).size());
+
+        Assert.assertTrue(planB.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.STARTING));
+        Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
     }
 }

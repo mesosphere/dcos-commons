@@ -40,7 +40,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     public OfferRequirement getNewOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
             throws InvalidRequirementException {
 
-        List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance);
+        List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance, tasksToLaunch);
 
         Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
@@ -61,18 +61,26 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     @Override
     public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
             throws InvalidRequirementException {
+        LOGGER.info("Generating existing OfferRequirement for Pod: {}, and Tasks: {}",
+                podInstance.getName(), tasksToLaunch);
 
         List<TaskSpec> taskSpecs = podInstance.getPod().getTasks();
         Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
 
         for (TaskSpec taskSpec : taskSpecs) {
-            Optional<Protos.TaskInfo> taskInfoOptional =
-                    stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
-            if (taskInfoOptional.isPresent()) {
-                taskMap.put(taskInfoOptional.get(), taskSpec);
-            } else {
-                taskMap.put(getNewTaskInfo(podInstance, taskSpec), taskSpec);
+            if (tasksToLaunch.contains(taskSpec.getName())) {
+                Optional<Protos.TaskInfo> taskInfoOptional =
+                        stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
+                if (taskInfoOptional.isPresent()) {
+                    taskMap.put(taskInfoOptional.get(), taskSpec);
+                } else {
+                    taskMap.put(getNewTaskInfo(podInstance, taskSpec), taskSpec);
+                }
             }
+        }
+
+        if (taskMap.size() == 0) {
+            LOGGER.warn("Attempting get existing OfferRequirement generated 0 tasks.");
         }
 
         List<TaskRequirement> taskRequirements = new ArrayList<>();
@@ -102,10 +110,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
 
-    private List<Protos.TaskInfo> getNewTaskInfos(PodInstance podInstance) throws InvalidRequirementException {
+    private List<Protos.TaskInfo> getNewTaskInfos(
+            PodInstance podInstance,
+            List<String> tasksToLaunch) throws InvalidRequirementException {
+
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-            if (taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING)) {
+            if (tasksToLaunch.contains(taskSpec.getName())) {
                 taskInfos.add(getNewTaskInfo(podInstance, taskSpec));
             }
         }
@@ -121,8 +132,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setSlaveId(TaskUtils.emptyAgentId())
                 .addAllResources(getNewResources(taskSpec));
 
-        TaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
-        TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+        taskInfoBuilder = TaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
+        taskInfoBuilder = TaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+        taskInfoBuilder = TaskUtils.setGoalState(taskInfoBuilder, taskSpec);
 
         if (taskSpec.getCommand().isPresent()) {
             final CommandSpec commandSpec = taskSpec.getCommand().get();

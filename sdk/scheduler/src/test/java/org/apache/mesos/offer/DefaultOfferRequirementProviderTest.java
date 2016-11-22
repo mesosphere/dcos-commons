@@ -152,7 +152,7 @@ public class DefaultOfferRequirementProviderTest {
     public void testNewOfferRequirement() throws InvalidRequirementException {
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
@@ -171,7 +171,7 @@ public class DefaultOfferRequirementProviderTest {
     public void testExistingOfferRequirement() throws InvalidRequirementException {
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
 
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);

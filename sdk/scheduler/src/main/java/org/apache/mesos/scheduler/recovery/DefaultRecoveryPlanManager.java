@@ -141,9 +141,12 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         Map<PodInstance, List<Protos.TaskInfo>> failedPodsMap =
                 TaskUtils.getPodMap(
                         configStore,
-                        StateStoreUtils.fetchTasksNeedingRecovery(stateStore));
+                        StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore));
 
-        logger.info("Found pods needing recovery: {}", failedPodsMap.keySet());
+        List<String> podNames = failedPodsMap.keySet().stream()
+                .map(podInstance -> podInstance.getName())
+                .collect(Collectors.toList());
+        logger.info("Found pods needing recovery: " + podNames);
 
         Predicate<Protos.TaskInfo> isPodPermanentlyFailed = t -> (
                 FailureUtils.isLabeledAsFailed(t) || failureMonitor.hasFailed(t));
@@ -168,21 +171,22 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toList())
                     .size();
 
+            if (dirtyAssets.contains(podInstance.getName())) {
+                logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.",
+                        podInstance.getName());
+                continue;
+            }
+
             Integer expectedRunningCount = podInstance.getPod().getTasks().stream()
                     .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
                     .collect(Collectors.toList())
                     .size();
 
-            Predicate<Protos.TaskInfo> isPodRecoverable = t -> {
-                return !dirtyAssets.contains(t.getName());
-            };
-
             logger.info(
                     "Attempting to recover pod tasks: {}",
                     failedTasks.stream().map(taskInfo -> taskInfo.getName()).collect(Collectors.toList()));
 
-            if (!Objects.equals(failedRunningTaskCount, expectedRunningCount)
-                    || !failedTasks.stream().allMatch(isPodRecoverable)) {
+            if (!Objects.equals(failedRunningTaskCount, expectedRunningCount)) {
                 logger.warn("Pod: '{}' is not recoverable. Failed task count: {}, Expected task count: {}",
                         podInstance.getName(), failedRunningTaskCount, expectedRunningCount);
                 continue;
@@ -224,7 +228,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         if (plan != null) {
             dirtyAssets.addAll(plan.getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> step.isInProgress())
+                    .filter(step -> step.isPrepared())
                     .map(step -> step.getName())
                     .collect(Collectors.toSet()));
         }
