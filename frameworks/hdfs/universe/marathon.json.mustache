@@ -64,8 +64,11 @@
        ,"SERVICE_ROLE":"{{service.role}}"
        ,"SERVICE_PRINCIPAL":"{{service.principal}}"
        ,"SERVICE_USER":"{{service.user}}"
+       {{#service.secure_mode}}
        ,"SECURE_MODE":"{{service.secure_mode}}"
        ,"KEYTABS_URI":"{{service.keytabs_uri}}"
+       ,"TASKCFG_ALL_SECURE_MODE": "{{service.secure_mode}}"
+       {{/service.secure_mode}}
        ,"TASK_JRE_URI":"{{service.task_jre_uri}}"
        ,"NAME_NODE_CPUS":"{{name_node.cpus}}"
        ,"NAME_NODE_MEMORY_MB":"{{name_node.mem}}"
@@ -135,7 +138,6 @@
        ,"TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS": "*"
        ,"TASKCFG_ALL_HADOOP_OPTS": "{{hdfs.hadoop_opts}}"
        ,"TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}"
-       ,"TASKCFG_ALL_SECURE_MODE": "{{service.secure_mode}}"
        ,"TASKCFG_ALL_TASK_USER": "{{service.user}}"
        ,"API_PORT":"{{service.api_port}}"
     }
