@@ -60,6 +60,63 @@ From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-
   * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
 
 ===============
+### Understanding Hello World Service Specification
+
+Let's understand the service specification which was used to declaratively define `helloworld` service:
+
+```yaml
+name: "helloworld"
+principal: "helloworld-principal"
+zookeeper: master.mesos:2181
+api-port: 8080
+pods:
+  helloworld:
+    count: {{COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
+        cpus: {{SERVER_CPU}}
+        memory: 32
+        volumes:
+          - path: "helloworld-container-volume"
+            type: ROOT
+            size: 64
+```
+
+In above specification file, we have:
+* Defined a service with name `helloworld`
+* Configured the service to use zookeeper at `master.mesos:2181` for storing framework state and configuration.
+* Configured the API port using `api-port: 8080`. By default, each service comes along with a default set of useful APIs which enables operationalization. 
+* Defined a pod specification for our `helloworld` pod using:
+
+```yaml
+pods:
+  helloworld:
+    ...
+```
+* Configured that we need atleast 2 instances of `helloworld` pod running at all times.
+* Defined a task specification for our `server` task using:
+
+```yaml
+tasks:
+  server:
+    goal: RUNNING
+    cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
+    cpus: 0.5
+    memory: 32
+```
+configuring it to use `0.5` CPUs and `32 MB` of memory.
+* And finally, configured a `64 MB` persistent volume for our server task where the task data can be persisted using:
+
+```yaml
+volumes:
+  - path: "helloworld-container-volume"
+    type: ROOT
+    size: 64
+```
+
+===============
 ### References
 * Developer Guide ... *coming soon!*
 * [Javadocs](http://mesosphere.github.io/dcos-commons/api/index.html)
