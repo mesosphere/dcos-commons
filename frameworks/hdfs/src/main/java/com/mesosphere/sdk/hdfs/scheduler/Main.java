@@ -290,8 +290,11 @@ public class Main {
             dirNames.add("/tmp/hadoop/dfs/journalnode/hdfs");
             command.append("echo 'Creating Journal Node edits directory';");
         } else if (nodeType.equals(DATA_NODE_NAME)) {
-            dirNames.add(DATA_AND_JOURNAL_NODE_VOLUME_DIR);
             command.append("echo 'Creating Data Node data directory';");
+            dirNames.add(DATA_AND_JOURNAL_NODE_VOLUME_DIR);
+            command.append("echo 'Creating socket path directory';");
+            command.append("mkdir -p /var/lib/hadoop-hdfs;");
+            command.append("chown root /var/lib/hadoop-hdfs;");
         } else {
             dirNames.add(NAME_NODE_VOLUME_DIR);
             command.append("echo 'Creating Name Node name directory';");
