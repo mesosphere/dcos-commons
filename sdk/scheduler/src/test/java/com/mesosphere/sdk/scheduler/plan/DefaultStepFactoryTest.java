@@ -7,7 +7,6 @@ import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
-import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
@@ -24,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * This class tests the {@link DefaultStepFactory} class.
@@ -96,7 +96,9 @@ public class DefaultStepFactoryTest {
     public void testGetStepFailsOnMultipleResourceSetReferences()
             throws InvalidRequirementException, Step.InvalidStepException {
 
-        List<String> tasksToLaunch = TaskUtils.getTaskNames(POD_INSTANCE);
+        List<String> tasksToLaunch = POD_INSTANCE.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
         stepFactory.getStep(POD_INSTANCE, tasksToLaunch);
     }
 }

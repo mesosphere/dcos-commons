@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * An implementation of this interface should provide {@link Step}s based on {@link TaskSpec}s.  This should
@@ -15,6 +15,6 @@ import java.util.List;
  * TaskSpecification change is detected for a Task.
  */
 public interface StepFactory {
-    Step getStep(PodInstance podInstance, List<String> tasksToLaunch)
+    Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch)
             throws Step.InvalidStepException, InvalidRequirementException;
 }

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -23,6 +24,7 @@ public class PersistentOperationRecorder implements OperationRecorder {
         this.stateStore = stateStore;
     }
 
+    @Override
     public void record(Operation operation, Offer offer) throws Exception {
         if (operation.getType() == Operation.Type.LAUNCH) {
             recordTasks(operation.getLaunch().getTaskInfosList());
@@ -33,17 +35,20 @@ public class PersistentOperationRecorder implements OperationRecorder {
         logger.info(String.format("Recording %d updated TaskInfos/TaskStatuses:", taskInfos.size()));
         List<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         for (Protos.TaskInfo taskInfo : taskInfos) {
-            Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
-                    .setTaskId(taskInfo.getTaskId())
-                    .setState(Protos.TaskState.TASK_STAGING);
+            if (!taskInfo.getTaskId().getValue().equals("")) {
+                Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
+                        .setTaskId(taskInfo.getTaskId())
+                        .setState(Protos.TaskState.TASK_STAGING);
 
-            if (taskInfo.hasExecutor()) {
-                taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
+                if (taskInfo.hasExecutor()) {
+                    taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
+                }
+
+                Protos.TaskStatus taskStatus = taskStatusBuilder.build();
+                logger.info("- {} => {}",
+                        TextFormat.shortDebugString(taskInfo), TextFormat.shortDebugString(taskStatus));
+                taskStatuses.add(taskStatus);
             }
-
-            Protos.TaskStatus taskStatus = taskStatusBuilder.build();
-            logger.info(String.format("- %s => %s", taskInfo, taskStatus));
-            taskStatuses.add(taskStatus);
         }
 
         stateStore.storeTasks(taskInfos);

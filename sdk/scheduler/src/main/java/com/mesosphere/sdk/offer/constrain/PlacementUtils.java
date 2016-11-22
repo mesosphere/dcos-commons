@@ -1,9 +1,7 @@
 package com.mesosphere.sdk.offer.constrain;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import com.mesosphere.sdk.offer.*;
 import org.slf4j.Logger;
@@ -71,15 +69,20 @@ public class PlacementUtils {
             LOGGER.warn("Unable to extract task type from taskinfo", e);
             taskInfoType = null;
         }
+
         if (!Objects.equal(taskInfoType, offerRequirement.getType())) {
             return false;
         }
 
-        // Check task names
-        Set<String> offerRequirementTaskNames = new HashSet<>();
-        for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-            offerRequirementTaskNames.add(taskRequirement.getTaskInfo().getName());
+        // Check pod index
+        Integer index;
+        try {
+            index = CommonTaskUtils.getIndex(taskInfo);
+        } catch (TaskException e) {
+            LOGGER.warn("Unable to extract index from taskinfo", e);
+            index = null;
         }
-        return offerRequirementTaskNames.contains(taskInfo.getName());
+
+        return Objects.equal(index, offerRequirement.getIndex());
     }
 }

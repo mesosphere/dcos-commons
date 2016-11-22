@@ -36,15 +36,6 @@ public interface TaskSpec {
     @JsonProperty("config_files")
     Collection<ConfigFileSpecification> getConfigFiles();
 
-    /**
-     * The allowed goal states for a Task.
-     */
-    enum GoalState {
-        NONE,
-        RUNNING,
-        FINISHED
-    }
-
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return podInstance.getName() + "-" + taskSpec.getName();
     }

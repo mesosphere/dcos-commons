@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryRequirement;
+import org.apache.mesos.scheduler.recovery.RecoveryType;
 
 /**
  * Implementation of {@link LaunchConstrainer} that always allows launches.
@@ -10,12 +10,12 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryRequirement;
  */
 public class UnconstrainedLaunchConstrainer implements LaunchConstrainer {
     @Override
-    public void launchHappened(Operation launchOperation, RecoveryRequirement.RecoveryType recoveryType) {
+    public void launchHappened(Operation launchOperation, RecoveryType recoveryType) {
         //do nothing
     }
 
     @Override
-    public boolean canLaunch(RecoveryRequirement recoveryRequirement) {
+    public boolean canLaunch(RecoveryType recoveryType) {
         return true;
     }
 }

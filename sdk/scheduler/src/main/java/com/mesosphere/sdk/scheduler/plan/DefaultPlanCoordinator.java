@@ -46,7 +46,6 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         // Offers that are available for scheduling
         final List<Offer> offers = new ArrayList<>(offersToProcess);
 
-
         // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented
         // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
         // PlanManager that is presented offers later.
@@ -58,10 +57,12 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
 
         for (final PlanManager planManager : planManagers) {
             try {
-                LOGGER.info("Processing offers for plan: {}", planManager.getPlan().getName());
+                Set<String> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
+                LOGGER.info("Processing offers for plan: {} with relevant dirtied assets: {}.",
+                        planManager.getPlan().getName(), relevantDirtyAssets, planManager.getPlan().getName());
 
                 // Get candidate steps to be scheduled
-                Collection<? extends Step> candidateSteps = planManager.getCandidates(dirtiedAssets);
+                Collection<? extends Step> candidateSteps = planManager.getCandidates(relevantDirtyAssets);
                 LOGGER.info("Attempting to process candidates: {}",
                         candidateSteps.stream().map(step -> step.getName()).collect(Collectors.toList()));
 
@@ -92,5 +93,11 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
     @Override
     public boolean hasOperations() {
         return planManagers.stream().anyMatch(manager -> !manager.getPlan().isComplete());
+    }
+
+    private Set<String> getRelevantDirtyAssets(PlanManager planManager, Set<String> dirtiedAssets) {
+        Set<String> relevantDirtyAssets = new HashSet<>(dirtiedAssets);
+        relevantDirtyAssets.removeAll(planManager.getDirtyAssets());
+        return relevantDirtyAssets;
     }
 }

@@ -24,7 +24,7 @@ public class Main {
                             .count(COUNT)
                             .addTask(DefaultTaskSpec.newBuilder()
                                     .name("hello")
-                                    .goalState(TaskSpec.GoalState.RUNNING)
+                                    .goalState(GoalState.RUNNING)
                                     .commandSpec(DefaultCommandSpec.newBuilder()
                                             .value("echo hello >> hello-container-path/output && sleep 1000")
                                             .build())

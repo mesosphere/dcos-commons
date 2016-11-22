@@ -10,8 +10,10 @@ set -e
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
-# Path to hello world scheduler:
+# Path to hello world framework:
 HELLOWORLD_DIR=${REPO_ROOT_DIR}/frameworks/helloworld
+# Path to hdfs framework:
+HDFS_DIR=${REPO_ROOT_DIR}/frameworks/hdfs
 
 # Build/upload hello world scheduler artifact if one is not directly provided:
 if [ -z "$STUB_UNIVERSE_URL" ]; then
@@ -47,6 +49,12 @@ ${REPO_ROOT_DIR}/tools/run_tests.py \
                 shakedown \
                 ${HELLOWORLD_DIR}/integration/tests/ \
                 ${HELLOWORLD_DIR}/integration/requirements.txt
+
+# Run shakedown tests in hdfs scheduler directory:
+${REPO_ROOT_DIR}/tools/run_tests.py \
+                shakedown \
+                ${HDFS_DIR}/integration/tests/ \
+                ${HDFS_DIR}/integration/requirements.txt
 
 # Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
 # Don't wait for the cluster to complete teardown.

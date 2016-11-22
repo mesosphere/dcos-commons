@@ -1,0 +1,12 @@
+{
+  "packagingVersion": "2.0",
+  "name": "hdfs",
+  "version": "{{package-version}}",
+  "maintainer": "support@mesosphere.io",
+  "description": "Hadoop Distributed File System (HDFS)",
+  "selected": false,
+  "framework": true,
+  "tags": ["example", "reference", "hdfs"],
+  "postInstallNotes": "hdfs post install notes go here.",
+  "postUninstallNotes": "hdfs post uninstall notes go here."
+}

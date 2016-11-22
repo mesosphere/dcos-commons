@@ -1,23 +1,20 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.inject.Inject;
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.executor.ExecutorUtils;
+import com.mesosphere.sdk.offer.constrain.PlacementRule;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
-import com.mesosphere.sdk.executor.ExecutorUtils;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreException;
+import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Inject;
-import com.google.protobuf.TextFormat;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,15 +31,21 @@ public class OfferEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
 
     private final StateStore stateStore;
+    private final OfferRequirementProvider offerRequirementProvider;
 
     @Inject
-    public OfferEvaluator(StateStore stateStore) {
+    public OfferEvaluator(StateStore stateStore, OfferRequirementProvider offerRequirementProvider) {
         this.stateStore = stateStore;
+        this.offerRequirementProvider = offerRequirementProvider;
     }
 
-    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers)
-            throws StateStoreException {
+    public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
+            throws StateStoreException, InvalidRequirementException {
 
+        return evaluate(getOfferRequirement(podInstanceRequirement), offers);
+    }
+
+    public List<OfferRecommendation> evaluate(OfferRequirement offerRequirement, List<Offer> offers) {
         // First, check placement constraints (to filter offers)
         List<Offer> filteredOffers = new ArrayList<>();
         Optional<PlacementRule> placementRuleOptional = offerRequirement.getPlacementRuleOptional();
@@ -71,7 +74,35 @@ public class OfferEvaluator {
                         index + 1, TextFormat.shortDebugString(offer));
             }
         }
+
         return Collections.emptyList();
+    }
+
+    private OfferRequirement getOfferRequirement(PodInstanceRequirement podInstanceRequirement)
+            throws InvalidRequirementException {
+
+        PodInstance podInstance = podInstanceRequirement.getPodInstance();
+        Collection<String> tasksToLaunch = podInstanceRequirement.getTasksToLaunch();
+        logger.info("Generating OfferRequirement for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
+
+        List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
+                .map(taskName -> stateStore.fetchTask(taskName))
+                .filter(taskInfoOptional -> taskInfoOptional.isPresent())
+                .map(taskInfoOptional -> taskInfoOptional.get())
+                .collect(Collectors.toList());
+
+        String podTaskNames = podInstance.getName() + ":" + tasksToLaunch;
+        try {
+            if (taskInfos.isEmpty()) {
+                logger.info("Generating new requirement: {}", podTaskNames);
+                return offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch);
+            } else {
+                logger.info("Generating existing requirement: {}", podTaskNames);
+                return offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch);
+            }
+        } catch (InvalidRequirementException e) {
+            throw new InvalidRequirementException(e);
+        }
     }
 
     private List<Offer> evaluatePlacementRule(

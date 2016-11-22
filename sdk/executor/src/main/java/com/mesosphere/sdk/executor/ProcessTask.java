@@ -95,7 +95,7 @@ public class ProcessTask implements ExecutorTask {
 
             this.process = processBuilder.start();
 
-            final String startMessage = "Launched Process of type: " + taskType;
+            final String startMessage = "Launching Task: " + taskInfo.getName();
             CommonTaskUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_RUNNING,
@@ -106,16 +106,10 @@ public class ProcessTask implements ExecutorTask {
             initialized.complete(true);
 
             LOGGER.info(startMessage);
-
             waitUninterruptably(process);
-
             final int exitValue = process.exitValue();
-
-            String exitMessage = "Process of type: "
-                    + taskType + " exited with code: ";
-
+            String exitMessage = String.format("Task: %s exited with code: %s", taskInfo.getTaskId(), exitValue);
             exit.complete(exitValue);
-
             Protos.TaskState taskState;
 
             if (exitValue == 0) {
@@ -137,7 +131,9 @@ public class ProcessTask implements ExecutorTask {
                     taskInfo.getExecutor().getExecutorId(),
                     exitMessage);
 
+            LOGGER.info(exitMessage);
             if (exitOnTermination) {
+                LOGGER.info("Executor is exiting because exitOnTermination: " + exitOnTermination);
                 System.exit(ExecutorErrorCode.EXIT_ON_TERMINATION_SUCCESS.ordinal());
             }
         } catch (Throwable e) {

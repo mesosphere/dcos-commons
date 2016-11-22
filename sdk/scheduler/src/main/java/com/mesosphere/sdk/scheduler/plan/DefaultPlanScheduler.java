@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.inject.Inject;
+import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.TaskKiller;
+import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,38 +59,56 @@ public class DefaultPlanScheduler implements PlanScheduler {
             List<Offer> offers,
             Step step) {
 
-        if (!step.isPending()) {
+        if (driver == null || offers == null) {
+            logger.error("Unexpected null argument encountered: driver='{}' offers='{}'", driver, offers);
+            return Collections.emptyList();
+        }
+
+        if (step == null) {
+            logger.info("Ignoring resource offers for null step.");
+            return Collections.emptyList();
+        }
+
+        if (!(step.isPending() || step.isPrepared())) {
             logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return Collections.emptyList();
         }
 
         logger.info("Processing resource offers for step: {}", step.getName());
-        Optional<OfferRequirement> offerRequirementOptional = step.start();
-        if (!offerRequirementOptional.isPresent()) {
-            logger.info("No OfferRequirement for step: {}", step.getName());
+        Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.start();
+        if (!podInstanceRequirementOptional.isPresent()) {
+            logger.info("No PodInstanceRequirement for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
 
-        OfferRequirement offerRequirement = offerRequirementOptional.get();
+        PodInstanceRequirement podInstanceRequirement = podInstanceRequirementOptional.get();
         // It is harmless to attempt to kill tasks which have never been launched.  This call attempts to Kill all Tasks
         // with a Task name which is equivalent to that expressed by the OfferRequirement.  If no such Task is currently
         // running no operation occurs.
-        killTasks(offerRequirement);
+        killTasks(podInstanceRequirement.getPodInstance());
 
         // Step has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
-        List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerRequirement, offers);
+        List<OfferRecommendation> recommendations = null;
+        try {
+            recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
+        } catch (InvalidRequirementException e) {
+            logger.error("Failed generate OfferRequirement.", e);
+            return Collections.emptyList();
+        }
+
         if (recommendations.isEmpty()) {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
-                    step.getName(), offerRequirement);
+                    step.getName(), podInstanceRequirement);
             step.updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
 
         List<OfferID> acceptedOffers = offerAccepter.accept(driver, recommendations);
+
         // Notify step of offer outcome:
         if (acceptedOffers.isEmpty()) {
             // If no Operations occurred it may be of interest to the Step.  For example it may want to set its state
@@ -101,9 +121,8 @@ public class DefaultPlanScheduler implements PlanScheduler {
         return acceptedOffers;
     }
 
-    private void killTasks(OfferRequirement offerRequirement) {
-        for (TaskRequirement taskRequirement : offerRequirement.getTaskRequirements()) {
-            String taskName = taskRequirement.getTaskInfo().getName();
+    private void killTasks(PodInstance podInstance) {
+        for (String taskName : TaskUtils.getTaskNames(podInstance)) {
             taskKiller.killTask(taskName, false);
         }
     }

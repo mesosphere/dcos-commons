@@ -10,7 +10,7 @@ pods:
     count: 2
     resource-sets:
       hello-resources:
-        cpus: 1
+        cpus: {{HELLO_CPUS}}
         memory: 256
         ports:
           - name: http

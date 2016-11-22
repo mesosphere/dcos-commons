@@ -1,13 +1,16 @@
 package com.mesosphere.sdk.offer;
 
-import org.apache.mesos.Protos;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.TaskConfigRouter;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A default implementation of the OfferRequirementProvider interface.
@@ -16,12 +19,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
     private static final String EXECUTOR_URI = "EXECUTOR_URI";
     private static final String LIBMESOS_URI = "LIBMESOS_URI";
+    private static final String JAVA_URI = "JAVA_URI";
+    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
 
     private static final String JAVA_HOME = "JAVA_HOME";
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
-    private static final String DEFAULT_JAVA_HOME = "jre1.8.0_91";
-    private static final String DEFAULT_JAVA_URI =
-            "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz";
 
     private final TaskConfigRouter taskConfigRouter;
     private final StateStore stateStore;
@@ -37,10 +39,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getNewOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
+    public OfferRequirement getNewOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
             throws InvalidRequirementException {
+        LOGGER.info("Generating new OfferRequirement for Pod: {}, and Tasks: {}",
+                podInstance.getName(), tasksToLaunch);
 
-        List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance);
+        List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance, tasksToLaunch);
 
         Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
@@ -59,10 +63,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     @Override
-    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
+    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
             throws InvalidRequirementException {
+        LOGGER.info("Generating existing OfferRequirement for Pod: {}, and Tasks: {}",
+                podInstance.getName(), tasksToLaunch);
 
-        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks();
+        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
+                .collect(Collectors.toList());
         Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
 
         for (TaskSpec taskSpec : taskSpecs) {
@@ -71,8 +79,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (taskInfoOptional.isPresent()) {
                 taskMap.put(taskInfoOptional.get(), taskSpec);
             } else {
-                taskMap.put(getNewTaskInfo(podInstance, taskSpec), taskSpec);
+                Protos.TaskInfo taskInfo = getNewTaskInfo(
+                        podInstance,
+                        taskSpec,
+                        StateStoreUtils.getResources(
+                                stateStore,
+                                podInstance,
+                                taskSpec));
+                LOGGER.info("Generated new TaskInfo: {}", TextFormat.shortDebugString(taskInfo));
+                taskMap.put(taskInfo, taskSpec);
             }
+        }
+
+        if (taskMap.size() == 0) {
+            LOGGER.warn("Attempting to get existing OfferRequirement generated 0 tasks.");
         }
 
         List<TaskRequirement> taskRequirements = new ArrayList<>();
@@ -102,27 +122,65 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
 
-    private List<Protos.TaskInfo> getNewTaskInfos(PodInstance podInstance) throws InvalidRequirementException {
+    private List<Protos.TaskInfo> getNewTaskInfos(
+            PodInstance podInstance,
+            Collection<String> tasksToLaunch) throws InvalidRequirementException {
+
+        LOGGER.info("Getting new TaskInfos for tasks: {}", tasksToLaunch);
+
+        ArrayList<String> usedResourceSets = new ArrayList<>();
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
+
+        // Generating TaskInfos to launch.
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-            if (taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING)) {
-                taskInfos.add(getNewTaskInfo(podInstance, taskSpec));
+            if (!tasksToLaunch.contains(taskSpec.getName())) {
+                continue;
+            }
+
+            if (!usedResourceSets.contains(taskSpec.getResourceSet().getId())) {
+                LOGGER.info("Generating taskInfo to launch for: {}, with resource set: {}",
+                        taskSpec.getName(), taskSpec.getResourceSet().getId());
+                Protos.TaskInfo taskInfo = getNewTaskInfo(podInstance, taskSpec);
+                usedResourceSets.add(taskSpec.getResourceSet().getId());
+                taskInfos.add(taskInfo);
+            }
+        }
+
+        // Generating TaskInfos to complete Pod footprint.
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+            if (tasksToLaunch.contains(taskSpec.getName())) {
+                continue;
+            }
+
+            if (!usedResourceSets.contains(taskSpec.getResourceSet().getId())) {
+                LOGGER.info("Generating transient taskInfo to complete pod footprint for: {}, with resource set: {}",
+                        taskSpec.getName(), taskSpec.getResourceSet().getId());
+                Protos.TaskInfo taskInfo = getNewTaskInfo(podInstance, taskSpec);
+                taskInfo = CommonTaskUtils.setTransient(taskInfo);
+                usedResourceSets.add(taskSpec.getResourceSet().getId());
+                taskInfos.add(taskInfo);
             }
         }
 
         return taskInfos;
     }
 
-    private Protos.TaskInfo getNewTaskInfo(PodInstance podInstance, TaskSpec taskSpec)
-            throws InvalidRequirementException {
+    private Protos.TaskInfo getNewTaskInfo(
+            PodInstance podInstance,
+            TaskSpec taskSpec,
+            Collection<Protos.Resource> resources) throws InvalidRequirementException {
+
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonTaskUtils.emptyTaskId())
                 .setSlaveId(CommonTaskUtils.emptyAgentId())
-                .addAllResources(getNewResources(taskSpec));
+                .addAllResources(resources);
 
-        CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
-        CommonTaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+        taskInfoBuilder = CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
+        taskInfoBuilder = CommonTaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+        taskInfoBuilder = TaskUtils.setGoalState(taskInfoBuilder, taskSpec);
+        taskInfoBuilder = CommonTaskUtils.setType(taskInfoBuilder, podInstance.getPod().getType());
+        taskInfoBuilder = CommonTaskUtils.setIndex(taskInfoBuilder, podInstance.getIndex());
 
         if (taskSpec.getCommand().isPresent()) {
             final CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -143,6 +201,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return taskInfoBuilder.build();
     }
 
+
+    private Protos.TaskInfo getNewTaskInfo(PodInstance podInstance, TaskSpec taskSpec)
+            throws InvalidRequirementException {
+        return getNewTaskInfo(podInstance, taskSpec, getNewResources(taskSpec));
+    }
+
+
     private Protos.Environment getEnvironment(PodInstance podInstance, TaskSpec taskSpec) {
         if (taskSpec.getCommand().isPresent()) {
             CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -154,24 +219,31 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 environment = Protos.Environment.getDefaultInstance();
             }
 
+            Protos.Environment.Builder envBuilder = environment.toBuilder();
             // Inject Pod Instance Index
-            environment = environment.toBuilder()
-                    .addVariables(Protos.Environment.Variable.newBuilder()
-                            .setName(POD_INSTANCE_INDEX_KEY)
-                            .setValue(String.valueOf(podInstance.getIndex()))
-                            .build())
+            envBuilder.addVariablesBuilder()
+                    .setName(POD_INSTANCE_INDEX_KEY)
+                    .setValue(String.valueOf(podInstance.getIndex()));
+            // Inject TASK_NAME as KEY:VALUE
+            envBuilder.addVariablesBuilder()
+                    .setName(CommonTaskUtils.TASK_NAME_KEY)
+                    .setValue(TaskSpec.getInstanceName(podInstance, taskSpec));
+            // Inject TASK_NAME as KEY for conditional mustache templating
+            envBuilder.addVariablesBuilder()
+                    .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .setValue("true")
                     .build();
 
-            return environment;
+            return envBuilder.build();
         }
 
         return null;
     }
 
-    private TaskRequirement getExistingTaskRequirement(Protos.TaskInfo taskInfo,
-                                                       TaskSpec taskSpec,
-                                                       PodInstance podInstance)
-            throws InvalidRequirementException {
+    private TaskRequirement getExistingTaskRequirement(
+            Protos.TaskInfo taskInfo,
+            TaskSpec taskSpec,
+            PodInstance podInstance) throws InvalidRequirementException {
 
         String taskType;
         try {
@@ -201,6 +273,16 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                             updatedCommand,
                             POD_INSTANCE_INDEX_KEY,
                             String.valueOf(podInstance.getIndex()));
+            updatedCommand =
+                    CommandUtils.addEnvVar(
+                            updatedCommand,
+                            CommonTaskUtils.TASK_NAME_KEY,
+                            TaskSpec.getInstanceName(podInstance, taskSpec));
+            updatedCommand =
+                    CommandUtils.addEnvVar(
+                            updatedCommand,
+                            TaskSpec.getInstanceName(podInstance, taskSpec),
+                            "true");
             taskInfoBuilder.setCommand(updatedCommand);
         }
 
@@ -260,7 +342,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return updatedResources;
     }
 
-    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec)
+    private static Collection<Protos.Resource> getNewResources(TaskSpec taskSpec)
             throws InvalidRequirementException {
         ResourceSet resourceSet = taskSpec.getResourceSet();
         Collection<Protos.Resource> resources = new ArrayList<>();
@@ -351,18 +433,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
                 .setValue("export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && " +
                         "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
+                        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) " +
                         "./executor/bin/executor")
                 .addUris(executorURI)
                 .addUris(libmesosURI);
 
-        Protos.Environment.Variable.Builder javaHomeVariable =
-                Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
-        javaHomeVariable.setValue(DEFAULT_JAVA_HOME);
-
-        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder()
-                .addVariables(javaHomeVariable);
-        commandInfoBuilder.setEnvironment(envBuilder);
-        commandInfoBuilder.addUris(TaskUtils.uri(DEFAULT_JAVA_URI));
+        String javaUri = System.getenv(JAVA_URI);
+        javaUri = javaUri == null ? DEFAULT_JAVA_URI : javaUri;
+        commandInfoBuilder.addUris(TaskUtils.uri(javaUri));
 
         if (podSpec.getUser().isPresent()) {
             commandInfoBuilder.setUser(podSpec.getUser().get());

@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos.Offer;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.scheduler.Observable;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -10,7 +11,7 @@ import java.util.Optional;
 /**
  * Defines the interface for a Step of a {@link Phase}. The {@link Step} is the base unit of a set of
  * tasks to perform, such as launching a Task, updating a Task, or reconciling Mesos state with
- * Framework state. A Step may be in one of four states: PENDING, IN_PROGRESS, COMPLETE, or ERROR.
+ * Framework state. A Step may be in one of five states: PENDING, PREPARED, STARTING, COMPLETE, or ERROR.
  *
  * A {@link Step} is an {@link Observable}, and will notify its observers when its state changes.
  * <p>
@@ -27,16 +28,27 @@ public interface Step extends Element {
      * @see {@link #updateOfferStatus(Collection<Offer.Operation>)} which returns the outcome of the
      *      {@link OfferRequirement}
      */
-    Optional<OfferRequirement> start();
+    Optional<PodInstanceRequirement> start();
 
     /**
-     * Notifies the Step whether the {@link OfferRequirement} previously returned by
+     * Notifies the Step whether the {@link PodInstanceRequirement} previously returned by
      * {@link #start()} has been successfully accepted/fulfilled. The {@code operations} param is
      * empty when no offers matching the requirement previously returned by {@link #clone()
-     * could be found. This is only called if {@link #start()} returned a non-{@code null}
+     * could be found. This is only called if {@link #getOfferRequirement()} returned a non-{@code null}
      * {@link OfferRequirement}.
      */
     void updateOfferStatus(Collection<Offer.Operation> operations);
+
+    /**
+     * Return the Asset that this Step intends to work on.
+     * @return The name of the Asset this Step intends to work on if one exists, Optional.empty() otherwise.
+     */
+    Optional<String> getAsset();
+
+    /**
+     * Reports whether the Asset associated with this Step is dirty.
+     */
+    boolean isAssetDirty();
 
     /**
      * Thrown on invalid Step construction attempt.

@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.executor;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.specification.GoalState;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 
@@ -14,8 +17,10 @@ public class DefaultExecutorTaskFactory implements ExecutorTaskFactory {
     public ExecutorTask createTask(Protos.TaskInfo taskInfo, ExecutorDriver executorDriver)
             throws ExecutorTaskException, IOException {
         try {
-            return ProcessTask.create(executorDriver, taskInfo);
-        } catch (InvalidProtocolBufferException e) {
+            GoalState goalState = CommonTaskUtils.getGoalState(taskInfo);
+            boolean exitOnTermination = goalState.equals(GoalState.RUNNING);
+            return ProcessTask.create(executorDriver, taskInfo, exitOnTermination);
+        } catch (TaskException | InvalidProtocolBufferException e) {
             throw new ExecutorTaskException(e);
         }
     }

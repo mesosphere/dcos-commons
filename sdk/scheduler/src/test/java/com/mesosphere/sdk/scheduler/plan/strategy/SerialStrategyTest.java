@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -18,14 +19,14 @@ import static org.mockito.Mockito.when;
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SerialStrategyTest {
-    @Mock Element parentElement;
-    @Mock Element el0;
-    @Mock Element el1;
-    @Mock Element el2;
+    @Mock Phase parentElement;
+    @Mock Step el0;
+    @Mock Step el1;
+    @Mock Step el2;
     private Phase phase;
 
     private SerialStrategy strategy;
-    private List<Element> Elements;
+    private List<Step> elements;
 
     @Before
     public void beforeEach() {
@@ -40,12 +41,16 @@ public class SerialStrategyTest {
         when(el1.getName()).thenReturn("step1");
         when(el2.getName()).thenReturn("step2");
 
+        when(el0.getAsset()).thenReturn(Optional.of("step0"));
+        when(el1.getAsset()).thenReturn(Optional.of("step1"));
+        when(el2.getAsset()).thenReturn(Optional.of("step2"));
+
         when(el0.isPending()).thenReturn(true);
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        Elements = Arrays.asList(el0, el1, el2);
-        when(parentElement.getChildren()).thenReturn(Elements);
+        elements = Arrays.asList(el0, el1, el2);
+        when(parentElement.getChildren()).thenReturn(elements);
 
         phase = new DefaultPhase(
                 "phase-0",

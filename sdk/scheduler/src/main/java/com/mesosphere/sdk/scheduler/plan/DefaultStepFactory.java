@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,50 +34,37 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     @Override
-    public Step getStep(PodInstance podInstance, List<String> tasksToLaunch)
+    public Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch)
             throws Step.InvalidStepException, InvalidRequirementException {
-        LOGGER.info("Generating step for pod: {}", podInstance.getName());
 
+        LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
         validate(podInstance, tasksToLaunch);
 
-        List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
+        List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance, tasksToLaunch).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
                 .map(taskInfoOptional -> taskInfoOptional.get())
-                .filter(taskInfo -> tasksToLaunch.contains(taskInfo.getName()))
                 .collect(Collectors.toList());
 
         try {
-            if (taskInfos.isEmpty()) {
-                LOGGER.info("Generating new step for: {}", podInstance.getName());
-                return new DefaultStep(
-                        podInstance.getName(),
-                        Optional.of(offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch)),
-                        Status.PENDING,
-                        podInstance,
-                        Collections.emptyList());
-            } else {
-                // Note: This path is for deploying new versions of tasks, unlike transient recovery
-                // which is only interested in relaunching tasks as they were. So while they omit
-                // placement rules in their OfferRequirement, we include them.
-                Status status = getStatus(podInstance, taskInfos);
-                LOGGER.info("Generating existing step for: {} with status: {}", podInstance.getName(), status);
-                return new DefaultStep(
-                        podInstance.getName(),
-                        Optional.of(offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch)),
-                        status,
-                        podInstance,
-                        Collections.emptyList());
-            }
-        } catch (ConfigStoreException | TaskException | InvalidRequirementException e) {
+            Status status = taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos);
+            String stepName = TaskUtils.getStepName(podInstance, tasksToLaunch);
+
+            return new DefaultStep(
+                    stepName,
+                    status,
+                    podInstance,
+                    tasksToLaunch,
+                    Collections.emptyList());
+        } catch (ConfigStoreException | TaskException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
             throw new Step.InvalidStepException(e);
         }
     }
 
-    private void validate(PodInstance podInstance, List<String> tasksToLaunch) throws Step.InvalidStepException {
+    private void validate(PodInstance podInstance, Collection<String> tasksToLaunch) throws Step.InvalidStepException {
         List<TaskSpec> taskSpecsToLaunch = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> tasksToLaunch.contains(TaskSpec.getInstanceName(podInstance, taskSpec)))
+                .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .collect(Collectors.toList());
 
         List<String> resourceSetIds = taskSpecsToLaunch.stream()
@@ -111,7 +99,21 @@ public class DefaultStepFactory implements StepFactory {
     private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo)
             throws TaskException, ConfigStoreException, Step.InvalidStepException {
 
-        if (isOnTarget(taskInfo) && hasReachedGoalState(podInstance, taskInfo)) {
+        boolean isOnTarget = isOnTarget(taskInfo);
+        boolean hasReachedGoal = hasReachedGoalState(podInstance, taskInfo);
+
+        if (hasReachedGoal) {
+            GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
+            if (goalState.equals(GoalState.FINISHED)) {
+                LOGGER.info("Automatically on target configuration due to having reached FINISHED goal.");
+                isOnTarget = true;
+            }
+        }
+
+        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {}.",
+                taskInfo.getName(), isOnTarget, hasReachedGoal);
+
+        if (isOnTarget && hasReachedGoal) {
             return Status.COMPLETE;
         } else {
             return Status.PENDING;
@@ -127,7 +129,7 @@ public class DefaultStepFactory implements StepFactory {
 
     private boolean hasReachedGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo)
             throws Step.InvalidStepException {
-        TaskSpec.GoalState goalState = null;
+        GoalState goalState = null;
         try {
             goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
         } catch (TaskException e) {
@@ -140,14 +142,14 @@ public class DefaultStepFactory implements StepFactory {
             return false;
         }
 
-        if (goalState.equals(TaskSpec.GoalState.RUNNING)) {
+        if (goalState.equals(GoalState.RUNNING)) {
             switch (status.get().getState()) {
                 case TASK_RUNNING:
                     return true;
                 default:
                     return false;
             }
-        } else if (goalState.equals(TaskSpec.GoalState.FINISHED)) {
+        } else if (goalState.equals(GoalState.FINISHED)) {
             switch (status.get().getState()) {
                 case TASK_FINISHED:
                     return true;

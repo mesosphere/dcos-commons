@@ -1,14 +1,17 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -49,8 +52,8 @@ public class DefaultPhaseFactory implements PhaseFactory {
             PodInstance podInstance = new DefaultPodInstance(podSpec, i);
 
             List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                    .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                    .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
 
             try {
@@ -58,9 +61,9 @@ public class DefaultPhaseFactory implements PhaseFactory {
             } catch (Step.InvalidStepException | InvalidRequirementException e) {
                 steps.add(new DefaultStep(
                         PodInstance.getName(podSpec, i),
-                        Optional.empty(),
                         Status.ERROR,
                         podInstance,
+                        Collections.emptyList(),
                         Arrays.asList(ExceptionUtils.getStackTrace(e))));
             }
         }
