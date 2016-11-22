@@ -3,8 +3,8 @@
 ### Overview
 The goal of this quick-start guide is to introduce key concepts which we'll use for modeling real stateful services.
 
-In this tutorial, we'll build a `hello-world` service. The `hello-world` service will be composed of 2 instances of
-`helloworld` pod, each running a single `server` task. 
+In this tutorial, we'll build a `hello-world` service. The `hello-world` service will be composed of a single instance of
+`helloworld` pod, running a single `server` task.
 
 ### Step 1 - Initialize service project
 TODO(Nima): Provide steps for initialzing a DC/OS SDK Service project.
@@ -35,8 +35,7 @@ pods:
 In above specification file, we have:
 * Defined a service with name `hello-world`
 * Configured the service to use zookeeper at `master.mesos:2181` for storing framework state and configuration.
-* Configured the API port using `api-port: 8080`. By default, each service comes along with a default set of useful APIs which 
-enables operationalization. 
+* Configured the API port using `api-port: 8080`. By default, each service comes along with a default set of useful APIs which enables operationalization. 
 * Defined a pod specification for our `helloworld` pod using:
 
 ```yaml
@@ -156,3 +155,5 @@ public class Main {
     }
 }
 ```
+
+And, now we are ready to take the `helloworld` service for a spin.
