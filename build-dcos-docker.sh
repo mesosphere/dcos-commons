@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # capture anonymous metrics for reporting
-curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
 
 # abort script at first error:
 set -e
@@ -191,5 +191,5 @@ echo "Delete data:    rm -rf ${DCOS_DOCKER_DIR}"
 echo "---"
 
 # capture anonymous metrics for reporting
-curl --fail https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
 
