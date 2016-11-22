@@ -39,6 +39,5 @@ $ROOT_DIR/tools/ci_upload.py \
   cli/dcos-hdfs/dcos-hdfs-linux \
   cli/dcos-hdfs/dcos-hdfs.exe \
   cli/python/dist/*.whl \
-  ../../sdk/executor/build/distributions/*.zip \
   hdfs-site.xml \
   core-site.xml
