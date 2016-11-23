@@ -37,6 +37,7 @@ ARTIFACT_JDK=jdk-8u112-linux-x64.tar.gz
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
+REPO_ROOT_DIR="$(dirname $(dirname ${SCRIPT_DIR}))" # abs path up two levels, in a compatible way
 
 if [ ! -d "dcos-docker" ]; then
     git clone https://github.com/NimaVaziri/dcos-docker.git
@@ -60,7 +61,6 @@ fi
 
 echo "### Destroying pre-existing VM, if any"
 vagrant destroy # intentionally allowing confirmation prompt in case the user didn't actually want to do this
-vagrant box remove mesosphere/dcos-docker-sdk
 
 echo "### Building VM"
 DCOS_BOX_URL="file://$(pwd)/${ARTIFACT_BOX_BASE}" vagrant/resize-disk.sh ${VM_DISK_SIZE:=20480}
@@ -137,11 +137,6 @@ chmod 700 /home/vagrant/.ssh &&
 cp /vagrant/genconf/ssh_key /home/vagrant/.ssh/id_rsa &&
 chmod 600 /home/vagrant/.ssh/id_rsa &&
 
-echo '### Clean up some unnecessary files' &&
-sudo rm -rf /usr/src/ &&
-sudo rm -rf /root/.cache &&
-sudo rm -f /home/vagrant/VBoxGuestAdditions_*.iso &&
-
 echo '### Wait for cluster to finish coming up' &&
 make postflight
 EOF
@@ -180,7 +175,7 @@ EOF
 chmod +x start-dcos.sh
 vagrant ssh -c "cp /vagrant/start-dcos.sh ~"
 
-${SCRIPT_DIR}/node-route.sh
+${REPO_ROOT_DIR}/node-route.sh
 
 echo "----"
 echo "Dashboard URL:  ${CLUSTER_URL}"
@@ -188,17 +183,29 @@ echo ""
 echo "Log into VM:    pushd ${DCOS_DOCKER_DIR} && vagrant ssh && popd"
 echo "Build example:  Log into VM, then: cd /dcos-commons/frameworks/helloworld && ./build.sh local"
 echo ""
-echo "Repair routes:  ${SCRIPT_DIR}/node-route.sh # (use this if VM connectivity is lost)"
+echo "Repair routes:  ${REPO_ROOT_DIR}/node-route.sh # (use this if VM connectivity is lost)"
 echo "Delete VM:      pushd ${DCOS_DOCKER_DIR} && vagrant destroy && popd"
 echo "Delete data:    rm -rf ${DCOS_DOCKER_DIR}"
 echo "---"
 
 if [ "$1" = "package" ]; then
     echo "Packaging built image into .box file."
-    vagrant package --output dcos-docker-sdk-$(date -u +%Y%m%d-%H%M%S).box dcos-docker
+    OUTFILE=dcos-docker-sdk-$(date -u +%Y%m%d-%H%M%S).box
+    vagrant package --output $OUTFILE dcos-docker
     echo "Package created. Removing installed images."
     vagrant destroy -f
     vagrant box remove mesosphere/dcos-centos-virtualbox
+
+    DEST_BUCKET="s3://downloads.mesosphere.io/dcos-docker-sdk/"
+    echo "Package built: $(pwd)/$OUTFILE"
+    echo "Steps to upload:"
+    echo "1. Update the 'version', 'url', and 'checksum' strings in metadata.json to match the new file"
+    echo "2. Manually upload the new .box file:"
+    echo "    aws s3 cp --dryrun $(pwd)/${OUTFILE} ${DEST_BUCKET}"
+    echo "3. Manually upload the new metadata.json:"
+    echo "    aws s3 cp --dryrun ${SCRIPT_DIR}/metadata.json ${DEST_BUCKET}"
+    echo "4. Commit/merge the updated metadata.json to the repository"
+    echo "5. In a day or two, delete the old unused .box file from S3"
 fi
 
 # capture anonymous metrics for reporting

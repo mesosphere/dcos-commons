@@ -2,7 +2,9 @@
 # vi: set ft=ruby :
 
 $dcos_box = ENV.fetch('DCOS_BOX', 'mesosphere/dcos-docker-sdk')
-$dcos_box_url = ENV.fetch('DCOS_BOX_URL', 'http://downloads.mesosphere.com/dcos-docker-sdk/metadata.json')
+# TODO: when box isn't being upgraded regularly, switch from the raw URL to the (commented-out) cached URL:
+#$dcos_box_url = ENV.fetch('DCOS_BOX_URL', 'https://downloads.mesosphere.com/dcos-docker-sdk/metadata.json')
+$dcos_box_url = ENV.fetch('DCOS_BOX_URL', 'https://s3.amazonaws.com/downloads.mesosphere.io/dcos-docker-sdk/metadata.json')
 
 $dcos_cpus = ENV.fetch('DCOS_CPUS', 2)
 $dcos_mem = ENV.fetch('DCOS_MEM', 6144) # 6GB
