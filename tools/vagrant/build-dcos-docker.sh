@@ -190,7 +190,7 @@ echo "---"
 
 if [ "$1" = "package" ]; then
     echo "Packaging built image into .box file."
-    OUTFILE=dcos-docker-sdk-$(date -u +%Y%m%d-%H%M%S).box
+    OUTFILE=dcos-docker-sdk-$(date -u +%Y%m%d.%H%M%S).box
     vagrant package --output $OUTFILE dcos-docker
     echo "Package created. Removing installed images."
     vagrant destroy -f
