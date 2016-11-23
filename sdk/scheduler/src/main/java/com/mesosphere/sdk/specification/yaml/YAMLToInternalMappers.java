@@ -12,6 +12,7 @@ import com.mesosphere.sdk.offer.constrain.PassthroughRule;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.util.RLimit;
 
 import java.io.File;
 import java.io.IOException;
@@ -124,10 +125,20 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
         if (rawPod.getContainer() != null) {
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName()));
+            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), from(rawPod.getContainer().getRLimits())));
         }
 
         return builder.build();
+    }
+
+    private static RLimitSpec from(LinkedHashMap<String, RawRLimit> rawRLimits) throws Exception {
+        List<RLimit> rlimits = new ArrayList<>();
+        for (Map.Entry<String, RawRLimit> entry : rawRLimits.entrySet()) {
+            RawRLimit rawRLimit = entry.getValue();
+            rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
+        }
+
+        return new DefaultRLimitSpec(rlimits);
     }
 
     private static ResourceSet from(

@@ -5,27 +5,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 import javax.validation.constraints.Size;
+import java.util.Optional;
 
 /**
  * Default implementation of {@link ContainerSpec}.
  */
 public class DefaultContainerSpec implements ContainerSpec {
-    @NotNull
     @Size(min = 1)
     private String imageName;
+    @Valid
+    private RLimitSpec rLimitSpec;
 
     @JsonCreator
     public DefaultContainerSpec(
-            @JsonProperty("image-name")
-            String imageName) {
+            @JsonProperty("image-name") String imageName,
+            @JsonProperty("rlimit_spec") RLimitSpec rLimitSpec) {
         this.imageName = imageName;
+        this.rLimitSpec = rLimitSpec;
     }
 
     @Override
-    public String getImageName() {
-        return imageName;
+    public Optional<String> getImageName() {
+        return Optional.ofNullable(imageName);
+    }
+
+    @Override
+    public Optional<RLimitSpec> getRLimitSpec() {
+        return Optional.ofNullable(rLimitSpec);
     }
 
     @Override

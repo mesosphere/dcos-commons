@@ -186,7 +186,7 @@ public class HealthCheckHandlerTest {
     public void testFailHttpHealthCheckValidation() throws HealthCheckHandler.HealthCheckValidationException {
         Protos.TaskInfo taskInfo = getTask().toBuilder()
                 .setHealthCheck(Protos.HealthCheck.newBuilder()
-                        .setHttp(Protos.HealthCheck.HTTP.newBuilder().setPort(2))
+                        .setHttp(Protos.HealthCheck.HTTPCheckInfo.newBuilder().setPort(2))
                         .build())
                 .build();
 
