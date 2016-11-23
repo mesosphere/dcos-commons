@@ -1,6 +1,6 @@
 # Kafka Labs
 
-In this tutorial we'll be walking through step-by-step instructions on getting a Kafka service up and running. This tutorial assumes you've already setup a local cluster using the [Quick Start](https://github.com/mesosphere/dcos-commons/blob/master/README.md) guide.
+In this tutorial we'll be walking through step-by-step instructions on getting a Kafka service up and running. This tutorial assumes you've already setup a local cluster using the [Quick Start](https://github.com/mesosphere/dcos-commons/blob/master/README.md) guide and that you're in the VM environment.
 
 #### Steps:
 
@@ -8,7 +8,7 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
  1. This will create a clone of the `hello-world` service which you should then modify.
 2. Next change directory to where the Kafka service definition is: `cd examples/kafka/src/main/dist/`
 3. With an editor of your choice open `svc.yml`. Notice that some values, such as `<task-name>_COUNT` and `<task-name>_CPUS` are mustached.[0]
-4. Since Kafka has brokers, change the type of the task in the Kafka pod from `server` to `broker`.
+4. The name of a task can be anything but since Kafka has brokers, change the type of the task in the Kafka pod from `server` to `broker`.
   1. Also notice that `count` is specified as a property of the `kafka` pod. This indicates there will be `count` kafka pods, each of which will run a `broker`.
 5. Next, add the following property to the `broker` task in order to open up the necessary port.
    ```
