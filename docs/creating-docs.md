@@ -4,6 +4,16 @@
 
 Modifications made to the `docs/` directory of the master branch of this repository also appear the Github pages site: `http://mesosphere.github.io/dcos-commons/`.
 
+## Javadocs Reference
+
+1. From the root directory of this repository, run:
+
+```
+javadoc -d docs/ $(find . -name *.java)
+```
+
+1. Commit your changes to the master branch.
+
 ## Swagger API Reference
 
 To modify the Swagger docs:
@@ -27,3 +37,5 @@ To modify the Swagger docs:
 ```
 
 1. Replace `swagger-api/index.html` with your local file.
+
+1. Commit your changes to the master branch.
