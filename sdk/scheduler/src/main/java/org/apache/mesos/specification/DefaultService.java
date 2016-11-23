@@ -87,15 +87,14 @@ public class DefaultService implements Service {
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
 
         try {
-            configTargetStore = DefaultScheduler
-                    .createConfigStore(this.serviceSpec, zkConnectionString, Arrays.asList());
+            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString, Arrays.asList());
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create config store", e);
             throw new IllegalStateException(e);
         }
 
         ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(this.serviceSpec, stateStore, configTargetStore);
+                .updateConfig(serviceSpec, stateStore, configTargetStore);
 
         offerRequirementProvider = DefaultScheduler
                 .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
