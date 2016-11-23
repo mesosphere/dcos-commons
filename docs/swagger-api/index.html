@@ -3,7 +3,7 @@
   <head>
     <title>DC/OS SDK API Reference</title>
     <style type="text/css">
-      body { 
+      body {
 	font-family: Trebuchet MS, sans-serif;
 	font-size: 15px;
 	color: #444;
@@ -25,7 +25,6 @@ hr	{
 	border: 0;
 	color: #ddd;
 	background-color: #ddd;
-	display: none;
 }
 
 .app-desc {
@@ -176,6 +175,7 @@ font-style: italic;
   display: inline-block;
   text-decoration: none;
 }
+
     </style>
   </head>
   <body>
@@ -189,22 +189,173 @@ font-style: italic;
   <h2><a name="__Methods">Methods</a></h2>
   [ Jump to <a href="#__Models">Models</a> ]
 
-  <h2>Table of Contents </h2>
+  <h3>Table of Contents </h3>
   <div class="method-summary"></div>
-  <ol>
+  <h4><a href="#Configurations">Configurations</a></h4>
+  <ul>
+  <li><a href="#configurationsConfigurationIdGet"><code><span class="http-method">get</span> /configurations/{configurationId}</code></a></li>
+  <li><a href="#configurationsGet"><code><span class="http-method">get</span> /configurations</code></a></li>
+  <li><a href="#configurationsTargetGet"><code><span class="http-method">get</span> /configurations/target</code></a></li>
+  <li><a href="#configurationsTargetIdGet"><code><span class="http-method">get</span> /configurations/targetId</code></a></li>
+  </ul>
+  <h4><a href="#Plans">Plans</a></h4>
+  <ul>
   <li><a href="#plansGet"><code><span class="http-method">get</span> /plans</code></a></li>
   <li><a href="#plansPlanNameContinuePost"><code><span class="http-method">post</span> /plans/{planName}/continue</code></a></li>
   <li><a href="#plansPlanNameForceCompletePost"><code><span class="http-method">post</span> /plans/{planName}/forceComplete</code></a></li>
   <li><a href="#plansPlanNameGet"><code><span class="http-method">get</span> /plans/{planName}</code></a></li>
   <li><a href="#plansPlanNameInterruptPost"><code><span class="http-method">post</span> /plans/{planName}/interrupt</code></a></li>
   <li><a href="#plansPlanNameRestartPost"><code><span class="http-method">post</span> /plans/{planName}/restart</code></a></li>
+  </ul>
+  <h4><a href="#Tasks">Tasks</a></h4>
+  <ul>
   <li><a href="#tasksConnectionTaskNameGet"><code><span class="http-method">get</span> /tasks/connection/{taskName}</code></a></li>
   <li><a href="#tasksGet"><code><span class="http-method">get</span> /tasks</code></a></li>
   <li><a href="#tasksInfoTaskNameGet"><code><span class="http-method">get</span> /tasks/info/{taskName}</code></a></li>
   <li><a href="#tasksRestartTaskNamePost"><code><span class="http-method">post</span> /tasks/restart/{taskName}</code></a></li>
   <li><a href="#tasksStatusTaskNameGet"><code><span class="http-method">get</span> /tasks/status/{taskName}</code></a></li>
-  </ol>
+  </ul>
 
+  <h1><a name="Configurations">Configurations</a></h1>
+  <div class="method"><a name="configurationsConfigurationIdGet"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations/{configurationId}</code></pre></div>
+    <div class="method-summary">Produces the content of the provided configuration ID. (<span class="nickname">configurationsConfigurationIdGet</span>)</div>
+    <div class="method-notes">Produces the content of the provided configuration ID.</div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">configurationId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The ID of the configuration. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The content of the configuration.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Failed to fetch requested configuration with id.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="configurationsGet"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations</code></pre></div>
+    <div class="method-summary">Produces an ID listing of all stored configurations. (<span class="nickname">configurationsGet</span>)</div>
+    <div class="method-notes">Produces an ID listing of all stored configurations.</div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    List of stored configurations.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Failed to fetch list of configuration ids.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="configurationsTargetGet"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations/target</code></pre></div>
+    <div class="method-summary">Produces the content of the current target configuration. (<span class="nickname">configurationsTargetGet</span>)</div>
+    <div class="method-notes">Produces the content of the current target configuration.</div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The content of the current target configuration.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    .
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="configurationsTargetIdGet"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /configurations/targetId</code></pre></div>
+    <div class="method-summary">Produces the ID of the current target configuration. (<span class="nickname">configurationsTargetIdGet</span>)</div>
+    <div class="method-notes">Produces the ID of the current target configuration.</div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The ID of the current target configuration.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Failed to fetch target configuration.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="Plans">Plans</a></h1>
   <div class="method"><a name="plansGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -397,6 +548,7 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Tasks">Tasks</a></h1>
   <div class="method"><a name="tasksConnectionTaskNameGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -585,7 +737,7 @@ font-style: italic;
   <h2><a name="__Models">Models</a></h2>
   [ Jump to <a href="#__Methods">Methods</a> ]
 
-  <h2>Table of Contents</h2>
+  <h3>Table of Contents</h3>
   <ol>
   </ol>
 
