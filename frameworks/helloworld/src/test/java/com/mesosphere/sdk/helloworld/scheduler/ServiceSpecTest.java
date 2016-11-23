@@ -30,8 +30,16 @@ public class ServiceSpecTest {
     @BeforeClass
     public static void beforeAll() {
         environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("COUNT", "2");
-        environmentVariables.set("CPUS", "0.1");
+        environmentVariables.set("PORT0", "8080");
+        environmentVariables.set("SLEEP_DURATION", "1000");
+        environmentVariables.set("HELLO_COUNT", "2");
+        environmentVariables.set("HELLO_CPUS", "0.1");
+        environmentVariables.set("HELLO_MEM", "512");
+        environmentVariables.set("HELLO_DISK", "5000");
+        environmentVariables.set("WORLD_COUNT", "3");
+        environmentVariables.set("WORLD_CPUS", "0.2");
+        environmentVariables.set("WORLD_MEM", "1024");
+        environmentVariables.set("WORLD_DISK", "5000");
     }
 
     @Before
