@@ -2,7 +2,7 @@
 
 ## Modify the Github Pages Site
 
-Modifications made to the `docs/` directory of the master branch of this repository also appear the Github pages site: `http://mesosphere.github.io/dcos-commons/`.
+Modifications made to the `docs/` directory of the master branch of this repository also appear on the Github pages site: `http://mesosphere.github.io/dcos-commons/`.
 
 ## Javadocs Reference
 
@@ -30,11 +30,11 @@ To modify the Swagger docs:
 
 1. Open the HTML file in an editor and modify the first lines of the `<body>` section to read:
 
-```
-<h1>DC/OS SDK API Reference</h1>
-    <div class="app-desc">Version: 0.0.1</div>
-    <div class="app-desc">BasePath:/v1</div>
-```
+    ```
+    <h1>DC/OS SDK API Reference</h1>
+        <div class="app-desc">Version: 0.0.1</div>
+        <div class="app-desc">BasePath:/v1</div>
+    ```
 
 1. Replace `swagger-api/index.html` with your local file.
 
