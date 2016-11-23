@@ -46,14 +46,13 @@ pods:
             delay: 0
             timeout: 10
             max-consecutive-failures: {{WORLD_FAILS}}
-            
 plans:
   deploy:
     strategy: serial
     phases:
       hello-deploy:
-        strategy: parallel
+        strategy: serial
         pod: hello
       world-deploy:
-        strategy: parallel
+        strategy: serial
         pod: world
