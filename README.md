@@ -95,7 +95,7 @@ pods:
   helloworld:
     ...
 ```
-* Configured that we need atleast 2 instances of `helloworld` pod running at all times.
+* Configured that we need atleast `{{COUNT}}` instances of `helloworld` pod running at all times. Where `COUNT` is the environment variable that is injected into the scheduler process at launch via Marathon. It defaults to `1` for this example.
 * Defined a task specification for our `server` task using:
 
 ```yaml
@@ -103,10 +103,10 @@ tasks:
   server:
     goal: RUNNING
     cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
-    cpus: 0.5
+    cpus: {{SERVER_CPU}}
     memory: 32
 ```
-configuring it to use `0.5` CPUs and `32 MB` of memory.
+configuring it to use `{{SERVER_CPU}}` CPUs (defaults to `0.5` for this example) and `32 MB` of memory.
 * And finally, configured a `64 MB` persistent volume for our server task where the task data can be persisted using:
 
 ```yaml
