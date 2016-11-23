@@ -240,8 +240,10 @@ public class YAMLToInternalMappers {
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
         if (CollectionUtils.isNotEmpty(rawVolumes)) {
-            rawVolumes.stream().map(rawVolume -> resourceSetBuilder
-                    .addVolume(rawVolume.type, Double.valueOf(rawVolume.getSize()), rawVolume.getPath()));
+            for (RawVolume rawVolume : rawVolumes) {
+                resourceSetBuilder
+                        .addVolume(rawVolume.getType(), Double.valueOf(rawVolume.getSize()), rawVolume.getPath());
+            }
         } else {
             resourceSetBuilder.volumes(Collections.emptyList());
         }

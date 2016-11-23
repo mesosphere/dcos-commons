@@ -24,7 +24,7 @@
         "count":{
           "description":"Number of hello pods to run",
           "type":"integer",
-          "default":2
+          "default":1
         }
       },
       "required":[
