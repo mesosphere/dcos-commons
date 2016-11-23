@@ -8,9 +8,9 @@ Modifications made to the `docs/` directory of the master branch of this reposit
 
 1. From the root directory of this repository, run:
 
-```
-javadoc -d docs/ $(find . -name *.java)
-```
+    ```
+    javadoc -d docs/ $(find . -name *.java)
+    ```
 
 1. Commit your changes to the master branch.
 
