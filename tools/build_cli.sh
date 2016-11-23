@@ -13,7 +13,7 @@ CLI_DIR=$2
 REPO_CLI_RELATIVE_PATH=$3 # eg 'frameworks/helloworld/cli/'
 
 TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT_DIR=$(realpath $TOOLS_DIR/..)
+REPO_ROOT_DIR=$(dirname $TOOLS_DIR) # note: need an absolute path for REPO_CLI_RELATIVE_PATH below
 
 if [ -z "$GOPATH" -o -z "$(which go)" ]; then
   echo "Missing GOPATH environment variable or 'go' executable. Please configure a Go build environment."
