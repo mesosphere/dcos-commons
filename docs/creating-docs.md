@@ -1,6 +1,6 @@
 # Creating Docs for the DC/OS SDK
 
-## Modify the Github Pages Site
+## Github Pages Site
 
 Modifications made to the `docs/` directory of the master branch of this repository also appear on the Github pages site: `http://mesosphere.github.io/dcos-commons/`.
 
