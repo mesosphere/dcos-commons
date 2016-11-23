@@ -1,0 +1,21 @@
+discovery.zen.ping.unicast.hosts:
+  - "http://master-0-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
+  - "http://master-1-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
+  - "http://master-2-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
+discovery.zen.minimum_master_nodes: 2
+network.host:
+  - "_site_"
+  - "_local_"
+cluster.name: {{SERVICE_NAME}}
+node.name: {{POD_TYPE}}-{{POD_INSTANCE_INDEX}}
+path.data: "{{CONTAINER_PATH}}/data"
+path.logs: "{{CONTAINER_PATH}}/logs"
+http.port: {{HTTP_PORT}}
+transport.tcp.port: {{TRANSPORT_PORT}}
+bootstrap.memory_lock: true
+metrics.statsd.host: {{STATSD_UDP_HOST}}
+metrics.statsd.port: {{STATSD_UDP_PORT}}
+node.master: {{MASTER_ENABLED}}
+node.data: {{DATA_ENABLED}}
+node.ingest: {{INGEST_ENABLED}}
+bootstrap.ignore_system_bootstrap_checks: true

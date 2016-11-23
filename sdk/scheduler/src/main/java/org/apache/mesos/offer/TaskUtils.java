@@ -616,16 +616,6 @@ public class TaskUtils {
         return builder;
     }
 
-    public static int getMemory(TaskSpecification taskSpecification) {
-        Map<String, ResourceSpecification> resourceMap = getResourceSpecMap(taskSpecification.getResources());
-        return (int) resourceMap.get("mem").getValue().getScalar().getValue();
-    }
-
-    public static List<Value.Range> getPortRangeList(TaskSpecification taskSpecification) {
-        Map<String, ResourceSpecification> resourceMap = TaskUtils.getResourceSpecMap(taskSpecification.getResources());
-        return resourceMap.get("ports").getValue().getRanges().getRangeList();
-    }
-
     /**
      * Returns the value of a {@link Label} named {@code key}, or returns {@code null} if no
      * matching {@link Label} is found.

@@ -1,0 +1,57 @@
+name: elastic
+principal: "elastic-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+replacement-failure-policy:
+  permanent-failure-timeout-ms: 100000
+  min-replace-delay-ms: 100000
+pods:
+  master:
+    count: 3
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{MASTER_NODE_CPUS}}
+        memory: {{MASTER_NODE_MEM}}
+        ports:
+          - name: http
+            port: {{MASTER_NODE_HTTP_PORT}}
+        volumes:
+          - path: "master-container-path"
+            type: {{MASTER_NODE_DISK_TYPE}}
+            size: {{MASTER_NODE_DISK}}
+        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec {{MESOS_SANDBOX}}/elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          HTTP_PORT: {{MASTER_NODE_HTTP_PORT}}
+          TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: true
+          DATA_ENABLED: false
+          INGEST_ENABLED: false
+          ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
+          SERVICE_NAME: {{SERVICE_NAME}}
+        uris:
+          - "{{SCHEDULER_URI}}"
+          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
+          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
+          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.0/support-diagnostics-5.0-dist.zip"
+          - "https://s3-us-west-1.amazonaws.com/hello-universe-assets/elasticsearch-statsd-{{ELASTIC_VERSION}}-SNAPSHOT.zip"
+        configurations:
+          - template: "scheduler/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-checks:
+          check-up:
+            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{MASTER_NODE_HTTP_PORT}}"
+            interval: 5
+            grace-period: 300
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10
+plans:
+  deploy:
+    strategy: {{PLAN_STRATEGY}}
+    phases:
+      master-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: master

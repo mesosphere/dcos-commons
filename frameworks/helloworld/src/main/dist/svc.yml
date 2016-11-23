@@ -10,6 +10,11 @@ pods:
         goal: RUNNING
         cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
+        ports:
+          - name: http
+            port: 12345
+          - name: another
+            port: 12344
         memory: {{HELLO_MEM}}
         volumes:
           - path: "hello-container-path"

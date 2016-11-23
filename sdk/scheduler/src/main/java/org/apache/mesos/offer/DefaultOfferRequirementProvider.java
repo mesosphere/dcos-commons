@@ -17,6 +17,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final String EXECUTOR_URI = "EXECUTOR_URI";
     private static final String JAVA_HOME = "JAVA_HOME";
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
+    private static final String POD_TYPE_KEY = "POD_TYPE";
     private static final String DEFAULT_JAVA_HOME = "jre1.8.0_91";
     private static final String DEFAULT_JAVA_URI =
             "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz";
@@ -32,6 +33,65 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         this.taskConfigRouter = taskConfigRouter;
         this.stateStore = stateStore;
         this.targetConfigurationId = targetConfigurationId;
+    }
+
+    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec)
+            throws InvalidRequirementException {
+        ResourceSet resourceSet = taskSpec.getResourceSet();
+        Collection<Protos.Resource> resources = new ArrayList<>();
+
+        for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
+            resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
+        }
+
+        if (resourceSet.getVolumes().size() > 0) {
+            for (VolumeSpecification volumeSpecification : resourceSet.getVolumes()) {
+                switch (volumeSpecification.getType()) {
+                    case ROOT:
+                        resources.add(
+                                ResourceUtils.getDesiredRootVolume(
+                                        volumeSpecification.getRole(),
+                                        volumeSpecification.getPrincipal(),
+                                        volumeSpecification.getValue().getScalar().getValue(),
+                                        volumeSpecification.getContainerPath()));
+                        break;
+                    case MOUNT:
+                        resources.add(
+                                ResourceUtils.getDesiredMountVolume(
+                                        volumeSpecification.getRole(),
+                                        volumeSpecification.getPrincipal(),
+                                        volumeSpecification.getValue().getScalar().getValue(),
+                                        volumeSpecification.getContainerPath()));
+                        break;
+                    default:
+                        LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
+                }
+            }
+        }
+
+        return resources;
+    }
+
+    private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
+        Map<String, Protos.Resource> resourceMap = new HashMap<>();
+        for (Protos.Resource resource : resources) {
+            if (!resource.hasDisk()) {
+                resourceMap.put(resource.getName(), resource);
+            }
+        }
+
+        return resourceMap;
+    }
+
+    private static Collection<Protos.Resource> getVolumes(Collection<Protos.Resource> resources) {
+        List<Protos.Resource> volumes = new ArrayList<>();
+        for (Protos.Resource resource : resources) {
+            if (resource.hasDisk()) {
+                volumes.add(resource);
+            }
+        }
+
+        return volumes;
     }
 
     @Override
@@ -99,7 +159,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getPod().getPlacementRule());
     }
 
-
     private List<Protos.TaskInfo> getNewTaskInfos(PodInstance podInstance) throws InvalidRequirementException {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
@@ -157,6 +216,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .addVariables(Protos.Environment.Variable.newBuilder()
                             .setName(POD_INSTANCE_INDEX_KEY)
                             .setValue(String.valueOf(podInstance.getIndex()))
+                            .build())
+                    .addVariables(Protos.Environment.Variable.newBuilder()
+                            .setName(POD_TYPE_KEY)
+                            .setValue(String.valueOf(podInstance.getPod().getType()))
                             .build())
                     .build();
 
@@ -256,65 +319,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return updatedResources;
-    }
-
-    private static Iterable<? extends Protos.Resource> getNewResources(TaskSpec taskSpec)
-            throws InvalidRequirementException {
-        ResourceSet resourceSet = taskSpec.getResourceSet();
-        Collection<Protos.Resource> resources = new ArrayList<>();
-
-        for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
-            resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
-        }
-
-        if (resourceSet.getVolumes().size() > 0) {
-            for (VolumeSpecification volumeSpecification : resourceSet.getVolumes()) {
-                switch (volumeSpecification.getType()) {
-                    case ROOT:
-                        resources.add(
-                                ResourceUtils.getDesiredRootVolume(
-                                        volumeSpecification.getRole(),
-                                        volumeSpecification.getPrincipal(),
-                                        volumeSpecification.getValue().getScalar().getValue(),
-                                        volumeSpecification.getContainerPath()));
-                        break;
-                    case MOUNT:
-                        resources.add(
-                                ResourceUtils.getDesiredMountVolume(
-                                        volumeSpecification.getRole(),
-                                        volumeSpecification.getPrincipal(),
-                                        volumeSpecification.getValue().getScalar().getValue(),
-                                        volumeSpecification.getContainerPath()));
-                        break;
-                    default:
-                        LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
-                }
-            }
-        }
-
-        return resources;
-    }
-
-    private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
-        Map<String, Protos.Resource> resourceMap = new HashMap<>();
-        for (Protos.Resource resource : resources) {
-            if (!resource.hasDisk()) {
-                resourceMap.put(resource.getName(), resource);
-            }
-        }
-
-        return resourceMap;
-    }
-
-    private static Collection<Protos.Resource> getVolumes(Collection<Protos.Resource> resources) {
-        List<Protos.Resource> volumes = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
-            if (resource.hasDisk()) {
-                volumes.add(resource);
-            }
-        }
-
-        return volumes;
     }
 
     private Protos.ExecutorInfo.Builder getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {

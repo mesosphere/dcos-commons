@@ -14,7 +14,7 @@ _notify_github() {
     $REPO_ROOT_DIR/dcos-commons-tools/github_update.py $1 build $2
 }
 
-# Build steps for Kafka
+# Build steps for Elastic
 
 _notify_github pending "Build running"
 

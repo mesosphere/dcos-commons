@@ -1,0 +1,8 @@
+elasticsearch.url: "http://data-0-server.{{SERVICE_NAME}}.mesos:{{DATA_NODE_HTTP_PORT}}"
+elasticsearch.username: kibana
+elasticsearch.password: "{{KIBANA_PASSWORD}}"
+server.name: kibana-{{POD_INSTANCE_INDEX}}
+server.host: 0.0.0.0
+server.port: {{KIBANA_PORT}}
+xpack.security.encryptionKey: {{MESOS_FRAMEWORK_ID}}
+xpack.reporting.encryptionKey: {{MESOS_FRAMEWORK_ID}}};

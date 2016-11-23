@@ -33,7 +33,7 @@ public class YAMLServiceSpecFactory {
         final String yamlWithEnv = TaskUtils.applyEnvToMustache(yaml, System.getenv());
         LOGGER.info("Rendered ServiceSpec: {}", yamlWithEnv);
         if (!TaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
-            throw new IllegalStateException("YAML contains unsubstitued variables.");
+            throw new IllegalStateException("YAML contains unsubstituted variables.");
         }
         return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpecification.class);
     }

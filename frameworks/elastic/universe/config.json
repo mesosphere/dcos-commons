@@ -16,9 +16,9 @@
           "default": "core"
         },
         "plan_strategy": {
-          "description": "Elasticsearch and Kibana rollout strategy. [PARALLEL, SERIAL]",
+          "description": "Elasticsearch and Kibana rollout strategy. [parallel, serial]",
           "type": "string",
-          "default": "PARALLEL"
+          "default": "parallel"
         }
       },
       "required": [
@@ -73,10 +73,10 @@
           "type": "integer",
           "default": 2000
         },
-        "mounted_disk": {
-          "type": "boolean",
-          "description": "Use mounted disk instead of root disk for storing data.",
-          "default": false
+        "disk_type": {
+          "type": "string",
+          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "default": "ROOT"
         },
         "http_port": {
           "description": "HTTP port for master nodes to listen on. Use 0 to let Mesos pick a port for you.",
@@ -101,7 +101,7 @@
       "properties": {
         "count": {
           "description": "Number of data nodes to run",
-          "type": "number",
+          "type": "integer",
           "default": 2,
           "minimum": 1
         },
@@ -135,10 +135,10 @@
           "type": "integer",
           "default": 10000
         },
-        "mounted_disk": {
-          "type": "boolean",
-          "description": "Use mounted disk instead of root disk for storing data.",
-          "default": false
+        "disk_type": {
+          "type": "string",
+          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "default": "ROOT"
         },
         "http_port": {
           "description": "HTTP port for data nodes to listen on. Use 0 to let Mesos pick a port for you.",
@@ -164,7 +164,7 @@
       "properties": {
         "count": {
           "description": "Number of ingest nodes to run",
-          "type": "number",
+          "type": "integer",
           "default": 1,
           "minimum": 1
         },
@@ -198,10 +198,10 @@
           "type": "integer",
           "default": 2000
         },
-        "mounted_disk": {
-          "type": "boolean",
-          "description": "Use mounted disk instead of root disk for storing data.",
-          "default": false
+        "disk_type": {
+          "type": "string",
+          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "default": "ROOT"
         },
         "http_port": {
           "description": "HTTP port for ingest nodes to listen on. Use 0 to let Mesos pick a port for you.",
@@ -227,7 +227,7 @@
       "properties": {
         "count": {
           "description": "Number of coordinator nodes to run",
-          "type": "number",
+          "type": "integer",
           "default": 1,
           "minimum": 0
         },
@@ -261,10 +261,10 @@
           "type": "integer",
           "default": 1000
         },
-        "mounted_disk": {
-          "type": "boolean",
-          "description": "Use mounted disk instead of root disk for storing data.",
-          "default": false
+        "disk_type": {
+          "type": "string",
+          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "default": "ROOT"
         },
         "http_port": {
           "description": "HTTP port for coordinator nodes to listen on. Use 0 to let Mesos pick a port for you.",
@@ -290,7 +290,7 @@
       "properties": {
         "count": {
           "description": "Number of Kibana servers to run",
-          "type": "number",
+          "type": "integer",
           "default": 1,
           "minimum": 0
         },
@@ -309,10 +309,10 @@
           "type": "integer",
           "default": 100
         },
-        "mounted_disk": {
-          "type": "boolean",
-          "description": "Use mounted disk instead of root disk for storing data.",
-          "default": false
+        "disk_type": {
+          "type": "string",
+          "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "default": "ROOT"
         },
         "port": {
           "description": "HTTP port for Kibana to listen on. Use 0 to let Mesos pick a port for you.",

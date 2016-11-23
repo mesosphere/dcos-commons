@@ -2,14 +2,8 @@
   "assets": {
     "uris": {
       "jre-tar-gz": "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz",
-      "elasticsearch_tar_gz": "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.0.0-beta1.tar.gz",
-      "xpack_tar_gz": "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-5.0.0-beta1.zip",
-      "kibana_tar_gz": "https://artifacts.elastic.co/downloads/kibana/kibana-5.0.0-beta1-linux-x86_64.tar.gz",
-      "dns_utils_tar_gz": "https://s3-us-west-1.amazonaws.com/hello-universe-assets/dns_utils.tar.gz",
-      "diagnostics_zip": "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/2.1.2/support-diagnostics-2.1.2-dist.zip",
-      "statsd_plugin_zip": "https://s3-us-west-1.amazonaws.com/hello-universe-assets/elasticsearch-statsd-5.0.0-beta1-SNAPSHOT.zip",
-      "scheduler-zip": "{{artifact-dir}}/scheduler.zip",
-      "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/executor.zip"
+      "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/executor.zip",
+      "scheduler-zip": "{{artifact-dir}}/scheduler.zip"
     }
   },
   "images": {
