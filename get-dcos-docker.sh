@@ -63,8 +63,7 @@ echo "Log into VM:    pushd ${VAGRANT_DIR} && vagrant ssh && popd"
 echo "Build example:  Log into VM, then: cd /dcos-commons/frameworks/helloworld && ./build.sh local"
 echo ""
 echo "Repair routes:  ${SCRIPT_DIR}/node-route.sh # (use this if VM connectivity is lost)"
-echo "Delete VM:      pushd ${VAGRANT_DIR} && vagrant destroy && popd"
-echo "Delete data:    rm -rf ${VAGRANT_DIR}/*.box && vagrant box remove $BOX_NAME"
+echo "Delete VM/data: pushd ${VAGRANT_DIR} && vagrant destroy && vagrant box remove $BOX_NAME && popd"
 echo "---"
 
 # capture anonymous metrics for reporting
