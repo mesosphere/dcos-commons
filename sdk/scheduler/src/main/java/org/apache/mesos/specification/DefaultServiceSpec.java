@@ -18,7 +18,6 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -261,7 +260,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String principal;
         private Integer apiPort;
         private String zookeeperConnection;
-        private List<PodSpec> pods = new ArrayList<>();
+        private List<PodSpec> pods;
         private ReplacementFailurePolicy replacementFailurePolicy;
 
         private Builder() {
@@ -332,17 +331,6 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder pods(List<PodSpec> pods) {
             this.pods = pods;
-            return this;
-        }
-
-        /**
-         * Adds the {@code pod} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param pod the {@code pod} to add
-         * @return a reference to this Builder
-         */
-        public Builder addPod(PodSpec pod) {
-            this.pods.add(pod);
             return this;
         }
 
