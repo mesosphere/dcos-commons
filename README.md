@@ -18,7 +18,7 @@ The __DC/OS SDK__ is a collection of tools, libraries, and documentation for eas
 
 * __Automate Maintenance__: Stateful services need to be maintained. With the SDK, you can automate maintenance routines, such as backup and restore, to simplify operations.
 
-* __Available and Durable__: When infrastructure fails, you need to recover without data loss or performance impact. With the SDK, you define custom detection, safety, and performance semantics so services heal themselves.
+* __Available and Durable__: When servers fail, you need to reschedule the tasks without data loss or performance impact. With the SDK, you develop automated recovery strategies so services heal themselves.
 
 * __Production-Proven__: Building reliable services is hard. Uber and Bing platform teams use the SDK for mission-critical databases and message brokers.
 
