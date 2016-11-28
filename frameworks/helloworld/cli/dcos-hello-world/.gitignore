@@ -1,1 +1,2 @@
-dcos-hello-world*
+dcos-*
+*.whl
