@@ -42,7 +42,7 @@ From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-
 
 3. Enter your development environment.
   ```
-  cd dcos-docker/ && vagrant ssh
+  cd tools/vagrant/ && vagrant ssh
   ```
 
 4. Build your hello-world example project.

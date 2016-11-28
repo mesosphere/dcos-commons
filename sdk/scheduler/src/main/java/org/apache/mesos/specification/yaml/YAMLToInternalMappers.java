@@ -237,31 +237,49 @@ public class YAMLToInternalMappers {
             String role,
             String principal) {
 
-        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
+        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder();
 
         if (CollectionUtils.isNotEmpty(rawVolumes)) {
-            for (RawVolume rawVolume : rawVolumes) {
-                resourceSetBuilder
-                        .addVolume(rawVolume.getType(), Double.valueOf(rawVolume.getSize()), rawVolume.getPath());
-            }
+            resourceSetBuilder.volumes(rawVolumes.stream()
+                    .map(rawVolume -> from(rawVolume, role, principal))
+                    .collect(Collectors.toList()));
         } else {
             resourceSetBuilder.volumes(Collections.emptyList());
         }
 
+        Collection<ResourceSpecification> resources = new ArrayList<>();
+
         if (cpus != null) {
-            resourceSetBuilder.cpus(cpus);
+            resources.add(DefaultResourceSpecification.newBuilder()
+                    .name("cpus")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus))
+                            .build())
+                    .build());
         }
 
         if (memory != null) {
-            resourceSetBuilder.memory(Double.valueOf(memory));
+            resources.add(DefaultResourceSpecification.newBuilder()
+                    .name("mem")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(memory))
+                            .build())
+                    .build());
         }
 
         if (CollectionUtils.isNotEmpty(ports)) {
-            ports.stream().map(rawPort -> resourceSetBuilder.addPort(rawPort.getPort()));
+            ports.stream().map(rawPort -> resources.add(from(rawPort, role, principal)));
         }
 
         return resourceSetBuilder
                 .id(id)
+                .resources(resources)
                 .build();
     }
 

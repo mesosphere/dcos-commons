@@ -49,18 +49,18 @@ public class DefaultService implements Service {
     public DefaultService() {
     }
 
-    public DefaultService(String yamlString) throws Exception {
+    public DefaultService(String yamlSpecification) throws Exception {
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(yamlString);
+                .generateRawSpecFromYAML(yamlSpecification);
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
         init();
         this.plans = generatePlansFromRawSpec(rawServiceSpecification);
         register(serviceSpec, this.plans);
     }
 
-    public DefaultService(File yamlFile) throws Exception {
+    public DefaultService(File pathToYamlSpecification) throws Exception {
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(yamlFile);
+                .generateRawSpecFromYAML(pathToYamlSpecification);
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
         init();
         this.plans = generatePlansFromRawSpec(rawServiceSpecification);
