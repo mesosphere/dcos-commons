@@ -1,19 +1,18 @@
-## DC/OS SDK Quick Start
+## Quick Start (Java)
 
 ### Overview
-The goal of this quick-start guide is to introduce key concepts which we'll use for modeling real stateful services.
+The goal of this quick-start guide is to introduce key concepts which we'll use for modeling real stateful services using the Java interface.
 
-In this tutorial, we'll build a `hello-world` service. The `hello-world` service will be composed of a single instance of
-`helloworld` pod, running a single `server` task.
+In this tutorial, we'll build our `helloworld` service using the Java interface. The `helloworld` service will be composed of a single instance of `helloworld` pod, running a single `server` task.
 
 ### Step 1 - Initialize service project
 Get started by forking: https://github.com/mesosphere/dcos-commons, and cloning it on your workstation. Change your working directory to `dcos-commons` and then issue following command to create a new project:
 
 ```bash
-./new-service.sh frameworks/hello-world
+./new-service.sh frameworks/helloworld-java
 ```
 
-Above command will generate a new project at location `frameworks/hello-world/`:
+Above command will generate a new project at location `frameworks/helloworld-java/`:
 
 ```bash
 $ ls -l frameworks/hello-world/
@@ -28,87 +27,71 @@ drwxr-xr-x  4 mohit staff 136 Nov 22 14:49 src
 drwxr-xr-x  7 mohit staff 238 Nov 22 14:49 universe
 ```
 
-### Step 2 - Declarative YAML Service Specification
-Let's get started by declaratively modeling our service using a YAML specification file. Please create a file `service.yml` inside your project's `src/main/dist` directory:
-
-```yaml
-name: "hello-world"
-principal: "hello-world-principal"
-zookeeper: master.mesos:2181
-api-port: 8080
-pods:
-  helloworld:
-    count: 2
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
-        cpus: 0.5
-        memory: 32
-        volumes:
-          - path: "helloworld-container-volume"
-            type: ROOT
-            size: 64
-```
-
-In above specification file, we have:
-* Defined a service with name `hello-world`
-* Configured the service to use zookeeper at `master.mesos:2181` for storing framework state and configuration.
-* Configured the API port using `api-port: 8080`. By default, each service comes along with a default set of useful APIs which enables operationalization. 
-* Defined a pod specification for our `helloworld` pod using:
-
-```yaml
-pods:
-  helloworld:
-    ...
-```
-* Configured that we need atleast 2 instances of `helloworld` pod running at all times.
-* Defined a task specification for our `server` task using:
-
-```yaml
-tasks:
-  server:
-    goal: RUNNING
-    cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
-    cpus: 0.5
-    memory: 32
-```
-configuring it to use `0.5` CPUs and `32 MB` of memory.
-* And finally, configured a `64 MB` persistent volume for our server task where the task data can be persisted using:
-
-```yaml
-volumes:
-  - path: "helloworld-container-volume"
-    type: ROOT
-    size: 64
-```
-
 ### Step 2 - Declarative Java Service Specification
 
-Alternatively, you can define `hello-world` service specification in Java using:
+Let's define `helloworld-java` service specification in Java using:
 ```java
-ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()#
-  .name("hello-world")
-  .principal("helloworld-principal")
+ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
+  .name("helloworld-java")
+  .principal("helloworld-java-principal")
   .zookeeperConnection("master.mesos:2181")
   .apiPort(8080)
   .addPod(DefaultPodSpec.newBuilder()
-    .count(2)
+    .count(Integer.parseInt(System.getenv("COUNT")))
     .addTask(DefaultTaskSpec.newBuilder()
       .name("server")
       .goalState(TaskSpec.GoalState.RUNNING)
       .commandSpec(DefaultCommandSpec.newBuilder()
-        .value("echo 'Hello World!' >> helloworld-container-volume/output && sleep 10")
+        .value("echo 'Hello World!' >> helloworld-java-container-volume/output && sleep 10")
         .build())
       .resourceSet(DefaultResourceSet
-        .newBuilder("helloworld-role", "helloworld-principal")
-        .id("helloworld-resources")
-        .cpus(1.0)
+        .newBuilder("helloworld-java-role", "helloworld-java-principal")
+        .id("helloworld-java-resources")
+        .cpus(Double.parseDouble(System.getenv("SERVER_CPU")))
         .memory(32.0)
-        .addVolume("ROOT", 64.0, "helloworld-container-path")
+        .addVolume("ROOT", 64.0, "helloworld-java-container-volume")
         .build()).build()).build()).build();
 ```
-TODO(mohit): Introduce concept of resource sets.
+
+In above specification, we have:
+* Defined a service with name `helloworld-java` using `.name("helloworld-java")`
+* Configured the service to use zookeeper at `master.mesos:2181` for storing framework state and configuration using `.zookeeperConnection("master.mesos:2181")`
+* Configured the API port using `.apiPort(8080)`. By default, each service comes along with a default set of useful APIs which enables operationalization. 
+* Defined a pod specification for our `helloworld` pod using:
+
+```java
+.addPod(DefaultPodSpec.newBuilder()
+    .count(Integer.parseInt(System.getenv("COUNT")))
+    .addTask(DefaultTaskSpec.newBuilder()
+    ...
+```
+* Configured that we need atleast `COUNT` instances of `helloworld` pod running at all times.
+* Defined a task specification for our `server` task using:
+
+```java
+.addTask(DefaultTaskSpec.newBuilder()
+  .name("server")
+  .goalState(TaskSpec.GoalState.RUNNING)
+```
+configuring it's goal state to be `RUNNING` which is an indication for the Service scheduler to keep the task up all the time.
+* Defined a command specification for our `server` task, which specifies the command that needs to be executed when starting the `server` task:
+
+```java
+.commandSpec(DefaultCommandSpec.newBuilder()
+  .value("echo 'Hello World!' >> helloworld-java-container-volume/output && sleep 10")
+  .build())
+```
+* And finally, defined a resource set for our task, which contains the resources that are required for the `server` task to run:
+
+```java
+.resourceSet(DefaultResourceSet
+  .newBuilder("helloworld-java-role", "helloworld-java-principal")
+  .id("helloworld-java-resources")
+  .cpus(Double.parseDouble(System.getenv("SERVER_CPU")))
+  .memory(32.0)
+  .addVolume("ROOT", 64.0, "helloworld-java-container-volume")
+```
+The above resource set configures the cpu shares using `SERVER_CPU` environment variable, configures `32` MB of memory, and also configures the task with `64` MB of persistent volume mounted inside the task sandbox at path `helloworld-java-container-volume`.
 
 ### Step 3 - Writing executable class
 
