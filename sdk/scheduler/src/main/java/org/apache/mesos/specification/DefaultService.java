@@ -52,30 +52,36 @@ public class DefaultService implements Service {
     public DefaultService(String yamlString) throws Exception {
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
                 .generateRawSpecFromYAML(yamlString);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
-        register(serviceSpec, plans);
+        this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        init();
+        this.plans = generatePlansFromRawSpec(rawServiceSpecification);
+        register(serviceSpec, this.plans);
     }
 
     public DefaultService(File yamlFile) throws Exception {
         final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
                 .generateRawSpecFromYAML(yamlFile);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
-        register(serviceSpec, plans);
+        this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        init();
+        this.plans = generatePlansFromRawSpec(rawServiceSpecification);
+        register(serviceSpec, this.plans);
     }
 
-    public DefaultService(ServiceSpec serviceSpec) {
-        register(serviceSpec, Collections.emptyList());
+    public DefaultService(ServiceSpec serviceSpecification) {
+        this.serviceSpec = serviceSpecification;
+        init();
+        this.plans = Collections.emptyList();
+        register(serviceSpecification, this.plans);
     }
 
     public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
-        register(serviceSpec, plans);
+        this.serviceSpec = serviceSpec;
+        init();
+        this.plans = plans;
+        register(serviceSpec, this.plans);
     }
 
-    private void init(ServiceSpec serviceSpec, Collection<Plan> plans) throws Exception {
-        this.serviceSpec = serviceSpec;
-        this.plans = plans;
+    private void init() {
         this.apiPort = this.serviceSpec.getApiPort();
         this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
@@ -117,14 +123,6 @@ public class DefaultService implements Service {
      */
     @Override
     public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
-        try {
-            init(serviceSpecification, plans);
-        } catch (Exception e) {
-            LOGGER.error("Error registering serviceSpecification: " + serviceSpecification
-                    + " with plans: " + plans, e);
-            throw new IllegalStateException(e);
-        }
-
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
                 serviceSpecification,
                 plans,
