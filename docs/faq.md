@@ -39,7 +39,7 @@ Frequently Asked Questions
   
   When you want to maximize reach, [DC/OS Universe](https://github.com/mesosphere/Universe) is the recommended distribution channel. DC/OS Universe is an online repository of DC/OS packages available to all community and commercial users. Users install packages with a few clicks from Universe.
   
-  When you need to control distribution, we recommend bypassing DC/OS Universe and distributing your DC/OS package directly to your uses. Your users can add your DC/OS package to their DC/OS cluster, then install your package with a few clicks as usual.
+  When you need to control distribution, we recommend bypassing DC/OS Universe and distributing your DC/OS package directly to your users. Your users can add your DC/OS package to their DC/OS cluster, then install your package with a few clicks as usual.
 
 * __Can I use the DC/OS SDK to build a proprietary DC/OS package?__
 
