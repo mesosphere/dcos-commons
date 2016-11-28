@@ -9,13 +9,13 @@ In this tutorial, we'll build our `helloworld` service using the Java interface.
 Get started by forking: https://github.com/mesosphere/dcos-commons, and cloning it on your workstation. Change your working directory to `dcos-commons` and then issue following command to create a new project:
 
 ```bash
-./new-service.sh frameworks/helloworld-java
+./new-service.sh frameworks/helloworldjava
 ```
 
-Above command will generate a new project at location `frameworks/helloworld-java/`:
+Above command will generate a new project at location `frameworks/helloworldjava/`:
 
 ```bash
-$ ls -l frameworks/hello-world/
+$ ls -l frameworks/helloworldjava/
 total 12
 -rw-r--r--  1 mohit staff  68 Nov 22 14:49 README.md
 drwxr-xr-x 12 mohit staff 408 Nov 18 13:47 build
@@ -29,11 +29,11 @@ drwxr-xr-x  7 mohit staff 238 Nov 22 14:49 universe
 
 ### Step 2 - Declarative Java Service Specification
 
-Let's define `helloworld-java` service specification in Java using:
+Let's define `helloworldjava` service specification in Java using:
 ```java
 ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
-  .name("helloworld-java")
-  .principal("helloworld-java-principal")
+  .name("helloworldjava")
+  .principal("helloworldjava-principal")
   .zookeeperConnection("master.mesos:2181")
   .apiPort(8080)
   .addPod(DefaultPodSpec.newBuilder()
@@ -45,11 +45,11 @@ ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
         .value("echo 'Hello World!' >> helloworld-java-container-volume/output && sleep 10")
         .build())
       .resourceSet(DefaultResourceSet
-        .newBuilder("helloworld-java-role", "helloworld-java-principal")
+        .newBuilder("helloworldjava-role", "helloworld-java-principal")
         .id("helloworld-java-resources")
         .cpus(Double.parseDouble(System.getenv("SERVER_CPU")))
         .memory(32.0)
-        .addVolume("ROOT", 64.0, "helloworld-java-container-volume")
+        .addVolume("ROOT", 64.0, "helloworldjava-container-volume")
         .build()).build()).build()).build();
 ```
 
@@ -78,48 +78,24 @@ configuring it's goal state to be `RUNNING` which is an indication for the Servi
 
 ```java
 .commandSpec(DefaultCommandSpec.newBuilder()
-  .value("echo 'Hello World!' >> helloworld-java-container-volume/output && sleep 10")
+  .value("echo 'Hello World!' >> helloworldjava-container-volume/output && sleep 10")
   .build())
 ```
 * And finally, defined a resource set for our task, which contains the resources that are required for the `server` task to run:
 
 ```java
 .resourceSet(DefaultResourceSet
-  .newBuilder("helloworld-java-role", "helloworld-java-principal")
+  .newBuilder("helloworldjava-role", "helloworldjava-principal")
   .id("helloworld-java-resources")
   .cpus(Double.parseDouble(System.getenv("SERVER_CPU")))
   .memory(32.0)
-  .addVolume("ROOT", 64.0, "helloworld-java-container-volume")
+  .addVolume("ROOT", 64.0, "helloworldjava-container-volume")
 ```
 The above resource set configures the cpu shares using `SERVER_CPU` environment variable, configures `32` MB of memory, and also configures the task with `64` MB of persistent volume mounted inside the task sandbox at path `helloworld-java-container-volume`.
 
 ### Step 3 - Writing executable class
 
-To make the declarative service specification executable, we need to initialize an instance of `Service` with the specification. For example:
-
-#### YAML Specification
-
-We can create an instance of `DefaultService` with the path of `service.yml` as following example demonstrates:
-```java
-package com.mesosphere.sdk.helloworld.scheduler;
-
-import org.apache.mesos.specification.DefaultService;
-
-import java.io.File;
-
-/**
- * Main using YAML specification.
- */
-public class Main {
-    public static void main(String[] args) throws Exception {
-      File serviceSpecYamlPath = new File(args[0]);
-      Service service = new DefaultService(serviceSpecYamlPath);
-    }
-}
-```
-
-#### Java Specification
-Alternatively, we can create an instance of `DefaultService` with the POJO service specification as following example demonstrates:
+To make the above declarative service specification executable, we need to initialize an instance of `Service` with it. In order to do that let's modify the `Main` class located at: `src/main/java/com/mesosphere/sdk/helloworldjava/scheduler/Main.java`
 
 ```java
 package com.mesosphere.sdk.helloworld.scheduler;
@@ -133,31 +109,31 @@ import java.io.File;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-      ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()#
-        .name("hello-world")
-        .principal("helloworld-principal")
+      ServiceSpec helloWorldSpec = DefaultServiceSpec.newBuilder()
+        .name("helloworldjava")
+        .principal("helloworldjava-principal")
         .zookeeperConnection("master.mesos:2181")
         .apiPort(8080)
         .addPod(DefaultPodSpec.newBuilder()
-          .count(2)
+          .count(Integer.parseInt(System.getenv("COUNT")))
           .addTask(DefaultTaskSpec.newBuilder()
             .name("server")
             .goalState(TaskSpec.GoalState.RUNNING)
             .commandSpec(DefaultCommandSpec.newBuilder()
-              .value("echo 'Hello World!' >> helloworld-container-volume/output && sleep 10")
+              .value("echo 'Hello World!' >> helloworldjava-container-volume/output && sleep 10")
               .build())
             .resourceSet(DefaultResourceSet
-              .newBuilder("helloworld-role", "helloworld-principal")
-              .id("helloworld-resources")
-              .cpus(1.0)
+              .newBuilder("helloworldjava-role", "helloworldjava-principal")
+              .id("helloworldjava-resources")
+              .cpus(Double.parseDouble(System.getenv("SERVER_CPU")))
               .memory(32.0)
-              .addVolume("ROOT", 64.0, "helloworld-container-path")
+              .addVolume("ROOT", 64.0, "helloworldjava-container-volume")
               .build()).build()).build()).build();
       Service service = new DefaultService(helloWorldSpec);
     }
 }
 ```
 
-And, now we are ready to take the `helloworld` service for a spin.
+And, now we are ready to take the `helloworldjava` service for a spin.
 
 ### Step 4 - Build and Run
