@@ -93,9 +93,11 @@ In above specification file, we have:
 ```yaml
 pods:
   helloworld:
-    ...
+    count: {{COUNT}}
+    tasks:
+      ...
 ```
-* Configured that we need atleast `{{COUNT}}` instances of `helloworld` pod running at all times. Where `COUNT` is the environment variable that is injected into the scheduler process at launch via Marathon. It defaults to `1` for this example.
+* Configured that we need atleast `{{COUNT}}` instances of `helloworld` pod running at all times, where `COUNT` is the environment variable that is injected into the scheduler process at launch via Marathon. It defaults to `1` for this example.
 * Defined a task specification for our `server` task using:
 
 ```yaml
