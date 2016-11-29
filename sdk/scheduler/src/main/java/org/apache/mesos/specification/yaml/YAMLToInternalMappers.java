@@ -237,49 +237,31 @@ public class YAMLToInternalMappers {
             String role,
             String principal) {
 
-        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder();
+        DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
         if (CollectionUtils.isNotEmpty(rawVolumes)) {
-            resourceSetBuilder.volumes(rawVolumes.stream()
-                    .map(rawVolume -> from(rawVolume, role, principal))
-                    .collect(Collectors.toList()));
+            for (RawVolume rawVolume : rawVolumes) {
+                resourceSetBuilder
+                        .addVolume(rawVolume.getType(), Double.valueOf(rawVolume.getSize()), rawVolume.getPath());
+            }
         } else {
             resourceSetBuilder.volumes(Collections.emptyList());
         }
 
-        Collection<ResourceSpecification> resources = new ArrayList<>();
-
         if (cpus != null) {
-            resources.add(DefaultResourceSpecification.newBuilder()
-                    .name("cpus")
-                    .role(role)
-                    .principal(principal)
-                    .value(Protos.Value.newBuilder()
-                            .setType(Protos.Value.Type.SCALAR)
-                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus))
-                            .build())
-                    .build());
+            resourceSetBuilder.cpus(cpus);
         }
 
         if (memory != null) {
-            resources.add(DefaultResourceSpecification.newBuilder()
-                    .name("mem")
-                    .role(role)
-                    .principal(principal)
-                    .value(Protos.Value.newBuilder()
-                            .setType(Protos.Value.Type.SCALAR)
-                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(memory))
-                            .build())
-                    .build());
+            resourceSetBuilder.memory(Double.valueOf(memory));
         }
 
         if (CollectionUtils.isNotEmpty(ports)) {
-            resources.add(from(ports, role, principal));
+            ports.stream().map(rawPort -> resourceSetBuilder.addPorts(Arrays.asList(rawPort.getPort())));
         }
 
         return resourceSetBuilder
                 .id(id)
-                .resources(resources)
                 .build();
     }
 
@@ -298,24 +280,6 @@ public class YAMLToInternalMappers {
                 .vipPort(rawVip.getPort())
                 .vipName(rawVip.getPrefix())
                 .applicationPort(applicationPort)
-                .build();
-    }
-
-    public static DefaultResourceSpecification from(Collection<RawPort> rawPorts, String role, String principal) {
-        Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
-
-        for (RawPort p : rawPorts) {
-            rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p.getPort()).setEnd(p.getPort()));
-        }
-
-        return DefaultResourceSpecification.newBuilder()
-                .name("ports")
-                .role(role)
-                .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.RANGES)
-                        .setRanges(rangesBuilder)
-                        .build())
                 .build();
     }
 }

@@ -139,7 +139,7 @@ public class DefaultPodSpec implements PodSpec {
         private String user;
         private Integer count;
         private ContainerSpec container;
-        private List<TaskSpec> tasks;
+        private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
         private Collection<ResourceSet> resources;
 
@@ -199,6 +199,17 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder tasks(List<TaskSpec> tasks) {
             this.tasks = tasks;
+            return this;
+        }
+
+        /**
+         * Adds the {@code task} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param task the {@code task} to add
+         * @return a reference to this Builder
+         */
+        public Builder addTask(TaskSpec task) {
+            this.tasks.add(task);
             return this;
         }
 
