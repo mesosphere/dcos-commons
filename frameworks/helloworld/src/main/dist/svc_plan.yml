@@ -51,9 +51,9 @@ plans:
     strategy: serial
     phases:
       hello-deploy:
-        strategy: parallel
+        strategy: serial
         pod: hello
       world-deploy:
-        strategy: parallel
+        strategy: serial
         pod: world
 
