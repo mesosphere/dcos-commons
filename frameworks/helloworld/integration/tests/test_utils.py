@@ -12,7 +12,7 @@ PACKAGE_NAME = 'hello-world'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-DEFAULT_TASK_COUNT = 5 # 2 hello nodes, 3 world nodes
+DEFAULT_TASK_COUNT = 1
 
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'

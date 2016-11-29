@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.Protos;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Objects;
 
 /**
  * Default implementation of {@link ResourceSet}.
@@ -23,30 +26,42 @@ public class DefaultResourceSet implements ResourceSet {
     private Collection<ResourceSpecification> resources;
     @Valid
     private Collection<VolumeSpecification> volumes;
+    @NotNull
+    @Size(min = 1)
+    String role;
+    @NotNull
+    @Size(min = 1)
+    String principal;
 
     @JsonCreator
     public DefaultResourceSet(
             @JsonProperty("id") String id,
             @JsonProperty("resource_specifications") Collection<ResourceSpecification> resources,
-            @JsonProperty("volume_specifications") Collection<VolumeSpecification> volumes) {
+            @JsonProperty("volume_specifications") Collection<VolumeSpecification> volumes,
+            @JsonProperty("role") String role,
+            @JsonProperty("principal") String principal) {
         this.id = id;
         this.resources = resources;
         this.volumes = volumes;
+        this.role = role;
+        this.principal = principal;
     }
 
     private DefaultResourceSet(Builder builder) {
         this(
                 builder.id,
                 builder.resources,
-                builder.volumes);
+                builder.volumes,
+                builder.role,
+                builder.principal);
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public static Builder newBuilder(String role, String principal) {
+        return new Builder(role, principal);
     }
 
     public static Builder newBuilder(DefaultResourceSet copy) {
-        Builder builder = new Builder();
+        Builder builder = new Builder(copy.role, copy.principal);
         builder.resources = copy.resources;
         builder.volumes = copy.volumes;
         return builder;
@@ -55,6 +70,14 @@ public class DefaultResourceSet implements ResourceSet {
     @Override
     public String getId() {
         return id;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public String getPrincipal() {
+        return principal;
     }
 
     @Override
@@ -84,8 +107,14 @@ public class DefaultResourceSet implements ResourceSet {
         private String id;
         private Collection<ResourceSpecification> resources;
         private Collection<VolumeSpecification> volumes;
+        private String role;
+        private String principal;
 
-        private Builder() {
+        private Builder(String role, String principal) {
+            this.role = role;
+            this.principal = principal;
+            resources = new LinkedList<>();
+            volumes = new LinkedList<>();
         }
 
         /**
@@ -96,6 +125,80 @@ public class DefaultResourceSet implements ResourceSet {
          */
         public Builder id(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder cpus(Double cpus) {
+            DefaultResourceSpecification cpuResource = DefaultResourceSpecification.newBuilder()
+                    .name("cpus")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpus))
+                            .build())
+                    .build();
+            if (resources.stream()
+                    .anyMatch(resourceSpecification -> Objects.equals(resourceSpecification.getName(), "cpus"))) {
+                throw new IllegalStateException("Cannot configure multiple cpus resources in a single ResourceSet");
+            }
+
+            resources.add(cpuResource);
+            return this;
+        }
+
+        public Builder memory(Double memory) {
+            DefaultResourceSpecification memoryResource = DefaultResourceSpecification.newBuilder()
+                    .name("mem")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.SCALAR)
+                            .setScalar(Protos.Value.Scalar.newBuilder().setValue(memory))
+                            .build())
+                    .build();
+            if (resources.stream()
+                    .anyMatch(resourceSpecification -> Objects.equals(resourceSpecification.getName(), "mem"))) {
+                throw new IllegalStateException("Cannot configure multiple memory resources in a single ResourceSet");
+            }
+            resources.add(memoryResource);
+            return this;
+        }
+
+        public Builder addVolume(String volumeType,
+                                 Double size,
+                                 String containerPath) {
+            DefaultVolumeSpecification volume = new DefaultVolumeSpecification(
+                    size,
+                    VolumeSpecification.Type.valueOf(volumeType),
+                    containerPath,
+                    role,
+                    principal,
+                    "DISK_SIZE");
+            if (volumes.stream()
+                    .anyMatch(volumeSpecification ->
+                            Objects.equals(volumeSpecification.getContainerPath(), containerPath))) {
+                throw new IllegalStateException("Cannot configure multiple volumes with the same containerPath");
+            }
+            volumes.add(volume);
+            return this;
+        }
+
+        public Builder addPorts(Collection<Integer> ports) {
+            Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
+
+            for (Integer p : ports) {
+                rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p).setEnd(p));
+            }
+            resources.add(DefaultResourceSpecification.newBuilder()
+                    .name("ports")
+                    .role(role)
+                    .principal(principal)
+                    .value(Protos.Value.newBuilder()
+                            .setType(Protos.Value.Type.RANGES)
+                            .setRanges(rangesBuilder)
+                            .build())
+                    .build());
             return this;
         }
 
