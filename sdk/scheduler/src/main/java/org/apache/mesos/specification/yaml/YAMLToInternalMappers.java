@@ -257,7 +257,7 @@ public class YAMLToInternalMappers {
         }
 
         if (CollectionUtils.isNotEmpty(ports)) {
-            ports.stream().map(rawPort -> resourceSetBuilder.addPort(rawPort.getPort()));
+            ports.stream().map(rawPort -> resourceSetBuilder.addPorts(Arrays.asList(rawPort.getPort())));
         }
 
         return resourceSetBuilder
@@ -280,20 +280,6 @@ public class YAMLToInternalMappers {
                 .vipPort(rawVip.getPort())
                 .vipName(rawVip.getPrefix())
                 .applicationPort(applicationPort)
-                .build();
-    }
-
-    public static DefaultResourceSpecification from(RawPort rawPort, String role, String principal) {
-        return DefaultResourceSpecification.newBuilder()
-                .name("port")
-                .role(role)
-                .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder()
-                                .setValue(rawPort.getPort())
-                                .build())
-                        .build())
                 .build();
     }
 }

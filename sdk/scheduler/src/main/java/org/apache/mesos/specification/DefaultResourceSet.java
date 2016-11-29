@@ -184,16 +184,19 @@ public class DefaultResourceSet implements ResourceSet {
             return this;
         }
 
-        public Builder addPort(Integer port) {
+        public Builder addPorts(Collection<Integer> ports) {
+            Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
+
+            for (Integer p : ports) {
+                rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p).setEnd(p));
+            }
             resources.add(DefaultResourceSpecification.newBuilder()
-                    .name("port")
+                    .name("ports")
                     .role(role)
                     .principal(principal)
                     .value(Protos.Value.newBuilder()
-                            .setType(Protos.Value.Type.SCALAR)
-                            .setScalar(Protos.Value.Scalar.newBuilder()
-                                    .setValue(port)
-                                    .build())
+                            .setType(Protos.Value.Type.RANGES)
+                            .setRanges(rangesBuilder)
                             .build())
                     .build());
             return this;
