@@ -71,10 +71,14 @@
         "required":[
           "cpus",
 <<<<<<< HEAD
+<<<<<<< HEAD
           "count"
 =======
           "count",
 >>>>>>> de87806... fix json error
+=======
+          "count"
+>>>>>>> 03cf1f4... marathon config setting
         ]
       },
       "world":{
