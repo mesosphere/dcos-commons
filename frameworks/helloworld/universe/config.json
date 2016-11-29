@@ -62,7 +62,7 @@
             "default":0.2
           },
           "mem":{
-            "description":"World Pod mem requirements",
+            "description":"World Pod  mem requirements",
             "type":"integer",
             "default":512
           },
@@ -75,11 +75,6 @@
             "description":"Number of World Pods to run",
             "type":"integer",
             "default":2
-          },
-          "fails":{
-            "description":"Maximum number of consequtive failures in health check",
-            "type":"integer",
-            "default":3
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",

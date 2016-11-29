@@ -55,6 +55,7 @@ public class ServiceSpecTest {
         MockitoAnnotations.initMocks(this);
     }
 
+
     @Test
     public void test_yml_base() throws Exception{
         ServiceSpecDeserialization("svc.yml");
@@ -75,6 +76,7 @@ public class ServiceSpecTest {
         ServiceSpecValidation("svc.yml");
     }
 
+    @Test
     public void test_validate_yml_simple() throws Exception{
         ServiceSpecValidation("svc_simple.yml");
     }
