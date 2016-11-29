@@ -52,15 +52,9 @@
             "default":9999
           },
           "count":{
-<<<<<<< HEAD
             "description":"Number of Hello Pods to run",
             "type":"integer",
             "default":1
-=======
-            "description":"Number of pods to run",
-            "type":"integer",
-            "default":4
->>>>>>> de87806... fix json error
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
@@ -70,15 +64,7 @@
         },
         "required":[
           "cpus",
-<<<<<<< HEAD
-<<<<<<< HEAD
           "count"
-=======
-          "count",
->>>>>>> de87806... fix json error
-=======
-          "count"
->>>>>>> 03cf1f4... marathon config setting
         ]
       },
       "world":{
@@ -93,7 +79,7 @@
           "mem":{
             "description":"World Pod  mem requirements",
             "type":"integer",
-            "default":512
+            "default":51
           },
           "disk":{
             "description":"World Pod disk requirements (only respected with persistent volumes)",
