@@ -1,33 +1,19 @@
 name: "hello-world"
 principal: "hello-world-principal"
 zookeeper: master.mesos:2181
-api-port: 8080
+api-port: {{PORT0}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
     tasks:
       server:
         goal: RUNNING
-<<<<<<< HEAD
-<<<<<<< HEAD
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: {{HELLO_CPUS}}
-        memory: 256
-        volumes:
-          - path: "hello-container-path"
-            type: ROOT
-            size: 50
-=======
         cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
-=======
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
->>>>>>> 6c96b5f... there are three yml file
         cpus: {{HELLO_CPUS}}
-        memory: 256
+        memory: {{HELLO_MEM}}
         volumes:
           - path: "hello-container-path"
             type: ROOT
-<<<<<<< HEAD
             size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
@@ -46,7 +32,3 @@ pods:
             size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
->>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
-=======
-            size: 50
->>>>>>> 6c96b5f... there are three yml file

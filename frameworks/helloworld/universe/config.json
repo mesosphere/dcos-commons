@@ -1,36 +1,173 @@
 {
   "type":"object",
-  "properties":{
-    "service":{
-      "type":"object",
-      "description": "DC/OS service configuration properties",
-      "properties":{
-        "name" : {
-          "description":"The name of the service instance",
-          "type":"string",
-          "default":"hello-world"
-        }
-      }
-    },
-    "hello":{
-      "description":"Hello Pod configuration properties",
-      "type":"object",
-      "properties":{
-        "cpus":{
-          "description":"Hello task cpu requirements",
-          "type":"number",
-          "default":0.1
-        },
-        "count":{
-          "description":"Number of hello pods to run",
-          "type":"integer",
-          "default":1
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS service configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"hello-world"
+          },
+          "sleep" : {
+            "description":"The sleep duration in seconds before tasks exit.",
+            "type":"number",
+            "default":1000
+          }
         }
       },
-      "required":[
-        "cpus",
-        "count"
-      ]
+      "hello":{
+        "description":"Hello Pod configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"Hello Pod cpu requirements",
+            "type":"number",
+            "default":0.1
+          },
+          "mem":{
+            "description":"Hello Pod mem requirements",
+            "type":"integer",
+            "default":252
+          },
+          "disk":{
+            "description":"Hello Pod disk requirements (only respected with persistent volumes)",
+            "type":"integer",
+            "default":25
+          },
+          "count":{
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+            "description":"Number of Hello Pods to run",
+            "type":"integer",
+            "default":1
+=======
+            "description":"Number of nodes to run",
+            "type":"integer",
+            "default":3
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            "description":"Number of pods to run",
+            "type":"integer",
+            "default":4
+>>>>>>> de87806... fix json error
+=======
+            "description":"Number of Hello Pods to run",
+            "type":"integer",
+            "default":1
+>>>>>>> 6c96b5f... there are three yml file
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
+          }
+        },
+        "required":[
+          "cpus",
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+          "count"
+        ]
+      },
+      "world":{
+        "description":"Pod configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"World Pod Cpu requirements",
+=======
+          "mem",
+          "disk",
+=======
+>>>>>>> de87806... fix json error
+          "count",
+=======
+          "count"
+>>>>>>> 03cf1f4... marathon config setting
+        ]
+      },
+      "world":{
+        "description":"Pod configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+<<<<<<< HEAD
+            "description":"Node cpu requirements",
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            "description":"World Pod Cpu requirements",
+>>>>>>> de87806... fix json error
+            "type":"number",
+            "default":0.2
+          },
+          "mem":{
+<<<<<<< HEAD
+<<<<<<< HEAD
+            "description":"World Pod  mem requirements",
+=======
+            "description":"Node mem requirements",
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            "description":"World Pod  mem requirements",
+>>>>>>> de87806... fix json error
+            "type":"integer",
+            "default":512
+          },
+          "disk":{
+<<<<<<< HEAD
+<<<<<<< HEAD
+            "description":"World Pod disk requirements (only respected with persistent volumes)",
+=======
+            "description":"Broker disk requirements (only respected with persistent volumes)",
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            "description":"World Pod disk requirements (only respected with persistent volumes)",
+>>>>>>> de87806... fix json error
+            "type":"integer",
+            "default":50
+          },
+          "count":{
+<<<<<<< HEAD
+<<<<<<< HEAD
+            "description":"Number of World Pods to run",
+=======
+            "description":"Number of nodes to run",
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            "description":"Number of World Pods to run",
+>>>>>>> de87806... fix json error
+            "type":"integer",
+            "default":2
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
+          }
+        },
+        "required":[
+          "cpus",
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+          "count"
+=======
+          "mem",
+          "disk",
+          "count",
+          "fails"
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+          "count",
+>>>>>>> de87806... fix json error
+=======
+          "count"
+>>>>>>> 03cf1f4... marathon config setting
+        ]
+      }
     }
-  }
 }

@@ -1,0 +1,75 @@
+name: "hello-world"
+principal: "hello-world-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volumes:
+          - path: "hello-container-path"
+            type: ROOT
+            size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        ports:
+         - name: test
+<<<<<<< HEAD
+<<<<<<< HEAD
+           port: 9999
+=======
+           port: {{HELLO_PORT}}
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+           port: 9999
+>>>>>>> 6c96b5f... there are three yml file
+
+  world:
+    count: {{WORLD_COUNT}}
+    resource-sets:
+      world-resource:
+        cpus: {{WORLD_CPUS}}
+        memory: {{WORLD_MEM}}
+        volumes:
+          - path: "world-container-path"
+            type: ROOT
+            size: {{WORLD_DISK}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: world-resource
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-checks:
+          check-hello:
+            cmd: "stat hello-container-path/output"
+            interval: 5
+            grace-period: 30
+            delay: 0
+            timeout: 10
+<<<<<<< HEAD
+<<<<<<< HEAD
+            max-consecutive-failures: 3
+=======
+            max-consecutive-failures: {{WORLD_FAILS}}
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            max-consecutive-failures: 3
+>>>>>>> 6c96b5f... there are three yml file
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-deploy:
+        strategy: parallel
+        pod: hello
+      world-deploy:
+        strategy: parallel
+        pod: world
+
