@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/helloworld ./scheduler/svc.yml",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/helloworld ./scheduler/svc_plan.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -16,8 +16,15 @@
   "env": {
     "LD_LIBRARY_PATH": "/opt/mesosphere/lib",
     "FRAMEWORK_NAME": "{{service.name}}",
-    "COUNT": "{{hello.count}}",
-    "CPUS": "{{hello.cpus}}",
+    "HELLO_COUNT": "{{hello.count}}",
+    "HELLO_CPUS": "{{hello.cpus}}",
+    "HELLO_MEM": "{{hello.mem}}",
+    "HELLO_DISK": "{{hello.disk}}",
+    "WORLD_COUNT": "{{world.count}}",
+    "WORLD_CPUS": "{{world.cpus}}",
+    "WORLD_MEM": "{{world.mem}}",
+    "WORLD_DISK": "{{world.disk}}",
+    "SLEEP_DURATION": "{{service.sleep}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}"
   },
   "uris": [
