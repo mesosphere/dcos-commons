@@ -15,7 +15,6 @@ public class Main {
         if (args.length > 0) {
             new DefaultService(new File(args[0]));
         } else {
-
             new DefaultService(DefaultServiceSpec.newBuilder()
                     .name("hello-world")
                     .principal("hello-world-principal")

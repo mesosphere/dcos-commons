@@ -37,9 +37,9 @@
             "default":25
           },
           "count":{
-            "description":"Number of pods to run",
+            "description":"Number of Hello Pods to run",
             "type":"integer",
-            "default":2
+            "default":1
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
