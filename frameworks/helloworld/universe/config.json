@@ -18,26 +18,81 @@
         }
       },
       "hello":{
-        "description":"Node configuration properties",
+        "description":"Hello Pod configuration properties",
         "type":"object",
         "properties":{
           "cpus":{
-            "description":"Node cpu requirements",
+            "description":"Hello Pod cpu requirements",
             "type":"number",
             "default":0.1
           },
           "mem":{
-            "description":"Node mem requirements",
+            "description":"Hello Pod mem requirements",
             "type":"integer",
             "default":256
           },
           "disk":{
-            "description":"Broker disk requirements (only respected with persistent volumes)",
+            "description":"Hello Pod disk requirements (only respected with persistent volumes)",
             "type":"integer",
             "default":25
           },
+          "port":{
+            "description":"Port number",
+            "type":"integer",
+            "default":4444
+          },
+          "vip_name":{
+            "description":"Virtual IP name",
+            "type":"string",
+            "default":"helloworld"
+          },
+          "vip_port":{
+            "description":"Virtual IP port",
+            "type":"integer",
+            "default":9999
+          },
           "count":{
-            "description":"Number of nodes to run",
+            "description":"Number of pods to run",
+            "type":"integer",
+            "default":4
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
+          }
+        },
+        "required":[
+          "cpus",
+          "count",
+        ]
+      },
+      "world":{
+        "description":"Pod configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"World Pod Cpu requirements",
+            "type":"number",
+            "default":0.2
+          },
+          "mem":{
+            "description":"World Pod  mem requirements",
+            "type":"integer",
+            "default":512
+          },
+          "disk":{
+            "description":"World Pod disk requirements (only respected with persistent volumes)",
+            "type":"integer",
+            "default":50
+          },
+          "count":{
+            "description":"Number of World Pods to run",
+            "type":"integer",
+            "default":4
+          },
+          "fails":{
+            "description":"Maximum number of consequtive failures in health check",
             "type":"integer",
             "default":3
           },
@@ -49,48 +104,7 @@
         },
         "required":[
           "cpus",
-          "mem",
-          "disk",
           "count",
-          "port"
-        ]
-      },
-      "world":{
-        "description":"Node configuration properties",
-        "type":"object",
-        "properties":{
-          "cpus":{
-            "description":"Node cpu requirements",
-            "type":"number",
-            "default":0.2
-          },
-          "mem":{
-            "description":"Node mem requirements",
-            "type":"integer",
-            "default":512
-          },
-          "disk":{
-            "description":"Broker disk requirements (only respected with persistent volumes)",
-            "type":"integer",
-            "default":50
-          },
-          "count":{
-            "description":"Number of nodes to run",
-            "type":"integer",
-            "default":2
-          },
-          "constraint":{
-            "description":"Marathon-style constraint for metadata nodes",
-            "type":"string",
-            "default":""
-          }
-        },
-        "required":[
-          "cpus",
-          "mem",
-          "disk",
-          "count",
-          "fails"
         ]
       }
     }
