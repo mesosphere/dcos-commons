@@ -22,6 +22,7 @@ ext {
 
 dependencies {
     compile project(":scheduler")
+    compile project(":executor")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     compile "org.apache.mesos:mesos:${mesosVer}"
     testCompile "junit:junit:${junitVer}"
@@ -29,9 +30,11 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVer}"
 }
 
+buildDir = new File(rootProject.projectDir, "build/")
+
 distributions {
     main {
-        baseName = 'scheduler'
+        baseName = 'hello-world-scheduler'
         version = ''
     }
 }

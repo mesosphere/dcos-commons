@@ -2,4 +2,7 @@
 set -e
 
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-${FRAMEWORK_DIR}/../../tools/build_framework.sh kafka $FRAMEWORK_DIR $1
+ROOT_DIR=$FRAMEWORK_DIR/../..
+BUILD_DIR=$ROOT_DIR/build/distributions
+PUBLISH_STEP=${1-none}
+${ROOT_DIR}/tools/build_framework.sh $PUBLISH_STEP kafka $FRAMEWORK_DIR $BUILD_DIR/kafka-scheduler.zip

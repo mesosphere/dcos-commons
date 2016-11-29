@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/kafka ./scheduler/svc.yml",
+  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./kafka-scheduler/bin/kafka ./kafka-scheduler/svc.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -21,7 +21,7 @@
     "BROKER_MEM": "{{broker.mem}}",
     "BROKER_DISK": "{{broker.disk}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
-    "CONFIG_TEMPLATE_PATH": "scheduler"
+    "CONFIG_TEMPLATE_PATH": "kafka-scheduler"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
