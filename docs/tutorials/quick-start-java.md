@@ -125,10 +125,10 @@ The above resource set configures the cpu shares using `SERVER_CPU` environment 
 
 ### Step 4 - Writing executable class
 
-To make the above declarative service specification executable, we need to initialize an instance of `Service` with it. In order to do that let's modify the `Main` class located at: `src/main/java/com/mesosphere/sdk/helloworldjava/scheduler/Main.java`
+To make the above declarative service specification executable, we need to initialize an instance of `Service` with it. In order to do that let's modify the `Main` class located at: `src/main/java/com/mesosphere/sdk/helloworld/scheduler/Main.java`
 
 ```java
-package com.mesosphere.sdk.helloworldjava.scheduler;
+package com.mesosphere.sdk.helloworld.scheduler;
 
 import org.apache.mesos.specification.DefaultService;
 
