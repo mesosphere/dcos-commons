@@ -56,6 +56,13 @@ public class ServiceSpecTest {
     }
 
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 7649cb6... 	name is hello-world-scheduler
+=======
+>>>>>>> f042c0f... fix json error
     @Test
     public void test_yml_base() throws Exception{
         ServiceSpecDeserialization("svc.yml");
@@ -71,12 +78,21 @@ public class ServiceSpecTest {
         ServiceSpecDeserialization("svc_plan.yml");
     }
 
+<<<<<<< HEAD
     @Test
     public void test_validate_yml_base() throws Exception{
         ServiceSpecValidation("svc.yml");
     }
 
     @Test
+=======
+    @Test
+    public void test_validate_yml_base() throws Exception{
+        ServiceSpecValidation("svc.yml");
+    }
+
+    @Test
+>>>>>>> 7649cb6... 	name is hello-world-scheduler
     public void test_validate_yml_simple() throws Exception{
         ServiceSpecValidation("svc_simple.yml");
     }
@@ -86,6 +102,13 @@ public class ServiceSpecTest {
         ServiceSpecValidation("svc_plan.yml");
     }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7649cb6... 	name is hello-world-scheduler
+=======
+>>>>>>> f9366a8... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
     private void ServiceSpecDeserialization(String fileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());

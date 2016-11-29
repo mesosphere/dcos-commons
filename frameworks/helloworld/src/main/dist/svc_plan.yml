@@ -19,7 +19,28 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         ports:
          - name: test
+<<<<<<< HEAD
            port: 9999
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9820c18... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+           port: 9999
+=======
+           port: {{HELLO_PORT}}
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+<<<<<<< HEAD
+=======
+           port: 9999
+>>>>>>> 6c96b5f... there are three yml file
+<<<<<<< HEAD
+>>>>>>> 7649cb6... 	name is hello-world-scheduler
+=======
+=======
+>>>>>>> 9820c18... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+>>>>>>> f9366a8... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
 
   world:
     count: {{WORLD_COUNT}}
@@ -45,7 +66,29 @@ pods:
             grace-period: 30
             delay: 0
             timeout: 10
+<<<<<<< HEAD
             max-consecutive-failures: 3
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+            max-consecutive-failures: 3
+=======
+            max-consecutive-failures: {{WORLD_FAILS}}
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+=======
+            max-consecutive-failures: 3
+>>>>>>> 6c96b5f... there are three yml file
+<<<<<<< HEAD
+>>>>>>> 7649cb6... 	name is hello-world-scheduler
+=======
+=======
+            max-consecutive-failures: 3
+=======
+            max-consecutive-failures: {{WORLD_FAILS}}
+>>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+>>>>>>> 9820c18... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
+>>>>>>> f9366a8... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
 plans:
   deploy:
     strategy: serial
