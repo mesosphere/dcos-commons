@@ -64,7 +64,7 @@
         },
         "required":[
           "cpus",
-          "count",
+          "count"
         ]
       },
       "world":{
@@ -104,7 +104,7 @@
         },
         "required":[
           "cpus",
-          "count",
+          "count"
         ]
       }
     }
