@@ -36,10 +36,31 @@
             "type":"integer",
             "default":25
           },
+          "port":{
+            "description":"Port number",
+            "type":"integer",
+            "default":4444
+          },
+          "vip_name":{
+            "description":"Virtual IP name",
+            "type":"string",
+            "default":"helloworld"
+          },
+          "vip_port":{
+            "description":"Virtual IP port",
+            "type":"integer",
+            "default":9999
+          },
           "count":{
+<<<<<<< HEAD
             "description":"Number of Hello Pods to run",
             "type":"integer",
             "default":1
+=======
+            "description":"Number of pods to run",
+            "type":"integer",
+            "default":4
+>>>>>>> de87806... fix json error
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
@@ -49,7 +70,11 @@
         },
         "required":[
           "cpus",
+<<<<<<< HEAD
           "count"
+=======
+          "count",
+>>>>>>> de87806... fix json error
         ]
       },
       "world":{
@@ -74,7 +99,12 @@
           "count":{
             "description":"Number of World Pods to run",
             "type":"integer",
-            "default":2
+            "default":4
+          },
+          "fails":{
+            "description":"Maximum number of consequtive failures in health check",
+            "type":"integer",
+            "default":3
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
