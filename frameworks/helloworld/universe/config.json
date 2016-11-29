@@ -37,6 +37,7 @@
             "default":25
           },
 <<<<<<< HEAD
+<<<<<<< HEAD
           "count":{
 <<<<<<< HEAD
             "description":"Number of Hello Pods to run",
@@ -68,6 +69,8 @@
             "type":"integer",
             "default":9999
           },
+=======
+>>>>>>> 31cbbf1... there are three yml file
           "count":{
             "description":"Number of Hello Pods to run",
             "type":"integer",
@@ -154,7 +157,7 @@
             "description":"World Pod mem requirements",
 >>>>>>> f042c0f... fix json error
             "type":"integer",
-            "default":51
+            "default":512
           },
           "disk":{
 <<<<<<< HEAD
@@ -207,12 +210,21 @@
             "description":"Number of World Pods to run",
             "type":"integer",
             "default":2
+<<<<<<< HEAD
 >>>>>>> 7649cb6... 	name is hello-world-scheduler
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 31cbbf1... there are three yml file
           },
           "fails":{
             "description":"Maximum number of consequtive failures in health check",
             "type":"integer",
             "default":3
+=======
+>>>>>>> ba7672e... there are three yml file
+=======
+>>>>>>> 60363d1... there are three yml file
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
