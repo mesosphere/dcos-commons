@@ -8,13 +8,14 @@ import java.io.File;
  * Hello World Service.
  */
 public class Main {
-    private static final Integer COUNT = Integer.valueOf(System.getenv("COUNT"));
-    private static final Double CPUS = Double.valueOf(System.getenv("CPUS"));
+    private static final Integer COUNT = Integer.valueOf(System.getenv("HELLO_COUNT"));
+    private static final Double CPUS = Double.valueOf(System.getenv("HELLO_CPUS"));
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             new DefaultService(new File(args[0]));
         } else {
+
             new DefaultService(DefaultServiceSpec.newBuilder()
                     .name("hello-world")
                     .principal("hello-world-principal")
