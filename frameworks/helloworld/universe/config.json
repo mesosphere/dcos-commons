@@ -64,7 +64,7 @@
           "mem":{
             "description":"World Pod  mem requirements",
             "type":"integer",
-            "default":512
+            "default":51
           },
           "disk":{
             "description":"World Pod disk requirements (only respected with persistent volumes)",
