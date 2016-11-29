@@ -5,17 +5,47 @@ The goal of this quick-start guide is to introduce key concepts which we'll use 
 
 In this tutorial, we'll build our `helloworld` service using the Java interface. The `helloworld` service will be composed of a single instance of `helloworld` pod, running a single `server` task.
 
-### Step 1 - Initialize service project
+### Step 0 - Clone the project
+Get started by forking: https://github.com/mesosphere/dcos-commons, and cloning it on your workstation. Change your working directory to `dcos-commons`.
+
+```bash
+$ cd dcos-commons
+(dcos-commons)$ 
+```
+
+### Step 1 - Provision Dev DC/OS Cluster
+Let's provision a DC/OS cluster for the purposes of development. You can install one locally on your developer workstation using the bundled Vagrant setup which can be initialized as follows:
+
+```bash
+(dcos-commons)$ ./get-dcos-docker.sh
+```
+
+Visit the DC/OS cluster [dashboard](http://172.17.0.2/) to verify your development environment is running.
+
+Next, ssh into the vagrant box:
+
+```bash
+(dcos-commons)$ cd tools/vagrant/ && vagrant ssh
+```
+
+And, finally change the directory to `/dcos-commons`, this is where the source code from your host is mounted inside the Vagrant box:
+
+```bash
+$ cd /dcos-commons/
+(dcos-commons)$ 
+```
+
+### Step 2 - Initialize service project
 Get started by forking: https://github.com/mesosphere/dcos-commons, and cloning it on your workstation. Change your working directory to `dcos-commons` and then issue following command to create a new project:
 
 ```bash
-./new-service.sh frameworks/helloworldjava
+(dcos-commons)$ ./new-service.sh frameworks/helloworldjava
 ```
 
 Above command will generate a new project at location `frameworks/helloworldjava/`:
 
 ```bash
-$ ls -l frameworks/helloworldjava/
+(dcos-commons)$ ls -l frameworks/helloworldjava/
 total 12
 -rw-r--r--  1 mohit staff  68 Nov 22 14:49 README.md
 drwxr-xr-x 12 mohit staff 408 Nov 18 13:47 build
@@ -27,7 +57,7 @@ drwxr-xr-x  4 mohit staff 136 Nov 22 14:49 src
 drwxr-xr-x  7 mohit staff 238 Nov 22 14:49 universe
 ```
 
-### Step 2 - Declarative Java Service Specification
+### Step 3 - Declarative Java Service Specification
 
 Let's define `helloworldjava` service specification in Java using:
 ```java
@@ -93,12 +123,12 @@ configuring it's goal state to be `RUNNING` which is an indication for the Servi
 ```
 The above resource set configures the cpu shares using `SERVER_CPU` environment variable, configures `32` MB of memory, and also configures the task with `64` MB of persistent volume mounted inside the task sandbox at path `helloworld-java-container-volume`.
 
-### Step 3 - Writing executable class
+### Step 4 - Writing executable class
 
 To make the above declarative service specification executable, we need to initialize an instance of `Service` with it. In order to do that let's modify the `Main` class located at: `src/main/java/com/mesosphere/sdk/helloworldjava/scheduler/Main.java`
 
 ```java
-package com.mesosphere.sdk.helloworld.scheduler;
+package com.mesosphere.sdk.helloworldjava.scheduler;
 
 import org.apache.mesos.specification.DefaultService;
 
@@ -136,4 +166,20 @@ public class Main {
 
 And, now we are ready to take the `helloworldjava` service for a spin.
 
-### Step 4 - Build and Run
+### Step 5 - Build
+Let's build our project by running `./build.sh local` from `/dcos-commons/frameworks/helloworldjava` directory:
+
+```bash
+(dcos-commons/frameworks/helloworldjava)$ ./build.sh local
+```
+
+Running above command will generate a deployable package and make it available for deployment inside the locally running DC/OS cluster.
+
+### Step 6 - Run
+Finally, let's install the `helloworldjava` project using:
+
+```bash
+dcos package install helloworldjava
+```
+
+Visit the [dashboard](http://172.17.0.2/#/services/%2Fhelloworldjava/) to see your `helloworldjava` service running.
