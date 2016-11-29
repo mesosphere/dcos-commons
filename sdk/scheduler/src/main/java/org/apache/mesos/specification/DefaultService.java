@@ -50,17 +50,14 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(String yamlSpecification) throws Exception {
-        final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(yamlSpecification);
-        this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        init();
-        this.plans = generatePlansFromRawSpec(rawServiceSpecification);
-        register(serviceSpec, this.plans);
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
     }
 
     public DefaultService(File pathToYamlSpecification) throws Exception {
-        final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(pathToYamlSpecification);
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
+    }
+
+    public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
         init();
         this.plans = generatePlansFromRawSpec(rawServiceSpecification);
@@ -68,10 +65,7 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(ServiceSpec serviceSpecification) {
-        this.serviceSpec = serviceSpecification;
-        init();
-        this.plans = Collections.emptyList();
-        register(serviceSpecification, this.plans);
+        this(serviceSpecification, Collections.emptyList());
     }
 
     public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
