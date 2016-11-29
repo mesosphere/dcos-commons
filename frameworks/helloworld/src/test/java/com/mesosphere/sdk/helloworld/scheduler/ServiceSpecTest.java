@@ -8,6 +8,7 @@ import org.apache.mesos.config.ConfigurationUpdater;
 import org.apache.mesos.offer.OfferRequirementProvider;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.specification.DefaultServiceSpec;
+import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
@@ -97,7 +98,7 @@ public class ServiceSpecTest {
         StateStore stateStore = DefaultScheduler.createStateStore(
                 serviceSpec,
                 testingServer.getConnectString());
-        ConfigStore configStore = DefaultScheduler.createConfigStore(
+        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
                 serviceSpec,
                 testingServer.getConnectString(),
                 Collections.emptyList());
