@@ -36,21 +36,6 @@
             "type":"integer",
             "default":25
           },
-          "port":{
-            "description":"Port number",
-            "type":"integer",
-            "default":9999
-          },
-          "vip_name":{
-            "description":"Virtual IP name",
-            "type":"string",
-            "default":"helloworld"
-          },
-          "vip_port":{
-            "description":"Virtual IP port",
-            "type":"integer",
-            "default":9999
-          },
           "count":{
             "description":"Number of pods to run",
             "type":"integer",
@@ -90,11 +75,6 @@
             "description":"Number of World Pods to run",
             "type":"integer",
             "default":2
-          },
-          "fails":{
-            "description":"Maximum number of consequtive failures in health check",
-            "type":"integer",
-            "default":3
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
