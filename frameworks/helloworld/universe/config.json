@@ -39,7 +39,7 @@
           "port":{
             "description":"Port number",
             "type":"integer",
-            "default":4444
+            "default":9999
           },
           "vip_name":{
             "description":"Virtual IP name",
@@ -54,7 +54,7 @@
           "count":{
             "description":"Number of pods to run",
             "type":"integer",
-            "default":4
+            "default":2
           },
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
@@ -89,7 +89,7 @@
           "count":{
             "description":"Number of World Pods to run",
             "type":"integer",
-            "default":4
+            "default":2
           },
           "fails":{
             "description":"Maximum number of consequtive failures in health check",
