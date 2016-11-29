@@ -1,36 +1,97 @@
 {
   "type":"object",
-  "properties":{
-    "service":{
-      "type":"object",
-      "description": "DC/OS service configuration properties",
-      "properties":{
-        "name" : {
-          "description":"The name of the service instance",
-          "type":"string",
-          "default":"hello-world"
-        }
-      }
-    },
-    "hello":{
-      "description":"Hello Pod configuration properties",
-      "type":"object",
-      "properties":{
-        "cpus":{
-          "description":"Hello task cpu requirements",
-          "type":"number",
-          "default":0.1
-        },
-        "count":{
-          "description":"Number of hello pods to run",
-          "type":"integer",
-          "default":1
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS service configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"hello-world"
+          },
+          "sleep" : {
+            "description":"The sleep duration in seconds before tasks exit.",
+            "type":"number",
+            "default":1000
+          }
         }
       },
-      "required":[
-        "cpus",
-        "count"
-      ]
+      "hello":{
+        "description":"Node configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"Node cpu requirements",
+            "type":"number",
+            "default":0.1
+          },
+          "mem":{
+            "description":"Node mem requirements",
+            "type":"integer",
+            "default":256
+          },
+          "disk":{
+            "description":"Broker disk requirements (only respected with persistent volumes)",
+            "type":"integer",
+            "default":25
+          },
+          "count":{
+            "description":"Number of nodes to run",
+            "type":"integer",
+            "default":3
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
+          }
+        },
+        "required":[
+          "cpus",
+          "mem",
+          "disk",
+          "count",
+          "port"
+        ]
+      },
+      "world":{
+        "description":"Node configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"Node cpu requirements",
+            "type":"number",
+            "default":0.2
+          },
+          "mem":{
+            "description":"Node mem requirements",
+            "type":"integer",
+            "default":512
+          },
+          "disk":{
+            "description":"Broker disk requirements (only respected with persistent volumes)",
+            "type":"integer",
+            "default":50
+          },
+          "count":{
+            "description":"Number of nodes to run",
+            "type":"integer",
+            "default":2
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for metadata nodes",
+            "type":"string",
+            "default":""
+          }
+        },
+        "required":[
+          "cpus",
+          "mem",
+          "disk",
+          "count",
+          "fails"
+        ]
+      }
     }
-  }
 }
