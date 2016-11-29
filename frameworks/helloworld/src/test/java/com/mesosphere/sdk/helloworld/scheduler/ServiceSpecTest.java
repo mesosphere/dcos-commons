@@ -56,7 +56,6 @@ public class ServiceSpecTest {
     }
 
 
-<<<<<<< HEAD
     @Test
     public void test_yml_base() throws Exception{
         ServiceSpecDeserialization("svc.yml");
@@ -73,40 +72,8 @@ public class ServiceSpecTest {
     }
 
     @Test
-<<<<<<< HEAD
     public void test_validate_yml_base() throws Exception{
         ServiceSpecValidation("svc.yml");
-=======
-    public void test_yml_simple() throws Exception{
-=======
-    @Test
-    public void test_yml_base() throws Exception{
->>>>>>> 6c96b5f... there are three yml file
-        ServiceSpecDeserialization("svc.yml");
-    }
-
-    @Test
-    public void test_yml_simple() throws Exception{
-        ServiceSpecDeserialization("svc_simple.yml");
-    }
-
-    @Test
-    public void test_yml_withPlan() throws Exception{
-        ServiceSpecDeserialization("svc_plan.yml");
->>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
-    }
-
-    @Test
-<<<<<<< HEAD
-    public void test_validate_yml_simple() throws Exception{
-<<<<<<< HEAD
-        ServiceSpecValidation("svc_simple.yml");
-=======
-=======
-    public void test_validate_yml_base() throws Exception{
->>>>>>> 6c96b5f... there are three yml file
-        ServiceSpecValidation("svc.yml");
->>>>>>> d37b4bc... a more complicated helloworld example with plan, serial/parallel execution, port, disk, resourceSet, etc
     }
 
     @Test
@@ -118,7 +85,6 @@ public class ServiceSpecTest {
     public void test_validate_yml_withPlan() throws Exception{
         ServiceSpecValidation("svc_plan.yml");
     }
-
 
     private void ServiceSpecDeserialization(String fileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
