@@ -274,7 +274,7 @@ public class YAMLToInternalMappers {
         }
 
         if (CollectionUtils.isNotEmpty(ports)) {
-            ports.stream().map(rawPort -> resources.add(from(rawPort, role, principal)));
+            resources.add(from(ports, role, principal));
         }
 
         return resourceSetBuilder
@@ -301,16 +301,20 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    public static DefaultResourceSpecification from(RawPort rawPort, String role, String principal) {
+    public static DefaultResourceSpecification from(Collection<RawPort> rawPorts, String role, String principal) {
+        Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
+
+        for (RawPort p : rawPorts) {
+            rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p.getPort()).setEnd(p.getPort()));
+        }
+
         return DefaultResourceSpecification.newBuilder()
-                .name("port")
+                .name("ports")
                 .role(role)
                 .principal(principal)
                 .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder()
-                                .setValue(rawPort.getPort())
-                                .build())
+                        .setType(Protos.Value.Type.RANGES)
+                        .setRanges(rangesBuilder)
                         .build())
                 .build();
     }
