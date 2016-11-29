@@ -34,11 +34,14 @@ A Resource Set is a collection of resources, like cpus, memory, ports, volumes, 
 ## S
 
 ### Strategy
+Strategy determines whether children of a given Plan (i.e. Phase) or Phase (i.e. Step) are executed in serial or parallel fashion.
 
 ## T
 
 ### Task
+A Task is a unit of execution of work.
 
 ## V
 
 ### Volume
+A Volume represents reserved and persistent storage that's available to a framework across task executions.
