@@ -130,9 +130,7 @@ To make the above declarative service specification executable, we need to initi
 ```java
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import org.apache.mesos.specification.DefaultService;
-
-import java.io.File;
+import org.apache.mesos.specification.*;
 
 /**
  * Main using Java specification.
