@@ -1,5 +1,6 @@
 package org.apache.mesos.specification;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -41,7 +42,7 @@ public class DefaultService implements Service {
 
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
-    private List<Plan> plans;
+    private Collection<Plan> plans;
     private ConfigStore<ServiceSpec> configTargetStore;
     private OfferRequirementProvider offerRequirementProvider;
 
@@ -49,21 +50,34 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(String yamlSpecification) throws Exception {
-        final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(yamlSpecification);
-        init(rawServiceSpecification);
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
     }
 
     public DefaultService(File pathToYamlSpecification) throws Exception {
-        final RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory
-                .generateRawSpecFromYAML(pathToYamlSpecification);
-        init(rawServiceSpecification);
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
     }
 
-    private void init(RawServiceSpecification rawServiceSpecification) throws Exception {
+    public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        this.apiPort = serviceSpec.getApiPort();
-        this.zkConnectionString = serviceSpec.getZookeeperConnection();
+        init();
+        this.plans = generatePlansFromRawSpec(rawServiceSpecification);
+        register(serviceSpec, this.plans);
+    }
+
+    public DefaultService(ServiceSpec serviceSpecification) {
+        this(serviceSpecification, Collections.emptyList());
+    }
+
+    public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
+        this.serviceSpec = serviceSpec;
+        init();
+        this.plans = plans;
+        register(serviceSpec, this.plans);
+    }
+
+    private void init() {
+        this.apiPort = this.serviceSpec.getApiPort();
+        this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
 
         try {
@@ -78,19 +92,22 @@ public class DefaultService implements Service {
 
         offerRequirementProvider = DefaultScheduler
                 .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+    }
 
+    @VisibleForTesting
+    protected Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
+            throws Exception {
         DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore,
                 offerRequirementProvider);
-        this.plans = new LinkedList<>();
+        List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
             List<RawPlan> rawPlans = YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification);
             List<Plan> realPlans = rawPlans.stream()
                     .map(rawPlan -> planGenerator.generate(rawPlan, serviceSpec.getPods()))
                     .collect(Collectors.toList());
-            this.plans.addAll(realPlans);
+            plans.addAll(realPlans);
         }
-
-        register(serviceSpec, plans);
+        return plans;
     }
 
     /**
@@ -99,8 +116,6 @@ public class DefaultService implements Service {
      */
     @Override
     public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
-        this.serviceSpec = serviceSpecification;
-
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
                 serviceSpecification,
                 plans,
@@ -117,7 +132,7 @@ public class DefaultService implements Service {
     }
 
 
-    public List<Plan> getPlans() {
+    public Collection<Plan> getPlans() {
         return plans;
     }
 
