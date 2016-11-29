@@ -154,7 +154,7 @@
             "description":"World Pod mem requirements",
 >>>>>>> f042c0f... fix json error
             "type":"integer",
-            "default":512
+            "default":51
           },
           "disk":{
 <<<<<<< HEAD
