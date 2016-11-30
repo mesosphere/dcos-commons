@@ -19,7 +19,7 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         ports:
          - name: test
-           port: {{HELLO_PORT}}
+           port: 9999
 
   world:
     count: {{WORLD_COUNT}}
@@ -45,7 +45,7 @@ pods:
             grace-period: 30
             delay: 0
             timeout: 10
-            max-consecutive-failures: {{WORLD_FAILS}}
+            max-consecutive-failures: 3
 plans:
   deploy:
     strategy: serial
