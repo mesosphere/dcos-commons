@@ -42,11 +42,6 @@ Strategy determines whether children of a given Plan (i.e., Phase) or Phase (i.e
 ### Task
 A Task is a unit of execution of work.
 
-## U
-
-### Unit of Deployment
-A set of resources shared between one or more tasks that are deployed together on a single host.
-
 ## V
 
 ### Volume
