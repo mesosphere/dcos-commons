@@ -609,7 +609,7 @@ same node, using the same persistent volume as the previous task.
 
 There are two cases where you must manually restart tasks:
 
-1) If an agent permanently fails or is ailing, the scheduler will
+1) If an agent permanently fails or is failing, the scheduler will
 never receive an
 offer with the expected persistent volume, and will thus never
 automatically restart the task.  We must restart it manually on a
