@@ -3,38 +3,39 @@
 ## D
 
 ### Deploy Plan
-A Deploy Plan defines explicit ordering of work that needs to be performed in order to successfully deploy a given service.
+A Deploy Plan explicity defines the order in which work needs to be performed in order to successfully deploy a given service.
 
 ## H
 
 ### Health Check
-A health check represents a command that can be executed periodically to determine whether a given task is healthy or not. 
+A health check is a command that can be executed periodically to determine whether or not a given task is healthy. 
 
 ## P
 
 ### Plan
-A `Plan` represents ordering of work across pods and assists Service Scheduler to perform orchestration. A Plan is composed of one or many `Phase`(s).
+A `Plan` orders work across pods and assists the Service Scheduler to perform orchestration. A Plan is composed of one or many `Phase`(s).
 
 ### Phase
 A `Phase` is an ordered collection of `Step`(s).
 
 ### Step
-A `Step` represents work that needs to be performed for a given `Pod` instance.
+A `Step` is work that needs to be performed for a given `Pod` instance.
 
 ### Pod
+A `Pod` is a special type of Marathon group that allows you to share storage, networking, and other resources among a group of applications on a single agent and address them as one group rather than as separate applications, as well as manage health as a unit.
 
 ## R
 
 ### Reservation
-A Reservation of resources ensures that the resources allocated to a given task aren't reallocated to any other task in an event of failure, task restart, etc.
+Resource Reservation ensures that the resources allocated to a given task aren't reallocated to any other task in the event of failure, task restart, etc.
 
 ### Resource Set
-A Resource Set is a collection of resources, like cpus, memory, ports, volumes, etc, that are pre-reserved and can be used to launch task(s) in a given pod-instance. A Pod can be composed of tasks using different resource sets.
+A Resource Set is a collection of resources, like CPUs, memory, ports, volumes, etc, that are pre-reserved and can be used to launch task(s) in a given Pod instance. A Pod can be composed of tasks using different resource sets.
 
 ## S
 
 ### Strategy
-Strategy determines whether children of a given Plan (i.e. Phase) or Phase (i.e. Step) are executed in serial or parallel fashion.
+Strategy determines whether children of a given Plan (i.e., Phase) or Phase (i.e., Step) are executed in serial or parallel.
 
 ## T
 
@@ -44,4 +45,4 @@ A Task is a unit of execution of work.
 ## V
 
 ### Volume
-A Volume represents reserved and persistent storage that's available to a framework across task executions.
+A Volume represents reserved and persistent storage that is available to a framework across task executions.
