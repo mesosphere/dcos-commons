@@ -22,7 +22,7 @@ A `Phase` is an ordered collection of `Step`(s).
 A `Step` is work that needs to be performed for a given `Pod` instance.
 
 ### Pod
-A `Pod` is a special type of Marathon group that allows you to share storage, networking, and other resources among a group of applications on a single agent and address them as one group rather than as separate applications, as well as manage health as a unit.
+A `Pod` is a group of tasks that share the same resources (e.g., CPU, memory, volumes) and are operated on together.
 
 ## R
 
@@ -41,6 +41,11 @@ Strategy determines whether children of a given Plan (i.e., Phase) or Phase (i.e
 
 ### Task
 A Task is a unit of execution of work.
+
+## U
+
+### Unit of Deployment
+A set of resources shared between one or more tasks that are deployed together on a single host.
 
 ## V
 
