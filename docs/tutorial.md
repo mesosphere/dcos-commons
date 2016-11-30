@@ -38,7 +38,7 @@ com/mesosphere/sdk-reference-framework).
 
 ## Architecture
 
-![DC/OS Service Architecture](./architecture.png)
+![DC/OS Service Architecture](https://github.com/mesosphere/dcos-commons/blob/master/docs/architecture.png?raw=true)
 
 A DC/OS service is composed of **schedulers** and **executors**.  The
 scheduler is run by Marathon, which supervises the scheduler,
