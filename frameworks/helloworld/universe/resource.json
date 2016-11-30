@@ -2,8 +2,8 @@
   "assets": {
     "uris": {
       "jre-tar-gz": "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz",
-      "executor-zip": "{{artifact-dir}}/executor.zip",
       "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip"
+      "executor-zip": "{{artifact-dir}}/executor.zip",
     }
   },
   "images": {
