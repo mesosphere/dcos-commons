@@ -1,4 +1,4 @@
-elasticsearch.url: "http://data-0-server.{{SERVICE_NAME}}.mesos:{{DATA_NODE_HTTP_PORT}}"
+elasticsearch.url: "http://coordinator-0-server.{{SERVICE_NAME}}.mesos:{{COORDINATOR_NODE_HTTP_PORT}}"
 elasticsearch.username: kibana
 elasticsearch.password: "{{KIBANA_PASSWORD}}"
 server.name: kibana-{{POD_INSTANCE_INDEX}}

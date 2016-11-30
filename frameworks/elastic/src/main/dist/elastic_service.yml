@@ -20,7 +20,7 @@ pods:
           - name: transport
             port: {{MASTER_NODE_TRANSPORT_PORT}}
         volumes:
-          - path: "master-container-path"
+          - path: "container-path"
             type: {{MASTER_NODE_DISK_TYPE}}
             size: {{MASTER_NODE_DISK}}
         cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
@@ -38,7 +38,6 @@ pods:
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.0/support-diagnostics-5.0-dist.zip"
-          - "https://s3-us-west-1.amazonaws.com/hello-universe-assets/elasticsearch-statsd-{{ELASTIC_VERSION}}-SNAPSHOT.zip"
         configurations:
           - template: "scheduler/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
@@ -50,6 +49,171 @@ pods:
             max-consecutive-failures: 3
             delay: 0
             timeout: 10
+  data:
+    count: {{DATA_NODE_COUNT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{DATA_NODE_CPUS}}
+        memory: {{DATA_NODE_MEM}}
+        ports:
+          - name: http
+            port: {{DATA_NODE_HTTP_PORT}}
+          - name: transport
+            port: {{DATA_NODE_TRANSPORT_PORT}}
+        volumes:
+          - path: "container-path"
+            type: {{DATA_NODE_DISK_TYPE}}
+            size: {{DATA_NODE_DISK}}
+        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          HTTP_PORT: {{DATA_NODE_HTTP_PORT}}
+          TRANSPORT_PORT: {{DATA_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: false
+          DATA_ENABLED: true
+          INGEST_ENABLED: false
+          ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
+          SERVICE_NAME: {{SERVICE_NAME}}
+        uris:
+          - "{{SCHEDULER_URI}}"
+          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
+          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
+          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.0/support-diagnostics-5.0-dist.zip"
+        configurations:
+          - template: "scheduler/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-checks:
+          check-up:
+            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{DATA_NODE_HTTP_PORT}}"
+            interval: 5
+            grace-period: 300
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10
+  ingest:
+    count: {{INGEST_NODE_COUNT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{INGEST_NODE_CPUS}}
+        memory: {{INGEST_NODE_MEM}}
+        ports:
+          - name: http
+            port: {{INGEST_NODE_HTTP_PORT}}
+          - name: transport
+            port: {{INGEST_NODE_TRANSPORT_PORT}}
+        volumes:
+          - path: "container-path"
+            type: {{INGEST_NODE_DISK_TYPE}}
+            size: {{INGEST_NODE_DISK}}
+        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          HTTP_PORT: {{INGEST_NODE_HTTP_PORT}}
+          TRANSPORT_PORT: {{INGEST_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: false
+          DATA_ENABLED: false
+          INGEST_ENABLED: true
+          ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
+          SERVICE_NAME: {{SERVICE_NAME}}
+        uris:
+          - "{{SCHEDULER_URI}}"
+          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
+          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
+          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.0/support-diagnostics-5.0-dist.zip"
+        configurations:
+          - template: "scheduler/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-checks:
+          check-up:
+            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{INGEST_NODE_HTTP_PORT}}"
+            interval: 5
+            grace-period: 300
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10
+  coordinator:
+    count: {{COORDINATOR_NODE_COUNT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{COORDINATOR_NODE_CPUS}}
+        memory: {{COORDINATOR_NODE_MEM}}
+        ports:
+          - name: http
+            port: {{COORDINATOR_NODE_HTTP_PORT}}
+          - name: transport
+            port: {{COORDINATOR_NODE_TRANSPORT_PORT}}
+        volumes:
+          - path: "container-path"
+            type: {{COORDINATOR_NODE_DISK_TYPE}}
+            size: {{COORDINATOR_NODE_DISK}}
+        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
+          TRANSPORT_PORT: {{COORDINATOR_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: false
+          DATA_ENABLED: false
+          INGEST_ENABLED: false
+          ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
+          SERVICE_NAME: {{SERVICE_NAME}}
+        uris:
+          - "{{SCHEDULER_URI}}"
+          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
+          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
+          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.0/support-diagnostics-5.0-dist.zip"
+        configurations:
+          - template: "scheduler/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-checks:
+          check-up:
+            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{COORDINATOR_NODE_HTTP_PORT}}"
+            interval: 5
+            grace-period: 300
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10
+  kibana:
+    count: {{KIBANA_COUNT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{KIBANA_CPUS}}
+        memory: {{KIBANA_MEM}}
+        ports:
+          - name: http
+            port: {{KIBANA_PORT}}
+        volumes:
+          - path: "container-path"
+            type: {{KIBANA_DISK_TYPE}}
+            size: {{KIBANA_DISK}}
+        cmd: "env && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://{{MESOS_SANDBOX}}/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
+        env:
+          SERVICE_NAME: {{SERVICE_NAME}}
+          DATA_NODE_HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
+          KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
+          KIBANA_PORT: {{KIBANA_PORT}}
+        uris:
+          - "{{SCHEDULER_URI}}"
+          - "https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz"
+          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
+        configurations:
+          - template: "scheduler/kibana.yml"
+            dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
+        health-checks:
+          check-up:
+            cmd: "curl -I -s -f localhost:{{KIBANA_PORT}}/login"
+            interval: 5
+            grace-period: 600
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10
 plans:
   deploy:
     strategy: {{PLAN_STRATEGY}}
@@ -57,3 +221,15 @@ plans:
       master-deploy:
         strategy: {{PLAN_STRATEGY}}
         pod: master
+      data-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: data
+      ingest-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: ingest
+      coordinator-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: coordinator
+      kibana-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: kibana
