@@ -65,7 +65,7 @@ public class DefaultServiceSpecTest {
         List<ResourceSpecification> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
                 .stream()
-                .filter(r -> r.getName() == "ports")
+                .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
         Assert.assertEquals(1, portsResources.size());
