@@ -60,9 +60,9 @@ From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-
   * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
 
 ===============
-### Understanding Hello World Service Specification
+### Understanding the Hello World Service Specification
 
-Let's understand the service specification which was used to declaratively define `helloworld` service:
+The service specification declaratively defines the `helloworld` service:
 
 ```yaml
 name: "helloworld"
@@ -84,10 +84,10 @@ pods:
             size: 64
 ```
 
-In above specification file, we have:
-* Defined a service with name `helloworld`
-* Configured the service to use zookeeper at `master.mesos:2181` for storing framework state and configuration.
-* Configured the API port using `api-port: 8080`. By default, each service comes along with a default set of useful APIs which enables operationalization. 
+In above yaml file, we have:
+* Defined a service with the name `helloworld`
+* Configured the service to use ZooKeeper at `master.mesos:2181` for storing framework state and configuration.
+* Configured the API port using `api-port: 8080`. By default, each service comes with a default set of useful APIs to enable operationalization. 
 * Defined a pod specification for our `helloworld` pod using:
 
 ```yaml
@@ -97,7 +97,7 @@ pods:
     tasks:
       ...
 ```
-* Configured that we need atleast `{{COUNT}}` instances of `helloworld` pod running at all times, where `COUNT` is the environment variable that is injected into the scheduler process at launch via Marathon. It defaults to `1` for this example.
+* Declared that we need atleast `{{COUNT}}` instances of the `helloworld` pod running at all times, where `COUNT` is the environment variable that is injected into the scheduler process at launch time via Marathon. It defaults to `1` for this example.
 * Defined a task specification for our `server` task using:
 
 ```yaml
@@ -108,7 +108,7 @@ tasks:
     cpus: {{SERVER_CPU}}
     memory: 32
 ```
-configuring it to use `{{SERVER_CPU}}` CPUs (defaults to `0.5` for this example) and `32 MB` of memory.
+We have configured it to use `{{SERVER_CPU}}` CPUs (which defaults to `0.5` for this example) and `32 MB` of memory.
 * And finally, configured a `64 MB` persistent volume for our server task where the task data can be persisted using:
 
 ```yaml
