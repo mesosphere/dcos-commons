@@ -4,7 +4,7 @@ zookeeper: master.mesos:2181
 api-port: 8080
 pods:
   hello:
-    count: {{iHELLO_COUNT}}
+    count: {{HELLO_COUNT}}
     tasks:
       server:
         goal: RUNNING
