@@ -37,7 +37,7 @@
             "default":25
           },
           "count":{
-            "description":"Number of pods to run",
+            "description":"Number of Hello Pods to run",
             "type":"integer",
             "default":2
           },
