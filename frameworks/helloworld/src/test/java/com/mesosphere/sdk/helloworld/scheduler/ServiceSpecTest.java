@@ -63,7 +63,7 @@ public class ServiceSpecTest {
 
     @Test
     public void test_yml_simple() throws Exception{
-        ServiceSpecDeserialization("svc2.yml");
+        ServiceSpecDeserialization("svc_simple.yml");
     }
 
     @Test
@@ -78,7 +78,7 @@ public class ServiceSpecTest {
 
     @Test
     public void test_validate_yml_simple() throws Exception{
-        ServiceSpecValidation("svc2.yml");
+        ServiceSpecValidation("svc_simple.yml");
     }
 
     @Test
