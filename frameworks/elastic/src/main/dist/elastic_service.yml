@@ -33,6 +33,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           SERVICE_NAME: {{SERVICE_NAME}}
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
         uris:
           - "{{SCHEDULER_URI}}"
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
@@ -76,6 +77,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
           SERVICE_NAME: {{SERVICE_NAME}}
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
         uris:
           - "{{SCHEDULER_URI}}"
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
@@ -119,6 +121,7 @@ pods:
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
           SERVICE_NAME: {{SERVICE_NAME}}
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
         uris:
           - "{{SCHEDULER_URI}}"
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
@@ -162,6 +165,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
           SERVICE_NAME: {{SERVICE_NAME}}
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
         uris:
           - "{{SCHEDULER_URI}}"
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
@@ -193,10 +197,10 @@ pods:
           - path: "container-path"
             type: {{KIBANA_DISK_TYPE}}
             size: {{KIBANA_DISK}}
-        cmd: "env && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://{{MESOS_SANDBOX}}/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
+        cmd: "env && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
         env:
           SERVICE_NAME: {{SERVICE_NAME}}
-          DATA_NODE_HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
+          COORDINATOR_NODE_HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
           KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
           KIBANA_PORT: {{KIBANA_PORT}}
         uris:

@@ -4,5 +4,5 @@ elasticsearch.password: "{{KIBANA_PASSWORD}}"
 server.name: kibana-{{POD_INSTANCE_INDEX}}
 server.host: 0.0.0.0
 server.port: {{KIBANA_PORT}}
-xpack.security.encryptionKey: {{MESOS_FRAMEWORK_ID}}
-xpack.reporting.encryptionKey: {{MESOS_FRAMEWORK_ID}}};
+xpack.security.encryptionKey: {{SERVICE_NAME}}
+xpack.reporting.encryptionKey: {{SERVICE_NAME}}

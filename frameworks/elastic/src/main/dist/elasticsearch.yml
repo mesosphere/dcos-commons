@@ -1,7 +1,7 @@
 discovery.zen.ping.unicast.hosts:
-  - "http://master-0-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
-  - "http://master-1-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
-  - "http://master-2-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
+  - "master-0-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
+  - "master-1-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
+  - "master-2-server.{{SERVICE_NAME}}.mesos:{{MASTER_NODE_TRANSPORT_PORT}}"
 discovery.zen.minimum_master_nodes: 2
 network.host:
   - "_site_"
