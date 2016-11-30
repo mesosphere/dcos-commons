@@ -10,19 +10,17 @@
 [__Slack__](http://chat.dcos.io)
 
 =========
-[DC/OS](https://dcos.io) is a datacenter operating system for running distributed services, such as databases. Like most operating systems, DC/OS has a package manager and package repository, so services can be installed with 1-click.
-
-The __DC/OS SDK__ is a collection of tools, libraries, and documentation for packaging services for DC/OS. With the SDK, you can easily integrate stateful services developed in any programing language.
+The __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration and automation of replicated stateful services, such as databases, message brokers, and caching services, with [DC/OS](https://dcos.io/).
 
 ### Benefits
 
 * __Simple and Flexible__: The SDK provides the simplicity of a declarative YAML API as well as the flexibility to use the full Java programming language.
 
-* __Automate Maintenance__: Some services, such as databases, need to be maintained. With the SDK, you can automate maintenance routines to simplify operations.
+* __Automate Maintenance__: Stateful services need to be maintained. With the SDK, you can automate maintenance routines, such as backup and restore, to simplify operations.
 
-* __Available and Durable__: When infrastructure fails, you need to recover without data loss or performance impact. With the SDK, you define custom detection, safety, and performance semantics so your services heal themselves.
+* __Available and Durable__: When servers fail, you need to reschedule the tasks without data loss or performance impact. With the SDK, you develop automated recovery strategies so services heal themselves.
 
-* __Production-Proven__: Building reliable distributed services is hard. Some of the most demanding web services in the world, like Uber and the Bing platform team, use services built with the SDK for their mission-critical databases and messaging systems.
+* __Production-Proven__: Building reliable services is hard. Uber and Bing platform teams use the SDK for mission-critical databases and message brokers.
 
 ===============
 ### Quick Start
