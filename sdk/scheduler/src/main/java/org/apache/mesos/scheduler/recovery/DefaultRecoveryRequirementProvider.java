@@ -13,10 +13,7 @@ import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -53,11 +50,7 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
 
         for (Map.Entry<PodInstance, List<Protos.TaskInfo>> podEntry : podMap.entrySet()) {
             PodInstance podInstance = podEntry.getKey();
-
-            List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                    .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                    .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
-                    .collect(Collectors.toList());
+            List<String> tasksToLaunch = TaskUtils.getTasksToLaunch(podInstance, stateStore);
 
             // Note: We intentionally remove any placement rules when performing transient recovery.
             // We aren't interested in honoring placement rules, past or future. We just want to

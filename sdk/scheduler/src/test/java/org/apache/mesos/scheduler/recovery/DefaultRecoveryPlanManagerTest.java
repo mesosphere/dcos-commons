@@ -1,7 +1,6 @@
 package org.apache.mesos.scheduler.recovery;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -223,36 +222,6 @@ public class DefaultRecoveryPlanManagerTest {
         // Verify we ran launching code
         verify(offerAccepter, times(1)).accept(any(), any());
         verify(launchConstrainer, times(1)).launchHappened(any(), eq(recoveryRequirement.getRecoveryType()));
-        reset(mockDeployManager);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void stepWithSameNameNoLaunch() throws Exception {
-        final RecoveryRequirement recoveryRequirement = getRecoveryRequirement(OfferRequirement.create(TestConstants.TASK_TYPE, TestConstants.TASK_INDEX, TASK_INFOS), RecoveryRequirement.RecoveryType.NONE, new DefaultPodInstance(serviceSpec.getPods().get(0), 0));
-        final Step step = mock(Step.class);
-        Protos.TaskStatus status = TaskTestUtils.generateStatus(TASK_INFO.getTaskId(), Protos.TaskState.TASK_FAILED);
-
-        launchConstrainer.setCanLaunch(true);
-        stateStore.storeTasks(TASK_INFOS);
-        stateStore.storeStatus(status);
-        when(recoveryRequirementProvider.getTransientRecoveryRequirements(any()))
-                .thenReturn(Arrays.asList(recoveryRequirement));
-        when(step.getName()).thenReturn(TestConstants.TASK_NAME);
-        // 1 dirty
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(step));
-
-        recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
-
-        assertEquals(0, acceptedOffers.size());
-        // Verify the RecoveryStatus has empty pools.
-        assertNotNull(recoveryManager.getPlan());
-        assertNotNull(recoveryManager.getPlan().getChildren());
-        assertTrue(CollectionUtils.isNotEmpty(recoveryManager.getPlan().getChildren()));
-        assertNotNull(recoveryManager.getPlan().getChildren().get(0));
-        assertTrue(CollectionUtils.isNotEmpty(recoveryManager.getPlan().getChildren().get(0).getChildren()));
-        assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().stream().allMatch(b -> b.isPending()));
         reset(mockDeployManager);
     }
 

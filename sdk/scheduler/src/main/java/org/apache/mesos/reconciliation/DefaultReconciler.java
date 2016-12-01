@@ -69,7 +69,7 @@ public class DefaultReconciler implements Reconciler {
      * This function is expected to be called repeatedly. It executes the following pseudocode
      * across multiple calls:
      * <code>
-     * unreconciledList = tasksKnownByScheduler // provided by start()
+     * unreconciledList = tasksKnownByScheduler // provided by the StateStore
      * while (!unreconciledList.isEmpty()) {
      *   // explicit reconciliation (PHASE 1)
      *   if (timerSinceLastCallExpired) {
@@ -89,7 +89,7 @@ public class DefaultReconciler implements Reconciler {
             if (!unreconciled.isEmpty()) {
                 final long nowMs = getCurrentTimeMillis();
                 // PHASE 1: unreconciled tasks remain: trigger explicit reconciliation against the
-                // remaining known tasks originally reported by the Scheduler via start()
+                // remaining known tasks originally reported by the StateStore.
                 if (nowMs >= lastRequestTimeMs + backOffMs) {
                     // update timer values for the next reconcile() call:
                     lastRequestTimeMs = nowMs;
@@ -113,7 +113,7 @@ public class DefaultReconciler implements Reconciler {
                 LOGGER.info("Triggering implicit final reconciliation of all tasks");
                 driver.reconcileTasks(Collections.<TaskStatus>emptyList());
 
-                // reset the timer values in case we're start()ed again in the future
+                // reset the timer values in case we're started again in the future
                 resetTimerValues();
                 isImplicitReconciliationTriggered.set(true); // enter PHASE 3/complete
             }

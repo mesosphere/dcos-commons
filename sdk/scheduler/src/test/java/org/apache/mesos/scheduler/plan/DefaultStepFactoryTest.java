@@ -7,7 +7,6 @@ import org.apache.mesos.curator.CuratorStateStore;
 import org.apache.mesos.offer.DefaultOfferRequirementProvider;
 import org.apache.mesos.offer.InvalidRequirementException;
 import org.apache.mesos.offer.OfferRequirementProvider;
-import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
@@ -22,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * This class tests the {@link DefaultStepFactory} class.
@@ -93,7 +93,9 @@ public class DefaultStepFactoryTest {
     public void testGetStepFailsOnMultipleResourceSetReferences()
             throws InvalidRequirementException, Step.InvalidStepException {
 
-        List<String> tasksToLaunch = TaskUtils.getTaskNames(POD_INSTANCE);
+        List<String> tasksToLaunch = POD_INSTANCE.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
         stepFactory.getStep(POD_INSTANCE, tasksToLaunch);
     }
 }

@@ -64,7 +64,7 @@ public class DefaultStepTest {
                 .build();
         step.updateOfferStatus(Arrays.asList(operation));
 
-        Assert.assertTrue(step.isInProgress());
+        Assert.assertTrue(step.isStarting());
 
         step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)

@@ -42,8 +42,8 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
         for (Phase phase : phases) {
             final List<? extends Step> steps = phase.getChildren();
             for (Step step : steps) {
-                if (step.isInProgress()) {
-                    dirtyAssets.add(step.getName());
+                if (step.isPrepared() || step.isStarting()) {
+                    dirtyAssets.addAll(step.getDirtyAssets());
                 }
             }
         }

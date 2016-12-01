@@ -1,23 +1,25 @@
 package org.apache.mesos.state;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.config.ConfigStore;
 import org.apache.mesos.offer.TaskException;
 import org.apache.mesos.offer.TaskUtils;
+import org.apache.mesos.specification.ServiceSpec;
+import org.apache.mesos.specification.TaskSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 /**
  * Utilities for implementations and users of {@link StateStore}.
  */
 public class StateStoreUtils {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -45,21 +47,36 @@ public class StateStoreUtils {
      *
      * @return Terminated TaskInfos
      */
-    public static Collection<TaskInfo> fetchTasksNeedingRecovery(StateStore stateStore)
-            throws StateStoreException {
+    public static Collection<TaskInfo> fetchTasksNeedingRecovery(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore)
+            throws StateStoreException, TaskException {
+
         Collection<TaskInfo> allInfos = stateStore.fetchTasks();
         Collection<TaskStatus> allStatuses = stateStore.fetchStatuses();
+
         Map<Protos.TaskID, TaskStatus> statusMap = new HashMap<>();
         for (TaskStatus status : allStatuses) {
             statusMap.put(status.getTaskId(), status);
         }
+
         List<TaskInfo> results = new ArrayList<>();
         for (TaskInfo info : allInfos) {
             TaskStatus status = statusMap.get(info.getTaskId());
             if (status == null) {
                 continue;
             }
-            if (TaskUtils.needsRecovery(status)) {
+
+            Optional<TaskSpec> taskSpec = TaskUtils.getTaskSpec(
+                    TaskUtils.getPodInstance(configStore, info),
+                    info.getName());
+
+            if (!taskSpec.isPresent()) {
+                throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
+            }
+
+            if (TaskUtils.needsRecovery(taskSpec.get(), status)) {
+                LOGGER.info("Task: {} needs recovery.", taskSpec.get());
                 results.add(info);
             }
         }

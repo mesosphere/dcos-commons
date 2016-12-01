@@ -75,13 +75,13 @@ public class DefaultPlanScheduler implements PlanScheduler {
             return acceptedOffers;
         }
 
-        if (!step.isPending()) {
+        if (!(step.isPending() || step.isPrepared())) {
             logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return acceptedOffers;
         }
 
         logger.info("Processing resource offers for step: {}", step.getName());
-        Optional<OfferRequirement> offerRequirementOptional = step.start();
+        Optional<OfferRequirement> offerRequirementOptional = step.getOfferRequirement();
         if (!offerRequirementOptional.isPresent()) {
             logger.info("No OfferRequirement for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
@@ -97,6 +97,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         // Step has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
         List<OfferRecommendation> recommendations = offerEvaluator.evaluate(offerRequirement, offers);
+
         if (recommendations.isEmpty()) {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
             logger.warn(

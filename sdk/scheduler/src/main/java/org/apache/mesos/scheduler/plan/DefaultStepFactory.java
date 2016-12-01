@@ -38,15 +38,15 @@ public class DefaultStepFactory implements StepFactory {
     @Override
     public Step getStep(PodInstance podInstance, List<String> tasksToLaunch)
             throws Step.InvalidStepException, InvalidRequirementException {
-        LOGGER.info("Generating step for pod: {}", podInstance.getName());
 
+        LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
+        tasksToLaunch = TaskUtils.getTasksToLaunch(podInstance, stateStore);
         validate(podInstance, tasksToLaunch);
 
         List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
                 .map(taskInfoOptional -> taskInfoOptional.get())
-                .filter(taskInfo -> tasksToLaunch.contains(taskInfo.getName()))
                 .collect(Collectors.toList());
 
         try {
@@ -62,6 +62,15 @@ public class DefaultStepFactory implements StepFactory {
                 // Note: This path is for deploying new versions of tasks, unlike transient recovery
                 // which is only interested in relaunching tasks as they were. So while they omit
                 // placement rules in their OfferRequirement, we include them.
+                List<String> taskInfoNames = taskInfos.stream()
+                        .map(taskInfo -> taskInfo.getName())
+                        .collect(Collectors.toList());
+                List<String> fullTaskNamesToLaunch = TaskUtils.getTaskNames(podInstance, tasksToLaunch);
+                LOGGER.info("taskInfo names: {}", taskInfoNames);
+                LOGGER.info("fullTaskNamesToLaunch: {}", fullTaskNamesToLaunch);
+                taskInfos = taskInfos.stream()
+                        .filter(taskInfo -> fullTaskNamesToLaunch.contains(taskInfo.getName()))
+                        .collect(Collectors.toList());
                 Status status = getStatus(podInstance, taskInfos);
                 LOGGER.info("Generating existing step for: {} with status: {}", podInstance.getName(), status);
                 return new DefaultStep(
@@ -79,7 +88,7 @@ public class DefaultStepFactory implements StepFactory {
 
     private void validate(PodInstance podInstance, List<String> tasksToLaunch) throws Step.InvalidStepException {
         List<TaskSpec> taskSpecsToLaunch = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> tasksToLaunch.contains(TaskSpec.getInstanceName(podInstance, taskSpec)))
+                .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .collect(Collectors.toList());
 
         List<String> resourceSetIds = taskSpecsToLaunch.stream()
@@ -114,7 +123,13 @@ public class DefaultStepFactory implements StepFactory {
     private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo)
             throws TaskException, ConfigStoreException, Step.InvalidStepException {
 
-        if (isOnTarget(taskInfo) && hasReachedGoalState(podInstance, taskInfo)) {
+        boolean isOnTarget = isOnTarget(taskInfo);
+        boolean hasReachedGoal = hasReachedGoalState(podInstance, taskInfo);
+
+        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {}.",
+                taskInfo.getName(), isOnTarget, hasReachedGoal);
+
+        if (isOnTarget && hasReachedGoal) {
             return Status.COMPLETE;
         } else {
             return Status.PENDING;
