@@ -20,7 +20,7 @@ import java.util.Collections;
 
 import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
-public class ServiceSpecTest {
+public class HelloWorldServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -30,6 +30,7 @@ public class ServiceSpecTest {
     @BeforeClass
     public static void beforeAll() {
         environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
         environmentVariables.set("COUNT", "2");
         environmentVariables.set("CPUS", "0.1");
     }
@@ -41,7 +42,7 @@ public class ServiceSpecTest {
 
     @Test
     public void testServiceSpecDeserialization() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = HelloWorldServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
@@ -54,7 +55,7 @@ public class ServiceSpecTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testServiceSpecValidation() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = HelloWorldServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(generateRawSpecFromYAML(file));

@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./hello-world-scheduler/bin/helloworld ./hello-world-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./hello-world-scheduler/bin/helloworld ./hello-world-scheduler/svc.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -14,15 +14,16 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   "env": {
-    "LD_LIBRARY_PATH": "/opt/mesosphere/lib",
     "FRAMEWORK_NAME": "{{service.name}}",
     "COUNT": "{{hello.count}}",
     "CPUS": "{{hello.cpus}}",
-    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}"
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-bz2}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
-    "{{resource.assets.uris.scheduler-zip}}"
+    "{{resource.assets.uris.scheduler-zip}}",
+    "{{resource.assets.uris.libmesos-bundle-tar-bz2}}"
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

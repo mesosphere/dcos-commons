@@ -59,6 +59,7 @@ public class DefaultOfferRequirementProviderTest {
         MockitoAnnotations.initMocks(this);
         environmentVariables = new EnvironmentVariables();
         environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
 
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
         when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);

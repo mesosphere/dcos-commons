@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.helloworld.scheduler;
+package com.mesosphere.sdk.kafka.scheduler;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -21,7 +21,7 @@ import java.util.Collections;
 
 import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
-public class ServiceSpecTest {
+public class KafkaServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -31,12 +31,13 @@ public class ServiceSpecTest {
     @BeforeClass
     public static void beforeAll() {
         environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
         environmentVariables.set("PORT0", "8080");
         environmentVariables.set("BROKER_COUNT", "2");
         environmentVariables.set("BROKER_CPUS", "0.1");
         environmentVariables.set("BROKER_MEM", "512");
         environmentVariables.set("BROKER_DISK", "5000");
-        URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
+        URL resource = KafkaServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
@@ -47,7 +48,7 @@ public class ServiceSpecTest {
 
     @Test
     public void testServiceSpecDeserialization() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = KafkaServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
@@ -60,7 +61,7 @@ public class ServiceSpecTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testServiceSpecValidation() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = KafkaServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(generateRawSpecFromYAML(file));

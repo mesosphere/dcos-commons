@@ -15,6 +15,8 @@ import java.util.*;
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
     private static final String EXECUTOR_URI = "EXECUTOR_URI";
+    private static final String LIBMESOS_URI = "LIBMESOS_URI";
+
     private static final String JAVA_HOME = "JAVA_HOME";
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
     private static final String DEFAULT_JAVA_HOME = "jre1.8.0_91";
@@ -319,6 +321,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private Protos.ExecutorInfo.Builder getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
         Protos.CommandInfo.URI executorURI;
+        Protos.CommandInfo.URI libmesosURI;
+
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
@@ -338,9 +342,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
         executorURI = TaskUtils.uri(executorStr);
 
+        String libmesosStr = System.getenv(LIBMESOS_URI);
+        if (libmesosStr == null) {
+            throw new IllegalStateException("Missing environment variable: " + LIBMESOS_URI);
+        }
+        libmesosURI = TaskUtils.uri(libmesosStr);
+
         Protos.CommandInfo.Builder commandInfoBuilder = Protos.CommandInfo.newBuilder()
-                .setValue("./executor/bin/executor")
-                .addUris(executorURI);
+                .setValue("export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && " +
+                        "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
+                        "./executor/bin/executor")
+                .addUris(executorURI)
+                .addUris(libmesosURI);
 
         Protos.Environment.Variable.Builder javaHomeVariable =
                 Protos.Environment.Variable.newBuilder().setName(JAVA_HOME);
