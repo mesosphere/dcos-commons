@@ -164,7 +164,7 @@ public class DefaultRecoveryRequirementProviderTest {
         Assert.assertEquals(1, steps.size());
 
         // Test that dirtied asset prevents pod recovery
-        steps = recoveryPlanManager.createSteps(Arrays.asList(taskInfos.get(0).getName()));
+        steps = recoveryPlanManager.createSteps(Arrays.asList(TaskUtils.getPodInstance(configStore, taskInfos.get(0)).getName()));
         Assert.assertEquals(0, steps.size());
 
         // Test that incomplete pod failure prevents pod recovery

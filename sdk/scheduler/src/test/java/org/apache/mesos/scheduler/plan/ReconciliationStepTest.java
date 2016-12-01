@@ -42,17 +42,17 @@ public class ReconciliationStepTest {
     @Test
     public void testStartStatusProviderFailure() throws Exception {
         doThrow(new RuntimeException("hello")).when(mockReconciler).start();
-        assertFalse(step.start().isPresent());
+        assertFalse(step.getOfferRequirement().isPresent());
         assertTrue(step.isPending());
     }
 
     @Test
     public void testStart() throws Exception {
-        assertFalse(step.start().isPresent());
+        assertFalse(step.getOfferRequirement().isPresent());
         assertFalse(step.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
         assertTrue(step.getMessage().contains("in progress"));
         when(mockReconciler.isReconciled()).thenReturn(true);
         assertTrue(step.isComplete());
@@ -61,17 +61,17 @@ public class ReconciliationStepTest {
 
     @Test
     public void testStartInProgressRestart() throws Exception {
-        assertFalse(step.start().isPresent());
+        assertFalse(step.getOfferRequirement().isPresent());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
         step.restart();
         assertTrue(step.isPending());
     }
 
     @Test
     public void testStartCompleteRestart() throws Exception {
-        assertFalse(step.start().isPresent());
+        assertFalse(step.getOfferRequirement().isPresent());
         assertFalse(step.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(true);
@@ -92,9 +92,9 @@ public class ReconciliationStepTest {
 
     @Test
     public void testForceCompleteFromInProgress() throws Exception {
-        assertFalse(step.start().isPresent());
+        assertFalse(step.getOfferRequirement().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
 
         step.forceComplete();
         when(mockReconciler.isReconciled()).thenReturn(true); // simulate reconciler now complete
@@ -103,7 +103,7 @@ public class ReconciliationStepTest {
 
     @Test
     public void testForceCompleteFromComplete() throws Exception {
-        assertFalse(step.start().isPresent());
+        assertFalse(step.getOfferRequirement().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(true);
         assertTrue(step.isComplete());
 

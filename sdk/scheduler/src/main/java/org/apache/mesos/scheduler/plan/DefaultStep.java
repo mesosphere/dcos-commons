@@ -52,7 +52,7 @@ public class DefaultStep extends DefaultObservable implements Step {
      * particular, so it is synchronized to avoid inconsistent expectations regarding what TaskIDs are relevant to it.
      *
      * @param operations The Operations which were performed in response to the OfferRequirement provided by
-     * {@link #start()}
+     * {@link #getOfferRequirement()}
      */
     private synchronized void setTaskIds(Collection <Protos.Offer.Operation> operations) {
         tasks.clear();
@@ -60,7 +60,7 @@ public class DefaultStep extends DefaultObservable implements Step {
         for (Protos.Offer.Operation operation : operations) {
             if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
                 for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
-                    tasks.put(taskInfo.getTaskId(), Status.IN_PROGRESS);
+                    tasks.put(taskInfo.getTaskId(), Status.PREPARED);
                 }
             }
         }
@@ -83,7 +83,7 @@ public class DefaultStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public Optional<OfferRequirement> start() {
+    public Optional<OfferRequirement> getOfferRequirement() {
         return offerRequirementOptional;
     }
 
@@ -92,8 +92,21 @@ public class DefaultStep extends DefaultObservable implements Step {
         logger.info("Updated with operations: {}", operations);
         setTaskIds(operations);
 
-        if (!operations.isEmpty()) {
-            setStatus(Status.IN_PROGRESS);
+        if (operations.isEmpty()) {
+            setStatus(Status.PREPARED);
+        } else {
+            setStatus(Status.STARTING);
+        }
+    }
+
+    @Override
+    public Set<String> getDirtyAssets() {
+        if (isInProgress()) {
+            Set<String> assets = new HashSet<>();
+            assets.add(getName());
+            return assets;
+        } else {
+            return Collections.emptySet();
         }
     }
 
@@ -150,12 +163,12 @@ public class DefaultStep extends DefaultObservable implements Step {
     @Override
     public synchronized void update(Protos.TaskStatus status) {
         if (!tasks.containsKey(status.getTaskId())) {
-            logger.info(getName() + " ignoring irrelevant TaskStatus: " + status);
+            logger.debug(getName() + " ignoring irrelevant TaskStatus: " + status);
             return;
         }
 
         if (isComplete()) {
-            logger.warn(getName() + " ignoring due to being Complete, TaskStatus: " + status);
+            logger.debug(getName() + " ignoring due to being Complete, TaskStatus: " + status);
             return;
         }
 
@@ -164,13 +177,13 @@ public class DefaultStep extends DefaultObservable implements Step {
             case TASK_FAILED:
             case TASK_KILLED:
             case TASK_KILLING:
-                tasks.replace(status.getTaskId(), Status.ERROR);
+                tasks.replace(status.getTaskId(), Status.PENDING);
                 // Retry the step because something failed.
                 setStatus(Status.PENDING);
                 break;
             case TASK_STAGING:
             case TASK_STARTING:
-                tasks.replace(status.getTaskId(), Status.IN_PROGRESS);
+                tasks.replace(status.getTaskId(), Status.STARTING);
                 break;
             case TASK_RUNNING:
                 try {
@@ -179,7 +192,7 @@ public class DefaultStep extends DefaultObservable implements Step {
                             TaskUtils.toTaskName(status.getTaskId())).equals(TaskSpec.GoalState.RUNNING)) {
                         tasks.replace(status.getTaskId(), Status.COMPLETE);
                     } else {
-                        tasks.replace(status.getTaskId(), Status.IN_PROGRESS);
+                        tasks.replace(status.getTaskId(), Status.STARTING);
                     }
                 } catch (TaskException e) {
                     logger.error("Failed to update status.", e);
@@ -189,7 +202,7 @@ public class DefaultStep extends DefaultObservable implements Step {
                 try {
                     if (TaskUtils.getGoalState(
                             podInstance,
-                            TaskUtils.toTaskName(status.getTaskId())).equals(TaskSpec.GoalState.RUNNING)) {
+                            TaskUtils.toTaskName(status.getTaskId())).equals(TaskSpec.GoalState.FINISHED)) {
                         tasks.replace(status.getTaskId(), Status.COMPLETE);
                     } else {
                         tasks.replace(status.getTaskId(), Status.PENDING);

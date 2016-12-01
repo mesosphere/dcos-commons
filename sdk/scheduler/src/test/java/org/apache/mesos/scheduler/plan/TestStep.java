@@ -36,18 +36,25 @@ public class TestStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public Optional<OfferRequirement> start() {
-        setStatus(Status.IN_PROGRESS);
+    public Optional<OfferRequirement> getOfferRequirement() {
+        setStatus(Status.PREPARED);
         return Optional.empty();
     }
 
     @Override
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
         if (operations.isEmpty()) {
-            setStatus(Status.PENDING);
+            setStatus(Status.PREPARED);
         } else {
-            setStatus(Status.IN_PROGRESS);
+            setStatus(Status.STARTING);
         }
+    }
+
+    @Override
+    public Set<String> getDirtyAssets() {
+        Set<String> assets = new HashSet<>();
+        assets.add(getName());
+        return assets;
     }
 
     @Override

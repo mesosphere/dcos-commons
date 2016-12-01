@@ -77,10 +77,10 @@ public class PlanUtils {
         } else if (CollectionUtils.isEmpty(children)) {
             result = Status.COMPLETE;
             LOGGER.warn("({} status={}) Empty collection of elements encountered.", parent.getName(), result);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, children)) {
-            result = Status.IN_PROGRESS;
+        } else if (anyHaveStatus(Status.PREPARED, children)) {
+            result = Status.PREPARED;
             LOGGER.info("({} status={}) At least one phase has status: {}",
-                    parent.getName(), result, Status.IN_PROGRESS);
+                    parent.getName(), result, Status.PREPARED);
         } else if (anyHaveStatus(Status.WAITING, children)) {
             result = Status.WAITING;
             LOGGER.info("({} status={}) At least one element has status: {}",
@@ -95,7 +95,7 @@ public class PlanUtils {
                     parent.getName(), result, Status.PENDING);
         } else if (anyHaveStatus(Status.COMPLETE, children)
                 && anyHaveStatus(Status.PENDING, children)) {
-            result = Status.IN_PROGRESS;
+            result = Status.PREPARED;
             LOGGER.info("({} status={}) At least one element has status '{}' and one has status '{}'",
                     parent.getName(), result, Status.COMPLETE, Status.PENDING);
         } else {

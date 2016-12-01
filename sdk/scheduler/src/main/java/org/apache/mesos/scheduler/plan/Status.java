@@ -21,9 +21,15 @@ public enum Status {
     PENDING,
 
     /**
-     * Execution is in progress.
+     * The step has been evaluated, and any Tasks relevant to it have been killed if necessary.
      */
-    IN_PROGRESS,
+    PREPARED,
+
+    /**
+     * Execution has performed {@link org.apache.mesos.Protos.Offer.Operation}s and is waiting to determine the succeess
+     * of those Operations.
+     */
+    STARTING,
 
     /**
      * Execution has completed.

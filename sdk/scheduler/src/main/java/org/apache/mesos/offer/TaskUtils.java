@@ -32,6 +32,7 @@ public class TaskUtils {
     private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     private static final String TASK_NAME_DELIM = "__";
     private static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
+    private static final String GOAL_STATE_KEY = "goal_state";
 
     /**
      * Label key against which Offer attributes are stored (in a string representation).
@@ -91,6 +92,20 @@ public class TaskUtils {
 
     public static ExecutorID emptyExecutorId() {
         return ExecutorID.newBuilder().setValue("").build();
+    }
+
+    public static boolean needsRecovery(TaskSpec taskSpec, TaskStatus taskStatus) {
+        switch (taskSpec.getGoal()) {
+            case FINISHED:
+                switch (taskStatus.getState()) {
+                    case TASK_FINISHED:
+                        return false;
+                    default:
+                        return needsRecovery(taskStatus);
+                }
+            default:
+                return needsRecovery(taskStatus);
+        }
     }
 
     /**
@@ -283,6 +298,13 @@ public class TaskUtils {
 
     public static List<String> getTaskNames(PodInstance podInstance) {
         return podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+    }
+
+    public static List<String> getTaskNames(PodInstance podInstance, List<String> tasksToLaunch) {
+        return podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
     }
@@ -509,7 +531,6 @@ public class TaskUtils {
 
         for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
             String resourceName = newEntry.getKey();
-            LOGGER.info("Checking resource difference for: {}", resourceName);
             ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
                 LOGGER.info("Resource not found: {}", resourceName);
@@ -865,5 +886,66 @@ public class TaskUtils {
                     "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
         }
         return podSpec;
+    }
+
+    public static TaskInfo.Builder setGoalState(TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
+        return taskInfoBuilder
+                .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
+                        GOAL_STATE_KEY,
+                        taskSpec.getGoal().name()));
+    }
+
+    public static TaskSpec.GoalState getGoalState(TaskInfo taskInfo) throws TaskException {
+        List<String> goalNames = Arrays.stream(TaskSpec.GoalState.values())
+                .map(goalState -> goalState.name())
+                .collect(Collectors.toList());
+
+        Optional<String> goalStateOptional = findLabelValue(taskInfo.getLabels(), GOAL_STATE_KEY);
+        if (!goalStateOptional.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + GOAL_STATE_KEY);
+        }
+
+        String goalStateString = goalStateOptional.get();
+        if (!goalNames.contains(goalStateString)) {
+            throw new TaskException("Unexpecte goal state encountered: " + goalStateString);
+        }
+
+        return TaskSpec.GoalState.valueOf(goalStateString);
+    }
+
+    public static List<String> getTasksToLaunch(PodInstance podInstance, StateStore stateStore) {
+
+        List<String> runningTasksToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+
+        List<TaskSpec> finishedTaskSpecs = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.FINISHED))
+                .collect(Collectors.toList());
+
+        List<String> finishedTasksToLaunch = new ArrayList<>();
+        for (TaskSpec taskSpec : finishedTaskSpecs) {
+            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskName);
+
+            if (!taskStatusOptional.isPresent()) {
+                LOGGER.warn("Failed to fetch status for: {}", taskName);
+                finishedTasksToLaunch.add(taskSpec.getName());
+            } else {
+                Protos.TaskStatus taskStatus = taskStatusOptional.get();
+                LOGGER.info("Task '{}' with FINISHED goal state has status: {}", taskName, taskStatus);
+                if (!taskStatus.getState().equals(Protos.TaskState.TASK_FINISHED)) {
+                    finishedTasksToLaunch.add(taskSpec.getName());
+                }
+            }
+        }
+
+        List<String> tasksToLaunch = new ArrayList<>();
+        tasksToLaunch.addAll(runningTasksToLaunch);
+        tasksToLaunch.addAll(finishedTasksToLaunch);
+
+        return tasksToLaunch;
     }
 }
