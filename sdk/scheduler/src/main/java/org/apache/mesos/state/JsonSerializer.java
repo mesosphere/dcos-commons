@@ -23,11 +23,7 @@ public class JsonSerializer implements Serializer {
 
     @Override
     public <T> byte[] serialize(T value) {
-        try {
-            return SerializationUtils.toJsonString(value).getBytes(charset);
-        } catch (IOException e) {
-            return new byte[0];
-        }
+        return SerializationUtils.toJsonStringOrEmpty(value).getBytes(charset);
     }
 
     @Override

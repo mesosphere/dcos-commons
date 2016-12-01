@@ -72,6 +72,22 @@ public class SerializationUtils {
     }
 
     /**
+     * Returns a JSON representation of the provided value, or an empty string if conversion fails.
+     * This is a convenience function for cases like {@link Object#toString()}.
+     *
+     * @param value The value that will be converted to JSON
+     * @param <T> The type of the {@code value}
+     * @return A JSON representation of the {@code value}, or an empty string if conversion fails
+     */
+    public static <T> String toYamlStringOrEmpty(T value) {
+        try {
+            return toYamlString(value);
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    /**
      * Returns the object represented by the provided YAML string created via
      * {@link #toYamlString(Object)}.
      */
@@ -89,6 +105,22 @@ public class SerializationUtils {
      */
     public static <T> String toJsonString(T value) throws IOException {
         return toString(value, DEFAULT_JSON_MAPPER);
+    }
+
+    /**
+     * Returns a JSON representation of the provided value, or an empty string if conversion fails.
+     * This is a convenience function for cases like {@link Object#toString()}.
+     *
+     * @param value The value that will be converted to JSON
+     * @param <T> The type of the {@code value}
+     * @return A JSON representation of the {@code value}, or an empty string if conversion fails
+     */
+    public static <T> String toJsonStringOrEmpty(T value) {
+        try {
+            return toJsonString(value);
+        } catch (IOException e) {
+            return "";
+        }
     }
 
     /**
