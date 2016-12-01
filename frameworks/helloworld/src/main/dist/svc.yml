@@ -1,4 +1,4 @@
-name: "hello-world"
+me: "hello-world"
 principal: "hello-world-principal"
 zookeeper: master.mesos:2181
 api-port: 8080
@@ -11,6 +11,7 @@ pods:
         cmd: "echo hello >> hello-container-path/output && sleep 1000"
         cpus: {{HELLO_CPUS}}
         memory: 256
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-
+        volumes:
+          - path: "hello-container-path"
+            type: ROOT
+            size: 50
