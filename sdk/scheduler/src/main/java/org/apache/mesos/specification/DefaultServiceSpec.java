@@ -11,7 +11,7 @@ import org.apache.mesos.config.ConfigurationFactory;
 import org.apache.mesos.config.SerializationUtils;
 import org.apache.mesos.offer.constrain.*;
 import org.apache.mesos.specification.validation.UniquePodType;
-import org.apache.mesos.util.ValidationUtils;
+import org.apache.mesos.specification.validation.ValidationUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;

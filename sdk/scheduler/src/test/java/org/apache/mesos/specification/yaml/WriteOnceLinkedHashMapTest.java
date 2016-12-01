@@ -1,12 +1,13 @@
-package org.apache.mesos.util;
+package org.apache.mesos.specification.yaml;
 
+import org.apache.mesos.specification.yaml.WriteOnceLinkedHashMap;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.validation.ConstraintViolationException;
 
 /**
- * Test for WriteOnceLinkedHashMap.
+ * Test for {@link WriteOnceLinkedHashMap}.
  */
 public class WriteOnceLinkedHashMapTest {
     @Test

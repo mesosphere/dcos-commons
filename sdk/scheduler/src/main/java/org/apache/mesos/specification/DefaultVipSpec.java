@@ -1,10 +1,10 @@
 package org.apache.mesos.specification;
 
-import org.apache.mesos.util.ValidationUtils;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import org.apache.mesos.specification.validation.ValidationUtils;
 
 /**
  * Default implementation of {@link VipSpec}.

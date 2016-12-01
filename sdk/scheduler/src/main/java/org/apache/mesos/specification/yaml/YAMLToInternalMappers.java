@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.SchedulerUtils;
 import org.apache.mesos.specification.*;
-import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
 import java.io.File;
 import java.io.IOException;
