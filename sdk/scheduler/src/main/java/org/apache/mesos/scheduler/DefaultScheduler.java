@@ -34,7 +34,7 @@ import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.state.PersistentOperationRecorder;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
-import org.apache.mesos.state.api.JsonPropertyDeserializer;
+import org.apache.mesos.state.api.StringPropertyDeserializer;
 import org.apache.mesos.state.api.StateResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -423,7 +423,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));
-        resources.add(new StateResource(stateStore, new JsonPropertyDeserializer()));
+        resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         resources.add(new ConfigResource<ServiceSpec>(configStore));
         resourcesQueue.put(resources);

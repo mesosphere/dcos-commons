@@ -8,12 +8,15 @@ import static org.junit.Assert.assertEquals;
 
 import java.nio.charset.StandardCharsets;
 
-public class JsonPropertyDeserializerTest {
-    private JsonPropertyDeserializer deserializer;
+/**
+ * Tests for {@link StringPropertyDeserializer}.
+ */
+public class StringPropertyDeserializerTest {
+    private StringPropertyDeserializer deserializer;
 
     @Before
     public void before() {
-        deserializer = new JsonPropertyDeserializer();
+        deserializer = new StringPropertyDeserializer();
     }
 
     @Test
