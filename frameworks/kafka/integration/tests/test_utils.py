@@ -111,7 +111,8 @@ def get_marathon_config():
     response = dcos.http.get(marathon_api_url('apps/{}/versions'.format(PACKAGE_NAME)))
     assert response.status_code == 200, 'Marathon versions request failed'
 
-    version = response.json()['versions'][0]
+    last_index = len(response.json()['versions']) - 1
+    version = response.json()['versions'][last_index]
 
     response = dcos.http.get(marathon_api_url('apps/{}/versions/{}'.format(PACKAGE_NAME, version)))
     assert response.status_code == 200
