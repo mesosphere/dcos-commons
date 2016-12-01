@@ -4,14 +4,14 @@ zookeeper: master.mesos:2181
 api-port: 8080
 pods:
   hello:
-    count: {{COUNT}}
+    count: {{HELLO_COUNT}}
     tasks:
       server:
         goal: RUNNING
         cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: {{CPUS}}
+        cpus: {{HELLO_CPUS}}
         memory: 256
         volumes:
           - path: "hello-container-path"
             type: ROOT
-            size: 5000
+            size: 50
