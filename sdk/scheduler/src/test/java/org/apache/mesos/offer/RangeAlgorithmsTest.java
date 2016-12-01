@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.mesos.Protos.Value.Range;
-import org.apache.mesos.offer.RangeAlgorithms;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

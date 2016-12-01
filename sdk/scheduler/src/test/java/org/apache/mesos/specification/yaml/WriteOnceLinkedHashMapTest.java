@@ -1,6 +1,5 @@
 package org.apache.mesos.specification.yaml;
 
-import org.apache.mesos.specification.yaml.WriteOnceLinkedHashMap;
 import org.junit.Assert;
 import org.junit.Test;
 
