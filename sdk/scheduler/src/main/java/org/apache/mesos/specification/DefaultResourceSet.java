@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.specification.yaml.RawPort;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -184,10 +185,11 @@ public class DefaultResourceSet implements ResourceSet {
             return this;
         }
 
-        public Builder addPorts(Collection<Integer> ports) {
+        public Builder addPorts(Collection<RawPort> ports) {
             Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
 
-            for (Integer p : ports) {
+            for (RawPort rawPort : ports) {
+                Integer p = rawPort.getPort();
                 rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p).setEnd(p));
             }
             resources.add(DefaultResourceSpecification.newBuilder()
