@@ -19,7 +19,9 @@ cp -R frameworks/helloworld $1
 rm -rf $1/build
 rm -rf $1/cli/dcos-*/*.whl
 rm -rf $1/cli/dcos-*/dcos-*
+rm -rf $1/cli/python/{build,dist}
 mv $1/cli/dcos-hello-world $1/cli/dcos-$PROJECT_NAME
+mv $1/src/main/java/com/mesosphere/sdk/helloworld/ $1/src/main/java/com/mesosphere/sdk/$PROJECT_NAME/
 mv $1/src/test/java/com/mesosphere/sdk/helloworld/ $1/src/test/java/com/mesosphere/sdk/$PROJECT_NAME/
 
 if [ ! -d $1 ]; then
