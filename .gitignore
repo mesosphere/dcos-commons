@@ -13,6 +13,7 @@ genconf/
 tools/env/
 tools/cluster-*.properties
 tools/*.pem
+tools/dcostests_env/
 tools/shakedown_env/
 
 # idea
