@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.validation.UniqueResourceSet;
 import org.apache.mesos.specification.validation.UniqueTaskName;
-import org.apache.mesos.util.ValidationUtils;
+import org.apache.mesos.specification.validation.ValidationUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;

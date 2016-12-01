@@ -1,4 +1,4 @@
-package org.apache.mesos.util;
+package org.apache.mesos.specification.yaml;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;

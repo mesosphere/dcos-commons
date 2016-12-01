@@ -4,10 +4,10 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.specification.validation.ValidationUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.mesos.util.ValidationUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;

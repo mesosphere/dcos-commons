@@ -1,18 +1,25 @@
-package org.apache.mesos.util;
+package org.apache.mesos.offer;
 
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.apache.mesos.Protos.Value.Range;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * A utility class for commonly needed algorithms for Mesos frameworks.
  */
-public final class Algorithms {
-    public static List<Range> mergeRanges(List<Range> r1, List<Range> r2) {
+final class RangeAlgorithms {
+
+    private RangeAlgorithms() {
+        // do not instantiate
+    }
+
+    /**
+     * Combines and flattens the provided sets of ranges into a unified set.
+     */
+    static List<Range> mergeRanges(List<Range> r1, List<Range> r2) {
         List<Interval> intervals = rangesToIntervals(r1);
         intervals.addAll(rangesToIntervals(r2));
         IntervalSet intervalSet = intervalsToIntervalSet(intervals);
@@ -20,38 +27,23 @@ public final class Algorithms {
         return intervalsToRanges(intervalSet.getIntervals());
     }
 
-    public static List<Range> subtractRanges(List<Range> minuend, List<Range> subtrahend) {
+    /**
+     * Removes the range intervals listed in {@code subtrahend} from {@code minuend}.
+     */
+    static List<Range> subtractRanges(List<Range> minuend, List<Range> subtrahend) {
         IntervalSet iMinuend = intervalsToIntervalSet(rangesToIntervals(minuend));
         IntervalSet iSubtrahend = intervalsToIntervalSet(rangesToIntervals(subtrahend));
         IntervalSet iDifference = IntervalSet.subtract(iMinuend, iSubtrahend);
         return intervalSetToRanges(iDifference);
     }
 
-    public static boolean rangesEqual(List<Range> list1, List<Range> list2) {
+    /**
+     * Returns whether the provided sets of ranges are equivalent when any overlaps are flattened.
+     */
+    static boolean rangesEqual(List<Range> list1, List<Range> list2) {
         IntervalSet i1 = intervalsToIntervalSet(rangesToIntervals(list1));
         IntervalSet i2 = intervalsToIntervalSet(rangesToIntervals(list2));
         return i1.equals(i2);
-    }
-
-    public static List<Range> createRanges(Collection<Integer> elements) {
-        int[] integers = toIntArray(elements);
-        return intervalsToRanges(new IntervalSet(integers).getIntervals());
-    }
-
-    public static int countValuesInRanges(List<Range> ranges) {
-        return rangesToIntervalSet(ranges).size();
-    }
-
-    private static int[] toIntArray(Collection<Integer> integers){
-        int[] output = new int[integers.size()];
-
-        int i = 0;
-        for (Integer input : integers) {
-            output[i] = input;
-            i++;
-        }
-
-        return output;
     }
 
     private static Interval rangeToInterval(Range range) {
@@ -74,10 +66,6 @@ public final class Algorithms {
         }
 
         return intervals;
-    }
-
-    private static IntervalSet rangesToIntervalSet(List<Range> ranges) {
-        return intervalsToIntervalSet(rangesToIntervals(ranges));
     }
 
     private static List<Range> intervalsToRanges(List<Interval> intervals) {

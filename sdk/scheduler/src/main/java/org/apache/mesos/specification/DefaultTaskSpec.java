@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.offer.TaskUtils;
-import org.apache.mesos.util.ValidationUtils;
+import org.apache.mesos.specification.validation.ValidationUtils;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
