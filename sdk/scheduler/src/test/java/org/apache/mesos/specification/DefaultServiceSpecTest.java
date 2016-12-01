@@ -1,6 +1,7 @@
 package org.apache.mesos.specification;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import org.apache.mesos.Protos;
 import org.apache.mesos.specification.yaml.RawServiceSpecification;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.junit.Assert;
@@ -13,6 +14,7 @@ import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultServiceSpecTest {
     @Rule
@@ -48,6 +50,30 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
+    }
+
+    @Test
+    public void validPortResource() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());
+        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateServiceSpec(rawServiceSpecification);
+
+        List<ResourceSpecification> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+                .getResources()
+                .stream()
+                .filter(r -> r.getName().equals("ports"))
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(1, portsResources.size());
+
+        Protos.Value.Ranges ports = portsResources.get(0).getValue().getRanges();
+        Assert.assertEquals(2, ports.getRangeCount());
+        Assert.assertEquals(8080, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
+        Assert.assertEquals(8088, ports.getRange(1).getBegin(), ports.getRange(1).getEnd());
     }
 
     @Test

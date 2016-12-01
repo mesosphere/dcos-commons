@@ -257,7 +257,7 @@ public class YAMLToInternalMappers {
         }
 
         if (CollectionUtils.isNotEmpty(ports)) {
-            ports.stream().map(rawPort -> resourceSetBuilder.addPorts(Arrays.asList(rawPort.getPort())));
+            resourceSetBuilder.addPorts(ports);
         }
 
         return resourceSetBuilder
