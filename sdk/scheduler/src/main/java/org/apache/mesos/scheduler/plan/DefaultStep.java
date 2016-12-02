@@ -21,12 +21,14 @@ import java.util.*;
  * This class is a default implementation of the Step interface.
  */
 public class DefaultStep extends DefaultObservable implements Step {
+    /** Non-static to ensure that we inherit the names of subclasses. */
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final String name;
     private final Optional<OfferRequirement> offerRequirementOptional;
     private final UUID id = UUID.randomUUID();
     private final List<String> errors;
-    private final Strategy strategy = new ParallelStrategy();
+    private final Strategy<Step> strategy = new ParallelStrategy<>();
     private final Object statusLock = new Object();
     private final PodInstance podInstance;
     private Status status;
@@ -40,46 +42,10 @@ public class DefaultStep extends DefaultObservable implements Step {
             List<String> errors) {
         this.name = name;
         this.offerRequirementOptional = offerRequirementOptional;
-        this.status = status;
         this.podInstance = podInstance;
         this.errors = errors;
 
         setStatus(status); // Log initial status
-    }
-
-    /**
-     * This method may be triggered by external components via the {@link #updateOfferStatus(Collection)} method in
-     * particular, so it is synchronized to avoid inconsistent expectations regarding what TaskIDs are relevant to it.
-     *
-     * @param operations The Operations which were performed in response to the OfferRequirement provided by
-     * {@link #start()}
-     */
-    private synchronized void setTaskIds(Collection <Protos.Offer.Operation> operations) {
-        tasks.clear();
-
-        for (Protos.Offer.Operation operation : operations) {
-            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
-                    tasks.put(taskInfo.getTaskId(), Status.IN_PROGRESS);
-                }
-            }
-        }
-
-        logger.info("Step is now waiting for updates for task IDs: {}", tasks);
-    }
-
-    @Override
-    public void setStatus(Status newStatus) {
-        Status oldStatus;
-        synchronized (statusLock) {
-            oldStatus = status;
-            status = newStatus;
-            logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
-        }
-
-        if (!oldStatus.equals(newStatus)) {
-            notifyObservers();
-        }
     }
 
     @Override
@@ -87,11 +53,13 @@ public class DefaultStep extends DefaultObservable implements Step {
         return offerRequirementOptional;
     }
 
-    @Override
-    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
-        logger.info("Updated with operations: {}", operations);
-        setTaskIds(operations);
-
+    /**
+     * Synchronized to ensure consistency between this and {@link #update(Protos.TaskStatus)}.
+     */
+    public synchronized void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
+        tasks.clear();
+        tasks.putAll(toTaskStatuses(operations));
+        logger.info("Updated with {} operations: '{}' task IDs: '{}'", operations.size(), operations, tasks);
         if (!operations.isEmpty()) {
             setStatus(Status.IN_PROGRESS);
         }
@@ -137,16 +105,18 @@ public class DefaultStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public List<Element> getChildren() {
+    public List<Element<?>> getChildren() {
         return Collections.emptyList();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Strategy<? extends Element> getStrategy() {
+    public Strategy<Step> getStrategy() {
         return strategy;
     }
 
+    /**
+     * Synchronized to ensure consistency between this and {@link #updateOfferStatus(Collection)}.
+     */
     @Override
     public synchronized void update(Protos.TaskStatus status) {
         if (!tasks.containsKey(status.getTaskId())) {
@@ -205,7 +175,7 @@ public class DefaultStep extends DefaultObservable implements Step {
         setStatus(getStatus(tasks));
     }
 
-    private Status getStatus(Map<Protos.TaskID, Status> tasks) {
+    private static Status getStatus(Map<Protos.TaskID, Status> tasks) {
         if (tasks.isEmpty()) {
             return Status.PENDING;
         }
@@ -218,6 +188,18 @@ public class DefaultStep extends DefaultObservable implements Step {
         }
 
         return Status.COMPLETE;
+    }
+
+    private static Map<Protos.TaskID, Status> toTaskStatuses(Collection<Protos.Offer.Operation> operations) {
+        Map<Protos.TaskID, Status> tasks = new HashMap<>();
+        for (Protos.Offer.Operation operation : operations) {
+            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
+                for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
+                    tasks.put(taskInfo.getTaskId(), Status.IN_PROGRESS);
+                }
+            }
+        }
+        return tasks;
     }
 
     @Override
@@ -238,5 +220,25 @@ public class DefaultStep extends DefaultObservable implements Step {
     @VisibleForTesting
     public Map<Protos.TaskID, Status> getExpectedTasks() {
         return tasks;
+    }
+
+    /**
+     * Updates the status setting and logs the outcome. Should only be called either by tests, by
+     * {@code this}, or by subclasses.
+     *
+     * @param newStatus the new status to be set
+     */
+    @VisibleForTesting
+    void setStatus(Status newStatus) {
+        Status oldStatus;
+        synchronized (statusLock) {
+            oldStatus = status;
+            status = newStatus;
+            logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+        }
+
+        if (!Objects.equals(oldStatus, newStatus)) {
+            notifyObservers();
+        }
     }
 }

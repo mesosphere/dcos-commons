@@ -56,6 +56,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
+    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -344,7 +345,14 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     public Collection<Object> getResources() throws InterruptedException {
         if (resources == null) {
-            resources = resourcesQueue.take();
+            // Wait up to 60 seconds for resources to be available. This should be
+            // near-instantaneous, we just have an explicit deadline to avoid the potential for
+            // waiting indefinitely.
+            resources = resourcesQueue.poll(AWAIT_RESOURCES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            if (resources == null) {
+                throw new RuntimeException(String.format(
+                        "Timed out waiting %dms for resources from scheduler", AWAIT_RESOURCES_TIMEOUT_MS));
+            }
         }
 
         return resources;
@@ -410,7 +418,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore, stateStore),
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
@@ -426,7 +434,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         resources.add(new ConfigResource<ServiceSpec>(configStore));
-        resourcesQueue.put(resources);
+        // use add() instead of put(): throw exception instead of waiting indefinitely
+        resourcesQueue.add(resources);
     }
 
     private void logOffers(List<Protos.Offer> offers) {

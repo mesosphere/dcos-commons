@@ -10,6 +10,7 @@ import java.util.Collection;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
+@SuppressWarnings("rawtypes")
 public interface Strategy<C extends Element> {
     Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets);
 

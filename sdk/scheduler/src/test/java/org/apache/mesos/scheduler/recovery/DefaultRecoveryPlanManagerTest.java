@@ -22,12 +22,14 @@ import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
@@ -55,6 +57,12 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest {
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    static {
+        environmentVariables.set("PORT0", "8080");
+    }
 
     private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
@@ -74,7 +82,6 @@ public class DefaultRecoveryPlanManagerTest {
     private PlanCoordinator planCoordinator;
     private PlanManager mockDeployManager;
     private TaskFailureListener taskFailureListener;
-    private EnvironmentVariables environmentVariables;
     private ServiceSpec serviceSpec;
 
     private static TestingServer testingServer;
@@ -108,9 +115,6 @@ public class DefaultRecoveryPlanManagerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());

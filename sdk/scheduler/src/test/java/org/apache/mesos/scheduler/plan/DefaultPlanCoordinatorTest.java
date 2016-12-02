@@ -17,12 +17,14 @@ import org.apache.mesos.specification.PodSpec;
 import org.apache.mesos.specification.TestPodFactory;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
@@ -36,6 +38,11 @@ import static org.mockito.Mockito.mock;
  * Tests for {@code DefaultPlanCoordinator}.
  */
 public class DefaultPlanCoordinatorTest {
+
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+
     private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
     public static final int SUFFICIENT_MEM = 2000;
@@ -90,13 +97,11 @@ public class DefaultPlanCoordinatorTest {
     private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
-    private EnvironmentVariables environmentVariables;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
         testingServer = new TestingServer();
     }
-
 
     @Before
     public void setupTest() throws Exception {
@@ -132,8 +137,6 @@ public class DefaultPlanCoordinatorTest {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podB))
                 .build();
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
@@ -245,7 +248,7 @@ public class DefaultPlanCoordinatorTest {
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);
 
-        planB.getChildren().get(0).getChildren().get(0).setStatus(Status.IN_PROGRESS);
+        ((DefaultStep) planB.getChildren().get(0).getChildren().get(0)).setStatus(Status.IN_PROGRESS);
 
         // PlanA and PlanB have similar asset names. PlanA is configured to run before PlanB.
         // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in IN_PROGRESS.

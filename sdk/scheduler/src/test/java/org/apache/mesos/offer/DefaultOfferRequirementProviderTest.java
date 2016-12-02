@@ -7,11 +7,13 @@ import org.apache.mesos.config.DefaultTaskConfigRouter;
 import org.apache.mesos.offer.constrain.PlacementRule;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -35,8 +37,11 @@ public class DefaultOfferRequirementProviderTest {
         }
     };
 
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+
     private DefaultOfferRequirementProvider provider;
-    private EnvironmentVariables environmentVariables;
 
     @Mock private StateStore stateStore;
 
@@ -57,9 +62,6 @@ public class DefaultOfferRequirementProviderTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
 
         when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
         when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);

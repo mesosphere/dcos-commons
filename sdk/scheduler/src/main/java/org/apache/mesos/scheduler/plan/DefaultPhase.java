@@ -51,16 +51,7 @@ public class DefaultPhase extends ChainedObserver implements Phase {
 
     @Override
     public Status getStatus() {
-        if (getStrategy().isInterrupted()) {
-            return Status.WAITING;
-        }
-
         return PlanUtils.getStatus(this);
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        PlanUtils.setStatus(getChildren(), status);
     }
 
     @Override

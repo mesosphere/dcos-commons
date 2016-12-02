@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
+@SuppressWarnings("rawtypes")
 public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private AtomicBoolean initialized = new AtomicBoolean(false);

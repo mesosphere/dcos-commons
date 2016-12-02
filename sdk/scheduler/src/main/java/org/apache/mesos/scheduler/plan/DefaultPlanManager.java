@@ -4,8 +4,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.scheduler.ChainedObserver;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,16 +35,6 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
 
     @Override
     public Set<String> getDirtyAssets() {
-        Set<String> dirtyAssets = new HashSet<>();
-        final List<? extends Phase> phases = plan.getChildren();
-        for (Phase phase : phases) {
-            final List<? extends Step> steps = phase.getChildren();
-            for (Step step : steps) {
-                if (step.isInProgress()) {
-                    dirtyAssets.add(step.getName());
-                }
-            }
-        }
-        return dirtyAssets;
+        return PlanUtils.getDirtyAssets(plan);
     }
 }

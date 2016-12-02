@@ -6,6 +6,8 @@ import org.apache.mesos.scheduler.DefaultObservable;
 import org.apache.mesos.scheduler.plan.strategy.SerialStrategy;
 import org.apache.mesos.scheduler.plan.strategy.Strategy;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.*;
 
 /**
@@ -26,7 +28,7 @@ public class TestStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public List<Element> getChildren() {
+    public List<Element<?>> getChildren() {
         return Collections.emptyList();
     }
 
@@ -81,6 +83,16 @@ public class TestStep extends DefaultObservable implements Step {
     }
 
     @Override
+    public void restart() {
+        setStatus(Status.PENDING);
+    }
+
+    @Override
+    public void forceComplete() {
+        setStatus(Status.COMPLETE);
+    }
+
+    @VisibleForTesting
     public void setStatus(Status status) {
         this.status = status;
     }

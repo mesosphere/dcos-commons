@@ -10,7 +10,8 @@ import java.util.Collection;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-public class DependencyStrategy<C extends Element> extends InterruptableStrategy<C> {
+@SuppressWarnings("rawtypes")
+public class DependencyStrategy<C extends Element> extends InterruptibleStrategy<C> {
     private final DependencyStrategyHelper<C> helper;
 
     public DependencyStrategy(DependencyStrategyHelper<C> helper) {

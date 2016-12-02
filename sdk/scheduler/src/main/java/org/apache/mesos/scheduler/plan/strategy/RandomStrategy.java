@@ -10,7 +10,8 @@ import java.util.*;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-public class RandomStrategy<C extends Element> extends InterruptableStrategy<C> {
+@SuppressWarnings("rawtypes")
+public class RandomStrategy<C extends Element> extends InterruptibleStrategy<C> {
 
     @Override
     public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {

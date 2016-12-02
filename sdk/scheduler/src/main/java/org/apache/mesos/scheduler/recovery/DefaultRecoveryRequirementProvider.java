@@ -9,7 +9,6 @@ import org.apache.mesos.offer.TaskUtils;
 import org.apache.mesos.specification.PodInstance;
 import org.apache.mesos.specification.ServiceSpec;
 import org.apache.mesos.specification.TaskSpec;
-import org.apache.mesos.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,15 +26,12 @@ public class DefaultRecoveryRequirementProvider implements RecoveryRequirementPr
 
     private final OfferRequirementProvider offerRequirementProvider;
     private final ConfigStore<ServiceSpec> configStore;
-    private final StateStore stateStore;
 
     public DefaultRecoveryRequirementProvider(
             OfferRequirementProvider offerRequirementProvider,
-            ConfigStore<ServiceSpec> configStore,
-            StateStore stateStore) {
+            ConfigStore<ServiceSpec> configStore) {
         this.offerRequirementProvider = offerRequirementProvider;
         this.configStore = configStore;
-        this.stateStore = stateStore;
     }
 
     @Override

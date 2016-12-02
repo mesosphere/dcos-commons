@@ -12,9 +12,11 @@ import org.apache.mesos.scheduler.DefaultScheduler;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
@@ -27,6 +29,11 @@ import java.util.UUID;
  * This class tests the {@link DefaultStepFactory} class.
  */
 public class DefaultStepFactoryTest {
+
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+
     private static final TaskSpec taskSpec0 =
             TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
     private static final TaskSpec taskSpec1 =
@@ -41,7 +48,6 @@ public class DefaultStepFactoryTest {
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(POD_SPEC, 0);
     private static TestingServer testingServer;
 
-    private EnvironmentVariables environmentVariables;
     private StepFactory stepFactory;
     private ConfigStore<ServiceSpec> configStore;
     private StateStore stateStore;
@@ -65,9 +71,6 @@ public class DefaultStepFactoryTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testingServer);
-
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
 
         stateStore = new CuratorStateStore(
                 "test-framework-name",

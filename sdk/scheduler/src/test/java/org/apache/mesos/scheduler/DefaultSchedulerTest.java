@@ -25,6 +25,7 @@ import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.state.StateStoreCache;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.OfferTestUtils;
 import org.apache.mesos.testutils.ResourceTestUtils;
 import org.apache.mesos.testutils.TestConstants;
@@ -59,6 +60,9 @@ public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
     @Mock
     private SchedulerDriver mockSchedulerDriver;
     @Captor
@@ -156,7 +160,6 @@ public class DefaultSchedulerTest {
     private ConfigStore<ServiceSpec> configStore;
     private OfferRequirementProvider offerRequirementProvider;
     private DefaultScheduler defaultScheduler;
-    private EnvironmentVariables environmentVariables;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -167,8 +170,6 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
 
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(

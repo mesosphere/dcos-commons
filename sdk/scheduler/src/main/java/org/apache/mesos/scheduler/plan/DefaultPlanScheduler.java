@@ -35,15 +35,9 @@ public class DefaultPlanScheduler implements PlanScheduler {
             final SchedulerDriver driver,
             final List<Offer> offers,
             final Collection<? extends Step> steps) {
-
-        if (driver == null) {
-            logger.error("driver was null");
-            return Collections.emptyList();
-        } else if (offers == null) {
-            logger.error("offers was null");
-            return Collections.emptyList();
-        } else if (steps == null) {
-            logger.error("steps was null");
+        if (driver == null || offers == null || steps == null) {
+            logger.error("Unexpected null argument(s) encountered: driver='{}' offers='{}', steps='{}'",
+                    driver, offers, steps);
             return Collections.emptyList();
         }
 
@@ -55,7 +49,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
             availableOffers = PlanUtils.filterAcceptedOffers(availableOffers, acceptedOfferIds);
         }
 
-        return  acceptedOfferIds;
+        return acceptedOfferIds;
     }
 
     private Collection<OfferID> resourceOffers(
@@ -63,21 +57,9 @@ public class DefaultPlanScheduler implements PlanScheduler {
             List<Offer> offers,
             Step step) {
 
-        List<OfferID> acceptedOffers = new ArrayList<>();
-
-        if (driver == null || offers == null) {
-            logger.error("Unexpected null argument encountered: driver='{}' offers='{}'", driver, offers);
-            return acceptedOffers;
-        }
-
-        if (step == null) {
-            logger.info("Ignoring resource offers for null step.");
-            return acceptedOffers;
-        }
-
         if (!step.isPending()) {
             logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
-            return acceptedOffers;
+            return Collections.emptyList();
         }
 
         logger.info("Processing resource offers for step: {}", step.getName());
@@ -85,7 +67,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         if (!offerRequirementOptional.isPresent()) {
             logger.info("No OfferRequirement for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
-            return acceptedOffers;
+            return Collections.emptyList();
         }
 
         OfferRequirement offerRequirement = offerRequirementOptional.get();
@@ -103,17 +85,17 @@ public class DefaultPlanScheduler implements PlanScheduler {
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
                     step.getName(), offerRequirement);
             step.updateOfferStatus(Collections.emptyList());
-            return acceptedOffers;
+            return Collections.emptyList();
         }
 
-        acceptedOffers = offerAccepter.accept(driver, recommendations);
+        List<OfferID> acceptedOffers = offerAccepter.accept(driver, recommendations);
         // Notify step of offer outcome:
-        if (acceptedOffers.size() > 0) {
-            step.updateOfferStatus(getOperations(recommendations));
-        } else {
-            // If no Operations occurred it may be of interest to the Step.  For example it may want to set it's state
+        if (acceptedOffers.isEmpty()) {
+            // If no Operations occurred it may be of interest to the Step.  For example it may want to set its state
             // to Pending to ensure it will be reattempted on the next Offer cycle.
             step.updateOfferStatus(Collections.emptyList());
+        } else {
+            step.updateOfferStatus(getOperations(recommendations));
         }
 
         return acceptedOffers;
@@ -126,7 +108,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         }
     }
 
-    private Collection<Offer.Operation> getOperations(Collection<OfferRecommendation> recommendations) {
+    private static Collection<Offer.Operation> getOperations(Collection<OfferRecommendation> recommendations) {
         return recommendations.stream()
                 .map(OfferRecommendation::getOperation)
                 .collect(Collectors.toList());

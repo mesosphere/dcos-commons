@@ -15,11 +15,13 @@ import org.apache.mesos.scheduler.recovery.monitor.NeverFailureMonitor;
 import org.apache.mesos.specification.*;
 import org.apache.mesos.state.StateStore;
 import org.apache.mesos.testing.CuratorTestUtils;
+import org.apache.mesos.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.testutils.TaskTestUtils;
 import org.apache.mesos.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
@@ -53,7 +55,10 @@ public class DefaultRecoveryRequirementProviderTest {
                     .build();
 
     private static TestingServer testingServer;
-    private EnvironmentVariables environmentVariables;
+
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
@@ -68,9 +73,6 @@ public class DefaultRecoveryRequirementProviderTest {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testingServer);
-
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
 
         stateStore = new CuratorStateStore(
                 "test-framework-name",
@@ -88,10 +90,8 @@ public class DefaultRecoveryRequirementProviderTest {
                 new DefaultTaskConfigRouter(),
                 stateStore,
                 configId);
-        recoveryRequirementProvider = new DefaultRecoveryRequirementProvider(
-                offerRequirementProvider,
-                configStore,
-                stateStore);
+        recoveryRequirementProvider =
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore);
 
     }
 

@@ -12,6 +12,11 @@ import java.util.List;
  * This class provides utilities for tests concerned with Offers.
  */
 public class OfferTestUtils {
+
+    private OfferTestUtils() {
+        // do not instantiate
+    }
+
     public static List<Protos.Offer> getOffers(List<Protos.Resource> resources) {
         return Arrays.asList(getOffer(resources));
     }

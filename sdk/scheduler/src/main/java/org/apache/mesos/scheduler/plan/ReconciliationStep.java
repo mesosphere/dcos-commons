@@ -9,6 +9,8 @@ import org.apache.mesos.scheduler.plan.strategy.Strategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.*;
 
 
@@ -97,12 +99,7 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    @Override
-    public List<Element> getChildren() {
+    public List<Element<?>> getChildren() {
         return Collections.emptyList();
     }
 
@@ -125,5 +122,22 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     @Override
     public List<String> getErrors() {
         return Collections.emptyList();
+    }
+
+    /**
+     * Updates the status setting and logs the outcome. Should only be called either by tests, by
+     * {@code this}, or by subclasses.
+     *
+     * @param newStatus the new status to be set
+     */
+    @VisibleForTesting
+    void setStatus(Status newStatus) {
+        Status oldStatus = status;
+        status = newStatus;
+        logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
+
+        if (!Objects.equals(oldStatus, newStatus)) {
+            notifyObservers();
+        }
     }
 }

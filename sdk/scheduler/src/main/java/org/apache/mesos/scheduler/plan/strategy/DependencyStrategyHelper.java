@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
  *
  * @param <C> is the type of {@link Element}s to which the dependencies captured here apply.
  */
+@SuppressWarnings("rawtypes")
 public class DependencyStrategyHelper<C extends Element> {
     private final Map<C, Set<C>> dependencies;
 
