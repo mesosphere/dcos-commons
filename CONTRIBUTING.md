@@ -10,7 +10,7 @@ Contributors Guide
 Discuss contributions to DC/OS SDK using GitHub [issues](https://github.com/mesosphere/dcos-commons/issues) and make contributions with GitHub [pull requests](https://github.com/mesosphere/dcos-commons/pulls).
 
 ### Proposing Features
-If you would like to propose a new feature or a significant change, first open an issue to discuss it.  Project shepherds will provide feedback on the proposed change in terms of feasability, design, and implementation guidance.  While all proposals are welcome, those that conflict with our roadmap or design principles may not be accepted.
+If you would like to propose a new feature or a significant change, first open an issue to discuss it.  Project shepherds will provide feedback on the proposed change in terms of feasibility, design, and implementation guidance.  While all proposals are welcome, those that conflict with our roadmap or design principles may not be accepted.
 
 ### Creating Pull Requests
 Create pull requests against the [`master`](https://github.com/mesosphere/dcos-commons/tree/master) branch. Be sure to include unit tests and integration tests, as well as updates to the documentation, default scheduler, and reference framework if necessary.
