@@ -1,3 +1,8 @@
+---
+layout: gh-basic
+title: Tutorial
+---
+
 # Overview
 
 Mesos is a powerful resource allocator, but writing a production
