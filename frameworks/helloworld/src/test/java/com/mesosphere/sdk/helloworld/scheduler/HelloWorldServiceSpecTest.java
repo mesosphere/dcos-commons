@@ -3,15 +3,15 @@ package com.mesosphere.sdk.helloworld.scheduler;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.ConfigurationUpdater;
-import org.apache.mesos.offer.OfferRequirementProvider;
-import org.apache.mesos.scheduler.DefaultScheduler;
-import org.apache.mesos.specification.DefaultServiceSpec;
-import org.apache.mesos.specification.ServiceSpec;
-import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
-import org.apache.mesos.state.StateStore;
-import org.apache.mesos.state.StateStoreCache;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigurationUpdater;
+import com.mesosphere.sdk.offer.OfferRequirementProvider;
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -20,7 +20,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.util.Collections;
 
-import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
 public class HelloWorldServiceSpecTest {
     @ClassRule

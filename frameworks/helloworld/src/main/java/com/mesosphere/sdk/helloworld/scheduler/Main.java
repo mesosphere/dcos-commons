@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import org.apache.mesos.specification.*;
+import com.mesosphere.sdk.specification.*;
 
 import java.io.File;
 
