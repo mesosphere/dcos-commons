@@ -1,7 +1,6 @@
 <p align="left">
   <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/>
 </p>
-![Status](https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square)
 
 [__Quick Start__](README.md#quick-start) |
 [__FAQ__](docs/faq.md) |
@@ -10,8 +9,12 @@
 [__Slack__](http://chat.dcos.io)
 
 =========
-The __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration and automation of stateful services, such as databases, message brokers, and caching services.
+__DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration and automation of stateful services, such as databases, message brokers, and caching services.
 
+![Status](https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square)
+
+DC/OS SDK is currently in alpha stage: it can run services, but APIs change regularly, and features are under active development.
+ 
 ### Benefits
 
 * __Simple and Flexible__: The SDK provides the simplicity of a declarative YAML API as well as the flexibility to use the full Java programming language.
