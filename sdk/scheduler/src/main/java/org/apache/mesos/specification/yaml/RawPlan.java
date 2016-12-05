@@ -1,7 +1,6 @@
 package org.apache.mesos.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.mesos.util.WriteOnceLinkedHashMap;
 
 /**
  * Raw YAML plan.

@@ -39,4 +39,11 @@ distributions {
     }
 }
 
+test {
+    filter {
+        //include all tests from package
+        includeTestsMatching "com.mesosphere.sdk.helloworld.*"
+    }
+}
+
 mainClassName = 'com.mesosphere.sdk.helloworld.scheduler.Main'

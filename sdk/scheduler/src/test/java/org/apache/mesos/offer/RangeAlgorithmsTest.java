@@ -1,4 +1,4 @@
-package org.apache.mesos.util;
+package org.apache.mesos.offer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,16 +10,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link Algorithms}.
+ * Tests for {@link RangeAlgorithms}.
  */
-public class AlgorithmsTest {
+public class RangeAlgorithmsTest {
 
     @Test
     public void testMergingOverlappingRanges() {
         List<Range> r1 = Arrays.asList(getRange(1, 3));
         List<Range> r2 = Arrays.asList(getRange(2, 4));
 
-        List<Range> mergedRanges = Algorithms.mergeRanges(r1, r2);
+        List<Range> mergedRanges = RangeAlgorithms.mergeRanges(r1, r2);
 
         assertEquals(1, mergedRanges.size());
         assertEquals(1, mergedRanges.get(0).getBegin());
@@ -31,7 +31,7 @@ public class AlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(1, 3));
         List<Range> r2 = Arrays.asList(getRange(5, 7));
 
-        List<Range> mergedRanges = Algorithms.mergeRanges(r1, r2);
+        List<Range> mergedRanges = RangeAlgorithms.mergeRanges(r1, r2);
 
         assertEquals(2, mergedRanges.size());
         assertEquals(1, mergedRanges.get(0).getBegin());
@@ -45,7 +45,7 @@ public class AlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(1, 5));
         List<Range> r2 = Arrays.asList(getRange(2, 4));
 
-        List<Range> mergedRanges = Algorithms.mergeRanges(r1, r2);
+        List<Range> mergedRanges = RangeAlgorithms.mergeRanges(r1, r2);
 
         assertEquals(1, mergedRanges.size());
         assertEquals(1, mergedRanges.get(0).getBegin());
@@ -57,7 +57,7 @@ public class AlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(1, 3), getRange(5, 7));
         List<Range> r2 = Arrays.asList(getRange(1, 3));
 
-        List<Range> difference = Algorithms.subtractRanges(r1, r2);
+        List<Range> difference = RangeAlgorithms.subtractRanges(r1, r2);
 
         assertEquals(1, difference.size());
         assertEquals(5, difference.get(0).getBegin());
@@ -69,7 +69,7 @@ public class AlgorithmsTest {
         List<Range> r1 = Arrays.asList(getRange(2, 3));
         List<Range> r2 = Arrays.asList(getRange(1, 5));
 
-        List<Range> difference = Algorithms.subtractRanges(r1, r2);
+        List<Range> difference = RangeAlgorithms.subtractRanges(r1, r2);
 
         assertTrue(difference.isEmpty());
     }
