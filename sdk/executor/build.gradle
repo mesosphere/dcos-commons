@@ -32,4 +32,4 @@ distributions {
     }
 }
 
-mainClassName = 'org.apache.mesos.executor.Main'
+mainClassName = 'com.mesosphere.sdk.executor.Main'
