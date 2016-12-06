@@ -38,4 +38,11 @@ distributions {
     }
 }
 
+test {
+    filter {
+        //include all tests from package
+        includeTestsMatching "com.mesosphere.sdk.kafka.*"
+    }
+}
+
 mainClassName = 'com.mesosphere.sdk.kafka.scheduler.Main'

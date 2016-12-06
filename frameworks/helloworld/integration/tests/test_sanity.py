@@ -40,8 +40,8 @@ def test_bump_hello_cpus():
     print('hello ids: ' + str(hello_ids))
 
     config = get_marathon_config()
-    cpus = float(config['env']['CPUS'])
-    config['env']['CPUS'] = str(cpus + 0.1)
+    cpus = float(config['env']['HELLO_CPUS'])
+    config['env']['HELLO_CPUS'] = str(cpus + 0.1)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),
@@ -60,8 +60,8 @@ def test_bump_hello_nodes():
     print('hello ids: ' + str(hello_ids))
 
     config = get_marathon_config()
-    nodeCount = int(config['env']['COUNT']) + 1
-    config['env']['COUNT'] = str(nodeCount)
+    nodeCount = int(config['env']['HELLO_COUNT']) + 1
+    config['env']['HELLO_COUNT'] = str(nodeCount)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),

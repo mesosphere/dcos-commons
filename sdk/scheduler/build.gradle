@@ -13,7 +13,7 @@ ext {
     jacksonVer = "2.6.3"
     jacksonProtobufVer = "0.9.3"
     junitVer = "4.12"
-    mesosVer = "0.28.0"
+    mesosVer = "1.0.1"
     slf4jVer = "1.7.10"
     jsonVer = "20160212"
     protobufFormatVer = "1.4"
@@ -71,6 +71,7 @@ configurations {
 }
 
 dependencies {
+    compile project(":common")
     compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonVer}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVer}"
