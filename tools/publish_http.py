@@ -228,8 +228,9 @@ Artifacts:       {}
         logger.info('Install your package using the following command:')
     else:
         logger.info('Install your package using the following commands:')
-        logger.info('dcos package repo add --index=0 {}-aws {}'.format(package_name, universe_url))
-    logger.info('dcos package install {}'.format(package_name))
+        logger.info('dcos package repo remove {}-local'.format(package_name))
+        logger.info('dcos package repo add --index=0 {}-local {}'.format(package_name, universe_url))
+    logger.info('dcos package install --yes {}'.format(package_name))
     return 0
 
 

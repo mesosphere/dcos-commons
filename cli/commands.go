@@ -163,7 +163,7 @@ func HandleConnectionSection(app *kingpin.Application, connectionTypes []string)
 
 type PlanHandler struct {
 	PhaseId string
-	BlockId string
+	StepId  string
 }
 
 func (cmd *PlanHandler) RunActive(c *kingpin.ParseContext) error {
@@ -192,14 +192,14 @@ func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
 func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("phase", cmd.PhaseId)
-	query.Set("block", cmd.BlockId)
+	query.Set("step", cmd.StepId)
 	PrintJSON(HTTPPostQuery("v1/plan/forceComplete", query.Encode()))
 	return nil
 }
 func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("phase", cmd.PhaseId)
-	query.Set("block", cmd.BlockId)
+	query.Set("step", cmd.StepId)
 	PrintJSON(HTTPPostQuery("v1/plan/restart", query.Encode()))
 	return nil
 }
@@ -216,12 +216,12 @@ func HandlePlanSection(app *kingpin.Application) {
 	plan.Command("interrupt", "Interrupt the current InProgress operation").Action(cmd.RunInterrupt)
 
 	force := plan.Command("force", "Force the current operation to complete").Action(cmd.RunForce)
-	force.Arg("phase", "UUID of the Phase containing the provided Block").Required().StringVar(&cmd.PhaseId)
-	force.Arg("block", "UUID of Block to be restarted").Required().StringVar(&cmd.BlockId)
+	force.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
+	force.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
 
 	restart := plan.Command("restart", "Restart the current operation").Action(cmd.RunRestart)
-	restart.Arg("phase", "UUID of the Phase containing the provided Block").Required().StringVar(&cmd.PhaseId)
-	restart.Arg("block", "UUID of Block to be restarted").Required().StringVar(&cmd.BlockId)
+	restart.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
+	restart.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
 }
 
 // State section

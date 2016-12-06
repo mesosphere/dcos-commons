@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import org.apache.mesos.specification.*;
+import com.mesosphere.sdk.specification.*;
 
 import java.io.File;
 
@@ -8,8 +8,8 @@ import java.io.File;
  * Hello World Service.
  */
 public class Main {
-    private static final Integer COUNT = Integer.valueOf(System.getenv("COUNT"));
-    private static final Double CPUS = Double.valueOf(System.getenv("CPUS"));
+    private static final Integer COUNT = Integer.valueOf(System.getenv("HELLO_COUNT"));
+    private static final Double CPUS = Double.valueOf(System.getenv("HELLO_CPUS"));
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
