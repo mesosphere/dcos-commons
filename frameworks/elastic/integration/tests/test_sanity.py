@@ -16,10 +16,10 @@ DEFAULT_SETTINGS_MAPPINGS = {
                 "role": {"type": "keyword"}}}}}
 
 
-def setup_module(module):
-    uninstall()
-    gc_frameworks()
-    shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None, timeout_sec=WAIT_TIME_IN_SECONDS)
+# def setup_module(module):
+    # uninstall()
+    # gc_frameworks()
+    # shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None, timeout_sec=WAIT_TIME_IN_SECONDS)
 
 
 def setup_function(function):
@@ -27,8 +27,8 @@ def setup_function(function):
     wait_for_expected_nodes_to_exist()
 
 
-def teardown_module(module):
-    uninstall()
+# def teardown_module(module):
+#     uninstall()
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def default_populated_index():
     create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"})
 
 
-@pytest.mark.sanity
+@pytest.mark.hi
 def test_service_health():
     check_dcos_service_health()
 

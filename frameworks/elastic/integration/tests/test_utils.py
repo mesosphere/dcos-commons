@@ -222,7 +222,7 @@ def marathon_api_url(basename):
 
 
 def curl_api(method, http_port=DEFAULT_HTTP_PORT):
-    return "curl -X{} -s -u elastic:changeme 'http://master-0.{}.mesos:{}".format(method, PACKAGE_NAME, http_port)
+    return "curl -X{} -s -u elastic:changeme 'http://master-0-server.{}.mesos:{}".format(method, PACKAGE_NAME, http_port)
 
 
 def get_marathon_host():
