@@ -92,7 +92,7 @@ def test_master_reelection():
     check_new_elasticsearch_master_elected(initial_master)
 
 
-@pytest.mark.recovery
+@pytest.mark.plugins
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = get_elasticsearch_config()

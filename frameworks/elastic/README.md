@@ -102,7 +102,7 @@ To access your Kibana service running in DC/OS, you'll need to set up a HAProxy 
         }
     },
     "env": {
-        "CONFIGURL": "https://gist.githubusercontent.com/loren/c4eca3cd7b638a97346843bdef62a2d4/raw/fdaffbac55801b37e52237f39c2ad01b39102ee5/haproxy.cfg"
+        "CONFIGURL": "https://gist.githubusercontent.com/loren/c4eca3cd7b638a97346843bdef62a2d4/raw/e5bf09b79c4efbe847f9f7d75c489f4616ad558b/haproxy.cfg"
     },
     "acceptedResourceRoles": [
         "slave_public"

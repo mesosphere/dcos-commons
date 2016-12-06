@@ -172,6 +172,7 @@ public class DefaultService implements Service {
                 .setName(serviceSpec.getName())
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(USER)
+                .setWebuiUrl("http://kibana-0-server.elastic.mesos:5601")
                 .setRole(SchedulerUtils.nameToRole(serviceSpec.getName()))
                 .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpec.getName()))
                 .setCheckpoint(true);
