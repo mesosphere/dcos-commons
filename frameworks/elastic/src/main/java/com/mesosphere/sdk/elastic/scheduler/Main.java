@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
-import org.apache.mesos.specification.DefaultService;
+import com.mesosphere.sdk.specification.DefaultService;
 
 import java.io.File;
 
