@@ -3,7 +3,7 @@
   "cpus": 0.5,
   "mem": 1024,
   "instances": 1,
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/elastic ./scheduler/elastic_service.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/elastic ./scheduler/elastic_service.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -11,10 +11,14 @@
     "MARATHON_SINGLE_INSTANCE_APP":"true"
   },
   "env": {
-    "LD_LIBRARY_PATH": "/opt/mesosphere/lib",
+    "ELASTIC_VERSION": "5.0.0-beta1",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-bz2}}",
     "SERVICE_NAME": "{{service.name}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "PLAN_STRATEGY": "{{service.plan_strategy}}",
+    "ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
     "MASTER_NODE_CPUS": "{{master_nodes.cpus}}",
     "MASTER_NODE_MEM": "{{master_nodes.mem}}",
     "MASTER_NODE_HEAP_MB": "{{master_nodes.heap.size}}",
@@ -52,15 +56,12 @@
     "KIBANA_DISK": "{{kibana.disk}}",
     "KIBANA_DISK_TYPE": "{{kibana.disk_type}}",
     "KIBANA_PORT": "{{kibana.port}}",
-    "KIBANA_PASSWORD": "{{kibana.password}}",
-    "ELASTIC_VERSION": "5.0.0-beta1",
-    "ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
-    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
-    "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}"
+    "KIBANA_PASSWORD": "{{kibana.password}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
-    "{{resource.assets.uris.scheduler-zip}}"
+    "{{resource.assets.uris.scheduler-zip}}",
+    "{{resource.assets.uris.libmesos-bundle-tar-bz2}}"
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

@@ -14,7 +14,7 @@ repositories {
 }
 
 ext {
-    mesosVer = "0.28.0"
+    mesosVer = "1.0.1"
     junitVer = "4.12"
     systemRulesVer = "1.16.0"
     mockitoVer = "1.9.5"
@@ -22,18 +22,28 @@ ext {
 
 dependencies {
     compile project(":scheduler")
+    compile project(":executor")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     compile "org.apache.mesos:mesos:${mesosVer}"
     testCompile "org.mockito:mockito-all:${mockitoVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
-    testCompile 'de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1'
     testCompile "junit:junit:${junitVer}"
 }
+
+buildDir = new File(rootProject.projectDir, "build/")
 
 distributions {
     main {
         baseName = 'scheduler'
         version = ''
+    }
+}
+
+test {
+    filter {
+        //include all tests from package
+        includeTestsMatching "com.mesosphere.sdk.elastic.*"
+        setFailOnNoMatchingTests false
     }
 }
 

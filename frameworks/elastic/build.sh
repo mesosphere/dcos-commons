@@ -1,47 +1,17 @@
 #!/usr/bin/env bash
 
-# Prevent jenkins from immediately killing the script when a step fails, allowing us to notify github:
-set +e
+set -e
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $REPO_ROOT_DIR
+# capture anonymous metrics for reporting
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
 
-# Grab dcos-commons build/release tools:
-rm -rf dcos-commons-tools/ && curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
+FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT_DIR=$FRAMEWORK_DIR/../..
+BUILD_DIR=$ROOT_DIR/build/distributions
+PUBLISH_STEP=${1-none}
+${ROOT_DIR}/gradlew distZip -p ${ROOT_DIR}/sdk/executor
+./build_framework.sh $PUBLISH_STEP elastic $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/scheduler.zip
 
-# GitHub notifier config
-_notify_github() {
-    $REPO_ROOT_DIR/dcos-commons-tools/github_update.py $1 build $2
-}
 
-# Build steps for Elastic
-
-_notify_github pending "Build running"
-
-# Scheduler/Executor (Java):
-
-./gradlew --refresh-dependencies distZip
-if [ $? -ne 0 ]; then
-  _notify_github failure "Gradle build failed"
-  exit 1
-fi
-
-./gradlew check
-if [ $? -ne 0 ]; then
-  _notify_github failure "Unit tests failed"
-  exit 1
-fi
-
-# CLI (Go):
-#./cli/build-cli.sh
-#if [ $? -ne 0 ]; then
-#    _notify_github failure "CLI build failed"
-#    exit 1
-#fi
-
-_notify_github success "Build succeeded"
-
-./dcos-commons-tools/ci_upload.py \
-  elastic \
-  universe/ \
-  build/distributions/*.zip
+# capture anonymous metrics for reporting
+curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1

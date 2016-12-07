@@ -8,14 +8,25 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
+PUBLISH_STEP=$1
+shift
 FRAMEWORK_NAME=$1
-FRAMEWORK_DIR=$2
-PUBLISH_STEP=$3
+shift
+FRAMEWORK_DIR=$1
+shift
+ARTIFACT_FILES=$@
+
+echo PUBLISH_STEP=$PUBLISH_STEP
+echo FRAMEWORK_NAME=$FRAMEWORK_NAME
+echo FRAMEWORK_DIR=$FRAMEWORK_DIR
+echo ARTIFACT_FILES=$ARTIFACT_FILES
 
 # default paths/names within a framework directory:
+CLI_DIR=${CLI_DIR:=${FRAMEWORK_DIR}/cli}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
+CLI_EXE_NAME=${CLI_EXE_NAME:=dcos-${FRAMEWORK_NAME}}
 
-TOOLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TOOLS_DIR="$( cd ../../tools && pwd )"
 REPO_ROOT_DIR=$(dirname $TOOLS_DIR) # note: need an absolute path for REPO_CLI_RELATIVE_PATH below
 
 # GitHub notifier config
@@ -26,7 +37,7 @@ _notify_github() {
 _notify_github pending "Build running"
 
 # Service (Java):
-${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} clean check distZip
+${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
 if [ $? -ne 0 ]; then
   _notify_github failure "Gradle build failed"
   exit 1
@@ -34,7 +45,7 @@ fi
 
 _notify_github success "Build succeeded"
 
-case "$3" in
+case "$PUBLISH_STEP" in
     local)
         echo "Launching HTTP artifact server"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_http.py
@@ -56,5 +67,5 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
     $PUBLISH_SCRIPT \
         ${FRAMEWORK_NAME} \
         ${UNIVERSE_DIR} \
-        ${FRAMEWORK_DIR}/build/distributions/*.zip
+        ${ARTIFACT_FILES}
 fi
