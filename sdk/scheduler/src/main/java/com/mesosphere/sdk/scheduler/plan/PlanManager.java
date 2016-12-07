@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public interface PlanManager extends Observer, Observable {
     /**
-     * @return the Plan being managed my this instance
+     * @return the Plan being managed by this instance
      */
     Plan getPlan();
 

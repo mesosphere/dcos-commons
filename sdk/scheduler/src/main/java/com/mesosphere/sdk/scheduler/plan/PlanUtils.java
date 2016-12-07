@@ -80,7 +80,7 @@ public class PlanUtils {
      * Returns all of the errors from the parent and all its child {@link Element}s. Intended for
      * use by implementations of {@Link Element#getErrors()}.
      *
-     * @param parentErrors Errors to be included from the parent itself, will be modified in-place.
+     * @param parentErrors Errors from the parent itself, to be copied into the returned list
      * @param parent The parent element whose children will be scanned
      * @return a combined list of all errors from the parent and all its children
      */
