@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.plan.api;
+package com.mesosphere.sdk.api.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Immutable JSON serialization object for a Plan which includes child Phases.
+ * Immutable JSON serialization object for a {@link Plan} which includes child {@link Phase}s.
  */
-class PlanInfo {
+public class PlanInfo {
 
     private final List<PhaseInfo> phases;
     private final List<String> errors;

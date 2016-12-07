@@ -1,5 +1,8 @@
-package com.mesosphere.sdk.scheduler.plan.api;
+package com.mesosphere.sdk.api.types;
 
+import com.mesosphere.sdk.api.types.PhaseInfo;
+import com.mesosphere.sdk.api.types.PlanInfo;
+import com.mesosphere.sdk.api.types.StepInfo;
 import com.mesosphere.sdk.scheduler.plan.*;
 import org.junit.Before;
 import org.junit.Test;

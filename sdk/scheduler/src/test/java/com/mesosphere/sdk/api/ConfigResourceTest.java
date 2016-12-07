@@ -1,5 +1,6 @@
-package com.mesosphere.sdk.config.api;
+package com.mesosphere.sdk.api;
 
+import com.mesosphere.sdk.api.ConfigResource;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
