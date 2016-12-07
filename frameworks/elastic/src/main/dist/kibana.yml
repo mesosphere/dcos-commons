@@ -6,4 +6,3 @@ server.host: 0.0.0.0
 server.port: {{KIBANA_PORT}}
 xpack.security.encryptionKey: {{SERVICE_NAME}}
 xpack.reporting.encryptionKey: {{SERVICE_NAME}}
-server.basePath: "/service/elastic"
