@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
  */
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
-    private static final int CONFIG_TEMPLATE_LIMIT_BYTES = 512 * 1024; // 512KB
-    private static final String CONFIG_TEMPLATE_KEY_PREFIX = "config_template:";
 
     private TaskUtils() {
         // do not instantiate

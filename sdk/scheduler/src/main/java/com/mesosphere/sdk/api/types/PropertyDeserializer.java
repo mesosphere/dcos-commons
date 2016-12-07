@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.state.api;
+package com.mesosphere.sdk.api.types;
 
 import com.mesosphere.sdk.state.StateStoreException;
 

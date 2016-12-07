@@ -1,6 +1,7 @@
-package com.mesosphere.sdk.state.api;
+package com.mesosphere.sdk.api;
 
 import org.apache.mesos.Protos.*;
+
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import org.json.JSONArray;

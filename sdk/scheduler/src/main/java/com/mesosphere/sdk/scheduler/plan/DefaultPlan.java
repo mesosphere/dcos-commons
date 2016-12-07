@@ -26,19 +26,16 @@ public class DefaultPlan extends ChainedObserver implements Plan {
     private final List<Phase> phases;
     private final List<String> errors;
     private final String name;
-    private Status status;
 
     public DefaultPlan(
             final String name,
             final List<Phase> phases,
             final Strategy<Phase> strategy,
             final List<String> errors) {
-
         this.name = name;
         this.strategy = strategy;
         this.phases = phases;
         this.errors = errors;
-        this.status = getStatus();
 
         getChildren().forEach(phase -> phase.subscribe(this));
     }
@@ -73,13 +70,7 @@ public class DefaultPlan extends ChainedObserver implements Plan {
 
     @Override
     public Status getStatus() {
-        status = PlanUtils.getStatus(this);
-        return status;
-    }
-
-    @Override
-    public void setStatus(Status status) {
-        this.status = status;
+        return PlanUtils.getStatus(this);
     }
 
     @Override

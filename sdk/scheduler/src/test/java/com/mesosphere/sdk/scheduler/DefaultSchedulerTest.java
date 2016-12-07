@@ -26,6 +26,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.awaitility.Awaitility;
@@ -59,6 +60,9 @@ public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
     @Mock
     private SchedulerDriver mockSchedulerDriver;
     @Captor
@@ -156,7 +160,6 @@ public class DefaultSchedulerTest {
     private ConfigStore<ServiceSpec> configStore;
     private OfferRequirementProvider offerRequirementProvider;
     private DefaultScheduler defaultScheduler;
-    private EnvironmentVariables environmentVariables;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -167,8 +170,6 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
 
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(

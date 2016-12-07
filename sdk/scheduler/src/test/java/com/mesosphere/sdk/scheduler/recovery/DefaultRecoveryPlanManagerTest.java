@@ -1,16 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.specification.TestPodFactory;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.curator.test.TestingServer;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.*;
@@ -24,10 +14,22 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.curator.test.TestingServer;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.ArgumentCaptor;
@@ -55,6 +57,12 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest {
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+    static {
+        environmentVariables.set("PORT0", "8080");
+    }
 
     private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
@@ -74,7 +82,6 @@ public class DefaultRecoveryPlanManagerTest {
     private PlanCoordinator planCoordinator;
     private PlanManager mockDeployManager;
     private TaskFailureListener taskFailureListener;
-    private EnvironmentVariables environmentVariables;
     private ServiceSpec serviceSpec;
 
     private static TestingServer testingServer;
@@ -108,9 +115,6 @@ public class DefaultRecoveryPlanManagerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());

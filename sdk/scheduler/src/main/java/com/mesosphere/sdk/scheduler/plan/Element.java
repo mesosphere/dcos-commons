@@ -15,34 +15,30 @@ import java.util.UUID;
  *
  * @param <C> is the type of child {@link Element}s.
  */
+@SuppressWarnings("rawtypes")
 public interface Element<C extends Element> extends Observable {
     /**
-     * Returns the unique identifier of the element.
+     * Returns the unique identifier of this Element.
      */
     UUID getId();
 
     /**
-     * Returns a user-visible name describing the purpose of an Element.
+     * Returns a user-visible name describing the purpose of this Element.
      */
     String getName();
 
     /**
-     * Returns the Status of an Element.
+     * Returns the Status of this Element.
      */
     Status getStatus();
 
     /**
-     * Sets the Status of an Element.
-     */
-    void setStatus(Status status);
-
-    /**
-     * Gets the children of an Element.
+     * Gets the children of this Element.
      */
     List<C> getChildren();
 
     /**
-     * Gets the Strategy applied to the deployment of child elements.
+     * Gets the {@link Strategy} applied to the deployment of child Elements.
      */
     Strategy<C> getStrategy();
 
@@ -52,21 +48,17 @@ public interface Element<C extends Element> extends Observable {
     void update(TaskStatus status);
 
     /**
-     * Forcefully restarts the element by putting it into a PENDING state.
+     * Forcefully restarts the element by putting it into a {@link Status#PENDING} state.
      */
-    default void restart() {
-        setStatus(Status.PENDING);
-    }
+    void restart();
 
     /**
-     * Forcefully marks the element as COMPLETE, cancelling any work that hasn't started.
+     * Forcefully marks the element as {@link Status#COMPLETE}, cancelling any work that hasn't started.
      */
-    default void forceComplete() {
-        setStatus(Status.COMPLETE);
-    }
+    void forceComplete();
 
     /**
-     * Returns a user-visible message describing the Element.
+     * Returns a user-visible message describing this Element.
      */
     String getMessage();
 
@@ -76,35 +68,35 @@ public interface Element<C extends Element> extends Observable {
     List<String> getErrors();
 
     /**
-     * Indicates whether the Element has encountered errors.
+     * Indicates whether this Element has encountered errors.
      */
     default boolean hasErrors() {
         return getStatus().equals(Status.ERROR);
     }
 
     /**
-     * Indicates whether the Element has been started.
+     * Indicates whether this Element has been started.
      */
     default boolean isPending() {
         return getStatus().equals(Status.PENDING);
     }
 
     /**
-     * Indicates whether the Element is in progress.
+     * Indicates whether this Element is in progress.
      */
     default boolean isInProgress() {
         return getStatus().equals(Status.IN_PROGRESS);
     }
 
     /**
-     * Indicates whether the Element is waiting for external input to proceed.
+     * Indicates whether this Element is waiting for external input to proceed.
      */
     default boolean isWaiting() {
         return getStatus().equals(Status.WAITING);
     }
 
     /**
-     * Indicates whether the Element is complete.
+     * Indicates whether this Element is complete.
      */
     default boolean isComplete() {
         return getStatus().equals(Status.COMPLETE);

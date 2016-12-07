@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.api;
+package com.mesosphere.sdk.api;
 
 import com.googlecode.protobuf.format.JsonFormat;
 import org.apache.mesos.Protos;
