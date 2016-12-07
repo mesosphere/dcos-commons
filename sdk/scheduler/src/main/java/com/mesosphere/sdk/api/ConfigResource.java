@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.config.api;
+package com.mesosphere.sdk.api;
 
 import java.util.Arrays;
 import java.util.UUID;

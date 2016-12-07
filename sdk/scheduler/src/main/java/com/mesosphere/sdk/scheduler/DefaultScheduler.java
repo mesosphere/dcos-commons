@@ -6,8 +6,13 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+
+import com.mesosphere.sdk.api.ConfigResource;
+import com.mesosphere.sdk.api.PlansResource;
+import com.mesosphere.sdk.api.StateResource;
+import com.mesosphere.sdk.api.TaskResource;
+import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
-import com.mesosphere.sdk.config.api.ConfigResource;
 import com.mesosphere.sdk.config.validate.ConfigurationValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
@@ -18,9 +23,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.api.TaskResource;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.plan.api.PlansResource;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryRequirementProvider;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
@@ -34,8 +37,7 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.PersistentOperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.state.api.StringPropertyDeserializer;
-import com.mesosphere.sdk.state.api.StateResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
