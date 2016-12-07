@@ -6,8 +6,13 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+
+import com.mesosphere.sdk.api.ConfigResource;
+import com.mesosphere.sdk.api.PlansResource;
+import com.mesosphere.sdk.api.StateResource;
+import com.mesosphere.sdk.api.TaskResource;
+import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
-import com.mesosphere.sdk.config.api.ConfigResource;
 import com.mesosphere.sdk.config.validate.ConfigurationValidator;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
@@ -18,9 +23,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.api.TaskResource;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.plan.api.PlansResource;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryRequirementProvider;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
@@ -34,8 +37,7 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.PersistentOperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.state.api.StringPropertyDeserializer;
-import com.mesosphere.sdk.state.api.StateResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +58,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
     protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
     protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
+    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -356,7 +359,14 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     public Collection<Object> getResources() throws InterruptedException {
         if (resources == null) {
-            resources = resourcesQueue.take();
+            // Wait up to 60 seconds for resources to be available. This should be
+            // near-instantaneous, we just have an explicit deadline to avoid the potential for
+            // waiting indefinitely.
+            resources = resourcesQueue.poll(AWAIT_RESOURCES_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            if (resources == null) {
+                throw new RuntimeException(String.format(
+                        "Timed out waiting %dms for resources from scheduler", AWAIT_RESOURCES_TIMEOUT_MS));
+            }
         }
 
         return resources;
@@ -422,7 +432,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore, stateStore),
+                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
@@ -438,7 +448,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         resources.add(new ConfigResource<ServiceSpec>(configStore));
-        resourcesQueue.put(resources);
+        // use add() instead of put(): throw exception instead of waiting indefinitely
+        resourcesQueue.add(resources);
     }
 
     private void logOffers(List<Protos.Offer> offers) {

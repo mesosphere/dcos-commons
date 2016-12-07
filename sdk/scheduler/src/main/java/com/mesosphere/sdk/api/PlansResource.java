@@ -1,5 +1,7 @@
-package com.mesosphere.sdk.scheduler.plan.api;
+package com.mesosphere.sdk.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.scheduler.plan.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,6 +193,19 @@ public class PlansResource {
         } else {
             logger.error("Expected 1 Phase, found: " + phases);
             return Optional.empty();
+        }
+    }
+
+    static class CommandResultInfo {
+        private final String msg;
+
+        CommandResultInfo(String msg) {
+            this.msg = msg;
+        }
+
+        @JsonProperty("message")
+        public String getMessage() {
+            return msg;
         }
     }
 }

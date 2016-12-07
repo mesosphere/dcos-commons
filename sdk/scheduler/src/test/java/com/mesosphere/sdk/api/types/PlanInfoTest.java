@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.plan.api;
+package com.mesosphere.sdk.api.types;
 
 import com.mesosphere.sdk.scheduler.plan.*;
 import org.junit.Before;

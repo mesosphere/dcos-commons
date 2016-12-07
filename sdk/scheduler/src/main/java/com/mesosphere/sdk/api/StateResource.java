@@ -1,7 +1,9 @@
-package com.mesosphere.sdk.state.api;
+package com.mesosphere.sdk.api;
 
 import com.google.inject.Inject;
+import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.slf4j.Logger;

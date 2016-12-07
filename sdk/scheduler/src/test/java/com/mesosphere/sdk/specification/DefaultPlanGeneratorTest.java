@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import org.apache.curator.test.TestingServer;
+
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
@@ -12,6 +13,8 @@ import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
@@ -19,9 +22,14 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.util.Collections;
 
+/**
+ * Tests for {@link DefaultPlanGenerator}.
+ */
 public class DefaultPlanGeneratorTest {
-    @Rule
-    public EnvironmentVariables environmentVariables;
+
+    @ClassRule
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
 
     private static TestingServer testingServer;
 
@@ -38,8 +46,6 @@ public class DefaultPlanGeneratorTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
 
         StateStoreCache.resetInstanceForTests();
     }

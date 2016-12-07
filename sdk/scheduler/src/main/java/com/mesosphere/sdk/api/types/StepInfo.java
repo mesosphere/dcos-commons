@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.plan.api;
+package com.mesosphere.sdk.api.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

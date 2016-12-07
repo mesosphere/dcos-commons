@@ -12,7 +12,8 @@ import java.util.List;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-public class SerialStrategy<C extends Element> extends InterruptableStrategy<C> {
+@SuppressWarnings("rawtypes")
+public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> {
     protected DependencyStrategyHelper<C> dependencyStrategyHelper;
 
     @Override
