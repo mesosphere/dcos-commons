@@ -9,7 +9,8 @@ import java.util.Collection;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-public class ParallelStrategy<C extends Element> extends InterruptableStrategy<C> {
+@SuppressWarnings("rawtypes")
+public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C> {
     @Override
     public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
         DependencyStrategyHelper<C> helper = new DependencyStrategyHelper<C>(parentElement);

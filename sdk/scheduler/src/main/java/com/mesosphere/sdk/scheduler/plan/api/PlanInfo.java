@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
@@ -32,7 +31,7 @@ class PlanInfo {
 
     public static PlanInfo forPlan(final PlanManager manager) {
         List<PhaseInfo> info = new ArrayList<>(manager.getPlan().getChildren().size());
-        manager.getPlan().getChildren().forEach(phase -> info.add(PhaseInfo.forPhase((Phase) phase)));
+        manager.getPlan().getChildren().forEach(phase -> info.add(PhaseInfo.forPhase(phase)));
 
         return create(info, manager.getPlan().getErrors(), manager.getPlan().getStatus());
     }

@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 /**
  * This class tests the {@link SerialStrategy}.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class SerialStrategyTest {
     @Mock Element parentElement;
     @Mock Element el0;

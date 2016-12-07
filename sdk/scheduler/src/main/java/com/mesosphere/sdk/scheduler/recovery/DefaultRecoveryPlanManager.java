@@ -220,14 +220,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     @Override
     public Set<String> getDirtyAssets() {
-        Set<String> dirtyAssets = new HashSet<>();
-        if (plan != null) {
-            dirtyAssets.addAll(plan.getChildren().stream()
-                    .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> step.isInProgress())
-                    .map(step -> step.getName())
-                    .collect(Collectors.toSet()));
-        }
-        return dirtyAssets;
+        return PlanUtils.getDirtyAssets(plan);
     }
 }
