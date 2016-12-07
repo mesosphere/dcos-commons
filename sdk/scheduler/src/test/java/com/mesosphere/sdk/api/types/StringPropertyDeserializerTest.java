@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api.types;
 
-import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.SerializationUtils;
 import org.junit.Before;
 import org.junit.Test;

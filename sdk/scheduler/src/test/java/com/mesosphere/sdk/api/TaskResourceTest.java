@@ -3,7 +3,6 @@ package com.mesosphere.sdk.api;
 import com.googlecode.protobuf.format.JsonFormat;
 import org.apache.mesos.Protos.*;
 
-import com.mesosphere.sdk.api.TaskResource;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.PlansResource.CommandResultInfo;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.scheduler.plan.*;
