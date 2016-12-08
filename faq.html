@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>Frequently Asked Questions</title>
+<link rel="stylesheet" type="text/css" media="all" href="gh-basic.css" />
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="index.html">
+<p align="left">
+  <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" />
+</p>
+<p><img src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status" /></p>
+</a>
+
+<h1>Frequently Asked Questions</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><a href="tutorial.html"><strong>Tutorial</strong></a></td>
+      <td><a href="faq.html"><strong>FAQ</strong></a></td>
+      <td><a href="automatic-repair.html"><strong>Automatic Repair</strong></a></td>
+      <td><a href="api/index.html" target="_blank"><strong>Javadocs</strong></a></td>
+      <td><a href="swagger-api/index.html" target="_blank"><strong>Default REST API</strong></a></td>
+      <td><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md"><strong>Contributing</strong></a></td>
+      <td><a href="https://chat.dcos.io" target="_blank"><strong>Slack</strong></a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="what-is-the-dcos-sdk"><strong>What is the DC/OS SDK?</strong></h4>
+
+<p>The DC/OS SDK is a collection of tools, libraries, and documentation for integrating replicated stateful services with DC/OS.</p>
+
+<h4 id="what-is-a-mesos-framework"><strong>What is a Mesos framework?</strong></h4>
+
+<p>In Mesos, a framework is the component responsible for the second level of scheduling in the <a href="http://mesos.apache.org/documentation/latest/architecture/">Apache Mesos two-level scheduler architecture</a>. Strictly speaking, the SDK is used to build Mesos frameworks, which appear as “services” in DC/OS.</p>
+
+<h4 id="what-is-a-dcos-service"><strong>What is a DC/OS service?</strong></h4>
+
+<p>A <a href="https://dcos.io/docs/latest/overview/concepts/#dcos-service">DC/OS service</a> is an instance of a service in a DC/OS cluster.</p>
+
+<h4 id="what-is-a-dcos-package"><strong>What is a DC/OS package?</strong></h4>
+
+<p>A DC/OS package is an artifact for installing a service to any DC/OS cluster. DC/OS packages are analogous in concept to other operation systems packages like RPMs and DEBs. A DC/OS package includes metadata such as name, version, configurable settings, and service executables.</p>
+
+<h4 id="when-should-i-use-the-dcos-sdk"><strong>When should I use the DC/OS SDK?</strong></h4>
+
+<p>The SDK is particularly well-suited to replicated stateful services such as databases (SQL and NoSQL), messaging systems, and storage systems. Independent software vendors (ISVs) interested in offering production-grade stateful services for DC/OS should use the SDK.</p>
+
+<h4 id="what-are-the-advantages-of-using-the-dcos-sdk-vs-building-a-framework-from-scratch"><strong>What are the advantages of using the DC/OS SDK vs. building a framework from scratch?</strong></h4>
+
+<p>The SDK dramatically simplifies integrating stateful services with Apache Mesos and DC/OS so that you can focus on your goals. In the past, integrating existing services with Apache Mesos meant developing a scheduler to evaluate and accept resource offers, launch and monitor tasks, and handle task reconciliation. Stateful services introduce additional concerns like reserving and accounting for resources, such as persistent volumes, and more complicated failure recovery semantics. Prior to the SDK, integrating stateful services with DC/OS required tens of thousands of lines of code and months of development and maintenance. With the SDK, even the most complex replicated stateful services require only a few hundred lines of code to integrate with DC/OS.</p>
+
+<h4 id="do-i-need-to-be-a-java-developer-to-use-the-dcos-sdk"><strong>Do I need to be a Java developer to use the DC/OS SDK?</strong></h4>
+
+<p>No, the SDK offers a YAML interface suitable for simple integrations. Basic Java development skills are necessary for more complex integrations.</p>
+
+<h4 id="how-long-will-it-take-to-build-my-dcos-service"><strong>How long will it take to build my DC/OS service?</strong></h4>
+
+<p>A developer with basic Java experience will find it easy to use the SDK to integrate existing stateful services with DC/OS. A basic integration generally takes 1-3 days to develop, test, and release. Advanced integrations that include custom maintenance plans and automated recovery strategies usually take around 2-3 weeks to develop, test, and release.</p>
+
+<h4 id="how-can-i-distribute-my-dcos-package"><strong>How can I distribute my DC/OS package?</strong></h4>
+
+<p>You have can distribute your DC/OS package in several ways:</p>
+
+<p>When you want to maximize reach, <a href="https://github.com/mesosphere/Universe">DC/OS Universe</a> is the recommended distribution channel. DC/OS Universe is an online repository of DC/OS packages available to all community and commercial users. Users install packages with a few clicks from Universe.</p>
+
+<p>When you need to control distribution, we recommend bypassing DC/OS Universe and distributing your DC/OS package directly to your users. Your users can add your DC/OS package to their DC/OS cluster, then install your package with a few clicks as usual.</p>
+
+<h4 id="can-i-use-the-dcos-sdk-to-build-a-proprietary-dcos-package"><strong>Can I use the DC/OS SDK to build a proprietary DC/OS package?</strong></h4>
+
+<p>Yes, you can use the SDK to build a proprietary package. The SDK is licensed under the Apache License 2.0, which permits proprietary derivative works. While many SDK users do choose to share their source code under permissive licensing, you are under no obligation to do so.</p>
+
+<h4 id="how-does-the-dcos-sdk-compare-to-fenzo"><strong>How does the DC/OS SDK compare to Fenzo?</strong></h4>
+
+<p><a href="https://github.com/netflix/fenzo">Fenzo</a>, developed by Netflix, is a scheduler Java library for Apache Mesos frameworks that supports plugins for scheduling optimizations and facilitates cluster autoscaling. The DC/OS SDK was developed by Mesosphere to support integrating replicated stateful services with DC/OS. There are plans to expand the DC/OS SDK to support advanced workloads and use cases enabled by Fenzo. Mesosphere and Netflix hope to unify these libraries in the future.</p>
+
+<h4 id="can-i-contribute-to-the-dcos-sdk"><strong>Can I contribute to the DC/OS SDK?</strong></h4>
+
+<p>Yes, contributions to the SDK are welcome! See <a href="CONTRIBUTING.md">CONTRIBUTING</a>.</p>
+
+<h4 id="will-the-dcos-sdk-work-with-apache-mesos-without-dcos"><strong>Will the DC/OS SDK work with Apache Mesos (without DC/OS)?</strong></h4>
+
+<p>Yes, the DC/OS SDK can be used with Apache Mesos. DC/OS and Mesosphere Enterprise DC/OS offer APIs in additional to those available in Apache Mesos. These APIs are only available on DC/OS and Enterprise DC/OS. At this time, Mesosphere only tests the SDK libraries with open source DC/OS and Enterprise DC/OS. The reference implementations may depend on DC/OS APIs. Mesosphere may add test coverage for Apache Mesos in the future, depending on demand.</p>
+
+</div>
+</body>
+
+</html>

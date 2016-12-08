@@ -3,7 +3,7 @@
   <head>
     <title>DC/OS SDK API Reference</title>
     <style type="text/css">
-      body {
+      body { 
 	font-family: Trebuchet MS, sans-serif;
 	font-size: 15px;
 	color: #444;
@@ -25,6 +25,7 @@ hr	{
 	border: 0;
 	color: #ddd;
 	background-color: #ddd;
+	display: none;
 }
 
 .app-desc {
@@ -175,47 +176,42 @@ font-style: italic;
   display: inline-block;
   text-decoration: none;
 }
-
     </style>
   </head>
   <body>
   <h1>DC/OS SDK API Reference</h1>
+    <div class="app-desc">The DC/OS Stateful Service SDK</div>
+    <div class="app-desc">More information: <a href="https://github.com/mesosphere/dcos-commons/">https://github.com/mesosphere/dcos-commons/</a></div>
+    <div class="app-desc">Contact Info: <a href="https://dcos-community.slack.com/messages/data-services-dev/">https://dcos-community.slack.com/messages/data-services-dev/</a></div>
     <div class="app-desc">Version: 0.0.1</div>
     <div class="app-desc">BasePath:/v1</div>
-
+    <div class="license-info">Apache License V2</div>
+    <div class="license-url">https://github.com/mesosphere/dcos-commons/blob/master/LICENSE</div>
   <h2>Access</h2>
 
   <h2><a name="__Methods">Methods</a></h2>
   [ Jump to <a href="#__Models">Models</a> ]
 
-  <h3>Table of Contents </h3>
+  <h2>Table of Contents </h2>
   <div class="method-summary"></div>
-  <h4><a href="#Configurations">Configurations</a></h4>
-  <ul>
+  <ol>
   <li><a href="#configurationsConfigurationIdGet"><code><span class="http-method">get</span> /configurations/{configurationId}</code></a></li>
   <li><a href="#configurationsGet"><code><span class="http-method">get</span> /configurations</code></a></li>
   <li><a href="#configurationsTargetGet"><code><span class="http-method">get</span> /configurations/target</code></a></li>
   <li><a href="#configurationsTargetIdGet"><code><span class="http-method">get</span> /configurations/targetId</code></a></li>
-  </ul>
-  <h4><a href="#Plans">Plans</a></h4>
-  <ul>
   <li><a href="#plansGet"><code><span class="http-method">get</span> /plans</code></a></li>
   <li><a href="#plansPlanNameContinuePost"><code><span class="http-method">post</span> /plans/{planName}/continue</code></a></li>
   <li><a href="#plansPlanNameForceCompletePost"><code><span class="http-method">post</span> /plans/{planName}/forceComplete</code></a></li>
   <li><a href="#plansPlanNameGet"><code><span class="http-method">get</span> /plans/{planName}</code></a></li>
   <li><a href="#plansPlanNameInterruptPost"><code><span class="http-method">post</span> /plans/{planName}/interrupt</code></a></li>
   <li><a href="#plansPlanNameRestartPost"><code><span class="http-method">post</span> /plans/{planName}/restart</code></a></li>
-  </ul>
-  <h4><a href="#Tasks">Tasks</a></h4>
-  <ul>
   <li><a href="#tasksConnectionTaskNameGet"><code><span class="http-method">get</span> /tasks/connection/{taskName}</code></a></li>
   <li><a href="#tasksGet"><code><span class="http-method">get</span> /tasks</code></a></li>
   <li><a href="#tasksInfoTaskNameGet"><code><span class="http-method">get</span> /tasks/info/{taskName}</code></a></li>
   <li><a href="#tasksRestartTaskNamePost"><code><span class="http-method">post</span> /tasks/restart/{taskName}</code></a></li>
   <li><a href="#tasksStatusTaskNameGet"><code><span class="http-method">get</span> /tasks/status/{taskName}</code></a></li>
-  </ul>
+  </ol>
 
-  <h1><a name="Configurations">Configurations</a></h1>
   <div class="method"><a name="configurationsConfigurationIdGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -354,7 +350,6 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <h1><a name="Plans">Plans</a></h1>
   <div class="method"><a name="plansGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -547,7 +542,6 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <h1><a name="Tasks">Tasks</a></h1>
   <div class="method"><a name="tasksConnectionTaskNameGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -736,7 +730,7 @@ font-style: italic;
   <h2><a name="__Models">Models</a></h2>
   [ Jump to <a href="#__Methods">Methods</a> ]
 
-  <h3>Table of Contents</h3>
+  <h2>Table of Contents</h2>
   <ol>
   </ol>
 
