@@ -163,6 +163,18 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
+    public void testEscapedCommaRegex() throws IOException {
+        assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack_id:rack-{1,3}'}}",
+            MarathonConstraintParser.parse("rack_id:LIKE:rack-{1\\,3}").toString());
+    }
+
+    @Test
+    public void testEscapedColonRegex() throws IOException {
+        assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack_id:foo:bar:baz'}}",
+            MarathonConstraintParser.parse("rack_id:LIKE:foo\\:bar\\:baz").toString());
+    }
+
+    @Test
     public void testEmptyConstraint() throws IOException {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse("").toString());
     }
@@ -215,6 +227,41 @@ public class MarathonConstraintParserTest {
     @Test(expected = IOException.class)
     public void testTooManyElemenents() throws IOException {
         MarathonConstraintParser.parse("rack_id:LIKE:foo:bar");
+    }
+
+    @Test
+    public void testSplitPlain() {
+        assertEquals(Arrays.asList("hi", "hey"), MarathonConstraintParser.escapedSplit("hi,hey", ','));
+    }
+
+    @Test
+    public void testSplitEscaped() {
+        assertEquals(Arrays.asList("hi,hey"), MarathonConstraintParser.escapedSplit("hi\\,hey", ','));
+    }
+
+    @Test
+    public void testSplitEscapedUnescaped() {
+        assertEquals(Arrays.asList("hi,", "hey"), MarathonConstraintParser.escapedSplit("hi\\,,hey", ','));
+    }
+
+    @Test
+    public void testSplitUnescapedEscaped() {
+        assertEquals(Arrays.asList("hi", ",hey"), MarathonConstraintParser.escapedSplit("hi,\\,hey", ','));
+    }
+
+    @Test
+    public void testTrimPreserveEmptyTokens() {
+        assertEquals(Arrays.asList("hi", "", "", "hey"), MarathonConstraintParser.escapedSplit("hi,,   ,  hey  ", ','));
+    }
+
+    @Test
+    public void testSplitEmptyString() {
+        assertEquals(Arrays.asList(""), MarathonConstraintParser.escapedSplit("", ','));
+    }
+
+    @Test
+    public void testSplitTrailingBackslash() {
+        assertEquals(Arrays.asList("hello", "hi\\"), MarathonConstraintParser.escapedSplit("hello,hi\\", ','));
     }
 
     // Avoid needing \"'s throughout json strings:
