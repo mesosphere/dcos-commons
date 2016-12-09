@@ -92,7 +92,6 @@ func HandleCommonSections(app *kingpin.Application, connectionTypes []string) {
 	HandleConnectionSection(app, connectionTypes)
 	HandlePlanSection(app)
 	HandleStateSection(app)
-	HandleHealthSection(app)
 }
 
 // Config section
@@ -261,20 +260,4 @@ func HandleStateSection(app *kingpin.Application) {
 	task.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
 
 	state.Command("tasks", "List names of all persisted tasks").Action(cmd.RunTasks)
-}
-
-// Health section
-
-type HealthHandler struct {
-}
-
-func (cmd *HealthHandler) RunHealthCheck(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("admin/healthcheck"))
-	return nil
-}
-
-func HandleHealthSection(app *kingpin.Application) {
-	// health
-	cmd := &HealthHandler{}
-	app.Command("health", fmt.Sprintf("View healthcheck information)")).Action(cmd.RunHealthCheck)
 }
