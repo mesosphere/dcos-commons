@@ -3,6 +3,7 @@ swagger: "2.0"
 info:
   version: "0.0.1"
   title: "DC/OS SDK API Reference"
+  description: "The DC/OS Stateful Service SDK"
 basePath: "/v1"
 tags:
 - name: "tasks"
