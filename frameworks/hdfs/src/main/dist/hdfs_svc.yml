@@ -120,7 +120,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
+        cmd: "./resolve-dns.sh && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         volumes:

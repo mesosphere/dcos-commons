@@ -11,8 +11,8 @@ import subprocess
 PACKAGE_NAME = 'hdfs'
 TASK_RUNNING_STATE = 'TASK_RUNNING'
 WAIT_TIME_IN_SECONDS = 15 * 60
-
-DEFAULT_HDFS_TASK_COUNT = 8 # 3 data nodes, 3 journal nodes, 2 name nodes
+DEFAULT_HDFS_TASK_COUNT = 10 # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
+HDFS_POD_TYPES = {"journal", "name", "data"}
 
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'

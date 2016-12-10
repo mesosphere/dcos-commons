@@ -5,7 +5,8 @@ import inspect
 import os
 
 from tests.test_utils import (
-    DEFAULT_TASK_COUNT,
+    DEFAULT_HDFS_TASK_COUNT,
+    HDFS_POD_TYPES,
     PACKAGE_NAME,
     check_health,
     get_marathon_config,
@@ -34,41 +35,43 @@ def test_install_worked():
 
 
 @pytest.mark.sanity
-def test_bump_hdfs_cpus():
+def test_bump_journal_cpus():
     check_health()
-    hdfs_ids = get_task_ids('hdfs')
-    print('hdfs ids: ' + str(hdfs_ids))
+    journal_ids = get_task_ids('journal')
+    print('journal ids: ' + str(journal_ids))
 
     config = get_marathon_config()
-    cpus = float(config['env']['CPUS'])
-    config['env']['CPUS'] = str(cpus + 0.1)
+    print('marathon config: ')
+    print(config)
+    cpus = float(config['env']['JOURNAL_CPUS'])
+    config['env']['JOURNAL_CPUS'] = str(cpus + 0.1)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
-    tasks_updated('hdfs', hdfs_ids)
+    tasks_updated('journal', journal_ids)
 
     check_health()
 
 
 @pytest.mark.sanity
-def test_bump_hdfs_nodes():
+def test_bump_data_nodes():
     check_health()
 
-    hdfs_ids = get_task_ids('hdfs')
-    print('hdfs ids: ' + str(hdfs_ids))
+    data_ids = get_task_ids('data')
+    print('data ids: ' + str(data_ids))
 
     config = get_marathon_config()
-    nodeCount = int(config['env']['COUNT']) + 1
-    config['env']['COUNT'] = str(nodeCount)
+    nodeCount = int(config['env']['DATA_COUNT']) + 1
+    config['env']['DATA_COUNT'] = str(nodeCount)
     r = request(
         dcos.http.put,
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
-    check_health(DEFAULT_TASK_COUNT + 1)
-    tasks_not_updated('hdfs', hdfs_ids)
+    check_health(DEFAULT_HDFS_TASK_COUNT + 1)
+    tasks_not_updated('data', data_ids)
 
 
 def get_task_ids(prefix):
