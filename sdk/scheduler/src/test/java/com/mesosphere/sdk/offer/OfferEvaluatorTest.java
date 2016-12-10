@@ -1031,7 +1031,8 @@ public class OfferEvaluatorTest {
     private static OfferRequirement getOfferRequirement(
             Protos.Resource resource, List<String> avoidAgents, List<String> collocateAgents)
                     throws InvalidRequirementException {
-        Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
+        Optional<PlacementRule> placement =
+                PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
         return OfferRequirement.create(
                 TestConstants.TASK_TYPE,
                 0,

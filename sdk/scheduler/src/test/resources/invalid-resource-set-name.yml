@@ -7,7 +7,8 @@ replacement-failure-policy:
   min-replace-delay-ms: -1
 pods:
   meta-data:
-    placement: "avoid-type: data-store"
+    avoid-types:
+      - data-store
     count: 3
     resource-sets:
       data-store-resources:

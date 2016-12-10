@@ -59,35 +59,35 @@ public class HelloWorldServiceSpecTest {
 
     @Test
     public void test_yml_base() throws Exception{
-        ServiceSpecDeserialization("svc.yml");
+        serviceSpecDeserialization("svc.yml");
     }
 
     @Test
     public void test_yml_simple() throws Exception{
-        ServiceSpecDeserialization("svc_simple.yml");
+        serviceSpecDeserialization("svc_simple.yml");
     }
 
     @Test
     public void test_yml_withPlan() throws Exception{
-        ServiceSpecDeserialization("svc_plan.yml");
+        serviceSpecDeserialization("svc_plan.yml");
     }
 
     @Test
     public void test_validate_yml_base() throws Exception{
-        ServiceSpecValidation("svc.yml");
+        serviceSpecValidation("svc.yml");
     }
 
     @Test
     public void test_validate_yml_simple() throws Exception{
-        ServiceSpecValidation("svc_simple.yml");
+        serviceSpecValidation("svc_simple.yml");
     }
 
     @Test
     public void test_validate_yml_withPlan() throws Exception{
-        ServiceSpecValidation("svc_plan.yml");
+        serviceSpecValidation("svc_plan.yml");
     }
 
-    private void ServiceSpecDeserialization(String fileName) throws Exception {
+    private void serviceSpecDeserialization(String fileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
@@ -97,7 +97,7 @@ public class HelloWorldServiceSpecTest {
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
     }
 
-    private void ServiceSpecValidation(String fileName) throws Exception {
+    private void serviceSpecValidation(String fileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
@@ -134,5 +134,6 @@ public class HelloWorldServiceSpecTest {
         DefaultScheduler defaultScheduler = DefaultScheduler
                 .create(serviceSpec, stateStore, configStore, offerRequirementProvider);
         defaultScheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
+        testingServer.close();
     }
 }

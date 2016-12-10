@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 
 /**
@@ -9,13 +11,14 @@ import java.util.LinkedHashMap;
  */
 public class RawPod {
     private String name;
-    private String placement;
     private Integer count;
     private RawContainer container;
     private String strategy;
     private String user;
     private WriteOnceLinkedHashMap<String, RawTask> tasks;
     private WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
+    private Collection<String> avoidTypes = Collections.emptyList();
+    private Collection<String> colocateTypes = Collections.emptyList();
 
     public String getName() {
         return name;
@@ -24,24 +27,6 @@ public class RawPod {
     @JsonProperty("name")
     public void setName(String name) {
         this.name = name;
-    }
-
-    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
-        return resourceSets;
-    }
-
-    @JsonProperty("resource-sets")
-    public void setResourceSets(WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets) {
-        this.resourceSets = resourceSets;
-    }
-
-    public String getPlacement() {
-        return placement;
-    }
-
-    @JsonProperty("placement")
-    public void setPlacement(String placement) {
-        this.placement = placement;
     }
 
     public Integer getCount() {
@@ -71,6 +56,15 @@ public class RawPod {
         this.strategy = strategy;
     }
 
+    public String getUser() {
+        return user;
+    }
+
+    @JsonProperty("user")
+    public void setUser(String user) {
+        this.user = user;
+    }
+
     public LinkedHashMap<String, RawTask> getTasks() {
         return tasks;
     }
@@ -80,12 +74,30 @@ public class RawPod {
         this.tasks = tasks;
     }
 
-    public String getUser() {
-        return user;
+    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
+        return resourceSets;
     }
 
-    @JsonProperty("user")
-    public void setUser(String user) {
-        this.user = user;
+    @JsonProperty("resource-sets")
+    public void setResourceSets(WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets) {
+        this.resourceSets = resourceSets;
+    }
+
+    public Collection<String> getAvoidTypes() {
+        return avoidTypes;
+    }
+
+    @JsonProperty("avoid-types")
+    public void setAvoidTypes(Collection<String> avoidTypes) {
+        this.avoidTypes = avoidTypes;
+    }
+
+    public Collection<String> getColocateTypes() {
+        return colocateTypes;
+    }
+
+    @JsonProperty("colocate-types")
+    public void setColocateTypes(Collection<String> colocateTypes) {
+        this.colocateTypes = colocateTypes;
     }
 }

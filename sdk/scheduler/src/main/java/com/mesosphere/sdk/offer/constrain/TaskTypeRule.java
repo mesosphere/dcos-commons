@@ -45,6 +45,25 @@ public class TaskTypeRule implements PlacementRule {
     }
 
     /**
+     * Requires avoidance of any of the provided types. Effectively an AND wrapper around
+     * {@link #avoid(String)}.
+     */
+    public static PlacementRule avoid(Collection<String> typesToAvoid) {
+        switch (typesToAvoid.size()) {
+        case 0:
+            return new PassthroughRule();
+        case 1:
+            return avoid(typesToAvoid.iterator().next());
+        default:
+            List<PlacementRule> avoidRules = new ArrayList<>();
+            for (String type : typesToAvoid) {
+                avoidRules.add(avoid(type));
+            }
+            return new AndRule(avoidRules);
+        }
+    }
+
+    /**
      * Returns a {@link PlacementRule} which enforces colocation with tasks which have the provided
      * type. For example, this could be used to ensure that 'data' nodes are always colocated with
      * 'index' nodes. Note that this rule is unidirectional; mutual colocation requires
@@ -64,6 +83,25 @@ public class TaskTypeRule implements PlacementRule {
      */
     public static PlacementRule colocateWith(String typeToColocateWith) {
         return colocateWith(typeToColocateWith, null);
+    }
+
+    /**
+     * Requires colocation with one of the provided types. Effectively an OR wrapper around
+     * {@link #colocateWith(String)}.
+     */
+    public static PlacementRule colocateWith(Collection<String> typesToColocateWith) {
+        switch (typesToColocateWith.size()) {
+        case 0:
+            return new PassthroughRule();
+        case 1:
+            return colocateWith(typesToColocateWith.iterator().next());
+        default:
+            List<PlacementRule> colocateRules = new ArrayList<>();
+            for (String type : typesToColocateWith) {
+                colocateRules.add(colocateWith(type));
+            }
+            return new OrRule(colocateRules);
+        }
     }
 
     /**
