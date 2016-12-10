@@ -81,6 +81,18 @@ public class YAMLToInternalMappers {
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         String user = rawPod.getUser();
         LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
+ 
+        Collection<String> rawTaskUris = rawPod.getUris();
+        Collection<URI> uris = new ArrayList<>();
+        for (String uriStr : rawTaskUris) {
+            uris.add(new URI(uriStr));
+        }
+        //TODO (Mehmet)
+        /*
+        Collection<URI> uris = rawPod.getUris().stream()
+                .map( (String s ) -> (new URI(s)))
+                .collect(Collectors.toList();
+        */
 
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         if (MapUtils.isNotEmpty(rawResourceSets)) {
@@ -99,7 +111,7 @@ public class YAMLToInternalMappers {
         for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
             entry.getValue().setName(entry.getKey());
             taskSpecs.add(from(
-                    entry.getValue(),
+                    entry.getValue(), uris,
                     Optional.ofNullable(user),
                     podName,
                     resourceSets,
@@ -155,7 +167,7 @@ public class YAMLToInternalMappers {
         return from(id, cpus, memory, ports, rawVolumes, role, principal);
     }
 
-    public static TaskSpec from(RawTask rawTask,
+    public static TaskSpec from(RawTask rawTask, Collection<URI> podUris,
                                 Optional<String> user,
                                 String podType,
                                 Collection<ResourceSet> resourceSets,
@@ -179,6 +191,9 @@ public class YAMLToInternalMappers {
         for (String uriStr : rawTaskUris) {
             uris.add(new URI(uriStr));
         }
+        uris.addAll(podUris);
+        // uris= Stream.concat(uris.stream(),podUris.stream()).collect(Collectors.toList());
+
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder();
         if (user.isPresent()) {
