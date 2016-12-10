@@ -51,7 +51,7 @@ public class CustomExecutor implements Executor {
 
     @Override
     public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-        LOGGER.info("Re-registered executor: {}", executorInfo.getExecutorId());
+        LOGGER.info("Re-registered on slave: {}", slaveInfo.getId());
         this.slaveInfo = slaveInfo;
     }
 
