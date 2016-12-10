@@ -5,10 +5,14 @@ api-port: {{PORT0}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    uris:
+      - "https://github.com/mesosphere/dcos-commons/blob/master/README.md"
     tasks:
       server:
         goal: RUNNING
         cmd: "cat README.md && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        uris:
+          - "https://github.com/mesosphere/dcos-commons/blob/master/docs/generate.sh"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volumes:
@@ -36,7 +40,7 @@ pods:
         goal: RUNNING
         cmd: "cat README.md && echo world >> world-container-path/output && sleep $SLEEP_DURATION"
         uris:
-           "https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/README.md"
+           - "https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/README.md"
         resource-set: world-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
