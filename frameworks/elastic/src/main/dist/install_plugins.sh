@@ -8,6 +8,7 @@ if [ -n "$ELASTICSEARCH_PLUGINS" ]; then
 fi
 
 for PLUGIN in $PLUGINS; do
-    echo "Installing plugin: $PLUGIN"
+    echo "Installing plugin: $PLUGIN from directory: "`pwd`
+    echo "with command: ./elasticsearch-$ELASTIC_VERSION/bin/elasticsearch-plugin install --batch $PLUGIN"
     ./elasticsearch-$ELASTIC_VERSION/bin/elasticsearch-plugin install --batch $PLUGIN
 done
