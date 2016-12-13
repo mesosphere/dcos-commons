@@ -17,7 +17,7 @@ from tests.test_utils import (
 
 MASTER_CUSTOM_NAME='Master Custom'
 # TODO: replace this URL once we have a stock version from which to upgrade
-MASTER_CUSTOM_URL='https://infinity-artifacts.s3.amazonaws.com/reference-latest/stub-universe-reference.zip'
+MASTER_CUSTOM_URL='https://infinity-artifacts.s3.amazonaws.com/reference-latest/stub-universe-hdfs.zip'
 
 
 def setup_module(module):
@@ -29,7 +29,7 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
-def test_upgrade():
+def test_upgrade_downgrade():
     test_version = get_pkg_version()
     print('Found test version: {}'.format(test_version))
     add_repo(test_version)
@@ -39,9 +39,13 @@ def test_upgrade():
     install(master_version)
     check_health()
     print('Upgrading to test version')
-    destroy_service()
-    install(test_version)
+    destroy_and_install(test_version)
     check_health()
+
+    print('Downgrading to master version')
+    destroy_and_install(master_version)
+    check_health()
+
     # clean up
     remove_repo(master_version)
 
@@ -69,6 +73,11 @@ def new_default_version_available(prev_version):
     def success_predicate(pkg_version):
         return (pkg_version != prev_version, 'Package version has not changed')
     spin(fn, success_predicate)
+
+
+def destroy_and_install(version):
+    destroy_service()
+    install(package_version=version)
 
 
 def destroy_service():
