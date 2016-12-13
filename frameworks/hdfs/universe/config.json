@@ -40,13 +40,19 @@
           "description":"Journal node disk type",
           "type":"string",
           "default": "ROOT"
+        },
+        "strategy":{
+          "description":"Journal node deployment strategy",
+          "type":"string",
+          "default": "parallel"
         }
       },
       "required":[
         "cpus",
         "mem",
         "disk",
-        "disk_type"
+        "disk_type",
+        "strategy"
       ]
     },
     "name_node":{
@@ -129,13 +135,19 @@
           "description":"Data node disk type",
           "type":"string",
           "default": "ROOT"
+        },
+        "strategy":{
+          "description":"Data node deployment strategy",
+          "type":"string",
+          "default": "parallel"
         }
       },
       "required":[
         "cpus",
         "mem",
         "disk",
-        "disk_type"
+        "disk_type",
+        "strategy"
       ]
     },
     "hdfs": {

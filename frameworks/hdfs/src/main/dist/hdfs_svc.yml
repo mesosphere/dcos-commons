@@ -143,7 +143,7 @@ plans:
     strategy: serial
     phases:
       jn-deploy:
-        strategy: parallel
+        strategy: {{JOURNAL_STRATEGY}}
         pod: journal
       nn-deploy:
         strategy: serial
@@ -168,5 +168,5 @@ plans:
           - podInstance: 1
             tasks: [node]
       dn-deploy:
-        strategy: parallel
+        strategy: {{DATA_STRATEGY}}
         pod: data
