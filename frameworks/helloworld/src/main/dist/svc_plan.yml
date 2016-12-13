@@ -5,6 +5,9 @@ api-port: {{PORT0}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
+    avoid-types:
+      - hello
+      - world
     tasks:
       server:
         goal: RUNNING
@@ -23,6 +26,9 @@ pods:
 
   world:
     count: {{WORLD_COUNT}}
+    avoid-types:
+      - hello
+      - world
     resource-sets:
       world-resource:
         cpus: {{WORLD_CPUS}}

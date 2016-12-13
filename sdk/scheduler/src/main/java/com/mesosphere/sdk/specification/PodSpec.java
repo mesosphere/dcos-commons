@@ -32,6 +32,12 @@ public interface PodSpec {
     @JsonProperty("resource_sets")
     Collection<ResourceSet> getResources();
 
+    @JsonProperty("colocate_types")
+    Collection<String> getColocateTypes();
+
+    @JsonProperty("avoid_types")
+    Collection<String> getAvoidTypes();
+
     @JsonProperty("placement_rule")
     Optional<PlacementRule> getPlacementRule();
 

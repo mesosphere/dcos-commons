@@ -1,5 +1,8 @@
 package com.mesosphere.sdk.offer.constrain;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -27,33 +30,68 @@ public class PlacementUtils {
     /**
      * Returns the appropriate placement rule, given a set of agents to avoid or colocate with.
      *
-     * @param avoidAgents Agents which should not have Tasks placed on them.
-     * @param collocateAgents Agents which should have Tasks placed on them.
-     * @return The appropriate placement rule.
+     * @param avoidAgents Agents which should not have Tasks placed on them
+     * @param targetAgents Agents which should have Tasks placed on them
+     * @return The appropriate placement rule, or an empty Optional if no rules are relevant
      */
     public static Optional<PlacementRule> getAgentPlacementRule(
-            List<String> avoidAgents,
-            List<String> collocateAgents) {
+            Collection<String> avoidAgents,
+            Collection<String> targetAgents) {
 
         Optional<PlacementRule> placement;
         if (!avoidAgents.isEmpty()) {
-            if (!collocateAgents.isEmpty()) {
-                // avoid and collocate enforcement
+            if (!targetAgents.isEmpty()) {
+                // avoid and require enforcement
                 placement = Optional.of(new AndRule(
                         AgentRule.avoid(avoidAgents),
-                        AgentRule.require(collocateAgents)));
+                        AgentRule.require(targetAgents)));
             } else {
                 // avoid enforcement only
                 placement = Optional.of(AgentRule.avoid(avoidAgents));
             }
-        } else if (!collocateAgents.isEmpty()) {
-            // collocate enforcement only
-            placement = Optional.of(AgentRule.require(collocateAgents));
+        } else if (!targetAgents.isEmpty()) {
+            // require enforcement only
+            placement = Optional.of(AgentRule.require(targetAgents));
         } else {
-            // no collocate/avoid enforcement
+            // no require/avoid enforcement
             placement = Optional.empty();
         }
 
+        return placement;
+    }
+
+    /**
+     * Returns the appropriate placement rule, given a set of task types to avoid or colocate with.
+     *
+     * @param avoidTypes Task types which should not be colocated with
+     * @param colocateTypes Task types which should be colocated with
+     * @param customPlacementRule Custom rule which should be ANDed against the task type placement
+     * @return The appropriate placement rule, or an empty Optional if no rules are relevant
+     */
+    public static Optional<PlacementRule> getTaskTypePlacementRule(
+            Collection<String> avoidTypes,
+            Collection<String> colocateTypes,
+            Optional<PlacementRule> customPlacementRule) {
+
+        Optional<PlacementRule> placement;
+        if (!avoidTypes.isEmpty()) {
+            if (!colocateTypes.isEmpty()) {
+                // avoid and colocate enforcement
+                placement = combine(
+                        customPlacementRule,
+                        TaskTypeRule.avoid(avoidTypes),
+                        TaskTypeRule.colocateWith(colocateTypes));
+            } else {
+                // avoid enforcement only
+                placement = combine(customPlacementRule, TaskTypeRule.avoid(avoidTypes));
+            }
+        } else if (!colocateTypes.isEmpty()) {
+            // colocate enforcement only
+            placement = combine(customPlacementRule, TaskTypeRule.colocateWith(colocateTypes));
+        } else {
+            // no colocate/avoid enforcement
+            placement = customPlacementRule;
+        }
         return placement;
     }
 
@@ -81,5 +119,25 @@ public class PlacementUtils {
             offerRequirementTaskNames.add(taskRequirement.getTaskInfo().getName());
         }
         return offerRequirementTaskNames.contains(taskInfo.getName());
+    }
+
+    /**
+     * Returns a flat ANDed combination of the provided {@code customPlacementRule} and/or
+     * {@code generatedRules} as needed.
+     */
+    private static Optional<PlacementRule> combine(
+            Optional<PlacementRule> customPlacementRule, PlacementRule... generatedRules) {
+        List<PlacementRule> rules = new ArrayList<>(Arrays.asList(generatedRules));
+        if (customPlacementRule.isPresent()) {
+            rules.add(customPlacementRule.get());
+        }
+        switch (rules.size()) {
+        case 0:
+            return Optional.empty();
+        case 1:
+            return Optional.of(rules.iterator().next());
+        default:
+            return Optional.of(new AndRule(rules));
+        }
     }
 }

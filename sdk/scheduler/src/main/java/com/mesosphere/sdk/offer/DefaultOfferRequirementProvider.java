@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.config.TaskConfigRouter;
+import com.mesosphere.sdk.offer.constrain.PlacementUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
@@ -40,32 +41,35 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     public OfferRequirement getNewOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
             throws InvalidRequirementException {
 
-        List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance);
+        PodSpec podSpec = podInstance.getPod();
 
-        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
+        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podSpec);
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
-        podInstance.getPod().getTasks()
+        podSpec.getTasks()
                 .forEach(taskSpec -> execCmdBuilder.addAllUris(CommandUtils.getUris(taskSpec.getCommand().get())));
 
         Protos.ExecutorInfo executorInfo = execBuilder.setCommand(execCmdBuilder).build();
 
         return OfferRequirement.create(
-                podInstance.getPod().getType(),
+                podSpec.getType(),
                 podInstance.getIndex(),
-                taskInfos,
+                getNewTaskInfos(podInstance),
                 Optional.of(executorInfo),
-                podInstance.getPod().getPlacementRule());
+                PlacementUtils.getTaskTypePlacementRule(
+                        podSpec.getAvoidTypes(),
+                        podSpec.getColocateTypes(),
+                        podSpec.getPlacementRule()));
     }
 
     @Override
     public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, List<String> tasksToLaunch)
             throws InvalidRequirementException {
 
-        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks();
-        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
+        PodSpec podSpec = podInstance.getPod();
 
-        for (TaskSpec taskSpec : taskSpecs) {
+        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
+        for (TaskSpec taskSpec : podSpec.getTasks()) {
             Optional<Protos.TaskInfo> taskInfoOptional =
                     stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
             if (taskInfoOptional.isPresent()) {
@@ -82,10 +86,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         validateTaskRequirements(taskRequirements);
 
-        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
+        Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podSpec);
         Protos.CommandInfo.Builder execCmdBuilder = execBuilder.getCommand().toBuilder();
 
-        podInstance.getPod().getTasks()
+        podSpec.getTasks()
                 .forEach(taskSpec -> execCmdBuilder.addAllUris(CommandUtils.getUris(taskSpec.getCommand().get())));
 
         Protos.ExecutorInfo executorInfo = execBuilder.setCommand(execCmdBuilder).build();
@@ -94,11 +98,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 ExecutorRequirement.create(executorInfo);
 
         return OfferRequirement.create(
-                podInstance.getPod().getType(),
+                podSpec.getType(),
                 podInstance.getIndex(),
                 taskRequirements,
                 executorRequirement,
-                podInstance.getPod().getPlacementRule());
+                PlacementUtils.getTaskTypePlacementRule(
+                        podSpec.getAvoidTypes(),
+                        podSpec.getColocateTypes(),
+                        podSpec.getPlacementRule()));
     }
 
 
@@ -240,21 +247,25 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         Map<String, Protos.Resource> oldResourceMap = getResourceMap(taskInfo.getResourcesList());
 
-        ResourceSet resourceSet = taskSpec.getResourceSet();
         List<Protos.Resource> updatedResources = new ArrayList<>();
-        for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
+        for (ResourceSpecification resourceSpecification : taskSpec.getResourceSet().getResources()) {
             Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
             if (oldResource != null) {
                 try {
                     updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
                 } catch (IllegalArgumentException e) {
-                    LOGGER.error("Failed to update Resources with exception: ", e);
+                    LOGGER.error("Resource update failed with exception, using old Resource", e);
                     // On failure to update resources keep the old resources.
                     updatedResources.add(oldResource);
                 }
             } else {
                 updatedResources.add(ResourceUtils.getDesiredResource(resourceSpecification));
             }
+        }
+
+        if (updatedResources.isEmpty()) {
+            throw new InvalidRequirementException(
+                    "Resources missing in provided TaskSpec: " + taskSpec.toString());
         }
 
         return updatedResources;
@@ -269,29 +280,32 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
         }
 
-        if (resourceSet.getVolumes().size() > 0) {
-            for (VolumeSpecification volumeSpecification : resourceSet.getVolumes()) {
-                switch (volumeSpecification.getType()) {
-                    case ROOT:
-                        resources.add(
-                                ResourceUtils.getDesiredRootVolume(
-                                        volumeSpecification.getRole(),
-                                        volumeSpecification.getPrincipal(),
-                                        volumeSpecification.getValue().getScalar().getValue(),
-                                        volumeSpecification.getContainerPath()));
-                        break;
-                    case MOUNT:
-                        resources.add(
-                                ResourceUtils.getDesiredMountVolume(
-                                        volumeSpecification.getRole(),
-                                        volumeSpecification.getPrincipal(),
-                                        volumeSpecification.getValue().getScalar().getValue(),
-                                        volumeSpecification.getContainerPath()));
-                        break;
-                    default:
-                        LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
-                }
+        for (VolumeSpecification volumeSpecification : resourceSet.getVolumes()) {
+            switch (volumeSpecification.getType()) {
+                case ROOT:
+                    resources.add(
+                            ResourceUtils.getDesiredRootVolume(
+                                    volumeSpecification.getRole(),
+                                    volumeSpecification.getPrincipal(),
+                                    volumeSpecification.getValue().getScalar().getValue(),
+                                    volumeSpecification.getContainerPath()));
+                    break;
+                case MOUNT:
+                    resources.add(
+                            ResourceUtils.getDesiredMountVolume(
+                                    volumeSpecification.getRole(),
+                                    volumeSpecification.getPrincipal(),
+                                    volumeSpecification.getValue().getScalar().getValue(),
+                                    volumeSpecification.getContainerPath()));
+                    break;
+                default:
+                    LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
             }
+        }
+
+        if (resources.isEmpty()) {
+            throw new InvalidRequirementException(
+                    "Resources/volumes missing in provided TaskSpec: " + taskSpec.toString());
         }
 
         return resources;

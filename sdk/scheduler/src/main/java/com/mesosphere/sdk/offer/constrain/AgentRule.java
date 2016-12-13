@@ -37,7 +37,14 @@ public class AgentRule implements PlacementRule {
      * @param agentIds mesos ID of the agents to require
      */
     public static PlacementRule require(Collection<String> agentIds) {
-        return new OrRule(toAgentRules(agentIds));
+        switch (agentIds.size()) {
+        case 0:
+            return new PassthroughRule();
+        case 1:
+            return require(agentIds.iterator().next());
+        default:
+            return new OrRule(toAgentRules(agentIds));
+        }
     }
 
     /**
@@ -117,7 +124,7 @@ public class AgentRule implements PlacementRule {
     private static Collection<PlacementRule> toAgentRules(Collection<String> agentIds) {
         List<PlacementRule> rules = new ArrayList<>();
         for (String agentId : agentIds) {
-            rules.add(new AgentRule(agentId));
+            rules.add(require(agentId));
         }
         return rules;
     }

@@ -38,6 +38,10 @@ public class DefaultPodSpec implements PodSpec {
     @UniqueTaskName(message = "Task names must be unique")
     private List<TaskSpec> tasks;
     @Valid
+    private Collection<String> colocateTypes;
+    @Valid
+    private Collection<String> avoidTypes;
+    @Valid
     private PlacementRule placementRule;
     @Valid
     @UniqueResourceSet
@@ -50,6 +54,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("count") Integer count,
             @JsonProperty("container") ContainerSpec container,
             @JsonProperty("task_specs") List<TaskSpec> tasks,
+            @JsonProperty("colocate_types") Collection<String> colocateTypes,
+            @JsonProperty("avoid_types") Collection<String> avoidTypes,
             @JsonProperty("placement_rule") PlacementRule placementRule,
             @JsonProperty("resource_sets") Collection<ResourceSet> resources) {
         this.type = type;
@@ -57,13 +63,15 @@ public class DefaultPodSpec implements PodSpec {
         this.count = count;
         this.container = container;
         this.tasks = tasks;
+        this.colocateTypes = colocateTypes;
+        this.avoidTypes = avoidTypes;
         this.placementRule = placementRule;
         this.resources = resources;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count, builder.container,
-                builder.tasks, builder.placementRule, builder.resources);
+        this(builder.type, builder.user, builder.count, builder.container, builder.tasks,
+                builder.colocateTypes, builder.avoidTypes, builder.placementRule, builder.resources);
     }
 
     public static Builder newBuilder() {
@@ -76,12 +84,11 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
         builder.container = copy.getContainer().isPresent() ? copy.getContainer().get() : null;
-        builder.tasks = new ArrayList<>();
-        builder.tasks.addAll(copy.getTasks());
-        builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
-        ArrayList<ResourceSet> resourcesCopy = new ArrayList<>();
-        resourcesCopy.addAll(copy.getResources());
-        builder.resources = resourcesCopy;
+        builder.tasks = new ArrayList<>(copy.getTasks());
+        builder.colocateTypes = new ArrayList<>(copy.getColocateTypes());
+        builder.avoidTypes = new ArrayList<>(copy.getAvoidTypes());
+        builder.placementRule = copy.getPlacementRule().orElse(null);
+        builder.resources = new ArrayList<>(copy.getResources());
         return builder;
     }
 
@@ -116,6 +123,16 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<String> getAvoidTypes() {
+        return avoidTypes;
+    }
+
+    @Override
+    public Collection<String> getColocateTypes() {
+        return colocateTypes;
+    }
+
+    @Override
     public Optional<PlacementRule> getPlacementRule() {
         return Optional.ofNullable(placementRule);
     }
@@ -140,6 +157,8 @@ public class DefaultPodSpec implements PodSpec {
         private Integer count;
         private ContainerSpec container;
         private List<TaskSpec> tasks = new ArrayList<>();
+        private Collection<String> colocateTypes = new ArrayList<>();
+        private Collection<String> avoidTypes = new ArrayList<>();
         private PlacementRule placementRule;
         private Collection<ResourceSet> resources;
 
@@ -214,6 +233,54 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
+         * Sets the task types to colocate with and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param colocateTypes the task types to colocate with
+         * @return a reference to this Builder
+         */
+        public Builder colocateTypes(Collection<String> colocateTypes) {
+            this.colocateTypes = colocateTypes;
+            return this;
+        }
+
+        /**
+         * Adds a task type to colocate with and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param colocateType the task type to colocate with
+         * @return a reference to this Builder
+         */
+        public Builder addColocateType(String colocateType) {
+            this.colocateTypes.add(colocateType);
+            return this;
+        }
+
+        /**
+         * Sets the task types to avoid and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param avoidTypes the task types to avoid
+         * @return a reference to this Builder
+         */
+        public Builder avoidTypes(Collection<String> avoidTypes) {
+            this.avoidTypes = avoidTypes;
+            return this;
+        }
+
+        /**
+         * Adds a task type to avoid and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param avoidType the task type to avoid
+         * @return a reference to this Builder
+         */
+        public Builder addAvoidType(String avoidType) {
+            this.avoidTypes.add(avoidType);
+            return this;
+        }
+
+        /**
          * Sets the {@code placementRule} and returns a reference to this Builder so that the methods can be chained
          * together.
          *
@@ -225,6 +292,13 @@ public class DefaultPodSpec implements PodSpec {
             return this;
         }
 
+        /**
+         * Sets the {@code resources} and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param resources the {@code resources} to set
+         * @return a reference to this Builder
+         */
         public Builder resources(Collection<ResourceSet> resources) {
             this.resources = resources;
             return this;

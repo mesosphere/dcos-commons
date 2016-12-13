@@ -28,16 +28,120 @@ public class PlacementUtilsTest {
         rule = PlacementUtils.getAgentPlacementRule(
                 Arrays.asList("avoidme", "avoidme2"),
                 Collections.emptyList());
-        assertEquals("NotRule{rule=OrRule{rules=[AgentRule{agentId=avoidme}, AgentRule{agentId=avoidme2}]}}", rule.get().toString());
+        assertEquals("NotRule{rule=OrRule{rules=[" +
+                "AgentRule{agentId=avoidme}, " +
+                "AgentRule{agentId=avoidme2}" +
+                "]}}", rule.get().toString());
         rule = PlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList("colocateme", "colocateme2"));
-        assertEquals("OrRule{rules=[AgentRule{agentId=colocateme}, AgentRule{agentId=colocateme2}]}", rule.get().toString());
+        assertEquals("OrRule{rules=[" +
+                "AgentRule{agentId=colocateme}, " +
+                "AgentRule{agentId=colocateme2}" +
+                "]}", rule.get().toString());
         rule = PlacementUtils.getAgentPlacementRule(
                 Arrays.asList("avoidme", "avoidme2"),
                 Arrays.asList("colocateme", "colocateme2"));
-        assertEquals("AndRule{rules=[NotRule{rule=OrRule{rules=[AgentRule{agentId=avoidme}, AgentRule{agentId=avoidme2}]}}, " +
-                "OrRule{rules=[AgentRule{agentId=colocateme}, AgentRule{agentId=colocateme2}]}]}", rule.get().toString());
+        assertEquals("AndRule{rules=[" +
+                "NotRule{rule=OrRule{rules=[" +
+                "AgentRule{agentId=avoidme}, " +
+                "AgentRule{agentId=avoidme2}" +
+                "]}}, " +
+                "OrRule{rules=[" +
+                "AgentRule{agentId=colocateme}, " +
+                "AgentRule{agentId=colocateme2}" +
+                "]}" +
+                "]}", rule.get().toString());
+        rule = PlacementUtils.getAgentPlacementRule(
+                Arrays.asList("avoidme"),
+                Arrays.asList("colocateme"));
+        assertEquals("AndRule{rules=[" +
+                "NotRule{rule=AgentRule{agentId=avoidme}}, " +
+                "AgentRule{agentId=colocateme}" +
+                "]}", rule.get().toString());
+    }
+
+    @Test
+    public void testGetTaskTypePlacementRule() {
+        // all empty/missing:
+        Optional<PlacementRule> rule = PlacementUtils.getTaskTypePlacementRule(
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Optional.empty());
+        assertFalse(rule.isPresent());
+
+        // agents provided, no custom:
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Arrays.asList("avoidme", "avoidme2"),
+                Collections.emptyList(),
+                Optional.empty());
+        assertEquals("AndRule{rules=[" +
+                "TaskTypeRule{type=avoidme, converter=TaskTypeLabelConverter{}, behavior=AVOID}, " +
+                "TaskTypeRule{type=avoidme2, converter=TaskTypeLabelConverter{}, behavior=AVOID}]}", rule.get().toString());
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Collections.emptyList(),
+                Arrays.asList("colocateme", "colocateme2"),
+                Optional.empty());
+        assertEquals("OrRule{rules=[" +
+                "TaskTypeRule{type=colocateme, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}, " +
+                "TaskTypeRule{type=colocateme2, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}]}", rule.get().toString());
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Arrays.asList("avoidme", "avoidme2"),
+                Arrays.asList("colocateme", "colocateme2"),
+                Optional.empty());
+        assertEquals("AndRule{rules=[" +
+                "AndRule{rules=[" +
+                "TaskTypeRule{type=avoidme, converter=TaskTypeLabelConverter{}, behavior=AVOID}, " +
+                "TaskTypeRule{type=avoidme2, converter=TaskTypeLabelConverter{}, behavior=AVOID}]}, " +
+                "OrRule{rules=[" +
+                "TaskTypeRule{type=colocateme, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}, " +
+                "TaskTypeRule{type=colocateme2, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}]}]}", rule.get().toString());
+
+        // custom provided, no agents:
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Optional.of(new PassthroughRule()));
+        assertEquals("PassthroughRule{}", rule.get().toString());
+
+        // agents provided with custom:
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Arrays.asList("avoidme", "avoidme2"),
+                Collections.emptyList(),
+                Optional.of(new PassthroughRule()));
+        assertEquals("AndRule{rules=[" +
+                "AndRule{rules=[" +
+                "TaskTypeRule{type=avoidme, converter=TaskTypeLabelConverter{}, behavior=AVOID}, " +
+                "TaskTypeRule{type=avoidme2, converter=TaskTypeLabelConverter{}, behavior=AVOID}" +
+                "]}, " +
+                "PassthroughRule{}" +
+                "]}", rule.get().toString());
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Collections.emptyList(),
+                Arrays.asList("colocateme", "colocateme2"),
+                Optional.of(new PassthroughRule()));
+        assertEquals("AndRule{rules=[" +
+                "OrRule{rules=[" +
+                "TaskTypeRule{type=colocateme, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}, " +
+                "TaskTypeRule{type=colocateme2, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}" +
+                "]}, " +
+                "PassthroughRule{}" +
+                "]}", rule.get().toString());
+        rule = PlacementUtils.getTaskTypePlacementRule(
+                Arrays.asList("avoidme", "avoidme2"),
+                Arrays.asList("colocateme", "colocateme2"),
+                Optional.of(new PassthroughRule()));
+        assertEquals("AndRule{rules=[" +
+                "AndRule{rules=[" +
+                "TaskTypeRule{type=avoidme, converter=TaskTypeLabelConverter{}, behavior=AVOID}, " +
+                "TaskTypeRule{type=avoidme2, converter=TaskTypeLabelConverter{}, behavior=AVOID}" +
+                "]}, " +
+                "OrRule{rules=[" +
+                "TaskTypeRule{type=colocateme, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}, " +
+                "TaskTypeRule{type=colocateme2, converter=TaskTypeLabelConverter{}, behavior=COLOCATE}" +
+                "]}, " +
+                "PassthroughRule{}" +
+                "]}", rule.get().toString());
     }
 
     @Test
