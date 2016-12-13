@@ -73,6 +73,10 @@ public class HelloWorldServiceSpecTest {
     }
 
     @Test
+    public void test_yml_withPlan_uris() throws Exception{
+        ServiceSpecDeserialization("svc_uri.yml");
+    }
+    @Test
     public void test_validate_yml_base() throws Exception{
         ServiceSpecValidation("svc.yml");
     }
@@ -85,6 +89,11 @@ public class HelloWorldServiceSpecTest {
     @Test
     public void test_validate_yml_withPlan() throws Exception{
         ServiceSpecValidation("svc_plan.yml");
+    }
+
+    @Test
+    public void test_validate_yml_withPlan_uri() throws Exception{
+        ServiceSpecValidation("svc_uri.yml");
     }
 
     private void ServiceSpecDeserialization(String fileName) throws Exception {
