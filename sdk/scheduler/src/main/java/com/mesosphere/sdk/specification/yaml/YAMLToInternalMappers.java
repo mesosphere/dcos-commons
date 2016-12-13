@@ -87,12 +87,6 @@ public class YAMLToInternalMappers {
         for (String uriStr : rawTaskUris) {
             uris.add(new URI(uriStr));
         }
-        //TODO (Mehmet)
-        /*
-        Collection<URI> uris = rawPod.getUris().stream()
-                .map( (String s ) -> (new URI(s)))
-                .collect(Collectors.toList();
-        */
 
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         if (MapUtils.isNotEmpty(rawResourceSets)) {
@@ -192,8 +186,6 @@ public class YAMLToInternalMappers {
             uris.add(new URI(uriStr));
         }
         uris.addAll(podUris);
-        // uris= Stream.concat(uris.stream(),podUris.stream()).collect(Collectors.toList());
-
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder();
         if (user.isPresent()) {
