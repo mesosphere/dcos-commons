@@ -29,6 +29,7 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
+@pytest.mark.upgrade
 def test_upgrade_downgrade():
     test_version = get_pkg_version()
     print('Found test version: {}'.format(test_version))
@@ -36,7 +37,7 @@ def test_upgrade_downgrade():
     master_version = get_pkg_version()
     print('Found master version: {}'.format(master_version))
     print('Installing master version')
-    install(master_version)
+    install({'package_version': master_version})
     check_health()
     print('Upgrading to test version')
     destroy_and_install(test_version)
@@ -77,7 +78,7 @@ def new_default_version_available(prev_version):
 
 def destroy_and_install(version):
     destroy_service()
-    install(package_version=version)
+    install({'package_version': version})
 
 
 def destroy_service():
