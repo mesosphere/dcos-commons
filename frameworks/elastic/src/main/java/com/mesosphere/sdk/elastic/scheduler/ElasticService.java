@@ -1,6 +1,5 @@
-package com.mesosphere.sdk.specification;
+package com.mesosphere.sdk.elastic.scheduler;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -10,7 +9,9 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.specification.yaml.RawPlan;
+import com.mesosphere.sdk.specification.DefaultPlanGenerator;
+import com.mesosphere.sdk.specification.Service;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
@@ -25,84 +26,57 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This class is a default implementation of the Service interface.  It serves mainly as an example
- * with hard-coded values for "user", and "master-uri", and failover timeouts.  More sophisticated
- * services may want to implement the Service interface directly.
- * <p>
- * Customizing the runtime user for individual tasks may be accomplished by customizing the 'user'
- * field on CommandInfo returned by {@link TaskSpec#getCommand()}.
+ * Customized {@link Service} for the Elastic framework.
  */
-public class DefaultService implements Service {
+public class ElasticService implements Service {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     private static final String USER = "root";
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticService.class);
 
     private int apiPort;
     private String zkConnectionString;
 
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
-    private Collection<Plan> plans;
     private ConfigStore<ServiceSpec> configTargetStore;
     private OfferRequirementProvider offerRequirementProvider;
 
-    public DefaultService() {
-    }
-
-    public DefaultService(String yamlSpecification) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
-    }
-
-    public DefaultService(File pathToYamlSpecification) throws Exception {
+    ElasticService(File pathToYamlSpecification) throws Exception {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
     }
 
-    public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
+    private ElasticService(RawServiceSpecification rawServiceSpecification) throws Exception {
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
         init();
-        this.plans = generatePlansFromRawSpec(rawServiceSpecification);
-        register(serviceSpec, this.plans);
-    }
-
-    public DefaultService(ServiceSpec serviceSpecification) {
-        this(serviceSpecification, Collections.emptyList());
-    }
-
-    public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
-        this.serviceSpec = serviceSpec;
-        init();
-        this.plans = plans;
-        register(serviceSpec, this.plans);
+        Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
+        register(serviceSpec, plans);
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JettyApiServer apiServer = null;
+        new Thread(() -> {
+            JettyApiServer apiServer = null;
+            try {
+                LOGGER.info("Starting API server for Elastic framework.");
+                apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
+                apiServer.start();
+            } catch (Exception e) {
+                LOGGER.error("API Server failed with exception: ", e);
+            } finally {
+                LOGGER.info("API Server exiting.");
                 try {
-                    LOGGER.info("Starting API server.");
-                    apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
+                    if (apiServer != null) {
+                        apiServer.stop();
                     }
+                } catch (Exception e) {
+                    LOGGER.error("Failed to stop API server with exception: ", e);
                 }
             }
         }).start();
     }
 
-    private static void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
-        LOGGER.info("Registering framework: {}", frameworkInfo);
-        SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
+    private static void registerFramework(Scheduler scheduler, Protos.FrameworkInfo frameworkInfo, String masterUri) {
+        LOGGER.info("Registering Elastic framework: {}", frameworkInfo);
+        SchedulerDriver driver = new SchedulerDriverFactory().create(scheduler, frameworkInfo, masterUri);
         driver.run();
     }
 
@@ -112,31 +86,29 @@ public class DefaultService implements Service {
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
 
         try {
-            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString, Arrays.asList());
+            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString,
+                    Collections.emptyList());
         } catch (ConfigStoreException e) {
             LOGGER.error("Unable to create config store", e);
             throw new IllegalStateException(e);
         }
 
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configTargetStore);
+        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(serviceSpec, stateStore,
+                configTargetStore);
 
-        offerRequirementProvider = DefaultScheduler
-                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore,
+                configUpdateResult.targetId);
     }
 
-    @VisibleForTesting
-    protected Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
+    private Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
             throws Exception {
         DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore,
                 offerRequirementProvider);
         List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
-            List<RawPlan> rawPlans = YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification);
-            List<Plan> realPlans = rawPlans.stream()
+            plans.addAll(YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification).stream()
                     .map(rawPlan -> planGenerator.generate(rawPlan, serviceSpec.getPods()))
-                    .collect(Collectors.toList());
-            plans.addAll(realPlans);
+                    .collect(Collectors.toList()));
         }
         return plans;
     }
@@ -158,28 +130,18 @@ public class DefaultService implements Service {
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
     }
 
-    public ServiceSpec getServiceSpec() {
-        return serviceSpec;
-    }
-
-    public Collection<Plan> getPlans() {
-        return plans;
-    }
-
     private Protos.FrameworkInfo getFrameworkInfo() {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(USER)
+                .setWebuiUrl("http://kibana-0-server.elastic.mesos:5601")
                 .setRole(SchedulerUtils.nameToRole(serviceSpec.getName()))
                 .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpec.getName()))
                 .setCheckpoint(true);
 
-        // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
-        if (optionalFrameworkId.isPresent()) {
-            fwkInfoBuilder.setId(optionalFrameworkId.get());
-        }
+        optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
 
         return fwkInfoBuilder.build();
     }
