@@ -1,5 +1,6 @@
 import os
 import time
+import re
 
 import dcos
 import inspect
@@ -71,19 +72,13 @@ def get_deployment_plan():
     return spin(fn, success_predicate)
 
 
-def install(package_version=None, package_name=PACKAGE_NAME, additional_options = {}):
+def install(additional_options = {}, package_version=None):
     merged_options = _nested_dict_merge(DEFAULT_OPTIONS_DICT, additional_options)
-    print('Installing {} with options: {}'.format(PACKAGE_NAME, merged_options))
+    print('Installing {} with options: {} {}'.format(PACKAGE_NAME, merged_options, package_version))
     shakedown.install_package_and_wait(
-        package_name=PACKAGE_NAME,
-        package_version=package_version,
+        PACKAGE_NAME,
+        package_version,
         options_json=merged_options)
-
-
-def install(additional_options = {}):
-    merged_options = _nested_dict_merge(DEFAULT_OPTIONS_DICT, additional_options)
-    print('Installing {} with options: {}'.format(PACKAGE_NAME, merged_options))
-    shakedown.install_package_and_wait(PACKAGE_NAME, options_json=merged_options)
 
 
 def uninstall():
@@ -181,3 +176,68 @@ def run_dcos_cli_cmd(cmd):
     stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
     print(stdout)
     return stdout
+
+
+def get_task_ids(prefix):
+    tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    prefixed_tasks = [t for t in tasks if t['name'].startswith(prefix)]
+    task_ids = [t['id'] for t in prefixed_tasks]
+    return task_ids
+
+
+def tasks_updated(prefix, old_task_ids):
+    def fn():
+        try:
+            return get_task_ids(prefix)
+        except dcos.errors.DCOSHTTPException:
+            return []
+
+    def success_predicate(task_ids):
+        print('Old task ids: ' + str(old_task_ids))
+        print('New task ids: ' + str(task_ids))
+        success = True
+
+        for id in task_ids:
+            print('Checking ' + id)
+            if id in old_task_ids:
+                success = False
+
+        if not len(task_ids) >= len(old_task_ids):
+            success = False
+
+        print('Waiting for update to ' + prefix)
+        return (
+            success,
+            'Task type:' + prefix + ' not updated'
+        )
+
+    return spin(fn, success_predicate)
+
+
+def tasks_not_updated(prefix, old_task_ids):
+    def fn():
+        try:
+            return get_task_ids(prefix)
+        except dcos.errors.DCOSHTTPException:
+            return []
+
+    def success_predicate(task_ids):
+        print('Old task ids: ' + str(old_task_ids))
+        print('New task ids: ' + str(task_ids))
+        success = True
+
+        for id in old_task_ids:
+            print('Checking ' + id)
+            if id not in task_ids:
+                success = False
+
+        if not len(task_ids) >= len(old_task_ids):
+            success = False
+
+        print('Determining no update occurred for ' + prefix)
+        return (
+            success,
+            'Task type:' + prefix + ' not updated'
+        )
+
+    return spin(fn, success_predicate)

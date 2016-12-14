@@ -15,7 +15,10 @@ from tests.test_utils import (
     marathon_api_url,
     request,
     uninstall,
-    spin
+    spin,
+    get_task_ids,
+    tasks_updated,
+    tasks_not_updated
 )
 
 
@@ -27,7 +30,6 @@ def setup_module(module):
 
 def teardown_module(module):
     uninstall()
-
 
 @pytest.mark.sanity
 def test_install_worked():
@@ -72,68 +74,3 @@ def test_bump_data_nodes():
 
     check_health(DEFAULT_HDFS_TASK_COUNT + 1)
     tasks_not_updated('data', data_ids)
-
-
-def get_task_ids(prefix):
-    tasks = shakedown.get_service_tasks(PACKAGE_NAME)
-    prefixed_tasks = [t for t in tasks if t['name'].startswith(prefix)]
-    task_ids = [t['id'] for t in prefixed_tasks]
-    return task_ids
-
-
-def tasks_updated(prefix, old_task_ids):
-    def fn():
-        try:
-            return get_task_ids(prefix)
-        except dcos.errors.DCOSHTTPException:
-            return []
-
-    def success_predicate(task_ids):
-        print('Old task ids: ' + str(old_task_ids))
-        print('New task ids: ' + str(task_ids))
-        success = True
-
-        for id in task_ids:
-            print('Checking ' + id)
-            if id in old_task_ids:
-                success = False
-
-        if not len(task_ids) >= len(old_task_ids):
-            success = False
-
-        print('Waiting for update to ' + prefix)
-        return (
-            success,
-            'Task type:' + prefix + ' not updated'
-        )
-
-    return spin(fn, success_predicate)
-
-
-def tasks_not_updated(prefix, old_task_ids):
-    def fn():
-        try:
-            return get_task_ids(prefix)
-        except dcos.errors.DCOSHTTPException:
-            return []
-
-    def success_predicate(task_ids):
-        print('Old task ids: ' + str(old_task_ids))
-        print('New task ids: ' + str(task_ids))
-        success = True
-
-        for id in old_task_ids:
-            print('Checking ' + id)
-            if id not in task_ids:
-                success = False
-
-        if not len(task_ids) >= len(old_task_ids):
-            success = False
-
-        print('Determining no update occurred for ' + prefix)
-        return (
-            success,
-            'Task type:' + prefix + ' not updated'
-        )
-
-    return spin(fn, success_predicate)

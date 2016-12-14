@@ -11,7 +11,7 @@ from tests.test_utils import (
     request,
     run_dcos_cli_cmd,
     spin,
-    uninstall,
+    uninstall
 )
 
 
@@ -28,17 +28,19 @@ def teardown_module(module):
     uninstall()
 
 
-@pytest.mark.sanity
 @pytest.mark.upgrade
 def test_upgrade_downgrade():
     test_version = get_pkg_version()
     print('Found test version: {}'.format(test_version))
-    add_repo(test_version)
+    if not test_version_exists():
+        add_repo(test_version)
+
     master_version = get_pkg_version()
     print('Found master version: {}'.format(master_version))
     print('Installing master version')
     install({'package_version': master_version})
     check_health()
+
     print('Upgrading to test version')
     destroy_and_install(test_version)
     check_health()
@@ -48,7 +50,17 @@ def test_upgrade_downgrade():
     check_health()
 
     # clean up
-    remove_repo(master_version)
+    # remove_repo(master_version)
+
+def test_version_exists():
+    cmd = "dcos package repo list"
+    result = run_dcos_cli_cmd(cmd)
+    return MASTER_CUSTOM_NAME in result
+
+
+def remove_repo(prev_version):
+    assert shakedown.remove_package_repo(MASTER_CUSTOM_NAME)
+    new_default_version_available(prev_version)
 
 
 def get_pkg_version():
@@ -65,8 +77,9 @@ def add_repo(prev_version):
         MASTER_CUSTOM_URL,
         0)
     # Make sure the new repo packages are available
+    # The above invocation's effects don't occur immediately
+    # so we spin until they do
     new_default_version_available(prev_version)
-
 
 def new_default_version_available(prev_version):
     def fn():
