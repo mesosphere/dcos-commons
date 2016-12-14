@@ -14,6 +14,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,6 +43,8 @@ public class DefaultPodSpec implements PodSpec {
     @Valid
     @UniqueResourceSet
     private Collection<ResourceSet> resources;
+    @Valid
+    private Collection<URI> uris;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -49,6 +52,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
             @JsonProperty("container") ContainerSpec container,
+            @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task_specs") List<TaskSpec> tasks,
             @JsonProperty("placement_rule") PlacementRule placementRule,
             @JsonProperty("resource_sets") Collection<ResourceSet> resources) {
@@ -56,6 +60,7 @@ public class DefaultPodSpec implements PodSpec {
         this.user = user;
         this.count = count;
         this.container = container;
+        this.uris = uris;
         this.tasks = tasks;
         this.placementRule = placementRule;
         this.resources = resources;
@@ -63,7 +68,7 @@ public class DefaultPodSpec implements PodSpec {
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count, builder.container,
-                builder.tasks, builder.placementRule, builder.resources);
+                builder.uris, builder.tasks, builder.placementRule, builder.resources);
     }
 
     public static Builder newBuilder() {
@@ -76,6 +81,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
         builder.container = copy.getContainer().isPresent() ? copy.getContainer().get() : null;
+        builder.uris = copy.getUris();
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
@@ -105,6 +111,11 @@ public class DefaultPodSpec implements PodSpec {
         return Optional.ofNullable(container);
     }
 
+    @Override
+    public Collection<URI> getUris(){
+        return uris;
+    }
+        
     @Override
     public List<TaskSpec> getTasks() {
         return tasks;
@@ -139,6 +150,7 @@ public class DefaultPodSpec implements PodSpec {
         private String user;
         private Integer count;
         private ContainerSpec container;
+        private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
         private Collection<ResourceSet> resources;
@@ -190,6 +202,29 @@ public class DefaultPodSpec implements PodSpec {
             this.container = container;
             return this;
         }
+
+        /**
+         * Sets the {@code uris} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param uris the {@code uris} to set
+         * @return a reference to this Builder
+         */
+        public Builder uris(Collection<URI> uris) {
+            this.uris = uris;
+            return this;
+        }
+
+        /**
+         * Adds the {@code uris} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param uri the {@code uri} to add
+         * @return a reference to this Builder
+         */
+        public Builder addUri(URI uri) {
+            this.uris.add(uri);
+            return this;
+        }
+
 
         /**
          * Sets the {@code tasks} and returns a reference to this Builder so that the methods can be chained together.

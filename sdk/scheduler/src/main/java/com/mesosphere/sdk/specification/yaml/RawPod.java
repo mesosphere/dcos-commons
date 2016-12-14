@@ -1,7 +1,10 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 
 /**
@@ -14,6 +17,7 @@ public class RawPod {
     private RawContainer container;
     private String strategy;
     private String user;
+    private Collection<String> uris;
     private WriteOnceLinkedHashMap<String, RawTask> tasks;
     private WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
 
@@ -73,6 +77,15 @@ public class RawPod {
 
     public LinkedHashMap<String, RawTask> getTasks() {
         return tasks;
+    }
+
+    public Collection<String> getUris() {
+        return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
+    }
+
+    @JsonProperty("uris")
+    public void setUris(Collection<String> uris) {
+        this.uris = uris;
     }
 
     @JsonProperty("tasks")
