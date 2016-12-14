@@ -1,8 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryRequirement;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryRequirementUtils;
+import org.apache.mesos.scheduler.recovery.RecoveryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,8 @@ public class TimedLaunchConstrainer implements LaunchConstrainer {
     }
 
     @Override
-    public void launchHappened(Operation launchOperation, RecoveryRequirement.RecoveryType recoveryType) {
-        if (RecoveryRequirementUtils.isPermanent(recoveryType)) {
+    public void launchHappened(Operation launchOperation, RecoveryType recoveryType) {
+        if (recoveryType.equals(RecoveryType.PERMANENT)) {
             lastPermanentRecoveryLaunchMs.compareAndSet(
                     lastPermanentRecoveryLaunchMs.get(),
                     System.currentTimeMillis());
@@ -40,8 +39,8 @@ public class TimedLaunchConstrainer implements LaunchConstrainer {
     }
 
     @Override
-    public boolean canLaunch(RecoveryRequirement recoveryRequirement) {
-        if (RecoveryRequirementUtils.isPermanent(recoveryRequirement)) {
+    public boolean canLaunch(RecoveryType recoveryType) {
+        if (recoveryType.equals(RecoveryType.PERMANENT)) {
             Long timeLeft = lastPermanentRecoveryLaunchMs.get() + minDelay.toMillis() - getCurrentTimeMs();
             if (timeLeft < 0) {
                 return true;

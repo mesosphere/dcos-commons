@@ -226,7 +226,7 @@ public class YAMLToInternalMappers {
         return builder
                 .commandSpec(commandSpec)
                 .configFiles(configFiles)
-                .goalState(TaskSpec.GoalState.valueOf(StringUtils.upperCase(goal)))
+                .goalState(GoalState.valueOf(StringUtils.upperCase(goal)))
                 .healthCheckSpec(healthCheckSpec)
                 .name(taskName)
                 .type(podType)

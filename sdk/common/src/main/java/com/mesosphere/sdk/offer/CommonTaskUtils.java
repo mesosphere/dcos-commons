@@ -5,11 +5,12 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.specification.ConfigFileSpecification;
+import com.mesosphere.sdk.specification.DefaultConfigFileSpecification;
+import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos.*;
-import com.mesosphere.sdk.specification.ConfigFileSpecification;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +24,13 @@ import java.util.stream.Collectors;
 public class CommonTaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonTaskUtils.class);
     private static final int CONFIG_TEMPLATE_LIMIT_BYTES = 512 * 1024; // 512KB
-    private static final String CONFIG_TEMPLATE_KEY_PREFIX = "config_template:";
-    private static final String TARGET_CONFIGURATION_KEY = "target_configuration";
-    private static final String TASK_NAME_DELIM = "__";
-    private static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
+    public static final String CONFIG_TEMPLATE_KEY_PREFIX = "config_template:";
+    public static final String TARGET_CONFIGURATION_KEY = "target_configuration";
+    public static final String TASK_NAME_DELIM = "__";
+    public static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
+    public static final String GOAL_STATE_KEY = "goal_state";
+    public static final String TASK_NAME_KEY = "TASK_NAME";
+    public static final String TRANSIENT_FLAG_KEY = "transient";
 
     /**
      * Label key against which Offer attributes are stored (in a string representation).
@@ -41,8 +45,8 @@ public class CommonTaskUtils {
     /**
      * Label key against which the Task Type is stored.
      */
-    private static final String TYPE_KEY = "task_type";
-    private static final String INDEX_KEY = "index";
+    protected static final String TYPE_KEY = "task_type";
+    protected static final String INDEX_KEY = "index";
 
     private CommonTaskUtils() {
         // do not instantiate
@@ -137,7 +141,7 @@ public class CommonTaskUtils {
     public static TaskInfo setTransient(TaskInfo taskInfo) {
         return taskInfo.toBuilder()
                 .setLabels(withLabelSet(taskInfo.getLabels(),
-                        MesosTask.TRANSIENT_FLAG_KEY,
+                        CommonTaskUtils.TRANSIENT_FLAG_KEY,
                         "true"))
                 .build();
     }
@@ -148,7 +152,7 @@ public class CommonTaskUtils {
      */
     public static TaskInfo clearTransient(TaskInfo taskInfo) {
         return taskInfo.toBuilder()
-                .setLabels(withLabelRemoved(taskInfo.getLabels(), MesosTask.TRANSIENT_FLAG_KEY))
+                .setLabels(withLabelRemoved(taskInfo.getLabels(), CommonTaskUtils.TRANSIENT_FLAG_KEY))
                 .build();
     }
 
@@ -168,6 +172,7 @@ public class CommonTaskUtils {
     public static String getType(TaskInfo taskInfo) throws TaskException {
         Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TYPE_KEY);
         if (!taskType.isPresent()) {
+            LOGGER.error("TaskInfo: {} does not contain a label indicating type.", taskInfo);
             throw new TaskException("TaskInfo does not contain label with key: " + TYPE_KEY);
         }
         return taskType.get();
@@ -258,6 +263,26 @@ public class CommonTaskUtils {
             throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
         }
         return UUID.fromString(value.get());
+    }
+
+
+    /**
+     * Retrieves the config file data, if any, from the provided {@link TaskInfo}'s {@code labels}
+     * field. If no data is found, returns an empty collection.
+     */
+    public static Collection<ConfigFileSpecification> getConfigFiles(TaskInfo taskInfo)
+            throws InvalidProtocolBufferException {
+        List<ConfigFileSpecification> configs = new ArrayList<>();
+        for (Label label : taskInfo.getLabels().getLabelsList()) {
+            // Extract all labels whose key has the expected prefix:
+            if (!label.getKey().startsWith(CONFIG_TEMPLATE_KEY_PREFIX)) {
+                continue;
+            }
+            configs.add(new DefaultConfigFileSpecification(
+                    label.getKey().substring(CONFIG_TEMPLATE_KEY_PREFIX.length()),
+                    label.getValue()));
+        }
+        return configs;
     }
 
     /**
@@ -402,7 +427,7 @@ public class CommonTaskUtils {
      * Returns the value of a {@link Label} named {@code key}, or returns {@code null} if no
      * matching {@link Label} is found.
      */
-    private static Optional<String> findLabelValue(Labels labels, String key) {
+    public static Optional<String> findLabelValue(Labels labels, String key) {
         for (Label label : labels.getLabelsList()) {
             if (label.getKey().equals(key)) {
                 return Optional.of(label.getValue());
@@ -435,7 +460,7 @@ public class CommonTaskUtils {
      *
      * @return an updated {@link Labels.Builder} with the requested label
      */
-    protected static Labels.Builder withLabelSet(Labels labels, String labelKey, String labelValue) {
+    public static Labels.Builder withLabelSet(Labels labels, String labelKey, String labelValue) {
         Labels.Builder labelsBuilder = withLabelRemoved(labels, labelKey);
         labelsBuilder.addLabelsBuilder()
                 .setKey(labelKey)
@@ -556,22 +581,40 @@ public class CommonTaskUtils {
         return taskBuilder;
     }
 
-    /**
-     * Retrieves the config file data, if any, from the provided {@link TaskInfo}'s {@code labels}
-     * field. If no data is found, returns an empty collection.
-     */
-    public static Collection<ConfigFileSpecification> getConfigFiles(TaskInfo taskInfo)
-            throws InvalidProtocolBufferException {
-        List<ConfigFileSpecification> configs = new ArrayList<>();
-        for (Label label : taskInfo.getLabels().getLabelsList()) {
-            // Extract all labels whose key has the expected prefix:
-            if (!label.getKey().startsWith(CONFIG_TEMPLATE_KEY_PREFIX)) {
-                continue;
-            }
-            configs.add(new DefaultConfigFileSpecification(
-                    label.getKey().substring(CONFIG_TEMPLATE_KEY_PREFIX.length()),
-                    label.getValue()));
+    public static GoalState getGoalState(TaskInfo taskInfo) throws TaskException {
+        List<String> goalNames = Arrays.stream(GoalState.values())
+                .map(goalState -> goalState.name())
+                .collect(Collectors.toList());
+
+        Optional<String> goalStateOptional = CommonTaskUtils.findLabelValue(
+                taskInfo.getLabels(),
+                CommonTaskUtils.GOAL_STATE_KEY);
+        if (!goalStateOptional.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + CommonTaskUtils.GOAL_STATE_KEY);
         }
-        return configs;
+
+        String goalStateString = goalStateOptional.get();
+        if (!goalNames.contains(goalStateString)) {
+            throw new TaskException("Unexpecte goal state encountered: " + goalStateString);
+        }
+
+        return GoalState.valueOf(goalStateString);
+    }
+
+    public static boolean isTransient(TaskInfo taskInfo) {
+        return Boolean.valueOf(getTransientValue(taskInfo));
+    }
+
+    private static String getTransientValue(TaskInfo taskInfo) {
+        if (taskInfo.hasLabels()) {
+            Labels labels = taskInfo.getLabels();
+            for (Label label : labels.getLabelsList()) {
+                if (label.getKey().equals(CommonTaskUtils.TRANSIENT_FLAG_KEY)) {
+                    return label.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 }

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 @Path("/v1/configurations")
 public class ConfigResource<T extends Configuration> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigResource.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ConfigStore<T> configStore;
 

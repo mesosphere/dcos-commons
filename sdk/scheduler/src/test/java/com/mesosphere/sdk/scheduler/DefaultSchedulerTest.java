@@ -170,6 +170,8 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
+        environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
 
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(
@@ -285,7 +287,7 @@ public class DefaultSchedulerTest {
         UUID offerId = UUID.randomUUID();
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         defaultScheduler.awaitTermination();
-        Assert.assertEquals(Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING), getStepStatuses(plan));
+        Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING), getStepStatuses(plan));
     }
 
     @Test
@@ -499,6 +501,7 @@ public class DefaultSchedulerTest {
         defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
                 configStore, offerRequirementProvider);
         register();
+        defaultScheduler.reconciler.forceComplete();
         plan = defaultScheduler.deploymentPlanManager.getPlan();
         stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
@@ -512,11 +515,11 @@ public class DefaultSchedulerTest {
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, timeout(1000).times(1)).killTask(launchedTaskId);
         verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(insufficientOffer.getId());
-        Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
+        Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
 
         // Sent TASK_KILLED status
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
-        Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
+        Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
         Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
@@ -526,7 +529,7 @@ public class DefaultSchedulerTest {
                 collectionThat(contains(expectedOffer.getId())),
                 operationsCaptor.capture(),
                 any());
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isInProgress(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isStarting(), equalTo(true));
         Assert.assertEquals(1, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
@@ -682,7 +685,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isInProgress(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isStarting(), equalTo(true));
 
         // Sent TASK_RUNNING status
         Protos.TaskID taskId = getTaskId(operations);

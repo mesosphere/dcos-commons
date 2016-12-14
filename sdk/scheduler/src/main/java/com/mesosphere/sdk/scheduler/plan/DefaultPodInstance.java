@@ -23,7 +23,7 @@ public class DefaultPodInstance implements PodInstance {
     }
 
     @Override
-    public Integer getIndex() {
+    public int getIndex() {
         return index;
     }
 

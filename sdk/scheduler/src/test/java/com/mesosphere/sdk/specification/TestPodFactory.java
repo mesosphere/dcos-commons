@@ -51,7 +51,7 @@ public class TestPodFactory {
         ResourceSet resourceSet = getResourceSet(resourceSetId, cpu, mem, disk);
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(taskName)
-                .goalState(TaskSpec.GoalState.RUNNING)
+                .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder()
                         .value(cmd)

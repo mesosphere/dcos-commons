@@ -33,18 +33,18 @@ import java.util.stream.Collectors;
  * field on CommandInfo returned by {@link TaskSpec#getCommand()}.
  */
 public class DefaultService implements Service {
-    private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
-    private static final String USER = "root";
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
+    protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
+    protected static final String USER = "root";
+    protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
-    private int apiPort;
-    private String zkConnectionString;
+    protected int apiPort;
+    protected String zkConnectionString;
 
-    private StateStore stateStore;
-    private ServiceSpec serviceSpec;
-    private Collection<Plan> plans;
-    private ConfigStore<ServiceSpec> configTargetStore;
-    private OfferRequirementProvider offerRequirementProvider;
+    protected StateStore stateStore;
+    protected ServiceSpec serviceSpec;
+    protected Collection<Plan> plans;
+    protected ConfigStore<ServiceSpec> configTargetStore;
+    protected OfferRequirementProvider offerRequirementProvider;
 
     public DefaultService() {
     }
@@ -75,7 +75,7 @@ public class DefaultService implements Service {
         register(serviceSpec, this.plans);
     }
 
-    private void init() {
+    protected void init() {
         this.apiPort = this.serviceSpec.getApiPort();
         this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);

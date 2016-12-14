@@ -1,35 +1,65 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
+import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.executor.ExecutorUtils;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.offer.constrain.PlacementUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.PersistentOperationRecorder;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.*;
+import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import com.mesosphere.sdk.executor.ExecutorUtils;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import java.io.File;
 import java.util.*;
+
+import static org.junit.Assert.assertNotEquals;
 
 public class OfferEvaluatorTest {
 
-    @Mock private StateStore mockStateStore;
+    private static final String ROOT_ZK_PATH = "/test-root-path";
+    private static TestingServer testZk;
+    private static EnvironmentVariables environmentVariables;
+    private OfferRequirementProvider offerRequirementProvider;
+    private StateStore stateStore;
     private OfferEvaluator evaluator;
+    private PersistentOperationRecorder operationRecorder;
+
+    @BeforeClass
+    public static void beforeAll() throws Exception {
+        testZk = new TestingServer();
+        environmentVariables = new EnvironmentVariables();
+        environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
+    }
 
     @Before
-    public void beforeAll() {
-        MockitoAnnotations.initMocks(this);
-        evaluator = new OfferEvaluator(mockStateStore);
+    public void beforeEach() throws Exception {
+        CuratorTestUtils.clear(testZk);
+        stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        offerRequirementProvider = new DefaultOfferRequirementProvider(
+                new DefaultTaskConfigRouter(),
+                stateStore,
+                UUID.randomUUID());
+        evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
+        operationRecorder = new PersistentOperationRecorder(stateStore);
     }
 
     @Test
@@ -971,7 +1001,7 @@ public class OfferEvaluatorTest {
         Operation launchOperation = recommendations.get(0).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         TaskInfo launchedTaskInfo = launchOperation.getLaunch().getTaskInfosList().get(0);
-        Assert.assertNotEquals("", launchedTaskInfo.getExecutor().getExecutorId().getValue());
+        assertNotEquals("", launchedTaskInfo.getExecutor().getExecutorId().getValue());
     }
 
     @Test
@@ -1028,6 +1058,64 @@ public class OfferEvaluatorTest {
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
     }
 
+    @Test
+    public void testLaunchSequencedTasksInPod() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
+        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                new PodInstanceRequirement(podInstance, Arrays.asList("format"));
+
+        Resource sufficientResource = ResourceUtils.getUnreservedScalar("cpus", 3.0);
+        Offer sufficientOffer = OfferTestUtils.getOffer(sufficientResource);
+
+        // Launch Task with FINISHED goal state, for first time.
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(sufficientOffer));
+
+        Assert.assertEquals(4, recommendations.size());
+
+        // Validate RESERVE Operations
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        reserveOperation = recommendations.get(1).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+
+        // Validate LAUNCH Operations
+        Operation launchOperation = recommendations.get(2).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        launchOperation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+
+        recordOperations(recommendations, sufficientOffer);
+
+        // Launch Task with RUNNING goal state, later.
+        podInstanceRequirement = new PodInstanceRequirement(podInstance, Arrays.asList("node"));
+        recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
+        // Providing sufficient, but unreserved resources should result in no operations.
+        Assert.assertEquals(0, recommendations.size());
+
+        String resourceId = offerRequirementProvider.getExistingOfferRequirement(podInstance, Arrays.asList("node"))
+                .getTaskRequirements().stream()
+                .flatMap(taskRequirement -> taskRequirement.getResourceRequirements().stream())
+                .map(resourceRequirement -> resourceRequirement.getResourceId())
+                .findFirst()
+                .get();
+
+        Resource expectedResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
+        Offer expectedOffer = OfferTestUtils.getOffer(expectedResource);
+        recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(expectedOffer));
+        // Providing the expected reserved resources should result in a LAUNCH operation.
+        Assert.assertEquals(1, recommendations.size());
+        launchOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+    }
+
     private static OfferRequirement getOfferRequirement(
             Protos.Resource resource, List<String> avoidAgents, List<String> collocateAgents)
                     throws InvalidRequirementException {
@@ -1042,5 +1130,11 @@ public class OfferEvaluatorTest {
 
     private static Label getFirstLabel(Resource resource) {
         return resource.getReservation().getLabels().getLabels(0);
+    }
+
+    private void recordOperations(List<OfferRecommendation> recommendations, Offer offer) throws Exception {
+        for (OfferRecommendation recommendation : recommendations) {
+            operationRecorder.record(recommendation.getOperation(), offer);
+        }
     }
 }

@@ -14,7 +14,6 @@ repositories {
 }
 
 ext {
-    mesosVer = "0.28.0"
     junitVer = "4.12"
     systemRulesVer = "1.16.0"
     mockitoVer = "1.9.5"
@@ -25,7 +24,6 @@ buildDir = new File(rootProject.projectDir, "build/")
 dependencies {
     compile project(":scheduler")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
-    compile "org.apache.mesos:mesos:${mesosVer}"
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     testCompile "org.mockito:mockito-all:${mockitoVer}"

@@ -1,51 +1,37 @@
 package com.mesosphere.sdk.offer.constrain;
 
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link RoundRobinByHostnameRule}.
  */
 public class RoundRobinByHostnameRuleTest {
 
-    private static final OfferRequirement REQ;
-    private static final OfferRequirement REQ1;
-    private static final OfferRequirement REQ2;
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
-    static {
-        OfferRequirement req = null, req1 = null, req2 = null;
-        try {
-            req = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
-            req1 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("1", "host")));
-            req2 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("2", "host")));
-        } catch (InvalidRequirementException e) {
-            fail(e.toString());
-        }
-        REQ = req;
-        REQ1 = req1;
-        REQ2 = req2;
+    private static OfferRequirement REQ;
+
+    @BeforeClass
+    public static void beforeAll() throws InvalidRequirementException {
+        REQ = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
     }
 
     @Test
-    public void testRolloutWithAgentCount() {
+    public void testRolloutWithAgentCount() throws TaskException, InvalidRequirementException {
         PlacementRule rule = new RoundRobinByHostnameRule(Optional.of(3), MATCHER);
         // throw in some preexisting tasks to be ignored by our matcher:
         List<TaskInfo> tasks = new ArrayList<>();
@@ -56,15 +42,25 @@ public class RoundRobinByHostnameRuleTest {
         tasks.add(getTaskInfo("ignored5", "host2"));
         // 1st task fits on host1:
         assertEquals(1, rule.filter(offerWithHost("host1"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("1", "host1")); // host1:1
+        TaskInfo taskInfo1 = getTaskInfo("1", "host1");
+        OfferRequirement req1 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo1),
+                Arrays.asList(taskInfo1));
+        tasks.add(taskInfo1); // host1:1
         // 2nd task doesn't fit on host1 which already has something, but does fit on host2/host3:
         assertEquals(0, rule.filter(offerWithHost("host1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithHost("host2"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithHost("host3"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("2", "host3")); // host1:1, host3:1
+        TaskInfo taskInfo2 = getTaskInfo("2", "host3");
+        OfferRequirement req2 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo2),
+                Arrays.asList(taskInfo2));
+        tasks.add(taskInfo2); // host1:1, host3:1
         // duplicates of preexisting tasks 1/3 fit on their previous hosts:
-        assertEquals(1, rule.filter(offerWithHost("host1"), REQ1, tasks).getResourcesCount());
-        assertEquals(1, rule.filter(offerWithHost("host3"), REQ2, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithHost("host1"), req1, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithHost("host3"), req2, tasks).getResourcesCount());
         // 3rd task doesnt fit on host1/host3, does fit on host2:
         assertEquals(0, rule.filter(offerWithHost("host1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithHost("host2"), REQ, tasks).getResourcesCount());
@@ -100,7 +96,7 @@ public class RoundRobinByHostnameRuleTest {
     }
 
     @Test
-    public void testRolloutWithoutAgentCount() {
+    public void testRolloutWithoutAgentCount() throws TaskException, InvalidRequirementException {
         PlacementRule rule = new RoundRobinByHostnameRule(Optional.empty(), MATCHER);
         // throw in some preexisting tasks to be ignored by our matcher:
         List<TaskInfo> tasks = new ArrayList<>();
@@ -111,15 +107,25 @@ public class RoundRobinByHostnameRuleTest {
         tasks.add(getTaskInfo("ignored5", "host2"));
         // 1st task fits on host1:
         assertEquals(1, rule.filter(offerWithHost("host1"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("1", "host1")); // host1:1
+        TaskInfo taskInfo1 = getTaskInfo("1", "host1");
+        OfferRequirement req1 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo1),
+                Arrays.asList(taskInfo1));
+        tasks.add(taskInfo1); // host1:1
         // 2nd task fits on any of host1/host2/host3, as we don't yet know of other valid hosts:
         assertEquals(1, rule.filter(offerWithHost("host1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithHost("host2"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithHost("host3"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("2", "host3")); // host1:1, host3:1
+        TaskInfo taskInfo2 = getTaskInfo("2", "host3");
+        OfferRequirement req2 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo2),
+                Arrays.asList(taskInfo2));
+        tasks.add(taskInfo2); // host1:1, host3:1
         // duplicates of preexisting tasks 1/3 fit on their previous hosts:
-        assertEquals(1, rule.filter(offerWithHost("host1"), REQ1, tasks).getResourcesCount());
-        assertEquals(1, rule.filter(offerWithHost("host3"), REQ2, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithHost("host1"), req1, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithHost("host3"), req2, tasks).getResourcesCount());
         // 3rd task fits on any of host1/host2/host3, as all known hosts have the same amount:
         assertEquals(1, rule.filter(offerWithHost("host1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithHost("host2"), REQ, tasks).getResourcesCount());

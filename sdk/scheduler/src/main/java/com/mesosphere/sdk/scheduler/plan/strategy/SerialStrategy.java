@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A SerialStrategy requires that all Elements are completed in order.
@@ -33,6 +34,9 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
         if (dependencyStrategyHelper == null) {
             dependencyStrategyHelper = new DependencyStrategyHelper<>(element);
             List<C> planElements = new LinkedList<>(element.getChildren());
+            planElements = planElements.stream()
+                    .filter(el -> !el.isComplete())
+                    .collect(Collectors.toList());
             Collections.reverse(planElements);
 
             for (int i = 1; i < planElements.size(); i++) {
