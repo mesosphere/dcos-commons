@@ -5,6 +5,7 @@ com.mesosphere.sdk.config.validate
 com.mesosphere.sdk.curator
 com.mesosphere.sdk.dcos
 com.mesosphere.sdk.executor
+com.mesosphere.sdk.hdfs.scheduler
 com.mesosphere.sdk.helloworld.scheduler
 com.mesosphere.sdk.kafka.scheduler
 com.mesosphere.sdk.offer
@@ -23,3 +24,5 @@ com.mesosphere.sdk.state
 com.mesosphere.sdk.storage
 com.mesosphere.sdk.testing
 com.mesosphere.sdk.testutils
+org.apache.mesos.scheduler.plan
+org.apache.mesos.scheduler.recovery
