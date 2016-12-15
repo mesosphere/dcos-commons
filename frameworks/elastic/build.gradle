@@ -44,6 +44,7 @@ test {
     filter {
         //include all tests from package
         includeTestsMatching "com.mesosphere.sdk.elastic.*"
+        setFailOnNoMatchingTests false
     }
 }
 

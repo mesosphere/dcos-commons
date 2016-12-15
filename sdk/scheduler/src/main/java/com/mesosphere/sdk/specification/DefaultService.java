@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.specification;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -17,6 +14,9 @@ import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +75,37 @@ public class DefaultService implements Service {
         register(serviceSpec, this.plans);
     }
 
+    private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                JettyApiServer apiServer = null;
+                try {
+                    LOGGER.info("Starting API server.");
+                    apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
+                    apiServer.start();
+                } catch (Exception e) {
+                    LOGGER.error("API Server failed with exception: ", e);
+                } finally {
+                    LOGGER.info("API Server exiting.");
+                    try {
+                        if (apiServer != null) {
+                            apiServer.stop();
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Failed to stop API server with exception: ", e);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private static void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
+        LOGGER.info("Registering framework: {}", frameworkInfo);
+        SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
+        driver.run();
+    }
+
     protected void init() {
         this.apiPort = this.serviceSpec.getApiPort();
         this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
@@ -131,40 +162,8 @@ public class DefaultService implements Service {
         return serviceSpec;
     }
 
-
     public Collection<Plan> getPlans() {
         return plans;
-    }
-
-    private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                JettyApiServer apiServer = null;
-                try {
-                    LOGGER.info("Starting API server.");
-                    apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
-                    apiServer.start();
-                } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
-                } finally {
-                    LOGGER.info("API Server exiting.");
-                    try {
-                        if (apiServer != null) {
-                            apiServer.stop();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
-                    }
-                }
-            }
-        }).start();
-    }
-
-    private static void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
-        LOGGER.info("Registering framework: {}", frameworkInfo);
-        SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
-        driver.run();
     }
 
     private Protos.FrameworkInfo getFrameworkInfo() {

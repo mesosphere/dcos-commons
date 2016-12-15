@@ -16,4 +16,3 @@ bootstrap.memory_lock: true
 node.master: {{MASTER_ENABLED}}
 node.data: {{DATA_ENABLED}}
 node.ingest: {{INGEST_ENABLED}}
-bootstrap.ignore_system_bootstrap_checks: true

@@ -13,7 +13,7 @@
         "user": {
           "description": "The user to run the Elasticsearch service instance and own the sandbox.",
           "type": "string",
-          "default": "core"
+          "default": "centos"
         },
         "plan_strategy": {
           "description": "Elasticsearch and Kibana rollout strategy. [parallel, serial]",
