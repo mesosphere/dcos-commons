@@ -29,7 +29,7 @@ public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C
     public static class Generator<C extends Element> implements StrategyGenerator<C> {
         @Override
         public Strategy<C> generate() {
-            return new RandomStrategy<>();
+            return new ParallelStrategy<C>();
         }
     }
 }

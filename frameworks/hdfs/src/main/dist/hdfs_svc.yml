@@ -11,6 +11,11 @@ pods:
         cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode"
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
+        ports:
+          - name: journal_rpc
+            port: {{JOURNAL_NODE_RPC_PORT}}
+          - name: journal_http
+            port: {{JOURNAL_NODE_HTTP_PORT}}
         volumes:
           - path: "journal-data"
             size: {{JOURNAL_DISK}}
@@ -31,6 +36,11 @@ pods:
       name-resources:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
+        ports:
+          - name: name_rpc
+            port: {{NAME_NODE_RPC_PORT}}
+          - name: name_http
+            port: {{NAME_NODE_HTTP_PORT}}
         volumes:
           - path: "name-data"
             size: {{NAME_DISK}}
@@ -123,6 +133,13 @@ pods:
         cmd: "./resolve-dns.sh && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
+        ports:
+          - name: data_rpc
+            port: {{DATA_NODE_RPC_PORT}}
+          - name: data_http
+            port: {{DATA_NODE_HTTP_PORT}}
+          - name: data_ipc
+            port: {{DATA_NODE_IPC_PORT}}
         volumes:
           - path: "data-data"
             size: {{DATA_DISK}}
