@@ -40,7 +40,7 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-checks:
           check-hello:
-            cmd: "stat hello-container-path/output"
+            cmd: "stat world-container-path/output"
             interval: 5
             grace-period: 30
             delay: 0
