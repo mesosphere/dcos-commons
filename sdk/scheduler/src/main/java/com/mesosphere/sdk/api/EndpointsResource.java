@@ -18,7 +18,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Environment;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
@@ -38,13 +37,17 @@ public class EndpointsResource {
     private static final String VIP_LABEL_PREFIX = "VIP_";
 
     private final StateStore stateStore;
+    // We intentionally grab this value during initialization to ensure that we fail fast.
+    private final String serviceName;
     private final Map<String, EndpointProducer> customEndpoints = new HashMap<>();
 
     /**
-     * Creates a new instance which retrieves task/pod state from the provided {@code stateStore}.
+     * Creates a new instance which retrieves task/pod state from the provided {@code stateStore},
+     * using the provided {@code serviceName} for endpoint paths.
      */
-    public EndpointsResource(StateStore stateStore) {
+    public EndpointsResource(StateStore stateStore, String serviceName) {
         this.stateStore = stateStore;
+        this.serviceName = serviceName;
     }
 
     /**
@@ -83,7 +86,10 @@ public class EndpointsResource {
             }
             // Add default values (when they don't collide with custom values):
             for (Map.Entry<String, JSONObject> endpointType :
-                    getDiscoveryEndpoints(stateStore.fetchTasks(), isNativeFormat(format)).entrySet()) {
+                    getDiscoveryEndpoints(
+                            serviceName,
+                            stateStore.fetchTasks(),
+                            isNativeFormat(format)).entrySet()) {
                 if (!endpoints.has(endpointType.getKey())) {
                     endpoints.put(endpointType.getKey(), endpointType.getValue());
                 }
@@ -112,7 +118,11 @@ public class EndpointsResource {
             if (customValue != null) {
                 return Response.ok(customValue.getEndpoint(), MediaType.TEXT_PLAIN).build();
             }
-            JSONObject endpoint = getDiscoveryEndpoints(stateStore.fetchTasks(), isNativeFormat(format)).get(name);
+            JSONObject endpoint = getDiscoveryEndpoints(
+                    serviceName,
+                    stateStore.fetchTasks(),
+                    isNativeFormat(format))
+                    .get(name);
             if (endpoint == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -137,7 +147,9 @@ public class EndpointsResource {
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
     private static Map<String, JSONObject> getDiscoveryEndpoints(
-            Collection<TaskInfo> taskInfos, boolean isNativeFormat) throws TaskException {
+            String serviceName,
+            Collection<TaskInfo> taskInfos,
+            boolean isNativeFormat) throws TaskException {
         Map<String, JSONObject> endpointsByName = new HashMap<>();
         for (TaskInfo taskInfo : taskInfos) {
             if (!taskInfo.hasDiscovery()) {
@@ -157,13 +169,18 @@ public class EndpointsResource {
                 directHost = CommonTaskUtils.getHostname(taskInfo);
             } else {
                 // Mesos DNS hostname:
-                directHost = String.format("%s.%s.mesos", taskInfo.getName(), getFrameworkName(taskInfo));
+                directHost = String.format("%s.%s.mesos", taskInfo.getName(), serviceName);
             }
 
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 // host:port to include in 'direct' array(s):
                 final String directHostPort = String.format("%s:%d", directHost, port.getNumber());
-                addPortToEndpoints(endpointsByName, taskInfo, directHostPort, port.getLabels().getLabelsList());
+                addPortToEndpoints(
+                        serviceName,
+                        endpointsByName,
+                        taskInfo,
+                        directHostPort,
+                        port.getLabels().getLabelsList());
             }
         }
         return endpointsByName;
@@ -181,6 +198,7 @@ public class EndpointsResource {
      * @throws TaskException if no VIPs were found and the task type couldn't be extracted
      */
     private static void addPortToEndpoints(
+            String serviceName,
             Map<String, JSONObject> endpointsByName,
             TaskInfo taskInfo,
             String directHostPort,
@@ -205,7 +223,7 @@ public class EndpointsResource {
             vipEndpoint.append(RESPONSE_KEY_DIRECT, directHostPort);
             // populate 'vip' field if not yet populated (due to another task with the same vip):
             vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.l4lb.thisdcos.directory:%d",
-                    vipInfo.name, getFrameworkName(taskInfo), vipInfo.port));
+                    vipInfo.name, serviceName, vipInfo.port));
         }
 
         if (!foundAnyVips) {
@@ -221,22 +239,6 @@ public class EndpointsResource {
             // append entry to 'direct' array for this task:
             taskEndpoint.append(RESPONSE_KEY_DIRECT, directHostPort);
         }
-
-    }
-
-    private static String getFrameworkName(TaskInfo taskInfo) {
-        // Get from scheduler env:
-        String name = System.getenv("SERVICE_NAME");
-        if (name != null) {
-            return name;
-        }
-        // Fall back to task env:
-        for (Environment.Variable envvar : taskInfo.getCommand().getEnvironment().getVariablesList()) {
-            if (envvar.getName().equals("FRAMEWORK_NAME")) {
-                return envvar.getValue();
-            }
-        }
-        return "UNKNOWN_FRAMEWORK_NAME";
     }
 
     /**

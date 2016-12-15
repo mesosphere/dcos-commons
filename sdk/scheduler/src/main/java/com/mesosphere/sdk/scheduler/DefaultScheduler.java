@@ -444,7 +444,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
         resources.add(new ConfigResource<ServiceSpec>(configStore));
-        resources.add(new EndpointsResource(stateStore));
+        resources.add(new EndpointsResource(stateStore, serviceSpec.getName()));
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));

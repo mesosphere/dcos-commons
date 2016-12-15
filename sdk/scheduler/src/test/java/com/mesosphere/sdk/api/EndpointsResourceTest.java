@@ -37,7 +37,6 @@ public class EndpointsResourceTest {
     private static final TaskInfo TASK_WITH_VIPS_2;
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
-        builder.getCommandBuilder().getEnvironmentBuilder().addVariablesBuilder().setName("FRAMEWORK_NAME").setValue("svc-name");
         CommonTaskUtils.setHostname(builder, OfferTestUtils.getOffer(Collections.emptyList()));
         CommonTaskUtils.setType(builder, "some-task-type");
         TASK_WITH_METADATA = builder.build();
@@ -137,7 +136,7 @@ public class EndpointsResourceTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new EndpointsResource(mockStateStore);
+        resource = new EndpointsResource(mockStateStore, "svc-name");
         resource.setCustomEndpoint("custom", EndpointProducer.constant(CUSTOM_VALUE));
     }
 
@@ -179,6 +178,7 @@ public class EndpointsResourceTest {
         assertEquals("with-vips-2.svc-name.mesos:3459", direct.get(5));
     }
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testGetAllEndpointsNative() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
@@ -231,6 +231,7 @@ public class EndpointsResourceTest {
         assertEquals("with-vips-2.svc-name.mesos:3456", direct.get(1));
     }
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testGetOneEndpointNative() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
