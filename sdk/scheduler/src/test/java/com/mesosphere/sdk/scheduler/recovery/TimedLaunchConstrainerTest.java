@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
+import org.apache.mesos.scheduler.recovery.RecoveryType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,9 +13,6 @@ import java.time.Duration;
  */
 public class TimedLaunchConstrainerTest {
     private static final Duration MIN_DELAY = Duration.ofMillis(3000);
-    private static final RecoveryRequirement NO_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.NONE, null);
-    private static final RecoveryRequirement TRANSIENT_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.TRANSIENT, null);
-    private static final RecoveryRequirement PERMANENT_RECOVERY_REQUIREMENT = new DefaultRecoveryRequirement(null, RecoveryRequirement.RecoveryType.PERMANENT, null);
     private TimedLaunchConstrainer timedLaunchConstrainer;
 
     private static class TestTimedLaunchConstrainer extends TimedLaunchConstrainer {
@@ -47,65 +45,65 @@ public class TimedLaunchConstrainerTest {
 
     @Test
     public void testCanLaunchNoneAfterNoRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.NONE);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(NO_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.NONE);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.NONE));
     }
 
     @Test
     public void testCanLaunchTransientAfterNoRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.NONE);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(TRANSIENT_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.NONE);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.TRANSIENT));
     }
 
     @Test
     public void testCanLaunchPermanentAfterNoRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.NONE);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(PERMANENT_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.NONE);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.PERMANENT));
     }
 
     @Test
     public void testCanLaunchNoneAfterTransientRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.TRANSIENT);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(NO_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.TRANSIENT);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.NONE));
     }
 
     @Test
     public void testCanLaunchPermanentAfterTransientRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.TRANSIENT);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(PERMANENT_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.TRANSIENT);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.PERMANENT));
     }
 
     @Test
     public void testCanLaunchTransientAfterTransientRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.TRANSIENT);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(TRANSIENT_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.TRANSIENT);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.TRANSIENT));
     }
 
     @Test
     public void testCanLaunchNoneAfterPermanentRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.PERMANENT);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(NO_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.PERMANENT);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.NONE));
     }
 
     @Test
     public void testCanLaunchTransientAfterPermanentRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.PERMANENT);
-        Assert.assertTrue(timedLaunchConstrainer.canLaunch(TRANSIENT_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.PERMANENT);
+        Assert.assertTrue(timedLaunchConstrainer.canLaunch(RecoveryType.TRANSIENT));
     }
 
     @Test
     public void testCannotLaunchPermanentAfterPermanentRecovery() {
-        timedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.PERMANENT);
-        Assert.assertFalse(timedLaunchConstrainer.canLaunch(PERMANENT_RECOVERY_REQUIREMENT));
+        timedLaunchConstrainer.launchHappened(null, RecoveryType.PERMANENT);
+        Assert.assertFalse(timedLaunchConstrainer.canLaunch(RecoveryType.PERMANENT));
     }
 
     @Test
     public void testCanLaunchAfterPermanentRecoveryAndDelay() throws InterruptedException {
         TestTimedLaunchConstrainer testTimedLaunchConstrainer = new TestTimedLaunchConstrainer(MIN_DELAY);
-        testTimedLaunchConstrainer.launchHappened(null, RecoveryRequirement.RecoveryType.PERMANENT);
+        testTimedLaunchConstrainer.launchHappened(null, RecoveryType.PERMANENT);
         testTimedLaunchConstrainer.setCurrentTime(System.currentTimeMillis());
-        Assert.assertFalse(testTimedLaunchConstrainer.canLaunch(PERMANENT_RECOVERY_REQUIREMENT));
+        Assert.assertFalse(testTimedLaunchConstrainer.canLaunch(RecoveryType.PERMANENT));
         testTimedLaunchConstrainer.setCurrentTime(testTimedLaunchConstrainer.getCurrentTimeMs() + MIN_DELAY.toMillis() * 1000 + 1);
-        Assert.assertTrue(testTimedLaunchConstrainer.canLaunch(PERMANENT_RECOVERY_REQUIREMENT));
+        Assert.assertTrue(testTimedLaunchConstrainer.canLaunch(RecoveryType.PERMANENT));
     }
 }

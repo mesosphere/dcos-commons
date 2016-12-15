@@ -114,40 +114,38 @@ public class PlanUtils {
         Status result;
         if (!parent.getErrors().isEmpty()) {
             result = Status.ERROR;
-            LOGGER.warn("({} status={}) Parent element has one or more errors", parent.getName(), result);
-        } else if (strategy.isInterrupted()) {
-            result = Status.WAITING;
-            LOGGER.info("({} status={}) Parent element has interrupted strategy", parent.getName(), result);
+            LOGGER.debug("({} status={}) Elements contains errors", parent.getName(), result);
         } else if (CollectionUtils.isEmpty(children)) {
             result = Status.COMPLETE;
-            LOGGER.warn("({} status={}) No child elements, parent appears complete", parent.getName(), result);
-        } else if (anyHaveStatus(Status.ERROR, children)) {
-            result = Status.ERROR;
-            LOGGER.warn("({} status={}) Child elements contain errors", parent.getName(), result);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, children)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.info("({} status={}) At least one child element has status: {}",
-                    parent.getName(), result, Status.IN_PROGRESS);
+            LOGGER.debug("({} status={}) Empty collection of elements encountered.", parent.getName(), result);
+        } else if (anyHaveStatus(Status.PREPARED, children)) {
+            result = Status.PREPARED;
+            LOGGER.debug("({} status={}) At least one phase has status: {}",
+                    parent.getName(), result, Status.PREPARED);
         } else if (anyHaveStatus(Status.WAITING, children)) {
             result = Status.WAITING;
-            LOGGER.info("({} status={}) At least one child element has status: {}",
+            LOGGER.debug("({} status={}) At least one element has status: {}",
                     parent.getName(), result, Status.WAITING);
         } else if (allHaveStatus(Status.COMPLETE, children)) {
             result = Status.COMPLETE;
-            LOGGER.info("({} status={}) All child elements have status: {}",
+            LOGGER.debug("({} status={}) All elements have status: {}",
                     parent.getName(), result, Status.COMPLETE);
         } else if (allHaveStatus(Status.PENDING, children)) {
             result = Status.PENDING;
-            LOGGER.info("({} status={}) All child elements have status: {}",
+            LOGGER.debug("({} status={}) All elements have status: {}",
                     parent.getName(), result, Status.PENDING);
         } else if (anyHaveStatus(Status.COMPLETE, children)
                 && anyHaveStatus(Status.PENDING, children)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.info("({} status={}) At least one child element has status '{}' and one has status '{}'",
+            result = Status.PREPARED;
+            LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
                     parent.getName(), result, Status.COMPLETE, Status.PENDING);
+        } else if (anyHaveStatus(Status.STARTING, children)) {
+            result = Status.STARTING;
+            LOGGER.debug("({} status={}) At least one element has status '{}'",
+                    parent.getName(), result, Status.STARTING);
         } else {
             result = Status.ERROR;
-            LOGGER.error("({} status={}) Unexpected state. Child elements: {}",
+            LOGGER.debug("({} status={}) Unexpected state. PlanElements: {}",
                     parent.getName(), result, children);
         }
 

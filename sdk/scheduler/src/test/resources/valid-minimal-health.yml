@@ -1,0 +1,21 @@
+name: "hello-world"
+principal: "hello-world-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
+        health-checks:
+          check-up:
+            cmd: "./health-check"
+            interval: 5
+            grace-period: 30
+            max-consecutive-failures: 3
+            delay: 0
+            timeout: 10

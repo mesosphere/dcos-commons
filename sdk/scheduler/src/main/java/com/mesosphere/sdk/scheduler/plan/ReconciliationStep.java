@@ -1,15 +1,14 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.OfferRequirement;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.DefaultObservable;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+import org.apache.mesos.Protos;
+import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import java.util.*;
 
@@ -42,10 +41,10 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public Optional<OfferRequirement> start() {
+    public Optional<PodInstanceRequirement> start() {
         try {
             reconciler.start();
-            setStatus(Status.IN_PROGRESS);
+            setStatus(Status.PREPARED);
         } catch (Exception ex) {
             setStatus(Status.PENDING);
             logger.error("Failed to retrieve TaskStatus Set to proceed with reconciliation.", ex);
@@ -57,8 +56,18 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
         if (!operations.isEmpty()) {
             throw new UnsupportedOperationException(
-                    "updateOfferStatus() not expected: start() always returns null");
+                    "updateOfferStatus() not expected: getOfferRequirement() always returns null");
         }
+    }
+
+    @Override
+    public Optional<String> getAsset() {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean isAssetDirty() {
+        return false;
     }
 
     @Override

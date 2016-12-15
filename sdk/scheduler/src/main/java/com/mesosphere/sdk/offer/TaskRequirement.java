@@ -65,6 +65,7 @@ public class TaskRequirement {
             throw new InvalidRequirementException(String.format(
                     "TaskInfo must have a name: %s", taskInfo));
         }
+
         if (taskInfo.hasTaskId()
                 && !StringUtils.isEmpty(taskInfo.getTaskId().getValue())) {
             // Task ID may be included if this is replacing an existing task. In that case, we still
@@ -85,10 +86,23 @@ public class TaskRequirement {
                         + "TaskUtils.toTaskId(): %s", taskInfo));
             }
         }
+
         if (taskInfo.hasExecutor()) {
             throw new InvalidRequirementException(String.format(
                     "TaskInfo must not contain ExecutorInfo. "
                     + "Use ExecutorRequirement for any Executor requirements: %s", taskInfo));
+        }
+
+        try {
+            CommonTaskUtils.getType(taskInfo);
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
+        }
+
+        try {
+            CommonTaskUtils.getIndex(taskInfo);
+        } catch (TaskException e) {
+            throw new InvalidRequirementException(e);
         }
     }
 

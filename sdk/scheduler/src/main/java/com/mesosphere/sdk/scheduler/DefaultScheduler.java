@@ -25,7 +25,6 @@ import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryRequirementProvider;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
@@ -401,7 +400,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
+        planScheduler = new DefaultPlanScheduler(
+                offerAccepter,
+                new OfferEvaluator(stateStore, offerRequirementProvider), taskKiller);
     }
 
     /**
@@ -432,7 +433,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
@@ -507,6 +507,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         this.driver = driver;
+        reconciler.start();
         reconciler.reconcile(driver);
         suppressOrRevive();
     }
@@ -515,6 +516,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        reconciler.start();
+        reconciler.reconcile(driver);
         suppressOrRevive();
     }
 
@@ -531,6 +534,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Reconciliation is still in progress.");
+                declineOffers(driver, Collections.emptyList(), offers);
                 return;
             }
 

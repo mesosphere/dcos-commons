@@ -84,8 +84,15 @@ public interface Element<C extends Element> extends Observable {
     /**
      * Indicates whether this Element is in progress.
      */
-    default boolean isInProgress() {
-        return getStatus().equals(Status.IN_PROGRESS);
+    default boolean isPrepared() {
+        return getStatus().equals(Status.PREPARED);
+    }
+
+    /**
+     * Indicates whether the Element is starting.
+     */
+    default boolean isStarting() {
+        return getStatus().equals(Status.STARTING);
     }
 
     /**
@@ -100,5 +107,12 @@ public interface Element<C extends Element> extends Observable {
      */
     default boolean isComplete() {
         return getStatus().equals(Status.COMPLETE);
+    }
+
+    /**
+     * Indicates whether this Element is in progress.
+     */
+    default boolean isInProgress() {
+        return !(isPending() || isComplete());
     }
 }

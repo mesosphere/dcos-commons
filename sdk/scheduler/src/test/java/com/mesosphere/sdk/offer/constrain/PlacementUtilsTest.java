@@ -1,18 +1,19 @@
 package com.mesosphere.sdk.offer.constrain;
 
-import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link PlacementUtils}.
@@ -41,11 +42,14 @@ public class PlacementUtilsTest {
     }
 
     @Test
-    public void testAreEquivalent() throws InvalidRequirementException {
+    public void testAreEquivalent() throws InvalidRequirementException, TaskException {
         final TaskInfo origTask = TaskTestUtils.getTaskInfo(Collections.emptyList());
         TaskInfo task = origTask;
 
-        OfferRequirement offerReq = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(origTask));
+        OfferRequirement offerReq = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(origTask),
+                Arrays.asList(origTask));
         assertTrue(PlacementUtils.areEquivalent(task, offerReq));
 
         offerReq = OfferRequirement.create(TestConstants.TASK_TYPE + "b", 0, Arrays.asList(origTask));

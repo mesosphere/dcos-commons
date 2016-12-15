@@ -52,7 +52,7 @@ public class ReconciliationStepTest {
         assertFalse(step.isPending());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
         assertTrue(step.getMessage().contains("in progress"));
         when(mockReconciler.isReconciled()).thenReturn(true);
         assertTrue(step.isComplete());
@@ -64,7 +64,7 @@ public class ReconciliationStepTest {
         assertFalse(step.start().isPresent());
 
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
         step.restart();
         assertTrue(step.isPending());
     }
@@ -94,7 +94,7 @@ public class ReconciliationStepTest {
     public void testForceCompleteFromInProgress() throws Exception {
         assertFalse(step.start().isPresent());
         when(mockReconciler.isReconciled()).thenReturn(false);
-        assertTrue(step.isInProgress());
+        assertTrue(step.isPrepared());
 
         step.forceComplete();
         when(mockReconciler.isReconciled()).thenReturn(true); // simulate reconciler now complete

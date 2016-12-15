@@ -1,12 +1,11 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.OfferRequirement;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.scheduler.DefaultObservable;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-
-import com.google.common.annotations.VisibleForTesting;
+import org.apache.mesos.Protos;
+import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 
 import java.util.*;
 
@@ -38,18 +37,28 @@ public class TestStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public Optional<OfferRequirement> start() {
-        setStatus(Status.IN_PROGRESS);
+    public Optional<PodInstanceRequirement> start() {
+        setStatus(Status.PREPARED);
         return Optional.empty();
     }
 
     @Override
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
         if (operations.isEmpty()) {
-            setStatus(Status.PENDING);
+            setStatus(Status.PREPARED);
         } else {
-            setStatus(Status.IN_PROGRESS);
+            setStatus(Status.STARTING);
         }
+    }
+
+    @Override
+    public Optional<String> getAsset() {
+        return Optional.of(getName());
+    }
+
+    @Override
+    public boolean isAssetDirty() {
+        return isInProgress();
     }
 
     @Override
