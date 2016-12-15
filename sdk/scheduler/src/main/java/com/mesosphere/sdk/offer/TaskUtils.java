@@ -191,7 +191,7 @@ public class TaskUtils {
 
         for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
             String resourceName = newEntry.getKey();
-            LOGGER.info("Checking resource difference for: {}", resourceName);
+            LOGGER.debug("Checking resource difference for: {}", resourceName);
             ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
                 LOGGER.info("Resource not found: {}", resourceName);
