@@ -40,17 +40,26 @@ public class HdfsServiceSpecTest {
         environmentVariables.set("JOURNAL_MEM", "1024");
         environmentVariables.set("JOURNAL_DISK", "1024");
         environmentVariables.set("JOURNAL_DISK_TYPE", "MOUNT");
+        environmentVariables.set("JOURNAL_NODE_RPC_PORT", "1");
+        environmentVariables.set("JOURNAL_NODE_HTTP_PORT", "1");
         environmentVariables.set("ZKFC_CPUS", "1.0");
         environmentVariables.set("ZKFC_MEM", "1024");
         environmentVariables.set("NAME_CPUS", "1.0");
         environmentVariables.set("NAME_MEM", "1024");
         environmentVariables.set("NAME_DISK", "1024");
         environmentVariables.set("NAME_DISK_TYPE", "MOUNT");
+        environmentVariables.set("NAME_NODE_RPC_PORT", "1");
+        environmentVariables.set("NAME_NODE_HTTP_PORT", "1");
         environmentVariables.set("DATA_COUNT", "3");
         environmentVariables.set("DATA_CPUS", "1.0");
         environmentVariables.set("DATA_MEM", "1024");
         environmentVariables.set("DATA_DISK", "1024");
         environmentVariables.set("DATA_DISK_TYPE", "MOUNT");
+        environmentVariables.set("DATA_NODE_RPC_PORT", "1");
+        environmentVariables.set("DATA_NODE_HTTP_PORT", "1");
+        environmentVariables.set("DATA_NODE_IPC_PORT", "1");
+        environmentVariables.set("JOURNAL_STRATEGY", "parallel");
+        environmentVariables.set("DATA_STRATEGY", "parallel");
 
         URL resource = HdfsServiceSpecTest.class.getClassLoader().getResource("hdfs-site.xml");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
