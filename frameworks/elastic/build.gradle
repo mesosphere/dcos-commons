@@ -25,7 +25,6 @@ dependencies {
     compile project(":executor")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     compile "org.apache.mesos:mesos:${mesosVer}"
-    testCompile project(':scheduler').sourceSets.test.output
     testCompile "org.mockito:mockito-all:${mockitoVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     testCompile "junit:junit:${junitVer}"
