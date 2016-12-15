@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.plan.Step;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.*;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,7 +240,7 @@ public class TaskUtils {
      *
      * @throws IllegalArgumentException if multiple resource specifications have matching names
      */
-    private static Map<String, ResourceSpecification> getResourceSpecMap(
+    public static Map<String, ResourceSpecification> getResourceSpecMap(
             Collection<ResourceSpecification> resourceSpecifications) throws IllegalArgumentException {
         Map<String, ResourceSpecification> resourceMap = new HashMap<>();
         for (ResourceSpecification resourceSpecification : resourceSpecifications) {
