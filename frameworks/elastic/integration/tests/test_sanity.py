@@ -34,12 +34,11 @@ def setup_function(function):
 @pytest.fixture
 def default_populated_index():
     delete_index(DEFAULT_INDEX_NAME)
-    create_index(DEFAULT_INDEX_NAME,
-                 DEFAULT_SETTINGS_MAPPINGS)
+    create_index(DEFAULT_INDEX_NAME, DEFAULT_SETTINGS_MAPPINGS)
     create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"})
 
 
-@pytest.mark.hi
+@pytest.mark.sanity
 def test_service_health():
     check_dcos_service_health()
 
@@ -77,10 +76,10 @@ def test_commercial_api_available(default_populated_index):
     assert response["failures"] == []
 
 
-@pytest.mark.recovery
+@pytest.mark.health
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
-    shakedown.kill_process_on_host("data-0.{}.mesos".format(PACKAGE_NAME), "node.data=true")
+    shakedown.kill_process_on_host("data-0-server.{}.mesos".format(PACKAGE_NAME), "node.data=true")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "yellow")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
 
@@ -92,7 +91,7 @@ def test_master_reelection():
     check_new_elasticsearch_master_elected(initial_master)
 
 
-@pytest.mark.plugins
+@pytest.mark.recovery
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = get_elasticsearch_config()

@@ -4,6 +4,7 @@ import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
+import com.mesosphere.sdk.config.validate.ConfigurationValidator;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
@@ -119,12 +120,16 @@ public class ElasticService implements Service {
      */
     @Override
     public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
+        List<ConfigurationValidator<ServiceSpec>> validators =
+                new ArrayList<>(DefaultScheduler.defaultConfigValidators());
+        validators.addAll(configValidators());
         DefaultScheduler defaultScheduler = DefaultScheduler.create(
                 serviceSpecification,
                 plans,
                 stateStore,
                 configTargetStore,
-                offerRequirementProvider);
+                offerRequirementProvider,
+                validators);
 
         startApiServer(defaultScheduler, apiPort);
         registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
@@ -144,5 +149,9 @@ public class ElasticService implements Service {
         optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
 
         return fwkInfoBuilder.build();
+    }
+
+    private List<ConfigurationValidator<ServiceSpec>> configValidators() {
+        return Arrays.asList(new HeapCannotExceedHalfMem(), new MasterTransportPortCannotChange());
     }
 }
