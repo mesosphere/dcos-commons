@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -43,13 +44,18 @@ func NewApp(version string, author string, longDescription string) (*kingpin.App
 
 // Add all of the below arguments and commands
 
+// TODO remove this entirely in favor of callers just adding sections granularly
 func HandleCommonArgs(
 	app *kingpin.Application,
 	defaultServiceName string,
 	shortDescription string,
 	connectionTypes []string) {
 	HandleCommonFlags(app, defaultServiceName, shortDescription)
-	HandleCommonSections(app, connectionTypes)
+	HandleConfigSection(app)
+	HandleConnectionSection(app, connectionTypes) // TODO remove
+	HandleEndpointsSection(app)
+	HandlePlanSection(app)
+	HandleStateSection(app)
 }
 
 // Standard Arguments
@@ -83,15 +89,6 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 		defaultServiceName = overrideServiceName
 	}
 	app.Flag("name", "Name of the service instance to query").Default(defaultServiceName).StringVar(&ServiceName)
-}
-
-// All sections
-
-func HandleCommonSections(app *kingpin.Application, connectionTypes []string) {
-	HandleConfigSection(app)
-	HandleConnectionSection(app, connectionTypes)
-	HandlePlanSection(app)
-	HandleStateSection(app)
 }
 
 // Config section
@@ -156,6 +153,44 @@ func HandleConnectionSection(app *kingpin.Application, connectionTypes []string)
 	if len(connectionTypes) != 0 {
 		connection.Arg("type", fmt.Sprintf("Custom type of the connection data to display (%s)", strings.Join(connectionTypes, ", "))).StringVar(&cmd.TypeName)
 	}
+}
+
+// Endpoints section
+
+type EndpointsHandler struct {
+	Native bool
+	Name   string
+}
+
+func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
+	path := "v1/endpoints"
+	if len(cmd.Name) != 0 {
+		path += "/" + cmd.Name
+	}
+	var response *http.Response
+	if cmd.Native {
+		query := url.Values{}
+		query.Set("format", "native")
+		response = HTTPGetQuery(path, query.Encode())
+	} else {
+		response = HTTPGet(path)
+	}
+	if len(cmd.Name) == 0 {
+		// Root endpoint: Always produce JSON
+		PrintJSON(response)
+	} else {
+		// Any specific endpoints: May be any format, so just print the raw text
+		PrintText(response)
+	}
+	return nil
+}
+
+func HandleEndpointsSection(app *kingpin.Application) {
+	// connection [type]
+	cmd := &EndpointsHandler{}
+	endpoints := app.Command("endpoints", "View client endpoints").Action(cmd.RunEndpoints)
+	endpoints.Flag("native", "Show native endpoints instead of Mesos-DNS endpoints").BoolVar(&cmd.Native)
+	endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }
 
 // Plan section

@@ -8,6 +8,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.api.ConfigResource;
+import com.mesosphere.sdk.api.EndpointsResource;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.StateResource;
 import com.mesosphere.sdk.api.TaskResource;
@@ -442,12 +443,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
+        resources.add(new ConfigResource<ServiceSpec>(configStore));
+        resources.add(new EndpointsResource(stateStore));
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
-        resources.add(new ConfigResource<ServiceSpec>(configStore));
         // use add() instead of put(): throw exception instead of waiting indefinitely
         resourcesQueue.add(resources);
     }
