@@ -8,28 +8,12 @@ from tests.test_utils import (
     check_health,
     install,
     uninstall,
+    kill_task_with_pattern
 )
 
 
 def get_scheduler_host():
     return shakedown.get_service_ips('marathon').pop()
-
-
-def kill_task_with_pattern(pattern, host=None):
-    command = (
-        "sudo kill -9 "
-        "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
-        "cut -d ' ' -f 2)".format(pattern)
-    )
-    if host is None:
-        result = shakedown.run_command_on_master(command)
-    else:
-        result = shakedown.run_command_on_agent(host, command)
-
-    if not result:
-        raise RuntimeError(
-            'Failed to kill task with pattern "{}"'.format(pattern)
-        )
 
 
 def setup_module():
