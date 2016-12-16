@@ -35,6 +35,7 @@ public class EndpointsResource {
     private static final String RESPONSE_KEY_DIRECT = "direct";
     private static final String RESPONSE_KEY_VIP = "vip";
     private static final String VIP_LABEL_PREFIX = "VIP_";
+    private static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
     private final StateStore stateStore;
     // We intentionally grab this value during initialization to ensure that we fail fast.
@@ -62,8 +63,10 @@ public class EndpointsResource {
      * should provide that information via {@link DiscoveryInfo} in your {@link TaskInfo} and they
      * will appear automatically.
      *
+     * @param name the name of the custom endpoint. custom endpoints take precedence over default
+     *     endpoints of the same name
      * @param valueProducer the endpoint producer, which will be invoked whenever a user queries the
-     *      list of endpoints
+     *     list of endpoints
      * @returns this
      */
     public EndpointsResource setCustomEndpoint(String name, EndpointProducer valueProducer) {
@@ -222,8 +225,8 @@ public class EndpointsResource {
             // append entry to 'direct' array for this task:
             vipEndpoint.append(RESPONSE_KEY_DIRECT, directHostPort);
             // populate 'vip' field if not yet populated (due to another task with the same vip):
-            vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.l4lb.thisdcos.directory:%d",
-                    vipInfo.name, serviceName, vipInfo.port));
+            vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.%s:%d",
+                    vipInfo.name, serviceName, VIP_HOST_TLD, vipInfo.port));
         }
 
         if (!foundAnyVips) {
