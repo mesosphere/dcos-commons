@@ -12,7 +12,6 @@ import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

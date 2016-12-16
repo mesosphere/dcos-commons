@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.scheduler.Observable;
 import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 
 import java.util.Collection;
 import java.util.Optional;

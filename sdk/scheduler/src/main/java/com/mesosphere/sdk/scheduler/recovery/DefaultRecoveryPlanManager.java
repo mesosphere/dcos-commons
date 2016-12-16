@@ -16,7 +16,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.scheduler.recovery.RecoveryType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

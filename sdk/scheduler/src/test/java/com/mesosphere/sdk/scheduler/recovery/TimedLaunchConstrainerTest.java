@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
-import org.apache.mesos.scheduler.recovery.RecoveryType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
