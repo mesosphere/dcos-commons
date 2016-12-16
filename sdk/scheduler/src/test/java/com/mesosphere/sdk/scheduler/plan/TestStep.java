@@ -5,7 +5,6 @@ import com.mesosphere.sdk.scheduler.DefaultObservable;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos;
-import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 
 import java.util.*;
 

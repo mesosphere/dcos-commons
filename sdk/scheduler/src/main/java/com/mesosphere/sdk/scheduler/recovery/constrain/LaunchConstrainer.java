@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 
 /**
  * This interface provides methods which govern and react to Launch Operations.  It is sometimes desirable to limit the
@@ -22,7 +22,7 @@ public interface LaunchConstrainer {
     void launchHappened(Operation launchOperation, RecoveryType recoveryType);
 
     /**
-     * Determines whether the given {@link org.apache.mesos.scheduler.recovery.RecoveryType}
+     * Determines whether the given {@link RecoveryType}
      * can be launchHappened right now.
      *
      * @param recoveryType The {@link RecoveryType} to be examined.

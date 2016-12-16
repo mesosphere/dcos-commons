@@ -6,7 +6,6 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.scheduler.recovery.RecoveryType;
 
 import java.util.Collection;
 import java.util.Collections;
