@@ -1,5 +1,5 @@
-name: elastic
-principal: "elastic-principal"
+name: {{SERVICE_NAME}}
+principal: "{{SERVICE_NAME}}-principal"
 zookeeper: master.mesos:2181
 api-port: {{PORT0}}
 replacement-failure-policy:
@@ -24,6 +24,7 @@ pods:
         cmd: "env && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
         env:
           SERVICE_NAME: {{SERVICE_NAME}}
+          MESOS_FRAMEWORK_ID: {{MESOS_FRAMEWORK_ID}}
           COORDINATOR_NODE_HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
           KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
           KIBANA_PORT: {{KIBANA_PORT}}

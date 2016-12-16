@@ -12,7 +12,7 @@ path.data: "container-path/data"
 path.logs: "container-path/logs"
 http.port: {{HTTP_PORT}}
 transport.tcp.port: {{TRANSPORT_PORT}}
-bootstrap.memory_lock: true
+bootstrap.memory_lock: false
 node.master: {{MASTER_ENABLED}}
 node.data: {{DATA_ENABLED}}
 node.ingest: {{INGEST_ENABLED}}
