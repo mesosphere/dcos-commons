@@ -6,11 +6,6 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
-    container:
-      rlimits:
-        RLIMIT_MEMLOCK:
-          soft: 32
-          hard: 32
     tasks:
       server:
         goal: RUNNING
