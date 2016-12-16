@@ -219,9 +219,7 @@ public class ResourceUtils {
         Labels.Builder labelBuilder = Labels.newBuilder(labels);
         labelBuilder.addLabelsBuilder()
                 .setKey(MesosResource.DYNAMIC_PORT_KEY)
-                .setValue(name)
-                .build();
-
+                .setValue(name);
         return labelBuilder.build();
     }
 
@@ -258,16 +256,7 @@ public class ResourceUtils {
     public static TaskInfo.Builder setDiscoveryInfo(TaskInfo.Builder taskBuilder, Collection<Resource> resources) {
         for (Resource r : resources) {
             if (RequirementUtils.isNamedVIPPort(r)) {
-                DiscoveryInfo.Builder discoveryBuilder = DiscoveryInfo.newBuilder()
-                        .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
-                        .setName(taskBuilder.getName())
-                        .setPorts(Ports.newBuilder()
-                                .addPorts(Port.newBuilder()
-                                        .setNumber((int) r.getRanges().getRange(0).getBegin())
-                                        .setProtocol("tcp")
-                                        .setLabels(getVIPPortLabel(r))));
-
-                taskBuilder.setDiscovery(discoveryBuilder);
+                taskBuilder.setDiscovery(getVIPDiscoveryInfo(r, taskBuilder.getName()));
             }
         }
 
@@ -282,31 +271,25 @@ public class ResourceUtils {
             ExecutorInfo.Builder execBuilder, Collection<Resource> resources) {
         for (Resource r : resources) {
             if (RequirementUtils.isNamedVIPPort(r)) {
-                DiscoveryInfo.Builder discoveryBuilder = DiscoveryInfo.newBuilder()
-                        .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
-                        .setName(execBuilder.getName())
-                        .setPorts(Ports.newBuilder()
-                                .addPorts(Port.newBuilder()
-                                        .setNumber((int) r.getRanges().getRange(0).getBegin())
-                                        .setProtocol("tcp")
-                                        .setLabels(getVIPPortLabel(r))));
-
-                execBuilder.setDiscovery(discoveryBuilder);
+                execBuilder.setDiscovery(getVIPDiscoveryInfo(r, execBuilder.getName()));
             }
         }
 
         return execBuilder;
     }
 
-    private static Labels getVIPPortLabel(Resource r) {
-        return Labels.newBuilder()
-                .addLabels(Label.newBuilder()
+    private static DiscoveryInfo getVIPDiscoveryInfo(Resource r, String name) {
+        int destPort = (int) r.getRanges().getRange(0).getBegin();
+        DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setName(name);
+        discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
+                .setNumber(destPort)
+                .setProtocol("tcp")
+                .getLabelsBuilder().addLabelsBuilder()
                         .setKey(NamedVIPPortRequirement.getVIPLabelKey(r))
-                        .setValue(
-                                NamedVIPPortRequirement.getVIPLabelValue(r) +
-                                        ":" +
-                                        r.getRanges().getRange(0).getBegin()))
-                .build();
+                        .setValue(String.format("%s:%d", NamedVIPPortRequirement.getVIPLabelValue(r), destPort));
+        return discoveryInfoBuilder.build();
     }
 
     public static Protos.Environment getEnvironment(List<Resource> resources) {
