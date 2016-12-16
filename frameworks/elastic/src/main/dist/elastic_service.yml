@@ -222,3 +222,22 @@ pods:
             max-consecutive-failures: 3
             delay: 0
             timeout: 10
+plans:
+  deploy:
+    strategy: {{PLAN_STRATEGY}}
+    phases:
+      master-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: master
+      data-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: data
+      ingest-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: ingest
+      coordinator-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: coordinator
+      kibana-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: kibana
