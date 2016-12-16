@@ -24,5 +24,3 @@ com.mesosphere.sdk.state
 com.mesosphere.sdk.storage
 com.mesosphere.sdk.testing
 com.mesosphere.sdk.testutils
-org.apache.mesos.scheduler.plan
-org.apache.mesos.scheduler.recovery
