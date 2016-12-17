@@ -77,9 +77,16 @@ if [ $UPLOAD_ENABLED ]; then
     if [ $(git ls-files -m | wc -l) -eq 0 ]; then
         echo "No changes detected, skipping commit to gh-pages"
     else
-        echo "Pushing changes to gh-pages:"
+        echo "Pushing $(git ls-files -m | wc -l) changed files to gh-pages:"
+        echo "--- CHANGED FILES START"
         git ls-files -m
+        echo "--- CHANGED FILES END"
         git add .
+        if [ -n "$WORKSPACE" ]; then
+            # we're in jenkins. set contact info (not set by default)
+            git config user.name "Jenkins"
+            git config user.email "jenkins@example.com"
+        fi
         git commit -am "Automatic update from master"
         git push origin gh-pages
     fi

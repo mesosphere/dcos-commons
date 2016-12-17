@@ -1,16 +1,18 @@
 package com.mesosphere.sdk.offer;
 
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -19,6 +21,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,117 +47,46 @@ public class DefaultOfferRequirementProviderTest {
     private DefaultOfferRequirementProvider provider;
 
     @Mock private StateStore stateStore;
-
-    @Mock private PodSpec podSpec;
-    @Mock private PodInstance podInstance;
-    @Mock private HealthCheckSpec healthCheckSpec;
-    @Mock private CommandSpec commandSpec;
-    @Mock private TaskSpec taskSpec;
-    @Mock private ResourceSet resourceSet;
-
-    private ResourceSpecification resourceSpecification = new DefaultResourceSpecification(
-            "cpus",
-            ValueUtils.getValue(ResourceTestUtils.getDesiredCpu(1.0)),
-            TestConstants.ROLE,
-            TestConstants.PRINCIPAL,
-            "CPUS");
+    private PodInstance podInstance;
 
     @Before
-    public void beforeEach() {
+    public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
+        environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
+        environmentVariables.set("PORT0", "8080");
 
-        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
-        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
-        when(podSpec.getUser()).thenReturn(Optional.empty());
-        when(podSpec.getContainer()).thenReturn(Optional.empty());
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal-health.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
 
-        when(podInstance.getPod()).thenReturn(podSpec);
-        when(podInstance.getIndex()).thenReturn(0);
+        PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
+                .placementRule(ALLOW_ALL)
+                .build();
 
-        when(healthCheckSpec.getCommand()).thenReturn(TestConstants.HEALTH_CHECK_CMD);
-        when(healthCheckSpec.getMaxConsecutiveFailures()).thenReturn(3);
-        when(healthCheckSpec.getDelay()).thenReturn(0);
-        when(healthCheckSpec.getInterval()).thenReturn(0);
-        when(healthCheckSpec.getTimeout()).thenReturn(0);
-        when(healthCheckSpec.getGracePeriod()).thenReturn(0);
+        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)
+                .pods(Arrays.asList(podSpec))
+                .build();
 
-        when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
-
-        when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
-        when(taskSpec.getType()).thenReturn(TestConstants.POD_TYPE);
-        when(taskSpec.getResourceSet()).thenReturn(resourceSet);
-        when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
-        when(taskSpec.getHealthCheck()).thenReturn(Optional.of(healthCheckSpec));
-        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
-
-        when(resourceSet.getResources()).thenReturn(Arrays.asList(resourceSpecification));
-        when(resourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
-
-        when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
-        when(podSpec.getResources()).thenReturn(Arrays.asList(resourceSet));
+        podInstance = new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
 
         provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
     }
 
-    /*
     @Test
     public void testPlacementPassthru() throws InvalidRequirementException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-
-        TaskSpecification taskSpecification = setupMock(taskInfo, Optional.of(ALLOW_ALL));
-
-        OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(taskInfo, taskSpecification);
+        List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
-        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
     @Test
-    public void testAddNewDesiredResource() throws InvalidRequirementException {
-        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
-        Protos.Resource mem = ResourceTestUtils.getDesiredMem(MEM);
-        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
-
-        // Add memory requirement to the new TaskSpecification
-        TaskSpecification taskSpecification = setupMock(taskInfo.toBuilder().addResources(mem).build());
-
-        OfferRequirement offerRequirement =
-                PROVIDER.getExistingOfferRequirement(taskInfo, taskSpecification);
-        Assert.assertNotNull(offerRequirement);
-        Assert.assertFalse(offerRequirement.getPersistenceIds().contains(TestConstants.PERSISTENCE_ID));
-        Assert.assertTrue(offerRequirement.getResourceIds().contains(TestConstants.RESOURCE_ID));
-    }
-
-    @Test(expected=InvalidRequirementException.class)
-    public void testNewOfferRequirementEmptyResourceSets() throws InvalidRequirementException {
-        PodSpec podSpec = mock(PodSpec.class);
-        when(podSpec.getResources()).thenReturn(Collections.emptyList());
-        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
-        when(podSpec.getUser()).thenReturn(Optional.empty());
-
-        CommandSpec commandSpec = mock(CommandSpec.class);
-        when(commandSpec.getValue()).thenReturn(TestConstants.TASK_CMD);
-
-        TaskSpec taskSpec = mock(TaskSpec.class);
-        when(taskSpec.getName()).thenReturn("task_spec_name");
-        when(taskSpec.getPod()).thenReturn(podSpec);
-        when(taskSpec.getCommand()).thenReturn(Optional.of(commandSpec));
-        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
-
-        when(podSpec.getTasks()).thenReturn((Arrays.asList(taskSpec)));
-
-        PROVIDER.getNewOfferRequirement(pod);
-    }
-    */
-
-    @Test
     public void testNewOfferRequirement() throws InvalidRequirementException {
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
@@ -172,8 +104,8 @@ public class DefaultOfferRequirementProviderTest {
     @Test
     public void testExistingOfferRequirement() throws InvalidRequirementException {
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> taskSpec.getGoal().equals(TaskSpec.GoalState.RUNNING))
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
 
         Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);

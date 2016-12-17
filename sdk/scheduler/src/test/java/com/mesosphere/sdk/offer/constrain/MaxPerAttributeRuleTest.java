@@ -481,7 +481,10 @@ public class MaxPerAttributeRuleTest {
 
     private static OfferRequirement getOfferReq(TaskInfo taskInfo) {
         try {
-            return OfferRequirement.create(CommonTaskUtils.getType(taskInfo), 0, Arrays.asList(taskInfo));
+            return OfferRequirement.create(
+                    CommonTaskUtils.getType(taskInfo),
+                    CommonTaskUtils.getIndex(taskInfo),
+                    Arrays.asList(taskInfo));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.TaskInfo;
@@ -11,10 +12,18 @@ import org.apache.mesos.Protos.TaskInfo;
 public class LaunchOfferRecommendation implements OfferRecommendation {
     private final Offer offer;
     private final Operation operation;
-    private final MesosTask mesosTask;
+    private final boolean isTransient;
 
     public LaunchOfferRecommendation(Offer offer, TaskInfo taskInfo) {
         this.offer = offer;
+        this.isTransient = CommonTaskUtils.isTransient(taskInfo);
+
+        if (isTransient) {
+            taskInfo = taskInfo.toBuilder()
+                    .setTaskId(Protos.TaskID.newBuilder().setValue(""))
+                    .build();
+        }
+
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.LAUNCH)
                 .setLaunch(Operation.Launch.newBuilder()
@@ -22,7 +31,6 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
                                 .setSlaveId(offer.getSlaveId())
                                 .build()))
                 .build();
-        this.mesosTask = new MesosTask(taskInfo);
     }
 
     @Override
@@ -36,7 +44,7 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
     }
 
     public boolean isTransient() {
-        return mesosTask.isTransient();
+        return isTransient;
     }
 
     @Override

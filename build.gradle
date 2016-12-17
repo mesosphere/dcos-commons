@@ -67,6 +67,16 @@ allprojects {
     }
 }
 
+ext {
+    mesosVer = "1.0.1"
+}
+
+subprojects {
+    dependencies {
+        compile "org.apache.mesos:mesos:${mesosVer}"
+    }
+}
+
 shadowJar {
     classifier = 'uber'
 

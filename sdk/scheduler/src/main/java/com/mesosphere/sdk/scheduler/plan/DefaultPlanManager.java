@@ -1,10 +1,9 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
+import org.apache.mesos.Protos;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Provides the default implementation of a {@link PlanManager}.
@@ -35,6 +34,19 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
 
     @Override
     public Set<String> getDirtyAssets() {
-        return PlanUtils.getDirtyAssets(plan);
+        Set<String> dirtyAssets = new HashSet<>();
+        final List<? extends Phase> phases = plan.getChildren();
+        for (Phase phase : phases) {
+            final List<? extends Step> steps = phase.getChildren();
+            for (Step step : steps) {
+                if (step.isAssetDirty()) {
+                    Optional<String> dirtyAsset = step.getAsset();
+                    if (dirtyAsset.isPresent()) {
+                        dirtyAssets.add(dirtyAsset.get());
+                    }
+                }
+            }
+        }
+        return dirtyAssets;
     }
 }

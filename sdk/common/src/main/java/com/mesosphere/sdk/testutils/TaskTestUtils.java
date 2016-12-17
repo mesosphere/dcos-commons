@@ -5,16 +5,18 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * This class provides utility method for Tests concerned with Tasks.
  */
 public class TaskTestUtils {
+    private static Random random = new Random();
     public static Protos.TaskInfo getTaskInfo(Protos.Resource resource) {
         return getTaskInfo(Arrays.asList(resource));
     }
 
-    public static Protos.TaskInfo getTaskInfo(List<Protos.Resource> resources) {
+    public static Protos.TaskInfo getTaskInfo(List<Protos.Resource> resources, Integer index) {
         Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder()
                 .setTaskId(TestConstants.TASK_ID)
                 .setName(TestConstants.TASK_NAME)
@@ -22,7 +24,17 @@ public class TaskTestUtils {
                 .setCommand(TestConstants.COMMAND_INFO)
                 .setContainer(TestConstants.CONTAINER_INFO);
         builder = CommonTaskUtils.setType(builder, TestConstants.TASK_TYPE);
+        builder = CommonTaskUtils.setIndex(builder, index);
         return builder.addAllResources(resources).build();
+    }
+
+    // This suppression is OK in test code only.  There's a chance you hit MIN_VALUE
+    // of Integer, and then you don't actually get a positive integer when it's absolute
+    // valued.  Read Math.abs docs for more information.  It's extremely unlikely, and
+    // working around it is more code than it's worth.
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("RV_ABSOLUTE_VALUE_OF_RANDOM_INT")
+    public static Protos.TaskInfo getTaskInfo(List<Protos.Resource> resources) {
+        return getTaskInfo(resources, Math.abs(random.nextInt()));
     }
 
     public static List<Protos.TaskInfo> getPodTaskInfos(

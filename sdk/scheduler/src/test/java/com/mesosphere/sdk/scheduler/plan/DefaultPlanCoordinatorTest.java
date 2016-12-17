@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.curator.test.TestingServer;
-import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.curator.CuratorStateStore;
@@ -14,6 +11,7 @@ import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testing.CuratorTestUtils;
@@ -21,19 +19,17 @@ import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.apache.curator.test.TestingServer;
+import org.apache.mesos.Protos;
+import org.apache.mesos.SchedulerDriver;
+import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * Tests for {@code DefaultPlanCoordinator}.
@@ -98,6 +94,7 @@ public class DefaultPlanCoordinatorTest {
     private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
+    private DefaultOfferRequirementProvider provider;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -129,7 +126,9 @@ public class DefaultPlanCoordinatorTest {
                 new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(new HashMap<>()), stateStore, UUID.randomUUID()));
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
+
+        provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
+        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore, provider), taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
@@ -138,6 +137,8 @@ public class DefaultPlanCoordinatorTest {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podB))
                 .build();
+        environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
@@ -205,7 +206,10 @@ public class DefaultPlanCoordinatorTest {
     @Test
     public void testTwoPlanManagersPendingPlansSameAssets() throws Exception {
         final Plan planA = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
-        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        ServiceSpec serviceSpecB = DefaultServiceSpec.newBuilder(serviceSpecification)
+                .name(serviceSpecification.getName() + "-B")
+                .build();
+        final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecB);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
@@ -249,19 +253,23 @@ public class DefaultPlanCoordinatorTest {
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);
 
-        ((DefaultStep) planB.getChildren().get(0).getChildren().get(0)).setStatus(Status.IN_PROGRESS);
+        Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
+        ((DefaultStep) planB.getChildren().get(0).getChildren().get(0)).setStatus(Status.PREPARED);
 
         // PlanA and PlanB have similar asset names. PlanA is configured to run before PlanB.
-        // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in IN_PROGRESS.
+        // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in PREPARED.
         // PlanCoordinator should ensure that PlanA PlanManager knows about PlanB's (and any other configured plan's)
         // dirty assets.
         Assert.assertEquals(
-                0,
+                1,
                 coordinator.processOffers(
                         schedulerDriver,
                         getOffers(
                                 SUFFICIENT_CPUS,
                                 SUFFICIENT_MEM,
                                 SUFFICIENT_DISK)).size());
+
+        Assert.assertTrue(planB.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.STARTING));
+        Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
     }
 }

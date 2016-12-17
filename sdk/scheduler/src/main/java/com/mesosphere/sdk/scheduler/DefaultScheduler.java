@@ -8,6 +8,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.api.ConfigResource;
+import com.mesosphere.sdk.api.EndpointsResource;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.StateResource;
 import com.mesosphere.sdk.api.TaskResource;
@@ -25,7 +26,6 @@ import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryRequirementProvider;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
@@ -401,7 +401,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore), taskKiller);
+        planScheduler = new DefaultPlanScheduler(
+                offerAccepter,
+                new OfferEvaluator(stateStore, offerRequirementProvider), taskKiller);
     }
 
     /**
@@ -432,7 +434,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                new DefaultRecoveryRequirementProvider(offerRequirementProvider, configStore),
                 new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
                 permanentFailureTimeoutSec.isPresent()
                         ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
@@ -442,12 +443,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
+        resources.add(new ConfigResource<ServiceSpec>(configStore));
+        resources.add(new EndpointsResource(stateStore, serviceSpec.getName()));
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
-        resources.add(new ConfigResource<ServiceSpec>(configStore));
         // use add() instead of put(): throw exception instead of waiting indefinitely
         resourcesQueue.add(resources);
     }
@@ -507,6 +509,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         this.driver = driver;
+        reconciler.start();
         reconciler.reconcile(driver);
         suppressOrRevive();
     }
@@ -515,6 +518,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        reconciler.start();
+        reconciler.reconcile(driver);
         suppressOrRevive();
     }
 
@@ -531,6 +536,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Reconciliation is still in progress.");
+                declineOffers(driver, Collections.emptyList(), offers);
                 return;
             }
 

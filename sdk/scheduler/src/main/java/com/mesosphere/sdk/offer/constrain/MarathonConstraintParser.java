@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.constrain;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Splitter;
 
 import jersey.repackaged.com.google.common.collect.Lists;
 
@@ -26,6 +26,7 @@ import jersey.repackaged.com.google.common.collect.Lists;
 public class MarathonConstraintParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MarathonConstraintParser.class);
+    private static final char ESCAPE_CHAR = '\\';
 
     private static final String HOSTNAME_FIELD = "hostname";
     private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -119,9 +120,6 @@ public class MarathonConstraintParser {
     /**
      * Splits the provided marathon constraint statement into elements. Doesn't do any validation
      * on the element contents.
-     * @param marathonConstraints
-     * @return
-     * @throws IOException
      */
     @VisibleForTesting
     static List<List<String>> splitConstraints(String marathonConstraints) throws IOException {
@@ -146,13 +144,58 @@ public class MarathonConstraintParser {
                 // Note: We use Guava's Splitter rather than String.split(regex) in order to correctly
                 // handle empty trailing fields like 'a:b:' => ['a', 'b', ''] (shouldn't come up but just in case).
                 List<List<String>> rows = new ArrayList<>();
-                for (String rowStr : Splitter.on(',').trimResults().split(marathonConstraints)) {
-                    rows.add(Lists.newArrayList(Splitter.on(':').trimResults().split(rowStr)));
+                // Allow backslash-escaping of commas or colons within regexes:
+                for (String rowStr : escapedSplit(marathonConstraints, ',')) {
+                    rows.add(Lists.newArrayList(escapedSplit(rowStr, ':')));
                 }
                 LOGGER.debug("Comma/colon-separated '{}' => {} rows: '{}'", marathonConstraints, rows.size(), rows);
                 return rows;
             }
         }
+    }
+
+    /**
+     * Tokenizes the provided string using the provided split character. Honors any backslash
+     * escaping within the provided string. Tokens in the returned list are automatically trimmed.
+     *
+     * This is equivalent to calling {@code Splitter.on(split).trimResults().split(str)}, except
+     * with the addition of support for escaping the 'split' value with backslashes.
+     */
+    @VisibleForTesting
+    static Collection<String> escapedSplit(String str, char split) {
+        List<String> vals = new ArrayList<>();
+        StringBuilder buf = new StringBuilder(); // current buffer
+        boolean escaped = false; // whether the prior char was ESCAPE_CHAR
+        for (char c : str.toCharArray()) {
+            if (escaped) {
+                // last char was a backslash
+                if (c == split) {
+                    // hit escaped split. pass through split char without splitting
+                    buf.append(c);
+                } else {
+                    // hit escaped other char. pass through prior backslash and this other char
+                    buf.append(ESCAPE_CHAR);
+                    buf.append(c);
+                }
+                escaped = false;
+            } else if (c == ESCAPE_CHAR) {
+                // this char is a backslash. wait until next char before doing anything
+                escaped = true;
+            } else if (c == split) {
+                // hit unescaped split. flush/reset buffer.
+                vals.add(buf.toString().trim());
+                buf = new StringBuilder();
+            } else {
+                // hit unescaped char. pass through.
+                buf.append(c);
+            }
+        }
+        if (escaped) {
+            // special case for backslash at end of string: pass through
+            buf.append(ESCAPE_CHAR);
+        }
+        vals.add(buf.toString().trim());
+        return vals;
     }
 
     /**

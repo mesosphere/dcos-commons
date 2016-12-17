@@ -1,53 +1,37 @@
 package com.mesosphere.sdk.offer.constrain;
 
-import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
-import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.Value;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link RoundRobinByAttributeRule}.
  */
 public class RoundRobinByAttributeRuleTest {
 
-    private static final String ATTRIB_NAME = "rack_id";
-    private static final OfferRequirement REQ;
-    private static final OfferRequirement REQ1;
-    private static final OfferRequirement REQ2;
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
-    static {
-        OfferRequirement req = null, req1 = null, req2 = null;
-        try {
-            req = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
-            req1 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("1", "value")));
-            req2 = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(getTaskInfo("2", "value")));
-        } catch (InvalidRequirementException e) {
-            fail(e.toString());
-        }
-        REQ = req;
-        REQ1 = req1;
-        REQ2 = req2;
+    private static OfferRequirement REQ;
+
+    @BeforeClass
+    public static void beforeAll() throws InvalidRequirementException {
+        REQ = OfferRequirement.create(TestConstants.TASK_TYPE, 0, Collections.emptyList());
     }
 
+    private static final String ATTRIB_NAME = "rack_id";
+
     @Test
-    public void testRolloutWithAgentCount() {
+    public void testRolloutWithAgentCount() throws TaskException, InvalidRequirementException {
         PlacementRule rule = new RoundRobinByAttributeRule(ATTRIB_NAME, Optional.of(3), MATCHER);
         // throw in some preexisting tasks to be ignored by our matcher:
         List<TaskInfo> tasks = new ArrayList<>();
@@ -61,15 +45,25 @@ public class RoundRobinByAttributeRuleTest {
         tasks.add(getTaskInfo("ignored8", "baz", "value8"));
         // 1st task fits on value1:
         assertEquals(1, rule.filter(offerWithAttribute("value1"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("1", "value1")); // value1:1
+        TaskInfo taskInfo1 = getTaskInfo("1", "value1");
+        OfferRequirement req1 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo1),
+                Arrays.asList(taskInfo1));
+        tasks.add(taskInfo1); // value1:1
         // 2nd task doesn't fit on value1 which already has something, but does fit on value2/value3:
         assertEquals(0, rule.filter(offerWithAttribute("value1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithAttribute("value2"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithAttribute("value3"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("2", "value3")); // value1:1, value3:1
+        TaskInfo taskInfo2 = getTaskInfo("2", "value3");
+        OfferRequirement req2 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo2),
+                Arrays.asList(taskInfo2));
+        tasks.add(taskInfo2); // value1:1, value3:1
         // duplicates of preexisting tasks 1/3 fit on their previous values:
-        assertEquals(1, rule.filter(offerWithAttribute("value1"), REQ1, tasks).getResourcesCount());
-        assertEquals(1, rule.filter(offerWithAttribute("value3"), REQ2, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithAttribute("value1"), req1, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithAttribute("value3"), req2, tasks).getResourcesCount());
         // 3rd task doesnt fit on value1/value3, does fit on value2:
         assertEquals(0, rule.filter(offerWithAttribute("value1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithAttribute("value2"), REQ, tasks).getResourcesCount());
@@ -105,7 +99,7 @@ public class RoundRobinByAttributeRuleTest {
     }
 
     @Test
-    public void testRolloutWithoutAgentCount() {
+    public void testRolloutWithoutAgentCount() throws TaskException, InvalidRequirementException {
         PlacementRule rule = new RoundRobinByAttributeRule(ATTRIB_NAME, Optional.empty(), MATCHER);
         // throw in some preexisting tasks to be ignored by our matcher:
         List<TaskInfo> tasks = new ArrayList<>();
@@ -119,15 +113,25 @@ public class RoundRobinByAttributeRuleTest {
         tasks.add(getTaskInfo("ignored8", "baz", "value8"));
         // 1st task fits on value1:
         assertEquals(1, rule.filter(offerWithAttribute("value1"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("1", "value1")); // value1:1
+        TaskInfo taskInfo1 = getTaskInfo("1", "value1");
+        OfferRequirement req1 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo1),
+                Arrays.asList(taskInfo1));
+        tasks.add(taskInfo1); // value1:1
         // 2nd task fits on any of value1/value2/value3, as we don't yet know of other valid values:
         assertEquals(1, rule.filter(offerWithAttribute("value1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithAttribute("value2"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithAttribute("value3"), REQ, tasks).getResourcesCount());
-        tasks.add(getTaskInfo("2", "value3")); // value1:1, value3:1
+        TaskInfo taskInfo2 = getTaskInfo("2", "value3");
+        OfferRequirement req2 = OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                CommonTaskUtils.getIndex(taskInfo2),
+                Arrays.asList(taskInfo2));
+        tasks.add(taskInfo2); // value1:1, value3:1
         // duplicates of preexisting tasks 1/3 fit on their previous values:
-        assertEquals(1, rule.filter(offerWithAttribute("value1"), REQ1, tasks).getResourcesCount());
-        assertEquals(1, rule.filter(offerWithAttribute("value3"), REQ2, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithAttribute("value1"), req1, tasks).getResourcesCount());
+        assertEquals(1, rule.filter(offerWithAttribute("value3"), req2, tasks).getResourcesCount());
         // 3rd task fits on any of value1/value2/value3, as all known values have the same amount:
         assertEquals(1, rule.filter(offerWithAttribute("value1"), REQ, tasks).getResourcesCount());
         assertEquals(1, rule.filter(offerWithAttribute("value2"), REQ, tasks).getResourcesCount());

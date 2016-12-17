@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import org.apache.curator.test.TestingServer;
-import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
@@ -73,6 +72,10 @@ public class HelloWorldServiceSpecTest {
     }
 
     @Test
+    public void test_yml_withPlan_uris() throws Exception{
+        ServiceSpecDeserialization("svc_uri.yml");
+    }
+    @Test
     public void test_validate_yml_base() throws Exception{
         ServiceSpecValidation("svc.yml");
     }
@@ -85,6 +88,11 @@ public class HelloWorldServiceSpecTest {
     @Test
     public void test_validate_yml_withPlan() throws Exception{
         ServiceSpecValidation("svc_plan.yml");
+    }
+
+    @Test
+    public void test_validate_yml_withPlan_uri() throws Exception{
+        ServiceSpecValidation("svc_uri.yml");
     }
 
     private void ServiceSpecDeserialization(String fileName) throws Exception {
@@ -113,26 +121,12 @@ public class HelloWorldServiceSpecTest {
                 testingServer.getConnectString(),
                 Collections.emptyList());
 
-        Protos.FrameworkID FRAMEWORK_ID =
-                Protos.FrameworkID.newBuilder()
-                        .setValue("test-framework-id")
-                        .build();
-
-        Protos.MasterInfo MASTER_INFO =
-                Protos.MasterInfo.newBuilder()
-                        .setId("test-master-id")
-                        .setIp(0)
-                        .setPort(0)
-                        .build();
-
         ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
                 .updateConfig(serviceSpec, stateStore, configStore);
 
         OfferRequirementProvider offerRequirementProvider = DefaultScheduler
                 .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
 
-        DefaultScheduler defaultScheduler = DefaultScheduler
-                .create(serviceSpec, stateStore, configStore, offerRequirementProvider);
-        defaultScheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
+        DefaultScheduler.create(serviceSpec, stateStore, configStore, offerRequirementProvider);
     }
 }

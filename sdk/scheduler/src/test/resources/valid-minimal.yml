@@ -3,11 +3,11 @@ principal: "hello-world-principal"
 zookeeper: master.mesos:2181
 api-port: {{PORT0}}
 pods:
-  meta-data:
+  pod-type:
     count: 1
     tasks:
       meta-data-task:
         goal: RUNNING
-        cmd: "echo 'Hello World'"
+        cmd: "./task-cmd"
         cpus: 0.1
         memory: 512
