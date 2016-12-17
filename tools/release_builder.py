@@ -238,6 +238,8 @@ class UniverseReleaseBuilder(object):
             self._pkg_name)
         # find the prior release number:
         lastnum = -1
+        if not os.path.exists(repo_pkg_base):
+            os.makedirs(repo_pkg_base)
         for filename in os.listdir(repo_pkg_base):
             if not os.path.isdir(os.path.join(repo_pkg_base, filename)):
                 continue
