@@ -18,7 +18,10 @@ import java.util.Optional;
 
 /**
  * A read-only API for accessing task and frameworkId state from persistent storage.
+ *
+ * @deprecated in favor of {@link PodsResource} and {@link EndpointsResource}
  */
+@Deprecated
 @Path("/v1/tasks")
 public class TaskResource {
 
@@ -125,10 +128,8 @@ public class TaskResource {
     }
 
     private JSONObject getTaskConnection(Protos.TaskInfo taskInfo) {
-        String dns = taskInfo.getName() + "." + frameworkName + ".mesos";
-
         JSONObject conn = new JSONObject();
-        conn.put("dns", dns);
+        conn.put("dns", String.format("%s.%s.mesos", taskInfo.getName(), frameworkName));
         conn.put("ports", getPortString(taskInfo));
         return conn;
     }
@@ -156,13 +157,12 @@ public class TaskResource {
     public Response restartTask(
             @PathParam("taskName") String name,
             @QueryParam("replace") String replace) {
-        boolean taskExists = taskKiller.killTask(name, Boolean.parseBoolean(replace));
-
-        if (taskExists) {
-            return Response.accepted().build();
-        } else {
-            logger.error("User requested to kill non-existent task: " + name);
+        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(name);
+        if (!taskInfoOptional.isPresent()) {
+            logger.error("User requested to kill non-existent task: {}", name);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+        taskKiller.killTask(taskInfoOptional.get().getTaskId(), Boolean.parseBoolean(replace));
+        return Response.accepted().build();
     }
 }

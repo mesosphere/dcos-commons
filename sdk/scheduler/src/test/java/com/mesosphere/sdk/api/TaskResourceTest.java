@@ -60,15 +60,11 @@ public class TaskResourceTest {
     @Test
     public void testGetTaskInfo() {
         String taskName = "task1";
-        TaskInfo taskInfo = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName).build();
         when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.getTaskInfo(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(new JsonFormat().printToString(taskInfo), (String) response.getEntity());
+        assertEquals(new JsonFormat().printToString(taskInfo), response.getEntity());
     }
 
     @Test
@@ -90,7 +86,7 @@ public class TaskResourceTest {
         when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.of(taskStatus));
         Response response = resource.getTaskStatus(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(new JsonFormat().printToString(taskStatus), (String) response.getEntity());
+        assertEquals(new JsonFormat().printToString(taskStatus), response.getEntity());
     }
 
     @Test
@@ -104,30 +100,32 @@ public class TaskResourceTest {
     @Test
     public void testRestart() {
         String taskName = "task1";
-        when(mockTaskKiller.killTask(taskName, false)).thenReturn(true);
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName).build();
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.restartTask(taskName, "false");
 
-        verify(mockTaskKiller, times(1)).killTask(taskName, false);
+        verify(mockTaskKiller, times(1)).killTask(taskInfo.getTaskId(), false);
         assertEquals(202, response.getStatus());
     }
 
     @Test
     public void testRestartReplace() {
         String taskName = "task1";
-        when(mockTaskKiller.killTask(taskName, true)).thenReturn(true);
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName).build();
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.restartTask(taskName, "true");
 
-        verify(mockTaskKiller, times(1)).killTask(taskName, true);
+        verify(mockTaskKiller, times(1)).killTask(taskInfo.getTaskId(), true);
         assertEquals(202, response.getStatus());
     }
 
     @Test
-    public void testRestartFails() {
+    public void testRestartLookupFails() {
         String taskName = "task1";
-        when(mockTaskKiller.killTask(taskName, false)).thenReturn(false);
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.empty());
         Response response = resource.restartTask(taskName, "false");
 
-        verify(mockTaskKiller, times(1)).killTask(taskName, false);
+        verifyNoMoreInteractions(mockTaskKiller);
         assertEquals(404, response.getStatus());
     }
 
@@ -148,10 +146,7 @@ public class TaskResourceTest {
         ranges.add(range2);
         Resource rangeResource = ResourceUtils.getUnreservedRanges("ports", ranges);
 
-        TaskInfo taskInfo = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName)
                 .addResources(rangeResource)
                 .build();
 
@@ -172,6 +167,13 @@ public class TaskResourceTest {
 
         Response response = resource.getConnection(taskName);
         assertEquals(404, response.getStatus());
+    }
+
+    private static TaskInfo.Builder getTaskInfoBuilder(String taskName) {
+        return TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored")); // proto field required
     }
 }
 

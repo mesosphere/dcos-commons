@@ -7,11 +7,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
-import com.mesosphere.sdk.api.ConfigResource;
-import com.mesosphere.sdk.api.EndpointsResource;
-import com.mesosphere.sdk.api.PlansResource;
-import com.mesosphere.sdk.api.StateResource;
-import com.mesosphere.sdk.api.TaskResource;
+import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
 import com.mesosphere.sdk.config.validate.ConfigurationValidator;
@@ -398,12 +394,12 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
+        taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
-                new OfferEvaluator(stateStore, offerRequirementProvider), taskKiller);
+                new OfferEvaluator(stateStore, offerRequirementProvider), stateStore, taskKiller);
     }
 
     /**
@@ -448,6 +444,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));
+        resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         // use add() instead of put(): throw exception instead of waiting indefinitely

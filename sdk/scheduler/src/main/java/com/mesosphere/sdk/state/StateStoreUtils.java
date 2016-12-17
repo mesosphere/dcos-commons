@@ -181,7 +181,7 @@ public class StateStoreUtils {
                 })
                 .filter(taskInfo -> {
                     try {
-                        return CommonTaskUtils.getIndex(taskInfo).equals(podInstance.getIndex());
+                        return CommonTaskUtils.getIndex(taskInfo) == podInstance.getIndex();
                     } catch (TaskException e) {
                         return false;
                     }

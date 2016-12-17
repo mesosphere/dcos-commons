@@ -6,6 +6,8 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.SchedulerDriver;
@@ -27,11 +29,6 @@ import static org.mockito.Mockito.*;
  */
 public class DefaultPlanSchedulerTest {
 
-    private static final List<TaskInfo> TASKINFOS = Arrays.asList(TaskInfo.newBuilder()
-            .setName("hi")
-            .setTaskId(CommonTaskUtils.toTaskId("hi"))
-            .setSlaveId(SlaveID.newBuilder().setValue("slaveid").build())
-            .build());
     private static final List<Offer> OFFERS = Arrays.asList(Offer.newBuilder()
             .setId(OfferID.newBuilder().setValue("offerid").build())
             .setFrameworkId(FrameworkID.newBuilder().setValue("frameworkid").build())
@@ -52,6 +49,7 @@ public class DefaultPlanSchedulerTest {
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
     @Mock private SchedulerDriver mockSchedulerDriver;
+    @Mock private StateStore mockStateStore;
     @Mock private TaskKiller mockTaskKiller;
     private PodInstanceRequirement podInstanceRequirement;
 
@@ -61,7 +59,7 @@ public class DefaultPlanSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         environmentVariables.set("PORT0", "8080");
-        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockTaskKiller);
+        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockStateStore, mockTaskKiller);
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
