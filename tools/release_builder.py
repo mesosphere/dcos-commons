@@ -77,6 +77,7 @@ class UniverseReleaseBuilder(object):
             return ret
 
     def _download_unpack_stub_universe(self, scratchdir):
+        '''Returns the path to the directory in the stub universe.'''
         local_zip_path = os.path.join(scratchdir, self._stub_universe_url.split('/')[-1])
         result = urlopen(self._stub_universe_url)
         dlfile = open(local_zip_path, 'wb')
@@ -217,6 +218,7 @@ class UniverseReleaseBuilder(object):
     def _create_universe_branch(self, scratchdir, pkgdir):
         branch = 'automated/release_{}_{}_{}'.format(
             self._pkg_name, self._pkg_version, base64.b64encode(os.urandom(4)).decode('utf-8').rstrip('='))
+
         # check out the repo, create a new local branch:
         ret = os.system(' && '.join([
             'cd {}'.format(scratchdir),
@@ -236,6 +238,7 @@ class UniverseReleaseBuilder(object):
             'packages',
             self._pkg_name[0].upper(),
             self._pkg_name)
+
         # find the prior release number:
         lastnum = -1
         if not os.path.exists(repo_pkg_base):
@@ -249,33 +252,40 @@ class UniverseReleaseBuilder(object):
                 continue
             if num > lastnum:
                 lastnum = num
-        last_repo_pkg = os.path.join(repo_pkg_base, str(lastnum))
-        this_repo_pkg = os.path.join(repo_pkg_base, str(lastnum + 1))
+
         # copy the stub universe contents into a new release number, while collecting changes:
-        os.makedirs(this_repo_pkg)
-        removedfiles = os.listdir(last_repo_pkg)
-        addedfiles = []
-        filediffs = {}
-        for filename in os.listdir(pkgdir):
-            if not os.path.isfile(os.path.join(pkgdir, filename)):
-                continue
-            shutil.copyfile(os.path.join(pkgdir, filename), os.path.join(this_repo_pkg, filename))
-            if filename in removedfiles:
+        last_dir = os.path.join(repo_pkg_base, str(lastnum))
+        this_dir = os.path.join(repo_pkg_base, str(lastnum + 1))
+        shutil.copytree(pkgdir, this_dir)
+
+        if os.path.exists(last_dir):
+            last_dir_files = set(os.listdir(last_dir))
+            this_dir_files = set(os.listdir(this_dir))
+
+            removed_files = last_pkg_dir_files - this_pkg_dir_files
+            added_files = this_pkg_dir_files - last_pkg_dir_files
+            filediffs = {}
+
+            shared_files = last_pkg_dir_files & this_pkg_dir_files
+            if filename in shared_files:
                 # file exists in both new and old: calculate diff
-                removedfiles.remove(filename)
-                oldfile = open(os.path.join(last_repo_pkg, filename), 'r')
-                newfile = open(os.path.join(this_repo_pkg, filename), 'r')
-                filediffs[filename] = ''.join(difflib.unified_diff(
-                    oldfile.readlines(), newfile.readlines(),
-                    fromfile='{}/{}'.format(lastnum, filename),
-                    tofile='{}/{}'.format(lastnum + 1, filename)))
-            else:
-                addedfiles.append(filename)
+                last_filename = os.path.join(last_dir, filename)
+                this_filename = os.path.join(this_dir, filename)
+                with open(last_file, 'r') as last_file, open(this_file, 'r') as this_file:
+                    filediffs[filename] = ''.join(difflib.unified_diff(
+                        last_file.readlines(), this_file.readlines(),
+                        fromfile='{}/{}'.format(lastnum, filename),
+                        tofile='{}/{}'.format(lastnum + 1, filename)))
+        else:
+            filediffs = {}
+            removed_files = {}
+            added_files = os.listdir(this_dir)
+
         # create a user-friendly diff for use in the commit message:
         resultlines = [
             'Changes since revision {}:\n'.format(lastnum),
-            '{} files added: [{}]\n'.format(len(addedfiles), ', '.join(addedfiles)),
-            '{} files removed: [{}]\n'.format(len(removedfiles), ', '.join(removedfiles)),
+            '{} files added: [{}]\n'.format(len(added_files), ', '.join(added_files)),
+            '{} files removed: [{}]\n'.format(len(removed_files), ', '.join(removed_files)),
             '{} files changed:\n\n'.format(len(filediffs))]
         if self._commit_desc:
             resultlines.insert(0, 'Description:\n{}\n\n'.format(self._commit_desc))
