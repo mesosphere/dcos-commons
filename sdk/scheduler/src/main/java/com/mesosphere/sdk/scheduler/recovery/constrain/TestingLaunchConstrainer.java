@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 
 /**
  * {@link LaunchConstrainer} that makes it easy to enable/disable launches for testing.

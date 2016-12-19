@@ -9,7 +9,6 @@ import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

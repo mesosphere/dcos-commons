@@ -20,7 +20,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;

@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler.recovery;
+package com.mesosphere.sdk.scheduler.recovery;
 
 /**
  * This indicates the type of recovery taking place.  Transient indicates an in place recovery with no posibility of

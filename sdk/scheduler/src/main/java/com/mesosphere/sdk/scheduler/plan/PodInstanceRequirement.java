@@ -1,4 +1,4 @@
-package org.apache.mesos.scheduler.plan;
+package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.specification.PodInstance;
 
