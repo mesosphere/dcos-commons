@@ -16,7 +16,7 @@ Frequently Asked Questions
 
 #### __How can I get commercial support for the DC/OS SDK?__
 
-  Mesosphere only offers support to ISVs on a subscription basis through the Mesosphere Partner Program.
+  Mesosphere offers support to approved ISVs as part of the Mesosphere Partner Program.
 
 #### __What is a DC/OS service?__
 
