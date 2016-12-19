@@ -1,7 +1,7 @@
 Contributors Guide
 ==================
 [__Quick Start__](README.md#quick-start) |
-[__FAQ__](docs/faq.md) |
+[__FAQ__](docs/pages/faq.md) |
 [__Javadocs__](http://mesosphere.github.io/dcos-commons/api/) |
 [__Contributing__](CONTRIBUTING.md) |
 [__Slack__](http://chat.dcos.io)
