@@ -262,11 +262,11 @@ class UniverseReleaseBuilder(object):
             last_dir_files = set(os.listdir(last_dir))
             this_dir_files = set(os.listdir(this_dir))
 
-            removed_files = last_pkg_dir_files - this_pkg_dir_files
-            added_files = this_pkg_dir_files - last_pkg_dir_files
+            removed_files = last_dir_files - this_dir_files
+            added_files = this_dir_files - last_dir_files
             filediffs = {}
 
-            shared_files = last_pkg_dir_files & this_pkg_dir_files
+            shared_files = last_dir_files & this_dir_files
             if filename in shared_files:
                 # file exists in both new and old: calculate diff
                 last_filename = os.path.join(last_dir, filename)
