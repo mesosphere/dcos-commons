@@ -76,10 +76,10 @@ def test_commercial_api_available(default_populated_index):
     assert response["failures"] == []
 
 
-@pytest.mark.health
+@pytest.mark.recovery
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
-    shakedown.kill_process_on_host("data-0-server.{}.mesos".format(PACKAGE_NAME), "node.data=true")
+    shakedown.kill_process_on_host("data-0-server.{}.mesos".format(PACKAGE_NAME), "data__.*Elasticsearch")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "yellow")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
 
@@ -87,7 +87,7 @@ def test_losing_and_regaining_index_health(default_populated_index):
 @pytest.mark.recovery
 def test_master_reelection():
     initial_master = get_elasticsearch_master()
-    shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "node.master=true")
+    shakedown.kill_process_on_host("{}.{}.mesos".format(initial_master, PACKAGE_NAME), "master__.*Elasticsearch")
     check_new_elasticsearch_master_elected(initial_master)
 
 

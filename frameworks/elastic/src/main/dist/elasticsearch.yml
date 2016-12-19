@@ -7,7 +7,7 @@ network.host:
   - "_site_"
   - "_local_"
 cluster.name: {{SERVICE_NAME}}
-node.name: {{TASK_NAME}}-{{POD_INSTANCE_INDEX}}
+node.name: {{TASK_NAME}}
 path.data: "container-path/data"
 path.logs: "container-path/logs"
 http.port: {{HTTP_PORT}}
