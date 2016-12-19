@@ -28,7 +28,6 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     testCompile "junit:junit:${junitVer}"
-    testCompile 'de.bechte.junit:junit-hierarchicalcontextrunner:4.12.1'
 }
 
 buildDir = new File(rootProject.projectDir, "build/")
