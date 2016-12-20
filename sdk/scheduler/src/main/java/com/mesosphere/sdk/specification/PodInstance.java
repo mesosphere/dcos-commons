@@ -6,8 +6,15 @@ package com.mesosphere.sdk.specification;
  * are generated.
  */
 public interface PodInstance {
+
+    /**
+     * The specification that defines this pod instance.
+     */
     PodSpec getPod();
 
+    /**
+     * The index of this pod instance (starting at zero). Each pod instance has a unique index.
+     */
     int getIndex();
 
     default String getName() {

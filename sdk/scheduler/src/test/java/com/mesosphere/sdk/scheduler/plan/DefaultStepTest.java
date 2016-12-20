@@ -47,8 +47,7 @@ public class DefaultStepTest {
         DefaultStep step = new DefaultStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
-                podInstance,
-                TaskUtils.getTaskNames(podInstance),
+                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),
                 Collections.emptyList());
 
         Assert.assertTrue(step.isPending());

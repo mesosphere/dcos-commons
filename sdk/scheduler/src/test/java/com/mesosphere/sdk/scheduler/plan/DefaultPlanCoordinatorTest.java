@@ -120,11 +120,7 @@ public class DefaultPlanCoordinatorTest {
         stateStore = new CuratorStateStore(
                 serviceSpecification.getName(),
                 testingServer.getConnectString());
-        stepFactory = new DefaultStepFactory(
-                mock(ConfigStore.class),
-                stateStore,
-                new DefaultOfferRequirementProvider(
-                        new DefaultTaskConfigRouter(new HashMap<>()), stateStore, UUID.randomUUID()));
+        stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 

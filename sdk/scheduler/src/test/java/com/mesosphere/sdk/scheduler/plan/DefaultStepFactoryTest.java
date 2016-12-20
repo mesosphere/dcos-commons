@@ -2,11 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.curator.test.TestingServer;
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
@@ -51,7 +48,6 @@ public class DefaultStepFactoryTest {
     private StepFactory stepFactory;
     private ConfigStore<ServiceSpec> configStore;
     private StateStore stateStore;
-    private OfferRequirementProvider offerRequirementProvider;
 
     private static final ServiceSpec serviceSpec =
             DefaultServiceSpec.newBuilder()
@@ -84,12 +80,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        offerRequirementProvider = new DefaultOfferRequirementProvider(
-                new DefaultTaskConfigRouter(),
-                stateStore,
-                configId);
-
-        stepFactory = new DefaultStepFactory(configStore, stateStore, offerRequirementProvider);
+        stepFactory = new DefaultStepFactory(configStore, stateStore);
     }
 
     @Test(expected = Step.InvalidStepException.class)

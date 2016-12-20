@@ -97,8 +97,7 @@ public class DefaultService implements Service {
     @VisibleForTesting
     protected Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
             throws Exception {
-        DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore,
-                offerRequirementProvider);
+        DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore);
         List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
             List<RawPlan> rawPlans = YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification);

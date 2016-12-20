@@ -2,13 +2,13 @@ package com.mesosphere.sdk.offer;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
-import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value;
 
 /**
- * Wrapper around a Mesos {@link Resource}, combined with a resource ID string.
+ * Wrapper around a Mesos {@link Resource}, combined with a resource ID string which should be present in the
+ * {@link Resource} as a {@link Label}.
  **/
 public class MesosResource {
     public static final String RESOURCE_ID_KEY = "resource_id";
@@ -21,7 +21,7 @@ public class MesosResource {
 
     public MesosResource(Resource resource) {
         this.resource = resource;
-        this.resourceId = getResourceIdInternal();
+        this.resourceId = getResourceIdInternal(resource);
     }
 
     public Resource getResource() {
@@ -63,23 +63,8 @@ public class MesosResource {
     }
 
     public String getPrincipal() {
-        if (hasReservation() &&
-                resource.getReservation().hasPrincipal()) {
+        if (resource.hasReservation() && resource.getReservation().hasPrincipal()) {
             return resource.getReservation().getPrincipal();
-        }
-
-        return null;
-    }
-
-    private String getResourceIdInternal() {
-        if (resource.hasReservation()) {
-            Labels labels = resource.getReservation().getLabels();
-
-            for (Label label : labels.getLabelsList()) {
-                if (label.getKey().equals(RESOURCE_ID_KEY)) {
-                    return label.getValue();
-                }
-            }
         }
 
         return null;
@@ -88,5 +73,17 @@ public class MesosResource {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
+    }
+
+    private static String getResourceIdInternal(Resource resource) {
+        if (resource.hasReservation() && resource.getReservation().hasLabels()) {
+            for (Label label : resource.getReservation().getLabels().getLabelsList()) {
+                if (label.getKey().equals(RESOURCE_ID_KEY)) {
+                    return label.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 }

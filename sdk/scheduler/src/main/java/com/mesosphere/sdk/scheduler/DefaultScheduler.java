@@ -65,8 +65,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final Collection<ConfigurationValidator<ServiceSpec>> configValidators;
-    protected final Optional<Integer> permanentFailureTimeoutSec;
-    protected final Integer destructiveRecoveryDelaySec;
+    protected final Optional<Integer> permanentFailureTimeoutMs;
+    protected final Integer destructiveRecoveryDelayMs;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -165,11 +165,11 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider,
             Collection<ConfigurationValidator<ServiceSpec>> configValidators) {
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
-        Integer permanentFailureTimeoutSec = PERMANENT_FAILURE_DELAY_SEC;
-        int destructiveRecoveryDelaySec = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC;
+        Integer permanentFailureTimeoutMs = 1000 * PERMANENT_FAILURE_DELAY_SEC;
+        int destructiveRecoveryDelayMs = 1000 * DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC;
         if (replacementFailurePolicy != null) {
-            permanentFailureTimeoutSec = replacementFailurePolicy.getPermanentFailureTimoutMs();
-            destructiveRecoveryDelaySec = replacementFailurePolicy.getMinReplaceDelayMs();
+            permanentFailureTimeoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
+            destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
         }
         return new DefaultScheduler(
                 serviceSpec,
@@ -178,8 +178,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                 configStore,
                 offerRequirementProvider,
                 configValidators,
-                Optional.of(permanentFailureTimeoutSec),
-                destructiveRecoveryDelaySec);
+                Optional.of(permanentFailureTimeoutMs),
+                destructiveRecoveryDelayMs);
     }
 
     /**
@@ -329,9 +329,9 @@ public class DefaultScheduler implements Scheduler, Observer {
      *                                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configValidators            custom validators to be used, instead of the default validators
      *                                    returned by {@link #defaultConfigValidators()}
-     * @param permanentFailureTimeoutSec  minimum duration to wait in seconds before deciding that a
+     * @param permanentFailureTimeoutMs   minimum duration to wait in seconds before deciding that a
      *                                    task has failed, or an empty {@link Optional} to disable this detection
-     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
+     * @param destructiveRecoveryDelayMs  minimum duration to wait in seconds between destructive
      *                                    recovery operations such as destroying a failed task
      */
     protected DefaultScheduler(
@@ -341,16 +341,16 @@ public class DefaultScheduler implements Scheduler, Observer {
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
             Collection<ConfigurationValidator<ServiceSpec>> configValidators,
-            Optional<Integer> permanentFailureTimeoutSec,
-            Integer destructiveRecoveryDelaySec) {
+            Optional<Integer> permanentFailureTimeoutMs,
+            Integer destructiveRecoveryDelayMs) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.offerRequirementProvider = offerRequirementProvider;
         this.configValidators = configValidators;
-        this.permanentFailureTimeoutSec = permanentFailureTimeoutSec;
-        this.destructiveRecoveryDelaySec = destructiveRecoveryDelaySec;
+        this.permanentFailureTimeoutMs = permanentFailureTimeoutMs;
+        this.destructiveRecoveryDelayMs = destructiveRecoveryDelayMs;
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -411,11 +411,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         Plan deployPlan;
         if (!deploy.isPresent()) {
             LOGGER.info("No deploy plan provided. Generating one");
-             deployPlan = new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
-                    configStore,
-                    stateStore,
-                    offerRequirementProvider)))
-                    .getPlan(serviceSpec);
+             deployPlan = new DefaultPlanFactory(
+                     new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore)))
+                     .getPlan(serviceSpec);
         } else {
             deployPlan = deploy.get();
         }
@@ -430,9 +428,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
-                permanentFailureTimeoutSec.isPresent()
-                        ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
+                new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs)),
+                permanentFailureTimeoutMs.isPresent()
+                        ? new TimedFailureMonitor(Duration.ofMillis(permanentFailureTimeoutMs.get()))
                         : new NeverFailureMonitor());
     }
 
@@ -451,23 +449,12 @@ public class DefaultScheduler implements Scheduler, Observer {
         resourcesQueue.add(resources);
     }
 
-    private void logOffers(List<Protos.Offer> offers) {
-        if (offers == null) {
-            return;
-        }
-
-        LOGGER.info(String.format("Received %d offers:", offers.size()));
-        for (int i = 0; i < offers.size(); ++i) {
-            // Offer protobuffers are very long. print each as a single line:
-            LOGGER.info(String.format("- Offer %d: %s", i + 1, TextFormat.shortDebugString(offers.get(i))));
-        }
-    }
-
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
         final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
         unusedOffers.stream().forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
-            LOGGER.info("Declining offer: " + offerId.getValue());
+            LOGGER.info("  {}", offerId.getValue());
             driver.declineOffer(offerId);
         });
     }
@@ -483,13 +470,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     @SuppressWarnings({"DM_EXIT"})
-    private void hardExit(SchedulerErrorCode errorCode) {
+    private static void hardExit(SchedulerErrorCode errorCode) {
         System.exit(errorCode.ordinal());
     }
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        LOGGER.info("Registered framework with frameworkId: " + frameworkId.getValue());
+        LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
         try {
             initialize(driver);
         } catch (InterruptedException e) {
@@ -515,16 +502,16 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
-        reconciler.start();
-        reconciler.reconcile(driver);
-        suppressOrRevive();
     }
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-            logOffers(offers);
+            LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
+            for (int i = 0; i < offers.size(); ++i) {
+                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+            }
 
             // Task Reconciliation:
             // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
@@ -532,7 +519,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress.");
+                LOGGER.info("Reconciliation is still in progress, declining all offers");
                 declineOffers(driver, Collections.emptyList(), offers);
                 return;
             }
@@ -578,11 +565,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                LOGGER.info(String.format(
-                        "Received status update for taskId=%s state=%s message='%s'",
+                LOGGER.info("Received status update for taskId={} state={} message='{}'",
                         status.getTaskId().getValue(),
                         status.getState().toString(),
-                        status.getMessage()));
+                        status.getMessage());
 
                 // Store status, then pass status to PlanManager => Plan => Steps
                 try {
@@ -620,13 +606,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Agent lost: " + agentId);
+        LOGGER.warn("Agent lost: {}", agentId.getValue());
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        LOGGER.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
+        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), slaveId.getValue());
     }
 
     @Override

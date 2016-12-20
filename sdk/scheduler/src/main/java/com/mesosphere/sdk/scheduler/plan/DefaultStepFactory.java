@@ -22,15 +22,12 @@ public class DefaultStepFactory implements StepFactory {
 
     private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;
-    private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultStepFactory(
             ConfigTargetStore configTargetStore,
-            StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider) {
+            StateStore stateStore) {
         this.configTargetStore = configTargetStore;
         this.stateStore = stateStore;
-        this.offerRequirementProvider = offerRequirementProvider;
     }
 
     @Override
@@ -53,8 +50,7 @@ public class DefaultStepFactory implements StepFactory {
             return new DefaultStep(
                     stepName,
                     status,
-                    podInstance,
-                    tasksToLaunch,
+                    PodInstanceRequirement.create(podInstance, tasksToLaunch),
                     Collections.emptyList());
         } catch (ConfigStoreException | TaskException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);

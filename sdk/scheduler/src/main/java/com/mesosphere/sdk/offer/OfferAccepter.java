@@ -106,8 +106,9 @@ public class OfferAccepter {
     }
 
     private static void logOperations(List<Operation> operations) {
+        logger.info("Performing {} operations:", operations.size());
         for (Operation op : operations) {
-            logger.info("Performing Operation: {}", TextFormat.shortDebugString(op));
+            logger.info("  {}", TextFormat.shortDebugString(op));
         }
     }
 

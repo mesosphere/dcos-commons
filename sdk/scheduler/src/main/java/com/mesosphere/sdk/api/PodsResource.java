@@ -5,14 +5,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -30,7 +28,6 @@ import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -48,15 +45,6 @@ public class PodsResource {
      * Pod 'name' to use in responses for tasks which have no pod information.
      */
     private static final String UNKNOWN_POD_LABEL = "UNKNOWN_POD";
-
-    /**
-     * Task states which should be avoided when selecting the task to use when killing a pod.
-     */
-    private static final Set<TaskState> UNKILLABLE_TASK_STATES;
-    static {
-        UNKILLABLE_TASK_STATES = new HashSet<>();
-        UNKILLABLE_TASK_STATES.add(TaskState.TASK_FINISHED);
-    }
 
     private final TaskKiller taskKiller;
     private final StateStore stateStore;
@@ -210,28 +198,11 @@ public class PodsResource {
     private Response restartPod(String name, boolean destructive) {
         // look up all tasks in the provided pod name:
         List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(name);
-        if (podTasks == null || podTasks.isEmpty()) { // shouldn't be empty, but just in case
+        if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        // find task in the pod with a killable state. we perform the task restart by just killing one of these tasks:
-        TaskStatus taskToKill = null;
-        for (TaskInfoAndStatus task : podTasks) {
-            if (!task.hasStatus()) {
-                continue;
-            }
-            TaskStatus status = task.getStatus().get();
-            if (!UNKILLABLE_TASK_STATES.contains(status.getState())) {
-                taskToKill = status;
-                break;
-            }
-        }
         final String operation = destructive ? "replace" : "restart";
-        if (taskToKill == null) {
-            LOGGER.error("None of the tasks in pod {} were in a killable state. Nothing to {}?: {}",
-                    name, operation, podTasks);
-            return Response.status(Response.Status.CONFLICT).build();
-        }
 
         // notify hook (if any) about *all* known tasks in the pod before the restart is finally issued:
         if (restartHook != null && !restartHook.notify(podTasks, destructive)) {
@@ -240,11 +211,31 @@ public class PodsResource {
             return Response.status(Response.Status.CONFLICT).build();
         }
 
-        // invoke the restart request itself against the RUNNING task found earlier:
-        LOGGER.info("Performing {} of pod {} by killing task {} (currently in state {})",
-                operation, name, taskToKill.getTaskId().getValue(), taskToKill.getState());
-        taskKiller.killTask(taskToKill.getTaskId(), destructive);
-        return Response.ok(name, MediaType.APPLICATION_JSON).build();
+        final List<String> restartedTaskNames = new ArrayList<>();
+        // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
+        // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
+        LOGGER.info("Completing {} of pod {} by killing {} tasks:",
+                operation, name, podTasks.size());
+        for (TaskInfoAndStatus taskToKill : podTasks) {
+            final TaskInfo taskInfo = taskToKill.getInfo();
+            if (taskToKill.hasStatus()) {
+                LOGGER.info("  {} ({}): currently in state {}",
+                        taskInfo.getName(),
+                        taskInfo.getTaskId().getValue(),
+                        taskToKill.getStatus().get().getState());
+            } else {
+                LOGGER.info("  {} ({}): no status available",
+                        taskInfo.getName(),
+                        taskInfo.getTaskId().getValue());
+            }
+            taskKiller.killTask(taskInfo.getTaskId(), destructive);
+            restartedTaskNames.add(taskInfo.getName());
+        }
+
+        JSONObject json = new JSONObject();
+        json.put("pod", name);
+        json.put("tasks", restartedTaskNames);
+        return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     /**

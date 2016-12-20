@@ -278,18 +278,6 @@ public class PodsResourceTest {
     }
 
     @Test
-    public void testRestartPodUnkillable() {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-
-        Response response = resource.restartPod("test-2");
-        assertEquals(409, response.getStatus());
-
-        verifyZeroInteractions(mockRestartHook);
-        verifyZeroInteractions(mockTaskKiller);
-    }
-
-    @Test
     public void testRestartPodManyRunning() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
@@ -301,9 +289,20 @@ public class PodsResourceTest {
 
         Response response = resource.restartPod("test-0");
         assertEquals(200, response.getStatus());
-        assertEquals((String) response.getEntity(), "test-0", (String) response.getEntity());
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(2, json.length());
+        assertEquals("test-0", json.getString("pod"));
+        assertEquals(4, json.getJSONArray("tasks").length());
+        assertEquals("a", json.getJSONArray("tasks").get(0));
+        assertEquals("b", json.getJSONArray("tasks").get(1));
+        assertEquals("c", json.getJSONArray("tasks").get(2));
+        assertEquals("d", json.getJSONArray("tasks").get(3));
 
         verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), false);
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), false);
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), false);
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), false);
+        verifyNoMoreInteractions(mockTaskKiller);
     }
 
     @Test
@@ -316,9 +315,16 @@ public class PodsResourceTest {
 
         Response response = resource.restartPod("test-1");
         assertEquals(200, response.getStatus());
-        assertEquals("test-1", response.getEntity());
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(2, json.length());
+        assertEquals("test-1", json.getString("pod"));
+        assertEquals(2, json.getJSONArray("tasks").length());
+        assertEquals("a", json.getJSONArray("tasks").get(0));
+        assertEquals("b", json.getJSONArray("tasks").get(1));
 
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), false);
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), false);
+        verifyNoMoreInteractions(mockTaskKiller);
     }
 
     @Test
@@ -347,18 +353,6 @@ public class PodsResourceTest {
     }
 
     @Test
-    public void testReplacePodUnkillable() {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-
-        Response response = resource.replacePod("test-2");
-        assertEquals(409, response.getStatus());
-
-        verifyZeroInteractions(mockRestartHook);
-        verifyZeroInteractions(mockTaskKiller);
-    }
-
-    @Test
     public void testReplacePodManyRunning() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
@@ -370,9 +364,20 @@ public class PodsResourceTest {
 
         Response response = resource.replacePod("test-0");
         assertEquals(200, response.getStatus());
-        assertEquals((String) response.getEntity(), "test-0", (String) response.getEntity());
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(2, json.length());
+        assertEquals("test-0", json.getString("pod"));
+        assertEquals(4, json.getJSONArray("tasks").length());
+        assertEquals("a", json.getJSONArray("tasks").get(0));
+        assertEquals("b", json.getJSONArray("tasks").get(1));
+        assertEquals("c", json.getJSONArray("tasks").get(2));
+        assertEquals("d", json.getJSONArray("tasks").get(3));
 
         verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), true);
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), true);
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), true);
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), true);
+        verifyNoMoreInteractions(mockTaskKiller);
     }
 
     @Test
@@ -385,9 +390,16 @@ public class PodsResourceTest {
 
         Response response = resource.replacePod("test-1");
         assertEquals(200, response.getStatus());
-        assertEquals("test-1", response.getEntity());
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(2, json.length());
+        assertEquals("test-1", json.getString("pod"));
+        assertEquals(2, json.getJSONArray("tasks").length());
+        assertEquals("a", json.getJSONArray("tasks").get(0));
+        assertEquals("b", json.getJSONArray("tasks").get(1));
 
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), true);
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), true);
+        verifyNoMoreInteractions(mockTaskKiller);
     }
 
     @Test
