@@ -23,6 +23,9 @@ dependencies {
 apply plugin: 'java'
 apply plugin: 'application'
 
+test {
+    exclude 'com/mesosphere/sdk/elastic/*'
+}
 buildDir = new File(rootProject.projectDir, "build/")
 
 distributions {
