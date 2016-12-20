@@ -1,4 +1,5 @@
 import dcos.http
+import dcos.marathon
 import json
 import pytest
 import re
@@ -190,6 +191,36 @@ def test_pods_replace():
     #assert old_agent != new_agent
 
 
+@pytest.mark.sanity
+def test_lock():
+    '''This test verifies that a second scheduler fails to startup when
+    an existing scheduler is running.  Without locking, the scheduler
+    would fail during registration, but after writing its config to ZK.
+    So in order to verify that the scheduler fails immediately, we ensure
+    that the ZK config state is unmodified.'''
+
+    ZK_PATH = "dcos-service-{}/ConfigTarget".format(PACKAGE_NAME)
+
+    # Get ZK state from running framework
+    zk_config_old = shakedown.get_zk_node_data(ZK_PATH)
+
+    # Install second framework
+    options = {"service": {"name": "hello-world-lock"}, "hello": {"count": 2}}
+    install(additional_options=options, wait_for_completion=False)
+
+    # Wait for second scheduler to terminate
+    client = dcos.marathon.create_client()
+    tasks = client.get_tasks("/hello-world-lock")
+    task_id = tasks[0]["id"]
+    shakedown.wait_for_task_completion(task_id)
+
+    # Verify ZK is unchanged
+    zk_config_new = get_zk_node_data("ZK_PATH")
+    assert zk_config_old == zk_config_new
+
+    uninstall()
+
+
 def get_task_ids(prefix):
     tasks = shakedown.get_service_tasks(PACKAGE_NAME)
     prefixed_tasks = [t for t in tasks if t['name'].startswith(prefix)]
@@ -253,4 +284,3 @@ def tasks_not_updated(prefix, old_task_ids):
         )
 
     return spin(fn, success_predicate)
-

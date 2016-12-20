@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
  */
-class CuratorUtils {
+public class CuratorUtils {
     /**
      * This must never change, as it affects the serialization of the SchemaVersion node.
      *
@@ -20,14 +20,14 @@ class CuratorUtils {
 
     private static final String PATH_DELIM = "/";
 
-    static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
-    static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+    public static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
+    public static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
 
     private CuratorUtils() {
         // do not instantiate
     }
 
-    static String toServiceRootPath(String frameworkName) {
+    public static String toServiceRootPath(String frameworkName) {
         if (frameworkName.startsWith("/")) {
             // "/dcos-service-" + "/foo"
             return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName.substring(1);
@@ -37,7 +37,7 @@ class CuratorUtils {
         }
     }
 
-    static String join(final String first, final String second) {
+    public static String join(final String first, final String second) {
         if (first.endsWith(PATH_DELIM) && second.startsWith(PATH_DELIM)) {
             // "hello/" + "/world"
             return new StringBuilder(first)
