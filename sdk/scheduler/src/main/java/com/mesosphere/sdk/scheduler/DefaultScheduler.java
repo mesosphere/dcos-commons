@@ -55,10 +55,34 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
-    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
-    protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
-    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
-    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60000;
+    /**
+     * Default time to wait between destructive task recoveries (avoid quickly making things worse).
+     *
+     * Default: 10 minutes
+     */
+    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS = 10 * 60 * 1000;
+
+    /**
+     * Default time to wait before declaring a task as permanently failed.
+     *
+     * Default: 20 minutes
+     */
+    protected static final Integer PERMANENT_FAILURE_DELAY_MS = 20 * 60 * 1000;
+
+    /**
+     * Time to wait for the executor thread to terminate. Only used by unit tests.
+     *
+     * Default: 10 seconds
+     */
+    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
+
+    /**
+     * Time to wait during scheduler initialization for API resources to be initialized. This should be
+     * near-instantaneous, we just have an explicit deadline to avoid the potential for waiting indefinitely.
+     *
+     * Default: 60 seconds
+     */
+    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -69,8 +93,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final Collection<ConfigurationValidator<ServiceSpec>> configValidators;
-    protected final Optional<Integer> permanentFailureTimeoutSec;
-    protected final Integer destructiveRecoveryDelaySec;
+    protected final Optional<Integer> permanentFailureTimeoutMs;
+    protected final Integer destructiveRecoveryDelayMs;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -169,11 +193,11 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider,
             Collection<ConfigurationValidator<ServiceSpec>> configValidators) {
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
-        Integer permanentFailureTimeoutSec = PERMANENT_FAILURE_DELAY_SEC;
-        int destructiveRecoveryDelaySec = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC;
+        Integer permanentFailureTimeoutMs = PERMANENT_FAILURE_DELAY_MS;
+        int destructiveRecoveryDelayMs = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
         if (replacementFailurePolicy != null) {
-            permanentFailureTimeoutSec = replacementFailurePolicy.getPermanentFailureTimoutMs();
-            destructiveRecoveryDelaySec = replacementFailurePolicy.getMinReplaceDelayMs();
+            permanentFailureTimeoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
+            destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
         }
         return new DefaultScheduler(
                 serviceSpec,
@@ -182,8 +206,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                 configStore,
                 offerRequirementProvider,
                 configValidators,
-                Optional.of(permanentFailureTimeoutSec),
-                destructiveRecoveryDelaySec);
+                Optional.of(permanentFailureTimeoutMs),
+                destructiveRecoveryDelayMs);
     }
 
     /**
@@ -333,9 +357,9 @@ public class DefaultScheduler implements Scheduler, Observer {
      *                                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configValidators            custom validators to be used, instead of the default validators
      *                                    returned by {@link #defaultConfigValidators()}
-     * @param permanentFailureTimeoutSec  minimum duration to wait in seconds before deciding that a
+     * @param permanentFailureTimeoutMs   minimum duration to wait in milliseconds before deciding that a
      *                                    task has failed, or an empty {@link Optional} to disable this detection
-     * @param destructiveRecoveryDelaySec minimum duration to wait in seconds between destructive
+     * @param destructiveRecoveryDelayMs  minimum duration to wait in milliseconds between destructive
      *                                    recovery operations such as destroying a failed task
      */
     protected DefaultScheduler(
@@ -345,16 +369,16 @@ public class DefaultScheduler implements Scheduler, Observer {
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
             Collection<ConfigurationValidator<ServiceSpec>> configValidators,
-            Optional<Integer> permanentFailureTimeoutSec,
-            Integer destructiveRecoveryDelaySec) {
+            Optional<Integer> permanentFailureTimeoutMs,
+            Integer destructiveRecoveryDelayMs) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.offerRequirementProvider = offerRequirementProvider;
         this.configValidators = configValidators;
-        this.permanentFailureTimeoutSec = permanentFailureTimeoutSec;
-        this.destructiveRecoveryDelaySec = destructiveRecoveryDelaySec;
+        this.permanentFailureTimeoutMs = permanentFailureTimeoutMs;
+        this.destructiveRecoveryDelayMs = destructiveRecoveryDelayMs;
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -434,9 +458,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                new TimedLaunchConstrainer(Duration.ofSeconds(destructiveRecoveryDelaySec)),
-                permanentFailureTimeoutSec.isPresent()
-                        ? new TimedFailureMonitor(Duration.ofSeconds(permanentFailureTimeoutSec.get()))
+                new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs)),
+                permanentFailureTimeoutMs.isPresent()
+                        ? new TimedFailureMonitor(Duration.ofMillis(permanentFailureTimeoutMs.get()))
                         : new NeverFailureMonitor());
     }
 
