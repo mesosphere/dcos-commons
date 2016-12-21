@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,9 @@ public interface PodSpec {
 
     @JsonProperty("container")
     Optional<ContainerSpec> getContainer();
+
+    @JsonProperty("uris")
+    Collection<URI> getUris();
 
     @JsonProperty("user")
     Optional<String> getUser();

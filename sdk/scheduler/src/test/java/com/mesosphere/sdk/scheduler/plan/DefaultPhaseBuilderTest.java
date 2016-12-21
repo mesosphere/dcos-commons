@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -40,6 +41,11 @@ public class DefaultPhaseBuilderTest {
         when(step1.getName()).thenReturn("step1");
         when(step2.getName()).thenReturn("step2");
         when(step3.getName()).thenReturn("step3");
+
+        when(step0.getAsset()).thenReturn(Optional.of("step0"));
+        when(step1.getAsset()).thenReturn(Optional.of("step1"));
+        when(step2.getAsset()).thenReturn(Optional.of("step2"));
+        when(step3.getAsset()).thenReturn(Optional.of("step3"));
 
         when(step0.isPending()).thenReturn(true);
         when(step1.isPending()).thenReturn(true);

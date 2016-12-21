@@ -8,10 +8,8 @@ import java.util.Arrays;
  * This class describes port requirements that should be routed to with a named VIP (or "service address") in DC/OS.
  */
 public class NamedVIPPortRequirement extends ResourceRequirement {
-    private static final String VIP_LABEL_NAME_KEY = "vip_key";
-    private static final String VIP_LABEL_VALUE_KEY = "vip_value";
-    private String vipKey;
-    private String vipValue;
+    private final String vipKey;
+    private final String vipValue;
 
     public NamedVIPPortRequirement(Protos.Resource resource) throws NamedVIPPortException {
         super(resource);
@@ -21,11 +19,11 @@ public class NamedVIPPortRequirement extends ResourceRequirement {
     }
 
     public static String getVIPLabelKey(Protos.Resource resource) {
-        return getLabelValue(VIP_LABEL_NAME_KEY, resource);
+        return getLabelValue(MesosResource.VIP_LABEL_NAME_KEY, resource);
     }
 
     public static String getVIPLabelValue(Protos.Resource resource) {
-        return getLabelValue(VIP_LABEL_VALUE_KEY, resource);
+        return getLabelValue(MesosResource.VIP_LABEL_VALUE_KEY, resource);
     }
 
     private static String getLabelValue(String key, Protos.Resource resource) {

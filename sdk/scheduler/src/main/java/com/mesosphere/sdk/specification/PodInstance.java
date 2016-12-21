@@ -8,7 +8,7 @@ package com.mesosphere.sdk.specification;
 public interface PodInstance {
     PodSpec getPod();
 
-    Integer getIndex();
+    int getIndex();
 
     default String getName() {
         return getName(getPod(), getIndex());

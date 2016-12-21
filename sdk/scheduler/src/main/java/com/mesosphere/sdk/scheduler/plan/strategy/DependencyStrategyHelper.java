@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,16 +52,41 @@ public class DependencyStrategyHelper<C extends Element> {
     }
 
     public Collection<C> getCandidates(Collection<String> dirtyAssets) {
+        if (dependencies.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         Collection<C> candidates = dependencies.entrySet().stream()
                 .filter(entry -> !entry.getKey().getStrategy().isInterrupted())
-                .filter(entry -> !dirtyAssets.contains(entry.getKey().getName()))
                 .filter(entry -> !entry.getKey().isComplete())
                 .filter(entry -> !entry.getKey().hasErrors())
                 .filter(entry -> dependenciesFulfilled(entry.getValue()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());
 
-        return candidates;
+        if (candidates.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        if (!(candidates.stream().findFirst().get() instanceof Step)) {
+            return candidates;
+        }
+
+        List<C> filtered = new ArrayList<C>();
+        for (C candidate : candidates) {
+            Step step = (Step) candidate;
+
+            // If a Step doesn't encapsulate an Asset, it may be a candidate, otherwise
+            // it may be a candidate if it does not conflict with the already dirty assets.
+            Optional<String> asset = step.getAsset();
+            if (!asset.isPresent()) {
+                filtered.add(candidate);
+            } else if (!dirtyAssets.contains(asset.get())) {
+                filtered.add(candidate);
+            }
+        }
+
+        return filtered;
     }
 
     public Map<C, Set<C>> getDependencies() {

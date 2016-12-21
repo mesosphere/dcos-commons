@@ -38,7 +38,7 @@ public class OfferRequirement {
      */
     public static OfferRequirement create(
             String taskType,
-            Integer index,
+            int index,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional,
             Optional<PlacementRule> placementRuleOptional)
@@ -46,10 +46,21 @@ public class OfferRequirement {
         return new OfferRequirement(
                 taskType,
                 index,
-                getTaskRequirementsInternal(taskInfos),
+                getTaskRequirementsInternal(taskInfos, taskType, index),
                 executorInfoOptional.isPresent() ?
                         Optional.of(ExecutorRequirement.create(executorInfoOptional.get())) :
                         Optional.empty(),
+                placementRuleOptional);
+    }
+
+    public static OfferRequirement create(
+            String taskType,
+            int index,
+            Collection<TaskRequirement> taskRequirements,
+            ExecutorRequirement executorRequirement,
+            Optional<PlacementRule> placementRuleOptional) {
+
+        return new OfferRequirement(taskType, index, taskRequirements, Optional.of(executorRequirement),
                 placementRuleOptional);
     }
 
@@ -61,7 +72,7 @@ public class OfferRequirement {
      */
     public static OfferRequirement create(
             String taskType,
-            Integer index,
+            int index,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional)
                     throws InvalidRequirementException {
@@ -85,18 +96,6 @@ public class OfferRequirement {
     public OfferRequirement withoutPlacementRules() {
         return new OfferRequirement(type, index, taskRequirements, executorRequirementOptional, Optional.empty());
     }
-
-    public static OfferRequirement create(
-            String taskType,
-            Integer index,
-            Collection<TaskRequirement> taskRequirements,
-            ExecutorRequirement executorRequirement,
-            Optional<PlacementRule> placementRuleOptional) {
-
-        return new OfferRequirement(taskType, index, taskRequirements, Optional.of(executorRequirement),
-                placementRuleOptional);
-    }
-
 
     private OfferRequirement(
             String type,
@@ -160,10 +159,13 @@ public class OfferRequirement {
     }
 
     private static Collection<TaskRequirement> getTaskRequirementsInternal(
-            Collection<TaskInfo> taskInfos) throws InvalidRequirementException {
+            Collection<TaskInfo> taskInfos, String type, int index) throws InvalidRequirementException {
         Collection<TaskRequirement> taskRequirements = new ArrayList<TaskRequirement>();
         for (TaskInfo taskInfo : taskInfos) {
-            taskRequirements.add(new TaskRequirement(taskInfo));
+            TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
+            taskBuilder = CommonTaskUtils.setType(taskBuilder, type);
+            taskBuilder = CommonTaskUtils.setIndex(taskBuilder, index);
+            taskRequirements.add(new TaskRequirement(taskBuilder.build()));
         }
         return taskRequirements;
     }

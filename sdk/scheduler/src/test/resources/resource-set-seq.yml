@@ -1,0 +1,50 @@
+name: "test"
+principal: "test-principal"
+zookeeper: master.mesos:2181
+api-port: 8080
+pods:
+  name:
+    count: 2
+    resource-sets:
+      name-resources:
+        cpus: 1.0
+      sidecar-resources:
+        cpus: 2.0
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: "echo node >> name-data/output && sleep $SLEEP_DURATION"
+        resource-set: name-resources
+        env:
+          SLEEP_DURATION: "100"
+      format:
+        goal: FINISHED
+        cmd: "echo format >> name-data/output"
+        resource-set: name-resources
+        env:
+          SLEEP_DURATION: "100"
+      bootstrap:
+        goal: FINISHED
+        cmd: "echo bootstrap >> name-data/output"
+        resource-set: name-resources
+        env:
+          SLEEP_DURATION: "100"
+      backup:
+        goal: FINISHED
+        cmd: "echo >> name-data/output"
+        resource-set: sidecar-resources
+        env:
+          SLEEP_DURATION: "100"
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      nn-deploy:
+        strategy: serial
+        pod: name
+        steps:
+          - podInstance: 0
+            tasks: [format]
+          - podInstance: 0
+            tasks: [node]

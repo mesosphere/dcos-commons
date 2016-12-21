@@ -1,12 +1,14 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +17,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -36,7 +37,7 @@ public class DefaultStepTest {
         when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
         when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
         when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
-        when(taskSpec.getGoal()).thenReturn(TaskSpec.GoalState.RUNNING);
+        when(taskSpec.getGoal()).thenReturn(GoalState.RUNNING);
         when(podInstance.getPod()).thenReturn(podSpec);
         when(podInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
     }
@@ -45,9 +46,9 @@ public class DefaultStepTest {
     public void testCompleteTerminal() {
         DefaultStep step = new DefaultStep(
                 TEST_STEP_NAME,
-                Optional.of(mockOfferRequirement),
                 Status.PENDING,
                 podInstance,
+                TaskUtils.getTaskNames(podInstance),
                 Collections.emptyList());
 
         Assert.assertTrue(step.isPending());
@@ -64,7 +65,7 @@ public class DefaultStepTest {
                 .build();
         step.updateOfferStatus(Arrays.asList(operation));
 
-        Assert.assertTrue(step.isInProgress());
+        Assert.assertTrue(step.isStarting());
 
         step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)

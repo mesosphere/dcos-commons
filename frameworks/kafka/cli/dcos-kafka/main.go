@@ -14,7 +14,11 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	cli.HandleCommonArgs(app, "hello-world", "Example DC/OS CLI Module", []string{"foo", "bar"})
+	cli.HandleCommonFlags(app, "kafka", "Kafka CLI")
+	cli.HandleConfigSection(app)
+	cli.HandleEndpointsSection(app)
+	cli.HandlePlanSection(app)
+	cli.HandleStateSection(app)
 	handleExampleSection(app)
 
 	// Omit modname:

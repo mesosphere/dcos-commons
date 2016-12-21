@@ -1,18 +1,17 @@
 package com.mesosphere.sdk.curator;
 
-import com.mesosphere.sdk.state.*;
-import org.apache.curator.RetryPolicy;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.mesos.Protos;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.mesos.Protos;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.*;
@@ -208,6 +207,15 @@ public class CuratorStateStore implements StateStore {
                             + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
                     status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
                     status, optionalTaskInfo));
+        }
+
+        Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
+
+        if (currentStatusOptional.isPresent()
+                && status.getState().equals(Protos.TaskState.TASK_LOST)
+                && CommonTaskUtils.isTerminal(currentStatusOptional.get())) {
+            logger.info("Ignoring TASK_LOST for Task already in a terminal state: {}", taskName);
+            return;
         }
 
         String path = taskPathMapper.getTaskStatusPath(taskName);

@@ -304,6 +304,15 @@ public class TaskUtilsTest {
         Assert.assertTrue(renderedYaml.contains("api-port: 8080"));
     }
 
+    @Test
+    public void testTaskLostNeedsRecovery() {
+        Protos.TaskStatus taskStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setState(Protos.TaskState.TASK_LOST)
+                .build();
+        Assert.assertTrue(CommonTaskUtils.needsRecovery(taskStatus));
+    }
+
     private static Protos.TaskID getTaskId(String value) {
         return Protos.TaskID.newBuilder().setValue(value).build();
     }
