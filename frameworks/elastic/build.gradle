@@ -32,7 +32,7 @@ buildDir = new File(rootProject.projectDir, "build/")
 
 distributions {
     main {
-        baseName = 'scheduler'
+        baseName = 'elastic-scheduler'
         version = ''
     }
 }

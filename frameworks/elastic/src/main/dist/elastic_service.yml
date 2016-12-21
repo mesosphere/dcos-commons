@@ -33,7 +33,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
         configurations:
-          - template: "scheduler/kibana.yml"
+          - template: "elastic-scheduler/kibana.yml"
             dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
         health-checks:
           check-up:
@@ -60,7 +60,7 @@ pods:
           - path: "container-path"
             type: {{MASTER_NODE_DISK_TYPE}}
             size: {{MASTER_NODE_DISK}}
-        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{MASTER_NODE_HTTP_PORT}}
@@ -78,7 +78,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "scheduler/elasticsearch.yml"
+          - template: "elastic-scheduler/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
@@ -105,7 +105,7 @@ pods:
           - path: "container-path"
             type: {{DATA_NODE_DISK_TYPE}}
             size: {{DATA_NODE_DISK}}
-        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{DATA_NODE_HTTP_PORT}}
@@ -123,7 +123,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "scheduler/elasticsearch.yml"
+          - template: "elastic-scheduler/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
@@ -150,7 +150,7 @@ pods:
           - path: "container-path"
             type: {{INGEST_NODE_DISK_TYPE}}
             size: {{INGEST_NODE_DISK}}
-        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{INGEST_NODE_HTTP_PORT}}
@@ -168,7 +168,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "scheduler/elasticsearch.yml"
+          - template: "elastic-scheduler/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
@@ -195,7 +195,7 @@ pods:
           - path: "container-path"
             type: {{COORDINATOR_NODE_DISK_TYPE}}
             size: {{COORDINATOR_NODE_DISK}}
-        cmd: "env && ./scheduler/install_plugins.sh && ./scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
@@ -213,7 +213,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "scheduler/elasticsearch.yml"
+          - template: "elastic-scheduler/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:

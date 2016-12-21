@@ -10,7 +10,7 @@ ROOT_DIR=$FRAMEWORK_DIR/../..
 BUILD_DIR=$ROOT_DIR/build/distributions
 PUBLISH_STEP=${1-none}
 ${ROOT_DIR}/gradlew distZip -p ${ROOT_DIR}/sdk/executor
-./build_framework.sh $PUBLISH_STEP elastic $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/scheduler.zip
+./build_framework.sh $PUBLISH_STEP elastic $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/elastic-scheduler.zip
 
 
 # capture anonymous metrics for reporting
