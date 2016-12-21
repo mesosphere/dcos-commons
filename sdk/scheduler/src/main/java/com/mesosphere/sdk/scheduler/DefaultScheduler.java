@@ -439,11 +439,9 @@ public class DefaultScheduler implements Scheduler, Observer {
         Plan deployPlan;
         if (!deploy.isPresent()) {
             LOGGER.info("No deploy plan provided. Generating one");
-             deployPlan = new DefaultPlanFactory(new DefaultPhaseFactory(new DefaultStepFactory(
-                    configStore,
-                    stateStore,
-                    offerRequirementProvider)))
-                    .getPlan(serviceSpec);
+             deployPlan = new DefaultPlanFactory(
+                     new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore)))
+                     .getPlan(serviceSpec);
         } else {
             deployPlan = deploy.get();
         }
@@ -478,18 +476,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         resourcesQueue.add(resources);
     }
 
-    private void logOffers(List<Protos.Offer> offers) {
-        if (offers == null) {
-            return;
-        }
-
-        LOGGER.info(String.format("Received %d offers:", offers.size()));
-        for (int i = 0; i < offers.size(); ++i) {
-            // Offer protobuffers are very long. print each as a single line:
-            LOGGER.info(String.format("- Offer %d: %s", i + 1, TextFormat.shortDebugString(offers.get(i))));
-        }
-    }
-
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
         final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
         unusedOffers.stream().forEach(offer -> {
@@ -510,13 +496,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     @SuppressWarnings({"DM_EXIT"})
-    private void hardExit(SchedulerErrorCode errorCode) {
+    private static void hardExit(SchedulerErrorCode errorCode) {
         System.exit(errorCode.ordinal());
     }
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        LOGGER.info("Registered framework with frameworkId: " + frameworkId.getValue());
+        LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
         try {
             initialize(driver);
         } catch (InterruptedException e) {
@@ -542,16 +528,16 @@ public class DefaultScheduler implements Scheduler, Observer {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.error("Re-registration implies we were unregistered.");
         hardExit(SchedulerErrorCode.RE_REGISTRATION);
-        reconciler.start();
-        reconciler.reconcile(driver);
-        suppressOrRevive();
     }
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
         List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
         executor.execute(() -> {
-            logOffers(offers);
+            LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
+            for (int i = 0; i < offers.size(); ++i) {
+                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+            }
 
             // Task Reconciliation:
             // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
@@ -559,7 +545,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress.");
+                LOGGER.info("Reconciliation is still in progress, declining all offers.");
                 declineOffers(driver, Collections.emptyList(), offers);
                 return;
             }
@@ -605,11 +591,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         executor.execute(new Runnable() {
             @Override
             public void run() {
-                LOGGER.info(String.format(
-                        "Received status update for taskId=%s state=%s message='%s'",
+                LOGGER.info("Received status update for taskId={} state={} message='{}'",
                         status.getTaskId().getValue(),
                         status.getState().toString(),
-                        status.getMessage()));
+                        status.getMessage());
 
                 // Store status, then pass status to PlanManager => Plan => Steps
                 try {
@@ -647,13 +632,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Agent lost: " + agentId);
+        LOGGER.warn("Agent lost: {}", agentId);
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        LOGGER.warn(String.format("Lost Executor: %s on Agent: %s", executorId, slaveId));
+        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId, slaveId);
     }
 
     @Override

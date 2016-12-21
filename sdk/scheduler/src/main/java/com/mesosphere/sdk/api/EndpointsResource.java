@@ -38,12 +38,11 @@ public class EndpointsResource {
     private static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
     private final StateStore stateStore;
-    // We intentionally grab this value during initialization to ensure that we fail fast.
     private final String serviceName;
     private final Map<String, EndpointProducer> customEndpoints = new HashMap<>();
 
     /**
-     * Creates a new instance which retrieves task/pod state from the provided {@code stateStore},
+     * Creates a new instance which retrieves task/pod state from the provided {@link StateStore},
      * using the provided {@code serviceName} for endpoint paths.
      */
     public EndpointsResource(StateStore stateStore, String serviceName) {
@@ -65,12 +64,12 @@ public class EndpointsResource {
      *
      * @param name the name of the custom endpoint. custom endpoints take precedence over default
      *     endpoints of the same name
-     * @param valueProducer the endpoint producer, which will be invoked whenever a user queries the
+     * @param endpointProducer the endpoint producer, which will be invoked whenever a user queries the
      *     list of endpoints
      * @returns this
      */
-    public EndpointsResource setCustomEndpoint(String name, EndpointProducer valueProducer) {
-        this.customEndpoints.put(name, valueProducer);
+    public EndpointsResource setCustomEndpoint(String name, EndpointProducer endpointProducer) {
+        this.customEndpoints.put(name, endpointProducer);
         return this;
     }
 
@@ -138,7 +137,7 @@ public class EndpointsResource {
 
     /**
      * Returns whether the provided {@code format} argument indicates that native hosts (instead of
-     * Mesos-DNS hosts) should be produced
+     * Mesos-DNS hosts) should be produced.
      *
      * @param format the value of the 'format' option, or a {@code null}/empty string if none was provided
      */

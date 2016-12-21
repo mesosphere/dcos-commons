@@ -223,7 +223,7 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeStatus(status);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(step.getName()).thenReturn("different-name");
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn((Collection) Arrays.asList(step));
+        when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn((Collection) Arrays.asList(step));
 
         recoveryManager.update(status);
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, offers);
@@ -241,7 +241,7 @@ public class DefaultRecoveryPlanManagerTest {
         launchConstrainer.setCanLaunch(false);
         stateStore.storeTasks(infos);
         stateStore.storeStatus(status);
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
+        when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
         planCoordinator.processOffers(schedulerDriver, getOffers());
@@ -308,7 +308,7 @@ public class DefaultRecoveryPlanManagerTest {
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(TASK_INFOS);
         stateStore.storeStatus(status);
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
+        when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
         final Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, insufficientOffers);
@@ -343,7 +343,7 @@ public class DefaultRecoveryPlanManagerTest {
         stateStore.storeTasks(infos);
         stateStore.storeStatus(status);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
-        when(mockDeployManager.getCandidates(Arrays.asList())).thenReturn(Collections.emptyList());
+        when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());

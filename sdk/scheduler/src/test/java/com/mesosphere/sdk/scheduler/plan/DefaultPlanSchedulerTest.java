@@ -27,11 +27,6 @@ import static org.mockito.Mockito.*;
  */
 public class DefaultPlanSchedulerTest {
 
-    private static final List<TaskInfo> TASKINFOS = Arrays.asList(TaskInfo.newBuilder()
-            .setName("hi")
-            .setTaskId(CommonTaskUtils.toTaskId("hi"))
-            .setSlaveId(SlaveID.newBuilder().setValue("slaveid").build())
-            .build());
     private static final List<Offer> OFFERS = Arrays.asList(Offer.newBuilder()
             .setId(OfferID.newBuilder().setValue("offerid").build())
             .setFrameworkId(FrameworkID.newBuilder().setValue("frameworkid").build())

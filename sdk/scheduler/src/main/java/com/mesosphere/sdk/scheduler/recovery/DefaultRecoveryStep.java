@@ -5,19 +5,21 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
- * {@code DefaultRecoveryStep} is an extension of {@link DefaultStep} meant for use with
- * {@link DefaultRecoveryPlanManager}.
+ * An extension of {@link DefaultStep} meant for use with {@link DefaultRecoveryPlanManager}.
  */
-@edu.umd.cs.findbugs.annotations.SuppressFBWarnings("EQ_DOESNT_OVERRIDE_EQUALS")
 public class DefaultRecoveryStep extends DefaultStep {
-    private LaunchConstrainer launchConstrainer;
-    private RecoveryType recoveryType;
+
+    private final LaunchConstrainer launchConstrainer;
+    private final RecoveryType recoveryType;
 
     public DefaultRecoveryStep(
             String name,
@@ -26,8 +28,7 @@ public class DefaultRecoveryStep extends DefaultStep {
             Collection<String> tasksToLaunch,
             RecoveryType recoveryType,
             LaunchConstrainer launchConstrainer) {
-        super(
-                name,
+        super(name,
                 status,
                 podInstance,
                 tasksToLaunch,
@@ -51,5 +52,20 @@ public class DefaultRecoveryStep extends DefaultStep {
     @Override
     public String getMessage() {
         return super.getMessage() + " RecoveryType: " + recoveryType.name();
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
     }
 }
