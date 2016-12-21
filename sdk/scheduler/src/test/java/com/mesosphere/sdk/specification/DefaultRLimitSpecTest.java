@@ -13,7 +13,7 @@ import java.util.Set;
 public class DefaultRLimitSpecTest {
     @Test
     public void testCreateValidDefaultRLimitSpec() throws RLimit.InvalidRLimitException {
-        DefaultRLimitSpec rlimits = new DefaultRLimitSpec(Arrays.asList(new RLimit("RLMT_AS", (long) 0, (long) 1)));
+        DefaultRLimitSpec rlimits = new DefaultRLimitSpec(Arrays.asList(new RLimit("RLIMIT_AS", (long) 0, (long) 1)));
         Assert.assertEquals(rlimits.getRLimits().size(), 1);
     }
 

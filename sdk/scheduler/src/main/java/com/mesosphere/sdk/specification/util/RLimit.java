@@ -1,13 +1,12 @@
 package com.mesosphere.sdk.specification.util;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Representation of an individual rlimit, consisting of a name and optional soft/hard limits.
@@ -16,11 +15,11 @@ import java.util.Set;
  * must be less than or equal to the hard limit.
  */
 public class RLimit {
-    private static final Set<String> RLIMITS = new HashSet<>();
+    private static final Map<String, Protos.RLimitInfo.RLimit.Type> RLIMITS = new HashMap<>();
 
     static {
         for (Protos.RLimitInfo.RLimit.Type rLimitType : Protos.RLimitInfo.RLimit.Type.values()) {
-            RLIMITS.add(rLimitType.toString());
+            RLIMITS.put(rLimitType.toString().replace("RLMT", "RLIMIT"), rLimitType);
         }
     }
 
@@ -51,9 +50,15 @@ public class RLimit {
         return Optional.ofNullable(hard);
     }
 
+    @JsonIgnore
+    public Protos.RLimitInfo.RLimit.Type getEnum() {
+        return RLIMITS.get(name);
+    }
+
     private void validate() throws InvalidRLimitException {
-        if (!RLIMITS.contains(name)) {
-            throw new InvalidRLimitException(name + " is not a valid rlimit of " + RLIMITS.toString());
+        if (!RLIMITS.containsKey(name)) {
+            throw new InvalidRLimitException(
+                    name + " is not a valid rlimit, expected one of: " + RLIMITS.toString() + ". See man setrlimit(2)");
         }
 
         if (!(soft == null && hard == null) && !(soft != null && hard != null)) {

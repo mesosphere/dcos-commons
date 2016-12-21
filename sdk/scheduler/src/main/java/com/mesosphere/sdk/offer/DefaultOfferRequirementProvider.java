@@ -26,13 +26,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
 
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
-    private static final Map<String, Protos.RLimitInfo.RLimit.Type> RLIMIT_TYPE_MAP = new HashMap<>();
-
-    static {
-        for (Protos.RLimitInfo.RLimit.Type t : Protos.RLimitInfo.RLimit.Type.values()) {
-            RLIMIT_TYPE_MAP.put(t.toString(), t);
-        }
-    }
 
     private final StateStore stateStore;
     private final UUID targetConfigurationId;
@@ -380,7 +373,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             Optional<Long> soft = rLimit.getSoft();
             Optional<Long> hard = rLimit.getHard();
             Protos.RLimitInfo.RLimit.Builder rLimitsBuilder = Protos.RLimitInfo.RLimit.newBuilder()
-                    .setType(RLIMIT_TYPE_MAP.get(rLimit.getName()));
+                    .setType(rLimit.getEnum());
 
             if (soft.isPresent() && hard.isPresent()) {
                 rLimitsBuilder.setSoft(soft.get()).setHard(hard.get());

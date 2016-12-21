@@ -11,7 +11,7 @@ pods:
     count: 2
     container:
       rlimits:
-        RLMT_AS:
+        RLIMIT_AS:
           soft: 5
           hard: 10
     resource-sets:

@@ -7,7 +7,7 @@ pods:
     count: 2
     container:
       rlimits:
-        RLMT_NONSENSE:
+        RLIMIT_NONSENSE:
           soft: 5
           hard: 10
     tasks:
