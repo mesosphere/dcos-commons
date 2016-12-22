@@ -13,8 +13,8 @@ import java.util.Collection;
 public class TaskRequirement {
     private final TaskInfo taskInfo;
     private final Collection<ResourceRequirement> resourceRequirements;
-    private Collection<DynamicPortRequirement> dynamicPortRequirements;
-    private Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
+    private final Collection<DynamicPortRequirement> dynamicPortRequirements;
+    private final Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
         validateTaskInfo(unverifiedTaskInfo);

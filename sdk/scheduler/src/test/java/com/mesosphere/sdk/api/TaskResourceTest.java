@@ -60,15 +60,11 @@ public class TaskResourceTest {
     @Test
     public void testGetTaskInfo() {
         String taskName = "task1";
-        TaskInfo taskInfo = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName).build();
         when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.getTaskInfo(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(new JsonFormat().printToString(taskInfo), (String) response.getEntity());
+        assertEquals(new JsonFormat().printToString(taskInfo), response.getEntity());
     }
 
     @Test
@@ -90,7 +86,7 @@ public class TaskResourceTest {
         when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.of(taskStatus));
         Response response = resource.getTaskStatus(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(new JsonFormat().printToString(taskStatus), (String) response.getEntity());
+        assertEquals(new JsonFormat().printToString(taskStatus), response.getEntity());
     }
 
     @Test
@@ -148,10 +144,7 @@ public class TaskResourceTest {
         ranges.add(range2);
         Resource rangeResource = ResourceUtils.getUnreservedRanges("ports", ranges);
 
-        TaskInfo taskInfo = TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName)
                 .addResources(rangeResource)
                 .build();
 
@@ -173,5 +166,11 @@ public class TaskResourceTest {
         Response response = resource.getConnection(taskName);
         assertEquals(404, response.getStatus());
     }
-}
 
+    private static TaskInfo.Builder getTaskInfoBuilder(String taskName) {
+        return TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setSlaveId(SlaveID.newBuilder().setValue("ignored")); // proto field required
+    }
+}

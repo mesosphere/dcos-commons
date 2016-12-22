@@ -3,8 +3,6 @@ package com.mesosphere.sdk.specification;
 import org.apache.curator.test.TestingServer;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -35,7 +33,6 @@ public class DefaultPlanGeneratorTest {
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
-    private OfferRequirementProvider offerRequirementProvider;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -64,13 +61,10 @@ public class DefaultPlanGeneratorTest {
                 serviceSpec,
                 testingServer.getConnectString(),
                 Collections.emptyList());
-        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configStore);
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
 
         Assert.assertNotNull(serviceSpec);
 
-        DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore, offerRequirementProvider);
+        DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore);
         for (RawPlan rawPlan : rawServiceSpecification.getPlans().values()) {
             Plan plan = generator.generate(rawPlan, serviceSpec.getPods());
             Assert.assertNotNull(plan);

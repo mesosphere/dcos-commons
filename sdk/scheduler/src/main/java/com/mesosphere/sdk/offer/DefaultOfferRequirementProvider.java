@@ -22,7 +22,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final String JAVA_URI = "JAVA_URI";
     private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
 
-    private static final String JAVA_HOME = "JAVA_HOME";
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
 
     private final TaskConfigRouter taskConfigRouter;
@@ -438,8 +437,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .addUris(executorURI)
                 .addUris(libmesosURI);
 
+        // Reuse scheduler's JAVA_URI for executors when available:
         String javaUri = System.getenv(JAVA_URI);
-        javaUri = javaUri == null ? DEFAULT_JAVA_URI : javaUri;
+        if (javaUri == null) {
+            javaUri = DEFAULT_JAVA_URI;
+        }
         commandInfoBuilder.addUris(TaskUtils.uri(javaUri));
 
         if (podSpec.getUser().isPresent()) {

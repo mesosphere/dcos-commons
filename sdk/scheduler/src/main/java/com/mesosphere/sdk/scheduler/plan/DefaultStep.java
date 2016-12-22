@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -33,6 +34,10 @@ public class DefaultStep extends DefaultObservable implements Step {
     private Status status;
     private Map<String, Status> tasks = new HashMap<>();
 
+    /**
+     * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
+     * by the step, and any {@code errors} to be displayed to the user.
+     */
     public DefaultStep(
             String name,
             Status status,
@@ -67,7 +72,7 @@ public class DefaultStep extends DefaultObservable implements Step {
             }
         }
 
-        logger.info("Step is now waiting for updates for task IDs: {}", tasks);
+        logger.info("Step '{} [{}]' is now waiting for updates for task IDs: {}", getName(), getId(), tasks);
     }
 
     @Override
@@ -77,7 +82,11 @@ public class DefaultStep extends DefaultObservable implements Step {
 
     @Override
     public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
-        logger.info("Updated with operations: {}", operations);
+        // log a bulleted list of operations, with each operation on one line:
+        logger.info("Updated step '{} [{}]' with {} operations:", getName(), getId(), operations.size());
+        for (Protos.Offer.Operation operation : operations) {
+            logger.info("  {}", TextFormat.shortDebugString(operation));
+        }
         setTaskIds(operations);
 
         if (operations.isEmpty()) {
@@ -151,15 +160,17 @@ public class DefaultStep extends DefaultObservable implements Step {
      */
     @Override
     public synchronized void update(Protos.TaskStatus status) {
-        logger.info("{} received status: {}", getName(), status);
+        logger.info("Step {} received status: {}", getName(), TextFormat.shortDebugString(status));
 
         if (!tasks.containsKey(status.getTaskId().getValue())) {
-            logger.debug(getName() + " ignoring irrelevant TaskStatus: " + status);
+            logger.debug("Step {} ignoring irrelevant TaskStatus: {}",
+                    getName(), TextFormat.shortDebugString(status));
             return;
         }
 
         if (isComplete()) {
-            logger.debug(getName() + " ignoring due to being Complete, TaskStatus: " + status);
+            logger.debug("Step {} ignoring TaskStatus due to being Complete: {}",
+                    getName(), TextFormat.shortDebugString(status));
             return;
         }
 
@@ -169,7 +180,7 @@ public class DefaultStep extends DefaultObservable implements Step {
                     podInstanceRequirement.getPodInstance(),
                     CommonTaskUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
-            logger.error("Failed to update status.", e);
+            logger.error(String.format("Failed to update status for step %s", getName()), e);
             setStatus(getStatus()); // Log status
             return;
         }
@@ -231,18 +242,6 @@ public class DefaultStep extends DefaultObservable implements Step {
         }
 
         return Status.COMPLETE;
-    }
-
-    private static Map<Protos.TaskID, Status> toTaskStatuses(Collection<Protos.Offer.Operation> operations) {
-        Map<Protos.TaskID, Status> tasks = new HashMap<>();
-        for (Protos.Offer.Operation operation : operations) {
-            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
-                    tasks.put(taskInfo.getTaskId(), Status.STARTING);
-                }
-            }
-        }
-        return tasks;
     }
 
     @Override
