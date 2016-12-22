@@ -170,9 +170,11 @@ def request(request_fn, *args, **kwargs):
 
     return spin(request_fn, success_predicate, *args, **kwargs)
 
-
 def run_dcos_cli_cmd(cmd):
-    print('Running {}'.format(cmd))
-    stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
-    print(stdout)
+    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd)
+    if ret != 0:
+        err = "Got error code {} when running command 'dcos {}':\nstdout: {}\nstderr: {}".format(
+            ret, cmd, stdout, stderr)
+        print(err)
+        raise Exception(err)
     return stdout

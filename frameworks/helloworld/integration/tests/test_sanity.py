@@ -74,7 +74,7 @@ def test_bump_hello_nodes():
 
 @pytest.mark.sanity
 def test_pods_list():
-    stdout = run_dcos_cli_cmd('dcos hello-world pods list')
+    stdout = run_dcos_cli_cmd('hello-world pods list')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == DEFAULT_TASK_COUNT
     for i in range(len(jsonobj)):
@@ -83,7 +83,7 @@ def test_pods_list():
 
 @pytest.mark.sanity
 def test_pods_status_all():
-    stdout = run_dcos_cli_cmd('dcos hello-world pods status')
+    stdout = run_dcos_cli_cmd('hello-world pods status')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == DEFAULT_TASK_COUNT
     for k,v in jsonobj.items():
@@ -98,7 +98,7 @@ def test_pods_status_all():
 
 @pytest.mark.sanity
 def test_pods_status_one():
-    stdout = run_dcos_cli_cmd('dcos hello-world pods status hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods status hello-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]
@@ -110,7 +110,7 @@ def test_pods_status_one():
 
 @pytest.mark.sanity
 def test_pods_info():
-    stdout = run_dcos_cli_cmd('dcos hello-world pods info hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]
@@ -125,10 +125,10 @@ def test_pods_restart():
     hello_ids = get_task_ids('hello')
 
     # get current agent id:
-    stdout = run_dcos_cli_cmd('dcos hello-world pods info hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
     old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
-    stdout = run_dcos_cli_cmd('dcos hello-world pods restart hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods restart hello-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
@@ -139,7 +139,7 @@ def test_pods_restart():
     assert check_health(DEFAULT_TASK_COUNT)
 
     # check agent didn't move:
-    stdout = run_dcos_cli_cmd('dcos hello-world pods info hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     assert old_agent == new_agent
 
@@ -149,10 +149,10 @@ def test_pods_replace():
     hello_ids = get_task_ids('hello')
 
     # get current agent id:
-    stdout = run_dcos_cli_cmd('dcos hello-world pods info hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
     old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
-    jsonobj = json.loads(run_dcos_cli_cmd('dcos hello-world pods replace hello-0'))
+    jsonobj = json.loads(run_dcos_cli_cmd('hello-world pods replace hello-0'))
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
@@ -162,7 +162,7 @@ def test_pods_replace():
     assert check_health(DEFAULT_TASK_COUNT)
 
     # check agent moved:
-    stdout = run_dcos_cli_cmd('dcos hello-world pods info hello-0')
+    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
     #assert old_agent != new_agent
