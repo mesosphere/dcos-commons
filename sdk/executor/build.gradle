@@ -23,6 +23,12 @@ dependencies {
 apply plugin: 'java'
 apply plugin: 'application'
 
+test {
+    filter {
+        // without this, Gradle runs tests from elastic module for some reason.
+        includeTestsMatching "com.mesosphere.sdk.executor.*"
+    }
+}
 
 buildDir = new File(rootProject.projectDir, "build/")
 
