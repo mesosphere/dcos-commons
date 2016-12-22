@@ -6,34 +6,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Raw YAML volume.
  */
 public class RawVolume {
-    String path;
-    String type;
-    int size;
+
+    private final String path;
+    private final String type;
+    private final int size;
+
+    private RawVolume(
+            @JsonProperty("path") String path,
+            @JsonProperty("type") String type,
+            @JsonProperty("size") int size) {
+        this.path = path;
+        this.type = type;
+        this.size = size;
+    }
 
     public String getPath() {
         return path;
-    }
-
-    @JsonProperty("path")
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public String getType() {
         return type;
     }
 
-    @JsonProperty("type")
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public int getSize() {
         return size;
-    }
-
-    @JsonProperty("size")
-    public void setSize(int size) {
-        this.size = size;
     }
 }

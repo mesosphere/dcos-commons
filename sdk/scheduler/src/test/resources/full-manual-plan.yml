@@ -82,11 +82,11 @@ plans:
         strategy: serial
         pod: hello
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [once, server]
       world-deploy:
         strategy: serial
         pod: world
         steps:
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [server]

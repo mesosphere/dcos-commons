@@ -166,23 +166,23 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [format]
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [node]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [bootstrap]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [node]
       zkfc-deploy:
         strategy: serial
         pod: zkfc
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [format]
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [node]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [node]
       dn-deploy:
         strategy: {{DATA_STRATEGY}}

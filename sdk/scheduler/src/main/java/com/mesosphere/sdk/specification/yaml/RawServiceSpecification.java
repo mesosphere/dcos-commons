@@ -8,75 +8,58 @@ import java.util.LinkedHashMap;
  * Root of the parsed YAML object model.
  */
 public class RawServiceSpecification {
-    private String name;
-    private String principal;
-    private Integer apiPort;
-    private String zookeeper;
-    private WriteOnceLinkedHashMap<String, RawPod> pods;
-    private WriteOnceLinkedHashMap<String, RawPlan> plans;
-    private RawReplacementFailurePolicy replacementFailurePolicy;
+
+    private final String name;
+    private final String principal;
+    private final Integer apiPort;
+    private final String zookeeper;
+    private final WriteOnceLinkedHashMap<String, RawPod> pods;
+    private final WriteOnceLinkedHashMap<String, RawPlan> plans;
+    private final RawReplacementFailurePolicy replacementFailurePolicy;
+
+    private RawServiceSpecification(
+            @JsonProperty("name") String name,
+            @JsonProperty("principal") String principal,
+            @JsonProperty("api-port") Integer apiPort,
+            @JsonProperty("zookeeper") String zookeeper,
+            @JsonProperty("pods") WriteOnceLinkedHashMap<String, RawPod> pods,
+            @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans,
+            @JsonProperty("replacement-failure-policy") RawReplacementFailurePolicy replacementFailurePolicy) {
+        this.name = name;
+        this.principal = principal;
+        this.apiPort = apiPort;
+        this.zookeeper = zookeeper;
+        this.pods = pods;
+        this.plans = plans;
+        this.replacementFailurePolicy = replacementFailurePolicy;
+    }
 
     public String getName() {
         return name;
-    }
-
-    @JsonProperty("name")
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getPrincipal() {
         return principal;
     }
 
-    @JsonProperty("principal")
-    public void setPrincipal(String principal) {
-        this.principal = principal;
-    }
-
     public Integer getApiPort() {
         return apiPort;
-    }
-
-    @JsonProperty("api-port")
-    public void setApiPort(Integer apiPort) {
-        this.apiPort = apiPort;
     }
 
     public String getZookeeper() {
         return zookeeper;
     }
 
-    @JsonProperty("zookeeper")
-    public void setZookeeper(String zookeeper) {
-        this.zookeeper = zookeeper;
-    }
-
     public LinkedHashMap<String, RawPod> getPods() {
         return pods;
-    }
-
-    @JsonProperty("pods")
-    public void setPods(WriteOnceLinkedHashMap<String, RawPod> pods) {
-        this.pods = pods;
     }
 
     public WriteOnceLinkedHashMap<String, RawPlan> getPlans() {
         return plans;
     }
 
-    @JsonProperty("plans")
-    public void setPlans(WriteOnceLinkedHashMap<String, RawPlan> plans) {
-        this.plans = plans;
-    }
-
     public RawReplacementFailurePolicy getReplacementFailurePolicy() {
         return replacementFailurePolicy;
-    }
-
-    @JsonProperty("replacement-failure-policy")
-    public void setReplacementFailurePolicy(RawReplacementFailurePolicy replacementFailurePolicy) {
-        this.replacementFailurePolicy = replacementFailurePolicy;
     }
 }
 

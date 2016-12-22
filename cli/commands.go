@@ -44,7 +44,8 @@ func NewApp(version string, author string, longDescription string) (*kingpin.App
 
 // Add all of the below arguments and commands
 
-// TODO remove this entirely in favor of callers just adding sections granularly
+// TODO remove this deprecated function on or after Feb 1 2017.
+// No longer invoked in any repo's 'master' branch as of Dec 22 2016.
 func HandleCommonArgs(
 	app *kingpin.Application,
 	defaultServiceName string,
@@ -52,8 +53,8 @@ func HandleCommonArgs(
 	connectionTypes []string) {
 	HandleCommonFlags(app, defaultServiceName, shortDescription)
 	HandleConfigSection(app)
-	HandleConnectionSection(app, connectionTypes) // TODO not in commons, remove
-	HandleEndpointsSection(app)
+	HandleConnectionSection(app, connectionTypes)
+	//HandleEndpointsSection(app) omitted since callers likely don't have this
 	HandlePlanSection(app)
 	HandlePodsSection(app)
 	HandleStateSection(app) // TODO deprecated, remove
@@ -147,6 +148,7 @@ func (cmd *ConnectionHandler) RunConnection(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// TODO remove this command once callers have migrated to HandleEndpointsSection().
 func HandleConnectionSection(app *kingpin.Application, connectionTypes []string) {
 	// connection [type]
 	cmd := &ConnectionHandler{}

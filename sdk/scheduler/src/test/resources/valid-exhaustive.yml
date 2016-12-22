@@ -80,13 +80,13 @@ plans:
         strategy: serial
         pod: nn
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [format]
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [server]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [format]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [server]
       dn-deploy:
         strategy: serial
