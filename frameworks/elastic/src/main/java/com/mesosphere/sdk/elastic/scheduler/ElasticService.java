@@ -40,7 +40,6 @@ public class ElasticService {
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
     private ConfigStore<ServiceSpec> configTargetStore;
-    private OfferRequirementProvider offerRequirementProvider;
     private File pathToYamlSpecification;
     private List<ConfigurationValidator<ServiceSpec>> validators;
 
@@ -75,7 +74,7 @@ public class ElasticService {
         ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(serviceSpec, stateStore,
                 configTargetStore);
 
-        this.offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore,
+        OfferRequirementProvider offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore,
                 configUpdateResult.targetId);
         Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
         this.validators = new ArrayList<>(DefaultScheduler.defaultConfigValidators());
@@ -131,8 +130,7 @@ public class ElasticService {
 
     private Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
             throws Exception {
-        DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore,
-                offerRequirementProvider);
+        DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore);
         List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
             plans.addAll(YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification).stream()
