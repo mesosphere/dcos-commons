@@ -6,24 +6,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Raw YAML replacement failure policy.
  */
 public class RawReplacementFailurePolicy {
-    private Integer permanentFailureTimoutMs;
-    private Integer minReplaceDelayMs;
+
+    private final Integer permanentFailureTimoutMs;
+    private final Integer minReplaceDelayMs;
+
+    private RawReplacementFailurePolicy(
+            @JsonProperty("permanent-failure-timeout-ms") Integer permanentFailureTimoutMs,
+            @JsonProperty("min-replace-delay-ms") Integer minReplaceDelayMs) {
+        this.permanentFailureTimoutMs = permanentFailureTimoutMs;
+        this.minReplaceDelayMs = minReplaceDelayMs;
+    }
 
     public Integer getPermanentFailureTimoutMs() {
         return permanentFailureTimoutMs;
     }
 
-    @JsonProperty("permanent-failure-timeout-ms")
-    public void setPermanentFailureTimoutMs(Integer permanentFailureTimoutMs) {
-        this.permanentFailureTimoutMs = permanentFailureTimoutMs;
-    }
-
     public Integer getMinReplaceDelayMs() {
         return minReplaceDelayMs;
-    }
-
-    @JsonProperty("min-replace-delay-ms")
-    public void setMinReplaceDelayMs(Integer minReplaceDelayMs) {
-        this.minReplaceDelayMs = minReplaceDelayMs;
     }
 }
