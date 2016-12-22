@@ -3,7 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 import com.mesosphere.sdk.config.ConfigTargetStore;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.StrategyFactory;
 import com.mesosphere.sdk.specification.yaml.RawPhase;
@@ -23,12 +22,8 @@ public class DefaultPlanGenerator implements PlanGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanGenerator.class);
     private final DefaultStepFactory stepFactory;
 
-    public DefaultPlanGenerator(
-            ConfigTargetStore configTargetStore,
-            StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider) {
-        this.stepFactory = new DefaultStepFactory(configTargetStore,
-                stateStore, offerRequirementProvider);
+    public DefaultPlanGenerator(ConfigTargetStore configTargetStore, StateStore stateStore) {
+        this.stepFactory = new DefaultStepFactory(configTargetStore, stateStore);
     }
 
     @Override

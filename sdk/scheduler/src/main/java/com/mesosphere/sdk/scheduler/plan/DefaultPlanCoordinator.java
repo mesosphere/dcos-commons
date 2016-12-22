@@ -43,7 +43,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         // Assets that are being actively worked on
         final Set<String> dirtiedAssets = new HashSet<>();
 
-        // Offers that are available for scheduling
+        // Offers that are available for scheduling (copy original list to allow modification below)
         final List<Offer> offers = new ArrayList<>(offersToProcess);
 
         // Pro-actively determine all known dirty assets. This is used to ensure that PlanManagers that are presented

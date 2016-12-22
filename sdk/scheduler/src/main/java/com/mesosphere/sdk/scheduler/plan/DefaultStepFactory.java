@@ -22,15 +22,12 @@ public class DefaultStepFactory implements StepFactory {
 
     private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;
-    private final OfferRequirementProvider offerRequirementProvider;
 
     public DefaultStepFactory(
             ConfigTargetStore configTargetStore,
-            StateStore stateStore,
-            OfferRequirementProvider offerRequirementProvider) {
+            StateStore stateStore) {
         this.configTargetStore = configTargetStore;
         this.stateStore = stateStore;
-        this.offerRequirementProvider = offerRequirementProvider;
     }
 
     @Override

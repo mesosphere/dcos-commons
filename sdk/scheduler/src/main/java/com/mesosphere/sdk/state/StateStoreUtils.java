@@ -81,7 +81,8 @@ public class StateStoreUtils {
             }
 
             if (TaskUtils.needsRecovery(taskSpec.get(), status)) {
-                LOGGER.info("Task: {} with status: {} needs recovery.", taskSpec.get(), status);
+                LOGGER.info("Task: {} needs recovery with status: {}.",
+                        taskSpec.get(), TextFormat.shortDebugString(status));
                 results.add(info);
             }
         }
@@ -181,7 +182,7 @@ public class StateStoreUtils {
                 })
                 .filter(taskInfo -> {
                     try {
-                        return CommonTaskUtils.getIndex(taskInfo).equals(podInstance.getIndex());
+                        return CommonTaskUtils.getIndex(taskInfo) == podInstance.getIndex();
                     } catch (TaskException e) {
                         return false;
                     }

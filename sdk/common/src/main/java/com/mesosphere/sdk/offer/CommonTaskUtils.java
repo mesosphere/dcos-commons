@@ -178,16 +178,25 @@ public class CommonTaskUtils {
         return taskType.get();
     }
 
-    public static TaskInfo.Builder setIndex(TaskInfo.Builder taskBuilder, Integer index) {
+    /**
+     * Assigns the pod instance index to the provided task.
+     */
+    public static TaskInfo.Builder setIndex(TaskInfo.Builder taskBuilder, int index) {
         return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), INDEX_KEY, String.valueOf(index)));
     }
 
-    public static Integer getIndex(TaskInfo taskInfo) throws TaskException {
+    /**
+     * Returns the pod instance index of the provided task, or throws {@link TaskException} if no index data was found.
+     *
+     * @throws TaskException if the index data wasn't found
+     * @throws NumberFormatException if parsing the index as an integer failed
+     */
+    public static int getIndex(TaskInfo taskInfo) throws TaskException {
         Optional<String> index = findLabelValue(taskInfo.getLabels(), INDEX_KEY);
         if (!index.isPresent()) {
             throw new TaskException("TaskInfo does not contain label with key: " + INDEX_KEY);
         }
-        return Integer.valueOf(index.get());
+        return Integer.parseInt(index.get());
     }
 
     /**
@@ -325,7 +334,10 @@ public class CommonTaskUtils {
         return Environment.newBuilder().addAllVariables(vars).build();
     }
 
-
+    /**
+     * Invokes {@link #sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, byte[])} with a null
+     * {@code data} value.
+     */
     public static void sendStatus(ExecutorDriver driver,
                                   TaskState state,
                                   TaskID taskID,
@@ -335,6 +347,9 @@ public class CommonTaskUtils {
         sendStatus(driver, state, taskID, slaveID, executorID, message, null);
     }
 
+    /**
+     * Sends a {@link TaskStatus} to the provided {@code driver} which contains the provided information.
+     */
     public static void sendStatus(ExecutorDriver driver,
                                   TaskState state,
                                   TaskID taskID,
