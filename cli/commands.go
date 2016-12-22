@@ -56,8 +56,7 @@ func HandleCommonArgs(
 	HandleConnectionSection(app, connectionTypes)
 	//HandleEndpointsSection(app) omitted since callers likely don't have this
 	HandlePlanSection(app)
-	HandlePodsSection(app)
-	HandleStateSection(app) // TODO deprecated, remove
+	HandleStateSection(app)
 }
 
 // Standard Arguments
@@ -313,7 +312,6 @@ func HandlePodsSection(app *kingpin.Application) {
 }
 
 // State section
-// TODO deprecated, remove
 
 type StateHandler struct {
 	TaskName string
@@ -336,6 +334,7 @@ func (cmd *StateHandler) RunTasks(c *kingpin.ParseContext) error {
 	return nil
 }
 
+// TODO remove this command once callers have migrated to HandlePodsSection().
 func HandleStateSection(app *kingpin.Application) {
 	// state <framework_id, status, task, tasks>
 	cmd := &StateHandler{}
