@@ -85,7 +85,6 @@ public class DefaultStep extends DefaultObservable implements Step {
         for (Protos.Offer.Operation operation : operations) {
             logger.info("  {}", TextFormat.shortDebugString(operation));
         }
-
         setTaskIds(operations);
 
         if (operations.isEmpty()) {

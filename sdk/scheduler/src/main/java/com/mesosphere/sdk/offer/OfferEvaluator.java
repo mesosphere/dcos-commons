@@ -125,17 +125,17 @@ public class OfferEvaluator {
             offer = placementRule.filter(offer, offerRequirement, tasks);
             int filteredCount = offer.getResourcesCount();
             if (filteredCount == originalCount) {
-                logger.info("- {}: Fully passed placement constraint, " +
+                logger.info("  {}: Fully passed placement constraint, " +
                         "{} resources remain for evaluation: {}",
                         index + 1, filteredCount, offer.getId().getValue());
                 filteredOffers.add(offer);
             } else if (filteredCount > 0) {
-                logger.info("- {}: Partially passed placement constraint, " +
+                logger.info("  {}: Partially passed placement constraint, " +
                         "{} of {} resources remain for evaluation: {}",
                         index + 1, filteredCount, originalCount, offer.getId().getValue());
                 filteredOffers.add(offer);
             } else {
-                logger.info("- {}: Failed placement constraint for all {} resources, " +
+                logger.info("  {}: Failed placement constraint for all {} resources, " +
                         "removed from resource evaluation",
                         index + 1, originalCount, offer.getId().getValue());
                 // omit from filteredOffers
@@ -163,7 +163,7 @@ public class OfferEvaluator {
 
             if (execReq.desiresResources()
                     || execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
-                logger.info("Evaluating offer '{}' against executor requirement...");
+                logger.info("Evaluating offer '{}' against executor requirement...", offer.getId().getValue());
                 fulfilledExecutorRequirementOptional = FulfilledRequirement.fulfillRequirement(
                         execReq.getResourceRequirements(),
                         execReq.getDynamicPortRequirements(),
@@ -198,7 +198,7 @@ public class OfferEvaluator {
         }
 
         for (TaskRequirement taskReq : offerRequirement.getTaskRequirements()) {
-            logger.info("Evaluating offer '{}' against task requirement...");
+            logger.info("Evaluating offer '{}' against task requirement...", offer.getId().getValue());
             Optional<FulfilledRequirement> fulfilledTaskRequirementOptional =
                     FulfilledRequirement.fulfillRequirement(
                             taskReq.getResourceRequirements(),

@@ -334,7 +334,6 @@ public class CommonTaskUtils {
         return Environment.newBuilder().addAllVariables(vars).build();
     }
 
-
     /**
      * Invokes {@link #sendStatus(ExecutorDriver, TaskState, TaskID, SlaveID, ExecutorID, String, byte[])} with a null
      * {@code data} value.

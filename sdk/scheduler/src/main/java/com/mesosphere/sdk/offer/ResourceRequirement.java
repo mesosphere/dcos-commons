@@ -110,19 +110,16 @@ public class ResourceRequirement {
     }
 
     private boolean hasPersistenceId() {
-        return hasDiskInfo() && getDiskInfo().hasPersistence();
+        DiskInfo diskInfo = getDiskInfo();
+        return diskInfo != null && diskInfo.hasPersistence();
     }
 
     private boolean hasReservation() {
         return mesosResource.hasReservation();
     }
 
-    private boolean hasDiskInfo() {
-        return mesosResource.getResource().hasDisk();
-    }
-
     private DiskInfo getDiskInfo() {
-        return hasDiskInfo() ? mesosResource.getResource().getDisk() : null;
+        return mesosResource.getResource().hasDisk() ? mesosResource.getResource().getDisk() : null;
     }
 
     @Override

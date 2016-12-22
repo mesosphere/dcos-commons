@@ -50,7 +50,7 @@ public class PodInstanceRequirement {
     }
 
     /**
-     * The list of tasks to be launched within this pod. This doesn't necessarily match the tasks listed in the
+     * Returns the list of tasks to be launched within this pod. This doesn't necessarily match the tasks listed in the
      * {@link PodInstance}.
      */
     public Collection<String> getTasksToLaunch() {

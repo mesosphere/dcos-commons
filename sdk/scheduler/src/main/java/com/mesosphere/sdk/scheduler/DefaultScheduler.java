@@ -51,10 +51,34 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
-    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC = 10 * 60;
-    protected static final Integer PERMANENT_FAILURE_DELAY_SEC = 20 * 60;
-    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10000;
-    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60000;
+    /**
+     * Default time to wait between destructive task recoveries (avoid quickly making things worse).
+     *
+     * Default: 10 minutes
+     */
+    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS = 10 * 60 * 1000;
+
+    /**
+     * Default time to wait before declaring a task as permanently failed.
+     *
+     * Default: 20 minutes
+     */
+    protected static final Integer PERMANENT_FAILURE_DELAY_MS = 20 * 60 * 1000;
+
+    /**
+     * Time to wait for the executor thread to terminate. Only used by unit tests.
+     *
+     * Default: 10 seconds
+     */
+    protected static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
+
+    /**
+     * Time to wait during scheduler initialization for API resources to be initialized. This should be
+     * near-instantaneous, we just have an explicit deadline to avoid the potential for waiting indefinitely.
+     *
+     * Default: 60 seconds
+     */
+    protected static final Integer AWAIT_RESOURCES_TIMEOUT_MS = 60 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -165,8 +189,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             OfferRequirementProvider offerRequirementProvider,
             Collection<ConfigurationValidator<ServiceSpec>> configValidators) {
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
-        Integer permanentFailureTimeoutMs = 1000 * PERMANENT_FAILURE_DELAY_SEC;
-        int destructiveRecoveryDelayMs = 1000 * DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SEC;
+        Integer permanentFailureTimeoutMs = PERMANENT_FAILURE_DELAY_MS;
+        int destructiveRecoveryDelayMs = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
         if (replacementFailurePolicy != null) {
             permanentFailureTimeoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
             destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
@@ -329,9 +353,9 @@ public class DefaultScheduler implements Scheduler, Observer {
      *                                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
      * @param configValidators            custom validators to be used, instead of the default validators
      *                                    returned by {@link #defaultConfigValidators()}
-     * @param permanentFailureTimeoutMs   minimum duration to wait in seconds before deciding that a
+     * @param permanentFailureTimeoutMs   minimum duration to wait in milliseconds before deciding that a
      *                                    task has failed, or an empty {@link Optional} to disable this detection
-     * @param destructiveRecoveryDelayMs  minimum duration to wait in seconds between destructive
+     * @param destructiveRecoveryDelayMs  minimum duration to wait in milliseconds between destructive
      *                                    recovery operations such as destroying a failed task
      */
     protected DefaultScheduler(
@@ -519,7 +543,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             // http://mesos.apache.org/documentation/latest/reconciliation/
             reconciler.reconcile(driver);
             if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress, declining all offers");
+                LOGGER.info("Reconciliation is still in progress, declining all offers.");
                 declineOffers(driver, Collections.emptyList(), offers);
                 return;
             }

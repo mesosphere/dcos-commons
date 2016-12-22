@@ -176,4 +176,3 @@ public class TaskResourceTest {
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")); // proto field required
     }
 }
-

@@ -1,3 +1,7 @@
+# Looking for Docs?
+
+**❯❯❯ [Here you go!](https://mesosphere.github.io/dcos-commons/) ❮❮❮**
+
 # Creating Docs for the DC/OS SDK
 
 Docs are published automatically by CI to the `gh-pages` branch whenever changes hit `master`.

@@ -76,14 +76,13 @@ public class MesosResource {
     }
 
     private static String getResourceIdInternal(Resource resource) {
-        if (resource.hasReservation() && resource.getReservation().hasLabels()) {
+        if (resource.hasReservation()) {
             for (Label label : resource.getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(RESOURCE_ID_KEY)) {
                     return label.getValue();
                 }
             }
         }
-
         return null;
     }
 }

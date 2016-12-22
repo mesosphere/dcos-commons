@@ -13,7 +13,7 @@ public interface PodInstance {
     PodSpec getPod();
 
     /**
-     * The index of this pod instance (starting at zero). Each pod instance has a unique index.
+     * The index of this pod instance. Each pod instance has a unique index, starting at zero.
      */
     int getIndex();
 
