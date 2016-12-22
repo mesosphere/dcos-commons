@@ -8,6 +8,8 @@ import java.io.File;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        new ElasticService(new File(args[0]));
+        ElasticService elasticService = new ElasticService(new File(args[0]));
+        elasticService.init();
+        elasticService.register();
     }
 }

@@ -24,8 +24,12 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 test {
-    exclude 'com/mesosphere/sdk/elastic/*'
+    filter {
+        // without this, Gradle runs tests from elastic module for some reason.
+        includeTestsMatching "com.mesosphere.sdk.executor.*"
+    }
 }
+
 buildDir = new File(rootProject.projectDir, "build/")
 
 distributions {

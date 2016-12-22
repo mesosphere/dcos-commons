@@ -11,49 +11,96 @@ import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
-import com.mesosphere.sdk.specification.Service;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Customized {@link Service} for the Elastic framework.
+ * Service for the Elastic framework.
  */
-public class ElasticService implements Service {
+public class ElasticService {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     private static final String USER = "root";
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticService.class);
 
     private int apiPort;
     private String zkConnectionString;
-
+    private DefaultScheduler defaultScheduler;
+    private Protos.FrameworkInfo frameworkInfo;
     private StateStore stateStore;
     private ServiceSpec serviceSpec;
     private ConfigStore<ServiceSpec> configTargetStore;
     private OfferRequirementProvider offerRequirementProvider;
+    private File pathToYamlSpecification;
+    private List<ConfigurationValidator<ServiceSpec>> validators;
 
-    ElasticService(File pathToYamlSpecification) throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
+    ElasticService(File pathToYamlSpecification) {
+        this.pathToYamlSpecification = pathToYamlSpecification;
     }
 
-    private ElasticService(RawServiceSpecification rawServiceSpecification) throws Exception {
+    Protos.FrameworkInfo getFrameworkInfo() {
+        return frameworkInfo;
+    }
+
+    List<ConfigurationValidator<ServiceSpec>> getValidators() {
+        return validators;
+    }
+
+    void init() throws Exception {
+        RawServiceSpecification rawServiceSpecification =
+                YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        init();
+        this.apiPort = serviceSpec.getApiPort();
+
+        this.zkConnectionString = getZookeeperConnection();
+        this.stateStore = DefaultScheduler.createStateStore(serviceSpec, zkConnectionString);
+        try {
+            this.configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString,
+                    Collections.emptyList());
+        } catch (ConfigStoreException e) {
+            LOGGER.error("Unable to create config store", e);
+            throw new IllegalStateException(e);
+        }
+
+        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(serviceSpec, stateStore,
+                configTargetStore);
+
+        this.offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore,
+                configUpdateResult.targetId);
         Collection<Plan> plans = generatePlansFromRawSpec(rawServiceSpecification);
-        register(serviceSpec, plans);
+        this.validators = new ArrayList<>(DefaultScheduler.defaultConfigValidators());
+        this.validators.addAll(configValidators());
+        this.defaultScheduler = DefaultScheduler.create(
+                serviceSpec,
+                plans,
+                stateStore,
+                configTargetStore,
+                offerRequirementProvider,
+                validators);
+        this.frameworkInfo = buildFrameworkInfo();
     }
 
-    private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
+    void register() {
+        startApiServer();
+        registerFramework();
+    }
+
+    @CheckReturnValue
+    String getZookeeperConnection() {
+        return serviceSpec.getZookeeperConnection();
+    }
+
+    private void startApiServer() {
         new Thread(() -> {
             JettyApiServer apiServer = null;
             try {
@@ -75,30 +122,11 @@ public class ElasticService implements Service {
         }).start();
     }
 
-    private static void registerFramework(Scheduler scheduler, Protos.FrameworkInfo frameworkInfo, String masterUri) {
+    private void registerFramework() {
         LOGGER.info("Registering Elastic framework: {}", frameworkInfo);
-        SchedulerDriver driver = new SchedulerDriverFactory().create(scheduler, frameworkInfo, masterUri);
+        SchedulerDriver driver = new SchedulerDriverFactory().create(defaultScheduler, frameworkInfo,
+                zkConnectionString);
         driver.run();
-    }
-
-    private void init() {
-        this.apiPort = this.serviceSpec.getApiPort();
-        this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
-        this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
-
-        try {
-            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString,
-                    Collections.emptyList());
-        } catch (ConfigStoreException e) {
-            LOGGER.error("Unable to create config store", e);
-            throw new IllegalStateException(e);
-        }
-
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(serviceSpec, stateStore,
-                configTargetStore);
-
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore,
-                configUpdateResult.targetId);
     }
 
     private Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
@@ -114,28 +142,7 @@ public class ElasticService implements Service {
         return plans;
     }
 
-    /**
-     * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the
-     * {@code apiPort}.
-     */
-    @Override
-    public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
-        List<ConfigurationValidator<ServiceSpec>> validators =
-                new ArrayList<>(DefaultScheduler.defaultConfigValidators());
-        validators.addAll(configValidators());
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(
-                serviceSpecification,
-                plans,
-                stateStore,
-                configTargetStore,
-                offerRequirementProvider,
-                validators);
-
-        startApiServer(defaultScheduler, apiPort);
-        registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
-    }
-
-    private Protos.FrameworkInfo getFrameworkInfo() {
+    private Protos.FrameworkInfo buildFrameworkInfo() {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setFailoverTimeout(TWO_WEEK_SEC)

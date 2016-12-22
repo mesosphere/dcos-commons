@@ -17,5 +17,8 @@
   "coordinator_nodes": {
     "http_port": 19203,
     "transport_port": 19303
+  },
+  "elasticsearch": {
+    "plugins": "analysis-icu,analysis-kuromoji"
   }
 }

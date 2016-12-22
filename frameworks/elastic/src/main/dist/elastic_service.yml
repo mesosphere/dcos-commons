@@ -33,7 +33,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
         configurations:
-          - template: "elastic-scheduler/kibana.yml"
+          - template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
             dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
         health-checks:
           check-up:
@@ -78,7 +78,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "elastic-scheduler/elasticsearch.yml"
+          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
@@ -123,7 +123,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "elastic-scheduler/elasticsearch.yml"
+          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
@@ -168,7 +168,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "elastic-scheduler/elasticsearch.yml"
+          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
@@ -213,7 +213,7 @@ pods:
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configurations:
-          - template: "elastic-scheduler/elasticsearch.yml"
+          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-checks:
           check-up:
