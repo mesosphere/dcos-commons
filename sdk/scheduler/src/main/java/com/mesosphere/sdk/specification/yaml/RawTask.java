@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification.yaml;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -14,7 +13,6 @@ import java.util.Map;
  */
 public class RawTask {
 
-    private String name;
     private final String goal;
     private final String cmd;
     private final String image;
@@ -41,7 +39,6 @@ public class RawTask {
             @JsonProperty("health-checks") LinkedHashMap<String, RawHealthCheck> healthChecks,
             @JsonProperty("volumes") Collection<RawVolume> volumes,
             @JsonProperty("resource-set") String resourceSet) {
-        this.name = null;
         this.goal = goal;
         this.cmd = cmd;
         this.image = image;
@@ -62,15 +59,6 @@ public class RawTask {
 
     public Integer getMemory() {
         return memory;
-    }
-
-    @JsonIgnore
-    void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getResourceSet() {

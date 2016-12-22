@@ -27,20 +27,16 @@ public class DefaultPlanGenerator implements PlanGenerator {
     }
 
     @Override
-    public Plan generate(RawPlan rawPlan, Collection<PodSpec> podsSpecs) {
-        for (Map.Entry<String, RawPhase> entry : rawPlan.getPhases().entrySet()) {
-            entry.getValue().setName(entry.getKey());
-        }
-        final List<Phase> phases = rawPlan.getPhases().values().stream()
-                .map(rawPhase -> from(rawPhase, podsSpecs))
+    public Plan generate(RawPlan rawPlan, String planName, Collection<PodSpec> podsSpecs) {
+        final List<Phase> phases = rawPlan.getPhases().entrySet().stream()
+                .map(entry-> from(entry.getValue(), entry.getKey(), podsSpecs))
                 .collect(Collectors.toList());
-        return DefaultPlanFactory.getPlan(rawPlan.getName(), phases,
+        return DefaultPlanFactory.getPlan(planName, phases,
                 StrategyFactory.generateForPhase(rawPlan.getStrategy()));
     }
 
     @VisibleForTesting
-    protected Phase from(RawPhase rawPhase, Collection<PodSpec> podsSpecs) {
-        String name = rawPhase.getName();
+    protected Phase from(RawPhase rawPhase, String phaseName, Collection<PodSpec> podsSpecs) {
         String pod = rawPhase.getPod();
         List<RawStep> rawSteps = rawPhase.getSteps();
         String strategy = rawPhase.getStrategy();
@@ -93,7 +89,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
                         "or should be omitted for all steps.");
             }
         }
-        phase = DefaultPhaseFactory.getPhase(name, steps, StrategyFactory.generateForSteps(strategy));
+        phase = DefaultPhaseFactory.getPhase(phaseName, steps, StrategyFactory.generateForSteps(strategy));
         return phase;
     }
 

@@ -44,7 +44,7 @@
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
             "type":"string",
-            "default":""
+            "default":"hostname:UNIQUE"
           }
         },
         "required":[
@@ -79,7 +79,7 @@
           "constraint":{
             "description":"Marathon-style constraint for metadata nodes",
             "type":"string",
-            "default":""
+            "default":"hostname:UNIQUE"
           }
         },
         "required":[
