@@ -141,11 +141,13 @@ public class ElasticService {
     }
 
     private Protos.FrameworkInfo buildFrameworkInfo() {
+        String webuiUrl = String.format("http://kibana-0-server.%s.mesos:%s", serviceSpec.getName(),
+                System.getenv("KIBANA_PORT"));
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(USER)
-                .setWebuiUrl("http://kibana-0-server." + serviceSpec.getName() + ".mesos:5601")
+                .setWebuiUrl(webuiUrl)
                 .setRole(SchedulerUtils.nameToRole(serviceSpec.getName()))
                 .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpec.getName()))
                 .setCheckpoint(true);

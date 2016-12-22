@@ -69,7 +69,7 @@ public class ElasticServiceTest {
         environmentVariables.set("KIBANA_MEM", "2000");
         environmentVariables.set("KIBANA_DISK", "2000");
         environmentVariables.set("KIBANA_DISK_TYPE", "ROOT");
-        environmentVariables.set("KIBANA_PORT", "5601");
+        environmentVariables.set("KIBANA_PORT", "5602");
         environmentVariables.set("KIBANA_PASSWORD", "changeme");
         URL resource = ElasticServiceTest.class.getClassLoader().getResource("elastic_service.yml");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
@@ -88,7 +88,7 @@ public class ElasticServiceTest {
 
         Assert.assertNotNull(elasticService);
         Protos.FrameworkInfo frameworkInfo = elasticService.getFrameworkInfo();
-        Assert.assertEquals("http://kibana-0-server.elastic.mesos:5601", frameworkInfo.getWebuiUrl());
+        Assert.assertEquals("http://kibana-0-server.elastic.mesos:5602", frameworkInfo.getWebuiUrl());
         Set<String> validators = elasticService.getValidators().stream().map(v -> v.getClass().getSimpleName())
                 .collect(Collectors.toSet());
         Set<String> expectedValidators = new HashSet<>(Arrays.asList("PodSpecsCannotShrink",
