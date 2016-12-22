@@ -36,7 +36,7 @@ def test_install_worked():
 
 @pytest.mark.sanity
 def test_bump_hello_cpus():
-    assert check_health()
+    check_health()
     hello_ids = get_task_ids('hello')
     print('hello ids: ' + str(hello_ids))
 
@@ -48,13 +48,13 @@ def test_bump_hello_cpus():
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
-    assert tasks_updated('hello', hello_ids)
-    assert check_health()
+    tasks_updated('hello', hello_ids)
+    check_health()
 
 
 @pytest.mark.sanity
 def test_bump_hello_nodes():
-    assert check_health()
+    check_health()
 
     hello_ids = get_task_ids('hello')
     print('hello ids: ' + str(hello_ids))
@@ -67,8 +67,8 @@ def test_bump_hello_nodes():
         marathon_api_url('apps/' + PACKAGE_NAME),
         json=config)
 
-    assert check_health()
-    assert tasks_not_updated('hello', hello_ids)
+    check_health()
+    tasks_not_updated('hello', hello_ids)
 
 
 @pytest.mark.sanity
@@ -144,8 +144,8 @@ def test_pods_restart():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
 
-    assert tasks_updated('hello', hello_ids)
-    assert check_health()
+    tasks_updated('hello', hello_ids)
+    check_health()
 
     # check agent didn't move:
     stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
@@ -167,8 +167,8 @@ def test_pods_replace():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'world-0-server'
 
-    assert tasks_updated('world-0', world_ids)
-    assert check_health()
+    tasks_updated('world-0', world_ids)
+    check_health()
 
     # check agent moved:
     stdout = run_dcos_cli_cmd('hello-world pods info world-0')
