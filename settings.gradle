@@ -16,7 +16,7 @@ include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
 
 include 'frameworks/elastic'
-project(':frameworks/elastic').name = 'elastic'
+project(':frameworks/elastic').name = 'z_elastic'
 
 include 'frameworks/kafka'
 project(":frameworks/kafka").name = "kafka"
