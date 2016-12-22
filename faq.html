@@ -33,13 +33,19 @@
   </tbody>
 </table>
 
+<h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+
 <h4 id="what-is-the-dcos-sdk"><strong>What is the DC/OS SDK?</strong></h4>
 
-<p>The DC/OS SDK is a collection of tools, libraries, and documentation for integrating replicated stateful services with DC/OS.</p>
+<p>The DC/OS SDK is a collection of tools, libraries, and documentation for integrating stateful services with DC/OS.</p>
 
-<h4 id="what-is-a-mesos-framework"><strong>What is a Mesos framework?</strong></h4>
+<h4 id="when-should-i-use-the-dcos-sdk"><strong>When should I use the DC/OS SDK?</strong></h4>
 
-<p>In Mesos, a framework is the component responsible for the second level of scheduling in the <a href="http://mesos.apache.org/documentation/latest/architecture/">Apache Mesos two-level scheduler architecture</a>. Strictly speaking, the SDK is used to build Mesos frameworks, which appear as “services” in DC/OS.</p>
+<p>Independent software vendors (ISVs) interested in offering production-grade stateful services for DC/OS should use the SDK.</p>
+
+<h4 id="how-can-i-get-commercial-support-for-the-dcos-sdk"><strong>How can I get commercial support for the DC/OS SDK?</strong></h4>
+
+<p>Mesosphere offers support to approved ISVs as part of the Mesosphere Partner Program.</p>
 
 <h4 id="what-is-a-dcos-service"><strong>What is a DC/OS service?</strong></h4>
 
@@ -49,13 +55,13 @@
 
 <p>A DC/OS package is an artifact for installing a service to any DC/OS cluster. DC/OS packages are analogous in concept to other operation systems packages like RPMs and DEBs. A DC/OS package includes metadata such as name, version, configurable settings, and service executables.</p>
 
-<h4 id="when-should-i-use-the-dcos-sdk"><strong>When should I use the DC/OS SDK?</strong></h4>
+<h4 id="what-is-a-mesos-framework"><strong>What is a Mesos framework?</strong></h4>
 
-<p>The SDK is particularly well-suited to replicated stateful services such as databases (SQL and NoSQL), messaging systems, and storage systems. Independent software vendors (ISVs) interested in offering production-grade stateful services for DC/OS should use the SDK.</p>
+<p>In Mesos, a framework is the component responsible for the second level of scheduling in the <a href="http://mesos.apache.org/documentation/latest/architecture/">Apache Mesos two-level scheduler architecture</a>. Strictly speaking, the SDK is used to build Mesos frameworks, which appear as “services” in DC/OS.</p>
 
 <h4 id="what-are-the-advantages-of-using-the-dcos-sdk-vs-building-a-framework-from-scratch"><strong>What are the advantages of using the DC/OS SDK vs. building a framework from scratch?</strong></h4>
 
-<p>The SDK dramatically simplifies integrating stateful services with Apache Mesos and DC/OS so that you can focus on your goals. In the past, integrating existing services with Apache Mesos meant developing a scheduler to evaluate and accept resource offers, launch and monitor tasks, and handle task reconciliation. Stateful services introduce additional concerns like reserving and accounting for resources, such as persistent volumes, and more complicated failure recovery semantics. Prior to the SDK, integrating stateful services with DC/OS required tens of thousands of lines of code and months of development and maintenance. With the SDK, even the most complex replicated stateful services require only a few hundred lines of code to integrate with DC/OS.</p>
+<p>The SDK dramatically simplifies integrating stateful services with DC/OS and Mesosphere Enterprise DC/OS so that you can focus on your goals. In the past, integrating existing services with DC/OS meant developing a scheduler to evaluate and accept resource offers, launch and monitor tasks, and handle task reconciliation. Stateful services introduce additional concerns like reserving and accounting for resources, such as persistent volumes, and more complicated failure recovery semantics. Prior to the SDK, integrating stateful services with DC/OS required tens of thousands of lines of code and months of development and maintenance. With the SDK, even the most complex stateful services require only a few hundred lines of code to integrate with DC/OS.</p>
 
 <h4 id="do-i-need-to-be-a-java-developer-to-use-the-dcos-sdk"><strong>Do I need to be a Java developer to use the DC/OS SDK?</strong></h4>
 
@@ -75,19 +81,15 @@
 
 <h4 id="can-i-use-the-dcos-sdk-to-build-a-proprietary-dcos-package"><strong>Can I use the DC/OS SDK to build a proprietary DC/OS package?</strong></h4>
 
-<p>Yes, you can use the SDK to build a proprietary package. The SDK is licensed under the Apache License 2.0, which permits proprietary derivative works. While many SDK users do choose to share their source code under permissive licensing, you are under no obligation to do so.</p>
-
-<h4 id="how-does-the-dcos-sdk-compare-to-fenzo"><strong>How does the DC/OS SDK compare to Fenzo?</strong></h4>
-
-<p><a href="https://github.com/netflix/fenzo">Fenzo</a>, developed by Netflix, is a scheduler Java library for Apache Mesos frameworks that supports plugins for scheduling optimizations and facilitates cluster autoscaling. The DC/OS SDK was developed by Mesosphere to support integrating replicated stateful services with DC/OS. There are plans to expand the DC/OS SDK to support advanced workloads and use cases enabled by Fenzo. Mesosphere and Netflix hope to unify these libraries in the future.</p>
+<p>Yes, you can use the SDK to build a proprietary package. The SDK is licensed under the Apache License 2.0, which permits proprietary derivative works.</p>
 
 <h4 id="can-i-contribute-to-the-dcos-sdk"><strong>Can I contribute to the DC/OS SDK?</strong></h4>
 
-<p>Yes, contributions to the SDK are welcome! See <a href="CONTRIBUTING.md">CONTRIBUTING</a>.</p>
+<p>Yes, contributions are welcome. See <a href="CONTRIBUTING.md">CONTRIBUTING</a>.</p>
 
 <h4 id="will-the-dcos-sdk-work-with-apache-mesos-without-dcos"><strong>Will the DC/OS SDK work with Apache Mesos (without DC/OS)?</strong></h4>
 
-<p>Yes, the DC/OS SDK can be used with Apache Mesos. DC/OS and Mesosphere Enterprise DC/OS offer APIs in additional to those available in Apache Mesos. These APIs are only available on DC/OS and Enterprise DC/OS. At this time, Mesosphere only tests the SDK libraries with open source DC/OS and Enterprise DC/OS. The reference implementations may depend on DC/OS APIs. Mesosphere may add test coverage for Apache Mesos in the future, depending on demand.</p>
+<p>Yes, the DC/OS SDK can be used with Apache Mesos. DC/OS and Mesosphere Enterprise DC/OS offer APIs in additional to those available in Apache Mesos. These APIs are only available on DC/OS and Enterprise DC/OS. At this time, Mesosphere only tests the SDK libraries with open source DC/OS and Enterprise DC/OS. The reference implementations may depend on DC/OS APIs.</p>
 
 </div>
 </body>
