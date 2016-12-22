@@ -81,7 +81,7 @@ public class YAMLToInternalMappers {
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         String user = rawPod.getUser();
         LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
- 
+
         Collection<String> rawTaskUris = rawPod.getUris();
         Collection<URI> uris = new ArrayList<>();
         for (String uriStr : rawTaskUris) {
@@ -116,8 +116,6 @@ public class YAMLToInternalMappers {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder();
 
         if (container != null) {
-            System.out.println("HELLO");
-            System.out.println(container.toString());
             builder.container(new DefaultContainerSpec(container.getImageName()));
         }
 
@@ -144,8 +142,6 @@ public class YAMLToInternalMappers {
                     .setType(Protos.Value.Type.SCALAR)
                     .setScalar(Protos.Value.Scalar.newBuilder().setValue(Double.parseDouble(value)))
                     .build();
-//        } else if ("disk".equalsIgnoreCase(name)) {
-//            // TODO(mohit): Throw error
         }
 
         return new DefaultResourceSpecification(name, resourceValue, role, principal, envKey);

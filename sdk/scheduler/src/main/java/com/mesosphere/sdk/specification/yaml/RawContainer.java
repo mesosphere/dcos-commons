@@ -6,14 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Raw YAML container.
  */
 public class RawContainer {
-    private String imageName;
+
+    private final String imageName;
+
+    private RawContainer(@JsonProperty("image-name") String imageName) {
+        this.imageName = imageName;
+    }
 
     public String getImageName() {
         return imageName;
-    }
-
-    @JsonProperty("image-name")
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
     }
 }
