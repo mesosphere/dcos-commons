@@ -24,7 +24,6 @@ func main() {
 	cli.HandleEndpointsSection(app)
 	cli.HandlePlanSection(app)
 	cli.HandlePodsSection(app)
-	cli.HandleStateSection(app) // TODO deprecated, remove
 	handleExampleSection(app)
 
 	// Omit modname:
