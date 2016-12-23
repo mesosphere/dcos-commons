@@ -113,7 +113,7 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<URI> getUris(){
+    public Collection<URI> getUris() {
         return uris;
     }
 

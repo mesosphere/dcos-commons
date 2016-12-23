@@ -13,6 +13,7 @@ import org.apache.mesos.Protos.Resource.DiskInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,6 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
-
         return evaluate(getOfferRequirement(podInstanceRequirement), offers);
     }
 
@@ -64,13 +64,14 @@ public class OfferEvaluator {
         logger.info("Evaluating up to {} offers for match against resource requirements:", filteredOffers.size());
         for (int index = 0; index < filteredOffers.size(); ++index) {
             Offer offer = filteredOffers.get(index);
+            logger.info("*** Offer {} ({}) evaluation:", index + 1, offer.getId().getValue());
             List<OfferRecommendation> recommendations = evaluateInternal(offerRequirement, offer);
             if (!recommendations.isEmpty()) {
-                logger.info("- {}: passed resource requirements, returning {} recommendations: {}",
-                        index + 1, recommendations.size(), TextFormat.shortDebugString(offer));
+                logger.info("*** Offer {}: Passed resource requirements, {} operations needed to proceed",
+                        index + 1, recommendations.size());
                 return recommendations;
             } else {
-                logger.info("- {}: did not pass resource requirements: {}",
+                logger.info("*** Offer {}: Did not pass resource requirements: {}",
                         index + 1, TextFormat.shortDebugString(offer));
             }
         }
@@ -80,28 +81,32 @@ public class OfferEvaluator {
 
     private OfferRequirement getOfferRequirement(PodInstanceRequirement podInstanceRequirement)
             throws InvalidRequirementException {
-
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
-        Collection<String> tasksToLaunch = podInstanceRequirement.getTasksToLaunch();
-        logger.info("Generating OfferRequirement for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
-
-        List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance).stream()
+        boolean noTasksExist = TaskUtils.getTaskNames(podInstance).stream()
                 .map(taskName -> stateStore.fetchTask(taskName))
                 .filter(taskInfoOptional -> taskInfoOptional.isPresent())
                 .map(taskInfoOptional -> taskInfoOptional.get())
-                .collect(Collectors.toList());
+                .count() == 0;
 
-        String podTaskNames = podInstance.getName() + ":" + tasksToLaunch;
-        try {
-            if (taskInfos.isEmpty()) {
-                logger.info("Generating new requirement: {}", podTaskNames);
-                return offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch);
-            } else {
-                logger.info("Generating existing requirement: {}", podTaskNames);
-                return offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch);
-            }
-        } catch (InvalidRequirementException e) {
-            throw new InvalidRequirementException(e);
+        final String description;
+        final boolean shouldGetNewRequirement;
+        if (podInstanceRequirement.isPermanentReplacement()) {
+            description = "failed";
+            shouldGetNewRequirement = true;
+        } else if (noTasksExist) {
+            description = "new";
+            shouldGetNewRequirement = true;
+        } else {
+            description = "existing";
+            shouldGetNewRequirement = false;
+        }
+        Collection<String> tasksToLaunch = podInstanceRequirement.getTasksToLaunch();
+        logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
+                description, podInstance.getName(), tasksToLaunch);
+        if (shouldGetNewRequirement) {
+            return offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch);
+        } else {
+            return offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch);
         }
     }
 
@@ -120,17 +125,17 @@ public class OfferEvaluator {
             offer = placementRule.filter(offer, offerRequirement, tasks);
             int filteredCount = offer.getResourcesCount();
             if (filteredCount == originalCount) {
-                logger.info("- {}: Fully passed placement constraint, " +
+                logger.info("  {}: Fully passed placement constraint, " +
                         "{} resources remain for evaluation: {}",
                         index + 1, filteredCount, offer.getId().getValue());
                 filteredOffers.add(offer);
             } else if (filteredCount > 0) {
-                logger.info("- {}: Partially passed placement constraint, " +
+                logger.info("  {}: Partially passed placement constraint, " +
                         "{} of {} resources remain for evaluation: {}",
                         index + 1, filteredCount, originalCount, offer.getId().getValue());
                 filteredOffers.add(offer);
             } else {
-                logger.info("- {}: Failed placement constraint for all {} resources, " +
+                logger.info("  {}: Failed placement constraint for all {} resources, " +
                         "removed from resource evaluation",
                         index + 1, originalCount, offer.getId().getValue());
                 // omit from filteredOffers
@@ -158,6 +163,7 @@ public class OfferEvaluator {
 
             if (execReq.desiresResources()
                     || execInfoOptional.get().getExecutorId().getValue().isEmpty()) {
+                logger.info("Evaluating offer '{}' against executor requirement...", offer.getId().getValue());
                 fulfilledExecutorRequirementOptional = FulfilledRequirement.fulfillRequirement(
                         execReq.getResourceRequirements(),
                         execReq.getDynamicPortRequirements(),
@@ -166,8 +172,8 @@ public class OfferEvaluator {
                         pool);
 
                 if (!fulfilledExecutorRequirementOptional.isPresent()) {
-                    logger.info("Offer: '{}' does not fulfill the executor Resource Requirements: '{}'",
-                            offer.getId().getValue(), execReq.getResourceRequirements());
+                    logger.info("Offer: '{}' does not fulfill executor requirement: '{}'",
+                            offer.getId().getValue(), execReq);
                     return Collections.emptyList();
                 }
 
@@ -192,6 +198,7 @@ public class OfferEvaluator {
         }
 
         for (TaskRequirement taskReq : offerRequirement.getTaskRequirements()) {
+            logger.info("Evaluating offer '{}' against task requirement...", offer.getId().getValue());
             Optional<FulfilledRequirement> fulfilledTaskRequirementOptional =
                     FulfilledRequirement.fulfillRequirement(
                             taskReq.getResourceRequirements(),
@@ -201,8 +208,8 @@ public class OfferEvaluator {
                             pool);
 
             if (!fulfilledTaskRequirementOptional.isPresent()) {
-                logger.info("Offer: '{}' does not fulfill the task Resource Requirements: '{}'",
-                        offer.getId().getValue(), taskReq.getResourceRequirements());
+                logger.info("Offer: '{}' does not fulfill task requirement: '{}'",
+                        offer.getId().getValue(), taskReq);
                 return Collections.emptyList();
             }
 
@@ -256,7 +263,6 @@ public class OfferEvaluator {
                 Collection<NamedVIPPortRequirement> namedVIPPortRequirements,
                 Offer offer,
                 MesosResourcePool pool) {
-
             List<Resource> fulfilledResources = new ArrayList<>();
             List<OfferRecommendation> unreserveRecommendations = new ArrayList<>();
             List<OfferRecommendation> reserveRecommendations = new ArrayList<>();
@@ -267,30 +273,46 @@ public class OfferEvaluator {
             Collection<ResourceRequirement> resourceAndVIPPortRequirements = Stream.concat(
                     resourceRequirements.stream(), namedVIPPortRequirements.stream()).collect(Collectors.toList());
             for (ResourceRequirement resReq : resourceAndVIPPortRequirements) {
+                logger.info("  Evaluating '{}'...", resReq.getName());
+
                 Optional<MesosResource> mesResOptional = pool.consume(resReq);
                 if (!mesResOptional.isPresent()) {
-                    logger.warn("Failed to satisfy resource requirement: {}",
+                    logger.warn("    Offered resources didn't have suitable '{}' for requirement: [{}]",
+                            resReq.getName(),
                             TextFormat.shortDebugString(resReq.getResource()));
                     return Optional.empty();
                 }
                 final MesosResource mesRes = mesResOptional.get();
-                logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                        TextFormat.shortDebugString(resReq.getResource()),
-                        TextFormat.shortDebugString(mesRes.getResource()));
+                logger.info("    Found suitable '{}':", resReq.getName());
+                logger.info("      Required: [{}]", TextFormat.shortDebugString(resReq.getResource()));
+                logger.info("      Offered: [{}]", TextFormat.shortDebugString(mesRes.getResource()));
 
                 Resource fulfilledResource = getFulfilledResource(resReq, mesRes);
                 if (resReq.expectsResource()) {
-                    logger.info("Expects Resource");
                     // Compute any needed resource pool consumption / release operations
                     // as well as any additional needed Mesos Operations.  In the case
                     // where a requirement has changed for an Atomic resource, no Operations
                     // can be performed because the resource is Atomic.
-                    if (expectedValueChanged(resReq, mesRes) && !mesRes.isAtomic()) {
+                    if (mesRes.isAtomic()) {
+                        logger.info("    Resource '{}' is atomic and cannot be resized from current {} to required {}",
+                                resReq.getName(),
+                                TextFormat.shortDebugString(mesRes.getValue()),
+                                TextFormat.shortDebugString(resReq.getValue()));
+                    } else if (ValueUtils.equal(resReq.getValue(), mesRes.getValue())) {
+                        logger.info("    Current reservation for resource '{}' matches required value: {}",
+                                resReq.getName(), TextFormat.shortDebugString(resReq.getValue()));
+                    } else {
+                        logger.info("    Reservation for resource '{}' needs resizing from current {} to required {}",
+                                resReq.getName(),
+                                TextFormat.shortDebugString(mesRes.getValue()),
+                                TextFormat.shortDebugString(resReq.getValue()));
+
                         Value reserveValue = ValueUtils.subtract(resReq.getValue(), mesRes.getValue());
                         Value unreserveValue = ValueUtils.subtract(mesRes.getValue(), resReq.getValue());
 
                         if (ValueUtils.compare(unreserveValue, ValueUtils.getZero(unreserveValue.getType())) > 0) {
-                            logger.info("Updates reserved resource with less reservation");
+                            logger.info("      => Decrease reservation of {} by {}",
+                                    resReq.getName(), TextFormat.shortDebugString(unreserveValue));
                             Resource unreserveResource = ResourceUtils.getDesiredResource(
                                     resReq.getRole(),
                                     resReq.getPrincipal(),
@@ -305,7 +327,8 @@ public class OfferEvaluator {
                         }
 
                         if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
-                            logger.info("Updates reserved resource with additional reservation");
+                            logger.info("      => Increase reservation of '{}' by {}",
+                                    resReq.getName(), TextFormat.shortDebugString(reserveValue));
                             Resource reserveResource = ResourceUtils.getDesiredResource(
                                     resReq.getRole(),
                                     resReq.getPrincipal(),
@@ -315,49 +338,56 @@ public class OfferEvaluator {
                             if (pool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
                                 reserveResource = ResourceUtils.setResourceId(reserveResource, resReq.getResourceId());
                                 reserveRecommendations.add(new ReserveOfferRecommendation(offer, reserveResource));
-                                fulfilledResource = getFulfilledResource(
-                                        resReq, new MesosResource(resReq.getResource()));
+                                fulfilledResource =
+                                        getFulfilledResource(resReq, new MesosResource(resReq.getResource()));
                             } else {
-                                logger.warn("Insufficient resources to increase resource usage.");
+                                logger.warn("    Insufficient offered resources to increase reservation of '{}', " +
+                                        "rejecting offer", resReq.getName());
                                 return Optional.empty();
                             }
                         }
                     }
                 } else {
                     if (resReq.reservesResource()) {
-                        logger.info("Reserves Resource");
+                        logger.info("    Resource '{}' requires a RESERVE operation", resReq.getName());
                         reserveRecommendations.add(new ReserveOfferRecommendation(offer, fulfilledResource));
                     }
 
                     if (resReq.createsVolume()) {
-                        logger.info("Creates Volume");
+                        logger.info("    Resource '{}' requires a CREATE operation", resReq.getName());
                         createRecommendations.add(new CreateOfferRecommendation(offer, fulfilledResource));
                     }
                 }
 
-                logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
+                logger.info("  Generated '{}' resource for task: [{}]",
+                        resReq.getName(), TextFormat.shortDebugString(fulfilledResource));
                 fulfilledResources.add(fulfilledResource);
             }
 
             for (DynamicPortRequirement dynamicPortRequirement : dynamicPortRequirements) {
+                logger.info("  Evaluating dynamic port requirement for '{}'...", dynamicPortRequirement.getName());
+
                 Optional<MesosResource> mesResOptional = pool.consume(dynamicPortRequirement);
                 if (!mesResOptional.isPresent()) {
-                    logger.warn("Failed to satisfy resource requirement: {}",
+                    logger.warn("    Offered resources didn't have suitable '{}' for requirement: [{}]",
+                            dynamicPortRequirement.getName(),
                             TextFormat.shortDebugString(dynamicPortRequirement.getResource()));
                     return Optional.empty();
                 }
                 final MesosResource mesRes = mesResOptional.get();
-                logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                        TextFormat.shortDebugString(dynamicPortRequirement.getResource()),
-                        TextFormat.shortDebugString(mesRes.getResource()));
+                logger.info("    Found suitable '{}' (dynamic port):", dynamicPortRequirement.getName());
+                logger.info("      Required: [{}]", TextFormat.shortDebugString(dynamicPortRequirement.getResource()));
+                logger.info("      Offered: [{}]", TextFormat.shortDebugString(mesRes.getResource()));
 
                 Resource fulfilledResource = getFulfilledResource(dynamicPortRequirement, mesRes);
                 if (dynamicPortRequirement.reservesResource()) {
-                    logger.info("Reserves Resource");
+                    logger.info("    Dynamic port resource '{}' requires a RESERVE operation",
+                            dynamicPortRequirement.getName());
                     reserveRecommendations.add(new ReserveOfferRecommendation(offer, fulfilledResource));
                 }
 
-                logger.info("Fulfilled resource: {}", TextFormat.shortDebugString(fulfilledResource));
+                logger.info("  Generated '{}' dynamic port resource for task: [{}]",
+                        dynamicPortRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
                 fulfilledResources.add(fulfilledResource);
             }
 
@@ -395,69 +425,32 @@ public class OfferEvaluator {
         return false;
     }
 
-    private static boolean expectedValueChanged(ResourceRequirement resReq, MesosResource mesRes) {
-        return !ValueUtils.equal(resReq.getValue(), mesRes.getValue());
-    }
-
     private static Resource getFulfilledResource(ResourceRequirement resReq, MesosResource mesRes) {
         Resource.Builder builder = Resource.newBuilder(mesRes.getResource());
         builder.setRole(resReq.getResource().getRole());
 
-        Optional<ReservationInfo> resInfo = getFulfilledReservationInfo(resReq, mesRes);
-        if (resInfo.isPresent()) {
-            builder.setReservation(resInfo.get());
-        }
-
-        Optional<DiskInfo> diskInfo = getFulfilledDiskInfo(resReq, mesRes);
-        if (diskInfo.isPresent()) {
-            builder.setDisk(diskInfo.get());
-        }
-
-        return builder.build();
-    }
-
-    private static Optional<DiskInfo> getFulfilledDiskInfo(
-            ResourceRequirement resReq, MesosResource mesRes) {
-        if (!resReq.getResource().hasDisk()) {
-            return Optional.empty();
-        }
-
-        DiskInfo.Builder builder = DiskInfo.newBuilder(resReq.getResource().getDisk());
-        if (mesRes.getResource().getDisk().hasSource()) {
-            builder.setSource(mesRes.getResource().getDisk().getSource());
-        }
-
-        Optional<Persistence> persistence = getFulfilledPersistence(resReq);
-        if (persistence.isPresent()) {
-            builder.setPersistence(persistence.get());
-        }
-
-        return Optional.of(builder.build());
-    }
-
-    private static Optional<ReservationInfo> getFulfilledReservationInfo(
-            ResourceRequirement resReq, MesosResource mesRes) {
-        if (!resReq.reservesResource()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(ReservationInfo
+        if (resReq.reservesResource()) {
+            builder.setReservation(ReservationInfo
                     .newBuilder(resReq.getResource().getReservation())
                     .setLabels(ResourceUtils.setResourceId(
                             resReq.getResource().getReservation().getLabels(),
-                            UUID.randomUUID().toString()))
-                    .build());
+                            UUID.randomUUID().toString())));
         }
-    }
 
-    private static Optional<Persistence> getFulfilledPersistence(ResourceRequirement resReq) {
-        if (!resReq.createsVolume()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(Persistence
-                    .newBuilder(resReq.getResource().getDisk().getPersistence())
-                    .setId(UUID.randomUUID().toString())
-                    .build());
+        if (resReq.getResource().hasDisk()) {
+            DiskInfo.Builder diskBuilder = DiskInfo.newBuilder(resReq.getResource().getDisk());
+            if (mesRes.getResource().getDisk().hasSource()) {
+                diskBuilder.setSource(mesRes.getResource().getDisk().getSource());
+            }
+            if (resReq.createsVolume()) {
+                diskBuilder.setPersistence(Persistence
+                        .newBuilder(resReq.getResource().getDisk().getPersistence())
+                        .setId(UUID.randomUUID().toString()));
+            }
+            builder.setDisk(diskBuilder);
         }
+
+        return builder.build();
     }
 
     private static TaskInfo getFulfilledTaskInfo(

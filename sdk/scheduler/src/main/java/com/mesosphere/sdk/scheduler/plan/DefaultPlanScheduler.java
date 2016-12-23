@@ -4,8 +4,11 @@ import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
+import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +25,18 @@ public class DefaultPlanScheduler implements PlanScheduler {
 
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
+    private final StateStore stateStore;
     private final TaskKiller taskKiller;
 
     @Inject
-    public DefaultPlanScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, TaskKiller taskKiller) {
+    public DefaultPlanScheduler(
+            OfferAccepter offerAccepter,
+            OfferEvaluator offerEvaluator,
+            StateStore stateStore,
+            TaskKiller taskKiller) {
         this.offerAccepter = offerAccepter;
         this.offerEvaluator = offerEvaluator;
+        this.stateStore = stateStore;
         this.taskKiller = taskKiller;
     }
 
@@ -121,8 +130,15 @@ public class DefaultPlanScheduler implements PlanScheduler {
     }
 
     private void killTasks(PodInstance podInstance) {
+        Collection<TaskInfo> tasks = stateStore.fetchTasks();
         for (String taskName : TaskUtils.getTaskNames(podInstance)) {
-            taskKiller.killTask(taskName, false);
+            // find TaskInfo matching this task name:
+            for (TaskInfo taskInfo : tasks) {
+                if (taskInfo.getName().equals(taskName)) {
+                    taskKiller.killTask(taskInfo.getTaskId(), false);
+                    break;
+                }
+            }
         }
     }
 

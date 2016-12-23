@@ -7,7 +7,7 @@ replacement-failure-policy:
   min-replace-delay-ms: 10
 pods:
   meta-data:
-    placement: "avoid-type: meta-data"
+    placement: "hostname:UNIQUE"
     count: 2
     resource-sets:
       meta-data-resources:

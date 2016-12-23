@@ -18,72 +18,76 @@
         }
       },
       "hello":{
-        "description":"Hello Pod configuration properties",
+        "description":"Hello pod configuration properties",
         "type":"object",
         "properties":{
           "cpus":{
-            "description":"Hello Pod cpu requirements",
+            "description":"Hello pod CPU requirements",
             "type":"number",
             "default":0.1
           },
           "mem":{
-            "description":"Hello Pod mem requirements",
+            "description":"Hello pod mem requirements (in MB)",
             "type":"integer",
             "default":252
           },
           "disk":{
-            "description":"Hello Pod disk requirements (only respected with persistent volumes)",
+            "description":"Hello pod persistent disk requirements (in MB)",
             "type":"integer",
             "default":25
           },
           "count":{
-            "description":"Number of Hello Pods to run",
+            "description":"Number of Hello pods to run",
             "type":"integer",
             "default":1
           },
-          "constraint":{
-            "description":"Marathon-style constraint for metadata nodes",
+          "placement":{
+            "description":"Marathon-style placement constraint for Hello pods",
             "type":"string",
-            "default":""
+            "default":"hostname:UNIQUE"
           }
         },
         "required":[
           "cpus",
+          "mem",
+          "disk",
           "count"
         ]
       },
       "world":{
-        "description":"Pod configuration properties",
+        "description":"World pod configuration properties",
         "type":"object",
         "properties":{
           "cpus":{
-            "description":"World Pod Cpu requirements",
+            "description":"World pod CPU requirements",
             "type":"number",
             "default":0.2
           },
           "mem":{
-            "description":"World Pod  mem requirements",
+            "description":"World pod mem requirements (in MB)",
             "type":"integer",
             "default":512
           },
           "disk":{
-            "description":"World Pod disk requirements (only respected with persistent volumes)",
+            "description":"World pod persistent disk requirements (in MB)",
             "type":"integer",
             "default":50
           },
           "count":{
-            "description":"Number of World Pods to run",
+            "description":"Number of World pods to run",
             "type":"integer",
             "default":2
           },
-          "constraint":{
-            "description":"Marathon-style constraint for metadata nodes",
+          "placement":{
+            "description":"Marathon-style placement constraint for World pods",
             "type":"string",
-            "default":""
+            "default":"hostname:UNIQUE"
           }
         },
         "required":[
           "cpus",
+          "mem",
+          "disk",
           "count"
         ]
       }

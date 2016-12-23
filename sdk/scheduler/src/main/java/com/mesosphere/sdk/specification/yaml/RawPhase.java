@@ -8,45 +8,30 @@ import java.util.List;
  * Raw YAML phase.
  */
 public class RawPhase {
-    private String name;
-    private String strategy;
-    private String pod;
-    private List<RawStep> steps;
 
-    public String getName() {
-        return name;
-    }
+    private final String strategy;
+    private final String pod;
+    private final List<RawStep> steps;
 
-    @JsonProperty("name")
-    public void setName(String name) {
-        this.name = name;
+    private RawPhase(
+            @JsonProperty("strategy") String strategy,
+            @JsonProperty("steps") List<RawStep> steps,
+            @JsonProperty("pod") String pod) {
+        this.strategy = strategy;
+        this.steps = steps;
+        this.pod = pod;
     }
 
     public String getStrategy() {
         return strategy;
     }
 
-    @JsonProperty("strategy")
-    public void setStrategy(String strategy) {
-        this.strategy = strategy;
-    }
-
     public List<RawStep> getSteps() {
         return steps;
     }
 
-    @JsonProperty("steps")
-    public void setSteps(List<RawStep> steps) {
-        this.steps = steps;
-    }
-
     public String getPod() {
         return pod;
-    }
-
-    @JsonProperty("pod")
-    public void setPod(String pod) {
-        this.pod = pod;
     }
 }
 

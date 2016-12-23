@@ -7,11 +7,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
-import com.mesosphere.sdk.api.ConfigResource;
-import com.mesosphere.sdk.api.EndpointsResource;
-import com.mesosphere.sdk.api.PlansResource;
-import com.mesosphere.sdk.api.StateResource;
-import com.mesosphere.sdk.api.TaskResource;
+import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
 import com.mesosphere.sdk.config.validate.ConfigurationValidator;
@@ -422,12 +418,12 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, driver);
+        taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
         offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
-                new OfferEvaluator(stateStore, offerRequirementProvider), taskKiller);
+                new OfferEvaluator(stateStore, offerRequirementProvider), stateStore, taskKiller);
     }
 
     /**
@@ -470,6 +466,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         resources.add(new PlansResource(ImmutableMap.of(
                 "deploy", deploymentPlanManager,
                 "recovery", recoveryPlanManager)));
+        resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         // use add() instead of put(): throw exception instead of waiting indefinitely
@@ -478,9 +475,10 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void declineOffers(SchedulerDriver driver, List<Protos.OfferID> acceptedOffers, List<Protos.Offer> offers) {
         final List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
+        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
         unusedOffers.stream().forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
-            LOGGER.info("Declining offer: " + offerId.getValue());
+            LOGGER.info("  {}", offerId.getValue());
             driver.declineOffer(offerId);
         });
     }
@@ -632,13 +630,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Agent lost: {}", agentId);
+        LOGGER.warn("Agent lost: {}", agentId.getValue());
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId, slaveId);
+        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), slaveId.getValue());
     }
 
     @Override

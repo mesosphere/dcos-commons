@@ -11,68 +11,53 @@ import java.util.LinkedHashMap;
  * Raw YAML pod.
  */
 public class RawPod {
-    private String name;
-    private String placement;
-    private Integer count;
-    private RawContainer container;
-    private String strategy;
-    private String user;
-    private Collection<String> uris;
-    private WriteOnceLinkedHashMap<String, RawTask> tasks;
-    private WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
 
-    public String getName() {
-        return name;
-    }
+    private final String placement;
+    private final Integer count;
+    private final RawContainer container;
+    private final String strategy;
+    private final String user;
+    private final Collection<String> uris;
+    private final WriteOnceLinkedHashMap<String, RawTask> tasks;
+    private final WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
 
-    @JsonProperty("name")
-    public void setName(String name) {
-        this.name = name;
+    private RawPod(
+            @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
+            @JsonProperty("placement") String placement,
+            @JsonProperty("count") Integer count,
+            @JsonProperty("container") RawContainer container,
+            @JsonProperty("strategy") String strategy,
+            @JsonProperty("uris") Collection<String> uris,
+            @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
+            @JsonProperty("user") String user) {
+        this.placement = placement;
+        this.count = count;
+        this.container = container;
+        this.strategy = strategy;
+        this.user = user;
+        this.uris = uris;
+        this.tasks = tasks;
+        this.resourceSets = resourceSets;
     }
 
     public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
         return resourceSets;
     }
 
-    @JsonProperty("resource-sets")
-    public void setResourceSets(WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets) {
-        this.resourceSets = resourceSets;
-    }
-
     public String getPlacement() {
         return placement;
-    }
-
-    @JsonProperty("placement")
-    public void setPlacement(String placement) {
-        this.placement = placement;
     }
 
     public Integer getCount() {
         return count;
     }
 
-    @JsonProperty("count")
-    public void setCount(Integer count) {
-        this.count = count;
-    }
-
     public RawContainer getContainer() {
         return container;
     }
 
-    @JsonProperty("container")
-    public void setContainer(RawContainer container) {
-        this.container = container;
-    }
-
     public String getStrategy() {
         return strategy;
-    }
-
-    @JsonProperty("strategy")
-    public void setStrategy(String strategy) {
-        this.strategy = strategy;
     }
 
     public LinkedHashMap<String, RawTask> getTasks() {
@@ -83,22 +68,7 @@ public class RawPod {
         return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
     }
 
-    @JsonProperty("uris")
-    public void setUris(Collection<String> uris) {
-        this.uris = uris;
-    }
-
-    @JsonProperty("tasks")
-    public void setTasks(WriteOnceLinkedHashMap<String, RawTask> tasks) {
-        this.tasks = tasks;
-    }
-
     public String getUser() {
         return user;
-    }
-
-    @JsonProperty("user")
-    public void setUser(String user) {
-        this.user = user;
     }
 }

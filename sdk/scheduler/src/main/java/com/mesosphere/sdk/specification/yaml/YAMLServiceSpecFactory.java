@@ -12,10 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Generates {@link ServiceSpec} from a given YAML definition.
@@ -41,18 +37,5 @@ public class YAMLServiceSpecFactory {
     public static final DefaultServiceSpec generateServiceSpec(RawServiceSpecification rawServiceSpecification)
             throws Exception {
         return YAMLToInternalMappers.from(rawServiceSpecification);
-    }
-
-    public static final List<RawPlan> generateRawPlans(RawServiceSpecification rawServiceSpecification)
-            throws Exception {
-        List<RawPlan> rawPlans = new LinkedList<>();
-        Set<Map.Entry<String, RawPlan>> rawPlanEntries = rawServiceSpecification.getPlans().entrySet();
-        for (Map.Entry<String, RawPlan> rawPlanEntry : rawPlanEntries) {
-            RawPlan rawPlan = rawPlanEntry.getValue();
-            rawPlan.setName(rawPlanEntry.getKey());
-            rawPlans.add(rawPlan);
-        }
-
-        return rawPlans;
     }
 }

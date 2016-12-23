@@ -7,7 +7,7 @@ replacement-failure-policy:
   min-replace-delay-ms: 10
 pods:
   meta-data:
-    placement: "avoid-type: meta-data"
+    placement: "hostname:UNIQUE"
     count: 2
     resource-sets:
       meta-data-resources:
@@ -38,7 +38,7 @@ pods:
             delay: 0
             timeout: 10
   data-store:
-    placement: "avoid-type: data-store"
+    placement: "hostname:UNIQUE"
     count: 3
     resource-sets:
       data-store-resources:
@@ -80,13 +80,13 @@ plans:
         strategy: serial
         pod: nn
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [format]
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [server]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [format]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [server]
       dn-deploy:
         strategy: serial

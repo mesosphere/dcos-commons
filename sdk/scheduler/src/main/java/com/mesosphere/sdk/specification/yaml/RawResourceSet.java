@@ -2,53 +2,42 @@ package com.mesosphere.sdk.specification.yaml;
 
 import java.util.Collection;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Raw YAML ResourceSet.
  */
 public class RawResourceSet {
-    String id;
-    Double cpus;
-    Integer memory;
-    Collection<RawPort> ports;
-    Collection<RawVolume> volumes;
 
-    public String getId() {
-        return id;
-    }
+    private final Double cpus;
+    private final Integer memory;
+    private final Collection<RawPort> ports;
+    private final Collection<RawVolume> volumes;
 
-    public void setId(String id) {
-        this.id = id;
+    private RawResourceSet(
+            @JsonProperty("cpus") Double cpus,
+            @JsonProperty("memory") Integer memory,
+            @JsonProperty("ports") Collection<RawPort> ports,
+            @JsonProperty("volumes") Collection<RawVolume> volumes) {
+        this.cpus = cpus;
+        this.memory = memory;
+        this.ports = ports;
+        this.volumes = volumes;
     }
 
     public Collection<RawVolume> getVolumes() {
         return volumes;
     }
 
-    public void setVolumes(Collection<RawVolume> volumes) {
-        this.volumes = volumes;
-    }
-
     public Double getCpus() {
         return cpus;
-    }
-
-    public void setCpus(Double cpus) {
-        this.cpus = cpus;
     }
 
     public Integer getMemory() {
         return memory;
     }
 
-    public void setMemory(Integer memory) {
-        this.memory = memory;
-    }
-
     public Collection<RawPort> getPorts() {
         return ports;
-    }
-
-    public void setPorts(Collection<RawPort> ports) {
-        this.ports = ports;
     }
 }

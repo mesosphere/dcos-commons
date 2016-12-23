@@ -18,7 +18,7 @@ func main() {
 	cli.HandleConfigSection(app)
 	cli.HandleEndpointsSection(app)
 	cli.HandlePlanSection(app)
-	cli.HandleStateSection(app)
+	cli.HandlePodsSection(app)
 	handleExampleSection(app)
 
 	// Omit modname:

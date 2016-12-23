@@ -22,6 +22,10 @@ public interface PodInstance {
     }
 
     static String getName(PodSpec podSpec, int index) {
-        return String.format("%s-%d", podSpec.getType(), index);
+        return getName(podSpec.getType(), index);
+    }
+
+    public static String getName(String podType, int index) {
+        return String.format("%s-%d", podType, index);
     }
 }

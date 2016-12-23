@@ -12,7 +12,6 @@ PACKAGE_NAME = 'hello-world'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-DEFAULT_TASK_COUNT = 1
 
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'
@@ -31,7 +30,14 @@ else:
     DEFAULT_OPTIONS_DICT = {}
 
 
-def check_health(expected_tasks = DEFAULT_TASK_COUNT):
+def get_task_count():
+    config = get_marathon_config()
+    return int(config['env']['HELLO_COUNT']) + int(config['env']['WORLD_COUNT'])
+
+
+def check_health():
+    expected_tasks = get_task_count()
+
     def fn():
         try:
             return shakedown.get_service_tasks(PACKAGE_NAME)
@@ -170,9 +176,11 @@ def request(request_fn, *args, **kwargs):
 
     return spin(request_fn, success_predicate, *args, **kwargs)
 
-
 def run_dcos_cli_cmd(cmd):
-    print('Running {}'.format(cmd))
-    stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
-    print(stdout)
+    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd)
+    if ret != 0:
+        err = "Got error code {} when running command 'dcos {}':\nstdout: {}\nstderr: {}".format(
+            ret, cmd, stdout, stderr)
+        print(err)
+        raise Exception(err)
     return stdout

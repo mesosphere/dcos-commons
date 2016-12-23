@@ -100,30 +100,32 @@ public class TaskResourceTest {
     @Test
     public void testRestart() {
         String taskName = "task1";
-        when(mockTaskKiller.killTask(taskName, false)).thenReturn(true);
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName).build();
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.restartTask(taskName, "false");
 
-        verify(mockTaskKiller, times(1)).killTask(taskName, false);
+        verify(mockTaskKiller, times(1)).killTask(taskInfo.getTaskId(), false);
         assertEquals(202, response.getStatus());
     }
 
     @Test
     public void testRestartReplace() {
         String taskName = "task1";
-        when(mockTaskKiller.killTask(taskName, true)).thenReturn(true);
+        TaskInfo taskInfo = getTaskInfoBuilder(taskName).build();
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.restartTask(taskName, "true");
 
-        verify(mockTaskKiller, times(1)).killTask(taskName, true);
+        verify(mockTaskKiller, times(1)).killTask(taskInfo.getTaskId(), true);
         assertEquals(202, response.getStatus());
     }
 
     @Test
-    public void testRestartFails() {
+    public void testRestartLookupFails() {
         String taskName = "task1";
-        when(mockTaskKiller.killTask(taskName, false)).thenReturn(false);
+        when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.empty());
         Response response = resource.restartTask(taskName, "false");
 
-        verify(mockTaskKiller, times(1)).killTask(taskName, false);
+        verifyNoMoreInteractions(mockTaskKiller);
         assertEquals(404, response.getStatus());
     }
 

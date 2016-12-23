@@ -3,7 +3,10 @@ package com.mesosphere.sdk.specification.yaml;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.mesos.Protos;
+
+import com.mesosphere.sdk.offer.constrain.MarathonConstraintParser;
+import com.mesosphere.sdk.offer.constrain.PassthroughRule;
+import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 
@@ -17,18 +20,15 @@ import java.util.stream.Collectors;
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
-    private static final Collection<String> SCALARS = Arrays.asList("cpus", "mem");
 
-    public static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
+    static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
         final String role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
         final String principal = rawSvcSpec.getPrincipal();
 
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawSvcSpec.getPods();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
-            final RawPod rawPod = entry.getValue();
-            rawPod.setName(entry.getKey());
-            pods.add(from(rawPod, role, principal));
+            pods.add(from(entry.getValue(), entry.getKey(), role, principal));
         }
 
         RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
@@ -54,13 +54,13 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    public static ConfigFileSpecification from(RawConfiguration rawConfiguration) throws IOException {
+    private static ConfigFileSpecification from(RawConfiguration rawConfiguration) throws IOException {
         return new DefaultConfigFileSpecification(
                 rawConfiguration.getDest(),
                 new File(rawConfiguration.getTemplate()));
     }
 
-    public static HealthCheckSpec from(RawHealthCheck rawHealthCheck, String name) {
+    private static HealthCheckSpec from(RawHealthCheck rawHealthCheck, String name) {
         return DefaultHealthCheckSpec.newBuilder()
                 .name(name)
                 .command(rawHealthCheck.getCmd())
@@ -72,169 +72,132 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    public static PodSpec from(RawPod rawPod, String role, String principal) throws Exception {
-        List<TaskSpec> taskSpecs = new ArrayList<>();
-        String podName = rawPod.getName();
-        Integer podInstanceCount = rawPod.getCount();
-        // String placement = rawPod.getPlacement();
-        RawContainer container = rawPod.getContainer();
-        WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
-        String user = rawPod.getUser();
-        LinkedHashMap<String, RawTask> tasks = rawPod.getTasks();
- 
-        Collection<String> rawTaskUris = rawPod.getUris();
+    private static PodSpec from(RawPod rawPod, String podName, String role, String principal) throws Exception {
         Collection<URI> uris = new ArrayList<>();
-        for (String uriStr : rawTaskUris) {
+        for (String uriStr : rawPod.getUris()) {
             uris.add(new URI(uriStr));
         }
 
+        WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         if (MapUtils.isNotEmpty(rawResourceSets)) {
             resourceSets.addAll(rawResourceSets.entrySet().stream()
                     .map(rawResourceSetEntry -> {
                         String rawResourceSetName = rawResourceSetEntry.getKey();
-                        RawResourceSet rawResourceSet = rawResourceSets.get(rawResourceSetName);
-                        rawResourceSet.setId(rawResourceSetName);
-                        return from(rawResourceSet, role, principal);
+                        return from(rawResourceSets.get(rawResourceSetName), rawResourceSetName, role, principal);
                     })
                     .collect(Collectors.toList()));
         }
 
-
-        final LinkedHashMap<String, RawTask> rawTasks = tasks;
-        for (Map.Entry<String, RawTask> entry : rawTasks.entrySet()) {
-            entry.getValue().setName(entry.getKey());
+        List<TaskSpec> taskSpecs = new ArrayList<>();
+        for (Map.Entry<String, RawTask> entry : rawPod.getTasks().entrySet()) {
             taskSpecs.add(from(
-                    entry.getValue(), uris,
-                    Optional.ofNullable(user),
+                    entry.getValue(),
+                    entry.getKey(),
+                    uris,
+                    Optional.ofNullable(rawPod.getUser()),
                     podName,
                     resourceSets,
                     role,
                     principal));
         }
 
-        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder();
-
-        if (container != null) {
-            System.out.println("HELLO");
-            System.out.println(container.toString());
-            builder.container(new DefaultContainerSpec(container.getImageName()));
-        }
-
-        final DefaultPodSpec podSpec = builder
-                .count(podInstanceCount)
-                .placementRule(null /** TODO(mohit) */)
+        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
+                .count(rawPod.getCount())
                 .tasks(taskSpecs)
                 .type(podName)
-                .user(user)
-                .resources(resourceSets)
-                .build();
+                .user(rawPod.getUser())
+                .resources(resourceSets);
 
-        return podSpec;
-    }
-
-    public static ResourceSpecification from(RawResource rawResource, String role, String principal) {
-        final String name = rawResource.getName();
-        final String value = rawResource.getValue();
-        final String envKey = rawResource.getEnvKey();
-
-        Protos.Value resourceValue = null;
-        if (SCALARS.contains(name)) {
-            resourceValue = Protos.Value.newBuilder()
-                    .setType(Protos.Value.Type.SCALAR)
-                    .setScalar(Protos.Value.Scalar.newBuilder().setValue(Double.parseDouble(value)))
-                    .build();
-//        } else if ("disk".equalsIgnoreCase(name)) {
-//            // TODO(mohit): Throw error
+        PlacementRule placementRule = MarathonConstraintParser.parse(rawPod.getPlacement());
+        if (!(placementRule instanceof PassthroughRule)) {
+            builder.placementRule(placementRule);
+        }
+        if (rawPod.getContainer() != null) {
+            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName()));
         }
 
-        return new DefaultResourceSpecification(name, resourceValue, role, principal, envKey);
+        return builder.build();
     }
 
-    public static ResourceSet from(RawResourceSet rawResourceSet, String role, String principal) {
+    private static ResourceSet from(
+            RawResourceSet rawResourceSet, String resourceSetId, String role, String principal) {
         Double cpus = rawResourceSet.getCpus();
         Integer memory = rawResourceSet.getMemory();
         Collection<RawPort> ports = rawResourceSet.getPorts();
-        String id = rawResourceSet.getId();
         final Collection<RawVolume> rawVolumes = rawResourceSet.getVolumes();
 
-        return from(id, cpus, memory, ports, rawVolumes, role, principal);
+        return from(resourceSetId, cpus, memory, ports, rawVolumes, role, principal);
     }
 
-    public static TaskSpec from(RawTask rawTask, Collection<URI> podUris,
-                                Optional<String> user,
-                                String podType,
-                                Collection<ResourceSet> resourceSets,
-                                String role,
-                                String principal) throws Exception {
-        String cmd = rawTask.getCmd();
-        Collection<RawConfiguration> configurations = rawTask.getConfigurations();
-        Map<String, String> env = rawTask.getEnv();
-        String goal = rawTask.getGoal();
-        LinkedHashMap<String, RawHealthCheck> rawTaskHealthChecks = rawTask.getHealthChecks();
-        String taskName = rawTask.getName();
-        String resourceSetName = rawTask.getResourceSet();
-        Collection<String> rawTaskUris = rawTask.getUris();
-
-        Double cpus = rawTask.getCpus();
-        Integer memory = rawTask.getMemory();
-        Collection<RawPort> ports = rawTask.getPorts();
-        Collection<RawVolume> rawVolumes = rawTask.getVolumes();
-
+    private static TaskSpec from(
+            RawTask rawTask,
+            String taskName,
+            Collection<URI> podUris,
+            Optional<String> user,
+            String podType,
+            Collection<ResourceSet> resourceSets,
+            String role,
+            String principal) throws Exception {
         Collection<URI> uris = new ArrayList<>();
-        for (String uriStr : rawTaskUris) {
+        for (String uriStr : rawTask.getUris()) {
             uris.add(new URI(uriStr));
         }
         uris.addAll(podUris);
 
-        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder();
+        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder()
+                .environment(rawTask.getEnv())
+                .uris(uris)
+                .value(rawTask.getCmd());
         if (user.isPresent()) {
             commandSpecBuilder.user(user.get());
         }
-        final DefaultCommandSpec commandSpec = commandSpecBuilder
-                .environment(env)
-                .uris(uris)
-                .value(cmd)
-                .build();
 
         List<ConfigFileSpecification> configFiles = new LinkedList<>();
-        Collection<RawConfiguration> rawConfigurations =
-                configurations == null ? Collections.emptyList() : configurations;
-        for (RawConfiguration rawConfig : rawConfigurations) {
-            configFiles.add(from(rawConfig));
+        if (rawTask.getConfigurations() != null) {
+            for (RawConfiguration rawConfig : rawTask.getConfigurations()) {
+                configFiles.add(from(rawConfig));
+            }
         }
 
+        // Note: We currently only support the first healthcheck.
         HealthCheckSpec healthCheckSpec = null;
-        final LinkedHashMap<String, RawHealthCheck> healthChecks = rawTaskHealthChecks;
-
-        if (MapUtils.isNotEmpty(healthChecks)) {
-            Map.Entry<String, RawHealthCheck> entry = healthChecks.entrySet().iterator().next();
+        if (MapUtils.isNotEmpty(rawTask.getHealthChecks())) {
+            Map.Entry<String, RawHealthCheck> entry = rawTask.getHealthChecks().entrySet().iterator().next();
             healthCheckSpec = from(entry.getValue(), entry.getKey());
         }
 
-        DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder();
-
-        if (StringUtils.isNotBlank(resourceSetName)) {
-            builder.resourceSet(
-                    resourceSets.stream()
-                            .filter(resourceSet -> resourceSet.getId().equals(resourceSetName))
-                            .findFirst().get());
-        } else {
-            builder.resourceSet(from(taskName + "-resource-set", cpus, memory, ports, rawVolumes, role, principal));
-        }
-
-        return builder
-                .commandSpec(commandSpec)
+        DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
+                .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
-                .goalState(GoalState.valueOf(StringUtils.upperCase(goal)))
+                .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .name(taskName)
                 .type(podType)
-                .uris(uris)
-                .build();
+                .uris(uris);
+
+        if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
+            // Use resource set content:
+            builder.resourceSet(
+                    resourceSets.stream()
+                            .filter(resourceSet -> resourceSet.getId().equals(rawTask.getResourceSet()))
+                            .findFirst().get());
+        } else {
+            // Use task content:
+            builder.resourceSet(from(
+                    taskName + "-resource-set",
+                    rawTask.getCpus(),
+                    rawTask.getMemory(),
+                    rawTask.getPorts(),
+                    rawTask.getVolumes(),
+                    role,
+                    principal));
+        }
+
+        return builder.build();
     }
 
-    public static DefaultResourceSet from(
+    private static DefaultResourceSet from(
             String id,
             Double cpus,
             Integer memory,
@@ -268,24 +231,6 @@ public class YAMLToInternalMappers {
 
         return resourceSetBuilder
                 .id(id)
-                .build();
-    }
-
-    public static VolumeSpecification from(RawVolume rawVolume, String role, String principal) {
-        return new DefaultVolumeSpecification(
-                rawVolume.getSize(),
-                VolumeSpecification.Type.valueOf(rawVolume.getType()),
-                rawVolume.getPath(),
-                role,
-                principal,
-                "DISK_SIZE");
-    }
-
-    public static VipSpec from(RawVip rawVip, int applicationPort) {
-        return DefaultVipSpec.newBuilder()
-                .vipPort(rawVip.getPort())
-                .vipName(rawVip.getPrefix())
-                .applicationPort(applicationPort)
                 .build();
     }
 }

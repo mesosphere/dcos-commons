@@ -30,17 +30,16 @@ public class FailureUtils {
      * @return The marked TaskInfo which may be a copy of the original TaskInfo.
      */
     public static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
-        if (!isLabeledAsFailed(taskInfo)) {
-            taskInfo = ResourceUtils.clearResourceIds(taskInfo);
-            taskInfo = ResourceUtils.clearPersistence(taskInfo);
-            return Protos.TaskInfo.newBuilder(taskInfo)
-                    .setLabels(Protos.Labels.newBuilder(taskInfo.getLabels())
-                            .addLabels(Protos.Label.newBuilder()
-                                    .setKey(PERMANENTLY_FAILED_KEY)
-                                    .setValue(String.valueOf(true))))
-                    .build();
-        } else {
+        if (isLabeledAsFailed(taskInfo)) {
             return taskInfo;
         }
+        taskInfo = ResourceUtils.clearResourceIds(taskInfo);
+        taskInfo = ResourceUtils.clearPersistence(taskInfo);
+        return Protos.TaskInfo.newBuilder(taskInfo)
+                .setLabels(Protos.Labels.newBuilder(taskInfo.getLabels())
+                        .addLabels(Protos.Label.newBuilder()
+                                .setKey(PERMANENTLY_FAILED_KEY)
+                                .setValue(String.valueOf(true))))
+                .build();
     }
 }

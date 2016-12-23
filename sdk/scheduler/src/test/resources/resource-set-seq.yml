@@ -8,6 +8,11 @@ pods:
     resource-sets:
       name-resources:
         cpus: 1.0
+        volumes:
+          - path: "name-path"
+            type: ROOT
+            size: 50
+
       sidecar-resources:
         cpus: 2.0
     tasks:
@@ -44,7 +49,7 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [format]
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [node]

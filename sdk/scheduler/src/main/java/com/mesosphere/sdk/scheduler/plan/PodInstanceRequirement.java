@@ -10,10 +10,36 @@ import java.util.Collection;
 public class PodInstanceRequirement {
     private final PodInstance podInstance;
     private final Collection<String> tasksToLaunch;
+    private final boolean isPermanentReplacement;
 
-    public PodInstanceRequirement(PodInstance podInstance, Collection<String> tasksToLaunch) {
+    /**
+     * Creates a new instance which isn't marked as a permanent replacement.
+     */
+    public static PodInstanceRequirement create(
+            PodInstance podInstance,
+            Collection<String> tasksToLaunch) {
+        return new PodInstanceRequirement(podInstance, tasksToLaunch, false);
+    }
+
+    /**
+     * Creates a new instance which is marked as a permanent replacement.
+     */
+    public static PodInstanceRequirement createPermanentReplacement(
+            PodInstance podInstance,
+            Collection<String> tasksToLaunch) {
+        return new PodInstanceRequirement(podInstance, tasksToLaunch, true);
+    }
+
+    /**
+     * Creates a new instance with the provided permanent replacement setting.
+     */
+    private PodInstanceRequirement(
+            PodInstance podInstance,
+            Collection<String> tasksToLaunch,
+            boolean isPermanentReplacement) {
         this.podInstance = podInstance;
         this.tasksToLaunch = tasksToLaunch;
+        this.isPermanentReplacement = isPermanentReplacement;
     }
 
     /**
@@ -29,5 +55,13 @@ public class PodInstanceRequirement {
      */
     public Collection<String> getTasksToLaunch() {
         return tasksToLaunch;
+    }
+
+    /**
+     * Returns whether this pod is replacing a previous instance that failed permanently. In this case new resources
+     * should be created, even though (now failed) TaskInfos are still present in the StateStore.
+     */
+    public boolean isPermanentReplacement() {
+        return isPermanentReplacement;
     }
 }

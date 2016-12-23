@@ -12,134 +12,92 @@ import java.util.Map;
  * Raw YAML task.
  */
 public class RawTask {
-    private String name;
-    private String goal;
-    private String cmd;
-    private String image;
-    private Map<String, String> env;
-    private Collection<RawConfiguration> configurations;
-    private Collection<String> uris;
-    private Double cpus;
-    private Integer memory;
-    private Collection<RawPort> ports;
-    private LinkedHashMap<String, RawHealthCheck> healthChecks;
-    private Collection<RawVolume> volumes;
-    private String resourceSet;
+
+    private final String goal;
+    private final String cmd;
+    private final String image;
+    private final Map<String, String> env;
+    private final Collection<RawConfiguration> configurations;
+    private final Collection<String> uris;
+    private final Double cpus;
+    private final Integer memory;
+    private final Collection<RawPort> ports;
+    private final LinkedHashMap<String, RawHealthCheck> healthChecks;
+    private final Collection<RawVolume> volumes;
+    private final String resourceSet;
+
+    private RawTask(
+            @JsonProperty("goal") String goal,
+            @JsonProperty("cmd") String cmd,
+            @JsonProperty("image") String image,
+            @JsonProperty("env") Map<String, String> env,
+            @JsonProperty("configurations") Collection<RawConfiguration> configurations,
+            @JsonProperty("uris") Collection<String> uris,
+            @JsonProperty("cpus") Double cpus,
+            @JsonProperty("memory") Integer memory,
+            @JsonProperty("ports") Collection<RawPort> ports,
+            @JsonProperty("health-checks") LinkedHashMap<String, RawHealthCheck> healthChecks,
+            @JsonProperty("volumes") Collection<RawVolume> volumes,
+            @JsonProperty("resource-set") String resourceSet) {
+        this.goal = goal;
+        this.cmd = cmd;
+        this.image = image;
+        this.env = env;
+        this.configurations = configurations;
+        this.uris = uris;
+        this.cpus = cpus;
+        this.memory = memory;
+        this.ports = ports;
+        this.healthChecks = healthChecks;
+        this.volumes = volumes;
+        this.resourceSet = resourceSet;
+    }
 
     public Double getCpus() {
         return cpus;
-    }
-
-    @JsonProperty("cpus")
-    public void setCpus(Double cpus) {
-        this.cpus = cpus;
     }
 
     public Integer getMemory() {
         return memory;
     }
 
-    @JsonProperty("memory")
-    public void setMemory(Integer memory) {
-        this.memory = memory;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @JsonProperty("name")
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getResourceSet() {
         return resourceSet;
-    }
-
-    @JsonProperty("resource-set")
-    public void setResourceSet(String resourceSet) {
-        this.resourceSet = resourceSet;
     }
 
     public LinkedHashMap<String, RawHealthCheck> getHealthChecks() {
         return healthChecks;
     }
 
-    @JsonProperty("health-checks")
-    public void setHealthChecks(LinkedHashMap<String, RawHealthCheck> healthChecks) {
-        this.healthChecks = healthChecks;
-    }
-
     public String getGoal() {
         return goal;
-    }
-
-    @JsonProperty("goal")
-    public void setGoal(String goal) {
-        this.goal = goal;
     }
 
     public String getCmd() {
         return cmd;
     }
 
-    @JsonProperty("cmd")
-    public void setCmd(String cmd) {
-        this.cmd = cmd;
-    }
-
     public String getImage() {
         return image;
-    }
-
-    @JsonProperty("image")
-    public void setImage(String image) {
-        this.image = image;
     }
 
     public Map<String, String> getEnv() {
         return env;
     }
 
-    @JsonProperty("env")
-    public void setEnv(Map<String, String> env) {
-        this.env = env;
-    }
-
     public Collection<String> getUris() {
         return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
-    }
-
-    @JsonProperty("uris")
-    public void setUris(Collection<String> uris) {
-        this.uris = uris;
     }
 
     public Collection<RawPort> getPorts() {
         return ports;
     }
 
-    @JsonProperty("ports")
-    public void setPorts(Collection<RawPort> ports) {
-        this.ports = ports;
-    }
-
     public Collection<RawConfiguration> getConfigurations() {
         return configurations;
     }
 
-    @JsonProperty("configurations")
-    public void setConfigurations(Collection<RawConfiguration> configurations) {
-        this.configurations = configurations;
-    }
-
     public Collection<RawVolume> getVolumes() {
         return volumes;
-    }
-
-    @JsonProperty("volumes")
-    public void setVolumes(Collection<RawVolume> volumes) {
-        this.volumes = volumes;
     }
 }

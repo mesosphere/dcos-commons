@@ -71,16 +71,10 @@ public class MesosResourcePool {
      */
     public Optional<MesosResource> consume(ResourceRequirement resourceRequirement) {
         if (resourceRequirement.expectsResource()) {
-            logger.info("Retrieving reserved resource");
             return consumeReserved(resourceRequirement);
         } else if (resourceRequirement.isAtomic()) {
-            logger.info("Retrieving atomic resource");
             return consumeAtomic(resourceRequirement);
-        } else if (resourceRequirement.reservesResource()) {
-            logger.info("Retrieving resource for reservation");
-            return consumeUnreservedMerged(resourceRequirement);
-        } else if (resourceRequirement.consumesUnreservedResource()) {
-            logger.info("Retrieving resource for unreserved resource requirement.");
+        } else if (resourceRequirement.reservesResource() || resourceRequirement.consumesUnreservedResource()) {
             return consumeUnreservedMerged(resourceRequirement);
         }
 
@@ -176,14 +170,20 @@ public class MesosResourcePool {
                 if (sufficientValue(resourceRequirement.getValue(), mesosResource.getValue())) {
                     reservedPool.remove(resourceRequirement.getResourceId());
                 } else {
+                    logger.warn("Reserved atomic quantity of {} is insufficient: desired {}, reserved {}",
+                            resourceRequirement.getName(),
+                            TextFormat.shortDebugString(resourceRequirement.getValue()),
+                            TextFormat.shortDebugString(mesosResource.getValue()));
                     return Optional.empty();
                 }
             } else {
                 reservedPool.remove(resourceRequirement.getResourceId());
             }
         } else {
-           logger.warn("Failed to find reserved resource: {}, in available resources: {}",
-                   resourceRequirement.getResourceId(), reservedPool.keySet());
+           logger.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
+                   resourceRequirement.getName(),
+                   resourceRequirement.getResourceId(),
+                   reservedPool.keySet());
         }
 
         return Optional.ofNullable(mesosResource);
@@ -206,15 +206,21 @@ public class MesosResourcePool {
             }
         }
 
-        if (filteredResources.size() == 0) {
+        if (filteredResources.isEmpty()) {
             unreservedAtomicPool.remove(resourceRequirement.getName());
         } else {
             unreservedAtomicPool.put(resourceRequirement.getName(), filteredResources);
         }
 
         if (!sufficientResource.isPresent()) {
-            logger.warn("No sufficient atomic resources found for resource requirement: {}",
-                    TextFormat.shortDebugString(resourceRequirement.getResource()));
+            if (atomicResources == null) {
+                logger.info("Offer lacks any atomic resources named {}", resourceRequirement.getName());
+            } else {
+                logger.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
+                        atomicResources.size(),
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+            }
         }
 
         return sufficientResource;
@@ -229,6 +235,14 @@ public class MesosResourcePool {
             Resource resource = ResourceUtils.getUnreservedResource(resourceRequirement.getName(), desiredValue);
             return Optional.of(new MesosResource(resource));
         } else {
+            if (availableValue == null) {
+                logger.info("Offer lacks any resources named {}", resourceRequirement.getName());
+            } else {
+                logger.info("Offered quantity of {} is insufficient: desired {}, offered {}",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(desiredValue),
+                        TextFormat.shortDebugString(availableValue));
+            }
             return Optional.empty();
         }
     }

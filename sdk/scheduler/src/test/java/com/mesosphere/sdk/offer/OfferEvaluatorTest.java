@@ -29,6 +29,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNotEquals;
 
@@ -1068,52 +1069,134 @@ public class OfferEvaluatorTest {
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
-                new PodInstanceRequirement(podInstance, Arrays.asList("format"));
+                PodInstanceRequirement.create(podInstance, Arrays.asList("format"));
 
-        Resource sufficientResource = ResourceUtils.getUnreservedScalar("cpus", 3.0);
-        Offer sufficientOffer = OfferTestUtils.getOffer(sufficientResource);
+        Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
+                ResourceUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceUtils.getUnreservedScalar("disk", 500.0)));
 
         // Launch Task with FINISHED goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(sufficientOffer));
 
-        Assert.assertEquals(4, recommendations.size());
+        Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
 
         // Validate RESERVE Operations
-        Operation reserveOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
-        reserveOperation = recommendations.get(1).getOperation();
-        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(1).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(2).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+
+        // Validate CREATE Operation
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
 
         // Validate LAUNCH Operations
-        Operation launchOperation = recommendations.get(2).getOperation();
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
-        launchOperation = recommendations.get(3).getOperation();
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+        operation = recommendations.get(5).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
         recordOperations(recommendations, sufficientOffer);
 
         // Launch Task with RUNNING goal state, later.
-        podInstanceRequirement = new PodInstanceRequirement(podInstance, Arrays.asList("node"));
+        podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
         // Providing sufficient, but unreserved resources should result in no operations.
         Assert.assertEquals(0, recommendations.size());
 
-        String resourceId = offerRequirementProvider.getExistingOfferRequirement(podInstance, Arrays.asList("node"))
+        List<String> resourceIds = offerRequirementProvider.getExistingOfferRequirement(podInstance, Arrays.asList("node"))
                 .getTaskRequirements().stream()
                 .flatMap(taskRequirement -> taskRequirement.getResourceRequirements().stream())
                 .map(resourceRequirement -> resourceRequirement.getResourceId())
-                .findFirst()
-                .get();
+                .collect(Collectors.toList());
+        Assert.assertEquals(resourceIds.toString(), 2, resourceIds.size());
 
-        Resource expectedResource = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
-        Offer expectedOffer = OfferTestUtils.getOffer(expectedResource);
+        Offer expectedOffer = OfferTestUtils.getOffer(Arrays.asList(
+                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceIds.get(0)),
+                ResourceTestUtils.getExpectedScalar("disk", 50.0, resourceIds.get(1))));
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(expectedOffer));
         // Providing the expected reserved resources should result in a LAUNCH operation.
         Assert.assertEquals(1, recommendations.size());
-        launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+    }
+
+    @Test
+    public void testRelaunchFailedPod() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
+        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.create(podInstance, Arrays.asList("format"));
+
+        Offer sufficientOffer = OfferTestUtils.getOffer(Arrays.asList(
+                ResourceUtils.getUnreservedScalar("cpus", 3.0),
+                ResourceUtils.getUnreservedScalar("disk", 500.0)));
+
+        // Launch Task with FINISHED goal state, for first time.
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(sufficientOffer));
+
+        Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
+
+        // Validate RESERVE Operations
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(1).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(2).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+
+        // Validate CREATE Operation
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
+
+        // Validate LAUNCH Operations
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+        operation = recommendations.get(5).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+
+        recordOperations(recommendations, sufficientOffer);
+
+        // Attempt to launch task again as non-failed.
+        podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
+        recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
+        // The pod is running fine according to the state store, so no new deployment is issued.
+        Assert.assertEquals(recommendations.toString(), 0, recommendations.size());
+
+        // Now the same operation except with the task flagged as having permanently failed.
+        podInstanceRequirement = PodInstanceRequirement.createPermanentReplacement(podInstance, Arrays.asList("node"));
+        recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
+        // A new deployment replaces the prior one above.
+        Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
+
+        // Validate RESERVE Operations
+        operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(1).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+        operation = recommendations.get(2).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
+
+        // Validate CREATE Operation
+        operation = recommendations.get(3).getOperation();
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
+
+        // Validate LAUNCH Operations
+        operation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
+        operation = recommendations.get(5).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
     }
 
     private static OfferRequirement getOfferRequirement(

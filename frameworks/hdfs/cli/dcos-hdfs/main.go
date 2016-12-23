@@ -24,12 +24,12 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
+	cli.HandleCommonFlags(app, modName, fmt.Sprintf("%s DC/OS CLI Module", strings.Title(modName)))
+	cli.HandleConfigSection(app)
+	cli.HandleEndpointsSection(app)
+	cli.HandlePlanSection(app)
+	cli.HandlePodsSection(app)
 	handleNodeSection(app, modName)
-	cli.HandleCommonArgs(
-		app,
-		modName,
-		fmt.Sprintf("%s DC/OS CLI Module", strings.Title(modName)),
-		[]string{"hdfs-site.xml", "core-site.xml"})
 
 	// Omit modname:
 	kingpin.MustParse(app.Parse(os.Args[2:]))

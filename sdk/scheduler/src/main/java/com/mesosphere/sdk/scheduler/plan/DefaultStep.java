@@ -9,7 +9,6 @@ import com.mesosphere.sdk.scheduler.DefaultObservable;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.GoalState;
-import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
@@ -41,12 +40,11 @@ public class DefaultStep extends DefaultObservable implements Step {
     public DefaultStep(
             String name,
             Status status,
-            PodInstance podInstance,
-            Collection<String> tasksToLaunch,
+            PodInstanceRequirement podInstanceRequirement,
             List<String> errors) {
         this.name = name;
         this.status = status;
-        this.podInstanceRequirement = new PodInstanceRequirement(podInstance, tasksToLaunch);
+        this.podInstanceRequirement = podInstanceRequirement;
         this.errors = errors;
 
         setStatus(status); // Log initial status

@@ -122,10 +122,11 @@ public class DefaultPlanCoordinatorTest {
                 testingServer.getConnectString());
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
-        taskKiller = new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver);
+        taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
         provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
-        planScheduler = new DefaultPlanScheduler(offerAccepter, new OfferEvaluator(stateStore, provider), taskKiller);
+        planScheduler = new DefaultPlanScheduler(
+                offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
