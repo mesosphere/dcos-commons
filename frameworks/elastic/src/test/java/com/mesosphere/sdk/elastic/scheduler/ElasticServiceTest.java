@@ -86,9 +86,9 @@ public class ElasticServiceTest {
         Mockito.doReturn(testingServer.getConnectString()).when(elasticService).getZookeeperConnection();
         elasticService.init();
 
-        Assert.assertNotNull(elasticService);
         Protos.FrameworkInfo frameworkInfo = elasticService.getFrameworkInfo();
         Assert.assertEquals("http://kibana-0-server.elastic.mesos:5602", frameworkInfo.getWebuiUrl());
+
         Set<String> validators = elasticService.getValidators().stream().map(v -> v.getClass().getSimpleName())
                 .collect(Collectors.toSet());
         Set<String> expectedValidators = new HashSet<>(Arrays.asList("PodSpecsCannotShrink",

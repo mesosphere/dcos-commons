@@ -124,7 +124,7 @@ public class ElasticService {
     private void registerFramework() {
         LOGGER.info("Registering Elastic framework: {}", frameworkInfo);
         SchedulerDriver driver = new SchedulerDriverFactory().create(defaultScheduler, frameworkInfo,
-                zkConnectionString);
+                String.format("zk://%s/mesos", zkConnectionString));
         driver.run();
     }
 
