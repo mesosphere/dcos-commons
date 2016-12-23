@@ -6,52 +6,30 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
-    resource-sets:
-      hello-resource:
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volumes:
           - path: "hello-container-path"
             type: ROOT
             size: {{HELLO_DISK}}
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
-        resource-set: hello-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-        health-checks:
-          check-hello:
-            cmd: "stat hello-container-path/output"
-            interval: 5
-            grace-period: 30
-            delay: 0
-            timeout: 10
-            max-consecutive-failures: 3
   world:
     count: {{WORLD_COUNT}}
     placement: {{WORLD_PLACEMENT}}
-    resource-sets:
-      world-resource:
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
         volumes:
           - path: "world-container-path"
             type: ROOT
             size: {{WORLD_DISK}}
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
-        resource-set: world-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-        health-checks:
-          check-world:
-            cmd: "stat world-container-path/output"
-            interval: 5
-            grace-period: 30
-            delay: 0
-            timeout: 10
-            max-consecutive-failures: 3

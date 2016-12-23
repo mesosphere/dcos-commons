@@ -11,24 +11,5 @@ pods:
         cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        volumes:
-          - path: "hello-container-path"
-            type: ROOT
-            size: {{HELLO_DISK}}
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-
-  world:
-    count: {{WORLD_COUNT}}
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
-        cpus: {{WORLD_CPUS}}
-        memory: {{WORLD_MEM}}
-        volumes:
-          - path: "world-container-path"
-            type: ROOT
-            size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
