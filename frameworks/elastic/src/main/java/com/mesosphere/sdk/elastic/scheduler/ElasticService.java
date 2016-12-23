@@ -8,7 +8,6 @@ import com.mesosphere.sdk.config.validate.ConfigurationValidator;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -148,8 +147,8 @@ public class ElasticService {
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(USER)
                 .setWebuiUrl(webuiUrl)
-                .setRole(SchedulerUtils.nameToRole(serviceSpec.getName()))
-                .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpec.getName()))
+                .setRole(serviceSpec.getRole())
+                .setPrincipal(serviceSpec.getPrincipal())
                 .setCheckpoint(true);
 
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
