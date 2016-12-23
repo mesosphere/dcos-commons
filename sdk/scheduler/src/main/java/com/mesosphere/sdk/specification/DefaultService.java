@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -100,11 +99,9 @@ public class DefaultService implements Service {
         DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore);
         List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
-            List<RawPlan> rawPlans = YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification);
-            List<Plan> realPlans = rawPlans.stream()
-                    .map(rawPlan -> planGenerator.generate(rawPlan, serviceSpec.getPods()))
-                    .collect(Collectors.toList());
-            plans.addAll(realPlans);
+            for (Map.Entry<String, RawPlan> entry : rawServiceSpecification.getPlans().entrySet()) {
+                plans.add(planGenerator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods()));
+            }
         }
         return plans;
     }

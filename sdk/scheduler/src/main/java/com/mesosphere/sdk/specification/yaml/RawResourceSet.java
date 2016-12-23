@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification.yaml;
 
 import java.util.Collection;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -10,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RawResourceSet {
 
-    private String id;
     private final Double cpus;
     private final Integer memory;
     private final Collection<RawPort> ports;
@@ -21,20 +19,10 @@ public class RawResourceSet {
             @JsonProperty("memory") Integer memory,
             @JsonProperty("ports") Collection<RawPort> ports,
             @JsonProperty("volumes") Collection<RawVolume> volumes) {
-        this.id = null;
         this.cpus = cpus;
         this.memory = memory;
         this.ports = ports;
         this.volumes = volumes;
-    }
-
-    @JsonIgnore
-    void setId(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public Collection<RawVolume> getVolumes() {

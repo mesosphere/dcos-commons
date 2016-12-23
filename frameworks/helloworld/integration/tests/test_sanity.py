@@ -29,8 +29,21 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
-def test_install_worked():
-    pass
+def test_no_colocation_in_podtypes():
+    # check that no two 'hellos' and no two 'worlds' are colocated on the same agent
+    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    print(all_tasks)
+    hello_agents = []
+    world_agents = []
+    for task in all_tasks:
+        if task['name'].startswith('hello-'):
+            hello_agents.append(task['slave_id'])
+        elif task['name'].startswith('world-'):
+            world_agents.append(task['slave_id'])
+        else:
+            assert False, "Unknown task: " + task['name']
+    assert len(hello_agents) == len(set(hello_agents))
+    assert len(world_agents) == len(set(world_agents))
 
 
 @pytest.mark.sanity

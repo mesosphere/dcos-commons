@@ -19,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * Tests for {@link DefaultPlanGenerator}.
@@ -65,8 +66,8 @@ public class DefaultPlanGeneratorTest {
         Assert.assertNotNull(serviceSpec);
 
         DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore);
-        for (RawPlan rawPlan : rawServiceSpecification.getPlans().values()) {
-            Plan plan = generator.generate(rawPlan, serviceSpec.getPods());
+        for (Map.Entry<String, RawPlan> entry : rawServiceSpecification.getPlans().entrySet()) {
+            Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
             Assert.assertEquals(2, plan.getChildren().size());
             Assert.assertEquals(1, plan.getChildren().get(0).getChildren().size());

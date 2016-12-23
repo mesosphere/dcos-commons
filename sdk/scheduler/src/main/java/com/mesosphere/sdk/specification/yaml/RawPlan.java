@@ -7,24 +7,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RawPlan {
 
-    private String name;
     private final String strategy;
     private final WriteOnceLinkedHashMap<String, RawPhase> phases;
 
     private RawPlan(
             @JsonProperty("strategy") String strategy,
             @JsonProperty("phases") WriteOnceLinkedHashMap<String, RawPhase> phases) {
-        this.name = null;
         this.strategy = strategy;
         this.phases = phases;
-    }
-
-    void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getStrategy() {
