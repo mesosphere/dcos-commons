@@ -12,6 +12,7 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Service for the Elastic framework.
@@ -133,9 +133,9 @@ public class ElasticService {
         DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore);
         List<Plan> plans = new LinkedList<>();
         if (rawServiceSpecification.getPlans() != null) {
-            plans.addAll(YAMLServiceSpecFactory.generateRawPlans(rawServiceSpecification).stream()
-                    .map(rawPlan -> planGenerator.generate(rawPlan, serviceSpec.getPods()))
-                    .collect(Collectors.toList()));
+            for (Map.Entry<String, RawPlan> entry : rawServiceSpecification.getPlans().entrySet()) {
+                plans.add(planGenerator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods()));
+            }
         }
         return plans;
     }
