@@ -8,6 +8,11 @@ pods:
     resource-sets:
       name-resources:
         cpus: 1.0
+        volumes:
+          - path: "name-path"
+            type: ROOT
+            size: 50
+
       sidecar-resources:
         cpus: 2.0
     tasks:

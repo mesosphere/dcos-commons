@@ -50,8 +50,7 @@ public class DefaultStepFactory implements StepFactory {
             return new DefaultStep(
                     stepName,
                     status,
-                    podInstance,
-                    tasksToLaunch,
+                    PodInstanceRequirement.create(podInstance, tasksToLaunch),
                     Collections.emptyList());
         } catch (ConfigStoreException | TaskException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);

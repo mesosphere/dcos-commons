@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.scheduler.plan.DefaultStep;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -30,8 +31,9 @@ public class DefaultRecoveryStep extends DefaultStep {
             LaunchConstrainer launchConstrainer) {
         super(name,
                 status,
-                podInstance,
-                tasksToLaunch,
+                recoveryType == RecoveryType.PERMANENT ?
+                        PodInstanceRequirement.createPermanentReplacement(podInstance, tasksToLaunch) :
+                        PodInstanceRequirement.create(podInstance, tasksToLaunch),
                 Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.recoveryType = recoveryType;

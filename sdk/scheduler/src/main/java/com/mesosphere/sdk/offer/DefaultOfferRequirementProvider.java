@@ -40,9 +40,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     @Override
     public OfferRequirement getNewOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
             throws InvalidRequirementException {
-        LOGGER.info("Generating new OfferRequirement for Pod: {}, and Tasks: {}",
-                podInstance.getName(), tasksToLaunch);
-
         List<Protos.TaskInfo> taskInfos = getNewTaskInfos(podInstance, tasksToLaunch);
 
         Protos.ExecutorInfo.Builder execBuilder = getNewExecutorInfo(podInstance.getPod());
@@ -64,9 +61,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     @Override
     public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
             throws InvalidRequirementException {
-        LOGGER.info("Generating existing OfferRequirement for Pod: {}, and Tasks: {}",
-                podInstance.getName(), tasksToLaunch);
-
         List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .collect(Collectors.toList());

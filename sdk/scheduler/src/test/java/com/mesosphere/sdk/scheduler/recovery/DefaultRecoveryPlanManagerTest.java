@@ -150,7 +150,8 @@ public class DefaultRecoveryPlanManagerTest {
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider),
-                new DefaultTaskKiller(stateStore, taskFailureListener, schedulerDriver));
+                stateStore,
+                new DefaultTaskKiller(taskFailureListener, schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
                 planScheduler);
     }

@@ -63,8 +63,7 @@ public class MesosResource {
     }
 
     public String getPrincipal() {
-        if (hasReservation() &&
-                resource.getReservation().hasPrincipal()) {
+        if (resource.hasReservation() && resource.getReservation().hasPrincipal()) {
             return resource.getReservation().getPrincipal();
         }
 
@@ -76,7 +75,7 @@ public class MesosResource {
         return ToStringBuilder.reflectionToString(this);
     }
 
-    private String getResourceIdInternal(Resource resource) {
+    private static String getResourceIdInternal(Resource resource) {
         if (resource.hasReservation()) {
             for (Label label : resource.getReservation().getLabels().getLabelsList()) {
                 if (label.getKey().equals(RESOURCE_ID_KEY)) {

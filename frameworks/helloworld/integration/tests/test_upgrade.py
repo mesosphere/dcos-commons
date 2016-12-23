@@ -48,8 +48,7 @@ def test_upgrade():
 
 
 def get_pkg_version():
-    cmd = 'dcos package describe {}'.format(PACKAGE_NAME)
-    pkg_description = run_dcos_cli_cmd(cmd)
+    pkg_description = run_dcos_cli_cmd('package describe {}'.format(PACKAGE_NAME))
     regex = r'"version": "(\S+)"'
     match = re.search(regex, pkg_description)
     return match.group(1)
