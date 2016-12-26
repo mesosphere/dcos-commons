@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.specification;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
 import org.apache.mesos.Protos;
 
 import java.util.Optional;
@@ -10,7 +12,7 @@ import java.util.Optional;
  * A ResourceSpecification encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
  * TaskSpecification.
  */
-@JsonDeserialize(as = DefaultResourceSpecification.class)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface ResourceSpecification {
 
     @JsonProperty("value")
@@ -24,6 +26,9 @@ public interface ResourceSpecification {
 
     @JsonProperty("principal")
     String getPrincipal();
+
+    @JsonIgnore
+    OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName);
 
     default Optional<String> getEnvKey() {
         return Optional.of(getName());

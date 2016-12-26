@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -12,16 +13,15 @@ import com.mesosphere.sdk.specification.ResourceSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
  */
 public class ResourceUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtils.class);
+
+    public static final String VIP_PREFIX = "VIP_";
 
     public static Resource getUnreservedResource(String name, Value value) {
         return setResource(Resource.newBuilder().setRole("*"), name, value);
@@ -253,6 +253,12 @@ public class ResourceUtils {
      * Populates {@link DiscoveryInfo} with necessary information to create VIP if the provided {@link TaskInfo}
      * has a port associated with a named VIP.
      */
+    public static TaskInfo.Builder setDiscoveryInfo(TaskInfo.Builder taskBuilder, Resource resource) {
+        taskBuilder.setDiscovery(getVIPDiscoveryInfo(resource, taskBuilder.getName()));
+
+        return taskBuilder;
+    }
+
     public static TaskInfo.Builder setDiscoveryInfo(TaskInfo.Builder taskBuilder, Collection<Resource> resources) {
         for (Resource r : resources) {
             if (RequirementUtils.isNamedVIPPort(r)) {
@@ -290,6 +296,61 @@ public class ResourceUtils {
                         .setKey(NamedVIPPortRequirement.getVIPLabelKey(r))
                         .setValue(String.format("%s:%d", NamedVIPPortRequirement.getVIPLabelValue(r), destPort));
         return discoveryInfoBuilder.build();
+    }
+
+    public static TaskInfo.Builder addVIP(
+            TaskInfo.Builder builder, String vipName, Integer vipPort, Resource resource) {
+        if (builder.hasDiscovery()) {
+            addVIP(builder.getDiscoveryBuilder(), vipName, vipPort, (int) resource.getRanges().getRange(0).getBegin());
+        } else {
+            builder.setDiscovery(getVIPDiscoveryInfo(builder.getName(), vipName, vipPort, resource));
+        }
+
+        return builder;
+    }
+
+    public static ExecutorInfo.Builder addVIP(
+            ExecutorInfo.Builder builder, String vipName, Integer vipPort, Resource resource) {
+        if (builder.hasDiscovery()) {
+            addVIP(builder.getDiscoveryBuilder(), vipName, vipPort, (int) resource.getRanges().getRange(0).getBegin());
+        } else {
+            builder.setDiscovery(getVIPDiscoveryInfo(builder.getName(), vipName, vipPort, resource));
+        }
+
+        return builder;
+    }
+
+    private static DiscoveryInfo.Builder addVIP(
+            DiscoveryInfo.Builder builder, String vipName, Integer vipPort, int destPort) {
+        builder.getPortsBuilder()
+                .addPortsBuilder()
+                .setNumber(destPort)
+                .setProtocol("tcp")
+                .getLabelsBuilder()
+                .addLabels(getVIPLabel(vipName, vipPort));
+
+        return builder;
+    }
+
+    public static DiscoveryInfo getVIPDiscoveryInfo(String taskName, String vipName, Integer vipPort, Resource r) {
+        DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setName(taskName);
+
+        discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
+                .setNumber((int) r.getRanges().getRange(0).getBegin())
+                .setProtocol("tcp")
+                .getLabelsBuilder()
+                .addLabels(getVIPLabel(vipName, vipPort));
+
+        return discoveryInfoBuilder.build();
+    }
+
+    public static Label getVIPLabel(String vipName, Integer vipPort) {
+        return Label.newBuilder()
+                .setKey(String.format("%s%s", VIP_PREFIX, UUID.randomUUID().toString()))
+                .setValue(String.format("%s:%d", vipName, vipPort))
+                .build();
     }
 
     public static Protos.Environment getEnvironment(List<Resource> resources) {
@@ -441,6 +502,54 @@ public class ResourceUtils {
             default:
                 throw new IllegalArgumentException("Unexpected Resource type encountered: " + resource.getType());
         }
+    }
+
+    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) {
+        for (int i = 0; i < builder.getResourcesCount(); ++i) {
+            if (builder.getResources(i).getName().equals(resource.getName())) {
+                builder.setResources(i, resource);
+                return builder;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Task has no resource with name '%s': %s",
+                resource.getName(), TextFormat.shortDebugString(builder.build())));
+    }
+
+    public static Resource getResource(TaskInfo taskInfo, String name) {
+        for (Resource r : taskInfo.getResourcesList()) {
+            if (r.getName().equals(name)) {
+                return r;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                String.format("Task has no resource with name '%s': %s", name, TextFormat.shortDebugString(taskInfo)));
+    }
+
+    public static ExecutorInfo.Builder setResource(ExecutorInfo.Builder builder, Resource resource) {
+        for (int i = 0; i < builder.getResourcesCount(); ++i) {
+            if (builder.getResources(i).getName().equals(resource.getName())) {
+                builder.setResources(i, resource);
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Executor has no resource with name '%s': %s",
+                resource.getName(), TextFormat.shortDebugString(builder.build())));
+    }
+
+    public static Resource getResource(ExecutorInfo executorInfo, String name) {
+        for (Resource r : executorInfo.getResourcesList()) {
+            if (r.getName().equals(name)) {
+                return r;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Executor has no resource with name '%s': %s",
+                name, TextFormat.shortDebugString(executorInfo)));
     }
 
     private static List<Resource> clearResourceIds(List<Resource> resources) {

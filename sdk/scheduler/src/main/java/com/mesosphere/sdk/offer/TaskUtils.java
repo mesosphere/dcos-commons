@@ -198,7 +198,7 @@ public class TaskUtils {
         Map<String, ResourceSpecification> resourceMap = new HashMap<>();
         for (ResourceSpecification resourceSpecification : resourceSpecifications) {
             ResourceSpecification prevValue = resourceMap.put(resourceSpecification.getName(), resourceSpecification);
-            if (prevValue != null) {
+            if (prevValue != null && !prevValue.getName().equals("ports")) {
                 throw new IllegalArgumentException(String.format(
                         "Resources for a given task may not share the same name. " +
                                 "name:'%s' oldResource:'%s' newResource:'%s'",
@@ -355,5 +355,25 @@ public class TaskUtils {
      */
     public static String getStepName(PodInstance podInstance, Collection<String> tasksToLaunch) {
         return podInstance.getName() + ":" + tasksToLaunch;
+    }
+
+    public static TaskInfo.Builder updateEnvironment(TaskInfo.Builder builder, String name, String value) {
+        Protos.Environment.Builder envBuilder = builder.getCommand().getEnvironment().toBuilder();
+        envBuilder.addVariablesBuilder()
+                .setName(name)
+                .setValue(value);
+        builder.getCommandBuilder().setEnvironment(envBuilder);
+
+        return builder;
+    }
+
+    public static ExecutorInfo.Builder updateEnvironment(ExecutorInfo.Builder builder, String name, String value) {
+        Protos.Environment.Builder envBuilder = builder.getCommand().getEnvironment().toBuilder();
+        envBuilder.addVariablesBuilder()
+                .setName(name)
+                .setValue(value);
+        builder.getCommandBuilder().setEnvironment(envBuilder);
+
+        return builder;
     }
 }

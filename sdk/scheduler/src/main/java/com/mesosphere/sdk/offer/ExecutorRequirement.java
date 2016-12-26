@@ -8,14 +8,13 @@ import com.mesosphere.sdk.executor.ExecutorTaskException;
 import com.mesosphere.sdk.executor.ExecutorUtils;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * An ExecutorRequirement encapsulates the needed resources an Executor must
  * have.
  */
 public class ExecutorRequirement {
-    private final Collection<DynamicPortRequirement> dynamicPortRequirements;
-    private final Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
     private ExecutorInfo executorInfo;
     private Collection<ResourceRequirement> resourceRequirements;
 
@@ -57,12 +56,18 @@ public class ExecutorRequirement {
     private ExecutorRequirement(ExecutorInfo executorInfo)
             throws InvalidRequirementException {
         validateExecutorInfo(executorInfo);
+        init(executorInfo);
+    }
+
+    public void update(ExecutorInfo executorInfo) {
+        init(executorInfo);
+    }
+
+    private void init(ExecutorInfo executorInfo) {
         this.executorInfo = executorInfo;
-        this.resourceRequirements =
-                RequirementUtils.getResourceRequirements(executorInfo.getResourcesList());
-        // These are managed in a separate collection, since the actual ports can only be fulfilled at offer time.
-        this.dynamicPortRequirements = RequirementUtils.getDynamicPortRequirements(executorInfo.getResourcesList());
-        this.namedVIPPortRequirements = RequirementUtils.getNamedVIPPortRequirements(executorInfo.getResourcesList());
+        this.resourceRequirements = executorInfo.getResourcesList().stream()
+                .map(r -> new ResourceRequirement(r))
+                .collect(Collectors.toList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -71,14 +76,6 @@ public class ExecutorRequirement {
 
     public Collection<ResourceRequirement> getResourceRequirements() {
         return resourceRequirements;
-    }
-
-    public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
-        return dynamicPortRequirements;
-    }
-
-    public Collection<NamedVIPPortRequirement> getNamedVIPPortRequirements() {
-        return namedVIPPortRequirements;
     }
 
     public Collection<String> getResourceIds() {

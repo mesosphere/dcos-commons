@@ -18,15 +18,19 @@ import java.util.*;
 public class MesosResourcePool {
     private static final Logger logger = LoggerFactory.getLogger(MesosResourcePool.class);
 
-    private final Offer offer;
-    private final Map<String, List<MesosResource>> unreservedAtomicPool;
-    private final Map<String, Value> unreservedMergedPool;
-    private final Map<String, MesosResource> reservedPool;
+    private Offer offer;
+    private Map<String, List<MesosResource>> unreservedAtomicPool;
+    private Map<String, Value> unreservedMergedPool;
+    private Map<String, MesosResource> reservedPool;
 
     /**
      * Creates a new pool of resources based on what's available in the provided {@link Offer}.
      */
     public MesosResourcePool(Offer offer) {
+        init(offer);
+    }
+
+    private void init(Offer offer) {
         this.offer = offer;
         final Collection<MesosResource> mesosResources = getMesosResources(offer);
         this.unreservedAtomicPool = getUnreservedAtomicPool(mesosResources);
@@ -113,6 +117,10 @@ public class MesosResourcePool {
         }
 
         return Optional.empty();
+    }
+
+    public void retainOnly(Offer offer) {
+        init(offer);
     }
 
     /**
