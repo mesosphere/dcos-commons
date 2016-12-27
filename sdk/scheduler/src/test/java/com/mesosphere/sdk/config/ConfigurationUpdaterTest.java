@@ -1,11 +1,8 @@
 package com.mesosphere.sdk.config;
 
-import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
@@ -156,11 +153,5 @@ public class ConfigurationUpdaterTest {
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);
         Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertEquals(1, result.errors.size());
-    }
-
-    private static final Protos.TaskInfo taskInfo(UUID configId) {
-        return CommonTaskUtils.setTargetConfiguration(
-                TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder(), configId)
-                .build();
     }
 }

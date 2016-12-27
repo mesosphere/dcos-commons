@@ -22,7 +22,7 @@ import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
-public class HdfsServiceSpecTest {
+public class ServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -61,7 +61,7 @@ public class HdfsServiceSpecTest {
         environmentVariables.set("JOURNAL_STRATEGY", "parallel");
         environmentVariables.set("DATA_STRATEGY", "parallel");
 
-        URL resource = HdfsServiceSpecTest.class.getClassLoader().getResource("hdfs-site.xml");
+        URL resource = ServiceSpecTest.class.getClassLoader().getResource("hdfs-site.xml");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
@@ -107,11 +107,11 @@ public class HdfsServiceSpecTest {
                 testingServer.getConnectString(),
                 Collections.emptyList());
 
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(
+                serviceSpec, stateStore, configStore);
 
-        OfferRequirementProvider offerRequirementProvider = DefaultScheduler
-                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+        OfferRequirementProvider offerRequirementProvider =
+                DefaultScheduler.createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
 
         DefaultScheduler.create(serviceSpec, stateStore, configStore, offerRequirementProvider);
     }

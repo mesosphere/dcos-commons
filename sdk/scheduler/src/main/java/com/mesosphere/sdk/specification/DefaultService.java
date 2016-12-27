@@ -43,6 +43,7 @@ public class DefaultService implements Service {
     protected ServiceSpec serviceSpec;
     protected Collection<Plan> plans;
     protected ConfigStore<ServiceSpec> configTargetStore;
+    protected UUID targetConfigId;
     protected OfferRequirementProvider offerRequirementProvider;
 
     public DefaultService() {
@@ -89,8 +90,8 @@ public class DefaultService implements Service {
         ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
                 .updateConfig(serviceSpec, stateStore, configTargetStore);
 
-        offerRequirementProvider = DefaultScheduler
-                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+        this.targetConfigId = configUpdateResult.targetId;
+        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, targetConfigId);
     }
 
     @VisibleForTesting

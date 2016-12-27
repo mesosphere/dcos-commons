@@ -21,7 +21,8 @@ import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
-public class HelloWorldServiceSpecTest {
+public class ServiceSpecTest {
+
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -121,11 +122,11 @@ public class HelloWorldServiceSpecTest {
                 testingServer.getConnectString(),
                 Collections.emptyList());
 
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult configUpdateResult =
+                DefaultScheduler.updateConfig(serviceSpec, stateStore, configStore);
 
-        OfferRequirementProvider offerRequirementProvider = DefaultScheduler
-                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+        OfferRequirementProvider offerRequirementProvider =
+                DefaultScheduler.createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
 
         DefaultScheduler.create(serviceSpec, stateStore, configStore, offerRequirementProvider);
     }

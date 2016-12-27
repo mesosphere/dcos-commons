@@ -10,6 +10,8 @@ import com.mesosphere.sdk.specification.yaml.RawPort;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -169,9 +171,17 @@ public class DefaultResourceSet implements ResourceSet {
         public Builder addVolume(String volumeType,
                                  Double size,
                                  String containerPath) {
+            VolumeSpecification.Type volumeTypeEnum;
+            try {
+                volumeTypeEnum = VolumeSpecification.Type.valueOf(volumeType);
+            } catch (Exception e) {
+                throw new IllegalArgumentException(String.format(
+                        "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
+                        volumeType, containerPath, Arrays.asList(VolumeSpecification.Type.values())));
+            }
             DefaultVolumeSpecification volume = new DefaultVolumeSpecification(
                     size,
-                    VolumeSpecification.Type.valueOf(volumeType),
+                    volumeTypeEnum,
                     containerPath,
                     role,
                     principal,

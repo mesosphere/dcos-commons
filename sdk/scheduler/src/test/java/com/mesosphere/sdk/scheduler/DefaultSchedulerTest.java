@@ -418,14 +418,14 @@ public class DefaultSchedulerTest {
             switch (operationSet.size()) {
                 case 1:
                     // One LAUNCH operation
-                    if (((Protos.Offer.Operation) operationSet.iterator().next()).getType()
+                    if (operationSet.iterator().next().getType()
                             == Protos.Offer.Operation.Type.LAUNCH) {
                         recovery = true;
                     }
                     break;
                 case 2:
                     // Two UNRESERVE operations
-                    if (operationSet.stream().allMatch(object -> ((Protos.Offer.Operation) object).getType()
+                    if (operationSet.stream().allMatch(object -> object.getType()
                             == Protos.Offer.Operation.Type.UNRESERVE)) {
                         recovery = true;
                     }

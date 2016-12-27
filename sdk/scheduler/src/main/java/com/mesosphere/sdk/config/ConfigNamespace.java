@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.config;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -7,8 +8,6 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos.CommandInfo;
-import org.apache.mesos.Protos.Environment;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -17,6 +16,9 @@ import com.google.common.collect.ImmutableMap;
  * setting keys. Data is internally stored with the prefix(es) stripped out.
  */
 public class ConfigNamespace {
+
+    private static final ConfigNamespace EMPTY_INSTANCE =
+            new ConfigNamespace(Collections.emptySet(), Collections.emptyMap());
 
     // Arbitrarily using TreeMap so that toString() content is in alphabetical order.
     private final Map<String, ConfigValue> config = new TreeMap<>();
@@ -48,6 +50,10 @@ public class ConfigNamespace {
         }
     }
 
+    public static ConfigNamespace emptyInstance() {
+        return EMPTY_INSTANCE;
+    }
+
     /**
      * Returns a config value for the provided key within this namespace, with any prefix omitted,
      * or {@code null} if a matching value could not be found. Use {@link #getAll()} to see all
@@ -68,23 +74,14 @@ public class ConfigNamespace {
     }
 
     /**
-     * Returns a new {@link CommandInfo} whose environment variables includes any values from this
-     * instance. Any matching entries already present in the provided {@link CommandInfo} will be
-     * overwritten.
+     * Returns an immutable copy of the full configuration within this namespace, as string values.
      */
-    public CommandInfo updateEnvironment(CommandInfo command) {
-        Environment.Builder envBuilder = command.getEnvironment().toBuilder();
+    public ImmutableMap<String, String> getAllEnv() {
+        ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
         for (Map.Entry<String, ConfigValue> entry : config.entrySet()) {
-            envBuilder = withEntrySet(envBuilder, entry.getKey(), entry.getValue().requiredString());
+            mapBuilder.put(entry.getKey(), entry.getValue().requiredString());
         }
-        if (!command.hasEnvironment() && envBuilder.getVariablesCount() == 0) {
-            // Avoid changing the CommandInfo if we don't have anything to add: avoid creating false
-            // positives for changes to the task. If environment was unset before, avoid populating
-            // an empty environment list. This should really only come up in tests, but good to
-            // check regardless.
-            return command;
-        }
-        return command.toBuilder().setEnvironment(envBuilder).build();
+        return mapBuilder.build();
     }
 
     @Override
@@ -100,25 +97,5 @@ public class ConfigNamespace {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    /**
-     * Returns a new {@link Environment.Builder} with the provided entry set. Any matching entries
-     * already present will have been removed before adding the new entry to the end.
-     */
-    private static Environment.Builder withEntrySet(
-            Environment.Builder envBuilder, String name, String value) {
-        // Remove matching entry/entries, if any:
-        Environment.Builder filteredEnvBuilder = Environment.newBuilder();
-        for (Environment.Variable entry : envBuilder.getVariablesList()) {
-            if (!entry.getName().equals(name)) {
-                filteredEnvBuilder.addVariables(entry);
-            }
-        }
-        // Append new entry to end:
-        filteredEnvBuilder.addVariablesBuilder()
-                .setName(name)
-                .setValue(value);
-        return filteredEnvBuilder;
     }
 }

@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
@@ -124,7 +123,7 @@ public class DefaultPlanCoordinatorTest {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
-        provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
+        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()

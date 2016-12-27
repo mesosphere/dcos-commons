@@ -22,10 +22,11 @@ public class Main {
                     .apiPort(8080)
                     .addPod(DefaultPodSpec.newBuilder()
                             .count(COUNT)
+                            .type("hello")
                             .addTask(DefaultTaskSpec.newBuilder()
                                     .name("hello")
                                     .goalState(GoalState.RUNNING)
-                                    .commandSpec(DefaultCommandSpec.newBuilder()
+                                    .commandSpec(DefaultCommandSpec.newBuilder("hello")
                                             .value("echo hello >> hello-container-path/output && sleep 1000")
                                             .build())
                                     .resourceSet(DefaultResourceSet

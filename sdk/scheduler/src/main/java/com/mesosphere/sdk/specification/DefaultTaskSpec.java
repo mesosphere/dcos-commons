@@ -22,9 +22,6 @@ public class DefaultTaskSpec implements TaskSpec {
     @Size(min = 1)
     private String name;
     @NotNull
-    @Size(min = 1)
-    private String type;
-    @NotNull
     private GoalState goalState;
     @Valid
     private CommandSpec commandSpec;
@@ -41,7 +38,6 @@ public class DefaultTaskSpec implements TaskSpec {
     @JsonCreator
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
-            @JsonProperty("type") String type,
             @JsonProperty("goal") GoalState goalState,
             @JsonProperty("resource_set") ResourceSet resourceSet,
             @JsonProperty("command_spec") CommandSpec commandSpec,
@@ -49,7 +45,6 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("config_files") Collection<ConfigFileSpecification> configFiles) {
         this.name = name;
-        this.type = type;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
         this.commandSpec = commandSpec;
@@ -61,7 +56,6 @@ public class DefaultTaskSpec implements TaskSpec {
     private DefaultTaskSpec(Builder builder) {
         this(
                 builder.name,
-                builder.type,
                 builder.goalState,
                 builder.resourceSet,
                 builder.commandSpec,
@@ -74,25 +68,21 @@ public class DefaultTaskSpec implements TaskSpec {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultTaskSpec copy) {
+    public static Builder newBuilder(TaskSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
-        builder.goalState = copy.goalState;
-        builder.commandSpec = copy.commandSpec;
-        builder.healthCheckSpec = copy.healthCheckSpec;
-        builder.uris = copy.uris;
-        builder.configFiles = copy.configFiles;
+        builder.name = copy.getName();
+        builder.goalState = copy.getGoal();
+        builder.resourceSet = copy.getResourceSet();
+        builder.commandSpec = copy.getCommand().orElse(null);
+        builder.healthCheckSpec = copy.getHealthCheck().orElse(null);
+        builder.uris = copy.getUris();
+        builder.configFiles = copy.getConfigFiles();
         return builder;
     }
 
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public String getType() {
-        return type;
     }
 
     @Override
@@ -149,7 +139,6 @@ public class DefaultTaskSpec implements TaskSpec {
      */
     public static final class Builder {
         private String name;
-        private String type;
         private GoalState goalState;
         private ResourceSet resourceSet;
         private CommandSpec commandSpec;
@@ -168,11 +157,6 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder name(String name) {
             this.name = name;
-            return this;
-        }
-
-        public Builder type(String type) {
-            this.type = type;
             return this;
         }
 
