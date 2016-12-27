@@ -61,7 +61,67 @@ From a workstation with 8G Memory, [Git](https://git-scm.com/book/en/v2/Getting-
   * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
 
 ===============
+### Understanding the Hello World Service Specification
+
+The service specification declaratively defines the `helloworld` service:
+
+```yaml
+name: "helloworld"
+principal: "helloworld-principal"
+zookeeper: master.mesos:2181
+api-port: 8080
+pods:
+  helloworld:
+    count: {{COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
+        cpus: {{SERVER_CPU}}
+        memory: 32
+        volumes:
+          - path: "helloworld-container-volume"
+            type: ROOT
+            size: 64
+```
+
+In above yaml file, we have:
+* Defined a service with the name `helloworld`
+* Configured the service to use ZooKeeper at `master.mesos:2181` for storing framework state and configuration.
+* Configured the API port using `api-port: 8080`. By default, each service comes with a default set of useful APIs to enable operationalization. 
+* Defined a pod specification for our `helloworld` pod using:
+
+```yaml
+pods:
+  helloworld:
+    count: {{COUNT}}
+    tasks:
+      ...
+```
+* Declared that we need atleast `{{COUNT}}` instances of the `helloworld` pod running at all times, where `COUNT` is the environment variable that is injected into the scheduler process at launch time via Marathon. It defaults to `1` for this example.
+* Defined a task specification for our `server` task using:
+
+```yaml
+tasks:
+  server:
+    goal: RUNNING
+    cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
+    cpus: {{SERVER_CPU}}
+    memory: 32
+```
+We have configured it to use `{{SERVER_CPU}}` CPUs (which defaults to `0.5` for this example) and `32 MB` of memory.
+* And finally, configured a `64 MB` persistent volume for our server task where the task data can be persisted using:
+
+```yaml
+volumes:
+  - path: "helloworld-container-volume"
+    type: ROOT
+    size: 64
+```
+
+===============
 ### References
+* [Quick Start Guide - Java](docs/tutorials/quick-start-java.md)
 * Developer Guide ... *coming soon!*
 * [Javadocs](http://mesosphere.github.io/dcos-commons/api/index.html)
 
