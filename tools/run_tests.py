@@ -135,7 +135,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
+py.test {jenkins_args}-vv -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
