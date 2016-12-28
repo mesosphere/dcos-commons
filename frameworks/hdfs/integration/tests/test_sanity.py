@@ -28,9 +28,6 @@ def setup_module(module):
     check_health()
 
 
-def teardown_module(module):
-    uninstall()
-
 @pytest.mark.sanity
 def test_install_worked():
     pass
