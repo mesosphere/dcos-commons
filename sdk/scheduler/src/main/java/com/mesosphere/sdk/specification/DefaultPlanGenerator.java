@@ -59,11 +59,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
                 List<String> taskNames = taskSpecs.stream()
                         .map(taskSpec -> taskSpec.getName())
                         .collect(Collectors.toList());
-                for (TaskSpec taskSpec : taskSpecs) {
-                    if (taskSpec.getGoal() == GoalState.RUNNING) {
-                        steps.add(from(podInstance, taskNames));
-                    }
-                }
+                steps.add(from(podInstance, taskNames));
             }
         } else {
             boolean allHaveIds = rawSteps.stream().allMatch(rawStep -> rawStep.getPodInstance().isPresent());

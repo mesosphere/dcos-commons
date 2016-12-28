@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -52,7 +51,6 @@ public class DefaultPhaseFactory implements PhaseFactory {
             PodInstance podInstance = new DefaultPodInstance(podSpec, i);
 
             List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                    .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
                     .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
 
