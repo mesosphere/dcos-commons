@@ -20,7 +20,7 @@ ext {
 }
 
 dependencies {
-    compile project(":scheduler")
+    compile project(":commons")
     compile project(":executor")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
     testCompile "junit:junit:${junitVer}"
