@@ -59,6 +59,11 @@ public class DefaultPlanGenerator implements PlanGenerator {
                 List<String> taskNames = taskSpecs.stream()
                         .map(taskSpec -> taskSpec.getName())
                         .collect(Collectors.toList());
+
+                if (!CollectionUtils.isEmpty(rawPhase.getTasks())) {
+                    taskNames = rawPhase.getTasks();
+                }
+
                 steps.add(from(podInstance, taskNames));
             }
         } else {

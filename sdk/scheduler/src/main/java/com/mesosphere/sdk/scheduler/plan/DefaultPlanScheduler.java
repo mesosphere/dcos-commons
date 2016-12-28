@@ -3,9 +3,9 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -94,7 +94,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         // It is harmless to attempt to kill tasks which have never been launched.  This call attempts to Kill all Tasks
         // with a Task name which is equivalent to that expressed by the OfferRequirement.  If no such Task is currently
         // running no operation occurs.
-        killTasks(podInstanceRequirement.getPodInstance());
+        killTasks(podInstanceRequirement);
 
         // Step has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
@@ -129,22 +129,57 @@ public class DefaultPlanScheduler implements PlanScheduler {
         return acceptedOffers;
     }
 
-    private void killTasks(PodInstance podInstance) {
+    private void killTasks(PodInstanceRequirement podInstanceRequirement) {
         Collection<TaskInfo> tasks = stateStore.fetchTasks();
-        for (String taskName : TaskUtils.getTaskNames(podInstance)) {
+        List<String> taskNames = TaskUtils.getTaskNames(
+                podInstanceRequirement.getPodInstance(),
+                podInstanceRequirement.getTasksToLaunch());
+
+        for (String taskName : taskNames) {
             // find TaskInfo matching this task name:
             for (TaskInfo taskInfo : tasks) {
-                if (taskInfo.getName().equals(taskName)) {
+                if (!taskInfo.getName().equals(taskName)) {
+                    continue;
+                }
+
+                Protos.TaskState state = Protos.TaskState.TASK_RUNNING;
+                Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+                if (taskStatusOptional.isPresent()) {
+                    state = taskStatusOptional.get().getState();
+                }
+
+                if (!CommonTaskUtils.isTerminal(state)) {
                     taskKiller.killTask(taskInfo.getTaskId(), false);
-                    break;
                 }
             }
         }
     }
 
     private static Collection<Offer.Operation> getOperations(Collection<OfferRecommendation> recommendations) {
-        return recommendations.stream()
+        return filterRecommendations(recommendations).stream()
                 .map(OfferRecommendation::getOperation)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all non-transient recommendations which will actually be executed by Mesos.
+     */
+    private static Collection<OfferRecommendation> filterRecommendations(
+            Collection<OfferRecommendation> recommendations) {
+
+        List<OfferRecommendation> filteredRecommendations = new ArrayList<>();
+
+        for (OfferRecommendation recommendation : recommendations) {
+            if (recommendation instanceof LaunchOfferRecommendation)  {
+                LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendation;
+                if (launchOfferRecommendation.isTransient()) {
+                    continue;
+                }
+            }
+
+            filteredRecommendations.add(recommendation);
+        }
+
+        return filteredRecommendations;
     }
 }

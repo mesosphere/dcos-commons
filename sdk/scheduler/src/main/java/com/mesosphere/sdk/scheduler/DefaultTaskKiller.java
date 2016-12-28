@@ -22,6 +22,10 @@ public class DefaultTaskKiller implements TaskKiller {
 
     @Override
     public void killTask(TaskID taskId, boolean destructive) {
+        if (taskId.getValue().isEmpty()) {
+            return;
+        }
+
         logger.info("Scheduling task {} to be killed {}",
                 taskId.getValue(), destructive ? "destructively" : "non-destructively");
         if (destructive) {

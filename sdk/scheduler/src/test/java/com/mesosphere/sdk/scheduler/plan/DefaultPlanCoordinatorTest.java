@@ -163,8 +163,10 @@ public class DefaultPlanCoordinatorTest {
     @Test
     public void testOnePlanManagerPendingSufficientOffer() throws Exception {
         final Plan plan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
+        final PlanManager planManager = new DefaultPlanManager(plan);
+        planManager.getPlan().getStrategy().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
-                Arrays.asList(new DefaultPlanManager(plan)), planScheduler);
+                Arrays.asList(planManager), planScheduler);
         Assert.assertEquals(1, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
                 SUFFICIENT_MEM, SUFFICIENT_DISK)).size());
     }
@@ -194,6 +196,8 @@ public class DefaultPlanCoordinatorTest {
         final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecificationB);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA);
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB);
+        planManagerA.getPlan().getStrategy().proceed();
+        planManagerB.getPlan().getStrategy().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB), planScheduler);
         Assert.assertEquals(2, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
@@ -209,6 +213,8 @@ public class DefaultPlanCoordinatorTest {
         final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecB);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
+        planManagerA.getPlan().getStrategy().proceed();
+        planManagerB.getPlan().getStrategy().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);
@@ -246,6 +252,8 @@ public class DefaultPlanCoordinatorTest {
         final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
+        planManagerA.getPlan().getStrategy().proceed();
+        planManagerB.getPlan().getStrategy().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);

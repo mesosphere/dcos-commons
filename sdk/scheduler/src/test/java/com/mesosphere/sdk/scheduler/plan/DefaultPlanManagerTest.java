@@ -36,6 +36,7 @@ public class DefaultPlanManagerTest {
         secondStep = new TestStep();
         plan = getTestPlan(firstStep, secondStep);
         planManager = new DefaultPlanManager(plan);
+        planManager.getPlan().getStrategy().proceed();
         MockitoAnnotations.initMocks(this);
     }
 

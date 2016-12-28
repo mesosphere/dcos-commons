@@ -20,4 +20,6 @@ public class Constants {
     public static final String LIBMESOS_URI = "LIBMESOS_URI";
     public static final String JAVA_URI = "JAVA_URI";
     public static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
+
+    public static final String DEPLOY_PLAN_NAME = "deploy";
 }

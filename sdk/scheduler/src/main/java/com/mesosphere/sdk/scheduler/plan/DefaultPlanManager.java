@@ -13,6 +13,7 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
     private final Plan plan;
 
     public DefaultPlanManager(final Plan plan) {
+        plan.getStrategy().interrupt();
         this.plan = plan;
         this.plan.subscribe(this);
     }

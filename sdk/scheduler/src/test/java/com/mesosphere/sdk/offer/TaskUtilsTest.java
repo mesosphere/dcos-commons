@@ -310,7 +310,7 @@ public class TaskUtilsTest {
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setState(Protos.TaskState.TASK_LOST)
                 .build();
-        Assert.assertTrue(CommonTaskUtils.needsRecovery(taskStatus));
+        Assert.assertTrue(CommonTaskUtils.isRecoveryNeeded(taskStatus));
     }
 
     private static Protos.TaskID getTaskId(String value) {

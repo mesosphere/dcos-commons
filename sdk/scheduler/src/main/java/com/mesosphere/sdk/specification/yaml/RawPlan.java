@@ -13,6 +13,10 @@ public class RawPlan {
     private RawPlan(
             @JsonProperty("strategy") String strategy,
             @JsonProperty("phases") WriteOnceLinkedHashMap<String, RawPhase> phases) {
+        if (strategy == null) {
+            strategy = "serial";
+        }
+
         this.strategy = strategy;
         this.phases = phases;
     }
