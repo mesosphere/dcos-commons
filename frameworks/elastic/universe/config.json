@@ -11,7 +11,7 @@
           "default": "elastic"
         },
         "user": {
-          "description": "The user to run the Elasticsearch service instance and own the sandbox.",
+          "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
           "type": "string",
           "default": "centos"
         },
@@ -87,6 +87,10 @@
           "description": "Transport port for master nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
           "default": 9300
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints",
+          "type": "string"
         }
       },
       "required": [
@@ -149,6 +153,10 @@
           "description": "Transport port for data nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
           "default": 9301
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints",
+          "type": "string"
         }
       },
       "required": [
@@ -212,6 +220,10 @@
           "description": "Transport port for ingest nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
           "default": 9302
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints",
+          "type": "string"
         }
       },
       "required": [
@@ -275,6 +287,10 @@
           "description": "Transport port for coordinator nodes to listen on. Use 0 to let Mesos pick a port for you.",
           "type": "integer",
           "default": 9303
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints",
+          "type": "string"
         }
       },
       "required": [
@@ -323,6 +339,10 @@
           "description": "'kibana' user password for basic authentication with Elasticsearch",
           "type": "string",
           "default": "changeme"
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints",
+          "type": "string"
         }
       },
       "required": [

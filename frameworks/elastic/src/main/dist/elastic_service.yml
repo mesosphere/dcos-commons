@@ -8,6 +8,7 @@ replacement-failure-policy:
 pods:
   kibana:
     count: {{KIBANA_COUNT}}
+    placement: {{KIBANA_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
       server:
@@ -45,6 +46,7 @@ pods:
             timeout: 10
   master:
     count: 3
+    placement: {{MASTER_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
       server:
@@ -90,6 +92,7 @@ pods:
             timeout: 10
   data:
     count: {{DATA_NODE_COUNT}}
+    placement: {{DATA_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
       server:
@@ -135,6 +138,7 @@ pods:
             timeout: 10
   ingest:
     count: {{INGEST_NODE_COUNT}}
+    placement: {{INGEST_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
       server:
@@ -180,6 +184,7 @@ pods:
             timeout: 10
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
+    placement: {{COORDINATOR_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
       server:
