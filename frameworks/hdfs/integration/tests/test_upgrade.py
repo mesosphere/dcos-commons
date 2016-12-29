@@ -24,10 +24,6 @@ def setup_module(module):
     uninstall()
 
 
-def teardown_module(module):
-    uninstall()
-
-
 @pytest.mark.upgrade
 def test_upgrade_downgrade():
     test_version = get_pkg_version()
