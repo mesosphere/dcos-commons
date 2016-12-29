@@ -12,17 +12,13 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.*;
+
 /**
  * A default implementation of the OfferRequirementProvider interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
-    private static final String EXECUTOR_URI = "EXECUTOR_URI";
-    private static final String LIBMESOS_URI = "LIBMESOS_URI";
-    private static final String JAVA_URI = "JAVA_URI";
-    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
-
-    private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
 
     private final TaskConfigRouter taskConfigRouter;
     private final StateStore stateStore;
@@ -219,7 +215,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .setValue(String.valueOf(podInstance.getIndex()));
             // Inject TASK_NAME as KEY:VALUE
             envBuilder.addVariablesBuilder()
-                    .setName(CommonTaskUtils.TASK_NAME_KEY)
+                    .setName(TASK_NAME_KEY)
                     .setValue(TaskSpec.getInstanceName(podInstance, taskSpec));
             // Inject TASK_NAME as KEY for conditional mustache templating
             envBuilder.addVariablesBuilder()
@@ -269,7 +265,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             updatedCommand =
                     CommandUtils.addEnvVar(
                             updatedCommand,
-                            CommonTaskUtils.TASK_NAME_KEY,
+                            TASK_NAME_KEY,
                             TaskSpec.getInstanceName(podInstance, taskSpec));
             updatedCommand =
                     CommandUtils.addEnvVar(

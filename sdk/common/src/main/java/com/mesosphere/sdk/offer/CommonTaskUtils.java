@@ -18,19 +18,13 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.*;
+
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
 public class CommonTaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonTaskUtils.class);
-    private static final int CONFIG_TEMPLATE_LIMIT_BYTES = 512 * 1024; // 512KB
-    public static final String CONFIG_TEMPLATE_KEY_PREFIX = "config_template:";
-    public static final String TARGET_CONFIGURATION_KEY = "target_configuration";
-    public static final String TASK_NAME_DELIM = "__";
-    public static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
-    public static final String GOAL_STATE_KEY = "goal_state";
-    public static final String TASK_NAME_KEY = "TASK_NAME";
-    public static final String TRANSIENT_FLAG_KEY = "transient";
 
     /**
      * Label key against which Offer attributes are stored (in a string representation).
@@ -141,7 +135,7 @@ public class CommonTaskUtils {
     public static TaskInfo setTransient(TaskInfo taskInfo) {
         return taskInfo.toBuilder()
                 .setLabels(withLabelSet(taskInfo.getLabels(),
-                        CommonTaskUtils.TRANSIENT_FLAG_KEY,
+                        TRANSIENT_FLAG_KEY,
                         "true"))
                 .build();
     }
@@ -152,7 +146,7 @@ public class CommonTaskUtils {
      */
     public static TaskInfo clearTransient(TaskInfo taskInfo) {
         return taskInfo.toBuilder()
-                .setLabels(withLabelRemoved(taskInfo.getLabels(), CommonTaskUtils.TRANSIENT_FLAG_KEY))
+                .setLabels(withLabelRemoved(taskInfo.getLabels(), TRANSIENT_FLAG_KEY))
                 .build();
     }
 
@@ -603,9 +597,9 @@ public class CommonTaskUtils {
 
         Optional<String> goalStateOptional = CommonTaskUtils.findLabelValue(
                 taskInfo.getLabels(),
-                CommonTaskUtils.GOAL_STATE_KEY);
+                GOAL_STATE_KEY);
         if (!goalStateOptional.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + CommonTaskUtils.GOAL_STATE_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + GOAL_STATE_KEY);
         }
 
         String goalStateString = goalStateOptional.get();
@@ -624,7 +618,7 @@ public class CommonTaskUtils {
         if (taskInfo.hasLabels()) {
             Labels labels = taskInfo.getLabels();
             for (Label label : labels.getLabelsList()) {
-                if (label.getKey().equals(CommonTaskUtils.TRANSIENT_FLAG_KEY)) {
+                if (label.getKey().equals(TRANSIENT_FLAG_KEY)) {
                     return label.getValue();
                 }
             }
