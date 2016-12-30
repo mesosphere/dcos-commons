@@ -1,0 +1,16 @@
+-Xms{{CASSANDRA_HEAP_SIZE_MB}}M
+-Xmx{{CASSANDRA_HEAP_SIZE_MB}}M
+
+-XX:+UseG1GC
+
+-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintHeapAtGC
+-XX:+PrintTenuringDistribution
+-XX:+PrintGCApplicationStoppedTime
+-XX:+PrintPromotionFailure
+#-XX:PrintFLSStatistics=1
+-Xloggc:{{MESOS_SANDBOX}}/gc.log
+-XX:+UseGCLogFileRotation
+-XX:NumberOfGCLogFiles=10
+-XX:GCLogFileSize=10M
