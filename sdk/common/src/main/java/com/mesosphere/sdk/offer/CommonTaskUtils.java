@@ -455,7 +455,7 @@ public class CommonTaskUtils {
         }
     }
 
-    public static ProcessBuilder getProcess(TaskInfo taskInfo) throws InvalidProtocolBufferException {
+    public static ProcessBuilder getProcess(TaskInfo taskInfo) {
         CommandInfo commandInfo = taskInfo.getCommand();
         String cmd = commandInfo.getValue();
 
