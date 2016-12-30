@@ -11,25 +11,24 @@ from tests.test_utils import (
 )
 
 TEST_CONTENT_SMALL = "This is some test data"
-# TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
+# TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
 HDFS_CMD_TIMEOUT_SEC = 60
 
 
 def setup_module(module):
-    #uninstall()
-    #install()
+    uninstall()
+    install()
     check_health()
 
 
 def teardown_module(module):
-    #uninstall()
-    shakedown.wait_for(lambda: delete_data_from_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
-    shakedown.wait_for(lambda: delete_data_from_hdfs("data-0-node.hdfs.mesos", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
+    uninstall()
 
 
 @pytest.mark.data_integrity
+@pytest.mark.sanity
 def test_integrity_on_data_node_failure():
     shakedown.wait_for(lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
 
@@ -46,6 +45,7 @@ def test_integrity_on_data_node_failure():
 
 
 @pytest.mark.data_integrity
+@pytest.mark.sanity
 def test_integrity_on_name_node_failure():
     """
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
@@ -82,7 +82,7 @@ def delete_data_from_hdfs(host, filename):
 
 def run_hdfs_command(host, command):
     """
-    Goes into the hdfs directory, sets JAVA_HOME, and executes the command.
+    Go into the Data Node hdfs directory, set JAVA_HOME, and execute the command.
     """
     java_home = find_java_home(host)
 
