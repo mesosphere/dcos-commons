@@ -25,10 +25,6 @@ def setup_module(module):
     check_health()
 
 
-def teardown_module(module):
-    uninstall()
-
-
 @pytest.mark.sanity
 def test_no_colocation_in_podtypes():
     # check that no two 'hellos' and no two 'worlds' are colocated on the same agent

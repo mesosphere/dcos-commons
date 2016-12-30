@@ -30,14 +30,13 @@ pods:
         resource-set: hello-resources
         env:
           SLEEP_DURATION: 1000
-        health-checks:
-          check-up:
-            cmd: "stat hello-container-path/output"
-            interval: 5
-            grace-period: 30
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "stat hello-container-path/output"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
       once:
         goal: FINISHED
         cmd: "echo 'I run only once' >> once-container-path/runonce"

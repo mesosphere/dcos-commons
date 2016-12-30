@@ -56,9 +56,18 @@ def check_health():
     return spin(fn, success_predicate)
 
 def get_deployment_plan():
+    return _get_plan("deploy")
+
+def get_sidecar_plan():
+    return _get_plan("sidecar")
+
+def start_sidecar_plan():
+    return dcos.http.post(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/sidecar/start")
+
+def _get_plan(plan):
     def fn():
         try:
-            return dcos.http.get(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/deploy")
+            return dcos.http.get(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/" + plan)
         except dcos.errors.DCOSHTTPException:
             return []
 
