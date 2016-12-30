@@ -30,67 +30,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         this.targetConfigurationId = targetConfigurationId;
     }
 
-    @Override
-    public OfferRequirement getNewOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
-            throws InvalidRequirementException {
-        return OfferRequirement.create(
-                podInstance.getPod().getType(),
-                podInstance.getIndex(),
-                getNewTaskInfos(
-                        podInstance,
-                        tasksToLaunch,
-                        targetConfigurationId),
-                Optional.of(getNewExecutorInfo(podInstance.getPod())),
-                podInstance.getPod().getPlacementRule());
-    }
-
-    @Override
-    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
-            throws InvalidRequirementException {
-        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
-                .collect(Collectors.toList());
-        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
-
-        for (TaskSpec taskSpec : taskSpecs) {
-            Optional<Protos.TaskInfo> taskInfoOptional =
-                    stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
-            if (taskInfoOptional.isPresent()) {
-                taskMap.put(taskInfoOptional.get(), taskSpec);
-            } else {
-                Protos.TaskInfo taskInfo = getNewTaskInfo(
-                        podInstance,
-                        taskSpec,
-                        targetConfigurationId,
-                        StateStoreUtils.getResources(stateStore, podInstance, taskSpec));
-                LOGGER.info("Generated new TaskInfo: {}", TextFormat.shortDebugString(taskInfo));
-                taskMap.put(taskInfo, taskSpec);
-            }
-        }
-
-        if (taskMap.size() == 0) {
-            LOGGER.warn("Attempting to get existing OfferRequirement generated 0 tasks.");
-        }
-
-        List<TaskRequirement> taskRequirements = new ArrayList<>();
-        for (Map.Entry<Protos.TaskInfo, TaskSpec> taskPair : taskMap.entrySet()) {
-            taskRequirements.add(getExistingTaskRequirement(
-                    podInstance,
-                    taskPair.getKey(),
-                    taskPair.getValue(),
-                    targetConfigurationId));
-        }
-
-        validateTaskRequirements(taskRequirements);
-
-        return OfferRequirement.create(
-                podInstance.getPod().getType(),
-                podInstance.getIndex(),
-                taskRequirements,
-                ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod())),
-                podInstance.getPod().getPlacementRule());
-    }
-
     private static List<Protos.TaskInfo> getNewTaskInfos(
             PodInstance podInstance,
             Collection<String> tasksToLaunch,
@@ -399,4 +338,66 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                             taskSpec.getCommand().get().getEnvironment()));
         }
     }
+
+    @Override
+    public OfferRequirement getNewOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
+            throws InvalidRequirementException {
+        return OfferRequirement.create(
+                podInstance.getPod().getType(),
+                podInstance.getIndex(),
+                getNewTaskInfos(
+                        podInstance,
+                        tasksToLaunch,
+                        targetConfigurationId),
+                Optional.of(getNewExecutorInfo(podInstance.getPod())),
+                podInstance.getPod().getPlacementRule());
+    }
+
+    @Override
+    public OfferRequirement getExistingOfferRequirement(PodInstance podInstance, Collection<String> tasksToLaunch)
+            throws InvalidRequirementException {
+        List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
+                .collect(Collectors.toList());
+        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
+
+        for (TaskSpec taskSpec : taskSpecs) {
+            Optional<Protos.TaskInfo> taskInfoOptional =
+                    stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
+            if (taskInfoOptional.isPresent()) {
+                taskMap.put(taskInfoOptional.get(), taskSpec);
+            } else {
+                Protos.TaskInfo taskInfo = getNewTaskInfo(
+                        podInstance,
+                        taskSpec,
+                        targetConfigurationId,
+                        StateStoreUtils.getResources(stateStore, podInstance, taskSpec));
+                LOGGER.info("Generated new TaskInfo: {}", TextFormat.shortDebugString(taskInfo));
+                taskMap.put(taskInfo, taskSpec);
+            }
+        }
+
+        if (taskMap.size() == 0) {
+            LOGGER.warn("Attempting to get existing OfferRequirement generated 0 tasks.");
+        }
+
+        List<TaskRequirement> taskRequirements = new ArrayList<>();
+        for (Map.Entry<Protos.TaskInfo, TaskSpec> taskPair : taskMap.entrySet()) {
+            taskRequirements.add(getExistingTaskRequirement(
+                    podInstance,
+                    taskPair.getKey(),
+                    taskPair.getValue(),
+                    targetConfigurationId));
+        }
+
+        validateTaskRequirements(taskRequirements);
+
+        return OfferRequirement.create(
+                podInstance.getPod().getType(),
+                podInstance.getIndex(),
+                taskRequirements,
+                ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod())),
+                podInstance.getPod().getPlacementRule());
+    }
 }
+
