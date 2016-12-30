@@ -244,12 +244,8 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
     }
 
-    public static OfferRequirementProvider createOfferRequirementProvider(
-            StateStore stateStore, UUID targetConfigId) {
-        return new DefaultOfferRequirementProvider(
-                new DefaultTaskConfigRouter(),
-                stateStore,
-                targetConfigId);
+    public static OfferRequirementProvider createOfferRequirementProvider(StateStore stateStore, UUID targetConfigId) {
+        return new DefaultOfferRequirementProvider(stateStore, targetConfigId);
     }
 
     /**

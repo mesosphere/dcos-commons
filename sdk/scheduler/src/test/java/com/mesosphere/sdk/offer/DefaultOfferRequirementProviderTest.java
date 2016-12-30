@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
@@ -32,7 +31,6 @@ import static org.mockito.Mockito.when;
  */
 public class DefaultOfferRequirementProviderTest {
     private static final double CPU = 1.0;
-    private static final double MEM = 1024.0;
     private static final PlacementRule ALLOW_ALL = new PlacementRule() {
         @Override
         public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
@@ -71,7 +69,7 @@ public class DefaultOfferRequirementProviderTest {
 
         podInstance = new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
 
-        provider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
+        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
     }
 
     @Test
@@ -115,55 +113,5 @@ public class DefaultOfferRequirementProviderTest {
         OfferRequirement offerRequirement =
                 provider.getExistingOfferRequirement(podInstance, tasksToLaunch);
         Assert.assertNotNull(offerRequirement);
-    }
-
-    private static Collection<ResourceSpecification> getResources(Protos.TaskInfo taskInfo) {
-        Collection<ResourceSpecification> resourceSpecifications = new ArrayList<>();
-        for (Protos.Resource resource : taskInfo.getResourcesList()) {
-            if (!resource.hasDisk()) {
-                resourceSpecifications.add(
-                        new DefaultResourceSpecification(
-                                resource.getName(),
-                                ValueUtils.getValue(resource),
-                                resource.getRole(),
-                                resource.getReservation().getPrincipal(),
-                                resource.getName().toUpperCase()));
-            }
-        }
-        return resourceSpecifications;
-    }
-
-    private static Collection<VolumeSpecification> getVolumes(Protos.TaskInfo taskInfo) {
-        Collection<VolumeSpecification> volumeSpecifications = new ArrayList<>();
-        for (Protos.Resource resource : taskInfo.getResourcesList()) {
-            if (resource.hasDisk()) {
-                volumeSpecifications.add(
-                        new DefaultVolumeSpecification(
-                                resource.getScalar().getValue(),
-                                getVolumeType(resource.getDisk()),
-                                resource.getDisk().getVolume().getContainerPath(),
-                                resource.getRole(),
-                                resource.getReservation().getPrincipal(),
-                                resource.getName().toUpperCase()));
-            }
-        }
-
-        return volumeSpecifications;
-    }
-
-    private static VolumeSpecification.Type getVolumeType(Protos.Resource.DiskInfo diskInfo) {
-        if (diskInfo.hasSource()) {
-            Protos.Resource.DiskInfo.Source.Type type = diskInfo.getSource().getType();
-            switch (type) {
-                case MOUNT:
-                    return VolumeSpecification.Type.MOUNT;
-                case PATH:
-                    return VolumeSpecification.Type.PATH;
-                default:
-                    throw new IllegalArgumentException("unexpected type: " + type);
-            }
-        } else {
-            return VolumeSpecification.Type.ROOT;
-        }
     }
 }

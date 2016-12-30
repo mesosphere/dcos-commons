@@ -10,6 +10,8 @@ import java.io.File;
 public class Main {
     private static final Integer COUNT = Integer.valueOf(System.getenv("HELLO_COUNT"));
     private static final Double CPUS = Double.valueOf(System.getenv("HELLO_CPUS"));
+    private static final String POD_TYPE = "hello";
+    private static final String TASK_NAME = "hello";
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
@@ -22,10 +24,11 @@ public class Main {
                     .apiPort(8080)
                     .addPod(DefaultPodSpec.newBuilder()
                             .count(COUNT)
+                            .type(POD_TYPE)
                             .addTask(DefaultTaskSpec.newBuilder()
-                                    .name("hello")
+                                    .name(TASK_NAME)
                                     .goalState(GoalState.RUNNING)
-                                    .commandSpec(DefaultCommandSpec.newBuilder()
+                                    .commandSpec(DefaultCommandSpec.newBuilder(POD_TYPE)
                                             .value("echo hello >> hello-container-path/output && sleep 1000")
                                             .build())
                                     .resourceSet(DefaultResourceSet

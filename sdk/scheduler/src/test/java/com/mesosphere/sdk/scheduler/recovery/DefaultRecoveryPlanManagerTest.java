@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -146,7 +145,7 @@ public class DefaultRecoveryPlanManagerTest {
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        offerRequirementProvider = new DefaultOfferRequirementProvider(new DefaultTaskConfigRouter(), stateStore, UUID.randomUUID());
+        offerRequirementProvider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider),

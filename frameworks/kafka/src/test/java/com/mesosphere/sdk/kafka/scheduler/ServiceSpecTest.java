@@ -8,6 +8,7 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import org.junit.*;
@@ -21,7 +22,7 @@ import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
-public class KafkaServiceSpecTest {
+public class ServiceSpecTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -37,7 +38,7 @@ public class KafkaServiceSpecTest {
         environmentVariables.set("BROKER_CPUS", "0.1");
         environmentVariables.set("BROKER_MEM", "512");
         environmentVariables.set("BROKER_DISK", "5000");
-        URL resource = KafkaServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
+        URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
@@ -48,7 +49,7 @@ public class KafkaServiceSpecTest {
 
     @Test
     public void testServiceSpecDeserialization() throws Exception {
-        ClassLoader classLoader = KafkaServiceSpecTest.class.getClassLoader();
+        ClassLoader classLoader = ServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
@@ -59,9 +60,8 @@ public class KafkaServiceSpecTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testServiceSpecValidation() throws Exception {
-        ClassLoader classLoader = KafkaServiceSpecTest.class.getClassLoader();
+        ClassLoader classLoader = ServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(generateRawSpecFromYAML(file));
@@ -70,7 +70,7 @@ public class KafkaServiceSpecTest {
         StateStore stateStore = DefaultScheduler.createStateStore(
                 serviceSpec,
                 testingServer.getConnectString());
-        ConfigStore configStore = DefaultScheduler.createConfigStore(
+        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
                 serviceSpec,
                 testingServer.getConnectString(),
                 Collections.emptyList());
@@ -87,14 +87,14 @@ public class KafkaServiceSpecTest {
                         .setPort(0)
                         .build();
 
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configStore);
+        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(
+                serviceSpec, stateStore, configStore);
 
-        OfferRequirementProvider offerRequirementProvider = DefaultScheduler
-                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
+        OfferRequirementProvider offerRequirementProvider =
+                DefaultScheduler.createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
 
-        DefaultScheduler defaultScheduler = DefaultScheduler
-                .create(serviceSpec, stateStore, configStore, offerRequirementProvider);
+        DefaultScheduler defaultScheduler = DefaultScheduler.create(
+                serviceSpec, stateStore, configStore, offerRequirementProvider);
         defaultScheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
     }
 }

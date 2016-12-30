@@ -268,6 +268,35 @@ public class CommonTaskUtils {
         return UUID.fromString(value.get());
     }
 
+    /**
+     * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
+     * Any templates with matching paths will be overwritten.
+     *
+     * @throws IllegalStateException if the sum total of the provided template content exceeds 100KB
+     *                               (102,400B)
+     */
+    public static TaskInfo.Builder setConfigFiles(
+            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpecification> configs)
+            throws IllegalStateException {
+        int totalSize = 0;
+        for (ConfigFileSpecification config : configs) {
+            totalSize += config.getTemplateContent().length();
+            // Store with the config template prefix:
+            taskBuilder.setLabels(CommonTaskUtils.withLabelSet(taskBuilder.getLabels(),
+                    CONFIG_TEMPLATE_KEY_PREFIX + config.getRelativePath(),
+                    config.getTemplateContent()));
+        }
+        if (totalSize > CONFIG_TEMPLATE_LIMIT_BYTES) {
+            // NOTE: We don't bother checking across multiple set() calls. This is just meant to
+            // keep things reasonable without being a perfect check.
+            throw new IllegalStateException(String.format(
+                    "Provided config template content of %dB across %d files exceeds limit of %dB. "
+                            + "Reduce the size of your config templates by at least %dB.",
+                    totalSize, configs.size(), CONFIG_TEMPLATE_LIMIT_BYTES,
+                    totalSize - CONFIG_TEMPLATE_LIMIT_BYTES));
+        }
+        return taskBuilder;
+    }
 
     /**
      * Retrieves the config file data, if any, from the provided {@link TaskInfo}'s {@code labels}
@@ -312,9 +341,9 @@ public class CommonTaskUtils {
      * @param environmentMap The map to extract environment variables from
      * @return The {@link Environment} containing the extracted environment variables
      */
-    public static Environment fromMapToEnvironment(Map<String, String> environmentMap) {
+    public static Environment.Builder fromMapToEnvironment(Map<String, String> environmentMap) {
         if (environmentMap == null) {
-            return Environment.getDefaultInstance();
+            return Environment.newBuilder();
         }
 
         Collection<Environment.Variable> vars = environmentMap
@@ -325,7 +354,7 @@ public class CommonTaskUtils {
                         .setValue(entrySet.getValue()).build())
                 .collect(Collectors.toList());
 
-        return Environment.newBuilder().addAllVariables(vars).build();
+        return Environment.newBuilder().addAllVariables(vars);
     }
 
     /**
@@ -478,46 +507,6 @@ public class CommonTaskUtils {
     }
 
     /**
-     * Injects the proper data into the given config template and writes the populated template to disk.
-     *
-     * @param relativePath    The path to write the file
-     * @param templateContent The content of the config template
-     * @param environment     The environment from which to extract the injection data
-     * @throws IOException if the data can't be written to disk
-     */
-    protected static void writeConfigFile(
-            String relativePath,
-            String templateContent,
-            Map<String, String> environment) throws IOException {
-
-        LOGGER.info("Writing config file: {}", relativePath);
-
-        File configFile = new File(relativePath);
-        Writer writer = null;
-
-        if (!configFile.exists()) {
-            try {
-                configFile.createNewFile();
-            } catch (IOException e) {
-                throw new IOException(String.format("Can't create config file %s: %s", relativePath, e));
-            }
-        }
-
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(relativePath), "utf-8"));
-            MustacheFactory mf = new DefaultMustacheFactory();
-            Mustache mustache = mf.compile(new StringReader(templateContent), "configTemplate");
-            mustache.execute(writer, environment);
-            writer.close();
-        } catch (IOException e) {
-            if (writer != null) {
-                writer.close();
-            }
-            throw new IOException(String.format("Can't write to file %s: %s", relativePath, e));
-        }
-    }
-
-    /**
      * Renders a given Mustache template using the provided environment map.
      *
      * @param templateContent String representation of template.
@@ -534,60 +523,6 @@ public class CommonTaskUtils {
 
     public static boolean isMustacheFullyRendered(String templateContent) {
         return StringUtils.isEmpty(templateContent) || !templateContent.matches("\\{\\{.*\\}\\}");
-    }
-
-    /**
-     * Sets up the config files on the executor side.
-     *
-     * @param taskInfo The {@link TaskInfo} to extract the config file data from
-     * @throws IOException if the data in the taskInfo is not valid or the config can't be written to disk
-     */
-    public static void setupConfigFiles(TaskInfo taskInfo) throws IOException {
-
-        LOGGER.info("Setting up config files");
-        final Map<String, String> environment =
-                CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
-        // some config templates depend on MESOS_SANDBOX
-        environment.put("MESOS_SANDBOX", System.getenv("MESOS_SANDBOX"));
-        Collection<ConfigFileSpecification> configFileSpecifications = getConfigFiles(taskInfo);
-
-        for (ConfigFileSpecification configFileSpecification : configFileSpecifications) {
-            CommonTaskUtils.writeConfigFile(
-                    configFileSpecification.getRelativePath(),
-                    configFileSpecification.getTemplateContent(),
-                    environment
-            );
-        }
-    }
-
-    /**
-     * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
-     * Any templates with matching paths will be overwritten.
-     *
-     * @throws IllegalStateException if the sum total of the provided template content exceeds 100KB
-     *                               (102,400B)
-     */
-    public static TaskInfo.Builder setConfigFiles(
-            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpecification> configs)
-            throws IllegalStateException {
-        int totalSize = 0;
-        for (ConfigFileSpecification config : configs) {
-            totalSize += config.getTemplateContent().length();
-            // Store with the config template prefix:
-            taskBuilder.setLabels(CommonTaskUtils.withLabelSet(taskBuilder.getLabels(),
-                    CONFIG_TEMPLATE_KEY_PREFIX + config.getRelativePath(),
-                    config.getTemplateContent()));
-        }
-        if (totalSize > CONFIG_TEMPLATE_LIMIT_BYTES) {
-            // NOTE: We don't bother checking across multiple set() calls. This is just meant to
-            // keep things reasonable without being a perfect check.
-            throw new IllegalStateException(String.format(
-                    "Provided config template content of %dB across %d files exceeds limit of %dB. "
-                            + "Reduce the size of your config templates by at least %dB.",
-                    totalSize, configs.size(), CONFIG_TEMPLATE_LIMIT_BYTES,
-                    totalSize - CONFIG_TEMPLATE_LIMIT_BYTES));
-        }
-        return taskBuilder;
     }
 
     public static GoalState getGoalState(TaskInfo taskInfo) throws TaskException {

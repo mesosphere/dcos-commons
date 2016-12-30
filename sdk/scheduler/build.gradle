@@ -24,6 +24,7 @@ ext {
     springVer = "4.3.1.RELEASE"
     httpClientVer = "4.5.2"
     awaitilityVer = "2.0.0"
+    javaDiffUtilsVer = "1.3.0"
     jettyServletVer = "9.2.3.v20140905"
     jerseyVer = "2.23.2";
     jsonProviderVer = "2.2.3"
@@ -94,6 +95,7 @@ dependencies {
     compile "org.json:json:${jsonVer}"
     compile "com.google.inject:guice:${guiceVer}"
     compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
+    compile "com.googlecode.java-diff-utils:diffutils:${javaDiffUtilsVer}"
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.eclipse.jetty:jetty-servlet:${jettyServletVer}"
