@@ -12,17 +12,13 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.*;
+
 /**
  * A default implementation of the OfferRequirementProvider interface.
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
-    private static final String EXECUTOR_URI = "EXECUTOR_URI";
-    private static final String LIBMESOS_URI = "LIBMESOS_URI";
-    private static final String JAVA_URI = "JAVA_URI";
-    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
-
-    private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
 
     private final StateStore stateStore;
     private final UUID targetConfigurationId;
@@ -232,7 +228,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Inject Pod Instance Index
         environment.put(POD_INSTANCE_INDEX_KEY, String.valueOf(podInstance.getIndex()));
         // Inject TASK_NAME as KEY:VALUE
-        environment.put(CommonTaskUtils.TASK_NAME_KEY, TaskSpec.getInstanceName(podInstance, taskSpec));
+        environment.put(TASK_NAME_KEY, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 

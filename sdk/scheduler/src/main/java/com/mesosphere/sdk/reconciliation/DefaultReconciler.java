@@ -122,6 +122,10 @@ public class DefaultReconciler implements Reconciler {
 
     @Override
     public void update(final Protos.TaskStatus status) {
+        if (isReconciled()) {
+            return;
+        }
+
         synchronized (unreconciled) {
             // we've gotten a task status update callback. mark this task as reconciled, if needed
             unreconciled.remove(status.getTaskId().getValue());
