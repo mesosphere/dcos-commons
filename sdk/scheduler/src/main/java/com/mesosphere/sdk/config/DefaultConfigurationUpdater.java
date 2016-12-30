@@ -83,24 +83,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         } else if (candidateConfigJson == null) {
             LOGGER.info("Skipping config diff: New target couldn't be represented as JSON");
         } else {
-            // Print a diff of this new config vs the prior config:
-            try {
-                final List<String> oldLines =
-                        Lists.newArrayList(Splitter.on('\n').split(targetConfig.toJsonString()));
-                final List<String> newLines = Lists.newArrayList(Splitter.on('\n').split(candidateConfigJson));
-                List<String> diffResult = DiffUtils.generateUnifiedDiff(
-                        "ServiceSpec.old", "ServiceSpec.new", oldLines, DiffUtils.diff(oldLines, newLines), 2);
-                LOGGER.info("Difference between configs:\n{}", Joiner.on('\n').join(diffResult));
-                // Don't log the old target, as that would be redundant.
-                // Instead just log the new target then the diff vs the old target (below)
-            } catch (Exception e) {
-                LOGGER.error(String.format(
-                        "Unable to get JSON representation of old target config object %s, " +
-                        "skipping diff vs new target: %s",
-                        targetConfigId, targetConfig), e);
-                // Don't add a validation error: That'd prevent the new config from replacing this one,
-                // and we'd be stuck with this config forever! Hopefully the new config will fix things...
-            }
+            printConfigDiff(targetConfig, targetConfigId, candidateConfigJson);
         }
 
         // Check for any validation errors (including against the prior config, if one is available)
@@ -199,7 +182,28 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         clearConfigsNotListed(neededConfigs);
     }
 
-    private boolean needsConfigUpdate(
+    private static void printConfigDiff(ServiceSpec oldConfig, UUID oldConfigId, String newConfigJson) {
+        // Print a diff of this new config vs the prior config:
+        try {
+            final List<String> oldLines =
+                    Lists.newArrayList(Splitter.on('\n').split(oldConfig.toJsonString()));
+            final List<String> newLines = Lists.newArrayList(Splitter.on('\n').split(newConfigJson));
+            List<String> diffResult = DiffUtils.generateUnifiedDiff(
+                    "ServiceSpec.old", "ServiceSpec.new", oldLines, DiffUtils.diff(oldLines, newLines), 2);
+            LOGGER.info("Difference between configs:\n{}", Joiner.on('\n').join(diffResult));
+            // Don't log the old target, as that would be redundant.
+            // Instead just log the new target then the diff vs the old target (below)
+        } catch (Exception e) {
+            LOGGER.error(String.format(
+                    "Unable to get JSON representation of old target config object %s, " +
+                    "skipping diff vs new target: %s",
+                    oldConfigId, oldConfig), e);
+            // Don't add a validation error: That'd prevent the new config from replacing this one,
+            // and we'd be stuck with this config forever! Hopefully the new config will fix things...
+        }
+    }
+
+    private static boolean needsConfigUpdate(
             Protos.TaskInfo taskInfo,
             ServiceSpec targetConfig,
             ServiceSpec taskConfig) {
@@ -225,9 +229,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
     }
 
-    private Optional<PodSpec> getPodSpec(
-            Protos.TaskInfo taskInfo,
-            ServiceSpec serviceSpecification) {
+    private static Optional<PodSpec> getPodSpec(Protos.TaskInfo taskInfo, ServiceSpec serviceSpecification) {
 
         try {
             final String taskType = CommonTaskUtils.getType(taskInfo);
@@ -241,7 +243,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
     }
 
-    private boolean areDifferent(PodSpec podSpec1, PodSpec podSpec2) {
+    private static boolean areDifferent(PodSpec podSpec1, PodSpec podSpec2) {
         if (podSpec1.equals(podSpec2)) {
             return false;
         }
