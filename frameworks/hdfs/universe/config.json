@@ -10,8 +10,13 @@
           "type":"string",
           "default":"hdfs"
         },
+        "role": {
+          "type": "string",
+          "description": "The role of the HDFS service instance.",
+          "default": "hdfs-role"
+        },
         "principal" : {
-          "description":"The name of the service instance",
+          "description":"The principal for the HDFS service instance.",
           "type":"string",
           "default":"hdfs-principal"
         }
