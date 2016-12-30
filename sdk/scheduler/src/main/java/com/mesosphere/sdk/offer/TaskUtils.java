@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.GOAL_STATE_KEY;
+
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
@@ -296,7 +298,7 @@ public class TaskUtils {
     public static TaskInfo.Builder setGoalState(TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
         return taskInfoBuilder
                 .setLabels(CommonTaskUtils.withLabelSet(taskInfoBuilder.getLabels(),
-                        CommonTaskUtils.GOAL_STATE_KEY,
+                        GOAL_STATE_KEY,
                         taskSpec.getGoal().name()));
     }
 
