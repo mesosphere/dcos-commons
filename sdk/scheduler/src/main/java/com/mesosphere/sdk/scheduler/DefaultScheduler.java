@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -519,7 +520,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.driver = driver;
         reconciler.start();
         reconciler.reconcile(driver);
-        suppressOrRevive();
+        revive();
     }
 
     @Override
@@ -601,7 +602,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     recoveryPlanManager.update(status);
                     reconciler.update(status);
 
-                    if (CommonTaskUtils.needsRecovery(status)) {
+                    if (stateStore.isSuppressed()
+                            && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
                         revive();
                     }
                 } catch (Exception e) {
@@ -664,9 +666,17 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void suppressOrRevive() {
         if (planCoordinator.hasOperations()) {
-            revive();
+            if (stateStore.isSuppressed()) {
+                revive();
+            } else {
+                LOGGER.info("Already revived.");
+            }
         } else {
-            suppress();
+            if (stateStore.isSuppressed()) {
+                LOGGER.info("Already suppressed.");
+            } else {
+                suppress();
+            }
         }
     }
 

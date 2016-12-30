@@ -214,12 +214,13 @@ public class CuratorStateStore implements StateStore {
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
                 && CommonTaskUtils.isTerminal(currentStatusOptional.get())) {
-            logger.info("Ignoring TASK_LOST for Task already in a terminal state: {}", taskName);
-            return;
+            throw new StateStoreException(
+                    String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
+                            currentStatusOptional.get().getState(), taskName));
         }
 
         String path = taskPathMapper.getTaskStatusPath(taskName);
-        logger.debug("Storing status for '{}' in '{}'", taskName, path);
+        logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
             curator.set(path, status.toByteArray());
