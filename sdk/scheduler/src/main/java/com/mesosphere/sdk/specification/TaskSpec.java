@@ -15,9 +15,6 @@ public interface TaskSpec {
     @JsonProperty("name")
     String getName();
 
-    @JsonProperty("type")
-    String getType();
-
     @JsonProperty("goal")
     GoalState getGoal();
 

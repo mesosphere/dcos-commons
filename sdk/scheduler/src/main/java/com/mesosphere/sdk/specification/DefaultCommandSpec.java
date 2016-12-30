@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import com.mesosphere.sdk.config.ConfigNamespace;
+import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 import javax.validation.constraints.NotNull;
@@ -11,6 +14,7 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 /**
  * Default implementation of {@link CommandSpec}.
@@ -35,23 +39,33 @@ public class DefaultCommandSpec implements CommandSpec {
     }
 
     private DefaultCommandSpec(Builder builder) {
-        this(
-                builder.value,
-                builder.environment,
-                builder.user,
-                builder.uris);
+        this(builder.value, builder.getEnvironment(), builder.user, builder.uris);
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    /**
+     * Creates a new builder instance which will automatically include any routable environment variables targeted to
+     * the provided pod type.
+     *
+     * @see PodSpec#getType()
+     */
+    public static Builder newBuilder(String podType) {
+        return newBuilder(new DefaultTaskConfigRouter().getConfig(podType));
     }
 
-    public static Builder newBuilder(DefaultCommandSpec copy) {
-        Builder builder = new Builder();
-        builder.value = copy.value;
-        builder.environment = copy.environment;
-        builder.user = copy.user;
-        builder.uris = copy.uris;
+    /**
+     * Creates a new builder instance using the provided {@link ConfigNamespace} for any additional config overrides.
+     */
+    public static Builder newBuilder(ConfigNamespace envOverride) {
+        return new Builder(envOverride);
+    }
+
+    public static Builder newBuilder(CommandSpec copy) {
+        // Skip env override: Any overrides should already be merged into the CommandSpec's main env.
+        Builder builder = newBuilder(ConfigNamespace.emptyInstance());
+        builder.value = copy.getValue();
+        builder.environment = copy.getEnvironment();
+        builder.user = copy.getUser().orElse(null);
+        builder.uris = copy.getUris();
         return builder;
     }
 
@@ -60,6 +74,9 @@ public class DefaultCommandSpec implements CommandSpec {
         return value;
     }
 
+    /**
+     * Returns the merged {@link ServiceSpec} environment plus any environment variable overrides.
+     */
     @Override
     public Map<String, String> getEnvironment() {
         return environment;
@@ -86,15 +103,36 @@ public class DefaultCommandSpec implements CommandSpec {
     }
 
     /**
-     * {@code DefaultCommandSpec} builder static inner class.
+     * {@link DefaultCommandSpec} builder.
      */
     public static final class Builder {
+        private final ConfigNamespace envOverride;
+
         private String value;
         private Map<String, String> environment;
         private String user;
         private Collection<URI> uris;
 
-        private Builder() {
+        /**
+         * Creates a new {@link Builder} with the provided {@link ConfigNamespace} containing override envvars.
+         */
+        private Builder(ConfigNamespace envOverride) {
+            this.envOverride = envOverride;
+        }
+
+        /**
+         * Returns a combined environment containing the base environment and any overrides. The base environment is
+         * provided by the developer in the {@link ServiceSpec}. The overrides are provided by the scheduler
+         * environment, which may be customized in packaging without requiring a rebuild.
+         */
+        private Map<String, String> getEnvironment() {
+            // use TreeMap for alphabetical sorting, easier diagnosis/logging:
+            Map<String, String> combinedEnv = new TreeMap<>();
+            if (environment != null) {
+                combinedEnv.putAll(environment);
+            }
+            combinedEnv.putAll(envOverride.getAllEnv());
+            return combinedEnv;
         }
 
         /**

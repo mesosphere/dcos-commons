@@ -4,6 +4,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.mesosphere.sdk.config.ConfigNamespace;
+import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
+import com.mesosphere.sdk.config.TaskConfigRouter;
 import com.mesosphere.sdk.offer.constrain.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.constrain.PassthroughRule;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
@@ -27,8 +30,14 @@ public class YAMLToInternalMappers {
 
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawSvcSpec.getPods();
+        TaskConfigRouter taskConfigRouter = new DefaultTaskConfigRouter();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
-            pods.add(from(entry.getValue(), entry.getKey(), role, principal));
+            pods.add(from(
+                    entry.getValue(),
+                    entry.getKey(),
+                    taskConfigRouter.getConfig(entry.getKey()),
+                    role,
+                    principal));
         }
 
         RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
@@ -72,7 +81,9 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static PodSpec from(RawPod rawPod, String podName, String role, String principal) throws Exception {
+    private static PodSpec from(
+            RawPod rawPod, String podName, ConfigNamespace configNamespace, String role, String principal)
+                    throws Exception {
         Collection<URI> uris = new ArrayList<>();
         for (String uriStr : rawPod.getUris()) {
             uris.add(new URI(uriStr));
@@ -96,7 +107,7 @@ public class YAMLToInternalMappers {
                     entry.getKey(),
                     uris,
                     Optional.ofNullable(rawPod.getUser()),
-                    podName,
+                    configNamespace,
                     resourceSets,
                     role,
                     principal));
@@ -135,7 +146,7 @@ public class YAMLToInternalMappers {
             String taskName,
             Collection<URI> podUris,
             Optional<String> user,
-            String podType,
+            ConfigNamespace configNamespace,
             Collection<ResourceSet> resourceSets,
             String role,
             String principal) throws Exception {
@@ -145,7 +156,7 @@ public class YAMLToInternalMappers {
         }
         uris.addAll(podUris);
 
-        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder()
+        DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(configNamespace)
                 .environment(rawTask.getEnv())
                 .uris(uris)
                 .value(rawTask.getCmd());
@@ -173,7 +184,6 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .name(taskName)
-                .type(podType)
                 .uris(uris);
 
         if (StringUtils.isNotBlank(rawTask.getResourceSet())) {

@@ -27,7 +27,7 @@ public class YAMLServiceSpecFactory {
 
     public static final RawServiceSpecification generateRawSpecFromYAML(final String yaml) throws Exception {
         final String yamlWithEnv = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
-        LOGGER.info("Rendered ServiceSpec: {}", yamlWithEnv);
+        LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
         if (!CommonTaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }

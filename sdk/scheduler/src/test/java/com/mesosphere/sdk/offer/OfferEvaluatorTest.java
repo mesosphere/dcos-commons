@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.executor.ExecutorUtils;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
@@ -55,10 +54,7 @@ public class OfferEvaluatorTest {
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
         stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
-        offerRequirementProvider = new DefaultOfferRequirementProvider(
-                new DefaultTaskConfigRouter(),
-                stateStore,
-                UUID.randomUUID());
+        offerRequirementProvider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
         evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
         operationRecorder = new PersistentOperationRecorder(stateStore);
     }

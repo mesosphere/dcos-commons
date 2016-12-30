@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.specification;
 
 import org.apache.mesos.Protos;
+
+import com.mesosphere.sdk.config.ConfigNamespace;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import java.util.*;
@@ -47,19 +49,26 @@ public class TestPodFactory {
                 .build();
     }
 
-    public static PodSpec getPodSpec(String type, String resourceSetId, String taskName, String cmd, int count, double cpu, double mem, double disk) {
+    public static PodSpec getPodSpec(
+            String type,
+            String resourceSetId,
+            String taskName,
+            String cmd,
+            int count,
+            double cpu,
+            double mem,
+            double disk) {
         ResourceSet resourceSet = getResourceSet(resourceSetId, cpu, mem, disk);
         TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
                 .name(taskName)
                 .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
-                .commandSpec(DefaultCommandSpec.newBuilder()
+                .commandSpec(DefaultCommandSpec.newBuilder(ConfigNamespace.emptyInstance())
                         .value(cmd)
                         .uris(Collections.emptyList())
                         .environment(Collections.emptyMap())
                         .build())
                 .configFiles(Collections.emptyList())
-                .type(TestConstants.POD_TYPE)
                 .build();
 
         return DefaultPodSpec.newBuilder()

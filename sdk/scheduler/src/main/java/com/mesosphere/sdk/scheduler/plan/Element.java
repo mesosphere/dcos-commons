@@ -113,6 +113,6 @@ public interface Element<C extends Element> extends Observable {
      * Indicates whether this Element is in progress.
      */
     default boolean isInProgress() {
-        return !(isPending() || isComplete());
+        return isPrepared() || isStarting();
     }
 }

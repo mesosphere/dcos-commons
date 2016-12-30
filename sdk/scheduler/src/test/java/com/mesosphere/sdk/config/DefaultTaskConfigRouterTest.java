@@ -64,17 +64,17 @@ public class DefaultTaskConfigRouterTest {
     @Test
     public void testEmptyConfig() {
         TaskConfigRouter router = new DefaultTaskConfigRouter(new HashMap<>());
-        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_A).getAll().isEmpty());
-        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_B).getAll().isEmpty());
-        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_C).getAll().isEmpty());
-        assertTrue(TaskConfigRouter.getConfig(router, TASK_SET_D).getAll().isEmpty());
+        assertTrue(router.getConfig(TASK_SET_A.getType()).getAll().isEmpty());
+        assertTrue(router.getConfig(TASK_SET_B.getType()).getAll().isEmpty());
+        assertTrue(router.getConfig(TASK_SET_C.getType()).getAll().isEmpty());
+        assertTrue(router.getConfig(TASK_SET_D.getType()).getAll().isEmpty());
         assertTrue(router.getConfig("E").getAll().isEmpty());
     }
 
     @Test
     public void testMixedConfig() {
         TaskConfigRouter router = new DefaultTaskConfigRouter(TEST_MAP);
-        ImmutableMap<String, ConfigValue> values = TaskConfigRouter.getConfig(router, TASK_SET_A).getAll();
+        ImmutableMap<String, ConfigValue> values = router.getConfig(TASK_SET_A.getType()).getAll();
         assertEquals(5, values.size());
         assertEquals("TWO", values.get("ONE").requiredString());
         assertEquals("TASKCFG_A_ONE=TWO", values.get("ONE").toString());
@@ -87,7 +87,7 @@ public class DefaultTaskConfigRouterTest {
         assertEquals("BAZ", values.get("BAR").requiredString());
         assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
 
-        values = TaskConfigRouter.getConfig(router, TASK_SET_B).getAll();
+        values = router.getConfig(TASK_SET_B.getType()).getAll();
         assertEquals(3, values.size());
         assertEquals("EIGHT", values.get("SEVEN").requiredString());
         assertEquals("TASKCFG_B_SEVEN=EIGHT", values.get("SEVEN").toString());
@@ -96,7 +96,7 @@ public class DefaultTaskConfigRouterTest {
         assertEquals("BAZ", values.get("BAR").requiredString());
         assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
 
-        values = TaskConfigRouter.getConfig(router, TASK_SET_C).getAll();
+        values = router.getConfig(TASK_SET_C.getType()).getAll();
         assertEquals(3, values.size());
         assertEquals("TEN", values.get("NINE").requiredString());
         assertEquals("TASKCFG_C_NINE=TEN", values.get("NINE").toString());
@@ -105,7 +105,7 @@ public class DefaultTaskConfigRouterTest {
         assertEquals("BAZ", values.get("BAR").requiredString());
         assertEquals("TASKCFG_ALL_BAR=BAZ", values.get("BAR").toString());
 
-        values = TaskConfigRouter.getConfig(router, TASK_SET_D).getAll();
+        values = router.getConfig(TASK_SET_D.getType()).getAll();
         assertEquals(2, values.size());
         assertEquals("BAR", values.get("FOO").requiredString());
         assertEquals("TASKCFG_ALL_FOO=BAR", values.get("FOO").toString());
