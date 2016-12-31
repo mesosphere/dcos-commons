@@ -8,42 +8,37 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Immutable JSON serialization object for a {@link Phase} which includes child {@link Step}s.
  */
 class PhaseInfo {
-
     private final String id;
     private final String name;
     private final List<StepInfo> steps;
     private final Status status;
 
+    public static PhaseInfo forPhase(final Phase phase) {
+        List<StepInfo> stepInfos = phase.getChildren().stream()
+                .map(step -> StepInfo.forStep(step))
+                .collect(Collectors.toList());
+
+        return new PhaseInfo(
+                phase.getId().toString(),
+                phase.getName(),
+                stepInfos,
+                phase.getStatus());
+    }
+
     @JsonCreator
-    public static PhaseInfo create(
+    public PhaseInfo(
             @JsonProperty("id") final String id,
             @JsonProperty("name") final String name,
             @JsonProperty("steps") final List<StepInfo> steps,
             @JsonProperty("status") final Status status) {
-        return new PhaseInfo(id, name, steps, status);
-    }
-
-    public static PhaseInfo forPhase(final Phase phase) {
-        List<StepInfo> info = new ArrayList<>();
-        List<Step> steps = phase.getChildren();
-        steps.forEach(step -> info.add(StepInfo.forStep(step)));
-
-        return create(phase.getId().toString(),
-                phase.getName(),
-                info,
-                phase.getStatus());
-    }
-
-    private PhaseInfo(
-            final String id, final String name, final List<StepInfo> steps, final Status status) {
         this.id = id;
         this.name = name;
         this.steps = steps;
