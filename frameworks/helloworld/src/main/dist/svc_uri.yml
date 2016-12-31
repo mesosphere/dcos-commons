@@ -44,14 +44,13 @@ pods:
         resource-set: world-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-        health-checks:
-          check-hello:
-            cmd: "stat hello-container-path/output"
-            interval: 5
-            grace-period: 30
-            delay: 0
-            timeout: 10
-            max-consecutive-failures: 3
+        health-check:
+          cmd: "stat hello-container-path/output"
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
 plans:
   deploy:
     strategy: serial

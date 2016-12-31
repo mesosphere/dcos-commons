@@ -11,11 +11,10 @@ pods:
         cmd: "./task-cmd"
         cpus: 0.1
         memory: 512
-        health-checks:
-          check-up:
-            cmd: "./health-check"
-            interval: 5
-            grace-period: 30
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "./health-check"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
