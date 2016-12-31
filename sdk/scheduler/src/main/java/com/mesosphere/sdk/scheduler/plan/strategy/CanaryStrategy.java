@@ -30,7 +30,7 @@ public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
                     .filter(element -> element.isPending())
                     .collect(Collectors.toList());
 
-            for (int i = 0; i < 2 && i < parentElement.getChildren().size(); i++) {
+            for (int i = 0; i < 2 && i < children.size(); i++) {
                 children.get(i).getStrategy().interrupt();
             }
 
