@@ -27,7 +27,7 @@ public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
     public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
         if (!initialized.get()) {
             children = parentElement.getChildren().stream()
-                    .filter(element -> element.isPending())
+                    .filter(element -> (element.isPending() || element.isWaiting()))
                     .collect(Collectors.toList());
 
             for (int i = 0; i < 2 && i < children.size(); i++) {
