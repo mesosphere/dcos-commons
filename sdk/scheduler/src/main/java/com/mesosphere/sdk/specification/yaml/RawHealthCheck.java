@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RawHealthCheck {
 
-    private final String name;
     private final String cmd;
     private final Integer interval;
     private final Integer gracePeriod;
@@ -15,25 +14,19 @@ public class RawHealthCheck {
     private final Integer timeout;
     private final Integer maxConsecutiveFailures;
 
-    private RawHealthCheck(
-            @JsonProperty("name") String name,
+    protected RawHealthCheck(
             @JsonProperty("cmd") String cmd,
             @JsonProperty("interval") Integer intervalSecs,
             @JsonProperty("grace-period") Integer gracePeriodSecs,
             @JsonProperty("max-consecutive-failures") Integer maxConsecutiveFailures,
             @JsonProperty("delay") Integer delaySecs,
             @JsonProperty("timeout") Integer timeoutSecs) {
-        this.name = name;
         this.cmd = cmd;
         this.interval = intervalSecs;
         this.gracePeriod = gracePeriodSecs;
         this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.delay = delaySecs;
         this.timeout = timeoutSecs;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public String getCmd() {

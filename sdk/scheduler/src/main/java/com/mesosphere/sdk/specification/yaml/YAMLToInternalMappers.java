@@ -81,6 +81,17 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
+    private static ReadinessCheckSpec from(RawReadinessCheck rawReadinessCheck) {
+        return DefaultReadinessCheckSpec.newBuilder()
+                .command(rawReadinessCheck.getCmd())
+                .delay(rawReadinessCheck.getDelay())
+                .gracePeriod(rawReadinessCheck.getGracePeriod())
+                .interval(rawReadinessCheck.getInterval())
+                .maxConsecutiveFailures(rawReadinessCheck.getMaxConsecutiveFailures())
+                .timeout(rawReadinessCheck.getTimeout())
+                .build();
+    }
+
     private static PodSpec from(
             RawPod rawPod, String podName, ConfigNamespace configNamespace, String role, String principal)
                     throws Exception {
@@ -188,11 +199,17 @@ public class YAMLToInternalMappers {
             healthCheckSpec = from(rawTask.getHealthCheck());
         }
 
+        ReadinessCheckSpec readinessCheckSpec = null;
+        if (rawTask.getReadinessCheck() != null) {
+           readinessCheckSpec = from(rawTask.getReadinessCheck());
+        }
+
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
+                .readinessCheckSpec(readinessCheckSpec)
                 .name(taskName)
                 .uris(uris);
 
