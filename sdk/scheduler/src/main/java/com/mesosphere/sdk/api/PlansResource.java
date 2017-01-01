@@ -52,7 +52,7 @@ public class PlansResource {
         if (manager != null) {
             return Response
                     .status(manager.getPlan().isComplete() ? 200 : 503)
-                    .entity(PlanInfo.forPlan(manager))
+                    .entity(PlanInfo.forPlan(manager.getPlan()))
                     .build();
         } else {
             return PLAN_ELEMENT_NOT_FOUND_RESPONSE;

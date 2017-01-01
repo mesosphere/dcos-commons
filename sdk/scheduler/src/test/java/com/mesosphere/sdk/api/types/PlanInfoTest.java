@@ -22,7 +22,6 @@ public class PlanInfoTest {
     @Mock Phase mockPhase0; // 2 steps
     @Mock Phase mockPhase1; // no steps
     @Mock Plan mockPlan; // 2 phases
-    @Mock PlanManager mockPlanManager;
 
     @Before
     public void beforeAll() {
@@ -76,10 +75,9 @@ public class PlanInfoTest {
         List<String> stageErrors = Arrays.asList("err0", "err1");
         when(mockPlan.getErrors()).thenReturn(stageErrors);
 
-        when(mockPlanManager.getPlan()).thenReturn(mockPlan);
         when(mockPlan.getStatus()).thenReturn(Status.WAITING);
 
-        PlanInfo planInfo = PlanInfo.forPlan(mockPlanManager);
+        PlanInfo planInfo = PlanInfo.forPlan(mockPlan);
 
         assertEquals(stageErrors, planInfo.getErrors());
         assertEquals(Status.WAITING, planInfo.getStatus());
