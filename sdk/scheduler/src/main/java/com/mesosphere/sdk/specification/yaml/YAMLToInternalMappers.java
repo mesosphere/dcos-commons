@@ -69,9 +69,8 @@ public class YAMLToInternalMappers {
                 new File(rawConfiguration.getTemplate()));
     }
 
-    private static HealthCheckSpec from(RawHealthCheck rawHealthCheck, String name) {
+    private static HealthCheckSpec from(RawHealthCheck rawHealthCheck) {
         return DefaultHealthCheckSpec.newBuilder()
-                .name(name)
                 .command(rawHealthCheck.getCmd())
                 .delay(rawHealthCheck.getDelay())
                 .gracePeriod(rawHealthCheck.getGracePeriod())
@@ -171,11 +170,9 @@ public class YAMLToInternalMappers {
             }
         }
 
-        // Note: We currently only support the first healthcheck.
         HealthCheckSpec healthCheckSpec = null;
-        if (MapUtils.isNotEmpty(rawTask.getHealthChecks())) {
-            Map.Entry<String, RawHealthCheck> entry = rawTask.getHealthChecks().entrySet().iterator().next();
-            healthCheckSpec = from(entry.getValue(), entry.getKey());
+        if (rawTask.getHealthCheck() != null) {
+            healthCheckSpec = from(rawTask.getHealthCheck());
         }
 
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()

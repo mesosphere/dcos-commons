@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(as = DefaultHealthCheckSpec.class)
 public interface HealthCheckSpec {
-    String getName();
-
     String getCommand();
 
     Integer getMaxConsecutiveFailures();

@@ -5,7 +5,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -22,7 +21,7 @@ public class RawTask {
     private final Double cpus;
     private final Integer memory;
     private final Collection<RawPort> ports;
-    private final LinkedHashMap<String, RawHealthCheck> healthChecks;
+    private final RawHealthCheck healthCheck;
     private final Collection<RawVolume> volumes;
     private final String resourceSet;
 
@@ -36,7 +35,7 @@ public class RawTask {
             @JsonProperty("cpus") Double cpus,
             @JsonProperty("memory") Integer memory,
             @JsonProperty("ports") Collection<RawPort> ports,
-            @JsonProperty("health-checks") LinkedHashMap<String, RawHealthCheck> healthChecks,
+            @JsonProperty("health-check") RawHealthCheck healthCheck,
             @JsonProperty("volumes") Collection<RawVolume> volumes,
             @JsonProperty("resource-set") String resourceSet) {
         this.goal = goal;
@@ -48,7 +47,7 @@ public class RawTask {
         this.cpus = cpus;
         this.memory = memory;
         this.ports = ports;
-        this.healthChecks = healthChecks;
+        this.healthCheck = healthCheck;
         this.volumes = volumes;
         this.resourceSet = resourceSet;
     }
@@ -65,8 +64,8 @@ public class RawTask {
         return resourceSet;
     }
 
-    public LinkedHashMap<String, RawHealthCheck> getHealthChecks() {
-        return healthChecks;
+    public RawHealthCheck getHealthCheck() {
+        return healthCheck;
     }
 
     public String getGoal() {

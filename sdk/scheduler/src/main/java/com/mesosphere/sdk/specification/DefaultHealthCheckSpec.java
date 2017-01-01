@@ -15,7 +15,6 @@ import javax.validation.constraints.Size;
  * Default implementation of {@link HealthCheckSpec}.
  */
 public class DefaultHealthCheckSpec implements HealthCheckSpec {
-    private String name;
     private String command;
     private Integer maxConsecutiveFailures;
     private Integer delay;
@@ -25,14 +24,12 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
 
     @JsonCreator
     public DefaultHealthCheckSpec(
-            @JsonProperty("name") String name,
             @JsonProperty("command") String command,
             @JsonProperty("max_consecutive_failures") Integer maxConsecutiveFailures,
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
             @JsonProperty("timeout") Integer timeout,
             @JsonProperty("grace_period") Integer gracePeriod) {
-        this.name = name;
         this.command = command;
         this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.delay = delay;
@@ -42,7 +39,6 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     }
 
     private DefaultHealthCheckSpec(Builder builder) {
-        name = builder.name;
         command = builder.command;
         maxConsecutiveFailures = builder.maxConsecutiveFailures;
         delay = builder.delay;
@@ -57,7 +53,6 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
 
     public static Builder newBuilder(DefaultHealthCheckSpec copy) {
         Builder builder = new Builder();
-        builder.name = copy.name;
         builder.command = copy.command;
         builder.maxConsecutiveFailures = copy.maxConsecutiveFailures;
         builder.delay = copy.delay;
@@ -65,13 +60,6 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         builder.timeout = copy.timeout;
         builder.gracePeriod = copy.gracePeriod;
         return builder;
-    }
-
-    @Override
-    @NotNull
-    @Size(min = 1)
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -137,7 +125,6 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         private Integer interval;
         private Integer timeout;
         private Integer gracePeriod;
-        private String name;
 
         private Builder() {
         }
@@ -220,17 +207,6 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
             DefaultHealthCheckSpec defaultHealthCheckSpec = new DefaultHealthCheckSpec(this);
             ValidationUtils.validate(defaultHealthCheckSpec);
             return defaultHealthCheckSpec;
-        }
-
-        /**
-         * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param name the {@code name} to set
-         * @return a reference to this Builder
-         */
-        public Builder name(String name) {
-            this.name = name;
-            return this;
         }
     }
 }
