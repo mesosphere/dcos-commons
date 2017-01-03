@@ -199,27 +199,34 @@ def test_lock():
     So in order to verify that the scheduler fails immediately, we ensure
     that the ZK config state is unmodified.'''
 
-    zk_path = "dcos-service-{}/ConfigTarget".format(PACKAGE_NAME)
+    marathon_client = dcos.marathon.create_client()
 
     # Get ZK state from running framework
+    zk_path = "dcos-service-{}/ConfigTarget".format(PACKAGE_NAME)
     zk_config_old = shakedown.get_zk_node_data(zk_path)
 
-    # Install second framework
-    options = {"service": {"name": "hello-world-lock"}, "hello": {"count": 2}}
-    install(additional_options=options, wait_for_completion=False)
+    # Get marathon app
+    app_id = "/{}".format(PACKAGE_NAME)
+    app = marathon_client.get_app(app_id)
+    old_timestamp = app.get("lastTaskFailure", {}).get("timestamp", None)
 
-    # Wait for second scheduler to terminate
-    app_id = "/hello-world-lock"
-    client = dcos.marathon.create_client()
-    tasks = client.get_tasks(app_id)
-    task_id = tasks[0]["id"]
-    shakedown.wait_for_task_completion(task_id)
+    # Scale to 2 instances
+    labels = app["labels"]
+    labels.pop("MARATHON_SINGLE_INSTANCE_APP")
+    marathon_client.update_app(app_id, {"labels": labels})
+    shakedown.deployment_wait()
+    marathon_client.update_app(app_id, {"instances": 2})
+
+    # Wait for second scheduler to fail
+    fn = lambda: marathon_client.get_app(app_id).get(
+        "lastTaskFailure", {}).get("timestamp", None)
+    success = lambda timestamp: (timestamp != old_timestamp,
+                                 "second scheduler has not yet failed")
+    spin(fn, success)
 
     # Verify ZK is unchanged
-    zk_config_new = get_zk_node_data(zk_path)
+    zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
-
-    marathon.remove_app(app_id)
 
 
 def get_task_ids(prefix):

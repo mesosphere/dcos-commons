@@ -112,9 +112,7 @@ public class DefaultService implements Service {
     }
 
     private void initCurator() {
-        curatorClient = CuratorFrameworkFactory.newClient(zkConnectionString, new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
-                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
+        curatorClient = CuratorFrameworkFactory.newClient(zkConnectionString, CuratorUtils.getDefaultRetry());
         curatorClient.start();
     }
 

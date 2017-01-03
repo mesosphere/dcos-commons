@@ -77,9 +77,7 @@ public class CuratorStateStore implements StateStore {
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorStateStore(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
-                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry());
     }
 
     /**

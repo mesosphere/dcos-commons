@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.curator;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -20,8 +21,14 @@ public class CuratorUtils {
 
     private static final String PATH_DELIM = "/";
 
-    public static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
-    public static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+    private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
+    private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+
+    public static ExponentialBackoffRetry getDefaultRetry() {
+        return new ExponentialBackoffRetry(
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
+                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
+    }
 
     private CuratorUtils() {
         // do not instantiate

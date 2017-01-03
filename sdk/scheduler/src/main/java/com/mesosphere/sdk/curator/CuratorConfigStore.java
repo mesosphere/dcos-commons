@@ -65,9 +65,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorConfigStore(ConfigurationFactory<T> factory, String frameworkName, String connectionString) {
-        this(factory, frameworkName, connectionString, new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
-                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
+        this(factory, frameworkName, connectionString, CuratorUtils.getDefaultRetry());
     }
 
     /**
