@@ -16,7 +16,6 @@ public class DefaultHealthCheckSpecTest {
                 .gracePeriod(0)
                 .interval(0)
                 .maxConsecutiveFailures(1)
-                .name("hc")
                 .timeout(0)
                 .build();
 
@@ -32,12 +31,11 @@ public class DefaultHealthCheckSpecTest {
                     .gracePeriod(-1)
                     .interval(-1)
                     .maxConsecutiveFailures(-1)
-                    .name(null)
                     .timeout(-1)
                     .build();
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertEquals(7, constraintViolations.size());
+            Assert.assertEquals(6, constraintViolations.size());
         }
     }
 }

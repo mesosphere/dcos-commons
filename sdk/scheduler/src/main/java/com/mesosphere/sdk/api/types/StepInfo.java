@@ -12,34 +12,25 @@ import com.mesosphere.sdk.scheduler.plan.Status;
  * Immutable JSON serialization object for a Step.
  */
 class StepInfo {
-
     private final String id;
     private final Status status;
     private final String name;
     private final String message;
 
-    @JsonCreator
-    public static StepInfo create(
-            @JsonProperty("id") final String id,
-            @JsonProperty("status") final Status status,
-            @JsonProperty("name") final String name,
-            @JsonProperty("message") final String message) {
-        return new StepInfo(id, status, name, message);
-    }
-
     public static StepInfo forStep(final Step step) {
-        return create(
+        return new StepInfo(
                 step.getId().toString(),
                 step.getStatus(),
                 step.getName(),
                 step.getMessage());
     }
 
-    private StepInfo(
-            final String id,
-            final Status status,
-            final String name,
-            final String message) {
+    @JsonCreator
+    public StepInfo(
+            @JsonProperty("id") final String id,
+            @JsonProperty("status") final Status status,
+            @JsonProperty("name") final String name,
+            @JsonProperty("message") final String message) {
         this.id = id;
         this.status = status;
         this.name = name;
