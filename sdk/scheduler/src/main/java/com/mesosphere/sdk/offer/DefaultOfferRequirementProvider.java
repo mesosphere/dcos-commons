@@ -335,10 +335,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         List<Protos.Resource> coalescedResources = new ArrayList<>();
 
         for (Protos.Resource r : resources) {
-            if (r.getName().equals("ports") && portsResource == null) {
+            if (r.getName().equals(PORTS_TYPE) && portsResource == null) {
                 portsResource = r.toBuilder().clearRanges().build();
                 coalescedResources.add(portsResource);
-            } else if (!r.getName().equals("ports")) {
+            } else if (!r.getName().equals(PORTS_TYPE)) {
                 coalescedResources.add(r);
             }
         }
@@ -428,9 +428,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.ExecutorInfo getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
-        Protos.CommandInfo.URI executorURI;
-        Protos.CommandInfo.URI libmesosURI;
-
         ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement

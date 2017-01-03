@@ -30,7 +30,7 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
         if (offerRequirement.getPlacementRuleOptional().isPresent()) {
             Protos.Offer offer = offerRequirement.getPlacementRuleOptional().get().filter(
                     offerResourcePool.getOffer(), offerRequirement, deployedTasks);
-            offerResourcePool.retainOnly(offer);
+            offerResourcePool.update(offer);
 
             int originalCount = offerResourcePool.getOffer().getResourcesCount();
             int filteredCount = offer.getResourcesCount();

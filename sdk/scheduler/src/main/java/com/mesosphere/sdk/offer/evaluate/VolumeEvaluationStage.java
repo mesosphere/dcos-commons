@@ -1,10 +1,12 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.MesosResource;
-import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -12,17 +14,54 @@ import java.util.UUID;
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.offer.OfferRequirement}, ensuring that it
  * contains an appropriately-sized volume, and creating any necessary instances of
- * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation},
- * {@link com.mesosphere.sdk.offer.UnreserveOfferRecommendation}, and
+ * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation} and
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
 public class VolumeEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
+    private static final Logger logger = LoggerFactory.getLogger(VolumeEvaluationStage.class);
+
     public VolumeEvaluationStage(Resource resource, String taskName) {
         super(resource, taskName);
     }
 
     public VolumeEvaluationStage(Resource resource) {
         super(resource);
+    }
+
+    @Override
+    public void evaluate(
+            MesosResourcePool offerResourcePool,
+            OfferRequirement offerRequirement,
+            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+        ResourceRequirement resourceRequirement = getResourceRequirement();
+        Optional<MesosResource> mesosResourceOptional = offerResourcePool.consume(resourceRequirement);
+        if (!mesosResourceOptional.isPresent()) {
+            throw new OfferEvaluationException(String.format(
+                    "Failed to satisfy resource requirement: %s",
+                    TextFormat.shortDebugString(resourceRequirement.getResource())));
+        }
+
+        final MesosResource mesosResource = mesosResourceOptional.get();
+        Resource fulfilledResource = getFulfilledResource(mesosResource);
+
+        if (resourceRequirement.reservesResource()) {
+            logger.info("Reserves Resource");
+            offerRecommendationSlate.addReserveRecommendation(
+                    new ReserveOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
+        }
+
+        if (resourceRequirement.createsVolume()) {
+            logger.info("Creates Volume");
+            offerRecommendationSlate.addCreateRecommendation(
+                    new CreateOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
+        }
+
+        logger.info("Satisfying resource requirement: {}\nwith resource: {}",
+                TextFormat.shortDebugString(resourceRequirement.getResource()),
+                TextFormat.shortDebugString(mesosResource.getResource()));
+
+        validateRequirements(offerRequirement);
+        setProtos(offerRequirement, fulfilledResource);
     }
 
     @Override

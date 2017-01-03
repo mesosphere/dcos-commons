@@ -198,7 +198,7 @@ public class TaskUtils {
         Map<String, ResourceSpecification> resourceMap = new HashMap<>();
         for (ResourceSpecification resourceSpecification : resourceSpecifications) {
             ResourceSpecification prevValue = resourceMap.put(resourceSpecification.getName(), resourceSpecification);
-            if (prevValue != null && !prevValue.getName().equals("ports")) {
+            if (prevValue != null && !prevValue.getName().equals(Constants.PORTS_TYPE)) {
                 throw new IllegalArgumentException(String.format(
                         "Resources for a given task may not share the same name. " +
                                 "name:'%s' oldResource:'%s' newResource:'%s'",

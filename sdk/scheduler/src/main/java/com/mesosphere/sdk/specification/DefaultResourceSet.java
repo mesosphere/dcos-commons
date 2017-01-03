@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -206,7 +207,7 @@ public class DefaultResourceSet implements ResourceSet {
                             rawPort.getName(),
                             rawPort.getVip().getPrefix(),
                             rawPort.getVip().getPort(),
-                            "ports",
+                            Constants.PORTS_TYPE,
                             Protos.Value.newBuilder()
                                     .setType(Protos.Value.Type.RANGES)
                                     .setRanges(rangesBuilder)
@@ -217,7 +218,7 @@ public class DefaultResourceSet implements ResourceSet {
                 } else {
                     resources.add(new PortSpecification(
                             rawPort.getName(),
-                            "ports",
+                            Constants.PORTS_TYPE,
                             Protos.Value.newBuilder()
                                     .setType(Protos.Value.Type.RANGES)
                                     .setRanges(rangesBuilder)

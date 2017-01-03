@@ -5,7 +5,6 @@ import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -104,46 +103,6 @@ public class MesosResourcePoolTest {
         MesosResourcePool pool = new MesosResourcePool(offer);
 
         Assert.assertFalse(pool.consume(resReq).isPresent());
-    }
-
-    @Test
-    public void testConsumeDynamicPort() throws DynamicPortRequirement.DynamicPortException {
-        Resource desiredDynamicPort = DynamicPortRequirement.getDesiredDynamicPort(
-                TestConstants.PORT_NAME,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
-
-        DynamicPortRequirement dynamicPortRequirement = new DynamicPortRequirement(desiredDynamicPort);
-        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10005);
-        Offer offer = OfferTestUtils.getOffer(offeredPorts);
-        MesosResourcePool pool = new MesosResourcePool(offer);
-
-        MesosResource mesosResource = pool.consume(dynamicPortRequirement).get();
-        Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
-        Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
-        Assert.assertEquals(10000, range.getBegin());
-        Assert.assertEquals(10000, range.getEnd());
-    }
-
-    @Test
-    public void testConsumeNamedVIPPort() throws NamedVIPPortRequirement.NamedVIPPortException {
-        Resource desiredNamedVIPPort = NamedVIPPortRequirement.getDesiredNamedVIPPort(
-                TestConstants.VIP_KEY,
-                TestConstants.VIP_NAME,
-                (long) 10002,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL);
-
-        NamedVIPPortRequirement namedVIPPortRequirement = new NamedVIPPortRequirement(desiredNamedVIPPort);
-        Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10005);
-        Offer offer = OfferTestUtils.getOffer(offeredPorts);
-        MesosResourcePool pool = new MesosResourcePool(offer);
-
-        MesosResource mesosResource = pool.consume(namedVIPPortRequirement).get();
-        Assert.assertEquals(1, mesosResource.getResource().getRanges().getRangeCount());
-        Protos.Value.Range range = mesosResource.getResource().getRanges().getRange(0);
-        Assert.assertEquals(10002, range.getBegin());
-        Assert.assertEquals(10002, range.getEnd());
     }
 
     @Test

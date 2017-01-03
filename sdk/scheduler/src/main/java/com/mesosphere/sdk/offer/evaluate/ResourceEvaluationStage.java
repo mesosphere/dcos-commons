@@ -17,14 +17,17 @@ import java.util.UUID;
  * {@link UnreserveOfferRecommendation} where necessary.
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
-    private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResourceEvaluationStage.class);
 
     private ResourceRequirement resourceRequirement;
-    private Optional<String> taskName;
+    // Resources frequently have necessary task affinities -- a dynamic port, for example, will need to modify the
+    // TaskInfo it belongs to. We express that affinity with this field, which if left null means that this evaluation
+    // stage modifies the ExecutorInfo instead.
+    private String taskName;
 
     public ResourceEvaluationStage(Resource resource, String taskName) {
         this.resourceRequirement = new ResourceRequirement(resource);
-        this.taskName = Optional.ofNullable(taskName);
+        this.taskName = taskName;
     }
 
     public ResourceEvaluationStage(Resource resource) {
@@ -40,7 +43,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     }
 
     protected Optional<String> getTaskName() {
-        return taskName;
+        return Optional.ofNullable(taskName);
     }
 
     @Override
@@ -84,9 +87,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                     offerRecommendationSlate.addUnreserveRecommendation(
                             new UnreserveOfferRecommendation(offerResourcePool.getOffer(), unreserveResource));
                     fulfilledResource = getFulfilledResource(new MesosResource(resourceRequirement.getResource()));
-                }
-
-                if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
+                } else if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
                     logger.info("Updates reserved resource with additional reservation");
                     Resource reserveResource = ResourceUtils.getDesiredResource(
                             resourceRequirement.getRole(),
@@ -105,18 +106,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                     }
                 }
             }
-        } else {
-            if (resourceRequirement.reservesResource()) {
-                logger.info("Reserves Resource");
-                offerRecommendationSlate.addReserveRecommendation(
-                        new ReserveOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
-            }
-
-            if (resourceRequirement.createsVolume()) {
-                logger.info("Creates Volume");
-                offerRecommendationSlate.addCreateRecommendation(
-                        new CreateOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
-            }
+        } else if (resourceRequirement.reservesResource()) {
+            logger.info("Reserves Resource");
+            offerRecommendationSlate.addReserveRecommendation(
+                    new ReserveOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
         }
 
         logger.info("Satisfying resource requirement: {}\nwith resource: {}",

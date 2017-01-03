@@ -48,14 +48,14 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             // compile a list of those to check against the offered ports.
             Set<Integer> consumedPorts = new HashSet<>();
             for (Protos.Resource resource : offerRequirement.getResources()) {
-                if (resource.getName().equals("ports")) {
+                if (resource.getName().equals(Constants.PORTS_TYPE)) {
                     resource.getRanges().getRangeList().stream()
                             .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
                             .forEach(consumedPorts::add);
                 }
             }
 
-            Protos.Value availablePorts = offerResourcePool.getUnreservedMergedPool().get("ports");
+            Protos.Value availablePorts = offerResourcePool.getUnreservedMergedPool().get(Constants.PORTS_TYPE);
             Optional<Integer> dynamicPort = Optional.empty();
             if (availablePorts != null) {
                 dynamicPort = availablePorts.getRanges().getRangeList().stream()
@@ -84,7 +84,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             String taskName = getTaskName().get();
             Protos.TaskInfo taskInfo = offerRequirement.getTaskRequirement(taskName).getTaskInfo();
             Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
-            Protos.Resource.Builder ports = ResourceUtils.getResource(taskInfo, "ports").toBuilder();
+            Protos.Resource.Builder ports = ResourceUtils.getResource(taskInfo, Constants.PORTS_TYPE).toBuilder();
 
             ports.getRangesBuilder().addRangeBuilder().setBegin(port).setEnd(port);
             ResourceUtils.setResource(taskInfoBuilder, ports.build());
@@ -98,7 +98,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                     .get()
                     .getExecutorInfo();
             Protos.ExecutorInfo.Builder executorInfoBuilder = executorInfo.toBuilder();
-            Protos.Resource.Builder ports = ResourceUtils.getResource(executorInfo, "ports").toBuilder();
+            Protos.Resource.Builder ports = ResourceUtils.getResource(executorInfo, Constants.PORTS_TYPE).toBuilder();
 
             ports.getRangesBuilder().addRangeBuilder().setBegin(port).setEnd(port);
             ResourceUtils.setResource(executorInfoBuilder, ports.build());

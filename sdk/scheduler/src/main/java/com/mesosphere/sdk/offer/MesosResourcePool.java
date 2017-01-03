@@ -88,38 +88,10 @@ public class MesosResourcePool {
     }
 
     /**
-     * Consumes and returns a {@link MesosResource} which meets the provided
-     * {@link DynamicPortRequirement}, or does nothing and returns an empty {@link Optional} if no
-     * available resources meet the requirement.
+     * Update the offer this pool represents, re-calculating available unreserved, reserved and atomic resources.
+     * @param offer the offer to encapsulate
      */
-    public Optional<MesosResource> consume(DynamicPortRequirement dynamicPortRequirement) {
-        Value availableValue = unreservedMergedPool.get(dynamicPortRequirement.getName());
-
-        if (availableValue == null) {
-            return Optional.empty();
-        }
-
-        // Choose first available port
-        if (availableValue.getRanges().getRangeCount() > 0) {
-            Value.Range range = availableValue.getRanges().getRange(0);
-            Resource resource = ResourceUtils.getUnreservedResource(
-                    dynamicPortRequirement.getName(),
-                    Value.newBuilder()
-                        .setType(Value.Type.RANGES)
-                        .setRanges(Value.Ranges.newBuilder()
-                                .addRange(Value.Range.newBuilder()
-                                        .setBegin(range.getBegin())
-                                        // Use getBegin again, since we just want the one port.
-                                        .setEnd(range.getBegin())))
-                        .build());
-
-            return consumeUnreservedMerged(new ResourceRequirement(resource));
-        }
-
-        return Optional.empty();
-    }
-
-    public void retainOnly(Offer offer) {
+    public void update(Offer offer) {
         init(offer);
     }
 
