@@ -331,22 +331,19 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private Protos.ExecutorInfo getExecutor(PodInstance podInstance) {
         List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
 
-        List<String> taskNames = podTasks.stream()
-                .map(taskInfo -> taskInfo.getName())
-                .collect(Collectors.toList());
-
-        LOGGER.info("For pod: {}, found tasks: {}", podInstance.getName(), taskNames);
-
         for (Protos.TaskInfo taskInfo : podTasks) {
             Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
             if (taskStatusOptional.isPresent()
                     && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
-                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
+                LOGGER.info(
+                        "Reusing executor from task '{}': {}",
+                        taskInfo.getName(),
+                        TextFormat.shortDebugString(taskInfo.getExecutor()));
                 return taskInfo.getExecutor();
             }
         }
 
-        LOGGER.info("Getting new executor.");
+        LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
         return getNewExecutorInfo(podInstance.getPod());
     }
 

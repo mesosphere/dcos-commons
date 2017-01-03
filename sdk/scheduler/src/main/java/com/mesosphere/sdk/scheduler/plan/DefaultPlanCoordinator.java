@@ -65,7 +65,7 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             try {
                 Set<String> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
                 LOGGER.info("Processing offers for plan: '{}' with relevant dirtied assets: {}.",
-                        planManager.getPlan().getName(), relevantDirtyAssets, planManager.getPlan().getName());
+                        planManager.getPlan().getName(), relevantDirtyAssets);
 
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> candidateSteps = planManager.getCandidates(relevantDirtyAssets);

@@ -34,9 +34,22 @@ def setup_module(module):
 
 @pytest.mark.sanity
 def test_deploy():
-    get_deployment_plan()
+    deployment_plan = get_deployment_plan().json()
+    print("deployment_plan: " + str(deployment_plan))
+
+    assert(len(deployment_plan['phases']) == 2)
+    assert(deployment_plan['phases'][0]['name'] == 'server-deploy')
+    assert(deployment_plan['phases'][1]['name'] == 'once-deploy')
+    assert(len(deployment_plan['phases'][0]['steps']) == 2)
+    assert(len(deployment_plan['phases'][1]['steps']) == 2)
+
 
 @pytest.mark.sanity
 def test_sidecar():
     start_sidecar_plan()
-    get_sidecar_plan()
+    sidecar_plan = get_sidecar_plan().json()
+    print("sidecar_plan: " + str(sidecar_plan))
+
+    assert(len(sidecar_plan['phases']) == 1)
+    assert(sidecar_plan['phases'][0]['name'] == 'sidecar-deploy')
+    assert(len(sidecar_plan['phases'][0]['steps']) == 2)

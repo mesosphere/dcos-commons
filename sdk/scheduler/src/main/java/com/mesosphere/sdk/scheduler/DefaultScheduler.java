@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -41,8 +42,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
-import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
 
 /**
  * This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
@@ -413,7 +412,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private Collection<PlanManager> getOtherPlanManagers() {
         return plans.stream()
-                .filter(plan -> !plan.getName().equals(DEPLOY_PLAN_NAME))
+                .filter(plan -> !PlanUtils.isDeployPlan(plan))
                 .map(plan -> new DefaultPlanManager(plan))
                 .collect(Collectors.toList());
     }
@@ -435,7 +434,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected void initializeDeploymentPlanManager() {
         LOGGER.info("Initializing deployment plan...");
         Optional<Plan> deploy = plans.stream()
-                .filter(plan -> Objects.equals(plan.getName(), DEPLOY_PLAN_NAME))
+                .filter(plan -> PlanUtils.isDeployPlan(plan))
                 .findFirst();
         Plan deployPlan;
         if (!deploy.isPresent()) {
@@ -447,7 +446,16 @@ public class DefaultScheduler implements Scheduler, Observer {
             deployPlan = deploy.get();
         }
         deploymentPlanManager = new DefaultPlanManager(deployPlan);
-        deploymentPlanManager.getPlan().getStrategy().proceed();
+
+        // All plans are initially created with an interrupted strategy.
+        // Normally we don't want the deployment plan to be interrupted,
+        // except in the case of the CanaryStrategy which explicitly
+        // indicates the end-user wants the deployment plan to start out
+        // interrupted.
+        Plan plan = deploymentPlanManager.getPlan();
+        if (!(plan.getStrategy() instanceof CanaryStrategy)) {
+            plan.getStrategy().proceed();
+        }
     }
 
     /**

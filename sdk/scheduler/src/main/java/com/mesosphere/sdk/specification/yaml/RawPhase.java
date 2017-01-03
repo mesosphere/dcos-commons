@@ -19,10 +19,6 @@ public class RawPhase {
             @JsonProperty("steps") List<RawStep> steps,
             @JsonProperty("pod") String pod,
             @JsonProperty("tasks") List<String> tasks) {
-        if (strategy == null) {
-            strategy = "serial";
-        }
-
         this.strategy = strategy;
         this.steps = steps;
         this.pod = pod;

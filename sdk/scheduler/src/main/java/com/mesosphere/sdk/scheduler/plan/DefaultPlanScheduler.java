@@ -130,33 +130,34 @@ public class DefaultPlanScheduler implements PlanScheduler {
     }
 
     private void killTasks(PodInstanceRequirement podInstanceRequirement) {
-        Collection<TaskInfo> tasks = stateStore.fetchTasks();
+        Map<String, TaskInfo> taskInfoMap = new HashMap<>();
+        stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
+
         List<String> taskNames = TaskUtils.getTaskNames(
                 podInstanceRequirement.getPodInstance(),
                 podInstanceRequirement.getTasksToLaunch());
 
+        taskNames = taskNames.stream()
+                .filter(taskName -> taskInfoMap.containsKey(taskName))
+                .collect(Collectors.toList());
+
         for (String taskName : taskNames) {
-            // find TaskInfo matching this task name:
-            for (TaskInfo taskInfo : tasks) {
-                if (!taskInfo.getName().equals(taskName)) {
-                    continue;
-                }
+            TaskInfo taskInfo = taskInfoMap.get(taskName);
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
 
-                Protos.TaskState state = Protos.TaskState.TASK_RUNNING;
-                Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
-                if (taskStatusOptional.isPresent()) {
-                    state = taskStatusOptional.get().getState();
-                }
+            Protos.TaskState state = Protos.TaskState.TASK_RUNNING;
+            if (taskStatusOptional.isPresent()) {
+                state = taskStatusOptional.get().getState();
+            }
 
-                if (!CommonTaskUtils.isTerminal(state)) {
-                    taskKiller.killTask(taskInfo.getTaskId(), false);
-                }
+            if (!CommonTaskUtils.isTerminal(state)) {
+                taskKiller.killTask(taskInfo.getTaskId(), false);
             }
         }
     }
 
     private static Collection<Offer.Operation> getOperations(Collection<OfferRecommendation> recommendations) {
-        return filterRecommendations(recommendations).stream()
+        return getNonTransientRecommendations(recommendations).stream()
                 .map(OfferRecommendation::getOperation)
                 .collect(Collectors.toList());
     }
@@ -164,7 +165,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
     /**
      * Returns all non-transient recommendations which will actually be executed by Mesos.
      */
-    private static Collection<OfferRecommendation> filterRecommendations(
+    private static Collection<OfferRecommendation> getNonTransientRecommendations(
             Collection<OfferRecommendation> recommendations) {
 
         List<OfferRecommendation> filteredRecommendations = new ArrayList<>();

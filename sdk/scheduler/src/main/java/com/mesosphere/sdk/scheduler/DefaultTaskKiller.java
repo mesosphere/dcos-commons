@@ -22,7 +22,11 @@ public class DefaultTaskKiller implements TaskKiller {
 
     @Override
     public void killTask(TaskID taskId, boolean destructive) {
+        // In order to update a podinstance its normal to kill all tasks in a pod.
+        // Sometimes a task hasn't been launched ever but it has been recorded for
+        // resource reservation footprint reasons, and therefore doesn't have a TaskID yet.
         if (taskId.getValue().isEmpty()) {
+            logger.warn("Attempted to kill empty TaskID.");
             return;
         }
 
