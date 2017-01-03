@@ -14,4 +14,9 @@ public class SchedulerUtils {
     public static String nameToPrincipal(String frameworkName) {
         return frameworkName + PRINCIPAL_SUFFIX;
     }
+
+    @SuppressWarnings({"DM_EXIT"})
+    public static void hardExit(SchedulerErrorCode errorCode) {
+        System.exit(errorCode.ordinal());
+    }
 }

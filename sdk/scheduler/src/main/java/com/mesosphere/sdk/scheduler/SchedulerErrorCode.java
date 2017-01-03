@@ -11,5 +11,6 @@ public enum SchedulerErrorCode {
     OFFER_RESCINDED,
     DISCONNECTED,
     ERROR,
-    PLAN_CREATE_FAILURE
+    PLAN_CREATE_FAILURE,
+    LOCK_UNAVAILABLE
 }

@@ -490,11 +490,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
     }
 
-    @SuppressWarnings({"DM_EXIT"})
-    private static void hardExit(SchedulerErrorCode errorCode) {
-        System.exit(errorCode.ordinal());
-    }
-
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
@@ -502,7 +497,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             initialize(driver);
         } catch (InterruptedException e) {
             LOGGER.error("Initialization failed with exception: ", e);
-            hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+            SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
         }
 
         try {
@@ -510,7 +505,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         } catch (Exception e) {
             LOGGER.error(String.format(
                     "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
-            hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
+            SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
 
         this.driver = driver;
@@ -522,7 +517,10 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.error("Re-registration implies we were unregistered.");
-        hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        SchedulerUtils.hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        reconciler.start();
+        reconciler.reconcile(driver);
+        suppressOrRevive();
     }
 
     @Override
@@ -578,7 +576,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
         LOGGER.error("Rescinding offers is not supported.");
-        hardExit(SchedulerErrorCode.OFFER_RESCINDED);
+        SchedulerUtils.hardExit(SchedulerErrorCode.OFFER_RESCINDED);
     }
 
     @Override
@@ -622,7 +620,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void disconnected(SchedulerDriver driver) {
         LOGGER.error("Disconnected from Master.");
-        hardExit(SchedulerErrorCode.DISCONNECTED);
+        SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
     @Override
@@ -657,7 +655,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                     + "install this service once more.");
         }
 
-        hardExit(SchedulerErrorCode.ERROR);
+        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
     private void suppressOrRevive() {

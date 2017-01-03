@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
@@ -87,14 +88,15 @@ public class DefaultService implements Service {
 
     private void lock() {
         String rootPath = CuratorUtils.toServiceRootPath(serviceSpec.getName());
-        String lockPath = CuratorUtils.join(rootPath, "LOCK_PATH");
+        String lockPath = CuratorUtils.join(rootPath, LOCK_PATH);
         curatorMutex = new InterProcessMutex(curatorClient, lockPath);
 
-        LOGGER.info("Acquiring ZK lock...");
+        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
         try {
             if (!curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                LOGGER.error("Failed to acquire ZK lock.  Exiting.");
-                System.exit(1);
+                LOGGER.error("Failed to acquire ZK lock. Are you running another framework named {}? Exiting.",
+                        serviceSpec.getName());
+                SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
             }
         } catch (Exception ex) {
             LOGGER.error("Error acquiring ZK lock.", ex);
