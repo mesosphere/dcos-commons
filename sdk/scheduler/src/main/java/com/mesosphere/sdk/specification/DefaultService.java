@@ -1,7 +1,11 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -12,10 +16,6 @@ import org.apache.mesos.Scheduler;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.JettyApiServer;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import org.slf4j.Logger;
@@ -118,7 +118,9 @@ public class DefaultService implements Service {
 
         startApiServer(defaultScheduler, schedulerBuilder.getServiceSpec().getApiPort());
         registerAndRunFramework(
-                defaultScheduler, getFrameworkInfo(schedulerBuilder), schedulerBuilder.getServiceSpec().getZookeeperConnection());
+                defaultScheduler,
+                getFrameworkInfo(schedulerBuilder),
+                schedulerBuilder.getServiceSpec().getZookeeperConnection());
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {

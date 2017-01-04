@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.util.RLimit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -141,6 +142,15 @@ public class DefaultServiceSpecTest {
                 Assert.assertTrue(constraintViolations.size() > 0);
             }
         }
+    }
+
+    @Test(expected = RLimit.InvalidRLimitException.class)
+    public void invalidRLimitName() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
+        YAMLServiceSpecFactory
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
     }
 
     @Test

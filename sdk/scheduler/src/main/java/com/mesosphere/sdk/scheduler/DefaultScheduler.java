@@ -16,7 +16,9 @@ import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
 import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
 import com.mesosphere.sdk.curator.CuratorConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -32,6 +34,7 @@ import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.state.PersistentOperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
@@ -131,6 +134,12 @@ public class DefaultScheduler implements Scheduler, Observer {
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
+
+            try {
+                new CapabilityValidator(new Capabilities(new DcosCluster())).validate(serviceSpec);
+            } catch (CapabilityValidator.CapabilityValidationException e) {
+                throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
+            }
         }
 
         /**
@@ -221,8 +230,24 @@ public class DefaultScheduler implements Scheduler, Observer {
          * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
+            if (this.configValidators != null) {
+                // Any customization of the validators must be applied BEFORE getConfigStore() is ever called.
+                throw new IllegalStateException(
+                        "Config validators are already set. Was getConfigValidators() invoked before this?");
+            }
             this.configValidators = configValidators;
             return this;
+        }
+
+        /**
+         * Returns the {@link ConfigValidator}s provided via {@link #setConfigValidators(Collection)}, or a reasonable
+         * default.
+         */
+        public Collection<ConfigValidator<ServiceSpec>> getConfigValidators() {
+            if (configValidators == null) {
+                configValidators = defaultConfigValidators();
+            }
+            return configValidators;
         }
 
         /**
@@ -270,13 +295,10 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
         public DefaultScheduler build() {
-            if (configValidators == null) {
-                configValidators = defaultConfigValidators();
-            }
             if (offerRequirementProvider == null) {
                 // Perform default config update procedure since user presumably didn't do it themselves:
                 ConfigurationUpdater.UpdateResult configUpdateResult =
-                        updateConfig(serviceSpec, stateStore, configStore, configValidators);
+                        updateConfig(serviceSpec, stateStore, configStore, getConfigValidators());
                 if (!configUpdateResult.errors.isEmpty()) {
                     throw new IllegalStateException(String.format(
                             "Failed to update configuration due to errors with configuration %s: %s",
@@ -322,9 +344,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
     public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
-        return StateStoreCache.getInstance(new CuratorStateStore(
-                serviceSpec.getName(),
-                zkConnectionString));
+        return StateStoreCache.getInstance(new CuratorStateStore(serviceSpec.getName(), zkConnectionString));
     }
 
     /**
@@ -333,10 +353,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      *
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static StateStore createStateStore(ServiceSpec serviceSpecification) {
-        return createStateStore(
-                serviceSpecification,
-                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+    public static StateStore createStateStore(ServiceSpec serviceSpec) {
+        return createStateStore(serviceSpec, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 
     /**
@@ -372,9 +390,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *                              unrecognized deserialization type
      */
-    public static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec,
-            String zkConnectionString) throws ConfigStoreException {
+    public static ConfigStore<ServiceSpec> createConfigStore(ServiceSpec serviceSpec, String zkConnectionString)
+            throws ConfigStoreException {
         return createConfigStore(serviceSpec, zkConnectionString, Collections.emptyList());
     }
 
@@ -399,27 +416,11 @@ public class DefaultScheduler implements Scheduler, Observer {
      * This function may be used to get the default validators and add more to the list when
      * constructing the {@link DefaultScheduler}.
      */
-    public static Collection<ConfigValidator<ServiceSpec>> defaultConfigValidators() {
+    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators() {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange());
-    }
-
-    /**
-     * Updates the configuration target to reflect the provided {@code serviceSpec} using default config validators, or
-     * stays with the previous configuration if there were validation errors.
-     *
-     * @param serviceSpec the service specification to use
-     * @param stateStore the state store to pass to the updater
-     * @param configStore the config store to pass to the updater
-     * @return the config update result, which may contain one or more validation errors produced by config validators
-     */
-    public static ConfigurationUpdater.UpdateResult updateConfig(
-            ServiceSpec serviceSpec,
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore) {
-        return updateConfig(serviceSpec, stateStore, configStore, defaultConfigValidators());
     }
 
     /**
