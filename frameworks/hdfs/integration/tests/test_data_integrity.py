@@ -61,23 +61,25 @@ def test_integrity_on_name_node_failure():
     check_health()
 
 
-def write_data_to_hdfs(host, filename, content_to_write=TEST_CONTENT_SMALL):
+def write_some_data(data_node_host, file_name):
+    shakedown.wait_for(lambda: write_data_to_hdfs(data_node_host, file_name), HDFS_CMD_TIMEOUT_SEC)
+
+
+def read_some_data(data_node_host, file_name):
+    shakedown.wait_for(lambda: read_data_from_hdfs(data_node_host, file_name), HDFS_CMD_TIMEOUT_SEC)
+
+
+def write_data_to_hdfs(data_node_host, filename, content_to_write=TEST_CONTENT_SMALL):
     write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
-    rc, _ = run_hdfs_command(host, write_command)
+    rc, _ = run_hdfs_command(data_node_host, write_command)
     # rc being True is effectively it being 0...
     return rc
 
 
-def read_data_from_hdfs(host, filename):
+def read_data_from_hdfs(data_node_host, filename):
     read_command = "./bin/hdfs dfs -cat /{}".format(filename)
-    rc, output = run_hdfs_command(host, read_command)
+    rc, output = run_hdfs_command(data_node_host, read_command)
     return rc and output.rstrip() == TEST_CONTENT_SMALL
-
-
-def delete_data_from_hdfs(host, filename):
-    delete_command = "./bin/hdfs dfs -rm -r /{}".format(filename)
-    rc, _ = run_hdfs_command(host, delete_command)
-    return rc
 
 
 def run_hdfs_command(host, command):
