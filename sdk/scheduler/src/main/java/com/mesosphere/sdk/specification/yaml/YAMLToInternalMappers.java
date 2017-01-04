@@ -125,7 +125,9 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
         if (rawPod.getContainer() != null) {
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), from(rawPod.getContainer().getRLimits())));
+            builder.container(
+                    new DefaultContainerSpec(
+                            rawPod.getContainer().getImageName(), from(rawPod.getContainer().getRLimits())));
         }
 
         return builder.build();
