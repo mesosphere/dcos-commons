@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -19,6 +20,12 @@ import static com.mesosphere.sdk.offer.Constants.*;
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
+    private static final String EXECUTOR_URI = "EXECUTOR_URI";
+    private static final String LIBMESOS_URI = "LIBMESOS_URI";
+    private static final String JAVA_URI = "JAVA_URI";
+    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
+
+    private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
 
     private final StateStore stateStore;
     private final UUID targetConfigurationId;
@@ -324,7 +331,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     /**
      * Returns the ExecutorInfo of a PodInstance if it is still running so it may be re-used, otherwise
-     * it returns a new ExedcutorInfo.
+     * it returns a new ExecutorInfo.
      * @param podInstance A PodInstance
      * @return The appropriate ExecutorInfo.
      */
@@ -347,15 +354,47 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return getNewExecutorInfo(podInstance.getPod());
     }
 
+    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
+        Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
+                .setType(Protos.ContainerInfo.Type.MESOS);
+
+        if (containerSpec.getImageName().isPresent()) {
+            containerInfo.getDockerBuilder().setImage(containerSpec.getImageName().get());
+        }
+
+        if (!containerSpec.getRLimits().isEmpty()) {
+            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
+        }
+
+        return containerInfo.build();
+    }
+
+    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
+        Protos.RLimitInfo.Builder rLimitInfoBuilder = Protos.RLimitInfo.newBuilder();
+
+        for (RLimit rLimit : rlimits) {
+            Optional<Long> soft = rLimit.getSoft();
+            Optional<Long> hard = rLimit.getHard();
+            Protos.RLimitInfo.RLimit.Builder rLimitsBuilder = Protos.RLimitInfo.RLimit.newBuilder()
+                    .setType(rLimit.getEnum());
+
+            // RLimit itself validates that both or neither of these are present.
+            if (soft.isPresent() && hard.isPresent()) {
+                rLimitsBuilder.setSoft(soft.get()).setHard(hard.get());
+            }
+            rLimitInfoBuilder.addRlimits(rLimitsBuilder);
+        }
+
+        return rLimitInfoBuilder.build();
+    }
+
     private static Protos.ExecutorInfo getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
         if (podSpec.getContainer().isPresent()) {
-            executorInfoBuilder.getContainerBuilder()
-                    .setType(Protos.ContainerInfo.Type.MESOS)
-                    .getDockerBuilder().setImage(podSpec.getContainer().get().getImageName());
+            executorInfoBuilder.setContainer(getContainerInfo(podSpec.getContainer().get()));
         }
 
         // command and user:

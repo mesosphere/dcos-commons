@@ -2,30 +2,41 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 import javax.validation.constraints.Size;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Default implementation of {@link ContainerSpec}.
  */
 public class DefaultContainerSpec implements ContainerSpec {
-    @NotNull
     @Size(min = 1)
     private String imageName;
+    @Valid
+    private Collection<RLimit> rlimits;
 
     @JsonCreator
     public DefaultContainerSpec(
-            @JsonProperty("image-name")
-            String imageName) {
+            @JsonProperty("image-name") String imageName,
+            @JsonProperty("rlimits") Collection<RLimit> rlimits) {
         this.imageName = imageName;
+        this.rlimits = rlimits;
     }
 
     @Override
-    public String getImageName() {
-        return imageName;
+    public Optional<String> getImageName() {
+        return Optional.ofNullable(imageName);
+    }
+
+    @Override
+    public Collection<RLimit> getRLimits() {
+        return rlimits == null ? Collections.emptyList() : rlimits;
     }
 
     @Override

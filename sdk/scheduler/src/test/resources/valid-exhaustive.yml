@@ -9,6 +9,11 @@ pods:
   meta-data:
     placement: "hostname:UNIQUE"
     count: 2
+    container:
+      rlimits:
+        RLIMIT_AS:
+          soft: 5
+          hard: 10
     resource-sets:
       meta-data-resources:
         cpus: 0.1

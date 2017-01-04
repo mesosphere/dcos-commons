@@ -1,10 +1,9 @@
 package com.mesosphere.sdk.dcos;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * This class represents a set of capabilities that may or may not be supported in a given version of DC/OS.
@@ -18,18 +17,30 @@ public class Capabilities {
         this.dcosCluster = dcosCluster;
     }
 
-    public boolean supportsNamedVips() throws IOException, URISyntaxException {
+    public boolean supportsNamedVips() throws IOException {
+        // Named Vips are supported by DC/OS 1.8 upwards.
+        return hasOrExceedsVersion(1, 8);
+    }
+
+    public boolean supportsRLimits() throws IOException {
+        // Container rlimits are supported by DC/OS 1.9 upwards.
+        return hasOrExceedsVersion(1, 9);
+    }
+
+    private boolean hasOrExceedsVersion(int major, int minor) throws IOException {
         DcosVersion.Elements versionElements = dcosCluster.getDcosVersion().getElements();
         try {
-            // Named Vips are supported by DC/OS 1.8 upwards.
-            if (versionElements.getFirstElement() == 1) {
-                return versionElements.getSecondElement() >= 8;
+            if (versionElements.getFirstElement() > major) {
+                return true;
+            } else if (versionElements.getFirstElement() == major) {
+                return versionElements.getSecondElement() >= minor;
             }
-            return versionElements.getFirstElement() > 1;
+            return false;
         } catch (NumberFormatException ex) {
-            // incorrect version string. Todo(joerg84): Consider throwing an exception here.
-            LOGGER.warn("Unable to parse version string for Named Vip", ex);
+            // incorrect version string.
+            LOGGER.warn("Unable to parse DC/OS version string: {}", dcosCluster.getDcosVersion().getVersion());
             return false;
         }
+
     }
 }
