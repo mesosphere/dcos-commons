@@ -413,6 +413,12 @@ public class ResourceUtils {
                 name, TextFormat.shortDebugString(executorInfo)));
     }
 
+    public static Resource mergeRanges(Resource lhs, Resource rhs) {
+        return lhs.toBuilder().setRanges(
+                RangeAlgorithms.fromRangeList(RangeAlgorithms.mergeRanges(
+                        lhs.getRanges().getRangeList(), rhs.getRanges().getRangeList()))).build();
+    }
+
     private static List<Resource> clearResourceIds(List<Resource> resources) {
         List<Resource> clearedResources = new ArrayList<>();
 

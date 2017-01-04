@@ -138,8 +138,8 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             offerRequirement.updateTaskRequirement(
                     getTaskName().get(),
                     ResourceUtils.setResource(
-                            offerRequirement.getTaskRequirement(
-                                    getTaskName().get()).getTaskInfo().toBuilder(), resource).build());
+                            offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().toBuilder(),
+                            resource).build());
         } else {
             Protos.ExecutorInfo executorInfo = offerRequirement.getExecutorRequirementOptional()
                     .get().getExecutorInfo();

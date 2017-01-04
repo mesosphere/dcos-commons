@@ -84,10 +84,17 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             String taskName = getTaskName().get();
             Protos.TaskInfo taskInfo = offerRequirement.getTaskRequirement(taskName).getTaskInfo();
             Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
-            Protos.Resource.Builder ports = ResourceUtils.getResource(taskInfo, Constants.PORTS_TYPE).toBuilder();
+            Protos.Resource ports = ResourceUtils.getResource(taskInfo, Constants.PORTS_TYPE);
 
-            ports.getRangesBuilder().addRangeBuilder().setBegin(port).setEnd(port);
-            ResourceUtils.setResource(taskInfoBuilder, ports.build());
+            if (ports.hasReservation() && !ports.getReservation().getLabels().getLabels(0).getValue().equals("")) {
+                // If we've already created a reservation for this task's ports in a previous evaluation stage,
+                // then we want to use that reservation ID instead of the one created for the fulfilled resource in this
+                // stage.
+                ports = ResourceUtils.mergeRanges(ports, resource);
+            } else {
+                ports = ResourceUtils.mergeRanges(resource, ports);
+            }
+            ResourceUtils.setResource(taskInfoBuilder, ports);
 
             taskInfoBuilder.setCommand(
                     CommandUtils.addEnvVar(
