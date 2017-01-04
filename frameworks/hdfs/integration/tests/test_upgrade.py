@@ -32,7 +32,9 @@ def setup_module(module):
     uninstall()
 
 
+@pytest.mark.skip(reason="Waiting for released version from which to upgrade")
 @pytest.mark.upgrade
+@pytest.mark.sanity
 def test_upgrade_downgrade():
     # Ensure both Universe and the test repo exist.
     if len(shakedown.get_package_repos()['repositories']) != 2:
