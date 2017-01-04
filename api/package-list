@@ -18,6 +18,7 @@ com.mesosphere.sdk.scheduler.recovery
 com.mesosphere.sdk.scheduler.recovery.constrain
 com.mesosphere.sdk.scheduler.recovery.monitor
 com.mesosphere.sdk.specification
+com.mesosphere.sdk.specification.util
 com.mesosphere.sdk.specification.validation
 com.mesosphere.sdk.specification.yaml
 com.mesosphere.sdk.state
