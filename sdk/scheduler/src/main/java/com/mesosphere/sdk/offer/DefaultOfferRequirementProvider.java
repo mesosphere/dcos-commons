@@ -357,24 +357,28 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
-                .getDockerBuilder().setImage(containerSpec.getImageName());
 
-        if (containerSpec.getRLimitSpec().isPresent()) {
-            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimitSpec().get()));
+        if (containerSpec.getImageName().isPresent()) {
+            containerInfo.getDockerBuilder().setImage(containerSpec.getImageName().get());
+        }
+
+        if (!containerSpec.getRLimits().isEmpty()) {
+            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
         }
 
         return containerInfo.build();
     }
 
-    private static Protos.RLimitInfo getRLimitInfo(RLimitSpec rLimitSpec) {
+    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
         Protos.RLimitInfo.Builder rLimitInfoBuilder = Protos.RLimitInfo.newBuilder();
 
-        for (RLimit rLimit : rLimitSpec.getRLimits()) {
+        for (RLimit rLimit : rlimits) {
             Optional<Long> soft = rLimit.getSoft();
             Optional<Long> hard = rLimit.getHard();
             Protos.RLimitInfo.RLimit.Builder rLimitsBuilder = Protos.RLimitInfo.RLimit.newBuilder()
                     .setType(rLimit.getEnum());
 
+            // RLimit itself validates that both or neither of these are present.
             if (soft.isPresent() && hard.isPresent()) {
                 rLimitsBuilder.setSoft(soft.get()).setHard(hard.get());
             }

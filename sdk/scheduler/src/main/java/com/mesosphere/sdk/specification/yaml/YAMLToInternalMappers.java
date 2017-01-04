@@ -131,14 +131,14 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
-    private static RLimitSpec from(LinkedHashMap<String, RawRLimit> rawRLimits) throws Exception {
+    private static Collection<RLimit> from(LinkedHashMap<String, RawRLimit> rawRLimits) throws Exception {
         List<RLimit> rlimits = new ArrayList<>();
         for (Map.Entry<String, RawRLimit> entry : rawRLimits.entrySet()) {
             RawRLimit rawRLimit = entry.getValue();
             rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
         }
 
-        return new DefaultRLimitSpec(rlimits);
+        return rlimits;
     }
 
     private static ResourceSet from(

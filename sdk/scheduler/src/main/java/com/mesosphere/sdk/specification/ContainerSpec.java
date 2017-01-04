@@ -2,7 +2,9 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.mesosphere.sdk.specification.util.RLimit;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -13,6 +15,6 @@ public interface ContainerSpec {
     @JsonProperty("image-name")
     Optional<String> getImageName();
 
-    @JsonProperty("rlimit_spec")
-    Optional<RLimitSpec> getRLimitSpec();
+    @JsonProperty("rlimits")
+    Collection<RLimit> getRLimits();
 }

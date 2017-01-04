@@ -38,7 +38,7 @@ public class Capabilities {
             return false;
         } catch (NumberFormatException ex) {
             // incorrect version string.
-            LOGGER.warn("Unable to parse DC/OS version string", ex);
+            LOGGER.warn("Unable to parse DC/OS version string: {}", dcosCluster.getDcosVersion().getVersion());
             return false;
         }
 

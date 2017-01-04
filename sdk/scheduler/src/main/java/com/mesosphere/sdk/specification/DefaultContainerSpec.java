@@ -2,11 +2,14 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -16,14 +19,14 @@ public class DefaultContainerSpec implements ContainerSpec {
     @Size(min = 1)
     private String imageName;
     @Valid
-    private RLimitSpec rLimitSpec;
+    private Collection<RLimit> rlimits;
 
     @JsonCreator
     public DefaultContainerSpec(
             @JsonProperty("image-name") String imageName,
-            @JsonProperty("rlimit_spec") RLimitSpec rLimitSpec) {
+            @JsonProperty("rlimits") Collection<RLimit> rlimits) {
         this.imageName = imageName;
-        this.rLimitSpec = rLimitSpec;
+        this.rlimits = rlimits;
     }
 
     @Override
@@ -32,8 +35,8 @@ public class DefaultContainerSpec implements ContainerSpec {
     }
 
     @Override
-    public Optional<RLimitSpec> getRLimitSpec() {
-        return Optional.ofNullable(rLimitSpec);
+    public Collection<RLimit> getRLimits() {
+        return rlimits == null ? Collections.emptyList() : rlimits;
     }
 
     @Override
