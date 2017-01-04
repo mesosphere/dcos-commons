@@ -40,7 +40,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         podInstance,
                         tasksToLaunch,
                         targetConfigurationId),
-                Optional.of(getNewExecutorInfo(podInstance.getPod())),
+                Optional.of(getExecutor(podInstance)),
                 podInstance.getPod().getPlacementRule());
     }
 
@@ -87,7 +87,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getPod().getType(),
                 podInstance.getIndex(),
                 taskRequirements,
-                ExecutorRequirement.create(getNewExecutorInfo(podInstance.getPod())),
+                ExecutorRequirement.create(getExecutor(podInstance)),
                 podInstance.getPod().getPlacementRule());
     }
 
@@ -126,7 +126,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         taskSpec.getName(), taskSpec.getResourceSet().getId());
                 Protos.TaskInfo taskInfo =
                         getNewTaskInfo(podInstance, taskSpec, targetConfigurationId);
-                taskInfo = CommonTaskUtils.setTransient(taskInfo);
+                taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
                 usedResourceSets.add(taskSpec.getResourceSet().getId());
                 taskInfos.add(taskInfo);
             }
@@ -198,6 +198,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // update some labels:
         CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
         CommonTaskUtils.setConfigFiles(taskInfoBuilder, taskSpec.getConfigFiles());
+        CommonTaskUtils.clearTransient(taskInfoBuilder);
 
         if (taskSpec.getCommand().isPresent()) {
             CommandSpec commandSpec = taskSpec.getCommand().get();
@@ -319,6 +320,31 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         return resources;
+    }
+
+    /**
+     * Returns the ExecutorInfo of a PodInstance if it is still running so it may be re-used, otherwise
+     * it returns a new ExedcutorInfo.
+     * @param podInstance A PodInstance
+     * @return The appropriate ExecutorInfo.
+     */
+    private Protos.ExecutorInfo getExecutor(PodInstance podInstance) {
+        List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
+
+        for (Protos.TaskInfo taskInfo : podTasks) {
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskStatusOptional.isPresent()
+                    && taskStatusOptional.get().getState() == Protos.TaskState.TASK_RUNNING) {
+                LOGGER.info(
+                        "Reusing executor from task '{}': {}",
+                        taskInfo.getName(),
+                        TextFormat.shortDebugString(taskInfo.getExecutor()));
+                return taskInfo.getExecutor();
+            }
+        }
+
+        LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
+        return getNewExecutorInfo(podInstance.getPod());
     }
 
     private static Protos.ExecutorInfo getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {

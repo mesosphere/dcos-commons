@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
+
 /**
  * Common utility methods for {@link PlanManager}s.
  */
@@ -165,5 +167,9 @@ public class PlanUtils {
 
     public static List<Offer> filterAcceptedOffers(List<Offer> offers, Collection<OfferID> acceptedOfferIds) {
         return offers.stream().filter(offer -> !acceptedOfferIds.contains(offer.getId())).collect(Collectors.toList());
+    }
+
+    public static boolean isDeployPlan(Plan plan) {
+        return plan.getName().equals(DEPLOY_PLAN_NAME);
     }
 }

@@ -12,8 +12,6 @@ import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -24,6 +22,7 @@ public class PlansResourceTest {
     @Mock private Plan mockPlan;
     @Mock private Phase mockPhase;
     @Mock private Step mockStep;
+    @Mock private PlanScheduler planScheduler;
 
     private PlanManager planManager;
     private final UUID phaseId = UUID.randomUUID();
@@ -41,10 +40,9 @@ public class PlansResourceTest {
         when(mockPhase.getChildren()).thenReturn(Arrays.asList(mockStep));
         when(mockPlan.getChildren()).thenReturn(Arrays.asList(mockPhase));
         when(mockPlan.getStrategy()).thenReturn(strategy);
+        when(mockPlan.getName()).thenReturn(planName);
         planManager = new DefaultPlanManager(mockPlan);
-        Map<String, PlanManager> planManagers = new HashMap<>();
-        planManagers.put("test-plan-manager", planManager);
-        resource = new PlansResource(planManagers);
+        resource = new PlansResource(new DefaultPlanCoordinator(Arrays.asList(planManager), planScheduler));
     }
 
     @Test
@@ -111,5 +109,41 @@ public class PlansResourceTest {
     @Test(expected=IllegalArgumentException.class)
     public void testRestartInvalidId() {
         resource.restartCommand(planName, "aoeu", "asdf");
+    }
+
+    @Test
+    public void testStart() {
+        Response response = resource.startPlan(planName);
+        assertTrue(response.getStatusInfo().equals(Response.Status.OK));
+    }
+
+    @Test
+    public void testStartInvalid() {
+        Response response = resource.startPlan("bad-plan");
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
+    }
+
+    @Test
+    public void testStop() {
+        Response response = resource.stopPlan(planName);
+        assertTrue(response.getStatusInfo().equals(Response.Status.OK));
+    }
+
+    @Test
+    public void testStopInvalid() {
+        Response response = resource.stopPlan("bad-plan");
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
+    }
+
+    @Test
+    public void testRestartPlan() {
+        Response response = resource.restartCommand(planName, null, null);
+        assertTrue(response.getStatusInfo().equals(Response.Status.OK));
+    }
+
+    @Test
+    public void testRestartPlanIvalid() {
+        Response response = resource.restartCommand("bad-plan", null, null);
+        assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
     }
 }

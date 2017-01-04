@@ -22,12 +22,12 @@ public class PlansResource {
     static final Response PLAN_ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
             .entity("Element not found")
             .build();
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final PlanCoordinator planCoordinator;
 
-    private Map<String, PlanManager> planManagers = new HashMap<>();
-
-    public PlansResource(final Map<String, PlanManager> planManagers) {
-        this.planManagers.putAll(planManagers);
+    public PlansResource(final PlanCoordinator planCoordinator) {
+        this.planCoordinator = planCoordinator;
     }
 
     /**
@@ -38,7 +38,7 @@ public class PlansResource {
     public Response getPlansInfo() {
         return Response
                 .status(200)
-                .entity(planManagers.keySet())
+                .entity(getPlanNames())
                 .build();
     }
 
@@ -48,11 +48,55 @@ public class PlansResource {
     @GET
     @Path("/plans/{planName}")
     public Response getPlanInfo(@PathParam("planName") String planName) {
-        final PlanManager manager = planManagers.get(planName);
-        if (manager != null) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            PlanManager planManager = planManagerOptional.get();
             return Response
-                    .status(manager.getPlan().isComplete() ? 200 : 503)
-                    .entity(PlanInfo.forPlan(manager.getPlan()))
+                    .status(planManager.getPlan().isComplete() ? 200 : 503)
+                    .entity(PlanInfo.forPlan(planManager.getPlan()))
+                    .build();
+        } else {
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+        }
+    }
+
+    /**
+     * Idempotently starts a plan.  If a plan is complete, it restarts the plan.  If it is interrupted, in makes the
+     * plan proceed.  If a plan is already in progress, it has no effect.
+     */
+    @POST
+    @Path("/plans/{planName}/start")
+    public Response startPlan(@PathParam("planName") String planName) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            Plan plan = planManagerOptional.get().getPlan();
+            if (plan.isComplete()) {
+                plan.restart();
+            }
+
+            plan.getStrategy().proceed();
+            return Response.status(Response.Status.OK)
+                    .entity(new CommandResultInfo("Received cmd: start"))
+                    .build();
+        } else {
+            return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+        }
+    }
+
+    /**
+     * Idempotently stops a plan.  If a plan is in progress, it is interrupted and the plan is reset such that all
+     * elements are pending.  If a plan is already stopped, it has no effect.
+     */
+    @POST
+    @Path("/plans/{planName}/stop")
+    public Response stopPlan(@PathParam("planName") String planName) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            Plan plan = planManagerOptional.get().getPlan();
+            plan.getStrategy().interrupt();
+            plan.restart();
+            return Response.status(Response.Status.OK)
+                    .entity(new CommandResultInfo("Received cmd: stop"))
                     .build();
         } else {
             return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
@@ -62,9 +106,9 @@ public class PlansResource {
     @POST
     @Path("/plans/{planName}/continue")
     public Response continueCommand(@PathParam("planName") String planName) {
-        final PlanManager manager = planManagers.get(planName);
-        if (manager != null) {
-            manager.getPlan().getStrategy().proceed();
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            planManagerOptional.get().getPlan().getStrategy().proceed();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: continue"))
                     .build();
@@ -76,9 +120,9 @@ public class PlansResource {
     @POST
     @Path("/plans/{planName}/interrupt")
     public Response interruptCommand(@PathParam("planName") String planName) {
-        final PlanManager manager = planManagers.get(planName);
-        if (manager != null) {
-            manager.getPlan().getStrategy().interrupt();
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            planManagerOptional.get().getPlan().getStrategy().interrupt();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: interrupt"))
                     .build();
@@ -93,9 +137,9 @@ public class PlansResource {
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
             @QueryParam("step") String stepId) {
-        final PlanManager manager = planManagers.get(planName);
-        if (manager != null) {
-            Optional<Step> step = getStep(manager, phaseId, stepId);
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            Optional<Step> step = getStep(planManagerOptional.get(), phaseId, stepId);
             if (step.isPresent()) {
                 step.get().forceComplete();
                 return Response.status(Response.Status.OK)
@@ -115,18 +159,24 @@ public class PlansResource {
             @PathParam("planName") String planName,
             @QueryParam("phase") String phaseId,
             @QueryParam("step") String stepId) {
-        final PlanManager manager = planManagers.get(planName);
-        if (manager != null) {
-            Optional<Step> step = getStep(manager, phaseId, stepId);
-            if (step.isPresent()) {
-                step.get().restart();
-                return Response.status(Response.Status.OK)
-                        .entity(new CommandResultInfo("Received cmd: restart"))
-                        .build();
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+        if (planManagerOptional.isPresent()) {
+            if (phaseId == null && stepId == null) {
+                Plan plan = planManagerOptional.get().getPlan();
+                plan.restart();
+                plan.getStrategy().proceed();
             } else {
-
-                return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+                Optional<Step> step = getStep(planManagerOptional.get(), phaseId, stepId);
+                if (step.isPresent()) {
+                    step.get().restart();
+                } else {
+                    return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
+                }
             }
+
+            return Response.status(Response.Status.OK)
+                    .entity(new CommandResultInfo("Received cmd: restart"))
+                    .build();
         } else {
             return PLAN_ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -194,6 +244,18 @@ public class PlansResource {
             logger.error("Expected 1 Phase, found: " + phases);
             return Optional.empty();
         }
+    }
+
+    private List<String> getPlanNames() {
+        return planCoordinator.getPlanManagers().stream()
+                .map(planManager -> planManager.getPlan().getName())
+                .collect(Collectors.toList());
+    }
+
+    private Optional<PlanManager> getPlanManager(String planName) {
+        return planCoordinator.getPlanManagers().stream()
+                .filter(planManager -> planManager.getPlan().getName().equals(planName))
+                .findFirst();
     }
 
     static class CommandResultInfo {

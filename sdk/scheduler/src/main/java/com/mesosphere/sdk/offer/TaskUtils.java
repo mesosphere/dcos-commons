@@ -1,20 +1,21 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.plan.Step;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.*;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.GOAL_STATE_KEY;
+import static com.mesosphere.sdk.offer.CommonTaskUtils.*;
+import static com.mesosphere.sdk.offer.Constants.*;
 
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
@@ -31,7 +32,7 @@ public class TaskUtils {
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
     public static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
-        String podType = CommonTaskUtils.getType(taskInfo);
+        String podType = getType(taskInfo);
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
             if (podSpec.getType().equals(podType)) {
@@ -78,68 +79,18 @@ public class TaskUtils {
         return stateStore.fetchTasks().stream()
                 .filter(taskInfo -> {
                     try {
-                        return CommonTaskUtils.getType(taskInfo).equals(podInstance.getName());
+                        return isSamePodInstance(taskInfo, podInstance);
                     } catch (TaskException e) {
-                        LOGGER.error("Encountered ");
+                        LOGGER.error("Failed to find pod tasks with exception: ", e);
                         return false;
                     }
                 })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns the TaskInfos for a PodInstance which should be running.  The list will be empty if the PodInstance has
-     * never been launched.
-     * @param podInstance A PodInstance
-     * @param stateStore A StateStore to search for the appropriate TaskInfos.
-     * @return The list of TaskInfos associate with a PodInstance which should be running.
-     */
-    public static List<TaskInfo> getTaskInfosShouldBeRunning(PodInstance podInstance, StateStore stateStore) {
-        List<TaskInfo> podTasks = getPodTasks(podInstance, stateStore);
-
-        List<TaskInfo> tasksShouldBeRunning = new ArrayList<>();
-        for (TaskInfo taskInfo : podTasks) {
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance);
-
-            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(GoalState.RUNNING)) {
-                tasksShouldBeRunning.add(taskInfo);
-            }
-        }
-
-        return tasksShouldBeRunning;
-    }
-
-    private static Optional<TaskSpec> getTaskSpec(TaskInfo taskInfo, PodInstance podInstance) {
-        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
-            if (taskInfo.getName().equals(taskName)) {
-                return Optional.of(taskSpec);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Returns the ExecutorInfo of a PodInstance if it is still running so it may be re-used.
-     * @param podInstance A PodInstance
-     * @param stateStore A StateStore to search for the appropriate TaskInfos.
-     * @return The ExecutorInfo if the Executor is running, Optional.empty() otherwise.
-     */
-    public static Optional<ExecutorInfo> getExecutor(PodInstance podInstance, StateStore stateStore) {
-        List<TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podInstance, stateStore);
-
-        for (TaskInfo taskInfo : shouldBeRunningTasks) {
-            Optional<TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
-            if (taskStatusOptional.isPresent()
-                    && taskStatusOptional.get().getState() == TaskState.TASK_RUNNING) {
-                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
-                return Optional.of(taskInfo.getExecutor());
-            }
-        }
-
-        LOGGER.info("No running executor found.");
-        return Optional.empty();
+    private static boolean isSamePodInstance(TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
+        return getType(taskInfo).equals(podInstance.getPod().getType())
+                && getIndex(taskInfo) == podInstance.getIndex();
     }
 
 
@@ -297,7 +248,7 @@ public class TaskUtils {
      */
     public static TaskInfo.Builder setGoalState(TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
         return taskInfoBuilder
-                .setLabels(CommonTaskUtils.withLabelSet(taskInfoBuilder.getLabels(),
+                .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
                         GOAL_STATE_KEY,
                         taskSpec.getGoal().name()));
     }
@@ -353,7 +304,7 @@ public class TaskUtils {
             TaskInfo taskInfo) throws TaskException {
 
         PodSpec podSpec = getPodSpec(configStore, taskInfo);
-        Integer index = CommonTaskUtils.getIndex(taskInfo);
+        Integer index = getIndex(taskInfo);
 
         return new DefaultPodInstance(podSpec, index);
     }
@@ -362,7 +313,7 @@ public class TaskUtils {
             ConfigStore<ServiceSpec> configStore,
             TaskInfo taskInfo) throws TaskException {
 
-        UUID configId = CommonTaskUtils.getTargetConfiguration(taskInfo);
+        UUID configId = getTargetConfiguration(taskInfo);
         ServiceSpec serviceSpec;
 
         try {
@@ -392,7 +343,7 @@ public class TaskUtils {
         if (taskSpec.getGoal() == GoalState.FINISHED && taskStatus.getState() == TaskState.TASK_FINISHED) {
             return false;
         } else {
-            return CommonTaskUtils.needsRecovery(taskStatus);
+            return isRecoveryNeeded(taskStatus);
         }
     }
 

@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
+
 /**
  * Given a StateStore and a PlanSpecification the DefaultPlanFactory can generate a Plan.
  */
@@ -36,7 +38,7 @@ public class DefaultPlanFactory implements PlanFactory {
     @Override
     public Plan getPlan(ServiceSpec serviceSpec) {
         return new DefaultPlan(
-                serviceSpec.getName(),
+                DEPLOY_PLAN_NAME,
                 getPhases(serviceSpec),
                 strategyGenerator.generate());
     }

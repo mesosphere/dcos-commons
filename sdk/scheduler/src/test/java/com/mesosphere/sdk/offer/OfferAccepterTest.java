@@ -42,7 +42,7 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
-        taskInfo = CommonTaskUtils.setTransient(taskInfo);
+        taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
@@ -59,7 +59,7 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
-        taskInfo = CommonTaskUtils.setTransient(taskInfo);
+        taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(recorder);
@@ -70,7 +70,7 @@ public class OfferAccepterTest {
                 anyCollectionOf(Operation.class),
                 anyObject());
 
-        taskInfo = CommonTaskUtils.clearTransient(taskInfo);
+        taskInfo = CommonTaskUtils.clearTransient(taskInfo.toBuilder()).build();
         accepter.accept(driver, Arrays.asList(new LaunchOfferRecommendation(offer, taskInfo)));
         Assert.assertEquals(2, recorder.getLaunches().size());
         verify(driver, times(1)).acceptOffers(
