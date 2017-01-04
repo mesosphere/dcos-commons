@@ -26,4 +26,9 @@ public interface PlanCoordinator extends Observable {
      * @return True if this {@link PlanCoordinator} has operations to perform.
      */
     boolean hasOperations();
+
+    /**
+     * @return The {@link PlanManager}s which the PlanCoordinator coordinates.
+     */
+    Collection<PlanManager> getPlanManagers();
 }

@@ -7,7 +7,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import org.apache.curator.RetryPolicy;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.mesos.Protos;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
@@ -77,9 +76,7 @@ public class CuratorStateStore implements StateStore {
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorStateStore(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
-                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry());
     }
 
     /**

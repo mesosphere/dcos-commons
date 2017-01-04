@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
@@ -402,14 +403,18 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeGlobals(driver);
         initializeDeploymentPlanManager();
         initializeRecoveryPlanManager();
+        initializePlanCoordinator();
         initializeResources();
         DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
-        final List<PlanManager> planManagers = Arrays.asList(
-                deploymentPlanManager,
-                recoveryPlanManager);
-        planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
+    }
+
+    private Collection<PlanManager> getOtherPlanManagers() {
+        return plans.stream()
+                .filter(plan -> !PlanUtils.isDeployPlan(plan))
+                .map(plan -> new DefaultPlanManager(plan))
+                .collect(Collectors.toList());
     }
 
     private void initializeGlobals(SchedulerDriver driver) {
@@ -428,7 +433,9 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected void initializeDeploymentPlanManager() {
         LOGGER.info("Initializing deployment plan...");
-        Optional<Plan> deploy = plans.stream().filter(plan -> Objects.equals(plan.getName(), "deploy")).findFirst();
+        Optional<Plan> deploy = plans.stream()
+                .filter(plan -> PlanUtils.isDeployPlan(plan))
+                .findFirst();
         Plan deployPlan;
         if (!deploy.isPresent()) {
             LOGGER.info("No deploy plan provided. Generating one");
@@ -439,6 +446,16 @@ public class DefaultScheduler implements Scheduler, Observer {
             deployPlan = deploy.get();
         }
         deploymentPlanManager = new DefaultPlanManager(deployPlan);
+
+        // All plans are initially created with an interrupted strategy.
+        // Normally we don't want the deployment plan to be interrupted,
+        // except in the case of the CanaryStrategy which explicitly
+        // indicates the end-user wants the deployment plan to start out
+        // interrupted.
+        Plan plan = deploymentPlanManager.getPlan();
+        if (!(plan.getStrategy() instanceof CanaryStrategy)) {
+            plan.getStrategy().proceed();
+        }
     }
 
     /**
@@ -455,14 +472,20 @@ public class DefaultScheduler implements Scheduler, Observer {
                         : new NeverFailureMonitor());
     }
 
+    protected void initializePlanCoordinator() {
+        final List<PlanManager> planManagers = new ArrayList<>();
+        planManagers.add(deploymentPlanManager);
+        planManagers.add(recoveryPlanManager);
+        planManagers.addAll(getOtherPlanManagers());
+        planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
+    }
+
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
         resources.add(new ConfigResource<ServiceSpec>(configStore));
         resources.add(new EndpointsResource(stateStore, serviceSpec.getName()));
-        resources.add(new PlansResource(ImmutableMap.of(
-                "deploy", deploymentPlanManager,
-                "recovery", recoveryPlanManager)));
+        resources.add(new PlansResource(planCoordinator));
         resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
@@ -490,11 +513,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
     }
 
-    @SuppressWarnings({"DM_EXIT"})
-    private static void hardExit(SchedulerErrorCode errorCode) {
-        System.exit(errorCode.ordinal());
-    }
-
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
@@ -502,7 +520,7 @@ public class DefaultScheduler implements Scheduler, Observer {
             initialize(driver);
         } catch (InterruptedException e) {
             LOGGER.error("Initialization failed with exception: ", e);
-            hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+            SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
         }
 
         try {
@@ -510,7 +528,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         } catch (Exception e) {
             LOGGER.error(String.format(
                     "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
-            hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
+            SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
         }
 
         this.driver = driver;
@@ -522,7 +540,10 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.error("Re-registration implies we were unregistered.");
-        hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        SchedulerUtils.hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        reconciler.start();
+        reconciler.reconcile(driver);
+        suppressOrRevive();
     }
 
     @Override
@@ -578,7 +599,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
         LOGGER.error("Rescinding offers is not supported.");
-        hardExit(SchedulerErrorCode.OFFER_RESCINDED);
+        SchedulerUtils.hardExit(SchedulerErrorCode.OFFER_RESCINDED);
     }
 
     @Override
@@ -594,8 +615,9 @@ public class DefaultScheduler implements Scheduler, Observer {
                 // Store status, then pass status to PlanManager => Plan => Steps
                 try {
                     stateStore.storeStatus(status);
-                    deploymentPlanManager.update(status);
-                    recoveryPlanManager.update(status);
+                    planCoordinator.getPlanManagers().stream()
+                            .filter(planManager -> !planManager.getPlan().isWaiting())
+                            .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
 
                     if (stateStore.isSuppressed()
@@ -622,7 +644,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     @Override
     public void disconnected(SchedulerDriver driver) {
         LOGGER.error("Disconnected from Master.");
-        hardExit(SchedulerErrorCode.DISCONNECTED);
+        SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
     @Override
@@ -657,7 +679,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                     + "install this service once more.");
         }
 
-        hardExit(SchedulerErrorCode.ERROR);
+        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
     private void suppressOrRevive() {

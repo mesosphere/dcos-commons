@@ -89,7 +89,7 @@ public class CommonTaskUtils {
     /**
      * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
      */
-    public static boolean needsRecovery(TaskStatus taskStatus) {
+    public static boolean isRecoveryNeeded(TaskStatus taskStatus) {
         switch (taskStatus.getState()) {
             case TASK_FINISHED:
             case TASK_FAILED:
@@ -108,10 +108,17 @@ public class CommonTaskUtils {
     }
 
     /**
-     * Returns whether the provided {@link TaskStatus} shows that the task has reached a terminal state.
+     * Returns whether the provided {@link TaskStatus} has reached a terminal state.
      */
     public static boolean isTerminal(TaskStatus taskStatus) {
-        switch (taskStatus.getState()) {
+        return isTerminal(taskStatus.getState());
+    }
+
+    /**
+     * Returns whether the provided {@link TaskState} has reached a terminal state.
+     */
+    public static boolean isTerminal(TaskState taskState) {
+        switch (taskState) {
             case TASK_FINISHED:
             case TASK_FAILED:
             case TASK_KILLED:
@@ -129,25 +136,22 @@ public class CommonTaskUtils {
     }
 
     /**
-     * Ensures that the provided {@link TaskInfo} contains a {@link Label} identifying it as a
-     * transient task.
+     * Ensures that the provided {@link org.apache.mesos.Protos.TaskInfo.Builder} contains a {@link Label} identifying
+     * it as a transient task.
      */
-    public static TaskInfo setTransient(TaskInfo taskInfo) {
-        return taskInfo.toBuilder()
+    public static TaskInfo.Builder setTransient(TaskInfo.Builder taskInfo) {
+        return taskInfo
                 .setLabels(withLabelSet(taskInfo.getLabels(),
                         TRANSIENT_FLAG_KEY,
-                        "true"))
-                .build();
+                        "true"));
     }
 
     /**
-     * Ensures that the provided {@link TaskInfo} does not contain a {@link Label} identifying it as
-     * a transient task.
+     * Ensures that the provided {@link org.apache.mesos.Protos.TaskInfo.Builder} does not contain a {@link Label}
+     * identifying it as a transient task.
      */
-    public static TaskInfo clearTransient(TaskInfo taskInfo) {
-        return taskInfo.toBuilder()
-                .setLabels(withLabelRemoved(taskInfo.getLabels(), TRANSIENT_FLAG_KEY))
-                .build();
+    public static TaskInfo.Builder clearTransient(TaskInfo.Builder builder) {
+        return builder.setLabels(withLabelRemoved(builder.getLabels(), TRANSIENT_FLAG_KEY));
     }
 
     /**

@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
-    private List<PlanManager> planManagers = new LinkedList<>();
-    private PlanScheduler planScheduler;
+    private final List<PlanManager> planManagers = new LinkedList<>();
+    private final PlanScheduler planScheduler;
 
     public DefaultPlanCoordinator(
             List<PlanManager> planManagers,
@@ -50,16 +50,22 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
         // with offers first, does not accidentally schedule an asset that's actively being worked upon by another
         // PlanManager that is presented offers later.
         dirtiedAssets.addAll(planManagers.stream()
+                .filter(planManager -> !planManager.getPlan().isWaiting())
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
 
         LOGGER.info("Initial dirtied assets: {}", dirtiedAssets);
 
-        for (final PlanManager planManager : planManagers) {
+        for (final PlanManager planManager : getPlanManagers()) {
+            if (planManager.getPlan().isWaiting()) {
+                LOGGER.info("Skipping interrupted plan: {}", planManager.getPlan().getName());
+                continue;
+            }
+
             try {
                 Set<String> relevantDirtyAssets = getRelevantDirtyAssets(planManager, dirtiedAssets);
-                LOGGER.info("Processing offers for plan: {} with relevant dirtied assets: {}.",
-                        planManager.getPlan().getName(), relevantDirtyAssets, planManager.getPlan().getName());
+                LOGGER.info("Processing offers for plan: '{}' with relevant dirtied assets: {}.",
+                        planManager.getPlan().getName(), relevantDirtyAssets);
 
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> candidateSteps = planManager.getCandidates(relevantDirtyAssets);
@@ -93,6 +99,11 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
     @Override
     public boolean hasOperations() {
         return planManagers.stream().anyMatch(manager -> !manager.getPlan().isComplete());
+    }
+
+    @Override
+    public Collection<PlanManager> getPlanManagers() {
+        return planManagers;
     }
 
     private Set<String> getRelevantDirtyAssets(PlanManager planManager, Set<String> dirtiedAssets) {

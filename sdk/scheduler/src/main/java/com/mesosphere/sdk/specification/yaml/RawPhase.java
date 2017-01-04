@@ -12,14 +12,17 @@ public class RawPhase {
     private final String strategy;
     private final String pod;
     private final List<RawStep> steps;
+    private final List<String> tasks;
 
     private RawPhase(
             @JsonProperty("strategy") String strategy,
             @JsonProperty("steps") List<RawStep> steps,
-            @JsonProperty("pod") String pod) {
+            @JsonProperty("pod") String pod,
+            @JsonProperty("tasks") List<String> tasks) {
         this.strategy = strategy;
         this.steps = steps;
         this.pod = pod;
+        this.tasks = tasks;
     }
 
     public String getStrategy() {
@@ -32,6 +35,10 @@ public class RawPhase {
 
     public String getPod() {
         return pod;
+    }
+
+    public List<String> getTasks() {
+        return tasks;
     }
 }
 
