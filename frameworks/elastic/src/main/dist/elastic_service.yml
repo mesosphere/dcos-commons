@@ -36,14 +36,13 @@ pods:
         configurations:
           - template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
             dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
-        health-checks:
-          check-up:
-            cmd: "curl -I -s -f localhost:{{KIBANA_PORT}}/login"
-            interval: 5
-            grace-period: 600
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "curl -I -s -f localhost:{{KIBANA_PORT}}/login"
+          interval: 5
+          grace-period: 600
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
   master:
     count: 3
     placement: {{MASTER_NODE_PLACEMENT}}
@@ -82,14 +81,13 @@ pods:
         configurations:
           - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-checks:
-          check-up:
-            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{MASTER_NODE_HTTP_PORT}}"
-            interval: 5
-            grace-period: 300
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{MASTER_NODE_HTTP_PORT}}"
+          interval: 5
+          grace-period: 300
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
   data:
     count: {{DATA_NODE_COUNT}}
     placement: {{DATA_NODE_PLACEMENT}}
@@ -128,14 +126,13 @@ pods:
         configurations:
           - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-checks:
-          check-up:
-            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{DATA_NODE_HTTP_PORT}}"
-            interval: 5
-            grace-period: 300
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{DATA_NODE_HTTP_PORT}}"
+          interval: 5
+          grace-period: 300
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
   ingest:
     count: {{INGEST_NODE_COUNT}}
     placement: {{INGEST_NODE_PLACEMENT}}
@@ -174,14 +171,13 @@ pods:
         configurations:
           - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-checks:
-          check-up:
-            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{INGEST_NODE_HTTP_PORT}}"
-            interval: 5
-            grace-period: 300
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{INGEST_NODE_HTTP_PORT}}"
+          interval: 5
+          grace-period: 300
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
     placement: {{COORDINATOR_NODE_PLACEMENT}}
@@ -220,14 +216,13 @@ pods:
         configurations:
           - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-checks:
-          check-up:
-            cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{COORDINATOR_NODE_HTTP_PORT}}"
-            interval: 5
-            grace-period: 300
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{COORDINATOR_NODE_HTTP_PORT}}"
+          interval: 5
+          grace-period: 300
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
 plans:
   deploy:
     strategy: {{PLAN_STRATEGY}}
