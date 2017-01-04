@@ -18,7 +18,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -59,10 +58,7 @@ public class DefaultPlanGeneratorTest {
         stateStore = DefaultScheduler.createStateStore(
                 serviceSpec,
                 testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
 
         Assert.assertNotNull(serviceSpec);
 
@@ -86,10 +82,7 @@ public class DefaultPlanGeneratorTest {
         stateStore = DefaultScheduler.createStateStore(
                 serviceSpec,
                 testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
 
         Assert.assertNotNull(serviceSpec);
 

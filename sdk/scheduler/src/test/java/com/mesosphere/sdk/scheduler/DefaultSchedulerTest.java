@@ -174,18 +174,16 @@ public class DefaultSchedulerTest {
         environmentVariables.set("LIBMESOS_URI", "");
 
         StateStoreCache.resetInstanceForTests();
-        stateStore = DefaultScheduler.createStateStore(
-                SERVICE_SPECIFICATION,
-                testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(
-                SERVICE_SPECIFICATION,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
         ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
                 .updateConfig(SERVICE_SPECIFICATION, stateStore, configStore);
         offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setOfferRequirementProvider(offerRequirementProvider)
+                .build();
         register();
     }
 
@@ -202,10 +200,7 @@ public class DefaultSchedulerTest {
                         .build())
                 .build();
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        DefaultScheduler.createConfigStore(serviceSpecification, testingServer.getConnectString());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -299,8 +294,11 @@ public class DefaultSchedulerTest {
         ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
                 .updateConfig(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
         offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setOfferRequirementProvider(offerRequirementProvider)
+                .build();
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -315,8 +313,11 @@ public class DefaultSchedulerTest {
         ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
                 .updateConfig(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore, configStore);
         offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setOfferRequirementProvider(offerRequirementProvider)
+                .build();
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -329,8 +330,11 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.create(SCALED_POD_A_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setOfferRequirementProvider(offerRequirementProvider)
+                .build();
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -498,8 +502,11 @@ public class DefaultSchedulerTest {
         ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
                 .updateConfig(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
         offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setOfferRequirementProvider(offerRequirementProvider)
+                .build();
         register();
         defaultScheduler.reconciler.forceComplete();
         plan = defaultScheduler.deploymentPlanManager.getPlan();

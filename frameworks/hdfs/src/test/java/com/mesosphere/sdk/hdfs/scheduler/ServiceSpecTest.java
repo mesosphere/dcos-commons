@@ -1,13 +1,8 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.SchedulerDriver;
@@ -92,27 +87,16 @@ public class ServiceSpecTest {
     }
 
     private void testValidation(String yamlFileName) throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(yamlFileName).getFile());
+        File file = new File(getClass().getClassLoader().getResource(yamlFileName).getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(generateRawSpecFromYAML(file));
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
-        StateStore stateStore = DefaultScheduler.createStateStore(
-                serviceSpec,
-                testingServer.getConnectString());
-        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
-
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(
-                serviceSpec, stateStore, configStore);
-
-        OfferRequirementProvider offerRequirementProvider =
-                DefaultScheduler.createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
-
-        DefaultScheduler.create(serviceSpec, stateStore, configStore, offerRequirementProvider);
+        DefaultScheduler.newBuilder(serviceSpec)
+            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+            .build();
+        testingServer.close();
     }
 }

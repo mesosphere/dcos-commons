@@ -121,10 +121,7 @@ public class DefaultRecoveryPlanManagerTest {
                 .generateRawSpecFromYAML(new File(getClass()
                         .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())));
 
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         TASK_INFO = CommonTaskUtils.setTargetConfiguration(TaskInfo.newBuilder(TASK_INFO), configTarget).build();
