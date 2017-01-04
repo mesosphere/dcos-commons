@@ -1,6 +1,11 @@
 package com.mesosphere.sdk.specification;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -22,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
@@ -34,11 +40,14 @@ import java.util.*;
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     protected static final String USER = "root";
+    protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     protected int apiPort;
     protected String zkConnectionString;
 
+    protected InterProcessMutex curatorMutex;
+    protected CuratorFramework curatorClient;
     protected StateStore stateStore;
     protected ServiceSpec serviceSpec;
     protected Collection<Plan> plans;
@@ -62,6 +71,7 @@ public class DefaultService implements Service {
         init();
         this.plans = generatePlansFromRawSpec(rawServiceSpecification);
         register(serviceSpec, this.plans);
+        unlock();
     }
 
     public DefaultService(ServiceSpec serviceSpecification) {
@@ -75,9 +85,42 @@ public class DefaultService implements Service {
         register(serviceSpec, this.plans);
     }
 
+    private void lock() {
+        String rootPath = CuratorUtils.toServiceRootPath(serviceSpec.getName());
+        String lockPath = CuratorUtils.join(rootPath, LOCK_PATH);
+        curatorMutex = new InterProcessMutex(curatorClient, lockPath);
+
+        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
+        try {
+            if (!curatorMutex.acquire(10, TimeUnit.SECONDS)) {
+                LOGGER.error("Failed to acquire ZK lock. Are you running another framework named {}? Exiting.",
+                        serviceSpec.getName());
+                SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Error acquiring ZK lock.", ex);
+        }
+    }
+
+    private void unlock() {
+        try {
+            curatorMutex.release();
+        } catch (Exception ex) {
+            LOGGER.error("Error releasing ZK lock.", ex);
+        }
+    }
+
+    private void initCurator() {
+        curatorClient = CuratorFrameworkFactory.newClient(zkConnectionString, CuratorUtils.getDefaultRetry());
+        curatorClient.start();
+    }
+
     protected void init() {
-        this.apiPort = this.serviceSpec.getApiPort();
         this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
+        initCurator();
+        lock();
+
+        this.apiPort = this.serviceSpec.getApiPort();
         this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
 
         try {

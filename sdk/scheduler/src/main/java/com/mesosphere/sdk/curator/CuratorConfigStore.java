@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.curator;
 
 import org.apache.curator.RetryPolicy;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
@@ -65,9 +64,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorConfigStore(ConfigurationFactory<T> factory, String frameworkName, String connectionString) {
-        this(factory, frameworkName, connectionString, new ExponentialBackoffRetry(
-                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
-                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES));
+        this(factory, frameworkName, connectionString, CuratorUtils.getDefaultRetry());
     }
 
     /**

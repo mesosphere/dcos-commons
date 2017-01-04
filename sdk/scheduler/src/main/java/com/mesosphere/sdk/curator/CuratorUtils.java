@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.curator;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -10,7 +12,7 @@ import java.util.List;
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.
  */
-class CuratorUtils {
+public class CuratorUtils {
     /**
      * This must never change, as it affects the serialization of the SchemaVersion node.
      *
@@ -20,14 +22,20 @@ class CuratorUtils {
 
     private static final String PATH_DELIM = "/";
 
-    static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
-    static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+    private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
+    private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+
+    public static RetryPolicy getDefaultRetry() {
+        return new ExponentialBackoffRetry(
+                CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
+                CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
+    }
 
     private CuratorUtils() {
         // do not instantiate
     }
 
-    static String toServiceRootPath(String frameworkName) {
+    public static String toServiceRootPath(String frameworkName) {
         if (frameworkName.startsWith("/")) {
             // "/dcos-service-" + "/foo"
             return DcosConstants.SERVICE_ROOT_PATH_PREFIX + frameworkName.substring(1);
@@ -37,7 +45,7 @@ class CuratorUtils {
         }
     }
 
-    static String join(final String first, final String second) {
+    public static String join(final String first, final String second) {
         if (first.endsWith(PATH_DELIM) && second.startsWith(PATH_DELIM)) {
             // "hello/" + "/world"
             return new StringBuilder(first)
