@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.curator;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
+import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import java.nio.charset.Charset;
@@ -24,7 +25,7 @@ public class CuratorUtils {
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
 
-    public static ExponentialBackoffRetry getDefaultRetry() {
+    public static RetryPolicy getDefaultRetry() {
         return new ExponentialBackoffRetry(
                 CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS,
                 CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
