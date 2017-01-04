@@ -207,7 +207,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             CommandSpec commandSpec = taskSpec.getCommand().get();
             Protos.CommandInfo.Builder commandBuilder = Protos.CommandInfo.newBuilder()
                     .setValue(commandSpec.getValue())
-                    .setEnvironment(getTaskEnvironment(podInstance, taskSpec, commandSpec));
+                    .setEnvironment(mergeEnvironments(getTaskEnvironment(
+                            podInstance, taskSpec, commandSpec), taskInfo.getCommand().getEnvironment()));
             for (URI uri : commandSpec.getUris()) {
                 commandBuilder.addUrisBuilder().setValue(uri.toString());
             }
@@ -237,6 +238,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
         return CommonTaskUtils.fromMapToEnvironment(environment).build();
+    }
+
+    private static Protos.Environment mergeEnvironments(Protos.Environment lhs, Protos.Environment rhs) {
+        Map<String, String> lhsVariables = CommonTaskUtils.fromEnvironmentToMap(lhs);
+        Map<String, String> rhsVariables = CommonTaskUtils.fromEnvironmentToMap(rhs);
+        for (Map.Entry<String, String> entry : rhsVariables.entrySet()) {
+            if (!lhsVariables.containsKey(entry.getKey())) {
+                lhsVariables.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return CommonTaskUtils.fromMapToEnvironment(lhsVariables).build();
     }
 
     private static void validateTaskRequirements(List<TaskRequirement> taskRequirements)

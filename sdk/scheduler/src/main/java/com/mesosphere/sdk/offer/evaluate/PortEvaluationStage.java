@@ -37,7 +37,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
                 offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().getCommand() :
                 offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getCommand();
-        String taskPort = CommandUtils.getEnvVar(commandInfo, portName);
+        String taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable(portName));
         Integer assignedPort = port;
         if (assignedPort == 0 && taskPort != null) {
             assignedPort = Integer.parseInt(taskPort);

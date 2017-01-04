@@ -157,7 +157,18 @@ public class MesosResourcePool {
                     return Optional.empty();
                 }
             } else {
-                reservedPool.remove(resourceRequirement.getResourceId());
+                Value desiredValue = resourceRequirement.getValue();
+                Value availableValue = reservedPool.get(resourceRequirement.getResourceId()).getValue();
+                if (ValueUtils.compare(availableValue, desiredValue) > 0) {
+                    // update the value in pool with the remaining unclaimed resource amount
+                    Resource remaining = ResourceUtils.setValue(
+                            mesosResource.getResource(), ValueUtils.subtract(availableValue, desiredValue));
+                    reservedPool.put(resourceRequirement.getResourceId(), new MesosResource(remaining));
+                    // return only the claimed resource amount from this reservation
+                    mesosResource = new MesosResource(resourceRequirement.getResource());
+                } else {
+                    reservedPool.remove(resourceRequirement.getResourceId());
+                }
             }
         } else {
            logger.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",

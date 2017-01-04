@@ -70,24 +70,8 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             // can be performed because the resource is Atomic.
             if (expectedValueChanged(mesosResource) && !mesosResource.isAtomic()) {
                 Value reserveValue = ValueUtils.subtract(resourceRequirement.getValue(), mesosResource.getValue());
-                Value unreserveValue = ValueUtils.subtract(mesosResource.getValue(), resourceRequirement.getValue());
 
-                if (ValueUtils.compare(unreserveValue, ValueUtils.getZero(unreserveValue.getType())) > 0) {
-                    logger.info("Updates reserved resource with less reservation");
-                    Resource unreserveResource = ResourceUtils.getDesiredResource(
-                            resourceRequirement.getRole(),
-                            resourceRequirement.getPrincipal(),
-                            resourceRequirement.getName(),
-                            unreserveValue);
-                    unreserveResource = ResourceUtils.setResourceId(
-                            unreserveResource, resourceRequirement.getResourceId());
-
-                    offerResourcePool.release(new MesosResource(
-                            ResourceUtils.getUnreservedResource(resourceRequirement.getName(), unreserveValue)));
-                    offerRecommendationSlate.addUnreserveRecommendation(
-                            new UnreserveOfferRecommendation(offerResourcePool.getOffer(), unreserveResource));
-                    fulfilledResource = getFulfilledResource(new MesosResource(resourceRequirement.getResource()));
-                } else if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
+                if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
                     logger.info("Updates reserved resource with additional reservation");
                     Resource reserveResource = ResourceUtils.getDesiredResource(
                             resourceRequirement.getRole(),

@@ -115,6 +115,7 @@ public class OfferEvaluator {
                 evaluationPipeline.add(new LaunchEvaluationStage(taskName));
             }
         }
+        evaluationPipeline.add(new ReservationEvaluationStage(offerRequirement.getResourceIds()));
 
         return evaluationPipeline;
     }

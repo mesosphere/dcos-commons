@@ -79,6 +79,85 @@ public class OfferEvaluatorTest {
     }
 
     @Test
+    public void testLaunchExpectedPort() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource desiredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                getExistingPortPodInstanceRequirement(desiredResource, "single-port.yml"),
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(desiredResource))));
+        Assert.assertEquals(1, recommendations.size());
+
+        // Validate LAUNCH Operation
+        Operation launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
+    public void testLaunchExpectedDynamicPort() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource desiredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId);
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                getExistingPortPodInstanceRequirement(desiredResource, "dynamic-port.yml"),
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(desiredResource))));
+        Assert.assertEquals(1, recommendations.size());
+
+        // Validate LAUNCH Operation
+        Operation launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
+    public void testLaunchExpectedMultiplePorts() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource desiredResource = ResourceTestUtils.getExpectedRanges("ports", 10000, 10001, resourceId);
+
+        PodInstanceRequirement podInstanceRequirement = getExistingPortPodInstanceRequirement(
+                desiredResource, "multiple-port-with-finished.yml");
+
+        Iterator<String> it = podInstanceRequirement.getTasksToLaunch().iterator();
+        it.next();
+        podInstanceRequirement = PodInstanceRequirement.create(
+                podInstanceRequirement.getPodInstance(), Arrays.asList(it.next()));
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(desiredResource))));
+        Assert.assertEquals(1, recommendations.size());
+
+        // Validate LAUNCH Operation
+        Operation launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource =
+                launchOperation
+                        .getLaunch()
+                        .getTaskInfosList()
+                        .get(0)
+                        .getResourcesList()
+                        .get(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
+    }
+
+    @Test
     public void testReserveTaskMultipleDynamicPorts() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10001);
 
@@ -830,6 +909,31 @@ public class OfferEvaluatorTest {
     private PodInstanceRequirement getDynamicPortPodInstanceRequirement() throws Exception {
         return getPodInstanceRequirement(
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, "dynamic-port.yml");
+    }
+
+    private PodInstanceRequirement getExistingPortPodInstanceRequirement(
+            Resource resource, String yamlFile) throws Exception {
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(resource);
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, yamlFile);
+        String stateStoreName = TaskSpec.getInstanceName(
+                    podInstanceRequirement.getPodInstance(),
+                    podInstanceRequirement.getPodInstance().getPod().getTasks().get(0));
+        TaskInfo.Builder existingTaskInfo = offerRequirement.getTaskRequirements().iterator().next()
+                .getTaskInfo()
+                .toBuilder()
+                .setName(stateStoreName);
+        existingTaskInfo.getLabelsBuilder().setLabels(
+                0, existingTaskInfo.getLabels().getLabels(0).toBuilder().setValue("pod-type"));
+        existingTaskInfo.getCommandBuilder()
+                .getEnvironmentBuilder()
+                .addVariablesBuilder()
+                .setName("PORT_" + TestConstants.PORT_NAME)
+                .setValue(Long.toString(resource.getRanges().getRange(0).getBegin()));
+        offerRequirement.updateTaskRequirement(TestConstants.TASK_NAME, existingTaskInfo.build());
+        stateStore.storeTasks(Arrays.asList(existingTaskInfo.build()));
+
+        return podInstanceRequirement;
     }
 
     private PodInstanceRequirement getMultipleDynamicPortPodInstanceRequirement() throws Exception {
