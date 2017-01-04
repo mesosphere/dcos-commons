@@ -31,6 +31,9 @@ allprojects {
     targetCompatibility = '1.8'
 
     repositories {
+        maven {
+            url 'https://repository.apache.org/content/repositories/snapshots'
+        }
         mavenLocal()
         mavenCentral()
     }
@@ -68,7 +71,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = "1.0.1"
+    mesosVer = "1.2.0-SNAPSHOT"
 }
 
 subprojects {

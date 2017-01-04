@@ -13,11 +13,14 @@ import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
@@ -67,7 +70,10 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
+        CapabilityValidator capabilityValidator = new CapabilityValidator(new Capabilities(new DcosCluster()));
         this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        capabilityValidator.validate(this.serviceSpec);
+
         init();
         this.plans = generatePlansFromRawSpec(rawServiceSpecification);
         register(serviceSpec, this.plans);
