@@ -26,63 +26,83 @@ public class CapabilitiesTest {
 
     @Test
     public void test_090() throws IOException {
-        testClusterVersion("0.9.0", false, false);
+        Capabilities capabilities = testCapabilities("0.9.0");
+        Assert.assertFalse(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_170() throws IOException {
-        testClusterVersion("1.7.0", false, false);
+        Capabilities capabilities = testCapabilities("1.7.0");
+        Assert.assertFalse(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_17dev() throws IOException {
-        testClusterVersion("1.7-dev", false, false);
+        Capabilities capabilities = testCapabilities("1.7-dev");
+        Assert.assertFalse(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_180() throws IOException {
-        testClusterVersion("1.8.0", true, false);
+        Capabilities capabilities = testCapabilities("1.8.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_18dev() throws IOException {
-        testClusterVersion("1.8-dev", true, false);
+        Capabilities capabilities = testCapabilities("1.8-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_190() throws IOException {
-        testClusterVersion("1.9.0", true, true);
+        Capabilities capabilities = testCapabilities("1.9.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_19dev() throws IOException {
-        testClusterVersion("1.9-dev", true, true);
+        Capabilities capabilities = testCapabilities("1.9-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_1100() throws IOException {
-        testClusterVersion("1.10.0", true, true);
+        Capabilities capabilities = testCapabilities("1.10.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_110dev() throws IOException {
-        testClusterVersion("1.10-dev", true, true);
+        Capabilities capabilities = testCapabilities("1.10-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_200() throws IOException {
-        testClusterVersion("2.0.0", true, true);
+        Capabilities capabilities = testCapabilities("2.0.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
     public void test_20dev() throws IOException {
-        testClusterVersion("2.0-dev", true, true);
+        Capabilities capabilities = testCapabilities("2.0-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
     }
 
-    private void testClusterVersion(String version, boolean expectNamedVips, boolean expectRLimits) throws IOException {
+    private Capabilities testCapabilities(String version) throws IOException {
         when(mockDcosVersion.getElements()).thenReturn(new DcosVersion.Elements(version));
-        Capabilities capabilities = new Capabilities(mockDcosCluster);
-        Assert.assertEquals(version + " named vips", expectNamedVips, capabilities.supportsNamedVips());
-        Assert.assertEquals(version + " rlimits", expectRLimits, capabilities.supportsRLimits());
+        return new Capabilities(mockDcosCluster);
     }
 }
