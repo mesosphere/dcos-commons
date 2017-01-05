@@ -83,6 +83,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         } else if (candidateConfigJson == null) {
             LOGGER.info("Skipping config diff: New target couldn't be represented as JSON");
         } else {
+            LOGGER.info("Prior target config:\n{}", targetConfig.toJsonString());
             printConfigDiff(targetConfig, targetConfigId, candidateConfigJson);
         }
 
