@@ -73,6 +73,7 @@ public class DefaultService implements Service {
             register();
         } finally {
             unlock(curatorMutex);
+            curatorClient.close();
         }
     }
 
@@ -120,7 +121,7 @@ public class DefaultService implements Service {
      * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the {@code apiPort}.
      */
     @Override
-    public void register() throws Exception {
+    public void register() {
         DefaultScheduler defaultScheduler = schedulerBuilder.build();
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
 
@@ -178,7 +179,7 @@ public class DefaultService implements Service {
             fwkInfoBuilder.setRole(serviceSpec.getRole());
         }
 
-        // Use provided role if specified, otherwise default to "<svcname>-principal".
+        // Use provided principal if specified, otherwise default to "<svcname>-principal".
         if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
             fwkInfoBuilder.setPrincipal(SchedulerUtils.nameToPrincipal(serviceName));
         } else {

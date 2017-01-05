@@ -31,8 +31,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private final UUID targetConfigurationId;
 
     /**
-     * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which expects
-     * tasks tagged with the provided {@code targetConfigurationId}.
+     * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which
+     * updates tasks which are not tagged with the provided {@code targetConfigurationId}.
      */
     public DefaultOfferRequirementProvider(StateStore stateStore, UUID targetConfigurationId) {
         this.stateStore = stateStore;
