@@ -13,6 +13,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.codec.binary.Base64;
 
 import java.io.*;
 import java.util.*;
@@ -35,6 +36,11 @@ public class CommonTaskUtils {
      * Label key against which the offer agent's hostname is stored.
      */
     private static final String OFFER_HOSTNAME_KEY = "offer_hostname";
+
+    /**
+     * Label key against which the readiness check (if present) is stored.
+     */
+    private static final String READINESS_CHECK_KEY = "readiness_check";
 
     /**
      * Label key against which the Task Type is stored.
@@ -270,6 +276,35 @@ public class CommonTaskUtils {
             throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
         }
         return UUID.fromString(value.get());
+    }
+
+    /**
+     * Stores the {@link Attribute}s from the provided {@link Offer} into the {@link TaskInfo} as a
+     * {@link Label}. Any existing stored attributes are overwritten.
+     */
+    public static TaskInfo.Builder setReadinessCheck(TaskInfo.Builder taskBuilder, HealthCheck readinessCheck) {
+        byte[] encodedBytes = Base64.encodeBase64(readinessCheck.toByteArray());
+        String readinessCheckStr = new String(encodedBytes);
+        return taskBuilder.setLabels(
+                withLabelSet(taskBuilder.getLabels(), READINESS_CHECK_KEY, readinessCheckStr));
+    }
+
+    /**
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * embedded in the provided {@link TaskInfo}.
+     */
+    public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
+        Optional<String> readinessCheckStrOptional = findLabelValue(taskInfo.getLabels(), READINESS_CHECK_KEY);
+        if (!readinessCheckStrOptional.isPresent()) {
+            return Optional.empty();
+        }
+
+        byte[] decodedBytes = Base64.decodeBase64(readinessCheckStrOptional.get());
+        try {
+            return Optional.of(HealthCheck.parseFrom(decodedBytes));
+        } catch (InvalidProtocolBufferException e) {
+            throw new TaskException(e);
+        }
     }
 
     /**

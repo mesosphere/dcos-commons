@@ -6,6 +6,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.curator.test.TestingServer;
 import org.junit.Assert;
 import org.junit.Rule;
