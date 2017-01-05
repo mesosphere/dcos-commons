@@ -39,8 +39,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage implements Offe
             ResourceUtils.addVIP(taskInfoBuilder, vipName, vipPort, resource);
             offerRequirement.updateTaskRequirement(getTaskName().get(), taskInfoBuilder.build());
         } else if (offerRequirement.getExecutorRequirementOptional().isPresent() &&
-                // Set the VIP on the ExecutorInfo.
                 !isVIPSet(offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getDiscovery())) {
+            // Set the VIP on the ExecutorInfo.
             Protos.ExecutorInfo.Builder executorInfoBuilder = offerRequirement.getExecutorRequirementOptional()
                     .get()
                     .getExecutorInfo()
