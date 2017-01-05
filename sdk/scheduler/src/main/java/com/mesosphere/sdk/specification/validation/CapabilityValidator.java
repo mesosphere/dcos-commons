@@ -4,8 +4,6 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.specification.ContainerSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -16,7 +14,6 @@ import java.io.IOException;
  */
 public class CapabilityValidator {
     private final Capabilities capabilities;
-    private static final Logger LOGGER = LoggerFactory.getLogger(CapabilityValidator.class);
 
     public CapabilityValidator(Capabilities capabilities) {
         this.capabilities = capabilities;
