@@ -9,11 +9,11 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo hello-$POD_INSTANCE_INDEX >> $OUTPUT_VOLUME/$OUTPUT_FILENAME && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volumes:
-          - path: "hello-container-path"
+          - path: {{TASKCFG_HELLO_OUTPUT_VOLUME}}
             type: ROOT
             size: {{HELLO_DISK}}
         env:
@@ -24,11 +24,11 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo world-$POD_INSTANCE_INDEX >> $OUTPUT_VOLUME/$OUTPUT_FILENAME && sleep $SLEEP_DURATION"
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
         volumes:
-          - path: "world-container-path"
+          - path: {{TASKCFG_WORLD_OUTPUT_VOLUME}}
             type: ROOT
             size: {{WORLD_DISK}}
         env:

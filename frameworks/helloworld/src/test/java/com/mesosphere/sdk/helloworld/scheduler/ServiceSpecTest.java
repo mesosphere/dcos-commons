@@ -64,17 +64,17 @@ public class ServiceSpecTest {
 
     @Test
     public void test_yml_simple() throws Exception{
-        ServiceSpecDeserialization("svc_simple.yml");
+        ServiceSpecDeserialization("examples/svc_simple.yml");
     }
 
     @Test
     public void test_yml_withPlan() throws Exception{
-        ServiceSpecDeserialization("svc_plan.yml");
+        ServiceSpecDeserialization("examples/svc_plan.yml");
     }
 
     @Test
     public void test_yml_withPlan_uris() throws Exception{
-        ServiceSpecDeserialization("svc_uri.yml");
+        ServiceSpecDeserialization("examples/svc_uri.yml");
     }
     @Test
     public void test_validate_yml_base() throws Exception{
@@ -83,17 +83,17 @@ public class ServiceSpecTest {
 
     @Test
     public void test_validate_yml_simple() throws Exception{
-        ServiceSpecValidation("svc_simple.yml");
+        ServiceSpecValidation("examples/svc_simple.yml");
     }
 
     @Test
     public void test_validate_yml_withPlan() throws Exception{
-        ServiceSpecValidation("svc_plan.yml");
+        ServiceSpecValidation("examples/svc_plan.yml");
     }
 
     @Test
     public void test_validate_yml_withPlan_uri() throws Exception{
-        ServiceSpecValidation("svc_uri.yml");
+        ServiceSpecValidation("examples/svc_uri.yml");
     }
 
     private void ServiceSpecDeserialization(String fileName) throws Exception {
