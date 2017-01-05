@@ -9,6 +9,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.api.*;
+import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
@@ -108,6 +109,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
+    protected Map<String, EndpointProducer> customEndpointProducers;
     protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -131,6 +133,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private OfferRequirementProvider offerRequirementProvider;
         private Collection<Plan> plans;
         private Collection<ConfigValidator<ServiceSpec>> configValidators;
+        private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
@@ -240,6 +243,18 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Specifies a custom {@link EndpointProducer} to be added to the /endpoints API. This may be used by services
+         * which wish to expose custom endpoint information via that API.
+         *
+         * @param name the name of the endpoint to be exposed
+         * @param endpointProducer the producer to be invoked when the provided endpoint name is requested
+         */
+        public Builder setEndpointProducer(String name, EndpointProducer endpointProducer) {
+            endpointProducers.put(name, endpointProducer);
+            return this;
+        }
+
+        /**
          * Returns the {@link ConfigValidator}s provided via {@link #setConfigValidators(Collection)}, or a reasonable
          * default.
          */
@@ -317,7 +332,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                         plans,
                         getStateStore(),
                         getConfigStore(),
-                        offerRequirementProvider);
+                        offerRequirementProvider,
+                        endpointProducers);
             } catch (ConfigStoreException e) {
                 throw new IllegalStateException("Failed to create default config store", e);
             }
@@ -460,31 +476,21 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Creates a new DefaultScheduler.
-     *
-     * @param serviceSpec                 specification containing service name and tasks to be deployed
-     * @param stateStore                  framework state storage, which must not be written to before the scheduler
-     *                                    has been registered with mesos as indicated by a call to
-     *                                    {@link DefaultScheduler#registered
-     *                                    (SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} (SchedulerDriver,
-     *                                    com.mesosphere.sdk.Protos.FrameworkID, com.mesosphere.sdk.Protos.MasterInfo)
-     * @param configStore                 framework config storage, which must not be written to before the scheduler
-     *                                    has been registered with mesos as indicated by a call to
-     *                                    {@link DefaultScheduler#registered
-     *                                    (SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} (SchedulerDriver,
-     *                                    org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)
+     * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            OfferRequirementProvider offerRequirementProvider) {
+            OfferRequirementProvider offerRequirementProvider,
+            Map<String, EndpointProducer> customEndpointProducers) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.offerRequirementProvider = offerRequirementProvider;
+        this.customEndpointProducers = customEndpointProducers;
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
@@ -609,7 +615,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
         resources.add(new ConfigResource<ServiceSpec>(configStore));
-        resources.add(new EndpointsResource(stateStore, serviceSpec.getName()));
+        EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
+        for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
+            endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
+        }
+        resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
         resources.add(new PodsResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));

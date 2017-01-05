@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
+import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.constrain.AndRule;
 import com.mesosphere.sdk.offer.constrain.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -31,8 +32,16 @@ public class Main {
 
     private static DefaultScheduler.Builder getBuilder(RawServiceSpecification rawServiceSpecification)
             throws Exception {
-        return DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpecification))
+        DefaultScheduler.Builder builder =
+                DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpecification))
                 .setPlans(rawServiceSpecification);
+        // TODO(nick): The endpointproducers should produce valid HDFS xml files. They can get the info they need from
+        // scheduler envvars and/or the ServiceSpec. If they need current task state, they could be passed the
+        // StateStore from builder.getStateStore() when they're constructed, which they could then access to get current
+        // task state when EndpointProducer.getEndpoint() is called.
+        return builder
+                .setEndpointProducer("hdfs-site.xml", EndpointProducer.constant("TODO: hdfs-site.xml content"))
+                .setEndpointProducer("core-site.xml", EndpointProducer.constant("TODO: core-site.xml content"));
     }
 
     private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpecification rawServiceSpecification)
