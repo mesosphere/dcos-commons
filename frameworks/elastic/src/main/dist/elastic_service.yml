@@ -8,6 +8,11 @@ replacement-failure-policy:
 pods:
   kibana:
     count: {{KIBANA_COUNT}}
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
     placement: {{KIBANA_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -45,6 +50,11 @@ pods:
           timeout: 10
   master:
     count: 3
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
     placement: {{MASTER_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -90,6 +100,11 @@ pods:
           timeout: 10
   data:
     count: {{DATA_NODE_COUNT}}
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
     placement: {{DATA_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -135,6 +150,11 @@ pods:
           timeout: 10
   ingest:
     count: {{INGEST_NODE_COUNT}}
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
     placement: {{INGEST_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
@@ -180,6 +200,11 @@ pods:
           timeout: 10
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
     placement: {{COORDINATOR_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:

@@ -13,7 +13,7 @@
         "user": {
           "description": "The user that runs the Elasticsearch/Kibana services and owns the Mesos sandbox.",
           "type": "string",
-          "default": "centos"
+          "default": "core"
         },
         "plan_strategy": {
           "description": "Elasticsearch and Kibana rollout strategy. [parallel, serial]",
