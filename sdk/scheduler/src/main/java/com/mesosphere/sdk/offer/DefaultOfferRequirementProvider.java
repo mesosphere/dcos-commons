@@ -547,7 +547,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setIntervalSeconds(readinessCheckSpec.getInterval())
                 .setTimeoutSeconds(readinessCheckSpec.getTimeout())
                 .setConsecutiveFailures(0)
-                .setGracePeriodSeconds(readinessCheckSpec.getGracePeriod());
+                .setGracePeriodSeconds(0);
 
         Protos.CommandInfo.Builder readinessCheckCommandBuilder = builder.getCommandBuilder()
                 .setValue(readinessCheckSpec.getCommand());

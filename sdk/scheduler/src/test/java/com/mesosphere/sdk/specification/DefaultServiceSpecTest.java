@@ -7,6 +7,7 @@ import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -100,7 +101,6 @@ public class DefaultServiceSpecTest {
         ReadinessCheckSpec readinessCheckSpec = readinessCheckSpecOptional.get();
         Assert.assertEquals("./readiness-check", readinessCheckSpec.getCommand());
         Assert.assertTrue(5 == readinessCheckSpec.getInterval());
-        Assert.assertTrue(30 == readinessCheckSpec.getGracePeriod());
         Assert.assertTrue(0 == readinessCheckSpec.getDelay());
         Assert.assertTrue(10 == readinessCheckSpec.getTimeout());
     }
@@ -173,8 +173,7 @@ public class DefaultServiceSpecTest {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
-        YAMLServiceSpecFactory
-                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        generateServiceSpec(generateRawSpecFromYAML(file));
     }
 
     @Test

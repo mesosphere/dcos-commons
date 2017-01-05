@@ -11,19 +11,16 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     private Integer delay;
     private Integer interval;
     private Integer timeout;
-    private Integer gracePeriod;
 
     public DefaultReadinessCheckSpec(
             @JsonProperty("command") String command,
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
-            @JsonProperty("timeout") Integer timeout,
-            @JsonProperty("grace_period") Integer gracePeriod) {
+            @JsonProperty("timeout") Integer timeout) {
         this.command = command;
         this.delay = delay;
         this.interval = interval;
         this.timeout = timeout;
-        this.gracePeriod = gracePeriod;
     }
 
     private DefaultReadinessCheckSpec(Builder builder) {
@@ -32,7 +29,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
         delay = builder.delay;
         interval = builder.interval;
         timeout = builder.timeout;
-        gracePeriod = builder.gracePeriod;
     }
 
     public static Builder newBuilder() {
@@ -45,7 +41,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
         builder.delay = copy.delay;
         builder.interval = copy.interval;
         builder.timeout = copy.timeout;
-        builder.gracePeriod = copy.gracePeriod;
         return builder;
     }
 
@@ -69,11 +64,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
         return timeout;
     }
 
-    @Override
-    public Integer getGracePeriod() {
-        return gracePeriod;
-    }
-
     /**
      * {@code DefaultReadinessCheckSpec} builder static inner class.
      */
@@ -82,7 +72,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
         private Integer delay;
         private Integer interval;
         private Integer timeout;
-        private Integer gracePeriod;
 
         private Builder() {
         }
@@ -129,18 +118,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
          */
         public Builder timeout(Integer timeout) {
             this.timeout = timeout;
-            return this;
-        }
-
-        /**
-         * Sets the {@code gracePeriod} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param gracePeriod the {@code gracePeriod} to set
-         * @return a reference to this Builder
-         */
-        public Builder gracePeriod(Integer gracePeriod) {
-            this.gracePeriod = gracePeriod;
             return this;
         }
 

@@ -14,6 +14,4 @@ public interface ReadinessCheckSpec {
     Integer getInterval();
 
     Integer getTimeout();
-
-    Integer getGracePeriod();
 }

@@ -44,6 +44,9 @@ public class CommonTaskUtils {
      */
     private static final String READINESS_CHECK_KEY = "readiness_check";
 
+    /**
+     * Label key used to find the result of a readiness check in a TaskStatus label.
+     */
     public static final String READINESS_CHECK_PASSED_KEY = "readiness_check_passed";
 
     /**
@@ -294,7 +297,7 @@ public class CommonTaskUtils {
     }
 
     /**
-     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * Returns the string representvtions of any {@link Offer} {@link Attribute}s which were
      * embedded in the provided {@link TaskInfo}.
      */
     public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
@@ -308,6 +311,37 @@ public class CommonTaskUtils {
             return Optional.of(HealthCheck.parseFrom(decodedBytes));
         } catch (InvalidProtocolBufferException e) {
             throw new TaskException(e);
+        }
+    }
+
+    /**
+     * Returns whether or not a readiness check succeeded.  If the indicated TaskInfo does not have
+     * a readiness check, then this method indicates that the readiness check has passed.  Otherwise
+     * failures to parse readiness checks are interpreted as readiness check failures.  If some value other
+     * than "true" is present in the readiness check label of the TaskStatus, the readiness check has
+     * failed.
+     * @param taskInfo A TaskInfo which may or may not have a readiness check defined.
+     * @param taskStatus A TaskStatus which may or may not contain a readiness check label.
+     * @return the result of a readiness check for the indicated TaskInfo and TaskStatus.
+     */
+    public static boolean readinessCheckSucceeded(TaskInfo taskInfo, TaskStatus taskStatus) {
+        Optional<HealthCheck> healthCheckOptional = Optional.empty();
+        try {
+            healthCheckOptional = getReadinessCheck(taskInfo);
+        } catch (TaskException e) {
+            LOGGER.error("Failed to get readiness check.", e);
+            return false;
+        }
+
+        if (healthCheckOptional.isPresent()) {
+            Optional<String> readinessCheckResult = findLabelValue(taskStatus.getLabels(), READINESS_CHECK_PASSED_KEY);
+            if (readinessCheckResult.isPresent()) {
+                return readinessCheckResult.get().equals("true");
+            } else {
+                return false;
+            }
+        } else {
+            return true;
         }
     }
 

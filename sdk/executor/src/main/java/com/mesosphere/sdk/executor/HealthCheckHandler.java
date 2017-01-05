@@ -33,17 +33,15 @@ public class HealthCheckHandler {
     public static HealthCheckHandler create(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
+            Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
             HealthCheckStats healthCheckStats)
             throws HealthCheckValidationException {
-        if (!taskInfo.hasHealthCheck()) {
-            throw new HealthCheckValidationException("The following task does not contain a HealthCheck: " + taskInfo);
-        }
         return new HealthCheckHandler(
                 executorDriver,
                 taskInfo,
                 new ProcessRunner(),
-                taskInfo.getHealthCheck(),
+                healthCheck,
                 scheduledExecutorService,
                 healthCheckStats);
     }

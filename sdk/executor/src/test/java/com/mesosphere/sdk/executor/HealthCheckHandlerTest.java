@@ -207,6 +207,7 @@ public class HealthCheckHandlerTest {
         HealthCheckHandler.create(
                 executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
@@ -222,6 +223,7 @@ public class HealthCheckHandlerTest {
         HealthCheckHandler.create(
                 executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
@@ -235,6 +237,7 @@ public class HealthCheckHandlerTest {
         HealthCheckHandler.create(
                 executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
@@ -250,6 +253,7 @@ public class HealthCheckHandlerTest {
         HealthCheckHandler.create(
                 executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
