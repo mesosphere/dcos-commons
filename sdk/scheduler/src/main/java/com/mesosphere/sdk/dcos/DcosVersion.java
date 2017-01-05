@@ -2,6 +2,8 @@ package com.mesosphere.sdk.dcos;
 
 import org.json.JSONObject;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * This class encapsulates the response from a DC/OS cluster's dcos-metadata/dcos-version.json endpoint.
  * Example response:
@@ -29,7 +31,8 @@ public class DcosVersion {
     public static class Elements {
         private final String version;
 
-        private Elements(String version) {
+        @VisibleForTesting
+        Elements(String version) {
             this.version = version;
         }
 
