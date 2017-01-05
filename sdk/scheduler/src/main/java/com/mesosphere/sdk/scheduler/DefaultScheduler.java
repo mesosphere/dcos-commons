@@ -36,6 +36,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
+import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.state.PersistentOperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
@@ -128,11 +129,14 @@ public class DefaultScheduler implements Scheduler, Observer {
     public static class Builder {
         private final ServiceSpec serviceSpec;
 
-        private StateStore stateStore;
-        private ConfigStore<ServiceSpec> configStore;
-        private OfferRequirementProvider offerRequirementProvider;
-        private Collection<Plan> plans;
-        private Collection<ConfigValidator<ServiceSpec>> configValidators;
+        // When these optionals are unset, we use default values:
+        private Optional<StateStore> stateStoreOptional = Optional.empty();
+        private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
+        private Optional<Collection<ConfigValidator<ServiceSpec>>> configValidatorsOptional = Optional.empty();
+
+        // When these collections are empty, we don't do anything extra:
+        private final List<Plan> manualPlans = new ArrayList<>();
+        private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
 
         private Builder(ServiceSpec serviceSpec) {
@@ -146,7 +150,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Returns the {@link ServiceSpec} provided via {@link #Builder(ServiceSpec)}.
+         * Returns the {@link ServiceSpec} which was provided via the constructor.
          */
         public ServiceSpec getServiceSpec() {
             return serviceSpec;
@@ -162,66 +166,37 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
          */
         public Builder setStateStore(StateStore stateStore) {
-            if (this.stateStore != null) {
+            if (this.stateStoreOptional.isPresent()) {
                 // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
                 throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
             }
-            this.stateStore = stateStore;
+            this.stateStoreOptional = Optional.of(stateStore);
             return this;
         }
 
         /**
-         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
+         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
+         * created via {@link DefaultScheduler#createStateStore(ServiceSpec)}.
+         *
+         * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
+         * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
          */
         public StateStore getStateStore() {
-            if (stateStore == null) {
-                stateStore = createStateStore(serviceSpec);
+            if (!stateStoreOptional.isPresent()) {
+                setStateStore(createStateStore(serviceSpec));
             }
-            return stateStore;
+            return stateStoreOptional.get();
         }
 
         /**
          * Specifies a custom {@link ConfigStore}, otherwise the return value of
-         * {@link DefaultScheduler#createStateStore(ServiceSpec)} will be used.
+         * {@link DefaultScheduler#createConfigStore(ServiceSpec)} will be used.
          *
-         * The config store persists a copy of the current configuration ('target' configuration) as well as
-         * past configurations.
-         *
-         * @throws IllegalStateException if the state store is already set, via a previous call to either
-         *     {@link #setConfigStore(ConfigStore)} or to {@link #getConfigStore()}
+         * The config store persists a copy of the current configuration ('target' configuration),
+         * while also storing historical configurations.
          */
         public Builder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-            if (this.configStore != null) {
-                // Any customization of the config store must be applied BEFORE getConfigStore() is ever called.
-                throw new IllegalStateException(
-                        "Config store is already set. Was getConfigStore() invoked before this?");
-            }
-            this.configStore = configStore;
-            return this;
-        }
-
-        /**
-         * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default.
-         *
-         * @throws ConfigStoreException if creating the default {@link ConfigStore} instance fails
-         */
-        public ConfigStore<ServiceSpec> getConfigStore() throws ConfigStoreException {
-            if (configStore == null) {
-                configStore = createConfigStore(serviceSpec);
-            }
-            return configStore;
-        }
-
-        /**
-         * Specifies a custom {@link OfferRequirementProvider}, otherwise the return value of
-         * {@link DefaultScheduler#createOfferRequirementProvider(StateStore, UUID)} will be used.
-         *
-         * The offer requirement provider creates offer requirements based on any tasks that need to be deployed by the
-         * service at a given point in time. These offer requirements describe the resources that a given task requires
-         * in order to run.
-         */
-        public Builder setOfferRequirementProvider(OfferRequirementProvider offerRequirementProvider) {
-            this.offerRequirementProvider = offerRequirementProvider;
+            this.configStoreOptional = Optional.of(configStore);
             return this;
         }
 
@@ -233,12 +208,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * invoked.
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
-            if (this.configValidators != null) {
-                // Any customization of the validators must be applied BEFORE getConfigStore() is ever called.
-                throw new IllegalStateException(
-                        "Config validators are already set. Was getConfigValidators() invoked before this?");
-            }
-            this.configValidators = configValidators;
+            this.configValidatorsOptional = Optional.of(configValidators);
             return this;
         }
 
@@ -255,50 +225,32 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Returns the {@link ConfigValidator}s provided via {@link #setConfigValidators(Collection)}, or a reasonable
-         * default.
-         */
-        public Collection<ConfigValidator<ServiceSpec>> getConfigValidators() {
-            if (configValidators == null) {
-                configValidators = defaultConfigValidators();
-            }
-            return configValidators;
-        }
-
-        /**
          * Sets the {@link Plan}s from the provided {@link RawServiceSpecification} to this instance, using a
-         * {@link DefaultPlanGenerator} to handle conversion. Any calls to {@link #setStateStore(StateStore)} and
-         * {@link #setConfigStore(ConfigStore)} must have been made before this is invoked.
+         * {@link DefaultPlanGenerator} to handle conversion. This is overridden by any plans manually provided by
+         * {@link #setPlans(Collection)}.
          *
          * @throws ConfigStoreException if creating a default config store fails
          * @throws IllegalStateException if the plans were already set either via this call or via
          *     {@link #setPlans(Collection)}
          */
-        public Builder setPlans(RawServiceSpecification rawServiceSpec) throws ConfigStoreException {
+        public Builder setPlansFrom(RawServiceSpecification rawServiceSpec) throws ConfigStoreException {
             if (rawServiceSpec.getPlans() != null) {
-                DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(getConfigStore(), getStateStore());
-                return setPlans(rawServiceSpec.getPlans().entrySet().stream()
-                        .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
-                        .collect(Collectors.toList()));
-            } else {
-                return setPlans(Collections.emptyList());
+                this.yamlPlans.clear();
+                this.yamlPlans.putAll(rawServiceSpec.getPlans());
             }
+            return this;
         }
 
         /**
          * Sets the provided {@link Plan}s to this instance. This may be used when no {@link RawServiceSpecification} is
-         * available.
+         * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpecification)}.
          *
          * @throws IllegalStateException if the plans were already set either via this call or via
          *     {@link #setPlans(RawServiceSpecification)}
          */
         public Builder setPlans(Collection<Plan> plans) {
-            if (this.plans != null) {
-                // Disallow multiple calls, or calls across setPlans() instances.
-                throw new IllegalStateException(
-                        "Plans are already set. Was setPlans() invoked before this?");
-            }
-            this.plans = plans;
+            this.manualPlans.clear();
+            this.manualPlans.addAll(plans);
             return this;
         }
 
@@ -310,33 +262,56 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
         public DefaultScheduler build() {
-            if (offerRequirementProvider == null) {
-                // Perform default config update procedure since user presumably didn't do it themselves:
-                ConfigurationUpdater.UpdateResult configUpdateResult =
-                        updateConfig(serviceSpec, stateStore, configStore, getConfigValidators());
-                if (!configUpdateResult.errors.isEmpty()) {
-                    throw new IllegalStateException(String.format(
-                            "Failed to update configuration due to errors with configuration %s: %s",
-                            configUpdateResult.targetId, configUpdateResult.errors));
+            // Get custom or default state store (defaults handled by getStateStore())::
+            final StateStore stateStore = getStateStore();
+
+            // Get custom or default config store:
+            final ConfigStore<ServiceSpec> configStore;
+            if (configStoreOptional.isPresent()) {
+                configStore = configStoreOptional.get();
+            } else {
+                try {
+                    configStore = createConfigStore(serviceSpec);
+                } catch (ConfigStoreException e) {
+                    throw new IllegalStateException("Failed to create default config store", e);
                 }
-                offerRequirementProvider = createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
             }
 
-            if (plans == null) {
+            // Update/validate config as needed to reflect the new service spec:
+            final ConfigurationUpdater.UpdateResult configUpdateResult = updateConfig(
+                    serviceSpec,
+                    stateStore,
+                    configStore,
+                    configValidatorsOptional.orElse(defaultConfigValidators()));
+            if (!configUpdateResult.errors.isEmpty()) {
+                throw new IllegalStateException(String.format(
+                        "Failed to update configuration due to errors with configuration %s: %s",
+                        configUpdateResult.targetId, configUpdateResult.errors));
+            }
+
+            // Get or generate plans. Any plan generation is against the service spec that we just updated:
+            final List<Plan> plans;
+            if (!manualPlans.isEmpty()) {
+                plans = new ArrayList<>(manualPlans);
+            } else if (!yamlPlans.isEmpty()) {
+                // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
+                // may look at the old config and mistakenly think they're COMPLETE.
+                DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
+                plans = yamlPlans.entrySet().stream()
+                        .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
+                        .collect(Collectors.toList());
+            } else {
+                // A default deployment plan will automatically be generated:
                 plans = Collections.emptyList();
             }
 
-            try {
-                return new DefaultScheduler(
-                        serviceSpec,
-                        plans,
-                        getStateStore(),
-                        getConfigStore(),
-                        offerRequirementProvider,
-                        endpointProducers);
-            } catch (ConfigStoreException e) {
-                throw new IllegalStateException("Failed to create default config store", e);
-            }
+            return new DefaultScheduler(
+                    serviceSpec,
+                    plans,
+                    stateStore,
+                    configStore,
+                    createOfferRequirementProvider(stateStore, configUpdateResult.targetId),
+                    endpointProducers);
         }
     }
 
@@ -419,8 +394,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      *                              unrecognized deserialization type
      * @see DcosConstants#MESOS_MASTER_ZK_CONNECTION_STRING
      */
-    public static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec) throws ConfigStoreException {
+    public static ConfigStore<ServiceSpec> createConfigStore(ServiceSpec serviceSpec) throws ConfigStoreException {
         return createConfigStore(serviceSpec, DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
     }
 

@@ -34,7 +34,7 @@ public class Main {
             throws Exception {
         DefaultScheduler.Builder builder =
                 DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpecification))
-                .setPlans(rawServiceSpecification);
+                .setPlansFrom(rawServiceSpecification);
         // TODO(nick): The endpointproducers should produce valid HDFS xml files. They can get the info they need from
         // scheduler envvars and/or the ServiceSpec. If they need current task state, they could be passed the
         // StateStore from builder.getStateStore() when they're constructed, which they could then access to get current

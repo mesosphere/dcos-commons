@@ -18,6 +18,8 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.JettyApiServer;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.StateStore;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
+    protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
     protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
@@ -51,7 +54,7 @@ public class DefaultService implements Service {
 
     public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
         this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification))
-                .setPlans(rawServiceSpecification));
+                .setPlansFrom(rawServiceSpecification));
     }
 
     public DefaultService(ServiceSpec serviceSpecification, Collection<Plan> plans) throws Exception {
@@ -83,19 +86,23 @@ public class DefaultService implements Service {
         InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);
+        final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
+                "Duplicate service named '%s', or recently restarted instance of '%s'?",
+                lockPath, serviceName, serviceName);
         try {
-            if (!curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                LOGGER.error("Failed to acquire ZK lock on {}. " +
-                        "Are you running another framework named '{}'? Exiting.",
-                        lockPath, serviceName);
-                SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
+            for (int i = 0; i < LOCK_ATTEMPTS; ++i) {
+                if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
+                    return curatorMutex;
+                }
+                LOGGER.error("{}/{} {} Retrying lock...", i + 1, LOCK_ATTEMPTS, failureLogMsg);
             }
+            LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
+            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
         } catch (Exception ex) {
             LOGGER.error(String.format("Error acquiring ZK lock on path: %s", lockPath), ex);
             SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
         }
-
-        return curatorMutex;
+        return null; // not reachable, only here for a happy java
     }
 
     /**
@@ -115,12 +122,13 @@ public class DefaultService implements Service {
     @Override
     public void register() throws Exception {
         DefaultScheduler defaultScheduler = schedulerBuilder.build();
+        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
 
-        startApiServer(defaultScheduler, schedulerBuilder.getServiceSpec().getApiPort());
+        startApiServer(defaultScheduler, serviceSpec.getApiPort());
         registerAndRunFramework(
                 defaultScheduler,
-                getFrameworkInfo(schedulerBuilder),
-                schedulerBuilder.getServiceSpec().getZookeeperConnection());
+                getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
+                serviceSpec.getZookeeperConnection());
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
@@ -154,8 +162,7 @@ public class DefaultService implements Service {
         new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
 
-    private static Protos.FrameworkInfo getFrameworkInfo(DefaultScheduler.Builder schedulerBuilder) {
-        final ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
+    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
@@ -179,7 +186,7 @@ public class DefaultService implements Service {
         }
 
         // The framework ID is not available when we're being started for the first time.
-        Optional<Protos.FrameworkID> optionalFrameworkId = schedulerBuilder.getStateStore().fetchFrameworkId();
+        Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
         if (optionalFrameworkId.isPresent()) {
             fwkInfoBuilder.setId(optionalFrameworkId.get());
         }
