@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -34,7 +35,6 @@ public class EndpointsResource {
 
     private static final String RESPONSE_KEY_DIRECT = "direct";
     private static final String RESPONSE_KEY_VIP = "vip";
-    private static final String VIP_LABEL_PREFIX = "VIP_";
     private static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
     private final StateStore stateStore;
@@ -256,7 +256,7 @@ public class EndpointsResource {
         }
 
         private static VIPInfo parse(String taskName, Label label) {
-            if (!label.getKey().startsWith(VIP_LABEL_PREFIX)) {
+            if (!label.getKey().startsWith(ResourceUtils.VIP_PREFIX)) {
                 return null;
             }
             List<String> namePort = Splitter.on(':').splitToList(label.getValue());

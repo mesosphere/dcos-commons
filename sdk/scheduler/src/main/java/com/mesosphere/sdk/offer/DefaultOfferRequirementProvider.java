@@ -6,8 +6,6 @@ import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,14 +57,15 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         List<TaskSpec> taskSpecs = podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .collect(Collectors.toList());
-        Map<TaskInfo, TaskSpec> taskMap = new HashMap<>();
+        Map<Protos.TaskInfo, TaskSpec> taskMap = new HashMap<>();
 
         for (TaskSpec taskSpec : taskSpecs) {
-            Optional<TaskInfo> taskInfoOptional = stateStore.fetchTask(TaskSpec.getInstanceName(podInstance, taskSpec));
+            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(
+                    TaskSpec.getInstanceName(podInstance, taskSpec));
             if (taskInfoOptional.isPresent()) {
                 taskMap.put(taskInfoOptional.get(), taskSpec);
             } else {
-                TaskInfo taskInfo = getNewTaskInfo(
+                Protos.TaskInfo taskInfo = getNewTaskInfo(
                         podInstance,
                         taskSpec,
                         targetConfigurationId,
@@ -81,7 +80,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         List<TaskRequirement> taskRequirements = new ArrayList<>();
-        for (Map.Entry<TaskInfo, TaskSpec> e : taskMap.entrySet()) {
+        for (Map.Entry<Protos.TaskInfo, TaskSpec> e : taskMap.entrySet()) {
             taskRequirements.add(
                     getExistingTaskRequirement(podInstance, e.getKey(), e.getValue(), targetConfigurationId));
         }
@@ -103,7 +102,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         LOGGER.info("Getting new TaskInfos for tasks: {}", tasksToLaunch);
 
         ArrayList<String> usedResourceSets = new ArrayList<>();
-        List<TaskInfo> taskInfos = new ArrayList<>();
+        List<Protos.TaskInfo> taskInfos = new ArrayList<>();
 
         // Generating TaskInfos to launch.
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
@@ -128,7 +127,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (!usedResourceSets.contains(taskSpec.getResourceSet().getId())) {
                 LOGGER.info("Generating transient taskInfo to complete pod footprint for: {}, with resource set: {}",
                         taskSpec.getName(), taskSpec.getResourceSet().getId());
-                TaskInfo taskInfo =
+                Protos.TaskInfo taskInfo =
                         getNewTaskInfo(podInstance, taskSpec, targetConfigurationId);
                 taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
                 usedResourceSets.add(taskSpec.getResourceSet().getId());
@@ -139,12 +138,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return taskInfos;
     }
 
-    private static TaskInfo getNewTaskInfo(
+    private static Protos.TaskInfo getNewTaskInfo(
             PodInstance podInstance,
             TaskSpec taskSpec,
             UUID targetConfigurationId,
             Collection<Protos.Resource> resources) throws InvalidRequirementException {
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder()
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonTaskUtils.emptyTaskId())
                 .setSlaveId(CommonTaskUtils.emptyAgentId())
@@ -190,7 +189,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder(taskInfo)
+        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
                 .clearExecutor()
                 .addAllResources(getUpdatedResources(otherResources, taskSpec))
@@ -301,7 +300,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
-        return coalescePorts(updatedResources);
+        return coalesceResources(updatedResources);
     }
 
     private static Collection<Protos.Resource> getNewResources(TaskSpec taskSpec)
@@ -336,27 +335,38 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             }
         }
 
-        return coalescePorts(resources);
+        return coalesceResources(resources);
     }
 
-    private static List<Protos.Resource> coalescePorts(Collection<Protos.Resource> resources) {
+    private static List<Protos.Resource> coalesceResources(Collection<Protos.Resource> resources) {
+        List<Protos.Resource> portResources = new ArrayList<>();
+        List<Protos.Resource> otherResources = new ArrayList<>();
+        for (Protos.Resource r : resources) {
+            if (isPortResource(r)) {
+                portResources.add(r);
+            } else {
+                otherResources.add(r);
+            }
+        }
+
+        if (!portResources.isEmpty()) {
+            otherResources.add(coalescePorts(portResources));
+        }
+
+        return otherResources;
+    }
+
+    private static boolean isPortResource(Protos.Resource resource) {
+        return resource.getName().equals(PORTS_RESOURCE_TYPE);
+    }
+
+    private static Protos.Resource coalescePorts(List<Protos.Resource> resources) {
         // Within the SDK, each port is handled as its own resource, since they can have extra meta-data attached, but
         // we can't have multiple "ports" resources on a task info, so we combine them here. Since ports are also added
         // back onto TaskInfos during the evaluation stage (since they may be dynamic) we actually just clear the ranges
         // from that resource here to make the bookkeeping easier.
-        Protos.Resource portsResource = null;
-        List<Protos.Resource> coalescedResources = new ArrayList<>();
-
-        for (Protos.Resource r : resources) {
-            if (r.getName().equals(PORTS_TYPE) && portsResource == null) {
-                portsResource = r.toBuilder().clearRanges().build();
-                coalescedResources.add(portsResource);
-            } else if (!r.getName().equals(PORTS_TYPE)) {
-                coalescedResources.add(r);
-            }
-        }
-
-        return coalescedResources;
+        // TODO(mrb): instead of clearing ports, keep them in OfferRequirement and build up actual TaskInfos elsewhere
+        return resources.get(0).toBuilder().clearRanges().build();
     }
 
     private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
@@ -441,7 +451,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.ExecutorInfo getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
-        ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
+        Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 

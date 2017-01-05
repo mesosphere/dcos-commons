@@ -10,7 +10,7 @@ import java.util.Optional;
  * that this metadata is available in the task's environment and creating an {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
-    private String taskName;
+    private final String taskName;
 
     public LaunchEvaluationStage(String taskName) {
         this.taskName = taskName;
@@ -18,11 +18,11 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public void evaluate(
-            MesosResourcePool offerResourcePool,
+            MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
         Optional<ExecutorRequirement> executorRequirement = offerRequirement.getExecutorRequirementOptional();
-        Protos.Offer offer = offerResourcePool.getOffer();
+        Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = offerRequirement.getTaskRequirement(taskName).getTaskInfo().toBuilder();
 
         // Store metadata in the TaskInfo for later access by placement constraints:

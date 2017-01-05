@@ -20,16 +20,26 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger logger = LoggerFactory.getLogger(ResourceEvaluationStage.class);
 
     private ResourceRequirement resourceRequirement;
-    // Resources frequently have necessary task affinities -- a dynamic port, for example, will need to modify the
-    // TaskInfo it belongs to. We express that affinity with this field, which if left null means that this evaluation
-    // stage modifies the ExecutorInfo instead.
-    private String taskName;
+    private final String taskName;
 
+    /**
+     * Instantiate this class to check incoming offers for sufficient presence of the supplied {@link Resource}. The
+     * supplied task name indicates which task in the {@link OfferRequirement} to update with any subsequent metadata.
+     * If it is null, this stage will modify the {@link org.apache.mesos.Protos.ExecutorInfo} instead.
+     * @param resource the resource to evaluate incoming offers against
+     * @param taskName the name of the task to modify with resource metadata
+     */
     public ResourceEvaluationStage(Resource resource, String taskName) {
         this.resourceRequirement = new ResourceRequirement(resource);
         this.taskName = taskName;
     }
 
+    /**
+     * Instantiate this class to check incoming offers for sufficient presence of the supplied {@link Resource}. The
+     * {@link org.apache.mesos.Protos.ExecutorInfo} on the {@link OfferRequirement} will be modified with any subsequent
+     * metadata.
+     * @param resource the resource to evaluate incoming offers against
+     */
     public ResourceEvaluationStage(Resource resource) {
         this(resource, null);
     }
@@ -48,11 +58,11 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public void evaluate(
-            MesosResourcePool offerResourcePool,
+            MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
         ResourceRequirement resourceRequirement = getResourceRequirement();
-        Optional<MesosResource> mesosResourceOptional = offerResourcePool.consume(resourceRequirement);
+        Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
         if (!mesosResourceOptional.isPresent()) {
             throw new OfferEvaluationException(String.format(
                     "Failed to satisfy resource requirement: %s",
@@ -79,11 +89,11 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             resourceRequirement.getName(),
                             reserveValue);
 
-                    if (offerResourcePool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
+                    if (mesosResourcePool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
                         reserveResource = ResourceUtils.setResourceId(
                                 reserveResource, resourceRequirement.getResourceId());
                         offerRecommendationSlate.addReserveRecommendation(
-                                new ReserveOfferRecommendation(offerResourcePool.getOffer(), reserveResource));
+                                new ReserveOfferRecommendation(mesosResourcePool.getOffer(), reserveResource));
                         fulfilledResource = getFulfilledResource(new MesosResource(resourceRequirement.getResource()));
                     } else {
                         throw new OfferEvaluationException("Insufficient resources to increase resource usage.");
@@ -93,7 +103,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         } else if (resourceRequirement.reservesResource()) {
             logger.info("Reserves Resource");
             offerRecommendationSlate.addReserveRecommendation(
-                    new ReserveOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
+                    new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
         logger.info("Satisfying resource requirement: {}\nwith resource: {}",

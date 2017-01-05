@@ -44,6 +44,11 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
         ValidationUtils.validate(this);
     }
 
+    @JsonProperty("port_name")
+    public String getPortName() {
+        return portName;
+    }
+
     @JsonProperty("vip_name")
     public String getVipName() {
         return vipName;

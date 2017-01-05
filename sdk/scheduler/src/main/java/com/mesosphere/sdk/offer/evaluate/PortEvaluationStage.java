@@ -15,22 +15,22 @@ import java.util.stream.IntStream;
  * environments.
  */
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
-    private String portName;
-    private Integer port;
+    private final String portName;
+    private final int port;
 
-    public PortEvaluationStage(Protos.Resource resource, String taskName, String portName, Integer port) {
+    public PortEvaluationStage(Protos.Resource resource, String taskName, String portName, int port) {
         super(resource, taskName);
         this.portName = portName;
         this.port = port;
     }
 
-    public PortEvaluationStage(Protos.Resource resource, String portName, Integer port) {
+    public PortEvaluationStage(Protos.Resource resource, String portName, int port) {
         this(resource, null, portName, port);
     }
 
     @Override
     public void evaluate(
-            MesosResourcePool offerResourcePool,
+            MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
         // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
@@ -38,42 +38,23 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().getCommand() :
                 offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getCommand();
         String taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable(portName));
-        Integer assignedPort = port;
+        int assignedPort = port;
+
         if (assignedPort == 0 && taskPort != null) {
             assignedPort = Integer.parseInt(taskPort);
-        }
-
-        if (assignedPort == 0) {
-            // We don't want to dynamically consume a port that's explicitly claimed by this pod accidentally, so
-            // compile a list of those to check against the offered ports.
-            Set<Integer> consumedPorts = new HashSet<>();
-            for (Protos.Resource resource : offerRequirement.getResources()) {
-                if (resource.getName().equals(Constants.PORTS_TYPE)) {
-                    resource.getRanges().getRangeList().stream()
-                            .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
-                            .forEach(consumedPorts::add);
-                }
-            }
-
-            Protos.Value availablePorts = offerResourcePool.getUnreservedMergedPool().get(Constants.PORTS_TYPE);
-            Optional<Integer> dynamicPort = Optional.empty();
-            if (availablePorts != null) {
-                dynamicPort = availablePorts.getRanges().getRangeList().stream()
-                        .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
-                        .filter(p -> !consumedPorts.contains(p))
-                        .findFirst();
-            }
-
+        } else if (assignedPort == 0) {
+            Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, offerRequirement);
             if (!dynamicPort.isPresent()) {
                 throw new OfferEvaluationException(String.format(
                         "No ports were available for dynamic claim in offer: %s",
-                        offerResourcePool.getOffer().toString()));
+                        mesosResourcePool.getOffer().toString()));
             }
+
             assignedPort = dynamicPort.get();
         }
 
-        super.setResourceRequirement(getDynamicPortRequirement(getResourceRequirement(), assignedPort));
-        super.evaluate(offerResourcePool, offerRequirement, offerRecommendationSlate);
+        super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
+        super.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
     }
 
     @Override
@@ -83,8 +64,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         if (getTaskName().isPresent()) {
             String taskName = getTaskName().get();
             Protos.TaskInfo taskInfo = offerRequirement.getTaskRequirement(taskName).getTaskInfo();
-            Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
-            Protos.Resource ports = ResourceUtils.getResource(taskInfo, Constants.PORTS_TYPE);
+            Protos.Resource ports = ResourceUtils.getResource(taskInfo, Constants.PORTS_RESOURCE_TYPE);
 
             if (ports.hasReservation() && !ports.getReservation().getLabels().getLabels(0).getValue().equals("")) {
                 // If we've already created a reservation for this task's ports in a previous evaluation stage,
@@ -94,8 +74,9 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             } else {
                 ports = ResourceUtils.mergeRanges(resource, ports);
             }
-            ResourceUtils.setResource(taskInfoBuilder, ports);
 
+            Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
+            ResourceUtils.setResource(taskInfoBuilder, ports);
             taskInfoBuilder.setCommand(
                     CommandUtils.addEnvVar(
                             taskInfoBuilder.getCommand(), getPortEnvironmentVariable(portName), Long.toString(port)));
@@ -104,10 +85,12 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             Protos.ExecutorInfo executorInfo = offerRequirement.getExecutorRequirementOptional()
                     .get()
                     .getExecutorInfo();
-            Protos.ExecutorInfo.Builder executorInfoBuilder = executorInfo.toBuilder();
-            Protos.Resource.Builder ports = ResourceUtils.getResource(executorInfo, Constants.PORTS_TYPE).toBuilder();
+            Protos.Resource.Builder ports = ResourceUtils.getResource(
+                    executorInfo, Constants.PORTS_RESOURCE_TYPE).toBuilder();
 
             ports.getRangesBuilder().addRangeBuilder().setBegin(port).setEnd(port);
+
+            Protos.ExecutorInfo.Builder executorInfoBuilder = executorInfo.toBuilder();
             ResourceUtils.setResource(executorInfoBuilder, ports.build());
             executorInfoBuilder.setCommand(
                     CommandUtils.addEnvVar(
@@ -118,12 +101,37 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         }
     }
 
+    private static Optional<Integer> selectDynamicPort(
+            MesosResourcePool mesosResourcePool, OfferRequirement offerRequirement) {
+        // We don't want to dynamically consume a port that's explicitly claimed by this pod accidentally, so
+        // compile a list of those to check against the offered ports.
+        Set<Integer> consumedPorts = new HashSet<>();
+        for (Protos.Resource resource : offerRequirement.getResources()) {
+            if (resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
+                resource.getRanges().getRangeList().stream()
+                        .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
+                        .forEach(consumedPorts::add);
+            }
+        }
+
+        Protos.Value availablePorts = mesosResourcePool.getUnreservedMergedPool().get(Constants.PORTS_RESOURCE_TYPE);
+        Optional<Integer> dynamicPort = Optional.empty();
+        if (availablePorts != null) {
+            dynamicPort = availablePorts.getRanges().getRangeList().stream()
+                    .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
+                    .filter(p -> !consumedPorts.contains(p))
+                    .findFirst();
+        }
+
+        return dynamicPort;
+    }
+
     private static String getPortEnvironmentVariable(String portName) {
         return "PORT_" + portName;
     }
 
-    private static ResourceRequirement getDynamicPortRequirement(
-            ResourceRequirement resourceRequirement, Integer port) {
+    private static ResourceRequirement getPortRequirement(
+            ResourceRequirement resourceRequirement, int port) {
         Protos.Resource.Builder builder = resourceRequirement.getResource().toBuilder();
         builder.clearRanges().getRangesBuilder().addRange(Protos.Value.Range.newBuilder().setBegin(port).setEnd(port));
 

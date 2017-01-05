@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  */
 public class TaskRequirement {
     private TaskInfo taskInfo;
-    private Collection<ResourceRequirement> resourceRequirements;
     private Protos.TaskID taskId;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
@@ -28,9 +27,6 @@ public class TaskRequirement {
         this.taskInfo = TaskInfo.newBuilder(taskInfo)
                 .setTaskId(taskId)
                 .build();
-        this.resourceRequirements = taskInfo.getResourcesList().stream()
-                .map(r -> new ResourceRequirement(r))
-                .collect(Collectors.toList());
     }
 
     public void update(TaskInfo taskInfo) {
@@ -42,7 +38,9 @@ public class TaskRequirement {
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
-        return resourceRequirements;
+        return taskInfo.getResourcesList().stream()
+                .map(r -> new ResourceRequirement(r))
+                .collect(Collectors.toList());
     }
 
     public Collection<String> getResourceIds() {

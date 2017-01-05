@@ -207,7 +207,7 @@ public class DefaultResourceSet implements ResourceSet {
                             rawPort.getName(),
                             rawPort.getVip().getPrefix(),
                             rawPort.getVip().getPort(),
-                            Constants.PORTS_TYPE,
+                            Constants.PORTS_RESOURCE_TYPE,
                             Protos.Value.newBuilder()
                                     .setType(Protos.Value.Type.RANGES)
                                     .setRanges(rangesBuilder)
@@ -218,7 +218,7 @@ public class DefaultResourceSet implements ResourceSet {
                 } else {
                     resources.add(new PortSpecification(
                             rawPort.getName(),
-                            Constants.PORTS_TYPE,
+                            Constants.PORTS_RESOURCE_TYPE,
                             Protos.Value.newBuilder()
                                     .setType(Protos.Value.Type.RANGES)
                                     .setRanges(rangesBuilder)

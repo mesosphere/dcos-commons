@@ -22,16 +22,16 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public void evaluate(
-            MesosResourcePool offerResourcePool,
+            MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
-        Map<String, MesosResource> reservedResources = offerResourcePool.getReservedPool();
+        Map<String, MesosResource> reservedResources = mesosResourcePool.getReservedPool();
         for (Map.Entry<String, MesosResource> entry : reservedResources.entrySet()) {
             if (resourceIds.contains(entry.getKey())) {
                 Protos.Resource unreserveResource = ResourceUtils.setResourceId(
                         entry.getValue().getResource(), entry.getKey());
                 offerRecommendationSlate.addUnreserveRecommendation(
-                        new UnreserveOfferRecommendation(offerResourcePool.getOffer(), unreserveResource));
+                        new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), unreserveResource));
             }
         }
     }

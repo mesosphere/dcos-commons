@@ -56,14 +56,6 @@ public class ExecutorRequirement {
     private ExecutorRequirement(ExecutorInfo executorInfo)
             throws InvalidRequirementException {
         validateExecutorInfo(executorInfo);
-        init(executorInfo);
-    }
-
-    public void update(ExecutorInfo executorInfo) {
-        init(executorInfo);
-    }
-
-    private void init(ExecutorInfo executorInfo) {
         this.executorInfo = executorInfo;
         this.resourceRequirements = executorInfo.getResourcesList().stream()
                 .map(r -> new ResourceRequirement(r))

@@ -5,6 +5,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer.Operation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -13,10 +14,10 @@ import java.util.List;
  * and {@link LaunchOfferRecommendation}.
  */
 public class OfferRecommendationSlate {
-    private List<OfferRecommendation> unreserves;
-    private List<OfferRecommendation> reserves;
-    private List<OfferRecommendation> creates;
-    private List<OfferRecommendation> launches;
+    private List<UnreserveOfferRecommendation> unreserves;
+    private List<ReserveOfferRecommendation> reserves;
+    private List<CreateOfferRecommendation> creates;
+    private List<LaunchOfferRecommendation> launches;
 
     public OfferRecommendationSlate() {
         this.unreserves = new ArrayList<>();
@@ -29,7 +30,7 @@ public class OfferRecommendationSlate {
      * Add an {@link UnreserveOfferRecommendation} to this slate.
      * @param recommendation
      */
-    public void addUnreserveRecommendation(OfferRecommendation recommendation) {
+    public void addUnreserveRecommendation(UnreserveOfferRecommendation recommendation) {
         unreserves.add(recommendation);
     }
 
@@ -37,7 +38,7 @@ public class OfferRecommendationSlate {
      * Add an {@link ReserveOfferRecommendation} to this slate.
      * @param recommendation
      */
-    public void addReserveRecommendation(OfferRecommendation recommendation) {
+    public void addReserveRecommendation(ReserveOfferRecommendation recommendation) {
         reserves.add(recommendation);
     }
 
@@ -45,7 +46,7 @@ public class OfferRecommendationSlate {
      * Add an {@link CreateOfferRecommendation} to this slate.
      * @param recommendation
      */
-    public void addCreateRecommendation(OfferRecommendation recommendation) {
+    public void addCreateRecommendation(CreateOfferRecommendation recommendation) {
         creates.add(recommendation);
     }
 
@@ -53,7 +54,7 @@ public class OfferRecommendationSlate {
      * Add an {@link LaunchOfferRecommendation} to this slate.
      * @param recommendation
      */
-    public void addLaunchRecommendation(OfferRecommendation recommendation) {
+    public void addLaunchRecommendation(LaunchOfferRecommendation recommendation) {
         launches.add(recommendation);
     }
 
@@ -71,18 +72,19 @@ public class OfferRecommendationSlate {
         return recommendations;
     }
 
-    private List<OfferRecommendation> coalescePortRecommendations(List<OfferRecommendation> offerRecommendations) {
+    private <R extends OfferRecommendation> List<OfferRecommendation> coalescePortRecommendations(
+            List<R> offerRecommendations) {
         if (offerRecommendations.isEmpty()) {
-            return offerRecommendations;
+            return Collections.emptyList();
         }
 
         Protos.Resource ports = null;
         List<OfferRecommendation> recommendations = new ArrayList<>();
         for (OfferRecommendation recommendation : offerRecommendations) {
             Protos.Resource resource = getOperationResource(recommendation.getOperation());
-            if (ports == null && resource.getName().equals(Constants.PORTS_TYPE)) {
+            if (ports == null && resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 ports = resource;
-            } else if (resource.getName().equals(Constants.PORTS_TYPE)) {
+            } else if (resource.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
                 ports = ResourceUtils.mergeRanges(ports, resource);
             } else {
                 recommendations.add(recommendation);

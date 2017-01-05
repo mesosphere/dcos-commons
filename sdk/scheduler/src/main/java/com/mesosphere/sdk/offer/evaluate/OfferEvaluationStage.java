@@ -14,14 +14,14 @@ public interface OfferEvaluationStage {
      * {@link OfferRequirement} where appropriate to ensure they have necessary metadata (e.g. a populated environment
      * variable), deducting used resources from the pool, and creating the appropriate
      * {@link com.mesosphere.sdk.offer.OfferRecommendation} in the given {@link OfferRecommendationSlate} if relevant.
-     * @param offerResourcePool the available resources left available for this stage to consume
+     * @param mesosResourcePool the available resources left available for this stage to consume
      * @param offerRequirement the tasks and executor to launch, with their associated resource requirements
      * @param offerRecommendationSlate the current set of all {@link com.mesosphere.sdk.offer.OfferRecommendation}s
      *                                 for this offer
      * @throws OfferEvaluationException
      */
     void evaluate(
-            MesosResourcePool offerResourcePool,
+            MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException;
 }

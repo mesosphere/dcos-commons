@@ -30,11 +30,11 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
 
     @Override
     public void evaluate(
-            MesosResourcePool offerResourcePool,
+            MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
         ResourceRequirement resourceRequirement = getResourceRequirement();
-        Optional<MesosResource> mesosResourceOptional = offerResourcePool.consume(resourceRequirement);
+        Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
         if (!mesosResourceOptional.isPresent()) {
             throw new OfferEvaluationException(String.format(
                     "Failed to satisfy resource requirement: %s",
@@ -47,13 +47,13 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
         if (resourceRequirement.reservesResource()) {
             logger.info("Reserves Resource");
             offerRecommendationSlate.addReserveRecommendation(
-                    new ReserveOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
+                    new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
         if (resourceRequirement.createsVolume()) {
             logger.info("Creates Volume");
             offerRecommendationSlate.addCreateRecommendation(
-                    new CreateOfferRecommendation(offerResourcePool.getOffer(), fulfilledResource));
+                    new CreateOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
         logger.info("Satisfying resource requirement: {}\nwith resource: {}",

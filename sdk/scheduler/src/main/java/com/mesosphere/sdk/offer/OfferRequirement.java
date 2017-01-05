@@ -27,7 +27,7 @@ public class OfferRequirement {
     private Map<String, TaskRequirement> taskRequirements;
     private Optional<ExecutorRequirement> executorRequirementOptional;
     private Optional<PlacementRule> placementRuleOptional;
-    private final Integer index;
+    private final int index;
 
     /**
      * Creates a new {@link OfferRequirement}.
@@ -129,7 +129,13 @@ public class OfferRequirement {
 
     public void updateExecutorRequirement(ExecutorInfo executorInfo) {
         if (executorRequirementOptional.isPresent()) {
-            executorRequirementOptional.get().update(executorInfo);
+            try {
+                executorRequirementOptional = Optional.of(ExecutorRequirement.create(executorInfo));
+            } catch (InvalidRequirementException e) {
+                // TODO(mrb): Refactor to keep OfferRequirement completely immutable after creation.
+                // In the meantime, we know that creation succeeded previously, and that no operation in the evaluation
+                // logic will modify an ExecutorInfo in such a way as to make it invalid.
+            }
         }
     }
 

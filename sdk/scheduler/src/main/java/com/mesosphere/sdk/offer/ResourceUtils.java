@@ -365,6 +365,13 @@ public class ResourceUtils {
         }
     }
 
+    /**
+     * This method replaces the {@link Resource} on the {@link TaskInfo.Builder} with the supplied resource, if a
+     * resource with that name already exists on that task. If it isn't, an {@link IllegalArgumentException} is thrown.
+     * @param builder the task to install the resource on
+     * @param resource the resource to install on the task
+     * @return the supplied builder, modified to include the resource
+     */
     public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) {
         for (int i = 0; i < builder.getResourcesCount(); ++i) {
             if (builder.getResources(i).getName().equals(resource.getName())) {
@@ -378,15 +385,24 @@ public class ResourceUtils {
                 resource.getName(), TextFormat.shortDebugString(builder.build())));
     }
 
-    public static Resource getResource(TaskInfo taskInfo, String name) {
+    /**
+     * This method gets the {@link Resource} with the supplied resourceName from the supplied {@link TaskInfo}, throwing
+     * an {@link IllegalArgumentException} if not found.
+     * @param taskInfo the task info whose resource will be returned
+     * @param resourceName the resourceName of the resource to return
+     * @return the resource with the supplied resourceName
+     */
+    public static Resource getResource(TaskInfo taskInfo, String resourceName) {
         for (Resource r : taskInfo.getResourcesList()) {
-            if (r.getName().equals(name)) {
+            if (r.getName().equals(resourceName)) {
                 return r;
             }
         }
 
         throw new IllegalArgumentException(
-                String.format("Task has no resource with name '%s': %s", name, TextFormat.shortDebugString(taskInfo)));
+                String.format(
+                        "Task has no resource with name '%s': %s",
+                        resourceName, TextFormat.shortDebugString(taskInfo)));
     }
 
     public static ExecutorInfo.Builder setResource(ExecutorInfo.Builder builder, Resource resource) {

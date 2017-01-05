@@ -10,8 +10,8 @@ import org.apache.mesos.Protos;
  * DC/OS to pick up the specified named VIP mapping.
  */
 public class NamedVIPEvaluationStage extends PortEvaluationStage implements OfferEvaluationStage {
-    private String vipName;
-    private Integer vipPort;
+    private final String vipName;
+    private final Integer vipPort;
 
     public NamedVIPEvaluationStage(
             Protos.Resource resource, String taskName, String portName, Integer port, String vipName, Integer vipPort) {
