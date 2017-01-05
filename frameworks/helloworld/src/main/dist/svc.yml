@@ -33,3 +33,16 @@ pods:
             size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-check:
+          cmd: "stat world-container-path/output"
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
+        readiness-check:
+          cmd: "stat world-container-path/output"
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10

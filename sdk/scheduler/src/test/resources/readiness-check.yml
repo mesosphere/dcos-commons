@@ -15,6 +15,5 @@ pods:
           cmd: "./readiness-check"
           interval: 5
           grace-period: 30
-          max-consecutive-failures: 3
           delay: 0
           timeout: 10

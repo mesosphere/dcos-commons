@@ -71,7 +71,7 @@ public class CustomExecutor implements Executor {
             Future<?> future = executorService.submit(taskToExecute);
             LaunchedTask launchedTask = new LaunchedTask(taskToExecute, future);
             launchedTasks.put(unpackedTaskInfo.getTaskId(), launchedTask);
-            scheduleHealthCheck(unpackedTaskInfo, launchedTask);
+            scheduleHealthCheck(driver, unpackedTaskInfo, launchedTask);
         } catch (Throwable t) {
             LOGGER.error("Error launching task = {}. Reason: {}", task, t);
 
@@ -86,7 +86,11 @@ public class CustomExecutor implements Executor {
         }
     }
 
-    private void scheduleHealthCheck(Protos.TaskInfo taskInfo, LaunchedTask launchedTask) {
+    private void scheduleHealthCheck(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            LaunchedTask launchedTask) {
+
         if (!taskInfo.hasHealthCheck()) {
             LOGGER.info("No health check for task: " + taskInfo.getName());
             return;
@@ -96,6 +100,7 @@ public class CustomExecutor implements Executor {
             HealthCheckMonitor healthCheckMonitor =
                     new HealthCheckMonitor(
                             HealthCheckHandler.create(
+                                    executorDriver,
                                     taskInfo,
                                     scheduledExecutorService,
                                     new HealthCheckStats(taskInfo.getName())),

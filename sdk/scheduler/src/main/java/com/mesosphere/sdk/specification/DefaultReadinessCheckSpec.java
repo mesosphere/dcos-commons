@@ -8,7 +8,6 @@ import com.mesosphere.sdk.specification.validation.ValidationUtils;
  */
 public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     private String command;
-    private Integer maxConsecutiveFailures;
     private Integer delay;
     private Integer interval;
     private Integer timeout;
@@ -16,13 +15,11 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
 
     public DefaultReadinessCheckSpec(
             @JsonProperty("command") String command,
-            @JsonProperty("max_consecutive_failures") Integer maxConsecutiveFailures,
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
             @JsonProperty("timeout") Integer timeout,
             @JsonProperty("grace_period") Integer gracePeriod) {
         this.command = command;
-        this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.delay = delay;
         this.interval = interval;
         this.timeout = timeout;
@@ -32,7 +29,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     private DefaultReadinessCheckSpec(Builder builder) {
         super();
         command = builder.command;
-        maxConsecutiveFailures = builder.maxConsecutiveFailures;
         delay = builder.delay;
         interval = builder.interval;
         timeout = builder.timeout;
@@ -46,7 +42,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     public static Builder newBuilder(DefaultReadinessCheckSpec copy) {
         Builder builder = new Builder();
         builder.command = copy.command;
-        builder.maxConsecutiveFailures = copy.maxConsecutiveFailures;
         builder.delay = copy.delay;
         builder.interval = copy.interval;
         builder.timeout = copy.timeout;
@@ -57,11 +52,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     @Override
     public String getCommand() {
         return command;
-    }
-
-    @Override
-    public Integer getMaxConsecutiveFailures() {
-        return maxConsecutiveFailures;
     }
 
     @Override
@@ -89,7 +79,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
      */
     public static final class Builder {
         private String command;
-        private Integer maxConsecutiveFailures;
         private Integer delay;
         private Integer interval;
         private Integer timeout;
@@ -106,18 +95,6 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
          */
         public Builder command(String command) {
             this.command = command;
-            return this;
-        }
-
-        /**
-         * Sets the {@code maxConsecutiveFailures} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param maxConsecutiveFailures the {@code maxConsecutiveFailures} to set
-         * @return a reference to this Builder
-         */
-        public Builder maxConsecutiveFailures(Integer maxConsecutiveFailures) {
-            this.maxConsecutiveFailures = maxConsecutiveFailures;
             return this;
         }
 

@@ -8,14 +8,16 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.GoalState;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.codec.binary.Base64;
 
-import java.io.*;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,8 @@ public class CommonTaskUtils {
      * Label key against which the readiness check (if present) is stored.
      */
     private static final String READINESS_CHECK_KEY = "readiness_check";
+
+    public static final String READINESS_CHECK_PASSED_KEY = "readiness_check_passed";
 
     /**
      * Label key against which the Task Type is stored.
@@ -284,7 +288,7 @@ public class CommonTaskUtils {
      */
     public static TaskInfo.Builder setReadinessCheck(TaskInfo.Builder taskBuilder, HealthCheck readinessCheck) {
         byte[] encodedBytes = Base64.encodeBase64(readinessCheck.toByteArray());
-        String readinessCheckStr = new String(encodedBytes);
+        String readinessCheckStr = new String(encodedBytes, StandardCharsets.UTF_8);
         return taskBuilder.setLabels(
                 withLabelSet(taskBuilder.getLabels(), READINESS_CHECK_KEY, readinessCheckStr));
     }
@@ -406,7 +410,7 @@ public class CommonTaskUtils {
                                   SlaveID slaveID,
                                   ExecutorID executorID,
                                   String message) {
-        sendStatus(driver, state, taskID, slaveID, executorID, message, null);
+        sendStatus(driver, state, taskID, slaveID, executorID, message, null, null);
     }
 
     /**
@@ -418,6 +422,7 @@ public class CommonTaskUtils {
                                   SlaveID slaveID,
                                   ExecutorID executorID,
                                   String message,
+                                  Labels labels,
                                   byte[] data) {
         final TaskStatus.Builder builder = TaskStatus.newBuilder();
 
@@ -432,8 +437,16 @@ public class CommonTaskUtils {
             builder.setData(ByteString.copyFrom(data));
         }
 
-        final TaskStatus taskStatus = builder.build();
-        driver.sendStatusUpdate(taskStatus);
+        if (labels != null) {
+            builder.setLabels(labels);
+        }
+
+        try {
+            final TaskStatus taskStatus = builder.build();
+            driver.sendStatusUpdate(taskStatus);
+        } catch (Throwable t) {
+            LOGGER.info("Failed to build task status.", t);
+        }
     }
 
     /**

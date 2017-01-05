@@ -87,7 +87,6 @@ public class YAMLToInternalMappers {
                 .delay(rawReadinessCheck.getDelay())
                 .gracePeriod(rawReadinessCheck.getGracePeriod())
                 .interval(rawReadinessCheck.getInterval())
-                .maxConsecutiveFailures(rawReadinessCheck.getMaxConsecutiveFailures())
                 .timeout(rawReadinessCheck.getTimeout())
                 .build();
     }

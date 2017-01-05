@@ -6,7 +6,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.curator.test.TestingServer;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -102,7 +101,6 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("./readiness-check", readinessCheckSpec.getCommand());
         Assert.assertTrue(5 == readinessCheckSpec.getInterval());
         Assert.assertTrue(30 == readinessCheckSpec.getGracePeriod());
-        Assert.assertTrue(3 == readinessCheckSpec.getMaxConsecutiveFailures());
         Assert.assertTrue(0 == readinessCheckSpec.getDelay());
         Assert.assertTrue(10 == readinessCheckSpec.getTimeout());
     }
