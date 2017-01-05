@@ -159,6 +159,7 @@ public class EndpointsResource {
                         taskInfo.getName());
                 continue;
             }
+            // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
             if (discoveryInfo.getVisibility() != DiscoveryInfo.Visibility.EXTERNAL) {
                 LOGGER.info("Task discovery information has {} visibility, EXTERNAL needed: {}",

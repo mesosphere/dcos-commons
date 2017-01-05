@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
  */
 public class ExecutorRequirement {
     private ExecutorInfo executorInfo;
-    private Collection<ResourceRequirement> resourceRequirements;
 
     /**
      * This method generates one of two possible Executor requirements.  In the first case, if an empty ExecutorID is
@@ -57,9 +56,6 @@ public class ExecutorRequirement {
             throws InvalidRequirementException {
         validateExecutorInfo(executorInfo);
         this.executorInfo = executorInfo;
-        this.resourceRequirements = executorInfo.getResourcesList().stream()
-                .map(r -> new ResourceRequirement(r))
-                .collect(Collectors.toList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -67,7 +63,9 @@ public class ExecutorRequirement {
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
-        return resourceRequirements;
+        return executorInfo.getResourcesList().stream()
+                .map(r -> new ResourceRequirement(r))
+                .collect(Collectors.toList());
     }
 
     public Collection<String> getResourceIds() {
@@ -79,7 +77,7 @@ public class ExecutorRequirement {
     }
 
     public boolean desiresResources() {
-        for (ResourceRequirement resReq : resourceRequirements) {
+        for (ResourceRequirement resReq : getResourceRequirements()) {
             if (resReq.reservesResource()) {
                 return true;
             }

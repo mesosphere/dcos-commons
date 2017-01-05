@@ -1,9 +1,9 @@
-package com.mesosphere.sdk.offer;
+package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.offer.constrain.PlacementUtils;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;

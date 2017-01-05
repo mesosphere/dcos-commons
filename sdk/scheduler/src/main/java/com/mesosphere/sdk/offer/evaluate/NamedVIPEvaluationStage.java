@@ -29,14 +29,17 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage implements Offe
     protected void setProtos(OfferRequirement offerRequirement, Protos.Resource resource) {
         super.setProtos(offerRequirement, resource);
 
+        // If this is an existing TaskInfo or ExecutorInfo with the VIP already set, we don't have to do anything.
         if (getTaskName().isPresent() &&
                 !isVIPSet(offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().getDiscovery())) {
+            // Set the VIP on the TaskInfo.
             Protos.TaskInfo.Builder taskInfoBuilder = offerRequirement
                     .getTaskRequirement(getTaskName().get()).getTaskInfo().toBuilder();
 
             ResourceUtils.addVIP(taskInfoBuilder, vipName, vipPort, resource);
             offerRequirement.updateTaskRequirement(getTaskName().get(), taskInfoBuilder.build());
         } else if (offerRequirement.getExecutorRequirementOptional().isPresent() &&
+                // Set the VIP on the ExecutorInfo.
                 !isVIPSet(offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getDiscovery())) {
             Protos.ExecutorInfo.Builder executorInfoBuilder = offerRequirement.getExecutorRequirementOptional()
                     .get()

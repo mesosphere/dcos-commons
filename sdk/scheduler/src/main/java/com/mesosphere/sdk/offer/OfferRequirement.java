@@ -69,11 +69,11 @@ public class OfferRequirement {
     /**
      * Creates a new {@link OfferRequirement} with provided executor requirement and empty placement constraints.
      *
-     * @see #OfferRequirement(String, Integer, Collection, Optional, Optional)
+     * @see #OfferRequirement(String, int, Collection, Optional, Optional)
      */
     public static OfferRequirement create(
             String taskType,
-            Integer index,
+            int index,
             Collection<TaskInfo> taskInfos,
             Optional<ExecutorInfo> executorInfoOptional) throws InvalidRequirementException {
         return create(taskType, index, taskInfos, executorInfoOptional, Optional.empty());
@@ -82,9 +82,9 @@ public class OfferRequirement {
     /**
      * Creates a new {@link OfferRequirement} with empty executor requirement and empty placement constraints.
      *
-     * @see #OfferRequirement(String, Integer, Collection, Optional, Optional)
+     * @see #OfferRequirement(String, int, Collection, Optional, Optional)
      */
-    public static OfferRequirement create (String taskType, Integer index, Collection<TaskInfo> taskInfos)
+    public static OfferRequirement create (String taskType, int index, Collection<TaskInfo> taskInfos)
             throws InvalidRequirementException {
         return create(taskType, index, taskInfos, Optional.empty(), Optional.empty());
     }
@@ -99,7 +99,7 @@ public class OfferRequirement {
 
     private OfferRequirement(
             String type,
-            Integer index,
+            int index,
             Collection<TaskRequirement> taskRequirements,
             Optional<ExecutorRequirement> executorRequirementOptional,
             Optional<PlacementRule> placementRuleOptional) {
@@ -115,7 +115,7 @@ public class OfferRequirement {
         return type;
     }
 
-    public Integer getIndex() {
+    public int getIndex() {
         return index;
     }
 
