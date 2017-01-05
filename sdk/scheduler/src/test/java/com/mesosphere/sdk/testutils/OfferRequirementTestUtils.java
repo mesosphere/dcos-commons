@@ -33,8 +33,24 @@ public class OfferRequirementTestUtils {
         return getOfferRequirement(Arrays.asList(resource));
     }
 
-    public static OfferRequirement getOfferRequirement(List<Protos.Resource> resources) throws InvalidRequirementException {
+    public static OfferRequirement getOfferRequirement(
+            List<Protos.Resource> resources) throws InvalidRequirementException {
         return OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(TaskTestUtils.getTaskInfo(resources)));
+    }
+
+    public static OfferRequirement getOfferRequirement(
+            Protos.Resource resource, PlacementRule placementRule) throws InvalidRequirementException {
+        return getOfferRequirement(Arrays.asList(resource), placementRule);
+    }
+
+    public static OfferRequirement getOfferRequirement(
+            List<Protos.Resource> resources, PlacementRule placementRule) throws InvalidRequirementException {
+        return OfferRequirement.create(
+                TestConstants.TASK_TYPE,
+                0,
+                Arrays.asList(TaskTestUtils.getTaskInfo(resources)),
+                Optional.empty(),
+                Optional.of(placementRule));
     }
 
     public static PodSpec withResource(PodSpec podSpec, Protos.Resource resource, String principal) {

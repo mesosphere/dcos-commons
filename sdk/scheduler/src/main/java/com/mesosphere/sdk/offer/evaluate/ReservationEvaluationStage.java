@@ -29,7 +29,7 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
     public void evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         Map<String, MesosResource> reservedResources = mesosResourcePool.getReservedPool();
         for (Map.Entry<String, MesosResource> entry : reservedResources.entrySet()) {
             if (resourceIds.contains(entry.getKey())) {

@@ -31,11 +31,12 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
             return;
         }
 
+        Protos.Offer originalOffer = mesosResourcePool.getOffer();
         Protos.Offer filteredOffer = offerRequirement.getPlacementRuleOptional().get().filter(
                 mesosResourcePool.getOffer(), offerRequirement, deployedTasks);
         mesosResourcePool.update(filteredOffer);
 
-        int originalCount = mesosResourcePool.getOffer().getResourcesCount();
+        int originalCount = originalOffer.getResourcesCount();
         int filteredCount = filteredOffer.getResourcesCount();
 
         if (filteredCount == originalCount) {

@@ -81,6 +81,14 @@ public class ResourceTestUtils {
                 TestConstants.PRINCIPAL);
     }
 
+    public static final Resource getDesiredRanges(String name, long begin, long end) {
+        return ResourceUtils.getDesiredRanges(
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                name,
+                Arrays.asList(Protos.Value.Range.newBuilder().setBegin(begin).setEnd(end).build()));
+    }
+
     public static Resource getUnreservedCpu(double cpus) {
         return ResourceUtils.getUnreservedScalar("cpus", cpus);
     }

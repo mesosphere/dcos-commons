@@ -20,7 +20,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
     public void evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         Optional<ExecutorRequirement> executorRequirement = offerRequirement.getExecutorRequirementOptional();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = offerRequirement.getTaskRequirement(taskName).getTaskInfo().toBuilder();
