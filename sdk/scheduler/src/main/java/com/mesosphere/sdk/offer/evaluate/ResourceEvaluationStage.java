@@ -78,11 +78,24 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             // as well as any additional needed Mesos Operations.  In the case
             // where a requirement has changed for an Atomic resource, no Operations
             // can be performed because the resource is Atomic.
-            if (expectedValueChanged(mesosResource) && !mesosResource.isAtomic()) {
+            if (!expectedValueChanged(mesosResource)) {
+                logger.info("    Current reservation for resource '{}' matches required value: {}",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(mesosResource.getValue()),
+                        TextFormat.shortDebugString(resourceRequirement.getValue()));
+            } else if (mesosResource.isAtomic()) {
+                logger.info("    Resource '{}' is atomic and cannot be resized from current {} to required {}",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(mesosResource.getValue()),
+                        TextFormat.shortDebugString(resourceRequirement.getValue()));
+            } else {
                 Value reserveValue = ValueUtils.subtract(resourceRequirement.getValue(), mesosResource.getValue());
 
                 if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
-                    logger.info("Updates reserved resource with additional reservation");
+                    logger.info("    Reservation for resource '{}' needs increasing from current {} to required {}",
+                            resourceRequirement.getName(),
+                            TextFormat.shortDebugString(mesosResource.getValue()),
+                            TextFormat.shortDebugString(resourceRequirement.getValue()));
                     Resource reserveResource = ResourceUtils.getDesiredResource(
                             resourceRequirement.getRole(),
                             resourceRequirement.getPrincipal(),
@@ -101,14 +114,13 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                 }
             }
         } else if (resourceRequirement.reservesResource()) {
-            logger.info("Reserves Resource");
+            logger.info("    Resource '{}' requires a RESERVE operation", resourceRequirement.getName());
             offerRecommendationSlate.addReserveRecommendation(
                     new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
-        logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                TextFormat.shortDebugString(resourceRequirement.getResource()),
-                TextFormat.shortDebugString(mesosResource.getResource()));
+        logger.info("  Generated '{}' resource for task: [{}]",
+                resourceRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
 
         validateRequirements(offerRequirement);
         setProtos(offerRequirement, fulfilledResource);

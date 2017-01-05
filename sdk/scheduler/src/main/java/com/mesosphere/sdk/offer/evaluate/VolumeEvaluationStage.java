@@ -45,20 +45,19 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
         Resource fulfilledResource = getFulfilledResource(mesosResource);
 
         if (resourceRequirement.reservesResource()) {
-            logger.info("Reserves Resource");
+            logger.info("    Resource '{}' requires a RESERVE operation", resourceRequirement.getName());
             offerRecommendationSlate.addReserveRecommendation(
                     new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
         if (resourceRequirement.createsVolume()) {
-            logger.info("Creates Volume");
+            logger.info("    Resource '{}' requires a CREATE operation", resourceRequirement.getName());
             offerRecommendationSlate.addCreateRecommendation(
                     new CreateOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
         }
 
-        logger.info("Satisfying resource requirement: {}\nwith resource: {}",
-                TextFormat.shortDebugString(resourceRequirement.getResource()),
-                TextFormat.shortDebugString(mesosResource.getResource()));
+        logger.info("  Generated '{}' resource for task: [{}]",
+                resourceRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
 
         validateRequirements(offerRequirement);
         setProtos(offerRequirement, fulfilledResource);

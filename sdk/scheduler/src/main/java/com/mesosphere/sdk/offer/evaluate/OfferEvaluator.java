@@ -51,6 +51,7 @@ public class OfferEvaluator {
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
             OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
+            List<String> failureNotifications = new ArrayList<>();
             try {
                 for (OfferEvaluationStage evaluationStage : evaluationStages) {
                     evaluationStage.evaluate(
@@ -59,7 +60,15 @@ public class OfferEvaluator {
                             recommendationSlate);
                 }
             } catch (OfferEvaluationException e) {
-                logger.info("- {}: did not pass resource requirements: {}", i + 1, e.toString());
+                failureNotifications.add(e.getMessage());
+            }
+
+            if (!failureNotifications.isEmpty()) {
+                logger.info("- {}: did not pass resource requirements for the following reasons:", i + 1);
+                for (String notification : failureNotifications) {
+                    logger.info("-    {}", notification);
+                }
+
                 continue;
             }
 

@@ -48,8 +48,8 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
                     filteredCount, originalCount, filteredOffer.getId().getValue());
         } else {
             throw new OfferEvaluationException(String.format(
-                    "- %s: Failed placement constraint for all %s resources, removed from resource evaluation",
-                    originalCount, filteredOffer.getId().getValue()));
+                    "Failed placement constraint for all %s resources, removed from resource evaluation",
+                    originalCount));
         }
     }
 }
