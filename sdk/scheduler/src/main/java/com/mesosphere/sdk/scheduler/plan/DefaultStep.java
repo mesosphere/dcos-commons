@@ -31,7 +31,7 @@ public class DefaultStep extends DefaultObservable implements Step {
     private final Object statusLock = new Object();
     private final PodInstanceRequirement podInstanceRequirement;
     private Status status;
-    private Map<Protos.TaskInfo, Status> tasks = new HashMap<>();
+    private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
@@ -64,7 +64,7 @@ public class DefaultStep extends DefaultObservable implements Step {
             if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
                 for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
                     if (!taskInfo.getTaskId().getValue().equals("")) {
-                        tasks.put(taskInfo, Status.PREPARED);
+                        tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
                     }
                 }
             }
@@ -163,14 +163,11 @@ public class DefaultStep extends DefaultObservable implements Step {
     public synchronized void update(Protos.TaskStatus status) {
         logger.info("Step {} received status: {}", getName(), TextFormat.shortDebugString(status));
 
-        Optional<Protos.TaskInfo> taskInfoOptional = getTaskInfo(status.getTaskId());
-        if (!taskInfoOptional.isPresent()) {
+        if (!tasks.containsKey(status.getTaskId())) {
             logger.debug("Step {} ignoring irrelevant TaskStatus: {}",
                     getName(), TextFormat.shortDebugString(status));
             return;
         }
-
-        Protos.TaskInfo taskInfo = taskInfoOptional.get();
 
         if (isComplete()) {
             logger.debug("Step {} ignoring TaskStatus due to being Complete: {}",
@@ -205,6 +202,7 @@ public class DefaultStep extends DefaultObservable implements Step {
                 setTaskStatus(status.getTaskId(), Status.STARTING);
                 break;
             case TASK_RUNNING:
+                Protos.TaskInfo taskInfo = tasks.get(status.getTaskId()).getTaskInfo();
                 if (goalState.equals(GoalState.RUNNING)
                         && CommonTaskUtils.readinessCheckSucceeded(taskInfo, status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
@@ -226,31 +224,22 @@ public class DefaultStep extends DefaultObservable implements Step {
         setStatus(getStatus(tasks));
     }
 
-    private Optional<Protos.TaskInfo> getTaskInfo(Protos.TaskID taskID) {
-        return tasks.keySet().stream()
-                .filter(taskInfo -> taskInfo.getTaskId().equals(taskID))
-                .findFirst();
-    }
-
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
-        Optional<Protos.TaskInfo> taskInfoOptional = getTaskInfo(taskID);
-
-        if (taskInfoOptional.isPresent()) {
-            tasks.replace(taskInfoOptional.get(), status);
+        if (tasks.containsKey(taskID)) {
+            TaskStatusPair taskStatusPair = new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status);
+            tasks.replace(taskID, taskStatusPair);
             logger.info("Status for: {} is: {}", taskID.getValue(), status);
-        } else {
-            logger.warn("Attempted to set status for unknown task: {} to {}", taskID.getValue(), status);
         }
     }
 
-    private Status getStatus(Map<Protos.TaskInfo, Status> tasks) {
+    private Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
         if (tasks.isEmpty()) {
             return Status.PENDING;
         }
 
-        for (Map.Entry<Protos.TaskInfo, Status> entry : tasks.entrySet()) {
-            String taskId = entry.getKey().getTaskId().getValue();
-            Status status = entry.getValue();
+        for (Map.Entry<Protos.TaskID, TaskStatusPair> entry : tasks.entrySet()) {
+            String taskId = entry.getKey().getValue();
+            Status status = entry.getValue().getStatus();
             logger.info("TaskId: {} has status: {}", taskId, status);
             if (!status.equals(Status.COMPLETE)) {
                 // Keep and log current status
@@ -293,6 +282,24 @@ public class DefaultStep extends DefaultObservable implements Step {
 
         if (!Objects.equals(oldStatus, newStatus)) {
             notifyObservers();
+        }
+    }
+
+    private static class TaskStatusPair {
+        private final Protos.TaskInfo taskInfo;
+        private final Status status;
+
+        public TaskStatusPair(Protos.TaskInfo taskInfo, Status status) {
+            this.taskInfo = taskInfo;
+            this.status = status;
+        }
+
+        public Protos.TaskInfo getTaskInfo() {
+            return taskInfo;
+        }
+
+        public Status getStatus() {
+            return status;
         }
     }
 }

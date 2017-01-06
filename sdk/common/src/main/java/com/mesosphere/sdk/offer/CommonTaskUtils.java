@@ -297,7 +297,7 @@ public class CommonTaskUtils {
     }
 
     /**
-     * Returns the string representvtions of any {@link Offer} {@link Attribute}s which were
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
      * embedded in the provided {@link TaskInfo}.
      */
     public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {

@@ -2,14 +2,30 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 /**
  * Default implementation of {@link ReadinessCheckSpec}.
  */
 public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
+    @NotNull
     private String command;
+
+    @NotNull
+    @Min(0)
     private Integer delay;
+
+    @NotNull
+    @Min(0)
     private Integer interval;
+
+    @NotNull
+    @Min(0)
     private Integer timeout;
 
     public DefaultReadinessCheckSpec(
@@ -62,6 +78,21 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     @Override
     public Integer getTimeout() {
         return timeout;
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     /**

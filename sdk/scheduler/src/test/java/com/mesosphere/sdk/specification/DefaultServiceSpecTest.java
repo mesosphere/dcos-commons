@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
-import org.apache.mesos.Protos;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
@@ -35,9 +36,8 @@ public class DefaultServiceSpecTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(rawServiceSpec);
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -65,9 +65,8 @@ public class DefaultServiceSpecTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(rawServiceSpec);
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
 
         List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
@@ -91,8 +90,8 @@ public class DefaultServiceSpecTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("readiness-check.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpecification);
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
 
         Optional<ReadinessCheckSpec> readinessCheckSpecOptional =
                 serviceSpec.getPods().get(0).getTasks().get(0).getReadinessCheck();
@@ -230,8 +229,7 @@ public class DefaultServiceSpecTest {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals(DefaultServiceSpec.DEFAULT_ZK_CONNECTION, serviceSpec.getZookeeperConnection());
@@ -242,10 +240,29 @@ public class DefaultServiceSpecTest {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-customzk.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
+    }
+
+    private void validateServiceSpec(String fileName) throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(fileName).getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+
+        TestingServer testingServer = new TestingServer();
+        StateStoreCache.resetInstanceForTests();
+        StateStore stateStore = DefaultScheduler.createStateStore(
+                serviceSpec,
+                testingServer.getConnectString());
+        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
+                serviceSpec,
+                testingServer.getConnectString(),
+                Collections.emptyList());
+        DefaultScheduler.newBuilder(serviceSpec)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
     }
 }

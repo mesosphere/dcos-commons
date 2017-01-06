@@ -27,7 +27,7 @@ public interface TaskSpec {
     @JsonProperty("health-check-spec")
     Optional<HealthCheckSpec> getHealthCheck();
 
-    @JsonProperty("readiness_check_spec")
+    @JsonProperty("readiness-check-spec")
     Optional<ReadinessCheckSpec> getReadinessCheck();
 
     @JsonProperty("uris")

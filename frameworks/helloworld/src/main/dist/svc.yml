@@ -41,7 +41,7 @@ pods:
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:
-          cmd: "cat world-container-path/output"
+          cmd: BYTES="$(wc -c world-container-path/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
           interval: 5
           delay: 0
           timeout: 10

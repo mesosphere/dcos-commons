@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -12,7 +13,9 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.UUID;
 
 /**
  * This class tests the CommonTaskUtils class.

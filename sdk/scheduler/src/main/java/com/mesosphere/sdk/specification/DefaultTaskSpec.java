@@ -31,15 +31,15 @@ public class DefaultTaskSpec implements TaskSpec {
     @Valid
     private HealthCheckSpec healthCheckSpec;
 
-    private Collection<URI> uris;
+    @Valid
+    private ReadinessCheckSpec readinessCheckSpec;
 
-    private Collection<ConfigFileSpec> configFiles;
     @Valid
     @NotNull
     private ResourceSet resourceSet;
 
     private Collection<URI> uris;
-    private Collection<ConfigFileSpecification> configFiles;
+    private Collection<ConfigFileSpec> configFiles;
 
     @JsonCreator
     public DefaultTaskSpec(
@@ -48,6 +48,7 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("resource-set") ResourceSet resourceSet,
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
+            @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
         this.name = name;

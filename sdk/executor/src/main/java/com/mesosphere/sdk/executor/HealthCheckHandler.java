@@ -177,6 +177,8 @@ public class HealthCheckHandler {
                 healthCheckStats.failed();
             }
 
+            // Health checks have a positive consecutive failure count, readiness
+            // checks do not.
             if (healthCheck.getConsecutiveFailures() > 0) {
                 handleHealthCheck();
             } else {

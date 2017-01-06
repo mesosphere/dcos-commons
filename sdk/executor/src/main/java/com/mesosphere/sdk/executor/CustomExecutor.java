@@ -123,10 +123,11 @@ public class CustomExecutor implements Executor {
     }
 
     private void scheduleCheck(
-        ExecutorDriver executorDriver,
-        Protos.TaskInfo taskInfo,
-        Protos.HealthCheck check,
-        LaunchedTask launchedTask) {
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            Protos.HealthCheck check,
+            LaunchedTask launchedTask) {
+
         try {
             HealthCheckMonitor healthCheckMonitor =
                     new HealthCheckMonitor(
