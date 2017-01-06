@@ -5,8 +5,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.config.validate.ConfigurationValidationError;
-import com.mesosphere.sdk.config.validate.ConfigurationValidator;
+import com.mesosphere.sdk.config.validate.ConfigValidationError;
+import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
@@ -32,13 +32,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
     private final ConfigurationComparator<ServiceSpec> configComparator;
-    private final Collection<ConfigurationValidator<ServiceSpec>> validators;
+    private final Collection<ConfigValidator<ServiceSpec>> validators;
 
     public DefaultConfigurationUpdater(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ConfigurationComparator<ServiceSpec> configComparator,
-            Collection<ConfigurationValidator<ServiceSpec>> validators) {
+            Collection<ConfigValidator<ServiceSpec>> validators) {
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.configComparator = configComparator;
@@ -65,7 +65,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         // Log the config state (with diff of changes vs prior state) before proceeding with checks.
 
-        final List<ConfigurationValidationError> errors = new ArrayList<>();
+        final List<ConfigValidationError> errors = new ArrayList<>();
         String candidateConfigJson = null;
         try {
             candidateConfigJson = candidateConfig.toJsonString();
@@ -74,7 +74,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             LOGGER.error(String.format(
                     "Unable to get JSON representation of new prospective config object: %s",
                     candidateConfig), e);
-            errors.add(ConfigurationValidationError.valueError("NewConfigAsJson", "jsonString",
+            errors.add(ConfigValidationError.valueError("NewConfigAsJson", "jsonString",
                     String.format("Unable to serialize new config to JSON for logging: %s", e.getMessage())));
         }
 
@@ -83,6 +83,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         } else if (candidateConfigJson == null) {
             LOGGER.info("Skipping config diff: New target couldn't be represented as JSON");
         } else {
+            LOGGER.info("Prior target config:\n{}", targetConfig.toJsonString());
             printConfigDiff(targetConfig, targetConfigId, candidateConfigJson);
         }
 
@@ -90,7 +91,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
         // validators to always have a say in whether a given configuration is valid, regardless of
         // whether it's considered equal by the ConfigComparator.
-        for (ConfigurationValidator<ServiceSpec> validator : validators) {
+        for (ConfigValidator<ServiceSpec> validator : validators) {
             errors.addAll(validator.validate(targetConfig, candidateConfig));
         }
 
@@ -99,7 +100,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         if (!errors.isEmpty()) {
             StringJoiner sj = new StringJoiner("\n");
             int i = 1;
-            for (ConfigurationValidationError error : errors) {
+            for (ConfigValidationError error : errors) {
                 sj.add(String.format("%d: %s", i++, error.toString()));
             }
             LOGGER.warn("New configuration failed validation against current target " +

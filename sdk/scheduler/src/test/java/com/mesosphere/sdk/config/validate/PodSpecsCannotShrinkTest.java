@@ -14,7 +14,7 @@ import java.util.Arrays;
 import static org.mockito.Mockito.when;
 
 public class PodSpecsCannotShrinkTest {
-    private static final ConfigurationValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotShrink();
+    private static final ConfigValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotShrink();
 
     @Mock
     private TaskSpec taskSpec;

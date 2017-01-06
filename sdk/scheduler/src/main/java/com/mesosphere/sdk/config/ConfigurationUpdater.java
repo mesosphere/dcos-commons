@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.config;
 
-import com.mesosphere.sdk.config.validate.ConfigurationValidationError;
+import com.mesosphere.sdk.config.validate.ConfigValidationError;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -25,9 +25,9 @@ public interface ConfigurationUpdater<C extends Configuration> {
          * A list of zero or more validation errors with the current configuration. If there were
          * errors, the {@link #targetId} will point to a previous valid configuration.
          */
-        public final Collection<ConfigurationValidationError> errors;
+        public final Collection<ConfigValidationError> errors;
 
-        public UpdateResult(UUID targetId, Collection<ConfigurationValidationError> errors) {
+        public UpdateResult(UUID targetId, Collection<ConfigValidationError> errors) {
             this.targetId = targetId;
             this.errors = errors;
         }

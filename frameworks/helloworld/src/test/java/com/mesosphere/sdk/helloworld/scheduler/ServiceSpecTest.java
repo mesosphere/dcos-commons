@@ -2,14 +2,9 @@ package com.mesosphere.sdk.helloworld.scheduler;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -56,49 +51,48 @@ public class ServiceSpecTest {
         MockitoAnnotations.initMocks(this);
     }
 
-
     @Test
     public void test_yml_base() throws Exception{
-        ServiceSpecDeserialization("svc.yml");
+        deserializeServiceSpec("svc.yml");
     }
 
     @Test
     public void test_yml_simple() throws Exception{
-        ServiceSpecDeserialization("svc_simple.yml");
+        deserializeServiceSpec("svc_simple.yml");
     }
 
     @Test
     public void test_yml_withPlan() throws Exception{
-        ServiceSpecDeserialization("svc_plan.yml");
+        deserializeServiceSpec("svc_plan.yml");
     }
 
     @Test
     public void test_yml_withPlan_uris() throws Exception{
-        ServiceSpecDeserialization("svc_uri.yml");
+        deserializeServiceSpec("svc_uri.yml");
     }
+
     @Test
     public void test_validate_yml_base() throws Exception{
-        ServiceSpecValidation("svc.yml");
+        validateServiceSpec("svc.yml");
     }
 
     @Test
     public void test_validate_yml_simple() throws Exception{
-        ServiceSpecValidation("svc_simple.yml");
+        validateServiceSpec("svc_simple.yml");
     }
 
     @Test
     public void test_validate_yml_withPlan() throws Exception{
-        ServiceSpecValidation("svc_plan.yml");
+        validateServiceSpec("svc_plan.yml");
     }
 
     @Test
     public void test_validate_yml_withPlan_uri() throws Exception{
-        ServiceSpecValidation("svc_uri.yml");
+        validateServiceSpec("svc_uri.yml");
     }
 
-    private void ServiceSpecDeserialization(String fileName) throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
+    private void deserializeServiceSpec(String fileName) throws Exception {
+        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
@@ -106,28 +100,16 @@ public class ServiceSpecTest {
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
     }
 
-    private void ServiceSpecValidation(String fileName) throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+    private void validateServiceSpec(String fileName) throws Exception {
+        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(generateRawSpecFromYAML(file));
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
-        StateStore stateStore = DefaultScheduler.createStateStore(
-                serviceSpec,
-                testingServer.getConnectString());
-        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
-
-        ConfigurationUpdater.UpdateResult configUpdateResult =
-                DefaultScheduler.updateConfig(serviceSpec, stateStore, configStore);
-
-        OfferRequirementProvider offerRequirementProvider =
-                DefaultScheduler.createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
-
-        DefaultScheduler.create(serviceSpec, stateStore, configStore, offerRequirementProvider);
+        DefaultScheduler.newBuilder(serviceSpec)
+            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+            .build();
+        testingServer.close();
     }
 }
