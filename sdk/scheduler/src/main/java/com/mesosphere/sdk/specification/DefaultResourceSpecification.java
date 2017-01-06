@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -79,6 +81,11 @@ public class DefaultResourceSpecification implements ResourceSpecification {
     @Override
     public String getPrincipal() {
         return principal;
+    }
+
+    @Override
+    public OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName) {
+        return new ResourceEvaluationStage(resource, taskName);
     }
 
     @Override

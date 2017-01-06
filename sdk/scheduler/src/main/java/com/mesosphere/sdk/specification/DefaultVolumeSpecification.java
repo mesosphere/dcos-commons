@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.evaluate.VolumeEvaluationStage;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -73,5 +75,10 @@ public class DefaultVolumeSpecification extends DefaultResourceSpecification imp
         Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
         builder.getScalarBuilder().setValue(value);
         return builder.build();
+    }
+
+    @Override
+    public OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName) {
+        return new VolumeEvaluationStage(resource, taskName);
     }
 }

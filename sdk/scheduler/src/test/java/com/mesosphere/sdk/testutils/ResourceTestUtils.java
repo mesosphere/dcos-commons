@@ -72,6 +72,15 @@ public class ResourceTestUtils {
                 TestConstants.PRINCIPAL);
     }
 
+    public static final Resource getExpectedRanges(String name, long begin, long end, String resourceId) {
+        return ResourceUtils.getExpectedRanges(
+                name,
+                Arrays.asList(Protos.Value.Range.newBuilder().setBegin(begin).setEnd(end).build()),
+                resourceId,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL);
+    }
+
     public static final Resource getDesiredRanges(String name, long begin, long end) {
         return ResourceUtils.getDesiredRanges(
                 TestConstants.ROLE,

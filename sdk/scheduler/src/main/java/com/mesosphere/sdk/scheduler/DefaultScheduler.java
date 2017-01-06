@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
