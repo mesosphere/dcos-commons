@@ -228,9 +228,7 @@ public class PlansResource {
                 .collect(Collectors.toList());
 
         if (phases.size() == 1) {
-            Element<Step> phase = phases.stream().findFirst().get();
-
-            List<Step> steps = phase.getChildren().stream()
+            List<Step> steps = phases.get(0).getChildren().stream()
                     .filter(step -> step.getId().equals(UUID.fromString(stepId)))
                     .collect(Collectors.toList());
 

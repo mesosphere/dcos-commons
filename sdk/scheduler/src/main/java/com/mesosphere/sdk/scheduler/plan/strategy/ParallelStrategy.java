@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
 
 import java.util.Collection;
 
@@ -9,10 +10,9 @@ import java.util.Collection;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
 public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C> {
     @Override
-    public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
+    public Collection<C> getCandidates(ParentElement<C> parentElement, Collection<String> dirtyAssets) {
         DependencyStrategyHelper<C> helper = new DependencyStrategyHelper<C>(parentElement);
         return helper.getCandidates(dirtyAssets);
     }

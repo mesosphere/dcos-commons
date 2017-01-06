@@ -3,8 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.DefaultObservable;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,16 +102,6 @@ public class ReconciliationStep extends DefaultObservable implements Step {
         }
 
         return status;
-    }
-
-    @Override
-    public List<Element<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Strategy<? extends Step> getStrategy() {
-        return new SerialStrategy<>();
     }
 
     @Override

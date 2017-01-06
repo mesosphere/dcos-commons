@@ -9,13 +9,12 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 public class StrategyFactory {
     public static Strategy<Phase> generateForPhase(String strategyType) {
         Strategy<Phase> strategy = null;
-        switch(strategyType) {
-            case "serial":
-                strategy = new SerialStrategy.Generator<Phase>().generate();
-                break;
+        switch (strategyType) {
             case "parallel":
                 strategy = new ParallelStrategy.Generator<Phase>().generate();
                 break;
+            case "serial":
+                // fall through
             default:
                 strategy = new SerialStrategy.Generator<Phase>().generate();
         }
@@ -25,13 +24,20 @@ public class StrategyFactory {
 
     public static Strategy<Step> generateForSteps(String strategyType) {
         Strategy<Step> strategy = null;
-        switch(strategyType) {
-            case "serial":
-                strategy = new SerialStrategy.Generator<Step>().generate();
-                break;
+        switch (strategyType) {
             case "parallel":
                 strategy = new ParallelStrategy.Generator<Step>().generate();
                 break;
+            case "parallel-canary":
+                strategy = new CanaryStrategy.Generator(new ParallelStrategy<>()).generate();
+                break;
+            case "canary":
+                // fall through: default to serial behavior following canary stage
+            case "serial-canary":
+                strategy = new CanaryStrategy.Generator(new SerialStrategy<>()).generate();
+                break;
+            case "serial":
+                // fall through
             default:
                 strategy = new SerialStrategy.Generator<Step>().generate();
         }

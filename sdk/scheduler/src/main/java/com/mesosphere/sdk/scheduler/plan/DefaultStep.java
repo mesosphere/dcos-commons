@@ -6,8 +6,6 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.DefaultObservable;
-import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -27,7 +25,6 @@ public class DefaultStep extends DefaultObservable implements Step {
     private final String name;
     private final UUID id = UUID.randomUUID();
     private final List<String> errors;
-    private final Strategy<Step> strategy = new ParallelStrategy<>();
     private final Object statusLock = new Object();
     private final PodInstanceRequirement podInstanceRequirement;
     private Status status;
@@ -141,16 +138,6 @@ public class DefaultStep extends DefaultObservable implements Step {
         synchronized (statusLock) {
             return status;
         }
-    }
-
-    @Override
-    public List<Element<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Strategy<Step> getStrategy() {
-        return strategy;
     }
 
     /**

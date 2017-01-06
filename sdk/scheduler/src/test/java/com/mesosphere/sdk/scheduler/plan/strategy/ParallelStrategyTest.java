@@ -10,7 +10,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -18,24 +17,18 @@ import static org.mockito.Mockito.when;
 /**
  * This class tests the {@link ParallelStrategy}.
  */
-@SuppressWarnings("unchecked")
 public class ParallelStrategyTest {
     @Mock Phase parentElement;
     @Mock Step el0;
     @Mock Step el1;
     @Mock Step el2;
 
-    private ParallelStrategy strategy;
-    private List<Step> elements;
+    private ParallelStrategy<Step> strategy;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        strategy = new ParallelStrategy();
-
-        when(el0.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(el1.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(el2.getStrategy()).thenReturn(new SerialStrategy<>());
+        strategy = new ParallelStrategy<>();
 
         when(el0.getName()).thenReturn("step0");
         when(el1.getName()).thenReturn("step1");
@@ -49,8 +42,7 @@ public class ParallelStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        elements = Arrays.asList(el0, el1, el2);
-        when(parentElement.getChildren()).thenReturn(elements);
+        when(parentElement.getChildren()).thenReturn(Arrays.asList(el0, el1, el2));
     }
 
     @Test

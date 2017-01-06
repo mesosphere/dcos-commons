@@ -1,18 +1,27 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
 
 import java.util.Collection;
 
 /**
- * A strategy indicates which {@link Element}s are ready to be processed.  It may be interrupted such that it will
+ * A strategy indicates which child {@link Element}s are ready to be processed.  It may be interrupted such that it will
  * indicate that no elements are available for processing.  To resume normal operation {@link #proceed()} may be called.
  *
- * @param <C> is the type of {@link Element}s to which the Strategy applies.
+ * @param <C> is the type of child {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
 public interface Strategy<C extends Element> {
-    Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets);
+
+    /**
+     * Returns the candidate element(s), if any, which may have work performed against them.
+     *
+     * @param parentElement the parent element which contains children to be worked on
+     * @param dirtyAssets any asset names which already have work in progress elsewhere, which should not be returned by
+     *     this call
+     * @return zero or more candidates for work to be performed
+     */
+    Collection<C> getCandidates(ParentElement<C> parentElement, Collection<String> dirtyAssets);
 
     /**
      * A call to interrupt indicates to a Strategy that it should not produce {@link Element}s when

@@ -16,7 +16,6 @@ import java.util.Optional;
  * <p>
  * See {@link Plan} docs for more background.
  */
-@SuppressWarnings("rawtypes")
 public interface Step extends Element {
     /**
      * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. Returns an

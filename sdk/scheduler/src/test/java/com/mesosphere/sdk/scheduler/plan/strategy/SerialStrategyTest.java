@@ -9,7 +9,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -17,25 +16,18 @@ import static org.mockito.Mockito.when;
 /**
  * This class tests the {@link SerialStrategy}.
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
 public class SerialStrategyTest {
     @Mock Phase parentElement;
     @Mock Step el0;
     @Mock Step el1;
     @Mock Step el2;
-    private Phase phase;
 
-    private SerialStrategy strategy;
-    private List<Step> elements;
+    private SerialStrategy<Step> strategy;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        strategy = new SerialStrategy();
-
-        when(el0.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(el1.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(el2.getStrategy()).thenReturn(new SerialStrategy<>());
+        strategy = new SerialStrategy<>();
 
         when(el0.getName()).thenReturn("step0");
         when(el1.getName()).thenReturn("step1");
@@ -49,14 +41,7 @@ public class SerialStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        elements = Arrays.asList(el0, el1, el2);
-        when(parentElement.getChildren()).thenReturn(elements);
-
-        phase = new DefaultPhase(
-                "phase-0",
-                Arrays.asList(new TestStep(), new TestStep()),
-                strategy,
-                Collections.emptyList());
+        when(parentElement.getChildren()).thenReturn(Arrays.asList(el0, el1, el2));
     }
 
     @Test
@@ -104,6 +89,12 @@ public class SerialStrategyTest {
 
     @Test
     public void testProceedInterrupt() {
+        Phase phase = new DefaultPhase(
+                "phase-0",
+                Arrays.asList(new TestStep(), new TestStep()),
+                strategy,
+                Collections.emptyList());
+
         TestStep step0 = (TestStep)phase.getChildren().get(0);
         TestStep step1 = (TestStep)phase.getChildren().get(1);
 

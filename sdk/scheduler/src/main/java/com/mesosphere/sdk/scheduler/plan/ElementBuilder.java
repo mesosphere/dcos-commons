@@ -12,8 +12,7 @@ import java.util.Collection;
  * @param <P> is the type of the Parent {@link Element} which this builder produces.
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
-public abstract class ElementBuilder<P extends Element<C>, C extends Element> {
+public abstract class ElementBuilder<P extends ParentElement<? extends Element>, C extends Element> {
     protected final DependencyStrategyHelper<C> dependencyStrategyHelper = new DependencyStrategyHelper<>();
     protected String name;
 

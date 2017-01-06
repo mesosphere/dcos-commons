@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.DependencyStrategyHelper;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,10 +31,6 @@ public class DefaultPhaseBuilderTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(step0.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(step1.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(step2.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(step3.getStrategy()).thenReturn(new SerialStrategy<>());
 
         when(step0.getName()).thenReturn("step0");
         when(step1.getName()).thenReturn("step1");

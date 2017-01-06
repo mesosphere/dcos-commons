@@ -2,8 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.scheduler.DefaultObservable;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -23,16 +21,6 @@ public class TestStep extends DefaultObservable implements Step {
 
     public TestStep(String name) {
         this.name = name;
-    }
-
-    @Override
-    public List<Element<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Strategy<? extends Step> getStrategy() {
-        return new SerialStrategy<>();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.*;
@@ -10,11 +11,10 @@ import java.util.*;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
 public class RandomStrategy<C extends Element> extends InterruptibleStrategy<C> {
 
     @Override
-    public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
+    public Collection<C> getCandidates(ParentElement<C> parentElement, Collection<String> dirtyAssets) {
         DependencyStrategyHelper<C> strategyHelper = new DependencyStrategyHelper<>(parentElement);
         List<C> candidates = new ArrayList<>(strategyHelper.getCandidates(dirtyAssets));
         Collections.shuffle(candidates);

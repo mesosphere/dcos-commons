@@ -51,21 +51,32 @@ public class PlanUtils {
     }
 
     @SuppressWarnings("rawtypes")
-    public static final void update(Element<? extends Element> parent, TaskStatus taskStatus) {
+    public static boolean isEligibleCandidate(Element element, Collection<String> dirtyAssets) {
+        if (element instanceof ParentElement && ((ParentElement) element).getStrategy().isInterrupted()) {
+            return false;
+        }
+        if (element instanceof Step) {
+            Step step = (Step) element;
+            if (step.getAsset().isPresent() && dirtyAssets.contains(step.getAsset().get())) {
+                return false;
+            }
+        }
+        return !element.isComplete() && !element.hasErrors();
+    }
+
+    public static final void update(ParentElement<? extends Element> parent, TaskStatus taskStatus) {
         Collection<? extends Element> children = parent.getChildren();
         LOGGER.info("Updated {} with TaskStatus: {}", parent.getName(), TextFormat.shortDebugString(taskStatus));
         children.forEach(element -> element.update(taskStatus));
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final void restart(Element<? extends Element> parent) {
+    public static final void restart(ParentElement<? extends Element> parent) {
         Collection<? extends Element> children = parent.getChildren();
         LOGGER.info("Restarting elements within {}: {}", parent.getName(), children);
         children.forEach(element -> element.restart());
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final void forceComplete(Element<? extends Element> parent) {
+    public static final void forceComplete(ParentElement<? extends Element> parent) {
         Collection<? extends Element> children = parent.getChildren();
         LOGGER.info("Forcing completion of elements within {}: {}", parent.getName(), children);
         children.forEach(element -> element.forceComplete());
@@ -74,7 +85,7 @@ public class PlanUtils {
     /**
      * Returns a reasonable user-visible status message describing this {@link Element}.
      */
-    public static final String getMessage(Element<?> element) {
+    public static final String getMessage(Element element) {
         return String.format("%s: '%s [%s]' has status: '%s'.",
                 element.getClass().getName(), element.getName(), element.getId(), element.getStatus());
     }
@@ -87,8 +98,7 @@ public class PlanUtils {
      * @param parent The parent element whose children will be scanned
      * @return a combined list of all errors from the parent and all its children
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static final List<String> getErrors(List<String> parentErrors, Element<? extends Element> parent) {
+    public static final List<String> getErrors(List<String> parentErrors, ParentElement<? extends Element> parent) {
         // Note that this function MUST NOT call parent.getErrors() as that creates a circular call.
         List<String> errors = new ArrayList<>(); // copy list to avoid modifying parentErrors in-place
         errors.addAll(parentErrors);
@@ -97,8 +107,7 @@ public class PlanUtils {
         return errors;
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final Status getStatus(Element<? extends Element> parent) {
+    public static final Status getStatus(ParentElement<? extends Element> parent) {
         // Ordering matters throughout this method.  Modify with care.
         // Also note that this function MUST NOT call parent.getStatus() as that creates a circular call.
 
@@ -155,12 +164,10 @@ public class PlanUtils {
         return result;
     }
 
-    @SuppressWarnings("rawtypes")
     public static boolean allHaveStatus(Status status, Collection<? extends Element> elements) {
         return elements.stream().allMatch(element -> element.getStatus() == status);
     }
 
-    @SuppressWarnings("rawtypes")
     public static boolean anyHaveStatus(Status status, Collection<? extends Element> elements) {
         return elements.stream().anyMatch(element -> element.getStatus() == status);
     }
