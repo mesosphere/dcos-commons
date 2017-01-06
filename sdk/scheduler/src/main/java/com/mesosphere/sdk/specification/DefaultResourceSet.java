@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -196,21 +197,37 @@ public class DefaultResourceSet implements ResourceSet {
         }
 
         public Builder addPorts(Collection<RawPort> ports) {
-            Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
-
             for (RawPort rawPort : ports) {
                 Integer p = rawPort.getPort();
+                Protos.Value.Ranges.Builder rangesBuilder = Protos.Value.Ranges.newBuilder();
                 rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p).setEnd(p));
+
+                if (rawPort.getVip() != null) {
+                    resources.add(new NamedVIPSpecification(
+                            rawPort.getName(),
+                            rawPort.getVip().getPrefix(),
+                            rawPort.getVip().getPort(),
+                            Constants.PORTS_RESOURCE_TYPE,
+                            Protos.Value.newBuilder()
+                                    .setType(Protos.Value.Type.RANGES)
+                                    .setRanges(rangesBuilder)
+                                    .build(),
+                            role,
+                            principal,
+                            null));
+                } else {
+                    resources.add(new PortSpecification(
+                            rawPort.getName(),
+                            Constants.PORTS_RESOURCE_TYPE,
+                            Protos.Value.newBuilder()
+                                    .setType(Protos.Value.Type.RANGES)
+                                    .setRanges(rangesBuilder)
+                                    .build(),
+                            role,
+                            principal,
+                            null));
+                }
             }
-            resources.add(DefaultResourceSpecification.newBuilder()
-                    .name("ports")
-                    .role(role)
-                    .principal(principal)
-                    .value(Protos.Value.newBuilder()
-                            .setType(Protos.Value.Type.RANGES)
-                            .setRanges(rangesBuilder)
-                            .build())
-                    .build());
             return this;
         }
 

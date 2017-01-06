@@ -10,7 +10,7 @@ import com.mesosphere.sdk.config.Configuration;
  *
  * @param <C> the type of configuration to be validated
  */
-public interface ConfigurationValidator<C extends Configuration> {
+public interface ConfigValidator<C extends Configuration> {
     /**
      * Returns {@code List} of {@code ConfigurationValidationError}s for the newly supplied
      * {@code Configuration} object.
@@ -25,5 +25,5 @@ public interface ConfigurationValidator<C extends Configuration> {
      * @param newConfig Proposed new Configuration
      * @return List of errors, or an empty list if validation passed
      */
-    Collection<ConfigurationValidationError> validate(C nullableOldConfig, C newConfig);
+    Collection<ConfigValidationError> validate(C nullableOldConfig, C newConfig);
 }

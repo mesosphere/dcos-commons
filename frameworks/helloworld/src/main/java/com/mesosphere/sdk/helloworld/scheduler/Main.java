@@ -3,6 +3,7 @@ package com.mesosphere.sdk.helloworld.scheduler;
 import com.mesosphere.sdk.specification.*;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * Hello World Service.
@@ -17,6 +18,7 @@ public class Main {
         if (args.length > 0) {
             new DefaultService(new File(args[0]));
         } else {
+            // Example of building a custom ServiceSpec entirely in Java without a YAML file:
             new DefaultService(DefaultServiceSpec.newBuilder()
                     .name("hello-world")
                     .principal("hello-world-principal")
@@ -37,7 +39,8 @@ public class Main {
                                             .cpus(CPUS)
                                             .memory(256.0)
                                             .addVolume("ROOT", 5000.0, "hello-container-path")
-                                            .build()).build()).build()).build());
+                                            .build()).build()).build()).build(),
+                    Collections.emptyList());
         }
     }
 }

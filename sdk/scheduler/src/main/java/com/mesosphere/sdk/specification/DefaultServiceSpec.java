@@ -219,7 +219,11 @@ public class DefaultServiceSpec implements ServiceSpec {
                 PassthroughRule.class,
                 RegexMatcher.class,
                 TaskTypeRule.class,
-                TaskTypeLabelConverter.class);
+                TaskTypeLabelConverter.class,
+                DefaultResourceSpecification.class,
+                DefaultVolumeSpecification.class,
+                PortSpecification.class,
+                NamedVIPSpecification.class);
 
         private final ObjectMapper objectMapper;
 

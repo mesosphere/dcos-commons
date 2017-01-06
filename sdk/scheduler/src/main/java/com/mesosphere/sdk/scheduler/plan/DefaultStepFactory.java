@@ -79,8 +79,9 @@ public class DefaultStepFactory implements StepFactory {
             throws Step.InvalidStepException, ConfigStoreException, TaskException {
 
         List<Status> statuses = new ArrayList<>();
+        UUID targetConfigId = configTargetStore.getTargetConfig();
         for (Protos.TaskInfo taskInfo : taskInfos) {
-           statuses.add(getStatus(podInstance, taskInfo));
+           statuses.add(getStatus(podInstance, taskInfo, targetConfigId));
         }
 
         for (Status status : statuses) {
@@ -92,10 +93,10 @@ public class DefaultStepFactory implements StepFactory {
         return Status.COMPLETE;
     }
 
-    private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo)
+    private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo, UUID targetConfigId)
             throws TaskException, ConfigStoreException, Step.InvalidStepException {
 
-        boolean isOnTarget = isOnTarget(taskInfo);
+        boolean isOnTarget = isOnTarget(taskInfo, targetConfigId);
         boolean hasReachedGoal = hasReachedGoalState(podInstance, taskInfo);
 
         if (hasReachedGoal) {
@@ -117,8 +118,8 @@ public class DefaultStepFactory implements StepFactory {
 
     }
 
-    private boolean isOnTarget(Protos.TaskInfo taskInfo) throws ConfigStoreException, TaskException {
-        UUID targetConfigId = configTargetStore.getTargetConfig();
+    private static boolean isOnTarget(Protos.TaskInfo taskInfo, UUID targetConfigId)
+            throws ConfigStoreException, TaskException {
         UUID taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
         return targetConfigId.equals(taskConfigId);
     }

@@ -45,6 +45,7 @@ public class TaskUtils {
 
     /**
      * Returns all the Task names for a PodInstance.
+     *
      * @param podInstance A PodInstance
      * @return A List of all the task names.
      */
@@ -56,7 +57,8 @@ public class TaskUtils {
 
     /**
      * Returns all the task names for a pod, after filtering based on the passed in list of tasks to launch.
-     * @param podInstance A PodInstance
+     *
+     * @param podInstance   A PodInstance
      * @param tasksToLaunch The names of TaskSpecs which should be launched.
      * @return A list of the appropriate task names.
      */
@@ -71,8 +73,9 @@ public class TaskUtils {
     /**
      * Returns the TaskInfos associated with a PodInstance if its ever been launched.  The list will be empty if the
      * PodInstance has never been launched.
+     *
      * @param podInstance A PodInstance
-     * @param stateStore A StateStore to search for the appropriate TaskInfos.
+     * @param stateStore  A StateStore to search for the appropriate TaskInfos.
      * @return The list of TaskInfos associated with a PodInstance.
      */
     public static List<TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
@@ -93,9 +96,67 @@ public class TaskUtils {
                 && getIndex(taskInfo) == podInstance.getIndex();
     }
 
+    /**
+     * Returns the TaskInfos for a PodInstance which should be running.  The list will be empty if the PodInstance has
+     * never been launched.
+     *
+     * @param podInstance A PodInstance
+     * @param stateStore  A StateStore to search for the appropriate TaskInfos.
+     * @return The list of TaskInfos associate with a PodInstance which should be running.
+     */
+    public static List<TaskInfo> getTaskInfosShouldBeRunning(PodInstance podInstance, StateStore stateStore) {
+        List<TaskInfo> podTasks = getPodTasks(podInstance, stateStore);
+
+        List<TaskInfo> tasksShouldBeRunning = new ArrayList<>();
+        for (TaskInfo taskInfo : podTasks) {
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance);
+
+            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(GoalState.RUNNING)) {
+                tasksShouldBeRunning.add(taskInfo);
+            }
+        }
+
+        return tasksShouldBeRunning;
+    }
+
+    private static Optional<TaskSpec> getTaskSpec(TaskInfo taskInfo, PodInstance podInstance) {
+        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
+            if (taskInfo.getName().equals(taskName)) {
+                return Optional.of(taskSpec);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Returns the ExecutorInfo of a PodInstance if it is still running so it may be re-used.
+     *
+     * @param podInstance A PodInstance
+     * @param stateStore  A StateStore to search for the appropriate TaskInfos.
+     * @return The ExecutorInfo if the Executor is running, Optional.empty() otherwise.
+     */
+    public static Optional<ExecutorInfo> getExecutor(PodInstance podInstance, StateStore stateStore) {
+        List<TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podInstance, stateStore);
+
+        for (TaskInfo taskInfo : shouldBeRunningTasks) {
+            Optional<TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskStatusOptional.isPresent()
+                    && taskStatusOptional.get().getState() == TaskState.TASK_RUNNING) {
+                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
+                return Optional.of(taskInfo.getExecutor());
+            }
+        }
+
+        LOGGER.info("No running executor found.");
+        return Optional.empty();
+    }
+
 
     /**
      * Determines whether two TaskSpecs are different.
+     *
      * @param oldTaskSpec The previous definition of a Task.
      * @param newTaskSpec The new definition of a Task.
      * @return true if the Tasks are different, false otherwise.
@@ -198,9 +259,9 @@ public class TaskUtils {
         Map<String, ResourceSpecification> resourceMap = new HashMap<>();
         for (ResourceSpecification resourceSpecification : resourceSpecifications) {
             ResourceSpecification prevValue = resourceMap.put(resourceSpecification.getName(), resourceSpecification);
-            if (prevValue != null) {
+            if (prevValue != null && !prevValue.getName().equals(PORTS_RESOURCE_TYPE)) {
                 throw new IllegalArgumentException(String.format(
-                        "Resources for a given task may not share the same name. " +
+                        "Non-port resources for a given task may not share the same name. " +
                                 "name:'%s' oldResource:'%s' newResource:'%s'",
                         resourceSpecification.getName(), prevValue, resourceSpecification));
             }
@@ -242,8 +303,9 @@ public class TaskUtils {
 
     /**
      * Sets a label on a TaskInfo indicating the Task's {@link GoalState}.
+     *
      * @param taskInfoBuilder The TaskInfo to be labeled.
-     * @param taskSpec The TaskSpec containing the goal state.
+     * @param taskSpec        The TaskSpec containing the goal state.
      * @return The labeled TaskInfo
      */
     public static TaskInfo.Builder setGoalState(TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
@@ -255,8 +317,9 @@ public class TaskUtils {
 
     /**
      * Gets the {@link GoalState} of Task.
+     *
      * @param podInstance A PodInstance containing tasks.
-     * @param taskName The name of the Task whose goal state is desired
+     * @param taskName    The name of the Task whose goal state is desired
      * @return The {@link GoalState} of the task.
      * @throws TaskException is thrown when unable to determine a task's {@link GoalState}
      */
@@ -335,7 +398,8 @@ public class TaskUtils {
     /**
      * Determines whether a Task needs to eb reovered based on its current definition (TaskSpec) and status
      * (TaskStatus).
-     * @param taskSpec The definition of a task
+     *
+     * @param taskSpec   The definition of a task
      * @param taskStatus The status of the task.
      * @return true if recovery is needed, false otherwise.
      */
@@ -349,7 +413,8 @@ public class TaskUtils {
 
     /**
      * Returns a default name for a {@link Step} given a PodInstance and the tasks to be launched in it.
-     * @param podInstance The PodInstance to be launched by a {@link Step}.
+     *
+     * @param podInstance   The PodInstance to be launched by a {@link Step}.
      * @param tasksToLaunch The tasks to be launched in the Pod.
      * @return The {@link Step} name
      */

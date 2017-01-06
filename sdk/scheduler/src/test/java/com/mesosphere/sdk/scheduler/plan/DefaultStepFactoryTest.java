@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,10 +71,7 @@ public class DefaultStepFactoryTest {
                 "test-framework-name",
                 testingServer.getConnectString());
 
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);

@@ -2,15 +2,11 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
-import com.mesosphere.sdk.state.StateStore;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -61,40 +57,26 @@ public class ServiceSpecTest {
 
     @Test
     public void testServiceSpecValidation() throws Exception {
-        ClassLoader classLoader = ServiceSpecTest.class.getClassLoader();
-        File file = new File(classLoader.getResource("svc.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        File file = new File(getClass().getClassLoader().getResource("svc.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(generateRawSpecFromYAML(file));
 
         TestingServer testingServer = new TestingServer();
-        StateStore stateStore = DefaultScheduler.createStateStore(
-                serviceSpec,
-                testingServer.getConnectString());
-        ConfigStore<ServiceSpec> configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
 
-        Protos.FrameworkID FRAMEWORK_ID =
-                Protos.FrameworkID.newBuilder()
-                        .setValue("test-framework-id")
-                        .build();
+        Protos.FrameworkID FRAMEWORK_ID = Protos.FrameworkID.newBuilder()
+                .setValue("test-framework-id")
+                .build();
 
-        Protos.MasterInfo MASTER_INFO =
-                Protos.MasterInfo.newBuilder()
-                        .setId("test-master-id")
-                        .setIp(0)
-                        .setPort(0)
-                        .build();
+        Protos.MasterInfo MASTER_INFO = Protos.MasterInfo.newBuilder()
+                .setId("test-master-id")
+                .setIp(0)
+                .setPort(0)
+                .build();
 
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler.updateConfig(
-                serviceSpec, stateStore, configStore);
-
-        OfferRequirementProvider offerRequirementProvider =
-                DefaultScheduler.createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
-
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(
-                serviceSpec, stateStore, configStore, offerRequirementProvider);
-        defaultScheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
+        Scheduler scheduler = DefaultScheduler.newBuilder(serviceSpec)
+            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+            .build();
+        scheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
+        testingServer.close();
     }
 }

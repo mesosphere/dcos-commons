@@ -4,7 +4,7 @@ package com.mesosphere.sdk.config.validate;
  * Signals that a certain configuration value, or transition between two configurations, did not
  * pass validation.
  */
-public class ConfigurationValidationError {
+public class ConfigValidationError {
     private final String configField;
     private final String oldConfigValue; // Nullable
     private final String newConfigValue;
@@ -14,22 +14,22 @@ public class ConfigurationValidationError {
      * Returns a new validation error which indicates that a configuration field has an invalid
      * value. This is equivalent to a transition error, except with no prior value.
      */
-    public static ConfigurationValidationError valueError(
+    public static ConfigValidationError valueError(
             String configField, String configValue, String message) {
         // Set oldValue to null
-        return new ConfigurationValidationError(configField, null, configValue, message);
+        return new ConfigValidationError(configField, null, configValue, message);
     }
 
     /**
      * Returns a new validation error which indicates that a configuration field has an invalid
      * transition from its previous value to the current value.
      */
-    public static ConfigurationValidationError transitionError(
+    public static ConfigValidationError transitionError(
             String configField, String oldConfigValue, String newConfigValue, String message) {
-        return new ConfigurationValidationError(configField, oldConfigValue, newConfigValue, message);
+        return new ConfigValidationError(configField, oldConfigValue, newConfigValue, message);
     }
 
-    private ConfigurationValidationError(
+    private ConfigValidationError(
             String configField, String oldConfigValue, String newConfigValue, String message) {
         this.configField = configField;
         this.oldConfigValue = oldConfigValue;

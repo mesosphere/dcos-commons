@@ -2,32 +2,35 @@ package com.mesosphere.sdk.offer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import com.mesosphere.sdk.state.StateStore;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * A TaskRequirement encapsulates the needed resources a Task must have.
  */
 public class TaskRequirement {
-    private final TaskInfo taskInfo;
-    private final Collection<ResourceRequirement> resourceRequirements;
-    private final Collection<DynamicPortRequirement> dynamicPortRequirements;
-    private final Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
+    private TaskInfo taskInfo;
+    private Protos.TaskID taskId;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
         validateTaskInfo(unverifiedTaskInfo);
         // TaskID is always overwritten with a new UUID, even if already present:
-        this.taskInfo = TaskInfo.newBuilder(unverifiedTaskInfo)
-                .setTaskId(CommonTaskUtils.toTaskId(unverifiedTaskInfo.getName()))
+        taskId = CommonTaskUtils.toTaskId(unverifiedTaskInfo.getName());
+        init(unverifiedTaskInfo);
+    }
+
+    private void init(TaskInfo taskInfo) {
+        this.taskInfo = TaskInfo.newBuilder(taskInfo)
+                .setTaskId(taskId)
                 .build();
-        this.resourceRequirements =
-                RequirementUtils.getResourceRequirements(taskInfo.getResourcesList());
-        this.dynamicPortRequirements =
-                RequirementUtils.getDynamicPortRequirements(taskInfo.getResourcesList());
-        this.namedVIPPortRequirements =
-                RequirementUtils.getNamedVIPPortRequirements(taskInfo.getResourcesList());
+    }
+
+    public void update(TaskInfo taskInfo) {
+        init(taskInfo);
     }
 
     public TaskInfo getTaskInfo() {
@@ -35,15 +38,9 @@ public class TaskRequirement {
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
-        return resourceRequirements;
-    }
-
-    public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
-        return dynamicPortRequirements;
-    }
-
-    public Collection<NamedVIPPortRequirement> getNamedVIPPortRequirements() {
-        return namedVIPPortRequirements;
+        return taskInfo.getResourcesList().stream()
+                .map(r -> new ResourceRequirement(r))
+                .collect(Collectors.toList());
     }
 
     public Collection<String> getResourceIds() {

@@ -8,7 +8,7 @@ import org.mockito.MockitoAnnotations;
 public class TaskVolumesCannotChangeTest {
     private static final int DISK_SIZE_MB = 1000;
 
-    private static final ConfigurationValidator<ServiceSpec> VALIDATOR = new TaskVolumesCannotChange();
+    private static final ConfigValidator<ServiceSpec> VALIDATOR = new TaskVolumesCannotChange();
 
     // slight differences between volumes:
     private static final VolumeSpecification VOLUME1 = new DefaultVolumeSpecification(
