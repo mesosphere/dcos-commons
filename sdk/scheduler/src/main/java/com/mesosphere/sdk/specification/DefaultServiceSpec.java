@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -28,6 +29,8 @@ import java.util.List;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
+
+    public static final String DEFAULT_ZK_CONNECTION = "master.mesos:2181";
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
@@ -116,7 +119,8 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     @Override
     public String getZookeeperConnection() {
-        return zookeeperConnection;
+        // If no zookeeperConnection string is configured, fallback to the default value.
+        return StringUtils.isNotBlank(zookeeperConnection) ? zookeeperConnection : DEFAULT_ZK_CONNECTION;
     }
 
     @Override
