@@ -11,7 +11,7 @@ public interface ConfigFileSpecification {
     /**
      * Path where this file will be written, relative to the initial working directory of the task.
      */
-    @JsonProperty("relative_path")
+    @JsonProperty("relative-path")
     String getRelativePath();
 
     /**
@@ -32,6 +32,6 @@ public interface ConfigFileSpecification {
      *   FOO=BAR
      *   BAR=BAZ
      */
-    @JsonProperty("template_content")
+    @JsonProperty("template-content")
     String getTemplateContent();
 }

@@ -18,15 +18,15 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("principal")
     String getPrincipal();
 
-    @JsonProperty("pod_specs")
+    @JsonProperty("pod-specs")
     List<PodSpec> getPods();
 
-    @JsonProperty("api_port")
+    @JsonProperty("api-port")
     int getApiPort();
 
     @JsonProperty("zookeeper")
     String getZookeeperConnection();
 
-    @JsonProperty("replacement_failure_policy")
+    @JsonProperty("replacement-failure-policy")
     ReplacementFailurePolicy getReplacementFailurePolicy();
 }

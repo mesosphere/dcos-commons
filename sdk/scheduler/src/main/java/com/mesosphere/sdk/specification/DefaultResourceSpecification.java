@@ -38,7 +38,7 @@ public class DefaultResourceSpecification implements ResourceSpecification {
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey) {
+            @JsonProperty("env-key") String envKey) {
         this.name = name;
         this.value = value;
         this.role = role;

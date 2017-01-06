@@ -28,14 +28,14 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
 
     @JsonCreator
     public NamedVIPSpecification(
-            @JsonProperty("port_name") String portName,
-            @JsonProperty("vip_name") String vipName,
-            @JsonProperty("vip_port") Integer vipPort,
+            @JsonProperty("port-name") String portName,
+            @JsonProperty("vip-name") String vipName,
+            @JsonProperty("vip-port") Integer vipPort,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey) {
+            @JsonProperty("env-key") String envKey) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
         this.vipName = vipName;
@@ -44,17 +44,17 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
         ValidationUtils.validate(this);
     }
 
-    @JsonProperty("port_name")
+    @JsonProperty("port-name")
     public String getPortName() {
         return portName;
     }
 
-    @JsonProperty("vip_name")
+    @JsonProperty("vip-name")
     public String getVipName() {
         return vipName;
     }
 
-    @JsonProperty("vip_port")
+    @JsonProperty("vip-port")
     public Integer getVipPort() {
         return vipPort;
     }

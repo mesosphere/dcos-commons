@@ -21,6 +21,6 @@ public interface VolumeSpecification extends ResourceSpecification {
     @JsonProperty("type")
     Type getType();
 
-    @JsonProperty("container_path")
+    @JsonProperty("container-path")
     String getContainerPath();
 }

@@ -30,13 +30,13 @@ public interface PodSpec {
     @JsonProperty("user")
     Optional<String> getUser();
 
-    @JsonProperty("task_specs")
+    @JsonProperty("task-specs")
     List<TaskSpec> getTasks();
 
-    @JsonProperty("resource_sets")
+    @JsonProperty("resource-sets")
     Collection<ResourceSet> getResources();
 
-    @JsonProperty("placement_rule")
+    @JsonProperty("placement-rule")
     Optional<PlacementRule> getPlacementRule();
 
     @JsonIgnore

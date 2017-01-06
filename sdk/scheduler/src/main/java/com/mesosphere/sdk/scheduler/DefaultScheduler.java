@@ -470,10 +470,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
             this.permanentFailureTimeoutMs =
-                    Optional.ofNullable(replacementFailurePolicy.getPermanentFailureTimoutMs());
+                    Optional.ofNullable(replacementFailurePolicy.getPermanentFailureTimoutMins());
             // interpret unset/null as zero delay:
-            this.destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMs() == null
-                    ? 0 : replacementFailurePolicy.getMinReplaceDelayMs();
+            this.destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMins() == null
+                    ? 0 : replacementFailurePolicy.getMinReplaceDelayMins();
         } else {
             // default values if policy section is unset:
             this.permanentFailureTimeoutMs = Optional.of(PERMANENT_FAILURE_DELAY_MS);

@@ -40,8 +40,8 @@ public class DefaultResourceSet implements ResourceSet {
     @JsonCreator
     public DefaultResourceSet(
             @JsonProperty("id") String id,
-            @JsonProperty("resource_specifications") Collection<ResourceSpecification> resources,
-            @JsonProperty("volume_specifications") Collection<VolumeSpecification> volumes,
+            @JsonProperty("resource-specifications") Collection<ResourceSpecification> resources,
+            @JsonProperty("volume-specifications") Collection<VolumeSpecification> volumes,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal) {
         this.id = id;

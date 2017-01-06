@@ -21,8 +21,8 @@ public class DefaultConfigFileSpecification implements ConfigFileSpecification {
 
     @JsonCreator
     public DefaultConfigFileSpecification(
-            @JsonProperty("relative_path") String relativePath,
-            @JsonProperty("template_content") String templateContent) {
+            @JsonProperty("relative-path") String relativePath,
+            @JsonProperty("template-content") String templateContent) {
         this.relativePath = relativePath;
         this.templateContent = templateContent;
     }

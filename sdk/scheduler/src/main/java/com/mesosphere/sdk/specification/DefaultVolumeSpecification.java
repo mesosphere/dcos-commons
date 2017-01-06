@@ -33,12 +33,12 @@ public class DefaultVolumeSpecification extends DefaultResourceSpecification imp
     @JsonCreator
     private DefaultVolumeSpecification(
             @JsonProperty("type") Type type,
-            @JsonProperty("container_path") String containerPath,
+            @JsonProperty("container-path") String containerPath,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal")  String principal,
-            @JsonProperty("env_key")  String envKey) {
+            @JsonProperty("env-key")  String envKey) {
         super(name, value, role, principal, envKey);
         this.type = type;
         this.containerPath = containerPath;

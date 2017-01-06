@@ -39,11 +39,11 @@ public class DefaultTaskSpec implements TaskSpec {
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
             @JsonProperty("goal") GoalState goalState,
-            @JsonProperty("resource_set") ResourceSet resourceSet,
-            @JsonProperty("command_spec") CommandSpec commandSpec,
-            @JsonProperty("health_check_spec") HealthCheckSpec healthCheckSpec,
+            @JsonProperty("resource-set") ResourceSet resourceSet,
+            @JsonProperty("command-spec") CommandSpec commandSpec,
+            @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("uris") Collection<URI> uris,
-            @JsonProperty("config_files") Collection<ConfigFileSpecification> configFiles) {
+            @JsonProperty("config-files") Collection<ConfigFileSpecification> configFiles) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;

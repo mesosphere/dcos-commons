@@ -13,9 +13,9 @@ public interface ResourceSet {
     @JsonProperty("id")
     String getId();
 
-    @JsonProperty("resource_specifications")
+    @JsonProperty("resource-specifications")
     Collection<ResourceSpecification> getResources();
 
-    @JsonProperty("volume_specifications")
+    @JsonProperty("volume-specifications")
     Collection<VolumeSpecification> getVolumes();
 }
