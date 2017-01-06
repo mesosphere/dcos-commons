@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.specification.ResourceSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -9,7 +10,6 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
-import com.mesosphere.sdk.specification.ResourceSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +27,12 @@ public class ResourceUtils {
         return setResource(Resource.newBuilder().setRole("*"), name, value);
     }
 
-    public static Resource getDesiredResource(ResourceSpecification resourceSpecification) {
+    public static Resource getDesiredResource(ResourceSpec resourceSpec) {
         return getDesiredResource(
-                resourceSpecification.getRole(),
-                resourceSpecification.getPrincipal(),
-                resourceSpecification.getName(),
-                resourceSpecification.getValue());
+                resourceSpec.getRole(),
+                resourceSpec.getPrincipal(),
+                resourceSpec.getName(),
+                resourceSpec.getValue());
     }
 
     public static Resource getUnreservedMountVolume(double diskSize, String mountRoot) {
@@ -323,25 +323,25 @@ public class ResourceUtils {
     }
 
     public static boolean areDifferent(
-            ResourceSpecification oldResourceSpecification,
-            ResourceSpecification newResourceSpecification) {
+            ResourceSpec oldResourceSpec,
+            ResourceSpec newResourceSpec) {
 
-        Protos.Value oldValue = oldResourceSpecification.getValue();
-        Protos.Value newValue = newResourceSpecification.getValue();
+        Protos.Value oldValue = oldResourceSpec.getValue();
+        Protos.Value newValue = newResourceSpec.getValue();
         if (!ValueUtils.equal(oldValue, newValue)) {
             LOGGER.info(String.format("Values '%s' and '%s' are different.", oldValue, newValue));
             return true;
         }
 
-        String oldRole = oldResourceSpecification.getRole();
-        String newRole = newResourceSpecification.getRole();
+        String oldRole = oldResourceSpec.getRole();
+        String newRole = newResourceSpec.getRole();
         if (!Objects.equals(oldRole, newRole)) {
             LOGGER.info(String.format("Roles '%s' and '%s' are different.", oldRole, newRole));
             return true;
         }
 
-        String oldPrincipal = oldResourceSpecification.getPrincipal();
-        String newPrincipal = newResourceSpecification.getPrincipal();
+        String oldPrincipal = oldResourceSpec.getPrincipal();
+        String newPrincipal = newResourceSpec.getPrincipal();
         if (!Objects.equals(oldPrincipal, newPrincipal)) {
             LOGGER.info(String.format("Principals '%s' and '%s' are different.", oldPrincipal, newPrincipal));
             return true;
@@ -350,16 +350,16 @@ public class ResourceUtils {
         return false;
     }
 
-    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification)
+    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpec resourceSpec)
             throws IllegalArgumentException {
         Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
         switch (resource.getType()) {
             case SCALAR:
-                return builder.setScalar(resourceSpecification.getValue().getScalar()).build();
+                return builder.setScalar(resourceSpec.getValue().getScalar()).build();
             case RANGES:
-                return builder.setRanges(resourceSpecification.getValue().getRanges()).build();
+                return builder.setRanges(resourceSpec.getValue().getRanges()).build();
             case SET:
-                return builder.setSet(resourceSpecification.getValue().getSet()).build();
+                return builder.setSet(resourceSpec.getValue().getSet()).build();
             default:
                 throw new IllegalArgumentException("Unexpected Resource type encountered: " + resource.getType());
         }

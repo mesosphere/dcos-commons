@@ -76,8 +76,8 @@ public class ReplacementFailurePolicy {
         }
 
         /**
-         * Sets the {@code permanentFailureTimoutMins} and returns a reference to this Builder so that the methods can be
-         * chained together.
+         * Sets the {@code permanentFailureTimoutMins} and returns a reference to this Builder so that the methods can
+         * be chained together.
          *
          * @param permanentFailureTimoutMs the {@code permanentFailureTimoutMins} to set
          * @return a reference to this Builder
@@ -88,8 +88,8 @@ public class ReplacementFailurePolicy {
         }
 
         /**
-         * Sets the {@code minReplaceDelayMins} and returns a reference to this Builder so that the methods can be chained
-         * together.
+         * Sets the {@code minReplaceDelayMins} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
          * @param minReplaceDelayMs the {@code minReplaceDelayMins} to set
          * @return a reference to this Builder

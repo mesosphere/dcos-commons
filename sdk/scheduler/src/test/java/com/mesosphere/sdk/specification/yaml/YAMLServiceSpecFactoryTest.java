@@ -31,9 +31,9 @@ public class YAMLServiceSpecFactoryTest {
         environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = generateRawSpecFromYAML(file);
-        Assert.assertNotNull(rawServiceSpecification);
-        Assert.assertEquals(new Integer(8080), rawServiceSpecification.getApiPort());
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        Assert.assertNotNull(rawServiceSpec);
+        Assert.assertEquals(new Integer(8080), rawServiceSpec.getApiPort());
     }
 
     @Test
@@ -42,8 +42,8 @@ public class YAMLServiceSpecFactoryTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
-        RawServiceSpecification rawServiceSpecification = generateRawSpecFromYAML(yaml);
-        Assert.assertNotNull(rawServiceSpecification);
-        Assert.assertEquals(new Integer(8080), rawServiceSpecification.getApiPort());
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(yaml);
+        Assert.assertNotNull(rawServiceSpec);
+        Assert.assertEquals(new Integer(8080), rawServiceSpec.getApiPort());
     }
 }

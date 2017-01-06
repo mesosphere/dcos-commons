@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 /**
  * Represents an optionally templated configuration file to be written before the task is started.
  */
-@JsonDeserialize(as = DefaultConfigFileSpecification.class)
-public interface ConfigFileSpecification {
+@JsonDeserialize(as = DefaultConfigFileSpec.class)
+public interface ConfigFileSpec {
     /**
      * Path where this file will be written, relative to the initial working directory of the task.
      */

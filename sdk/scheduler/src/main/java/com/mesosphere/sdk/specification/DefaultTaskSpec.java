@@ -30,7 +30,7 @@ public class DefaultTaskSpec implements TaskSpec {
 
     private Collection<URI> uris;
 
-    private Collection<ConfigFileSpecification> configFiles;
+    private Collection<ConfigFileSpec> configFiles;
     @Valid
     @NotNull
     private ResourceSet resourceSet;
@@ -43,7 +43,7 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("uris") Collection<URI> uris,
-            @JsonProperty("config-files") Collection<ConfigFileSpecification> configFiles) {
+            @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
@@ -111,7 +111,7 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
-    public Collection<ConfigFileSpecification> getConfigFiles() {
+    public Collection<ConfigFileSpec> getConfigFiles() {
         return configFiles;
     }
 
@@ -144,7 +144,7 @@ public class DefaultTaskSpec implements TaskSpec {
         private CommandSpec commandSpec;
         private HealthCheckSpec healthCheckSpec;
         private Collection<URI> uris;
-        private Collection<ConfigFileSpecification> configFiles;
+        private Collection<ConfigFileSpec> configFiles;
 
         private Builder() {
         }
@@ -219,7 +219,7 @@ public class DefaultTaskSpec implements TaskSpec {
          * @param configFiles the {@code configFiles} to set
          * @return a reference to this Builder
          */
-        public Builder configFiles(Collection<ConfigFileSpecification> configFiles) {
+        public Builder configFiles(Collection<ConfigFileSpec> configFiles) {
             this.configFiles = configFiles;
             return this;
         }

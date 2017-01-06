@@ -11,16 +11,16 @@ import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 /**
- * This class provides a default implementation of the VolumeSpecification interface.
+ * This class provides a default implementation of the VolumeSpec interface.
  */
-public class DefaultVolumeSpecification extends DefaultResourceSpecification implements VolumeSpecification {
+public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
 
     public static final String RESOURCE_NAME = "disk";
 
     private final Type type;
     private final String containerPath;
 
-    public DefaultVolumeSpecification(
+    public DefaultVolumeSpec(
             double diskSize,
             Type type,
             String containerPath,
@@ -31,7 +31,7 @@ public class DefaultVolumeSpecification extends DefaultResourceSpecification imp
     }
 
     @JsonCreator
-    private DefaultVolumeSpecification(
+    private DefaultVolumeSpec(
             @JsonProperty("type") Type type,
             @JsonProperty("container-path") String containerPath,
             @JsonProperty("name") String name,

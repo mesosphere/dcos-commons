@@ -92,13 +92,13 @@ public class TestPodFactory {
                 .build();
     }
 
-    static Collection<ResourceSpecification> getResources(
+    static Collection<ResourceSpec> getResources(
             double cpu,
             double mem,
             String role,
             String principal) {
         return Arrays.asList(
-                new DefaultResourceSpecification(
+                new DefaultResourceSpec(
                         "cpus",
                         Protos.Value.newBuilder()
                                 .setType(Protos.Value.Type.SCALAR)
@@ -107,7 +107,7 @@ public class TestPodFactory {
                         role,
                         principal,
                         "CPUS"),
-                new DefaultResourceSpecification(
+                new DefaultResourceSpec(
                         "mem",
                         Protos.Value.newBuilder()
                                 .setType(Protos.Value.Type.SCALAR)
@@ -118,11 +118,11 @@ public class TestPodFactory {
                         "MEM"));
     }
 
-    static Collection<VolumeSpecification> getVolumes(double diskSize, String role, String principal) {
+    static Collection<VolumeSpec> getVolumes(double diskSize, String role, String principal) {
         return Arrays.asList(
-                new DefaultVolumeSpecification(
+                new DefaultVolumeSpec(
                         diskSize,
-                        VolumeSpecification.Type.ROOT,
+                        VolumeSpec.Type.ROOT,
                         TestConstants.CONTAINER_PATH,
                         role,
                         principal,

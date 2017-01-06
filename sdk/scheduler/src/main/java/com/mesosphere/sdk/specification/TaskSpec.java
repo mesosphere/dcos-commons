@@ -31,7 +31,7 @@ public interface TaskSpec {
     Collection<URI> getUris();
 
     @JsonProperty("config-files")
-    Collection<ConfigFileSpecification> getConfigFiles();
+    Collection<ConfigFileSpec> getConfigFiles();
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return podInstance.getName() + "-" + taskSpec.getName();

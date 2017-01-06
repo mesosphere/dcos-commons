@@ -285,12 +285,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .collect(Collectors.toMap(resource -> resource.getName(), resource -> resource));
 
         List<Protos.Resource> updatedResources = new ArrayList<>();
-        for (ResourceSpecification resourceSpecification : taskSpec.getResourceSet().getResources()) {
-            Protos.Resource oldResource = oldResourceMap.get(resourceSpecification.getName());
+        for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+            Protos.Resource oldResource = oldResourceMap.get(resourceSpec.getName());
             if (oldResource != null) {
                 // Update existing resource
                 try {
-                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpecification));
+                    updatedResources.add(ResourceUtils.updateResource(oldResource, resourceSpec));
                 } catch (IllegalArgumentException e) {
                     LOGGER.error("Failed to update Resources with exception: ", e);
                     // On failure to update resources, keep the old resources.
@@ -298,7 +298,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 }
             } else {
                 // Add newly added resource
-                updatedResources.add(ResourceUtils.getDesiredResource(resourceSpecification));
+                updatedResources.add(ResourceUtils.getDesiredResource(resourceSpec));
             }
         }
 
@@ -310,30 +310,30 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         ResourceSet resourceSet = taskSpec.getResourceSet();
         Collection<Protos.Resource> resources = new ArrayList<>();
 
-        for (ResourceSpecification resourceSpecification : resourceSet.getResources()) {
-            resources.add(ResourceUtils.getDesiredResource(resourceSpecification));
+        for (ResourceSpec resourceSpec : resourceSet.getResources()) {
+            resources.add(ResourceUtils.getDesiredResource(resourceSpec));
         }
 
-        for (VolumeSpecification volumeSpecification : resourceSet.getVolumes()) {
-            switch (volumeSpecification.getType()) {
+        for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
+            switch (volumeSpec.getType()) {
                 case ROOT:
                     resources.add(
                             ResourceUtils.getDesiredRootVolume(
-                                    volumeSpecification.getRole(),
-                                    volumeSpecification.getPrincipal(),
-                                    volumeSpecification.getValue().getScalar().getValue(),
-                                    volumeSpecification.getContainerPath()));
+                                    volumeSpec.getRole(),
+                                    volumeSpec.getPrincipal(),
+                                    volumeSpec.getValue().getScalar().getValue(),
+                                    volumeSpec.getContainerPath()));
                     break;
                 case MOUNT:
                     resources.add(
                             ResourceUtils.getDesiredMountVolume(
-                                    volumeSpecification.getRole(),
-                                    volumeSpecification.getPrincipal(),
-                                    volumeSpecification.getValue().getScalar().getValue(),
-                                    volumeSpecification.getContainerPath()));
+                                    volumeSpec.getRole(),
+                                    volumeSpec.getPrincipal(),
+                                    volumeSpec.getValue().getScalar().getValue(),
+                                    volumeSpec.getContainerPath()));
                     break;
                 default:
-                    LOGGER.error("Encountered unsupported disk type: " + volumeSpecification.getType());
+                    LOGGER.error("Encountered unsupported disk type: " + volumeSpec.getType());
             }
         }
 

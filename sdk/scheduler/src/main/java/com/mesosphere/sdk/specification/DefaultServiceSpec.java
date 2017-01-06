@@ -220,10 +220,10 @@ public class DefaultServiceSpec implements ServiceSpec {
                 RegexMatcher.class,
                 TaskTypeRule.class,
                 TaskTypeLabelConverter.class,
-                DefaultResourceSpecification.class,
-                DefaultVolumeSpecification.class,
-                PortSpecification.class,
-                NamedVIPSpecification.class);
+                DefaultResourceSpec.class,
+                DefaultVolumeSpec.class,
+                PortSpec.class,
+                NamedVIPSpec.class);
 
         private final ObjectMapper objectMapper;
 

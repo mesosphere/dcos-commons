@@ -8,7 +8,7 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.specification.ConfigFileSpecification;
+import com.mesosphere.sdk.specification.ConfigFileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -269,10 +269,10 @@ public class ProcessTask implements ExecutorTask {
         final Map<String, String> environment = new TreeMap<>();
         environment.putAll(System.getenv());
         environment.putAll(CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment()));
-        for (ConfigFileSpecification configFileSpecification : CommonTaskUtils.getConfigFiles(taskInfo)) {
+        for (ConfigFileSpec configFileSpec : CommonTaskUtils.getConfigFiles(taskInfo)) {
             writeConfigFile(
-                    configFileSpecification.getRelativePath(),
-                    configFileSpecification.getTemplateContent(),
+                    configFileSpec.getRelativePath(),
+                    configFileSpec.getTemplateContent(),
                     environment);
         }
     }

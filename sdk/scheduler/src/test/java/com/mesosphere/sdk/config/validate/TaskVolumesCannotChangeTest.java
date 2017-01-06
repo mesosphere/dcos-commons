@@ -11,12 +11,12 @@ public class TaskVolumesCannotChangeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new TaskVolumesCannotChange();
 
     // slight differences between volumes:
-    private static final VolumeSpecification VOLUME1 = new DefaultVolumeSpecification(
-            DISK_SIZE_MB, VolumeSpecification.Type.MOUNT, "/path/to/volume", "role", "principal", "VOLUME");
-    private static final VolumeSpecification VOLUME2 = new DefaultVolumeSpecification(
-            DISK_SIZE_MB + 3, VolumeSpecification.Type.MOUNT, "/path/to/volume", "role", "principal", "VOLUME");
-    private static final VolumeSpecification VOLUME3 = new DefaultVolumeSpecification(
-            DISK_SIZE_MB, VolumeSpecification.Type.ROOT, "/path/to/volume", "role", "principal", "VOLUME");
+    private static final VolumeSpec VOLUME1 = new DefaultVolumeSpec(
+            DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "/path/to/volume", "role", "principal", "VOLUME");
+    private static final VolumeSpec VOLUME2 = new DefaultVolumeSpec(
+            DISK_SIZE_MB + 3, VolumeSpec.Type.MOUNT, "/path/to/volume", "role", "principal", "VOLUME");
+    private static final VolumeSpec VOLUME3 = new DefaultVolumeSpec(
+            DISK_SIZE_MB, VolumeSpec.Type.ROOT, "/path/to/volume", "role", "principal", "VOLUME");
 
     @Mock private PodSpec mockPodSpec1;
     @Mock private PodSpec mockPodSpec2;

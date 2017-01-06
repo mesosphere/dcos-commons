@@ -5,8 +5,8 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.mesosphere.sdk.specification.ConfigFileSpecification;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpecification;
+import com.mesosphere.sdk.specification.ConfigFileSpec;
+import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
@@ -280,10 +280,10 @@ public class CommonTaskUtils {
      *                               (102,400B)
      */
     public static TaskInfo.Builder setConfigFiles(
-            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpecification> configs)
+            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpec> configs)
             throws IllegalStateException {
         int totalSize = 0;
-        for (ConfigFileSpecification config : configs) {
+        for (ConfigFileSpec config : configs) {
             totalSize += config.getTemplateContent().length();
             // Store with the config template prefix:
             taskBuilder.setLabels(CommonTaskUtils.withLabelSet(taskBuilder.getLabels(),
@@ -306,15 +306,15 @@ public class CommonTaskUtils {
      * Retrieves the config file data, if any, from the provided {@link TaskInfo}'s {@code labels}
      * field. If no data is found, returns an empty collection.
      */
-    public static Collection<ConfigFileSpecification> getConfigFiles(TaskInfo taskInfo)
+    public static Collection<ConfigFileSpec> getConfigFiles(TaskInfo taskInfo)
             throws InvalidProtocolBufferException {
-        List<ConfigFileSpecification> configs = new ArrayList<>();
+        List<ConfigFileSpec> configs = new ArrayList<>();
         for (Label label : taskInfo.getLabels().getLabelsList()) {
             // Extract all labels whose key has the expected prefix:
             if (!label.getKey().startsWith(CONFIG_TEMPLATE_KEY_PREFIX)) {
                 continue;
             }
-            configs.add(new DefaultConfigFileSpecification(
+            configs.add(new DefaultConfigFileSpec(
                     label.getKey().substring(CONFIG_TEMPLATE_KEY_PREFIX.length()),
                     label.getValue()));
         }
