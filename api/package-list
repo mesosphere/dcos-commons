@@ -10,7 +10,6 @@ com.mesosphere.sdk.helloworld.scheduler
 com.mesosphere.sdk.kafka.scheduler
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.constrain
-com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.reconciliation
 com.mesosphere.sdk.scheduler
 com.mesosphere.sdk.scheduler.plan
