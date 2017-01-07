@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.testutils;
 
 import org.apache.mesos.Protos;
+
 import com.mesosphere.sdk.executor.ExecutorUtils;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 
@@ -31,6 +32,7 @@ public class TestConstants {
     public static final String PORT_NAME = "test-port-name";
     public static final String VIP_KEY = "VIP_TEST";
     public static final String VIP_NAME = "testvip";
+    public static final Integer API_PORT_VALUE = 8080;
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()

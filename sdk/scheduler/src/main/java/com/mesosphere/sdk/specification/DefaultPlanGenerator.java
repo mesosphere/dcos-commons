@@ -2,12 +2,13 @@ package com.mesosphere.sdk.specification;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+
 import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.StrategyFactory;
 import com.mesosphere.sdk.specification.yaml.RawPhase;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.specification.yaml.RawStep;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,26 +38,17 @@ public class DefaultPlanGenerator implements PlanGenerator {
 
     @VisibleForTesting
     protected Phase from(RawPhase rawPhase, String phaseName, Collection<PodSpec> podsSpecs) {
-        String pod = rawPhase.getPod();
-        List<RawStep> rawSteps = rawPhase.getSteps();
-        String strategy = rawPhase.getStrategy();
-
-        Optional<PodSpec> podSpecOptnl = filter(pod, podsSpecs);
+        Optional<PodSpec> podSpecOptnl = filter(rawPhase.getPod(), podsSpecs);
         if (!podSpecOptnl.isPresent()) {
-            throw new IllegalStateException("Pod not found: " + pod);
+            throw new IllegalStateException("Pod not found: " + rawPhase.getPod());
         }
-
         PodSpec podSpec = podSpecOptnl.get();
-        Integer count = podSpec.getCount();
 
-        Phase phase;
         final List<Step> steps = new LinkedList<>();
-        if (CollectionUtils.isEmpty(rawSteps)) {
+        if (MapUtils.isEmpty(rawPhase.getSteps())) {
             // Generate steps from pod's tasks that are in RUNNING state.
-            for (int i = 0; i < count; i++) {
-                DefaultPodInstance podInstance = new DefaultPodInstance(podSpec, i);
-                final List<TaskSpec> taskSpecs = podSpec.getTasks();
-                List<String> taskNames = taskSpecs.stream()
+            for (int i = 0; i < podSpec.getCount(); i++) {
+                List<String> taskNames = podSpec.getTasks().stream()
                         .map(taskSpec -> taskSpec.getName())
                         .collect(Collectors.toList());
 
@@ -66,34 +58,16 @@ public class DefaultPlanGenerator implements PlanGenerator {
                     taskNames = rawPhase.getTasks();
                 }
 
-                steps.add(from(podInstance, taskNames));
+                steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
             }
         } else {
-            boolean allHaveIds = rawSteps.stream().allMatch(rawStep -> rawStep.getPodInstance().isPresent());
-            boolean noneHaveIds = rawSteps.stream().allMatch(rawStep -> !rawStep.getPodInstance().isPresent());
-
-            if (noneHaveIds) {
-                for (int i = 0; i < count; i++) {
-                    for (RawStep rawStep : rawSteps) {
-                        DefaultPodInstance podInstance = new DefaultPodInstance(podSpec, i);
-                        List<String> taskNames = rawStep.getTasks();
-                        steps.add(from(podInstance, taskNames));
-                    }
-                }
-            } else if (allHaveIds) {
-                for (RawStep rawStep : rawSteps) {
-                    DefaultPodInstance podInstance = new DefaultPodInstance(podSpec,
-                            rawStep.getPodInstance().get());
-                    List<String> taskNames = rawStep.getTasks();
-                    steps.add(from(podInstance, taskNames));
-                }
-            } else {
-                throw new IllegalStateException("podInstance should be specified for all steps " +
-                        "or should be omitted for all steps.");
+            for (Map.Entry<Integer, List<String>> rawStep : rawPhase.getSteps().entrySet()) {
+                steps.add(from(
+                        new DefaultPodInstance(podSpec, rawStep.getKey()),
+                        rawStep.getValue()));
             }
         }
-        phase = DefaultPhaseFactory.getPhase(phaseName, steps, StrategyFactory.generateForSteps(strategy));
-        return phase;
+        return DefaultPhaseFactory.getPhase(phaseName, steps, StrategyFactory.generateForSteps(rawPhase.getStrategy()));
     }
 
     @VisibleForTesting

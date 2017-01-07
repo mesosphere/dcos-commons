@@ -16,13 +16,14 @@ public class RawTask {
     private final String cmd;
     private final String image;
     private final Map<String, String> env;
-    private final Collection<RawConfiguration> configurations;
+    private final WriteOnceLinkedHashMap<String, RawConfiguration> configurations;
     private final Collection<String> uris;
     private final Double cpus;
     private final Integer memory;
-    private final Collection<RawPort> ports;
+    private final WriteOnceLinkedHashMap<String, RawEndpoint> endpoints;
     private final RawHealthCheck healthCheck;
-    private final Collection<RawVolume> volumes;
+    private final RawVolume volume;
+    private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
     private final String resourceSet;
 
     private RawTask(
@@ -30,13 +31,14 @@ public class RawTask {
             @JsonProperty("cmd") String cmd,
             @JsonProperty("image") String image,
             @JsonProperty("env") Map<String, String> env,
-            @JsonProperty("configurations") Collection<RawConfiguration> configurations,
+            @JsonProperty("configurations") WriteOnceLinkedHashMap<String, RawConfiguration> configurations,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("cpus") Double cpus,
             @JsonProperty("memory") Integer memory,
-            @JsonProperty("ports") Collection<RawPort> ports,
+            @JsonProperty("endpoints") WriteOnceLinkedHashMap<String, RawEndpoint> endpoints,
             @JsonProperty("health-check") RawHealthCheck healthCheck,
-            @JsonProperty("volumes") Collection<RawVolume> volumes,
+            @JsonProperty("volume") RawVolume volume,
+            @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
             @JsonProperty("resource-set") String resourceSet) {
         this.goal = goal;
         this.cmd = cmd;
@@ -46,8 +48,9 @@ public class RawTask {
         this.uris = uris;
         this.cpus = cpus;
         this.memory = memory;
-        this.ports = ports;
+        this.endpoints = endpoints;
         this.healthCheck = healthCheck;
+        this.volume = volume;
         this.volumes = volumes;
         this.resourceSet = resourceSet;
     }
@@ -88,15 +91,19 @@ public class RawTask {
         return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
     }
 
-    public Collection<RawPort> getPorts() {
-        return ports;
+    public WriteOnceLinkedHashMap<String, RawEndpoint> getEndpoints() {
+        return endpoints;
     }
 
-    public Collection<RawConfiguration> getConfigurations() {
+    public WriteOnceLinkedHashMap<String, RawConfiguration> getConfigurations() {
         return configurations;
     }
 
-    public Collection<RawVolume> getVolumes() {
+    public RawVolume getVolume() {
+        return volume;
+    }
+
+    public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
         return volumes;
     }
 }

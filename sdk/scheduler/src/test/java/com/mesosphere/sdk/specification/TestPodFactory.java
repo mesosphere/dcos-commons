@@ -24,8 +24,8 @@ public class TestPodFactory {
     public static TaskSpec getTaskSpec(String name, String resourceSetId) {
         return getTaskSpec(
                 name,
-                resourceSetId,
                 CMD.getValue(),
+                resourceSetId,
                 CPU,
                 MEM,
                 DISK);
@@ -33,19 +33,45 @@ public class TestPodFactory {
 
     public static TaskSpec getTaskSpec(
             String name,
-            String resourceSetId,
             String cmd,
+            String resourceSetId,
             double cpu,
             double mem,
             double disk) {
-        return getPodSpec(TestConstants.POD_TYPE, resourceSetId, name, cmd, 1, cpu, mem, disk).getTasks().get(0);
+        return getTaskSpec(name, cmd, getResourceSet(resourceSetId, cpu, mem, disk));
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            ResourceSet resourceSet) {
+        return getTaskSpec(name, cmd, resourceSet, Collections.emptyList());
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            ResourceSet resourceSet,
+            Collection<ConfigFileSpecification> configs) {
+        return DefaultTaskSpec.newBuilder()
+                .name(name)
+                .goalState(GoalState.RUNNING)
+                .resourceSet(resourceSet)
+                .commandSpec(DefaultCommandSpec.newBuilder(ConfigNamespace.emptyInstance())
+                        .value(cmd)
+                        .uris(Collections.emptyList())
+                        .environment(Collections.emptyMap())
+                        .build())
+                .configFiles(configs)
+                .build();
     }
 
     public static ResourceSet getResourceSet(String id, double cpu, double mem, double disk) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, TestConstants.PRINCIPAL)
                 .id(id)
-                .resources(getResources(cpu, mem, TestConstants.ROLE, TestConstants.PRINCIPAL))
-                .volumes(getVolumes(disk, TestConstants.ROLE, TestConstants.PRINCIPAL))
+                .cpus(cpu)
+                .memory(mem)
+                .addVolume(VolumeSpecification.Type.ROOT.toString(), disk, TestConstants.CONTAINER_PATH)
                 .build();
     }
 
@@ -58,25 +84,7 @@ public class TestPodFactory {
             double cpu,
             double mem,
             double disk) {
-        ResourceSet resourceSet = getResourceSet(resourceSetId, cpu, mem, disk);
-        TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
-                .name(taskName)
-                .goalState(GoalState.RUNNING)
-                .resourceSet(resourceSet)
-                .commandSpec(DefaultCommandSpec.newBuilder(ConfigNamespace.emptyInstance())
-                        .value(cmd)
-                        .uris(Collections.emptyList())
-                        .environment(Collections.emptyMap())
-                        .build())
-                .configFiles(Collections.emptyList())
-                .build();
-
-        return DefaultPodSpec.newBuilder()
-                .type(type)
-                .count(count)
-                .resources(Arrays.asList(resourceSet))
-                .tasks(Arrays.asList(taskSpec))
-                .build();
+        return getPodSpec(type, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, cpu, mem, disk)));
     }
 
     public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
@@ -90,42 +98,5 @@ public class TestPodFactory {
                 .resources(resourceSets)
                 .tasks(taskSpecs)
                 .build();
-    }
-
-    static Collection<ResourceSpecification> getResources(
-            double cpu,
-            double mem,
-            String role,
-            String principal) {
-        return Arrays.asList(
-                new DefaultResourceSpecification(
-                        "cpus",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(cpu))
-                                .build(),
-                        role,
-                        principal,
-                        "CPUS"),
-                new DefaultResourceSpecification(
-                        "mem",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(mem))
-                                .build(),
-                        role,
-                        principal,
-                        "MEM"));
-    }
-
-    static Collection<VolumeSpecification> getVolumes(double diskSize, String role, String principal) {
-        return Arrays.asList(
-                new DefaultVolumeSpecification(
-                        diskSize,
-                        VolumeSpecification.Type.ROOT,
-                        TestConstants.CONTAINER_PATH,
-                        role,
-                        principal,
-                        "VOLUME"));
     }
 }

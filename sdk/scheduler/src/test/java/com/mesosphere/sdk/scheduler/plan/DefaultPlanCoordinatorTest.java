@@ -134,8 +134,6 @@ public class DefaultPlanCoordinatorTest {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podB))
                 .build();
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {

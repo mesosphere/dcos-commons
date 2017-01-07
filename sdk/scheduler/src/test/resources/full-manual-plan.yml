@@ -1,7 +1,4 @@
 name: "hello-world"
-principal: "hello-world-principal"
-zookeeper: master.mesos:2181
-api-port: 8080
 replacement-failure-policy:
   permanent-failure-timeout-ms: 10
   min-replace-delay-ms: 10
@@ -12,20 +9,20 @@ pods:
       hello-resources:
         cpus: {{HELLO_CPUS}}
         memory: 256
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
-        volumes:
-          - path: "hello-container-path"
-            type: ROOT
-            size: 1024
+        volume:
+          path: "hello-container-path"
+          type: ROOT
+          size: 1024
       once-resources:
         cpus: 1
         memory: 256
-        volumes:
-          - path: "once-container-path"
-            type: ROOT
-            size: 1024
+        volume:
+          path: "once-container-path"
+          type: ROOT
+          size: 1024
     tasks:
       server:
         goal: RUNNING
@@ -50,13 +47,13 @@ pods:
       world-resources:
         cpus: 1
         memory: 256
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
-        volumes:
-          - path: "world-container-path"
-            type: ROOT
-            size: 1024
+        volume:
+          path: "world-container-path"
+          type: ROOT
+          size: 1024
     tasks:
       server:
         goal: RUNNING
@@ -80,11 +77,9 @@ plans:
         strategy: serial
         pod: hello
         steps:
-          - pod-instance: 0
-            tasks: [once, server]
+          0: [once, server]
       world-deploy:
         strategy: serial
         pod: world
         steps:
-          - pod-instance: 1
-            tasks: [server]
+          1: [server]

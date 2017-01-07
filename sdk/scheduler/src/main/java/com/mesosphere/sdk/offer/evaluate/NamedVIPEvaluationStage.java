@@ -2,27 +2,46 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
+
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.DiscoveryInfo;
 
 /**
  * This class evaluates an offer against a given {@link OfferRequirement} for port resources as in
  * {@link PortEvaluationStage}, additionally setting {@link org.apache.mesos.Protos.DiscoveryInfo} properly for
  * DC/OS to pick up the specified named VIP mapping.
  */
-public class NamedVIPEvaluationStage extends PortEvaluationStage implements OfferEvaluationStage {
+public class NamedVIPEvaluationStage extends PortEvaluationStage {
+    private final String protocol;
+    private final DiscoveryInfo.Visibility visibility;
     private final String vipName;
     private final Integer vipPort;
 
     public NamedVIPEvaluationStage(
-            Protos.Resource resource, String taskName, String portName, Integer port, String vipName, Integer vipPort) {
+            Protos.Resource resource,
+            String taskName,
+            String portName,
+            Integer port,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            String vipName,
+            Integer vipPort) {
         super(resource, taskName, portName, port);
+        this.protocol = protocol;
+        this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
     }
 
     public NamedVIPEvaluationStage(
-            Protos.Resource resource, String portName, Integer port, String vipName, Integer vipPort) {
-        this(resource, null, portName, port, vipName, vipPort);
+            Protos.Resource resource,
+            String portName,
+            Integer port,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            String vipName,
+            Integer vipPort) {
+        this(resource, null, portName, port, protocol, visibility, vipName, vipPort);
     }
 
     @Override
@@ -36,7 +55,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage implements Offe
             Protos.TaskInfo.Builder taskInfoBuilder = offerRequirement
                     .getTaskRequirement(getTaskName().get()).getTaskInfo().toBuilder();
 
-            ResourceUtils.addVIP(taskInfoBuilder, vipName, vipPort, resource);
+            ResourceUtils.addVIP(taskInfoBuilder, vipName, vipPort, protocol, visibility, resource);
             offerRequirement.updateTaskRequirement(getTaskName().get(), taskInfoBuilder.build());
         } else if (offerRequirement.getExecutorRequirementOptional().isPresent() &&
                 !isVIPSet(offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getDiscovery())) {
@@ -46,7 +65,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage implements Offe
                     .getExecutorInfo()
                     .toBuilder();
 
-            ResourceUtils.addVIP(executorInfoBuilder, vipName, vipPort, resource);
+            ResourceUtils.addVIP(executorInfoBuilder, vipName, vipPort, protocol, visibility, resource);
             offerRequirement.updateExecutorRequirement(executorInfoBuilder.build());
         }
     }

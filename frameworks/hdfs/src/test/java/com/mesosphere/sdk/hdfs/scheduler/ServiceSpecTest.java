@@ -4,6 +4,8 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.*;
@@ -26,9 +28,10 @@ public class ServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
+        environmentVariables.set("PORT_API", String.valueOf(TestConstants.API_PORT_VALUE));
         environmentVariables.set("EXECUTOR_URI", "");
         environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
+
         environmentVariables.set("SERVICE_NAME", "hdfs");
         environmentVariables.set("SERVICE_PRINCIPAL", "principal");
         environmentVariables.set("JOURNAL_CPUS", "1.0");

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.DiscoveryInfo;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -22,22 +23,31 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
     private final String portName;
     @NotNull
     @Size(min = 1)
+    private final String protocol;
+    @NotNull
+    private final DiscoveryInfo.Visibility visibility;
+    @NotNull
+    @Size(min = 1)
     private final String vipName;
     @NotNull
     private final Integer vipPort;
 
     @JsonCreator
     public NamedVIPSpecification(
-            @JsonProperty("port_name") String portName,
-            @JsonProperty("vip_name") String vipName,
-            @JsonProperty("vip_port") Integer vipPort,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey) {
+            @JsonProperty("env_key") String envKey,
+            @JsonProperty("port_name") String portName,
+            @JsonProperty("protocol") String protocol,
+            @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
+            @JsonProperty("vip_name") String vipName,
+            @JsonProperty("vip_port") Integer vipPort) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
+        this.protocol = protocol;
+        this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
 
@@ -47,6 +57,16 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
     @JsonProperty("port_name")
     public String getPortName() {
         return portName;
+    }
+
+    @JsonProperty("protocol")
+    public String getProtocol() {
+        return protocol;
+    }
+
+    @JsonProperty("visibility")
+    public DiscoveryInfo.Visibility getVisibility() {
+        return visibility;
     }
 
     @JsonProperty("vip_name")
@@ -64,8 +84,10 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
         return new NamedVIPEvaluationStage(
                 resource,
                 taskName,
-                portName,
+                getPortName(),
                 (int) getValue().getRanges().getRange(0).getBegin(),
+                getProtocol(),
+                getVisibility(),
                 getVipName(),
                 getVipPort());
     }

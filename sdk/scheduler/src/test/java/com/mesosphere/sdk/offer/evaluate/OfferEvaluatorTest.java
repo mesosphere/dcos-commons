@@ -2,8 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
-import com.mesosphere.sdk.offer.constrain.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -31,8 +29,11 @@ import java.util.stream.Collectors;
 public class OfferEvaluatorTest {
 
     private static final String ROOT_ZK_PATH = "/test-root-path";
+    public static final EnvironmentVariables environmentVariables =
+            OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
+
     private static TestingServer testZk;
-    private static EnvironmentVariables environmentVariables;
+
     private OfferRequirementProvider offerRequirementProvider;
     private StateStore stateStore;
     private OfferEvaluator evaluator;
@@ -41,9 +42,6 @@ public class OfferEvaluatorTest {
     @BeforeClass
     public static void beforeAll() throws Exception {
         testZk = new TestingServer();
-        environmentVariables = new EnvironmentVariables();
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
     }
 
     @Before
@@ -907,15 +905,13 @@ public class OfferEvaluatorTest {
     }
 
     private PodInstanceRequirement getDynamicPortPodInstanceRequirement() throws Exception {
-        return getPodInstanceRequirement(
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, "dynamic-port.yml");
+        return getPodInstanceRequirement(false, "dynamic-port.yml");
     }
 
     private PodInstanceRequirement getExistingPortPodInstanceRequirement(
             Resource resource, String yamlFile) throws Exception {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(resource);
-        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, yamlFile);
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(false, yamlFile);
         String stateStoreName = TaskSpec.getInstanceName(
                     podInstanceRequirement.getPodInstance(),
                     podInstanceRequirement.getPodInstance().getPod().getTasks().get(0));
@@ -937,26 +933,15 @@ public class OfferEvaluatorTest {
     }
 
     private PodInstanceRequirement getMultipleDynamicPortPodInstanceRequirement() throws Exception {
-        return getPodInstanceRequirement(
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                false,
-                "multiple-dynamic-port.yml");
+        return getPodInstanceRequirement(false, "multiple-dynamic-port.yml");
     }
 
     private PodInstanceRequirement getNamedVIPPodInstanceRequirement() throws Exception {
-        return getPodInstanceRequirement(
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, "named-vip.yml");
+        return getPodInstanceRequirement(false, "named-vip.yml");
     }
 
     private PodInstanceRequirement getDynamicVIPPodInstanceRequirement() throws Exception {
-        return getPodInstanceRequirement(
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                false,
-                "dynamic-vip-port.yml");
+        return getPodInstanceRequirement(false, "dynamic-vip-port.yml");
     }
 
     private PodInstanceRequirement getPodInstanceRequirement(
@@ -968,13 +953,18 @@ public class OfferEvaluatorTest {
                 Arrays.asList(resource), avoidAgents, collocateAgents, isVolume, "single-task.yml");
     }
 
+    private PodInstanceRequirement getPodInstanceRequirement(boolean isVolume, String yamlFile) throws Exception {
+        return getPodInstanceRequirement(
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), isVolume, yamlFile);
+    }
+
+
     private PodInstanceRequirement getPodInstanceRequirement(
             Collection<Resource> resources,
             List<String> avoidAgents,
             List<String> collocateAgents,
             boolean isVolume,
             String yamlFile) throws Exception {
-        environmentVariables.set("PORT0", "8080");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(yamlFile).getFile());
         RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
@@ -1019,20 +1009,7 @@ public class OfferEvaluatorTest {
     }
 
     private PodInstanceRequirement getMultipleTaskPodInstanceRequirement() throws Exception {
-        return getPodInstanceRequirement(
-                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, "multiple-task.yml");
-    }
-
-    private static OfferRequirement getOfferRequirement(
-            Protos.Resource resource, List<String> avoidAgents, List<String> collocateAgents)
-                    throws InvalidRequirementException {
-        Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
-        return OfferRequirement.create(
-                TestConstants.TASK_TYPE,
-                0,
-                Arrays.asList(TaskTestUtils.getTaskInfo(resource)),
-                Optional.empty(),
-                placement);
+        return getPodInstanceRequirement(false, "multiple-task.yml");
     }
 
     private static Offer getOffer(Resource resource) {

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification.yaml;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,10 +13,13 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -25,9 +27,48 @@ import java.util.stream.Collectors;
  */
 public class YAMLToInternalMappers {
 
-    static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
-        final String role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
-        final String principal = rawSvcSpec.getPrincipal();
+    /**
+     * Converts the provided YAML {@link RawServiceSpecification} into a new {@link ServiceSpec}.
+     *
+     * @param rawSvcSpec the raw service specification representing a YAML file
+     * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
+     * @throws Exception if the conversion fails
+     */
+    static DefaultServiceSpec from(
+            RawServiceSpecification rawSvcSpec,
+            YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
+        RawScheduler rawScheduler = rawSvcSpec.getScheduler();
+
+        String role = null;
+        String principal = null;
+        Integer apiPort = null;
+        String zookeeper = null;
+        if (rawScheduler != null) {
+            principal = rawScheduler.getPrincipal();
+            role = rawScheduler.getRole();
+            apiPort = rawScheduler.getApiPort();
+            zookeeper = rawScheduler.getZookeeper();
+        }
+        // Fall back to defaults as needed:
+        if (StringUtils.isEmpty(role)) {
+            role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
+        }
+        if (StringUtils.isEmpty(principal)) {
+            principal = SchedulerUtils.nameToPrincipal(rawSvcSpec.getName());
+        }
+        if (apiPort == null) {
+            apiPort = SchedulerUtils.apiPort();
+        }
+        if (StringUtils.isEmpty(zookeeper)) {
+            zookeeper = SchedulerUtils.defaultZkHost();
+        }
+
+        DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
+                .name(rawSvcSpec.getName())
+                .role(role)
+                .principal(principal)
+                .apiPort(apiPort)
+                .zookeeperConnection(zookeeper);
 
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawSvcSpec.getPods();
@@ -35,15 +76,15 @@ public class YAMLToInternalMappers {
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
             pods.add(from(
                     entry.getValue(),
+                    fileReader,
                     entry.getKey(),
                     taskConfigRouter.getConfig(entry.getKey()),
                     role,
                     principal));
         }
+        builder.pods(pods);
 
         RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
-        DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder();
-
         if (replacementFailurePolicy != null) {
             Integer minReplaceDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
             Integer permanentFailureTimoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
@@ -54,36 +95,16 @@ public class YAMLToInternalMappers {
                     .build());
         }
 
-        return builder
-                .name(rawSvcSpec.getName())
-                .apiPort(rawSvcSpec.getApiPort())
-                .principal(principal)
-                .zookeeperConnection(rawSvcSpec.getZookeeper())
-                .pods(pods)
-                .role(role)
-                .build();
-    }
-
-    private static ConfigFileSpecification from(RawConfiguration rawConfiguration) throws IOException {
-        return new DefaultConfigFileSpecification(
-                rawConfiguration.getDest(),
-                new File(rawConfiguration.getTemplate()));
-    }
-
-    private static HealthCheckSpec from(RawHealthCheck rawHealthCheck) {
-        return DefaultHealthCheckSpec.newBuilder()
-                .command(rawHealthCheck.getCmd())
-                .delay(rawHealthCheck.getDelay())
-                .gracePeriod(rawHealthCheck.getGracePeriod())
-                .interval(rawHealthCheck.getInterval())
-                .maxConsecutiveFailures(rawHealthCheck.getMaxConsecutiveFailures())
-                .timeout(rawHealthCheck.getTimeout())
-                .build();
+        return builder.build();
     }
 
     private static PodSpec from(
-            RawPod rawPod, String podName, ConfigNamespace configNamespace, String role, String principal)
-                    throws Exception {
+            RawPod rawPod,
+            YAMLServiceSpecFactory.FileReader fileReader,
+            String podName,
+            ConfigNamespace configNamespace,
+            String role,
+            String principal) throws Exception {
         Collection<URI> uris = new ArrayList<>();
         for (String uriStr : rawPod.getUris()) {
             uris.add(new URI(uriStr));
@@ -95,7 +116,16 @@ public class YAMLToInternalMappers {
             resourceSets.addAll(rawResourceSets.entrySet().stream()
                     .map(rawResourceSetEntry -> {
                         String rawResourceSetName = rawResourceSetEntry.getKey();
-                        return from(rawResourceSets.get(rawResourceSetName), rawResourceSetName, role, principal);
+                        RawResourceSet rawResourceSet = rawResourceSets.get(rawResourceSetName);
+                        return from(
+                                rawResourceSetName,
+                                rawResourceSet.getCpus(),
+                                rawResourceSet.getMemory(),
+                                rawResourceSet.getEndpoints(),
+                                rawResourceSet.getVolume(),
+                                rawResourceSet.getVolumes(),
+                                role,
+                                principal);
                     })
                     .collect(Collectors.toList()));
         }
@@ -104,6 +134,7 @@ public class YAMLToInternalMappers {
         for (Map.Entry<String, RawTask> entry : rawPod.getTasks().entrySet()) {
             taskSpecs.add(from(
                     entry.getValue(),
+                    fileReader,
                     entry.getKey(),
                     uris,
                     Optional.ofNullable(rawPod.getUser()),
@@ -125,36 +156,20 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
         if (rawPod.getContainer() != null) {
-            builder.container(
-                    new DefaultContainerSpec(
-                            rawPod.getContainer().getImageName(), from(rawPod.getContainer().getRLimits())));
+            List<RLimit> rlimits = new ArrayList<>();
+            for (Map.Entry<String, RawRLimit> entry : rawPod.getContainer().getRLimits().entrySet()) {
+                RawRLimit rawRLimit = entry.getValue();
+                rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
+            }
+            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), rlimits));
         }
 
         return builder.build();
     }
 
-    private static Collection<RLimit> from(LinkedHashMap<String, RawRLimit> rawRLimits) throws Exception {
-        List<RLimit> rlimits = new ArrayList<>();
-        for (Map.Entry<String, RawRLimit> entry : rawRLimits.entrySet()) {
-            RawRLimit rawRLimit = entry.getValue();
-            rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
-        }
-
-        return rlimits;
-    }
-
-    private static ResourceSet from(
-            RawResourceSet rawResourceSet, String resourceSetId, String role, String principal) {
-        Double cpus = rawResourceSet.getCpus();
-        Integer memory = rawResourceSet.getMemory();
-        Collection<RawPort> ports = rawResourceSet.getPorts();
-        final Collection<RawVolume> rawVolumes = rawResourceSet.getVolumes();
-
-        return from(resourceSetId, cpus, memory, ports, rawVolumes, role, principal);
-    }
-
     private static TaskSpec from(
             RawTask rawTask,
+            YAMLServiceSpecFactory.FileReader fileReader,
             String taskName,
             Collection<URI> podUris,
             Optional<String> user,
@@ -176,16 +191,25 @@ public class YAMLToInternalMappers {
             commandSpecBuilder.user(user.get());
         }
 
-        List<ConfigFileSpecification> configFiles = new LinkedList<>();
-        if (rawTask.getConfigurations() != null) {
-            for (RawConfiguration rawConfig : rawTask.getConfigurations()) {
-                configFiles.add(from(rawConfig));
+        List<ConfigFileSpecification> configFiles = new ArrayList<>();
+        if (MapUtils.isNotEmpty(rawTask.getConfigurations())) {
+            for (RawConfiguration rawConfig : rawTask.getConfigurations().values()) {
+                configFiles.add(new DefaultConfigFileSpecification(
+                        rawConfig.getDest(), fileReader.read(rawConfig.getTemplate())));
             }
         }
 
         HealthCheckSpec healthCheckSpec = null;
         if (rawTask.getHealthCheck() != null) {
-            healthCheckSpec = from(rawTask.getHealthCheck());
+            RawHealthCheck rawHealthCheck = rawTask.getHealthCheck();
+            healthCheckSpec = DefaultHealthCheckSpec.newBuilder()
+                    .command(rawHealthCheck.getCmd())
+                    .delay(rawHealthCheck.getDelay())
+                    .gracePeriod(rawHealthCheck.getGracePeriod())
+                    .interval(rawHealthCheck.getInterval())
+                    .maxConsecutiveFailures(rawHealthCheck.getMaxConsecutiveFailures())
+                    .timeout(rawHealthCheck.getTimeout())
+                    .build();
         }
 
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
@@ -208,7 +232,8 @@ public class YAMLToInternalMappers {
                     taskName + "-resource-set",
                     rawTask.getCpus(),
                     rawTask.getMemory(),
-                    rawTask.getPorts(),
+                    rawTask.getEndpoints(),
+                    rawTask.getVolume(),
                     rawTask.getVolumes(),
                     role,
                     principal));
@@ -221,20 +246,28 @@ public class YAMLToInternalMappers {
             String id,
             Double cpus,
             Integer memory,
-            Collection<RawPort> ports,
-            Collection<RawVolume> rawVolumes,
+            WriteOnceLinkedHashMap<String, RawEndpoint> rawEndpoints,
+            RawVolume rawSingleVolume,
+            WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
             String principal) {
 
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
-        if (CollectionUtils.isNotEmpty(rawVolumes)) {
-            for (RawVolume rawVolume : rawVolumes) {
-                resourceSetBuilder
-                        .addVolume(rawVolume.getType(), Double.valueOf(rawVolume.getSize()), rawVolume.getPath());
+        if (MapUtils.isNotEmpty(rawVolumes)) {
+            // Note: volume names for multiple volumes are currently ignored
+            for (RawVolume rawVolume : rawVolumes.values()) {
+                resourceSetBuilder.addVolume(
+                        rawVolume.getType(),
+                        Double.valueOf(rawVolume.getSize()),
+                        rawVolume.getPath());
             }
-        } else {
-            resourceSetBuilder.volumes(Collections.emptyList());
+        }
+        if (rawSingleVolume != null) {
+            resourceSetBuilder.addVolume(
+                    rawSingleVolume.getType(),
+                    Double.valueOf(rawSingleVolume.getSize()),
+                    rawSingleVolume.getPath());
         }
 
         if (cpus != null) {
@@ -245,8 +278,10 @@ public class YAMLToInternalMappers {
             resourceSetBuilder.memory(Double.valueOf(memory));
         }
 
-        if (CollectionUtils.isNotEmpty(ports)) {
-            resourceSetBuilder.addPorts(ports);
+        if (MapUtils.isNotEmpty(rawEndpoints)) {
+            for (Map.Entry<String, RawEndpoint> rawEndpoint : rawEndpoints.entrySet()) {
+                resourceSetBuilder.addEndpoint(rawEndpoint.getKey(), rawEndpoint.getValue());
+            }
         }
 
         return resourceSetBuilder

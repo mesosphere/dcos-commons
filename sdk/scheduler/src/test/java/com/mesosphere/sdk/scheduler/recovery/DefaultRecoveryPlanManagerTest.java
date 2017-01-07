@@ -58,9 +58,6 @@ public class DefaultRecoveryPlanManagerTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables =
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
-    static {
-        environmentVariables.set("PORT0", "8080");
-    }
 
     private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
@@ -107,9 +104,6 @@ public class DefaultRecoveryPlanManagerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());

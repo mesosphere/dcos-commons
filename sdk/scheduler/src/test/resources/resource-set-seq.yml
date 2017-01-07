@@ -1,18 +1,14 @@
 name: "test"
-principal: "test-principal"
-zookeeper: master.mesos:2181
-api-port: 8080
 pods:
   name:
     count: 2
     resource-sets:
       name-resources:
         cpus: 1.0
-        volumes:
-          - path: "name-path"
-            type: ROOT
-            size: 50
-
+        volume:
+          path: "name-path"
+          type: ROOT
+          size: 50
       sidecar-resources:
         cpus: 2.0
     tasks:
@@ -49,7 +45,5 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - pod-instance: 0
-            tasks: [format]
-          - pod-instance: 0
-            tasks: [node]
+          0: [format]
+          1: [node]

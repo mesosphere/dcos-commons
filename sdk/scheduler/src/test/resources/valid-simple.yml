@@ -1,7 +1,4 @@
 name: "data-store"
-principal: "data-store-principal"
-zookeeper: master.mesos:2181
-api-port: {{PORT0}}
 pods:
   meta-data:
     count: 2
@@ -11,13 +8,13 @@ pods:
         cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
         cpus: 0.1
         memory: 512
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
-        volumes:
-          - path: "meta-data-container-path"
-            type: ROOT
-            size: 5000
+        volume:
+          path: "meta-data-container-path"
+          type: ROOT
+          size: 5000
         env:
           TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"

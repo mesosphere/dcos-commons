@@ -7,6 +7,8 @@ import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -19,6 +21,7 @@ import java.util.Collections;
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
 public class ServiceSpecTest {
+
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -27,13 +30,15 @@ public class ServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
+        environmentVariables.set("PORT_API", String.valueOf(TestConstants.API_PORT_VALUE));
         environmentVariables.set("EXECUTOR_URI", "");
         environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
+
         environmentVariables.set("BROKER_COUNT", "2");
         environmentVariables.set("BROKER_CPUS", "0.1");
         environmentVariables.set("BROKER_MEM", "512");
         environmentVariables.set("BROKER_DISK", "5000");
+
         URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }

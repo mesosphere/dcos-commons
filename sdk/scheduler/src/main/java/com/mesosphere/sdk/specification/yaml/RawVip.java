@@ -9,12 +9,18 @@ public class RawVip {
 
     private final int port;
     private final String prefix;
+    private final String protocol;
+    private final Boolean visible;
 
     private RawVip(
             @JsonProperty("port") int port,
-            @JsonProperty("prefix") String prefix) {
+            @JsonProperty("prefix") String prefix,
+            @JsonProperty("protocol") String protocol,
+            @JsonProperty("visible") Boolean visible) {
         this.port = port;
         this.prefix = prefix;
+        this.protocol = protocol;
+        this.visible = visible;
     }
 
     public int getPort() {
@@ -23,5 +29,13 @@ public class RawVip {
 
     public String getPrefix() {
         return prefix;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public Boolean isVisible() {
+        return visible;
     }
 }

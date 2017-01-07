@@ -23,12 +23,12 @@ public class PortSpecification extends DefaultResourceSpecification implements R
 
     @JsonCreator
     public PortSpecification(
-            @JsonProperty("port_name") String portName,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey) {
+            @JsonProperty("env_key") String envKey,
+            @JsonProperty("port_name") String portName) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
 

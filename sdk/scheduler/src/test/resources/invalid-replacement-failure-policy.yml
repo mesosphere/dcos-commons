@@ -1,7 +1,4 @@
-name:
-principal: "data-store-principal"
-zookeeper: master.mesos:2181
-api-port:
+name: data-store
 replacement-failure-policy:
   permanent-failure-timeout-ms: -1
   min-replace-delay-ms: -1
@@ -13,13 +10,13 @@ pods:
       meta-data-resources:
         cpus: 0.1
         memory: 512
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
-        volumes:
-          - path: "meta-data-container-path"
-            type: ROOT
-            size: 5000
+        volume:
+          path: "meta-data-container-path"
+          type: ROOT
+          size: 5000
     tasks:
       meta-data-task:
         goal: RUNNING
@@ -43,13 +40,13 @@ pods:
       data-store-resources:
         cpus: 0.1
         memory: 512
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
-        volumes:
-          - path: "data-store-container-path"
-            type: ROOT
-            size: 5000
+        volume:
+          path: "data-store-container-path"
+          type: ROOT
+          size: 5000
     tasks:
       data-store-task:
         goal: RUNNING

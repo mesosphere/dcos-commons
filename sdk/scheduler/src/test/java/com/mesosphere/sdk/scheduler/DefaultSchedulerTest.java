@@ -167,8 +167,6 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
 
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());

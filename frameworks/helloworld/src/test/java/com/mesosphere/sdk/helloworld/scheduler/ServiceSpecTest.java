@@ -6,6 +6,8 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -26,9 +28,9 @@ public class ServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
+        environmentVariables.set("PORT_API", String.valueOf(TestConstants.API_PORT_VALUE));
         environmentVariables.set("EXECUTOR_URI", "");
         environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         environmentVariables.set("SLEEP_DURATION", "1000");
         environmentVariables.set("HELLO_COUNT", "2");

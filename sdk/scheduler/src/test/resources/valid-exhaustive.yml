@@ -1,7 +1,8 @@
 name: "data-store"
-principal: "data-store-principal"
-zookeeper: master.mesos:2181
-api-port: {{PORT0}}
+scheduler:
+  principal: "data-store-principal"
+  zookeeper: master.mesos:2181
+  api-port: {{PORT_API}}
 replacement-failure-policy:
   permanent-failure-timeout-ms: 10
   min-replace-delay-ms: 10
@@ -18,11 +19,21 @@ pods:
       meta-data-resources:
         cpus: 0.1
         memory: 512
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
+            env-key: HTTP_PORT
+            vip:
+              port: 80
+              protocol: sctp
+              visible: false
         volumes:
-          - path: "meta-data-container-path"
+          index:
+            path: "index-container-path"
+            type: MOUNT
+            size: 4321
+          metadata:
+            path: "meta-data-container-path"
             type: ROOT
             size: 5000
     tasks:
@@ -34,6 +45,13 @@ pods:
           TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
+        configurations:
+          config-one.conf:
+            template: config-one.conf.mustache
+            dest: conf/config-one.conf
+          config-two.xml:
+            template: config-two.xml.mustache
+            dest: conf/config-two.xml
         health-check:
           cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
           interval: 5
@@ -48,13 +66,15 @@ pods:
       data-store-resources:
         cpus: 0.1
         memory: 512
-        ports:
-          - name: http
+        endpoints:
+          http:
             port: 8080
-        volumes:
-          - path: "meta-data-container-path"
-            type: ROOT
-            size: 5000
+            vip:
+              port: 80
+        volume:
+          path: "meta-data-container-path"
+          type: ROOT
+          size: 5000
     tasks:
       data-store-task:
         goal: RUNNING
@@ -64,6 +84,10 @@ pods:
           TASK_NAME: "data-store"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
+        configurations:
+          config-three.conf:
+            template: config-three.conf.mustache
+            dest: conf/config-three.conf
         health-check:
           cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
           interval: 5
@@ -83,17 +107,10 @@ plans:
         strategy: serial
         pod: nn
         steps:
-          - pod-instance: 0
-            tasks: [format]
-          - pod-instance: 0
-            tasks: [server]
-          - pod-instance: 1
-            tasks: [format]
-          - pod-instance: 1
-            tasks: [server]
+          0: [format, server]
+          1: [bootstrap, server]
       dn-deploy:
         strategy: serial
         pod: dn
-        steps:
-          - tasks: [format]
-          - tasks: [blah]
+        tasks:
+          [format, blah]

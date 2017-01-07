@@ -50,9 +50,6 @@ public class DefaultOfferRequirementProviderTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal-health.yml").getFile());
