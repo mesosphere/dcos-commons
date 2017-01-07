@@ -206,4 +206,28 @@ public class DefaultServiceSpecTest {
             }
         }
     }
+
+    @Test
+    public void defaultZKConnection() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Assert.assertNotNull(serviceSpec.getZookeeperConnection());
+        Assert.assertEquals(DefaultServiceSpec.DEFAULT_ZK_CONNECTION, serviceSpec.getZookeeperConnection());
+    }
+
+    @Test
+    public void customZKConnection() throws Exception {
+        environmentVariables.set("PORT0", "8080");
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-customzk.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Assert.assertNotNull(serviceSpec.getZookeeperConnection());
+        Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
+    }
 }

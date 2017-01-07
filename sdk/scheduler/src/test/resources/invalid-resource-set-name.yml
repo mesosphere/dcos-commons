@@ -1,6 +1,5 @@
 name:
 principal: "data-store-principal"
-zookeeper: master.mesos:2181
 api-port:
 replacement-failure-policy:
   permanent-failure-timeout-ms: -1
