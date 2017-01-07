@@ -1,6 +1,5 @@
 name: "hello-world"
 principal: "hello-world-principal"
-zookeeper: master.mesos:2181
 api-port: 8080
 replacement-failure-policy:
   permanent-failure-timeout-ms: 10

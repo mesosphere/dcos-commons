@@ -66,7 +66,9 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
-        this.zookeeperConnection = zookeeperConnection;
+        // If no zookeeperConnection string is configured, fallback to the default value.
+        this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
+                ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
     }
@@ -76,7 +78,9 @@ public class DefaultServiceSpec implements ServiceSpec {
         role = builder.role;
         principal = builder.principal;
         apiPort = builder.apiPort;
-        zookeeperConnection = builder.zookeeperConnection;
+        // If no zookeeperConnection string is configured, fallback to the default value.
+        zookeeperConnection = StringUtils.isBlank(builder.zookeeperConnection)
+                ? DEFAULT_ZK_CONNECTION : builder.zookeeperConnection;
         pods = builder.pods;
         replacementFailurePolicy = builder.replacementFailurePolicy;
     }
@@ -119,8 +123,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     @Override
     public String getZookeeperConnection() {
-        // If no zookeeperConnection string is configured, fallback to the default value.
-        return StringUtils.isNotBlank(zookeeperConnection) ? zookeeperConnection : DEFAULT_ZK_CONNECTION;
+        return zookeeperConnection;
     }
 
     @Override
