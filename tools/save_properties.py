@@ -12,10 +12,9 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 PROPERTIES_FILE_NAME='stub-universe.properties'
-URL_FILE_NAME = 'stub_universe_url.txt'
 
 
-def upload_to_s3(s3_dir):
+def upload_to_s3(s3_dir_uri):
     jenkins_workspace_path = os.environ.get('WORKSPACE', '')
     properties_file_path = "{}/{}".format(jenkins_workspace_path, PROPERTIES_FILE_NAME)
     if not os.path.isfile(properties_file_path):
@@ -31,7 +30,7 @@ def upload_to_s3(s3_dir):
 
     filename = os.path.basename(properties_file_path)
     cmd = 'aws s3 cp --acl public-read {} {}/{} 1>&2'.format(
-        properties_file_path, s3_dir, filename)
+        properties_file_path, s3_dir_uri, filename)
     logger.info(cmd)
     ret = os.system(cmd)
     if not ret == 0:
@@ -40,8 +39,8 @@ def upload_to_s3(s3_dir):
 
 
 def main(argv):
-    if len(argv) != 1:
-        logger.error('Syntax: {} <S3 directory>'.format(argv[0]))
+    if len(argv) != 2:
+        logger.error('Syntax: {} <S3 directory URI>'.format(argv[0]))
         logger.error('Received arguments {}'.format(str(argv)))
         return 1
     upload_to_s3(argv[1])
