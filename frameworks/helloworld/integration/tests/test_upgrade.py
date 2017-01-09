@@ -27,6 +27,8 @@ def teardown_module(module):
 @pytest.mark.upgrade
 def test_upgrade_downgrade():
     # Ensure both Universe and the test repo exist.
+    # In particular, the Framework Test Suite only runs packages from Universe;
+    # it doesn't add a test repo like the PR jobs.
     if len(shakedown.get_package_repos()['repositories']) != 2:
         print('No test repo found.  Skipping test_upgrade_downgrade')
         return
