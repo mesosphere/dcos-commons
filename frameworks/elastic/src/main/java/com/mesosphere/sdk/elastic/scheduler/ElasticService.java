@@ -17,7 +17,8 @@ public class ElasticService extends DefaultService {
         super(pathToYamlSpecification);
     }
 
-    protected static Protos.FrameworkInfo.Builder getFrameworkInfoBuilder(String serviceName) {
+    @Override
+    protected Protos.FrameworkInfo.Builder getFrameworkInfoBuilder(String serviceName) {
         String webuiUrl = String.format("http://kibana-0-server.%s.mesos:%s", serviceName,
                 System.getenv("KIBANA_PORT"));
         LOGGER.info("Setting web UI URL: " + webuiUrl);
