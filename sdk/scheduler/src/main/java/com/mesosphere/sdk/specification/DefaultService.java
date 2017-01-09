@@ -1,30 +1,25 @@
 package com.mesosphere.sdk.specification;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
+
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.JettyApiServer;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCluster;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.specification.validation.CapabilityValidator;
-import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,24 +37,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultService implements Service {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
+    protected static final int LOCK_ATTEMPTS = 3;
     protected static final String USER = "root";
     protected static final String LOCK_PATH = "lock";
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
-    protected int apiPort;
-    protected String zkConnectionString;
-
-    protected InterProcessMutex curatorMutex;
-    protected CuratorFramework curatorClient;
-    protected StateStore stateStore;
-    protected ServiceSpec serviceSpec;
-    protected Collection<Plan> plans;
-    protected ConfigStore<ServiceSpec> configTargetStore;
-    protected UUID targetConfigId;
-    protected OfferRequirementProvider offerRequirementProvider;
-
-    public DefaultService() {
-    }
+    private final DefaultScheduler.Builder schedulerBuilder;
 
     public DefaultService(String yamlSpecification) throws Exception {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
@@ -69,46 +52,64 @@ public class DefaultService implements Service {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
     }
 
-    public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
-        CapabilityValidator capabilityValidator = new CapabilityValidator(new Capabilities(new DcosCluster()));
-        this.serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-        capabilityValidator.validate(this.serviceSpec);
-
-        init();
-        this.plans = generatePlansFromRawSpec(rawServiceSpecification);
-        register(serviceSpec, this.plans);
-        unlock();
+    public DefaultService(RawServiceSpec rawServiceSpec) throws Exception {
+        this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec))
+                .setPlansFrom(rawServiceSpec));
     }
 
-    public DefaultService(ServiceSpec serviceSpecification) {
-        this(serviceSpecification, Collections.emptyList());
+    public DefaultService(ServiceSpec serviceSpecification, Collection<Plan> plans) throws Exception {
+        this(DefaultScheduler.newBuilder(serviceSpecification).setPlans(plans));
     }
 
-    public DefaultService(ServiceSpec serviceSpec, Collection<Plan> plans) {
-        this.serviceSpec = serviceSpec;
-        init();
-        this.plans = plans;
-        register(serviceSpec, this.plans);
-    }
+    public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
+        this.schedulerBuilder = schedulerBuilder;
 
-    private void lock() {
-        String rootPath = CuratorUtils.toServiceRootPath(serviceSpec.getName());
-        String lockPath = CuratorUtils.join(rootPath, LOCK_PATH);
-        curatorMutex = new InterProcessMutex(curatorClient, lockPath);
+        CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
+                schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
+        curatorClient.start();
 
-        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
+        InterProcessMutex curatorMutex = lock(curatorClient, schedulerBuilder.getServiceSpec().getName());
         try {
-            if (!curatorMutex.acquire(10, TimeUnit.SECONDS)) {
-                LOGGER.error("Failed to acquire ZK lock. Are you running another framework named {}? Exiting.",
-                        serviceSpec.getName());
-                SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
-            }
-        } catch (Exception ex) {
-            LOGGER.error("Error acquiring ZK lock.", ex);
+            register();
+        } finally {
+            unlock(curatorMutex);
+            curatorClient.close();
         }
     }
 
-    private void unlock() {
+    /**
+     * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
+     * same service.
+     */
+    private static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName) {
+        String rootPath = CuratorUtils.toServiceRootPath(serviceName);
+        String lockPath = CuratorUtils.join(rootPath, LOCK_PATH);
+        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
+
+        LOGGER.info("Acquiring ZK lock on {}...", lockPath);
+        final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
+                "Duplicate service named '%s', or recently restarted instance of '%s'?",
+                lockPath, serviceName, serviceName);
+        try {
+            for (int i = 0; i < LOCK_ATTEMPTS; ++i) {
+                if (curatorMutex.acquire(10, TimeUnit.SECONDS)) {
+                    return curatorMutex;
+                }
+                LOGGER.error("{}/{} {} Retrying lock...", i + 1, LOCK_ATTEMPTS, failureLogMsg);
+            }
+            LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
+            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
+        } catch (Exception ex) {
+            LOGGER.error(String.format("Error acquiring ZK lock on path: %s", lockPath), ex);
+            SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
+        }
+        return null; // not reachable, only here for a happy java
+    }
+
+    /**
+     * Releases the lock previously obtained by {@link #lock(CuratorFramework, String)}.
+     */
+    private static void unlock(InterProcessMutex curatorMutex) {
         try {
             curatorMutex.release();
         } catch (Exception ex) {
@@ -116,70 +117,19 @@ public class DefaultService implements Service {
         }
     }
 
-    private void initCurator() {
-        curatorClient = CuratorFrameworkFactory.newClient(zkConnectionString, CuratorUtils.getDefaultRetry());
-        curatorClient.start();
-    }
-
-    protected void init() {
-        this.zkConnectionString = this.serviceSpec.getZookeeperConnection();
-        initCurator();
-        lock();
-
-        this.apiPort = this.serviceSpec.getApiPort();
-        this.stateStore = DefaultScheduler.createStateStore(this.serviceSpec, zkConnectionString);
-
-        try {
-            configTargetStore = DefaultScheduler.createConfigStore(serviceSpec, zkConnectionString, Arrays.asList());
-        } catch (ConfigStoreException e) {
-            LOGGER.error("Unable to create config store", e);
-            throw new IllegalStateException(e);
-        }
-
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configTargetStore);
-
-        this.targetConfigId = configUpdateResult.targetId;
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, targetConfigId);
-    }
-
-    @VisibleForTesting
-    protected Collection<Plan> generatePlansFromRawSpec(RawServiceSpecification rawServiceSpecification)
-            throws Exception {
-        DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configTargetStore, stateStore);
-        List<Plan> plans = new LinkedList<>();
-        if (rawServiceSpecification.getPlans() != null) {
-            for (Map.Entry<String, RawPlan> entry : rawServiceSpecification.getPlans().entrySet()) {
-                plans.add(planGenerator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods()));
-            }
-        }
-        return plans;
-    }
-
     /**
-     * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the
-     * {@code apiPort}.
+     * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the {@code apiPort}.
      */
     @Override
-    public void register(ServiceSpec serviceSpecification, Collection<Plan> plans) {
-        DefaultScheduler defaultScheduler = DefaultScheduler.create(
-                serviceSpecification,
-                plans,
-                stateStore,
-                configTargetStore,
-                offerRequirementProvider);
+    public void register() {
+        DefaultScheduler defaultScheduler = schedulerBuilder.build();
+        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
 
-        startApiServer(defaultScheduler, apiPort);
-        registerFramework(defaultScheduler, getFrameworkInfo(), "zk://" + zkConnectionString + "/mesos");
-    }
-
-    public ServiceSpec getServiceSpec() {
-        return serviceSpec;
-    }
-
-
-    public Collection<Plan> getPlans() {
-        return plans;
+        startApiServer(defaultScheduler, serviceSpec.getApiPort());
+        registerAndRunFramework(
+                defaultScheduler,
+                getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore()),
+                serviceSpec.getZookeeperConnection());
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
@@ -207,20 +157,34 @@ public class DefaultService implements Service {
         }).start();
     }
 
-    private static void registerFramework(Scheduler sched, Protos.FrameworkInfo frameworkInfo, String masterUri) {
-        LOGGER.info("Registering framework: {}", frameworkInfo);
-        SchedulerDriver driver = new SchedulerDriverFactory().create(sched, frameworkInfo, masterUri);
-        driver.run();
+    private static void registerAndRunFramework(
+            Scheduler sched, Protos.FrameworkInfo frameworkInfo, String zookeeperHost) {
+        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
+        new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
 
-    private Protos.FrameworkInfo getFrameworkInfo() {
+    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+        final String serviceName = serviceSpec.getName();
+
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceSpec.getName())
+                .setName(serviceName)
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(USER)
-                .setRole(SchedulerUtils.nameToRole(serviceSpec.getName()))
-                .setPrincipal(SchedulerUtils.nameToPrincipal(serviceSpec.getName()))
                 .setCheckpoint(true);
+
+        // Use provided role if specified, otherwise default to "<svcname>-role".
+        if (StringUtils.isEmpty(serviceSpec.getRole())) {
+            fwkInfoBuilder.setRole(SchedulerUtils.nameToRole(serviceName));
+        } else {
+            fwkInfoBuilder.setRole(serviceSpec.getRole());
+        }
+
+        // Use provided principal if specified, otherwise default to "<svcname>-principal".
+        if (StringUtils.isEmpty(serviceSpec.getPrincipal())) {
+            fwkInfoBuilder.setPrincipal(SchedulerUtils.nameToPrincipal(serviceName));
+        } else {
+            fwkInfoBuilder.setPrincipal(serviceSpec.getPrincipal());
+        }
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();

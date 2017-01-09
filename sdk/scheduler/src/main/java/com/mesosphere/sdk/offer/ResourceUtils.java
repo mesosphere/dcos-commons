@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.specification.ResourceSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -8,14 +10,10 @@ import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
-import com.mesosphere.sdk.specification.ResourceSpecification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
@@ -23,16 +21,18 @@ import java.util.Objects;
 public class ResourceUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtils.class);
 
+    public static final String VIP_PREFIX = "VIP_";
+
     public static Resource getUnreservedResource(String name, Value value) {
         return setResource(Resource.newBuilder().setRole("*"), name, value);
     }
 
-    public static Resource getDesiredResource(ResourceSpecification resourceSpecification) {
+    public static Resource getDesiredResource(ResourceSpec resourceSpec) {
         return getDesiredResource(
-                resourceSpecification.getRole(),
-                resourceSpecification.getPrincipal(),
-                resourceSpecification.getName(),
-                resourceSpecification.getValue());
+                resourceSpec.getRole(),
+                resourceSpec.getPrincipal(),
+                resourceSpec.getName(),
+                resourceSpec.getValue());
     }
 
     public static Resource getUnreservedMountVolume(double diskSize, String mountRoot) {
@@ -204,137 +204,59 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
-    public static Resource setDynamicPortName(Resource resource, String name) {
-        Labels labels = setDynamicPortName(resource.getReservation().getLabels(), name);
-
-        return Resource.newBuilder(resource)
-                .setReservation(
-                        ReservationInfo.newBuilder(resource.getReservation())
-                        .clearLabels()
-                        .setLabels(labels))
-                .build();
-    }
-
-    private static Labels setDynamicPortName(Labels labels, String name) {
-        Labels.Builder labelBuilder = Labels.newBuilder(labels);
-        labelBuilder.addLabelsBuilder()
-                .setKey(MesosResource.DYNAMIC_PORT_KEY)
-                .setValue(name);
-        return labelBuilder.build();
-    }
-
-    public static Resource setVIPPortName(Resource resource, String key, String name) {
-        Labels labels = setVIPPortName(resource.getReservation().getLabels(), key, name);
-
-        return Resource.newBuilder(resource)
-                .setReservation(
-                        ReservationInfo.newBuilder(resource.getReservation())
-                                .clearLabels()
-                                .setLabels(labels))
-                .build();
-    }
-
-    private static Labels setVIPPortName(Labels labels, String key, String name) {
-        Labels.Builder labelsBuilder = Labels.newBuilder(labels);
-        labelsBuilder.addLabels(
-                        Label.newBuilder()
-                            .setKey(MesosResource.VIP_LABEL_NAME_KEY)
-                            .setValue(key))
-                .addLabels(
-                        Label.newBuilder()
-                            .setKey(MesosResource.VIP_LABEL_VALUE_KEY)
-                            .setValue(name))
-                .build();
-
-        return labelsBuilder.build();
-    }
-
-    /**
-     * Populates {@link DiscoveryInfo} with necessary information to create VIP if the provided {@link TaskInfo}
-     * has a port associated with a named VIP.
-     */
-    public static TaskInfo.Builder setDiscoveryInfo(TaskInfo.Builder taskBuilder, Collection<Resource> resources) {
-        for (Resource r : resources) {
-            if (RequirementUtils.isNamedVIPPort(r)) {
-                taskBuilder.setDiscovery(getVIPDiscoveryInfo(r, taskBuilder.getName()));
-            }
+    public static TaskInfo.Builder addVIP(
+            TaskInfo.Builder builder, String vipName, Integer vipPort, Resource resource) {
+        if (builder.hasDiscovery()) {
+            addVIP(builder.getDiscoveryBuilder(), vipName, vipPort, (int) resource.getRanges().getRange(0).getBegin());
+        } else {
+            builder.setDiscovery(getVIPDiscoveryInfo(builder.getName(), vipName, vipPort, resource));
         }
 
-        return taskBuilder;
+        return builder;
     }
 
-    /**
-     * Populates {@link DiscoveryInfo} with necessary information to create VIP if the provided {@link ExecutorInfo}
-     * has a port associated with a named VIP.
-     */
-    public static ExecutorInfo.Builder setDiscoveryInfo(
-            ExecutorInfo.Builder execBuilder, Collection<Resource> resources) {
-        for (Resource r : resources) {
-            if (RequirementUtils.isNamedVIPPort(r)) {
-                execBuilder.setDiscovery(getVIPDiscoveryInfo(r, execBuilder.getName()));
-            }
+    public static ExecutorInfo.Builder addVIP(
+            ExecutorInfo.Builder builder, String vipName, Integer vipPort, Resource resource) {
+        if (builder.hasDiscovery()) {
+            addVIP(builder.getDiscoveryBuilder(), vipName, vipPort, (int) resource.getRanges().getRange(0).getBegin());
+        } else {
+            builder.setDiscovery(getVIPDiscoveryInfo(builder.getName(), vipName, vipPort, resource));
         }
 
-        return execBuilder;
+        return builder;
     }
 
-    private static DiscoveryInfo getVIPDiscoveryInfo(Resource r, String name) {
-        int destPort = (int) r.getRanges().getRange(0).getBegin();
-        DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
-                .setName(name);
-        discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
+    private static DiscoveryInfo.Builder addVIP(
+            DiscoveryInfo.Builder builder, String vipName, Integer vipPort, int destPort) {
+        builder.getPortsBuilder()
+                .addPortsBuilder()
                 .setNumber(destPort)
                 .setProtocol("tcp")
-                .getLabelsBuilder().addLabelsBuilder()
-                        .setKey(NamedVIPPortRequirement.getVIPLabelKey(r))
-                        .setValue(String.format("%s:%d", NamedVIPPortRequirement.getVIPLabelValue(r), destPort));
+                .getLabelsBuilder()
+                .addLabels(getVIPLabel(vipName, vipPort));
+
+        return builder;
+    }
+
+    public static DiscoveryInfo getVIPDiscoveryInfo(String taskName, String vipName, Integer vipPort, Resource r) {
+        DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setName(taskName);
+
+        discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
+                .setNumber((int) r.getRanges().getRange(0).getBegin())
+                .setProtocol("tcp")
+                .getLabelsBuilder()
+                .addLabels(getVIPLabel(vipName, vipPort));
+
         return discoveryInfoBuilder.build();
     }
 
-    public static Protos.Environment getEnvironment(List<Resource> resources) {
-        Protos.Environment.Builder envBuilder = Protos.Environment.newBuilder();
-        for (Resource resource : resources) {
-            String portName = DynamicPortRequirement.getPortName(resource);
-            if (portName != null) {
-                String portNumber = String.valueOf(resource.getRanges().getRange(0).getBegin());
-                envBuilder.addVariables(Protos.Environment.Variable.newBuilder()
-                        .setName(portName)
-                        .setValue(portNumber));
-            }
-        }
-
-        return envBuilder.build();
-    }
-
-    public static Protos.Environment updateEnvironment(Protos.Environment env, List<Resource> resources) {
-        Protos.Environment resEnv = ResourceUtils.getEnvironment(resources);
-        return Protos.Environment.newBuilder(env)
-                .addAllVariables(resEnv.getVariablesList())
+    public static Label getVIPLabel(String vipName, Integer vipPort) {
+        return Label.newBuilder()
+                .setKey(String.format("%s%s", VIP_PREFIX, UUID.randomUUID().toString()))
+                .setValue(String.format("%s:%d", vipName, vipPort))
                 .build();
-    }
-
-    public static TaskInfo.Builder updateEnvironment(Protos.TaskInfo.Builder builder, List<Resource> resources) {
-        Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
-                builder.getCommand().getEnvironment(), resources);
-        if (updateEnv.getVariablesCount() > 0) {
-            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
-                    .setEnvironment(updateEnv));
-        } else {
-            return builder;
-        }
-    }
-
-    public static ExecutorInfo.Builder updateEnvironment(
-            Protos.ExecutorInfo.Builder builder, List<Resource> resources) {
-        Protos.Environment updateEnv = ResourceUtils.updateEnvironment(
-                builder.getCommand().getEnvironment(), resources);
-        if (updateEnv.getVariablesCount() > 0) {
-            return builder.setCommand(Protos.CommandInfo.newBuilder(builder.getCommand())
-                    .setEnvironment(updateEnv));
-        } else {
-            return builder;
-        }
     }
 
     public static Resource setValue(Resource resource, Value value) {
@@ -401,25 +323,25 @@ public class ResourceUtils {
     }
 
     public static boolean areDifferent(
-            ResourceSpecification oldResourceSpecification,
-            ResourceSpecification newResourceSpecification) {
+            ResourceSpec oldResourceSpec,
+            ResourceSpec newResourceSpec) {
 
-        Protos.Value oldValue = oldResourceSpecification.getValue();
-        Protos.Value newValue = newResourceSpecification.getValue();
+        Protos.Value oldValue = oldResourceSpec.getValue();
+        Protos.Value newValue = newResourceSpec.getValue();
         if (!ValueUtils.equal(oldValue, newValue)) {
             LOGGER.info(String.format("Values '%s' and '%s' are different.", oldValue, newValue));
             return true;
         }
 
-        String oldRole = oldResourceSpecification.getRole();
-        String newRole = newResourceSpecification.getRole();
+        String oldRole = oldResourceSpec.getRole();
+        String newRole = newResourceSpec.getRole();
         if (!Objects.equals(oldRole, newRole)) {
             LOGGER.info(String.format("Roles '%s' and '%s' are different.", oldRole, newRole));
             return true;
         }
 
-        String oldPrincipal = oldResourceSpecification.getPrincipal();
-        String newPrincipal = newResourceSpecification.getPrincipal();
+        String oldPrincipal = oldResourceSpec.getPrincipal();
+        String newPrincipal = newResourceSpec.getPrincipal();
         if (!Objects.equals(oldPrincipal, newPrincipal)) {
             LOGGER.info(String.format("Principals '%s' and '%s' are different.", oldPrincipal, newPrincipal));
             return true;
@@ -428,19 +350,89 @@ public class ResourceUtils {
         return false;
     }
 
-    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpecification resourceSpecification)
+    public static Protos.Resource updateResource(Protos.Resource resource, ResourceSpec resourceSpec)
             throws IllegalArgumentException {
         Protos.Resource.Builder builder = Protos.Resource.newBuilder(resource);
         switch (resource.getType()) {
             case SCALAR:
-                return builder.setScalar(resourceSpecification.getValue().getScalar()).build();
+                return builder.setScalar(resourceSpec.getValue().getScalar()).build();
             case RANGES:
-                return builder.setRanges(resourceSpecification.getValue().getRanges()).build();
+                return builder.setRanges(resourceSpec.getValue().getRanges()).build();
             case SET:
-                return builder.setSet(resourceSpecification.getValue().getSet()).build();
+                return builder.setSet(resourceSpec.getValue().getSet()).build();
             default:
                 throw new IllegalArgumentException("Unexpected Resource type encountered: " + resource.getType());
         }
+    }
+
+    /**
+     * This method replaces the {@link Resource} on the {@link TaskInfo.Builder} with the supplied resource, if a
+     * resource with that name already exists on that task. If it isn't, an {@link IllegalArgumentException} is thrown.
+     * @param builder the task to install the resource on
+     * @param resource the resource to install on the task
+     * @return the supplied builder, modified to include the resource
+     */
+    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) {
+        for (int i = 0; i < builder.getResourcesCount(); ++i) {
+            if (builder.getResources(i).getName().equals(resource.getName())) {
+                builder.setResources(i, resource);
+                return builder;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Task has no resource with name '%s': %s",
+                resource.getName(), TextFormat.shortDebugString(builder.build())));
+    }
+
+    /**
+     * This method gets the {@link Resource} with the supplied resourceName from the supplied {@link TaskInfo}, throwing
+     * an {@link IllegalArgumentException} if not found.
+     * @param taskInfo the task info whose resource will be returned
+     * @param resourceName the resourceName of the resource to return
+     * @return the resource with the supplied resourceName
+     */
+    public static Resource getResource(TaskInfo taskInfo, String resourceName) {
+        for (Resource r : taskInfo.getResourcesList()) {
+            if (r.getName().equals(resourceName)) {
+                return r;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                String.format(
+                        "Task has no resource with name '%s': %s",
+                        resourceName, TextFormat.shortDebugString(taskInfo)));
+    }
+
+    public static ExecutorInfo.Builder setResource(ExecutorInfo.Builder builder, Resource resource) {
+        for (int i = 0; i < builder.getResourcesCount(); ++i) {
+            if (builder.getResources(i).getName().equals(resource.getName())) {
+                builder.setResources(i, resource);
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Executor has no resource with name '%s': %s",
+                resource.getName(), TextFormat.shortDebugString(builder.build())));
+    }
+
+    public static Resource getResource(ExecutorInfo executorInfo, String name) {
+        for (Resource r : executorInfo.getResourcesList()) {
+            if (r.getName().equals(name)) {
+                return r;
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Executor has no resource with name '%s': %s",
+                name, TextFormat.shortDebugString(executorInfo)));
+    }
+
+    public static Resource mergeRanges(Resource lhs, Resource rhs) {
+        return lhs.toBuilder().setRanges(
+                RangeAlgorithms.fromRangeList(RangeAlgorithms.mergeRanges(
+                        lhs.getRanges().getRangeList(), rhs.getRanges().getRangeList()))).build();
     }
 
     private static List<Resource> clearResourceIds(List<Resource> resources) {

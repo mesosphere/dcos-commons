@@ -87,7 +87,7 @@ public class MaxPerAttributeRule implements PlacementRule {
     public MaxPerAttributeRule(
             @JsonProperty("max") int maxTasksPerSelectedAttribute,
             @JsonProperty("matcher") StringMatcher attributeMatcher,
-            @JsonProperty("task_filter") StringMatcher taskFilter) {
+            @JsonProperty("task-filter") StringMatcher taskFilter) {
         this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
         this.attributeMatcher = attributeMatcher;
         if (taskFilter == null) { // null when unspecified in serialized data
@@ -159,14 +159,14 @@ public class MaxPerAttributeRule implements PlacementRule {
         return attributeMatcher;
     }
 
-    @JsonProperty("task_filter")
+    @JsonProperty("task-filter")
     private StringMatcher getTaskFilter() {
         return taskFilter;
     }
 
     @Override
     public String toString() {
-        return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task_filter=%s}",
+        return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task-filter=%s}",
                 maxTasksPerSelectedAttribute, attributeMatcher, taskFilter);
     }
 

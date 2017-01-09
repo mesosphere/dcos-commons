@@ -8,35 +8,17 @@ import java.util.*;
 /**
  * Validates that each TaskSpecification's volumes have not been modified.
  */
-public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSpec> {
+public class TaskVolumesCannotChange implements ConfigValidator<ServiceSpec> {
 
-
-    private static Map<String, TaskSpec> getAllTasksByName(
-            ServiceSpec service, List<ConfigurationValidationError> errors) {
-        Map<String, TaskSpec> tasks = new HashMap<>();
-        for (PodSpec podSpec : service.getPods()) {
-            for (TaskSpec taskSpec : podSpec.getTasks()) {
-                TaskSpec priorTask = tasks.put(podSpec.getType() + "-" + taskSpec.getName(), taskSpec);
-                if (priorTask != null) {
-                    errors.add(ConfigurationValidationError.valueError(
-                            "TaskSpecifications", taskSpec.getName(),
-                            String.format("Duplicate TaskSpecifications named '%s' in Service '%s': %s %s",
-                                    taskSpec.getName(), service.getName(), priorTask, taskSpec)));
-                }
-            }
-        }
-
-        return tasks;
-    }
 
     @Override
-    public Collection<ConfigurationValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
-        List<ConfigurationValidationError> errors = new ArrayList<>();
+    public Collection<ConfigValidationError> validate(ServiceSpec nullableOldConfig, ServiceSpec newConfig) {
+        List<ConfigValidationError> errors = new ArrayList<>();
         Map<String, TaskSpec> oldTasks =
                 (nullableOldConfig == null) ? new HashMap<>() : getAllTasksByName(nullableOldConfig, errors);
         Map<String, TaskSpec> newTasks = getAllTasksByName(newConfig, errors);
 
-        // Note: We're intentionally just comparing cases where the tasks in both TaskSpecs.
+        // Note: We're itentionally just comparing cases where the tasks in both TaskSpecs.
         // Enforcement of new/removed tasks should be performed in a separate Validator.
         for (Map.Entry<String, TaskSpec> oldEntry : oldTasks.entrySet()) {
             TaskSpec newTask = newTasks.get(oldEntry.getKey());
@@ -46,7 +28,7 @@ public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSp
             }
 
             if (!TaskUtils.volumesEqual(oldEntry.getValue(), newTask)) {
-                errors.add(ConfigurationValidationError.transitionError(
+                errors.add(ConfigValidationError.transitionError(
                         String.format("TaskVolumes[taskname:%s]", newTask.getName()),
                         oldEntry.getValue().getResourceSet().getVolumes().toString(),
                         newTask.getResourceSet().getVolumes().toString(),
@@ -55,5 +37,23 @@ public class TaskVolumesCannotChange implements ConfigurationValidator<ServiceSp
         }
 
         return errors;
+    }
+
+    private static Map<String, TaskSpec> getAllTasksByName(
+            ServiceSpec service, List<ConfigValidationError> errors) {
+        Map<String, TaskSpec> tasks = new HashMap<>();
+        for (PodSpec podSpec : service.getPods()) {
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                TaskSpec priorTask = tasks.put(podSpec.getType() + "-" + taskSpec.getName(), taskSpec);
+                if (priorTask != null) {
+                    errors.add(ConfigValidationError.valueError(
+                            "TaskSpecifications", taskSpec.getName(),
+                            String.format("Duplicate TaskSpecifications named '%s' in Service '%s': %s %s",
+                                    taskSpec.getName(), service.getName(), priorTask, taskSpec)));
+                }
+            }
+        }
+
+        return tasks;
     }
 }

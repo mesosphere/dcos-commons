@@ -8,16 +8,14 @@ import com.mesosphere.sdk.executor.ExecutorTaskException;
 import com.mesosphere.sdk.executor.ExecutorUtils;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * An ExecutorRequirement encapsulates the needed resources an Executor must
  * have.
  */
 public class ExecutorRequirement {
-    private final Collection<DynamicPortRequirement> dynamicPortRequirements;
-    private final Collection<NamedVIPPortRequirement> namedVIPPortRequirements;
     private ExecutorInfo executorInfo;
-    private Collection<ResourceRequirement> resourceRequirements;
 
     /**
      * This method generates one of two possible Executor requirements.  In the first case, if an empty ExecutorID is
@@ -58,11 +56,6 @@ public class ExecutorRequirement {
             throws InvalidRequirementException {
         validateExecutorInfo(executorInfo);
         this.executorInfo = executorInfo;
-        this.resourceRequirements =
-                RequirementUtils.getResourceRequirements(executorInfo.getResourcesList());
-        // These are managed in a separate collection, since the actual ports can only be fulfilled at offer time.
-        this.dynamicPortRequirements = RequirementUtils.getDynamicPortRequirements(executorInfo.getResourcesList());
-        this.namedVIPPortRequirements = RequirementUtils.getNamedVIPPortRequirements(executorInfo.getResourcesList());
     }
 
     public ExecutorInfo getExecutorInfo() {
@@ -70,15 +63,9 @@ public class ExecutorRequirement {
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
-        return resourceRequirements;
-    }
-
-    public Collection<DynamicPortRequirement> getDynamicPortRequirements() {
-        return dynamicPortRequirements;
-    }
-
-    public Collection<NamedVIPPortRequirement> getNamedVIPPortRequirements() {
-        return namedVIPPortRequirements;
+        return executorInfo.getResourcesList().stream()
+                .map(r -> new ResourceRequirement(r))
+                .collect(Collectors.toList());
     }
 
     public Collection<String> getResourceIds() {
@@ -90,7 +77,7 @@ public class ExecutorRequirement {
     }
 
     public boolean desiresResources() {
-        for (ResourceRequirement resReq : resourceRequirements) {
+        for (ResourceRequirement resReq : getResourceRequirements()) {
             if (resReq.reservesResource()) {
                 return true;
             }

@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *    rack:2  | a-2, c-2, c-3
  *    rack:3  | b-2, c-4
  * Result:
- *  allow rack:3 only, unless we know that there's >3 racks via the attribute_count parameter
+ *  allow rack:3 only, unless we know that there's >3 racks via the attribute-count parameter
  *
  * Example:
  *  attribute |     tasks
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *    rack:2  | a-2, c-2, c-3
  *    rack:3  | b-2, c-4, b-3
  * Result:
- *  allow any of rack:1/rack:2/rack:3, unless we know that there's >3 racks via the attribute_count
+ *  allow any of rack:1/rack:2/rack:3, unless we know that there's >3 racks via the attribute-count
  *  parameter.
  */
 public class RoundRobinByAttributeRule extends RoundRobinBaseRule {
@@ -47,8 +47,8 @@ public class RoundRobinByAttributeRule extends RoundRobinBaseRule {
     @JsonCreator
     public RoundRobinByAttributeRule(
             @JsonProperty("name") String attributeName,
-            @JsonProperty("value_count") Optional<Integer> attributeValueCount,
-            @JsonProperty("task_filter") StringMatcher taskFilter) {
+            @JsonProperty("value-count") Optional<Integer> attributeValueCount,
+            @JsonProperty("task-filter") StringMatcher taskFilter) {
         super(taskFilter, attributeValueCount);
         this.attributeName = attributeName;
     }
@@ -80,19 +80,19 @@ public class RoundRobinByAttributeRule extends RoundRobinBaseRule {
         return attributeName;
     }
 
-    @JsonProperty("value_count")
+    @JsonProperty("value-count")
     private Optional<Integer> getAttributeValueCount() {
         return distinctValueCount;
     }
 
-    @JsonProperty("task_filter")
+    @JsonProperty("task-filter")
     private StringMatcher getTaskFilter() {
         return taskFilter;
     }
 
     @Override
     public String toString() {
-        return String.format("RoundRobinByAttributeRule{attribute=%s, attribute_count=%s, task_filter=%s}",
+        return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",
                 attributeName, distinctValueCount, taskFilter);
     }
 

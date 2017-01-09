@@ -1,148 +1,108 @@
 package com.mesosphere.sdk.dcos;
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
+
+import static org.mockito.Mockito.when;
 
 /**
- * This class tests the Capabilities class.
+ * Tests for the {@link Capabilities} class
  */
 public class CapabilitiesTest {
-    private MockDcosCluster mockDcosCluster;
 
-    @After
-    public void afterEach() {
-        if (mockDcosCluster != null) {
-            mockDcosCluster.stop();
-        }
+    @Mock private DcosCluster mockDcosCluster;
+    @Mock private DcosVersion mockDcosVersion;
+
+    @Before
+    public void beforeEach() throws IOException {
+        MockitoAnnotations.initMocks(this);
+        when(mockDcosCluster.getDcosVersion()).thenReturn(mockDcosVersion);
     }
 
     @Test
-    public void testHasNamedVipsFails_0_9() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("0.9.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_090() throws IOException {
+        Capabilities capabilities = testCapabilities("0.9.0");
         Assert.assertFalse(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasNamedVipsFails_1_7() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.7.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_170() throws IOException {
+        Capabilities capabilities = testCapabilities("1.7.0");
         Assert.assertFalse(capabilities.supportsNamedVips());
+        Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasNamedVipsFails_1_7dev() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.7-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_17dev() throws IOException {
+        Capabilities capabilities = testCapabilities("1.7-dev");
         Assert.assertFalse(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasNamedVipsSucceeds_1_8() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.8.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertTrue(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasNamedVipsSucceeds_1_8dev() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.8-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertTrue(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasNamedVipsSucceeds_1_9() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.9.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertTrue(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasNamedVipsSucceeds_1_9dev() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.9-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertTrue(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasNamedVipsSucceeds_2_0() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("2.0.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertTrue(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasNamedVipsSucceeds_2_0dev() throws URISyntaxException, IOException {
-        mockDcosCluster =  MockDcosCluster.create("2.0-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertTrue(capabilities.supportsNamedVips());
-    }
-
-    @Test
-    public void testHasRLimitsFails_0_9() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("0.9.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
         Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasRLimitsFails_1_7() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.7.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_180() throws IOException {
+        Capabilities capabilities = testCapabilities("1.8.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasRLimitsFails_1_7dev() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.7-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_18dev() throws IOException {
+        Capabilities capabilities = testCapabilities("1.8-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasRLimitsFails_1_8() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.8.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertFalse(capabilities.supportsRLimits());
-    }
-
-    @Test
-    public void testHasRLimitsFails_1_8dev() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.8-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
-        Assert.assertFalse(capabilities.supportsRLimits());
-    }
-
-    @Test
-    public void testHasRLimitsSucceeds_1_9() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.9.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_190() throws IOException {
+        Capabilities capabilities = testCapabilities("1.9.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasRLimitsSucceeds_1_9dev() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("1.9-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_19dev() throws IOException {
+        Capabilities capabilities = testCapabilities("1.9-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasRLimitsSucceeds_2_0() throws URISyntaxException, IOException {
-        mockDcosCluster = MockDcosCluster.create("2.0.0");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_1100() throws IOException {
+        Capabilities capabilities = testCapabilities("1.10.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
     @Test
-    public void testHasRLimitsSucceeds_2_0dev() throws URISyntaxException, IOException {
-        mockDcosCluster =  MockDcosCluster.create("2.0-dev");
-        Capabilities capabilities = new Capabilities(mockDcosCluster.getDcosCluster());
+    public void test_110dev() throws IOException {
+        Capabilities capabilities = testCapabilities("1.10-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsRLimits());
+    }
+
+    @Test
+    public void test_200() throws IOException {
+        Capabilities capabilities = testCapabilities("2.0.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
+    }
+
+    @Test
+    public void test_20dev() throws IOException {
+        Capabilities capabilities = testCapabilities("2.0-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsRLimits());
+    }
+
+    private Capabilities testCapabilities(String version) throws IOException {
+        when(mockDcosVersion.getElements()).thenReturn(new DcosVersion.Elements(version));
+        return new Capabilities(mockDcosCluster);
     }
 }

@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.apache.mesos.Protos.Value.Range;
+import org.apache.mesos.Protos.Value.Ranges;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 /**
  * A utility class for commonly needed algorithms for Mesos frameworks.
  */
-final class RangeAlgorithms {
+public final class RangeAlgorithms {
 
     private RangeAlgorithms() {
         // do not instantiate
@@ -19,7 +20,7 @@ final class RangeAlgorithms {
     /**
      * Combines and flattens the provided sets of ranges into a unified set.
      */
-    static List<Range> mergeRanges(List<Range> r1, List<Range> r2) {
+    public static List<Range> mergeRanges(List<Range> r1, List<Range> r2) {
         List<Interval> intervals = rangesToIntervals(r1);
         intervals.addAll(rangesToIntervals(r2));
         IntervalSet intervalSet = intervalsToIntervalSet(intervals);
@@ -30,7 +31,7 @@ final class RangeAlgorithms {
     /**
      * Removes the range intervals listed in {@code subtrahend} from {@code minuend}.
      */
-    static List<Range> subtractRanges(List<Range> minuend, List<Range> subtrahend) {
+    public static List<Range> subtractRanges(List<Range> minuend, List<Range> subtrahend) {
         IntervalSet iMinuend = intervalsToIntervalSet(rangesToIntervals(minuend));
         IntervalSet iSubtrahend = intervalsToIntervalSet(rangesToIntervals(subtrahend));
         IntervalSet iDifference = IntervalSet.subtract(iMinuend, iSubtrahend);
@@ -40,10 +41,14 @@ final class RangeAlgorithms {
     /**
      * Returns whether the provided sets of ranges are equivalent when any overlaps are flattened.
      */
-    static boolean rangesEqual(List<Range> list1, List<Range> list2) {
+    public static boolean rangesEqual(List<Range> list1, List<Range> list2) {
         IntervalSet i1 = intervalsToIntervalSet(rangesToIntervals(list1));
         IntervalSet i2 = intervalsToIntervalSet(rangesToIntervals(list2));
         return i1.equals(i2);
+    }
+
+    public static Ranges fromRangeList(List<Range> ranges) {
+        return Ranges.newBuilder().addAllRange(ranges).build();
     }
 
     private static Interval rangeToInterval(Range range) {

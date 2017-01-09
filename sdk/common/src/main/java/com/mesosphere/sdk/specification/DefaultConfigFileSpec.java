@@ -12,22 +12,22 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Basic implementation of {@link ConfigFileSpecification} which returns the provided values.
+ * Basic implementation of {@link ConfigFileSpec} which returns the provided values.
  */
-public class DefaultConfigFileSpecification implements ConfigFileSpecification {
+public class DefaultConfigFileSpec implements ConfigFileSpec {
 
     private final String relativePath;
     private final String templateContent;
 
     @JsonCreator
-    public DefaultConfigFileSpecification(
-            @JsonProperty("relative_path") String relativePath,
-            @JsonProperty("template_content") String templateContent) {
+    public DefaultConfigFileSpec(
+            @JsonProperty("relative-path") String relativePath,
+            @JsonProperty("template-content") String templateContent) {
         this.relativePath = relativePath;
         this.templateContent = templateContent;
     }
 
-    public DefaultConfigFileSpecification(
+    public DefaultConfigFileSpec(
             String relativePath,
             File templateFile) throws IOException {
         this(relativePath, FileUtils.readFileToString(templateFile, "UTF-8"));

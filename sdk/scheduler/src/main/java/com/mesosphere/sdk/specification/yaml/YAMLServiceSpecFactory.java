@@ -21,21 +21,21 @@ public class YAMLServiceSpecFactory {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-    public static final RawServiceSpecification generateRawSpecFromYAML(File pathToYaml) throws Exception {
+    public static final RawServiceSpec generateRawSpecFromYAML(File pathToYaml) throws Exception {
         return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET));
     }
 
-    public static final RawServiceSpecification generateRawSpecFromYAML(final String yaml) throws Exception {
+    public static final RawServiceSpec generateRawSpecFromYAML(final String yaml) throws Exception {
         final String yamlWithEnv = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
         LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
         if (!CommonTaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }
-        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpecification.class);
+        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpec.class);
     }
 
-    public static final DefaultServiceSpec generateServiceSpec(RawServiceSpecification rawServiceSpecification)
+    public static final DefaultServiceSpec generateServiceSpec(RawServiceSpec rawServiceSpec)
             throws Exception {
-        return YAMLToInternalMappers.from(rawServiceSpecification);
+        return YAMLToInternalMappers.from(rawServiceSpec);
     }
 }

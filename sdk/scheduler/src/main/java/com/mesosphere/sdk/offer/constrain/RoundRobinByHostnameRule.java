@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *   host-2  | a-2, c-2, c-3
  *   host-3  | b-2, c-4
  * Result:
- *  allow (only) host-3, unless we know that there's >=4 hosts via the agent_count parameter
+ *  allow (only) host-3, unless we know that there's >=4 hosts via the agent-count parameter
  *
  * Example:
  *  hostname |     tasks
@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *   host-2  | a-2, c-2, c-3
  *   host-3  | b-2, c-4, b-3
  * Result:
- *  allow any of host-1/host-2/host-3, unless we know that there's >=4 hosts via the agent_count
+ *  allow any of host-1/host-2/host-3, unless we know that there's >=4 hosts via the agent-count
  *  parameter.
  */
 public class RoundRobinByHostnameRule extends RoundRobinBaseRule {
@@ -47,8 +47,8 @@ public class RoundRobinByHostnameRule extends RoundRobinBaseRule {
 
     @JsonCreator
     public RoundRobinByHostnameRule(
-            @JsonProperty("agent_count") Optional<Integer> agentCount,
-            @JsonProperty("task_filter") StringMatcher taskFilter) {
+            @JsonProperty("agent-count") Optional<Integer> agentCount,
+            @JsonProperty("task-filter") StringMatcher taskFilter) {
         super(taskFilter, agentCount);
     }
 
@@ -71,19 +71,19 @@ public class RoundRobinByHostnameRule extends RoundRobinBaseRule {
         }
     }
 
-    @JsonProperty("agent_count")
+    @JsonProperty("agent-count")
     private Optional<Integer> getAgentCount() {
         return distinctValueCount;
     }
 
-    @JsonProperty("task_filter")
+    @JsonProperty("task-filter")
     private StringMatcher getTaskFilter() {
         return taskFilter;
     }
 
     @Override
     public String toString() {
-        return String.format("RoundRobinByHostnameRule{agent_count=%s, task_filter=%s}",
+        return String.format("RoundRobinByHostnameRule{agent-count=%s, task-filter=%s}",
                 distinctValueCount, taskFilter);
     }
 

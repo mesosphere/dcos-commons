@@ -77,7 +77,7 @@ public class AgentRule implements PlacementRule {
     }
 
     @JsonCreator
-    private AgentRule(@JsonProperty("agent_id") String agentId) {
+    private AgentRule(@JsonProperty("agent-id") String agentId) {
         this.agentId = agentId;
     }
 
@@ -91,7 +91,7 @@ public class AgentRule implements PlacementRule {
         }
     }
 
-    @JsonProperty("agent_id")
+    @JsonProperty("agent-id")
     private String getAgentId() {
         return agentId;
     }

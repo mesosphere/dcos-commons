@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -14,9 +16,9 @@ import javax.validation.constraints.Size;
 import java.util.Optional;
 
 /**
- * This class provides a default implementation of the ResourceSpecification interface.
+ * This class provides a default implementation of the ResourceSpec interface.
  */
-public class DefaultResourceSpecification implements ResourceSpecification {
+public class DefaultResourceSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String name;
@@ -31,12 +33,12 @@ public class DefaultResourceSpecification implements ResourceSpecification {
     private final String envKey;
 
     @JsonCreator
-    public DefaultResourceSpecification(
+    public DefaultResourceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey) {
+            @JsonProperty("env-key") String envKey) {
         this.name = name;
         this.value = value;
         this.role = role;
@@ -44,7 +46,7 @@ public class DefaultResourceSpecification implements ResourceSpecification {
         this.envKey = envKey;
     }
 
-    private DefaultResourceSpecification(Builder builder) {
+    private DefaultResourceSpec(Builder builder) {
         name = builder.name;
         value = builder.value;
         role = builder.role;
@@ -56,7 +58,7 @@ public class DefaultResourceSpecification implements ResourceSpecification {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultResourceSpecification copy) {
+    public static Builder newBuilder(DefaultResourceSpec copy) {
         Builder builder = new Builder();
         builder.name = copy.name;
         builder.value = copy.value;
@@ -79,6 +81,11 @@ public class DefaultResourceSpecification implements ResourceSpecification {
     @Override
     public String getPrincipal() {
         return principal;
+    }
+
+    @Override
+    public OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName) {
+        return new ResourceEvaluationStage(resource, taskName);
     }
 
     @Override
@@ -108,7 +115,7 @@ public class DefaultResourceSpecification implements ResourceSpecification {
 
 
     /**
-     * {@code DefaultResourceSpecification} builder static inner class.
+     * {@code DefaultResourceSpec} builder static inner class.
      */
     public static final class Builder {
         private String name;
@@ -177,15 +184,15 @@ public class DefaultResourceSpecification implements ResourceSpecification {
         }
 
         /**
-         * Returns a {@code DefaultResourceSpecification} built from the parameters previously set.
+         * Returns a {@code DefaultResourceSpec} built from the parameters previously set.
          *
-         * @return a {@code DefaultResourceSpecification} built with parameters of this
-         * {@code DefaultResourceSpecification.Builder}
+         * @return a {@code DefaultResourceSpec} built with parameters of this
+         * {@code DefaultResourceSpec.Builder}
          */
-        public DefaultResourceSpecification build() {
-            DefaultResourceSpecification defaultResourceSpecification = new DefaultResourceSpecification(this);
-            ValidationUtils.validate(defaultResourceSpecification);
-            return defaultResourceSpecification;
+        public DefaultResourceSpec build() {
+            DefaultResourceSpec defaultResourceSpec = new DefaultResourceSpec(this);
+            ValidationUtils.validate(defaultResourceSpec);
+            return defaultResourceSpec;
         }
     }
 }

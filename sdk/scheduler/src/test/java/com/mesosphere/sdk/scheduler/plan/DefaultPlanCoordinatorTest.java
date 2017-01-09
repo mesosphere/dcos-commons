@@ -4,7 +4,7 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.DefaultOfferRequirementProvider;
 import com.mesosphere.sdk.offer.OfferAccepter;
-import com.mesosphere.sdk.offer.OfferEvaluator;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;

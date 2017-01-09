@@ -1,6 +1,5 @@
 name: "test"
 principal: "test-principal"
-zookeeper: master.mesos:2181
 api-port: 8080
 pods:
   name:

@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.dcos;
 
-import org.apache.http.client.fluent.Content;
 import org.apache.http.client.fluent.Request;
 import org.json.JSONObject;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,7 +14,8 @@ import java.util.Optional;
  * Instances of this class represent DC/OS clusters.
  */
 public class DcosCluster {
-    private static final String DCOS_VERSION_PATH = "/dcos-metadata/dcos-version.json";
+    @VisibleForTesting
+    static final String DCOS_VERSION_PATH = "/dcos-metadata/dcos-version.json";
 
     private final URI dcosUri;
     private Optional<DcosVersion> dcosVersion = Optional.empty();
@@ -32,14 +34,18 @@ public class DcosCluster {
 
     public DcosVersion getDcosVersion() throws IOException {
         if (!dcosVersion.isPresent()) {
-            URI versionUri = getUriUnchecked(dcosUri + DCOS_VERSION_PATH);
-            Content content = Request.Get(versionUri)
-                    .execute().returnContent();
-            JSONObject jsonObject = new JSONObject(content.toString());
-            dcosVersion = Optional.of(new DcosVersion(jsonObject));
+            dcosVersion = Optional.of(new DcosVersion(new JSONObject(fetchUri(dcosUri + DCOS_VERSION_PATH))));
         }
-
         return dcosVersion.get();
+    }
+
+    /**
+     * Broken out into a separate function to allow stubbing out in tests.
+     */
+    @VisibleForTesting
+    protected String fetchUri(String path) throws IOException {
+        URI versionUri = getUriUnchecked(path);
+        return Request.Get(versionUri).execute().returnContent().toString();
     }
 
     /**

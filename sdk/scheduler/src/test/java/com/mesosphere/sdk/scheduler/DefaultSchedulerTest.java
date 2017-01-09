@@ -14,9 +14,7 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.OfferRequirementProvider;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -158,7 +156,6 @@ public class DefaultSchedulerTest {
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
-    private OfferRequirementProvider offerRequirementProvider;
     private DefaultScheduler defaultScheduler;
 
     @BeforeClass
@@ -174,18 +171,12 @@ public class DefaultSchedulerTest {
         environmentVariables.set("LIBMESOS_URI", "");
 
         StateStoreCache.resetInstanceForTests();
-        stateStore = DefaultScheduler.createStateStore(
-                SERVICE_SPECIFICATION,
-                testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(
-                SERVICE_SPECIFICATION,
-                testingServer.getConnectString(),
-                Collections.emptyList());
-        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
-                .updateConfig(SERVICE_SPECIFICATION, stateStore, configStore);
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
         register();
     }
 
@@ -202,10 +193,7 @@ public class DefaultSchedulerTest {
                         .build())
                 .build();
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
-                serviceSpecification,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        DefaultScheduler.createConfigStore(serviceSpecification, testingServer.getConnectString());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -295,12 +283,10 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-
-        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
-                .updateConfig(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -312,11 +298,10 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
-                .updateConfig(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore, configStore);
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_B_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -329,8 +314,10 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.create(SCALED_POD_A_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -495,11 +482,10 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
         // Perform Configuration Update
-        ConfigurationUpdater.UpdateResult updateResult = DefaultScheduler
-                .updateConfig(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore, configStore);
-        offerRequirementProvider = DefaultScheduler.createOfferRequirementProvider(stateStore, updateResult.targetId);
-        defaultScheduler = DefaultScheduler.create(UPDATED_POD_A_SERVICE_SPECIFICATION, stateStore,
-                configStore, offerRequirementProvider);
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
         register();
         defaultScheduler.reconciler.forceComplete();
         plan = defaultScheduler.deploymentPlanManager.getPlan();

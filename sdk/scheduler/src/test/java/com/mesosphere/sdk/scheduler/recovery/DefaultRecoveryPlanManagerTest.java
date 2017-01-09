@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.recovery;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -121,10 +122,7 @@ public class DefaultRecoveryPlanManagerTest {
                 .generateRawSpecFromYAML(new File(getClass()
                         .getClassLoader().getResource("recovery-plan-manager-test.yml").getPath())));
 
-        configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
+        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         TASK_INFO = CommonTaskUtils.setTargetConfiguration(TaskInfo.newBuilder(TASK_INFO), configTarget).build();
