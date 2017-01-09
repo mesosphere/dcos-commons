@@ -14,7 +14,7 @@ TEST_CONTENT_SMALL = "This is some test data"
 # TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 60
+HDFS_CMD_TIMEOUT_SEC = 5 * 60
 
 
 def setup_module(module):
