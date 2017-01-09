@@ -16,7 +16,7 @@ import org.apache.mesos.Scheduler;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.JettyApiServer;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -52,9 +52,9 @@ public class DefaultService implements Service {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
     }
 
-    public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
-        this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification))
-                .setPlansFrom(rawServiceSpecification));
+    public DefaultService(RawServiceSpec rawServiceSpec) throws Exception {
+        this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec))
+                .setPlansFrom(rawServiceSpec));
     }
 
     public DefaultService(ServiceSpec serviceSpecification, Collection<Plan> plans) throws Exception {

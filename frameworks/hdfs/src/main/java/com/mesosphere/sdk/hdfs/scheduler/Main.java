@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.constrain.AndRule;
 import com.mesosphere.sdk.offer.constrain.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +30,11 @@ public class Main {
         }
     }
 
-    private static DefaultScheduler.Builder getBuilder(RawServiceSpecification rawServiceSpecification)
+    private static DefaultScheduler.Builder getBuilder(RawServiceSpec rawServiceSpec)
             throws Exception {
         DefaultScheduler.Builder builder =
-                DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpecification))
-                .setPlansFrom(rawServiceSpecification);
+                DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpec))
+                .setPlansFrom(rawServiceSpec);
         // TODO(nick): The endpointproducers should produce valid HDFS xml files. They can get the info they need from
         // scheduler envvars and/or the ServiceSpec. If they need current task state, they could be passed the
         // StateStore from builder.getStateStore() when they're constructed, which they could then access to get current
@@ -44,9 +44,9 @@ public class Main {
                 .setEndpointProducer("core-site.xml", EndpointProducer.constant("TODO: core-site.xml content"));
     }
 
-    private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpecification rawServiceSpecification)
+    private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)
             throws Exception {
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
 
         // Journal nodes avoid themselves and Name nodes.
         PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "journal"))

@@ -58,10 +58,10 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("api_port") int apiPort,
+            @JsonProperty("api-port") int apiPort,
             @JsonProperty("zookeeper") String zookeeperConnection,
-            @JsonProperty("pod_specs") List<PodSpec> pods,
-            @JsonProperty("replacement_failure_policy") ReplacementFailurePolicy replacementFailurePolicy) {
+            @JsonProperty("pod-specs") List<PodSpec> pods,
+            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -227,10 +227,10 @@ public class DefaultServiceSpec implements ServiceSpec {
                 RegexMatcher.class,
                 TaskTypeRule.class,
                 TaskTypeLabelConverter.class,
-                DefaultResourceSpecification.class,
-                DefaultVolumeSpecification.class,
-                PortSpecification.class,
-                NamedVIPSpecification.class);
+                DefaultResourceSpec.class,
+                DefaultVolumeSpec.class,
+                PortSpec.class,
+                NamedVIPSpec.class);
 
         private final ObjectMapper objectMapper;
 

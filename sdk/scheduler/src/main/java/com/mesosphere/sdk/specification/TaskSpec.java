@@ -18,20 +18,20 @@ public interface TaskSpec {
     @JsonProperty("goal")
     GoalState getGoal();
 
-    @JsonProperty("resource_set")
+    @JsonProperty("resource-set")
     ResourceSet getResourceSet();
 
-    @JsonProperty("command_spec")
+    @JsonProperty("command-spec")
     Optional<CommandSpec> getCommand();
 
-    @JsonProperty("health_check_spec")
+    @JsonProperty("health-check-spec")
     Optional<HealthCheckSpec> getHealthCheck();
 
     @JsonProperty("uris")
     Collection<URI> getUris();
 
-    @JsonProperty("config_files")
-    Collection<ConfigFileSpecification> getConfigFiles();
+    @JsonProperty("config-files")
+    Collection<ConfigFileSpec> getConfigFiles();
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return podInstance.getName() + "-" + taskSpec.getName();

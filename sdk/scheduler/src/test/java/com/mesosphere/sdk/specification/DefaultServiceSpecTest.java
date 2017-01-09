@@ -2,7 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.junit.Assert;
@@ -27,9 +27,9 @@ public class DefaultServiceSpecTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(rawServiceSpecification);
+                .generateServiceSpec(rawServiceSpec);
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -59,11 +59,11 @@ public class DefaultServiceSpecTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(rawServiceSpecification);
+                .generateServiceSpec(rawServiceSpec);
 
-        List<ResourceSpecification> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+        List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
                 .stream()
                 .filter(r -> r.getName().equals("ports"))

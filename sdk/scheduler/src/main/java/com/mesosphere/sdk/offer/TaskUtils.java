@@ -192,9 +192,9 @@ public class TaskUtils {
 
         // Resources (custom comparison)
 
-        Map<String, ResourceSpecification> oldResourceMap =
+        Map<String, ResourceSpec> oldResourceMap =
                 getResourceSpecMap(oldTaskSpec.getResourceSet().getResources());
-        Map<String, ResourceSpecification> newResourceMap =
+        Map<String, ResourceSpec> newResourceMap =
                 getResourceSpecMap(newTaskSpec.getResourceSet().getResources());
 
         if (oldResourceMap.size() != newResourceMap.size()) {
@@ -203,10 +203,10 @@ public class TaskUtils {
             return true;
         }
 
-        for (Map.Entry<String, ResourceSpecification> newEntry : newResourceMap.entrySet()) {
+        for (Map.Entry<String, ResourceSpec> newEntry : newResourceMap.entrySet()) {
             String resourceName = newEntry.getKey();
             LOGGER.debug("Checking resource difference for: {}", resourceName);
-            ResourceSpecification oldResourceSpec = oldResourceMap.get(resourceName);
+            ResourceSpec oldResourceSpec = oldResourceMap.get(resourceName);
             if (oldResourceSpec == null) {
                 LOGGER.info("Resource not found: {}", resourceName);
                 return true;
@@ -254,16 +254,16 @@ public class TaskUtils {
      *
      * @throws IllegalArgumentException if multiple resource specifications have matching names
      */
-    private static Map<String, ResourceSpecification> getResourceSpecMap(
-            Collection<ResourceSpecification> resourceSpecifications) throws IllegalArgumentException {
-        Map<String, ResourceSpecification> resourceMap = new HashMap<>();
-        for (ResourceSpecification resourceSpecification : resourceSpecifications) {
-            ResourceSpecification prevValue = resourceMap.put(resourceSpecification.getName(), resourceSpecification);
+    private static Map<String, ResourceSpec> getResourceSpecMap(
+            Collection<ResourceSpec> resourceSpecs) throws IllegalArgumentException {
+        Map<String, ResourceSpec> resourceMap = new HashMap<>();
+        for (ResourceSpec resourceSpec : resourceSpecs) {
+            ResourceSpec prevValue = resourceMap.put(resourceSpec.getName(), resourceSpec);
             if (prevValue != null && !prevValue.getName().equals(PORTS_RESOURCE_TYPE)) {
                 throw new IllegalArgumentException(String.format(
                         "Non-port resources for a given task may not share the same name. " +
                                 "name:'%s' oldResource:'%s' newResource:'%s'",
-                        resourceSpecification.getName(), prevValue, resourceSpecification));
+                        resourceSpec.getName(), prevValue, resourceSpec));
             }
         }
 
@@ -271,15 +271,15 @@ public class TaskUtils {
     }
 
     /**
-     * Returns a path=>template mapping of the provided {@link ConfigFileSpecification}s. Assumes
+     * Returns a path=>template mapping of the provided {@link ConfigFileSpec}s. Assumes
      * that each config file is given a distinct path.
      *
      * @throws IllegalArgumentException if multiple config specifications have matching relative path strings
      */
     private static Map<String, String> getConfigTemplateMap(
-            Collection<ConfigFileSpecification> configSpecifications) throws IllegalArgumentException {
+            Collection<ConfigFileSpec> configSpecifications) throws IllegalArgumentException {
         Map<String, String> configMap = new HashMap<>();
-        for (ConfigFileSpecification configSpecification : configSpecifications) {
+        for (ConfigFileSpec configSpecification : configSpecifications) {
             String prevValue =
                     configMap.put(configSpecification.getRelativePath(), configSpecification.getTemplateContent());
             if (prevValue != null) {

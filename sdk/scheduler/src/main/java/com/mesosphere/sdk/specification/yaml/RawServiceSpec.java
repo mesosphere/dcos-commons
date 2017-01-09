@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 /**
  * Root of the parsed YAML object model.
  */
-public class RawServiceSpecification {
+public class RawServiceSpec {
 
     private final String name;
     private final String principal;
@@ -17,7 +17,7 @@ public class RawServiceSpecification {
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
     private final RawReplacementFailurePolicy replacementFailurePolicy;
 
-    private RawServiceSpecification(
+    private RawServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("principal") String principal,
             @JsonProperty("api-port") Integer apiPort,

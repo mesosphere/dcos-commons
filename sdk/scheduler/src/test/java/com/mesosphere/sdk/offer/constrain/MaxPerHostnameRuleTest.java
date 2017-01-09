@@ -337,7 +337,7 @@ public class MaxPerHostnameRuleTest {
 
     @Test
     public void testDeserializeAllParams() throws IOException {
-        String str = "{ '@type': 'MaxPerHostnameRule', 'max': 2, 'task_filter': { '@type': 'ExactMatcher', 'string': 'foo' } }".replace('\'', '"');
+        String str = "{ '@type': 'MaxPerHostnameRule', 'max': 2, 'task-filter': { '@type': 'ExactMatcher', 'string': 'foo' } }".replace('\'', '"');
         SerializationUtils.fromString(str,
                 PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }

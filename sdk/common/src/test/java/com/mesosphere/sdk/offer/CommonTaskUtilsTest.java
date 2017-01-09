@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.specification.ConfigFileSpec;
+import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.ConfigFileSpecification;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpecification;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -121,10 +121,10 @@ public class CommonTaskUtilsTest {
     public void testAreDifferentTaskSpecificationsConfigsSamePathFailsValidation() {
         TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config",
                         "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config",
                         "two configs with same path should fail validation"));
         CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification);
@@ -134,7 +134,7 @@ public class CommonTaskUtilsTest {
     public void testAreDifferentTaskSpecificationsConfigsLength() {
         TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config",
                         "this is a config template"));
 
@@ -144,18 +144,18 @@ public class CommonTaskUtilsTest {
     @Test
     public void testAreDifferentTaskSpecificationsNoConfigOverlap() {
         TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config",
                         "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config2",
                         "this is a second config template"));
 
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../different/path/to/config",
                         "different path to a different template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config2",
                         "this is a second config template"));
 
@@ -165,18 +165,18 @@ public class CommonTaskUtilsTest {
     @Test
     public void testAreNotDifferentTaskSpecificationsConfigMatch() {
         TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config",
                         "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config2",
                         "this is a second config template"));
 
         TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config",
                         "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpecification(
+                .addConfigFile(new DefaultConfigFileSpec(
                         "../relative/path/to/config2",
                         "this is a second config template"));
 
@@ -187,9 +187,9 @@ public class CommonTaskUtilsTest {
     @Test
     public void testSetGetConfigTemplates() throws InvalidProtocolBufferException {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        Collection<ConfigFileSpecification> configs = Arrays.asList(
-                new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                new DefaultConfigFileSpecification("../relative/path/to/config2", "this is a second config template"));
+        Collection<ConfigFileSpec> configs = Arrays.asList(
+                new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
+                new DefaultConfigFileSpec("../relative/path/to/config2", "this is a second config template"));
         CommonTaskUtils.setConfigFiles(taskBuilder, configs);
         Assert.assertEquals(configs, CommonTaskUtils.getConfigFiles(taskBuilder.build()));
     }
@@ -201,10 +201,10 @@ public class CommonTaskUtilsTest {
         for (int i = 0; i < 256 * 1024; ++i) {
             sb.append('a');
         }
-        Collection<ConfigFileSpecification> configs = Arrays.asList(
-                new DefaultConfigFileSpecification("../relative/path/to/config", sb.toString()),
-                new DefaultConfigFileSpecification("../relative/path/to/config2", sb.toString()),
-                new DefaultConfigFileSpecification("../relative/path/to/config3", "a"));
+        Collection<ConfigFileSpec> configs = Arrays.asList(
+                new DefaultConfigFileSpec("../relative/path/to/config", sb.toString()),
+                new DefaultConfigFileSpec("../relative/path/to/config2", sb.toString()),
+                new DefaultConfigFileSpec("../relative/path/to/config3", "a"));
         CommonTaskUtils.setConfigFiles(taskBuilder, configs);
     }
 
