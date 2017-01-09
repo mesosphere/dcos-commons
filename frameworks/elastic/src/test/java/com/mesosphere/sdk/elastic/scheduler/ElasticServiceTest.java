@@ -1,33 +1,32 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
-import org.apache.mesos.Protos;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Collections;
+
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
 public class ElasticServiceTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-    private ClassLoader classLoader = getClass().getClassLoader();
-    private File file = new File(classLoader.getResource("elastic_service.yml").getFile());
-    @Spy
-    private ElasticService elasticService = new ElasticService(file);
 
     @BeforeClass
     public static void beforeAll() {
         environmentVariables.set("ELASTIC_VERSION", "5");
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
+        environmentVariables.set("EXECUTOR_URI", "http://executor.uri");
+        environmentVariables.set("LIBMESOS_URI", "http://lib.mesos.uri");
+        environmentVariables.set("SCHEDULER_URI", "http://scheduler.uri");
         environmentVariables.set("PORT0", "8080");
         environmentVariables.set("SERVICE_NAME", "elastic");
         environmentVariables.set("FRAMEWORK_USER", "non-root");
@@ -75,25 +74,39 @@ public class ElasticServiceTest {
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
-    @Before
-    public void beforeEach() {
-        MockitoAnnotations.initMocks(this);
+
+    @Test
+    public void testOneTimePlanDeserialization() throws Exception {
+        testDeserialization("elastic_service.yml");
     }
 
     @Test
-    public void testInitialization() throws Exception {
-        TestingServer testingServer = new TestingServer();
-        Mockito.doReturn(testingServer.getConnectString()).when(elasticService).getZookeeperConnection();
-        elasticService.init();
-
-        Protos.FrameworkInfo frameworkInfo = elasticService.getFrameworkInfo();
-        Assert.assertEquals("http://kibana-0-server.elastic.mesos:5602", frameworkInfo.getWebuiUrl());
-
-        Set<String> validators = elasticService.getValidators().stream().map(v -> v.getClass().getSimpleName())
-                .collect(Collectors.toSet());
-        Set<String> expectedValidators = new HashSet<>(Arrays.asList("PodSpecsCannotShrink",
-                "HeapCannotExceedHalfMem", "MasterTransportPortCannotChange", "TaskVolumesCannotChange"));
-        Assert.assertEquals(expectedValidators, validators);
+    public void testOneTimePlanValidation() throws Exception {
+        testValidation("elastic_service.yml");
     }
 
+    private void testDeserialization(String yamlFileName) throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(yamlFileName).getFile());
+
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Assert.assertEquals(8080, serviceSpec.getApiPort());
+        DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
+    }
+
+    private void testValidation(String yamlFileName) throws Exception {
+        File file = new File(getClass().getClassLoader().getResource(yamlFileName).getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
+                .generateServiceSpec(generateRawSpecFromYAML(file));
+
+        TestingServer testingServer = new TestingServer();
+        StateStoreCache.resetInstanceForTests();
+        DefaultScheduler.newBuilder(serviceSpec)
+                .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+                .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+                .build();
+        testingServer.close();
+    }
 }
