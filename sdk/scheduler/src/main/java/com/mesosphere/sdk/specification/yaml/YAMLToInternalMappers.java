@@ -176,11 +176,14 @@ public class YAMLToInternalMappers {
             Collection<ResourceSet> resourceSets,
             String role,
             String principal) throws Exception {
-        Collection<URI> uris = new ArrayList<>();
+        Collection<UriSpec> uris = new ArrayList<>();
         for (String uriStr : rawTask.getUris()) {
-            uris.add(new URI(uriStr));
+            uris.add(new DefaultUriSpec(uriStr));
         }
-        uris.addAll(podUris);
+
+        for (URI uri : podUris) {
+            uris.add(new DefaultUriSpec(uri));
+        }
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(configNamespace)
                 .environment(rawTask.getEnv())
