@@ -17,13 +17,10 @@ public interface OfferEvaluationStage {
      * {@link com.mesosphere.sdk.offer.OfferRecommendation} in the given {@link OfferRecommendationSlate} if relevant.
      *
      * @param mesosResourcePool the available resources left available for this stage to consume
-     * @param offerRequirement the tasks and executor to launch, with their associated resource requirements
-     * @param offerRecommendationSlate the current set of all {@link com.mesosphere.sdk.offer.OfferRecommendation}s
-     *                                 for this offer
+     * @param podInfoBuilder the grouping of all task and executor builders for the pod
      * @return an {@link EvaluationOutcome} describing whether this evaluation stage succeeded or failed, and why
      */
     EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
-            OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate);
+            PodInfoBuilder podInfoBuilder);
 }

@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo;
@@ -103,6 +105,10 @@ public class ResourceRequirement {
      */
     public Value getValue() {
         return mesosResource.getValue();
+    }
+
+    public OfferEvaluationStage getEvaluationStage(String taskName) {
+        return new ResourceEvaluationStage(getResource(), taskName);
     }
 
     private boolean hasResourceId() {

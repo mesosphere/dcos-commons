@@ -107,8 +107,10 @@ public class TaskTypeRule implements PlacementRule {
                 // nothing to avoid, but this is expected when avoiding nodes of the same type
                 // (self-avoidance), or when the developer has configured bidirectional rules
                 // (A avoids B + B avoids A)
-                return EvaluationOutcome.pass(this,
-                        "No tasks of avoided type '%s' are currently running.", typeToFind);
+                return EvaluationOutcome.pass(
+                        this,
+                        "No tasks of avoided type '%s' are currently running.",
+                        typeToFind);
             } else {
                 return filterAvoid(offer, offerRequirement, matchingTasks);
             }
@@ -117,8 +119,10 @@ public class TaskTypeRule implements PlacementRule {
                 // nothing to colocate with! fall back to allowing any location.
                 // this is expected when the developer has configured bidirectional rules
                 // (A colocates with B + B colocates with A)
-                return EvaluationOutcome.pass(this,
-                        "No tasks of colocated type '%s' are currently running.", typeToFind);
+                return EvaluationOutcome.pass(
+                        this,
+                        "No tasks of colocated type '%s' are currently running.",
+                        typeToFind);
             } else {
                 return filterColocate(offer, offerRequirement, matchingTasks);
             }
@@ -169,8 +173,10 @@ public class TaskTypeRule implements PlacementRule {
             }
             if (taskToColocate.getSlaveId().equals(offer.getSlaveId())) {
                 // The offer is for an agent which has a task to colocate with. Approved!
-                return EvaluationOutcome.pass(this,
-                        "Found a task matching colocated type '%s' on this agent.", typeToFind);
+                return EvaluationOutcome.pass(
+                        this,
+                        "Found a task matching colocated type '%s' on this agent.",
+                        typeToFind);
             }
         }
         // The offer doesn't match any tasks to colocate with. Denied!
