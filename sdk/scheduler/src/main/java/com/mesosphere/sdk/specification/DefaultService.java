@@ -166,11 +166,7 @@ public class DefaultService implements Service {
     private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         final String serviceName = serviceSpec.getName();
 
-        Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceName)
-                .setFailoverTimeout(TWO_WEEK_SEC)
-                .setUser(USER)
-                .setCheckpoint(true);
+        Protos.FrameworkInfo.Builder fwkInfoBuilder = getFrameworkInfoBuilder(serviceName);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
         if (StringUtils.isEmpty(serviceSpec.getRole())) {
@@ -193,5 +189,13 @@ public class DefaultService implements Service {
         }
 
         return fwkInfoBuilder.build();
+    }
+
+    protected static Protos.FrameworkInfo.Builder getFrameworkInfoBuilder(String serviceName) {
+        return Protos.FrameworkInfo.newBuilder()
+                    .setName(serviceName)
+                    .setFailoverTimeout(TWO_WEEK_SEC)
+                    .setUser(USER)
+                    .setCheckpoint(true);
     }
 }
