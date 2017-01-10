@@ -42,11 +42,13 @@ public class YAMLToInternalMappers {
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
+        String webUrl = null;
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
             apiPort = rawScheduler.getApiPort();
             zookeeper = rawScheduler.getZookeeper();
+            webUrl = rawScheduler.getWebUrl();
         }
         // Fall back to defaults as needed:
         if (StringUtils.isEmpty(role)) {
@@ -67,7 +69,8 @@ public class YAMLToInternalMappers {
                 .role(role)
                 .principal(principal)
                 .apiPort(apiPort)
-                .zookeeperConnection(zookeeper);
+                .zookeeperConnection(zookeeper)
+                .webUrl(webUrl);
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();

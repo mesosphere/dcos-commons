@@ -3,6 +3,7 @@ scheduler:
   principal: "some-other-principal"
   zookeeper: non-default-zk:2181
   api-port: {{PORT_API}}
+  web-url: http://webui.data-store.mesos
 replacement-failure-policy:
   permanent-failure-timeout-ms: 10
   min-replace-delay-ms: 10

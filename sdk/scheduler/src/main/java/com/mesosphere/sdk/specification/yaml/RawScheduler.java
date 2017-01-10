@@ -11,16 +11,19 @@ public class RawScheduler {
     private final String principal;
     private final Integer apiPort;
     private final String zookeeper;
+    private final String webUrl;
 
     private RawScheduler(
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("api-port") Integer apiPort,
-            @JsonProperty("zookeeper") String zookeeper) {
+            @JsonProperty("zookeeper") String zookeeper,
+            @JsonProperty("web-url") String webUrl) {
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
         this.zookeeper = zookeeper;
+        this.webUrl = webUrl;
     }
 
     public String getRole() {
@@ -37,5 +40,9 @@ public class RawScheduler {
 
     public String getZookeeper() {
         return zookeeper;
+    }
+
+    public String getWebUrl() {
+        return webUrl;
     }
 }

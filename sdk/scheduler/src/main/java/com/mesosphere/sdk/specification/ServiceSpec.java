@@ -27,6 +27,9 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("zookeeper")
     String getZookeeperConnection();
 
+    @JsonProperty("web-url")
+    String getWebUrl();
+
     @JsonProperty("replacement-failure-policy")
     ReplacementFailurePolicy getReplacementFailurePolicy();
 }
