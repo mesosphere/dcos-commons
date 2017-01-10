@@ -23,6 +23,9 @@ pods:
         ports:
           - name: http
             port: {{KIBANA_PORT}}
+            vip:
+              prefix: kibana
+              port: 5601
         volumes:
           - path: "container-path"
             type: {{KIBANA_DISK_TYPE}}
@@ -31,7 +34,6 @@ pods:
         env:
           SERVICE_NAME: {{SERVICE_NAME}}
           MESOS_FRAMEWORK_ID: {{MESOS_FRAMEWORK_ID}}
-          COORDINATOR_NODE_HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
           KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
           KIBANA_PORT: {{KIBANA_PORT}}
         uris:
@@ -65,6 +67,9 @@ pods:
         ports:
           - name: http
             port: {{MASTER_NODE_HTTP_PORT}}
+            vip:
+              prefix: master
+              port: 9200
           - name: transport
             port: {{MASTER_NODE_TRANSPORT_PORT}}
         volumes:
@@ -115,6 +120,9 @@ pods:
         ports:
           - name: http
             port: {{DATA_NODE_HTTP_PORT}}
+            vip:
+              prefix: data
+              port: 9200
           - name: transport
             port: {{DATA_NODE_TRANSPORT_PORT}}
         volumes:
@@ -165,6 +173,9 @@ pods:
         ports:
           - name: http
             port: {{INGEST_NODE_HTTP_PORT}}
+            vip:
+              prefix: ingest
+              port: 9200
           - name: transport
             port: {{INGEST_NODE_TRANSPORT_PORT}}
         volumes:
@@ -215,6 +226,9 @@ pods:
         ports:
           - name: http
             port: {{COORDINATOR_NODE_HTTP_PORT}}
+            vip:
+              prefix: coordinator
+              port: 9200
           - name: transport
             port: {{COORDINATOR_NODE_TRANSPORT_PORT}}
         volumes:
