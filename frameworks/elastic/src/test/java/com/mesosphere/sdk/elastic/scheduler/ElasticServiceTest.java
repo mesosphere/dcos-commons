@@ -5,10 +5,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import java.io.File;
@@ -80,6 +77,7 @@ public class ElasticServiceTest {
         testDeserialization("elastic_service.yml");
     }
 
+    @Ignore("Blocked on https://mesosphere.atlassian.net/browse/INFINITY-848")
     @Test
     public void testOneTimePlanValidation() throws Exception {
         testValidation("elastic_service.yml");

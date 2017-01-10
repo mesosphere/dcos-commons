@@ -11,7 +11,7 @@ import java.io.File;
  * Service for the Elastic framework.
  */
 public class ElasticService extends DefaultService {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(ElasticService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ElasticService.class);
 
     ElasticService(File pathToYamlSpecification) throws Exception {
         super(pathToYamlSpecification);
