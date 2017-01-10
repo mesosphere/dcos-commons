@@ -193,6 +193,10 @@ public class YAMLToInternalMappers {
         }
 
         List<ConfigFileSpec> configFiles = new ArrayList<>();
+        if (rawTask.getConfiguration() != null) {
+            configFiles.add(new DefaultConfigFileSpec(
+                    rawTask.getConfiguration().getDest(), fileReader.read(rawTask.getConfiguration().getTemplate())));
+        }
         if (rawTask.getConfigurations() != null) {
             for (RawConfiguration rawConfig : rawTask.getConfigurations().values()) {
                 configFiles.add(new DefaultConfigFileSpec(
@@ -255,7 +259,7 @@ public class YAMLToInternalMappers {
 
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
-        if (MapUtils.isNotEmpty(rawVolumes)) {
+        if (rawVolumes != null) {
             // Note: volume names for multiple volumes are currently ignored
             for (RawVolume rawVolume : rawVolumes.values()) {
                 resourceSetBuilder.addVolume(
@@ -279,7 +283,7 @@ public class YAMLToInternalMappers {
             resourceSetBuilder.memory(Double.valueOf(memory));
         }
 
-        if (MapUtils.isNotEmpty(rawEndpoints)) {
+        if (rawEndpoints != null) {
             for (Map.Entry<String, RawEndpoint> rawEndpoint : rawEndpoints.entrySet()) {
                 resourceSetBuilder.addEndpoint(rawEndpoint.getKey(), rawEndpoint.getValue());
             }

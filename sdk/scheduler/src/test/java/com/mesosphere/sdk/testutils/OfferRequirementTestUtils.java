@@ -175,7 +175,7 @@ public class OfferRequirementTestUtils {
 
     public static final EnvironmentVariables getApiPortEnvironment() {
         EnvironmentVariables env = new EnvironmentVariables();
-        env.set("PORT_API", String.valueOf(TestConstants.API_PORT_VALUE));
+        env.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
         return env;
     }
 

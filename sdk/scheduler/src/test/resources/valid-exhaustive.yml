@@ -84,10 +84,9 @@ pods:
           TASK_NAME: "data-store"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
-        configurations:
-          config-three:
-            template: config-three.conf.mustache
-            dest: conf/config-three.conf
+        configuration:
+          template: config-three.conf.mustache
+          dest: conf/config-three.conf
         health-check:
           cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
           interval: 5

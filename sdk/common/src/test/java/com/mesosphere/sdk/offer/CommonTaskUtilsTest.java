@@ -134,13 +134,13 @@ public class CommonTaskUtilsTest {
 
     @Test
     public void testApplyEnvToMustache() throws IOException {
-        environmentVariables.set("PORT_API", String.valueOf(TestConstants.API_PORT_VALUE));
+        environmentVariables.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
         Assert.assertTrue(yaml.contains("api-port: {{PORT_API}}"));
         String renderedYaml = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
-        Assert.assertTrue(renderedYaml.contains(String.format("api-port: %d", TestConstants.API_PORT_VALUE)));
+        Assert.assertTrue(renderedYaml.contains(String.format("api-port: %d", TestConstants.PORT_API_VALUE)));
     }
 
     private static Protos.TaskID getTaskId(String value) {

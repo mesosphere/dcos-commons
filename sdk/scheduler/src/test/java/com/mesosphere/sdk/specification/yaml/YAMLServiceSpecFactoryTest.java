@@ -38,7 +38,7 @@ public class YAMLServiceSpecFactoryTest {
 
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
         Assert.assertNotNull(serviceSpec);
-        Assert.assertEquals(TestConstants.API_PORT_VALUE, Integer.valueOf(serviceSpec.getApiPort()));
+        Assert.assertEquals(TestConstants.PORT_API_VALUE, Integer.valueOf(serviceSpec.getApiPort()));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class YAMLServiceSpecFactoryTest {
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
         Assert.assertNotNull(rawServiceSpec);
-        Assert.assertEquals(TestConstants.API_PORT_VALUE, rawServiceSpec.getScheduler().getApiPort());
+        Assert.assertEquals(TestConstants.PORT_API_VALUE, rawServiceSpec.getScheduler().getApiPort());
     }
 
     @Test
@@ -57,6 +57,6 @@ public class YAMLServiceSpecFactoryTest {
         String yaml = FileUtils.readFileToString(file);
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(yaml);
         Assert.assertNotNull(rawServiceSpec);
-        Assert.assertEquals(TestConstants.API_PORT_VALUE, rawServiceSpec.getScheduler().getApiPort());
+        Assert.assertEquals(TestConstants.PORT_API_VALUE, rawServiceSpec.getScheduler().getApiPort());
     }
 }

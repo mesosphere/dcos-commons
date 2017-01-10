@@ -11,9 +11,9 @@ pods:
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         endpoints:
-          journal_rpc:
+          journal-rpc:
             port: {{JOURNAL_NODE_RPC_PORT}}
-          journal_http:
+          journal-http:
             port: {{JOURNAL_NODE_HTTP_PORT}}
         volume:
           path: "journal-data"
@@ -38,9 +38,9 @@ pods:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
         endpoints:
-          name_rpc:
+          name-rpc:
             port: {{NAME_NODE_RPC_PORT}}
-          name_http:
+          name-http:
             port: {{NAME_NODE_HTTP_PORT}}
         volume:
           path: "name-data"
@@ -145,11 +145,11 @@ pods:
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         endpoints:
-          data_rpc:
+          data-rpc:
             port: {{DATA_NODE_RPC_PORT}}
-          data_http:
+          data-http:
             port: {{DATA_NODE_HTTP_PORT}}
-          data_ipc:
+          data-ipc:
             port: {{DATA_NODE_IPC_PORT}}
         volume:
           path: "data-data"

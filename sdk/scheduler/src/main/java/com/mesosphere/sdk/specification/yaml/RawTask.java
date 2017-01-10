@@ -16,6 +16,7 @@ public class RawTask {
     private final String cmd;
     private final String image;
     private final Map<String, String> env;
+    private final RawConfiguration configuration;
     private final WriteOnceLinkedHashMap<String, RawConfiguration> configurations;
     private final Collection<String> uris;
     private final Double cpus;
@@ -31,6 +32,7 @@ public class RawTask {
             @JsonProperty("cmd") String cmd,
             @JsonProperty("image") String image,
             @JsonProperty("env") Map<String, String> env,
+            @JsonProperty("configuration") RawConfiguration configuration,
             @JsonProperty("configurations") WriteOnceLinkedHashMap<String, RawConfiguration> configurations,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("cpus") Double cpus,
@@ -44,6 +46,7 @@ public class RawTask {
         this.cmd = cmd;
         this.image = image;
         this.env = env;
+        this.configuration = configuration;
         this.configurations = configurations;
         this.uris = uris;
         this.cpus = cpus;
@@ -93,6 +96,10 @@ public class RawTask {
 
     public WriteOnceLinkedHashMap<String, RawEndpoint> getEndpoints() {
         return endpoints;
+    }
+
+    public RawConfiguration getConfiguration() {
+        return configuration;
     }
 
     public WriteOnceLinkedHashMap<String, RawConfiguration> getConfigurations() {

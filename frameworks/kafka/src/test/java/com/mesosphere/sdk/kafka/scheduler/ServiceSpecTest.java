@@ -30,7 +30,7 @@ public class ServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
-        environmentVariables.set("PORT_API", String.valueOf(TestConstants.API_PORT_VALUE));
+        environmentVariables.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
         environmentVariables.set("EXECUTOR_URI", "");
         environmentVariables.set("LIBMESOS_URI", "");
 
