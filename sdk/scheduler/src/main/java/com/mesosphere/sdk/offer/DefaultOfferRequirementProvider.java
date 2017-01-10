@@ -423,7 +423,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
         if (containerSpec.getImageName().isPresent()) {
-            containerInfo.getDockerBuilder().setImage(containerSpec.getImageName().get());
+            containerInfo.getMesosBuilder()
+                    .setImage(Protos.Image.newBuilder()
+                            .setType(Protos.Image.Type.DOCKER)
+                            .setDocker(Protos.Image.Docker.newBuilder()
+                                    .setName(containerSpec.getImageName().get())));
         }
 
         if (!containerSpec.getRLimits().isEmpty()) {

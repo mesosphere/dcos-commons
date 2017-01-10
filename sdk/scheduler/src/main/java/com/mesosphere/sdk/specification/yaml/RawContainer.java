@@ -15,7 +15,12 @@ public class RawContainer {
             @JsonProperty("image-name") String imageName,
             @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits) {
         this.imageName = imageName;
-        this.rlimits = rlimits;
+
+        if (rlimits != null) {
+            this.rlimits = rlimits;
+        } else {
+            this.rlimits = new WriteOnceLinkedHashMap<>();
+        }
     }
 
     public LinkedHashMap<String, RawRLimit> getRLimits() {
