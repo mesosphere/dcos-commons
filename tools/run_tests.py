@@ -84,7 +84,7 @@ class CITester(object):
             'dcos config set core.timeout 5',
             'dcos config show']
         for cmd in cmds:
-            subprocess.check_call(cmd.split(' '))
+            subprocess.check_call(cmd.split())
 
 
     def setup_cli(self, stub_universes = {}):
@@ -105,7 +105,7 @@ class CITester(object):
                         subprocess.check_call('dcos package repo remove {}'.format(repo['name']).split())
                 for name, url in stub_universes.items():
                     logger.info('Adding repository: {} {}'.format(name, url))
-                    subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split(' '))
+                    subprocess.check_call('dcos package repo add --index=0 {} {}'.format(name, url).split())
         except:
             self._github_updater.update('error', 'CLI Setup failed')
             raise
@@ -135,7 +135,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
+py.test {jenkins_args}-vv -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
@@ -221,10 +221,19 @@ def main(argv):
     test_dirs = argv[2]
 
     cluster_url = os.environ.get('CLUSTER_URL', '').strip('"').strip('\'')
-    if not cluster_url:
-        logger.error('CLUSTER_URL envvar is required.')
-        print_help(argv)
-        return 1
+    if cluster_url:
+        logger.info('Using cluster URL from CLUSTER_URL envvar: {}'.format(cluster_url))
+    else:
+        # try getting the value from a CLI:
+        try:
+            cluster_url = subprocess.check_output('dcos config show core.dcos_url'.split()).decode('utf-8').strip()
+            if len(cluster_url) == 0:
+                raise Exception("Missing core.dcos_url") # to be caught below
+            logger.info('Using cluster URL from CLI: {}'.format(cluster_url))
+        except:
+            logger.error('CLUSTER_URL envvar, or CLI in PATH with core.dcos_url, is required.')
+            print_help(argv)
+            return 1
 
     tester = CITester(cluster_url, os.environ.get('TEST_GITHUB_LABEL', test_type))
 

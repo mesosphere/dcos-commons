@@ -4,11 +4,16 @@ target/
 
 # dcos-docker artifacts
 dcos-docker/
+ignore/
+genconf/
+.vagrant/
+*.box
 
 # leftovers from running tools directly
 tools/env/
 tools/cluster-*.properties
 tools/*.pem
+tools/dcostests_env/
 tools/shakedown_env/
 
 # idea

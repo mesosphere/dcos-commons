@@ -14,37 +14,42 @@
             "description":"The sleep duration in seconds before tasks exit.",
             "type":"number",
             "default":1000
+          },
+          "spec_file" : {
+            "description":"The name of the service spec yaml file.",
+            "type":"string",
+            "default":"svc.yml"
           }
         }
       },
       "hello":{
-        "description":"Node configuration properties",
+        "description":"Hello pod configuration properties",
         "type":"object",
         "properties":{
           "cpus":{
-            "description":"Node cpu requirements",
+            "description":"Hello pod CPU requirements",
             "type":"number",
             "default":0.1
           },
           "mem":{
-            "description":"Node mem requirements",
+            "description":"Hello pod mem requirements (in MB)",
             "type":"integer",
-            "default":256
+            "default":252
           },
           "disk":{
-            "description":"Broker disk requirements (only respected with persistent volumes)",
+            "description":"Hello pod persistent disk requirements (in MB)",
             "type":"integer",
             "default":25
           },
           "count":{
-            "description":"Number of nodes to run",
+            "description":"Number of Hello pods to run",
             "type":"integer",
-            "default":2
+            "default":1
           },
-          "constraint":{
-            "description":"Marathon-style constraint for metadata nodes",
+          "placement":{
+            "description":"Marathon-style placement constraint for Hello pods",
             "type":"string",
-            "default":""
+            "default":"hostname:UNIQUE"
           }
         },
         "required":[
@@ -55,33 +60,33 @@
         ]
       },
       "world":{
-        "description":"Node configuration properties",
+        "description":"World pod configuration properties",
         "type":"object",
         "properties":{
           "cpus":{
-            "description":"Node cpu requirements",
+            "description":"World pod CPU requirements",
             "type":"number",
             "default":0.2
           },
           "mem":{
-            "description":"Node mem requirements",
+            "description":"World pod mem requirements (in MB)",
             "type":"integer",
             "default":512
           },
           "disk":{
-            "description":"Broker disk requirements (only respected with persistent volumes)",
+            "description":"World pod persistent disk requirements (in MB)",
             "type":"integer",
             "default":50
           },
           "count":{
-            "description":"Number of nodes to run",
+            "description":"Number of World pods to run",
             "type":"integer",
-            "default":3
+            "default":2
           },
-          "constraint":{
-            "description":"Marathon-style constraint for metadata nodes",
+          "placement":{
+            "description":"Marathon-style placement constraint for World pods",
             "type":"string",
-            "default":""
+            "default":"hostname:UNIQUE"
           }
         },
         "required":[

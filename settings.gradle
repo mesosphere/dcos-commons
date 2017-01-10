@@ -1,5 +1,8 @@
 rootProject.name = 'dcos-commons'
 
+include 'sdk/common'
+project(":sdk/common").name = "common"
+
 include 'sdk/scheduler'
 project(":sdk/scheduler").name = "scheduler"
 
@@ -14,3 +17,6 @@ project(":frameworks/kafka").name = "kafka"
 
 include 'frameworks/polymorph'
 project(":frameworks/polymorph").name = "polymorph"
+
+include 'frameworks/hdfs'
+project(":frameworks/hdfs").name = "hdfs"

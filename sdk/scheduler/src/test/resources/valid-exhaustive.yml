@@ -7,8 +7,13 @@ replacement-failure-policy:
   min-replace-delay-ms: 10
 pods:
   meta-data:
-    placement: "avoid-type: meta-data"
+    placement: "hostname:UNIQUE"
     count: 2
+    container:
+      rlimits:
+        RLIMIT_AS:
+          soft: 5
+          hard: 10
     resource-sets:
       meta-data-resources:
         cpus: 0.1
@@ -29,16 +34,15 @@ pods:
           TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
-        health-checks:
-          check-up:
-            cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
-            interval: 5
-            grace-period: 30
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
   data-store:
-    placement: "avoid-type: data-store"
+    placement: "hostname:UNIQUE"
     count: 3
     resource-sets:
       data-store-resources:
@@ -60,14 +64,13 @@ pods:
           TASK_NAME: "data-store"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
-        health-checks:
-          check-up:
-            cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
-            interval: 5
-            grace-period: 30
-            max-consecutive-failures: 3
-            delay: 0
-            timeout: 10
+        health-check:
+          cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
 
 plans:
   deploy:
@@ -80,13 +83,13 @@ plans:
         strategy: serial
         pod: nn
         steps:
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [format]
-          - podInstance: 0
+          - pod-instance: 0
             tasks: [server]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [format]
-          - podInstance: 1
+          - pod-instance: 1
             tasks: [server]
       dn-deploy:
         strategy: serial

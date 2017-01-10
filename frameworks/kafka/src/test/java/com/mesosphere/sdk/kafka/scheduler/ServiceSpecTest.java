@@ -2,14 +2,11 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.config.ConfigStore;
-import org.apache.mesos.config.ConfigurationUpdater;
-import org.apache.mesos.offer.OfferRequirementProvider;
-import org.apache.mesos.scheduler.DefaultScheduler;
-import org.apache.mesos.specification.DefaultServiceSpec;
-import org.apache.mesos.specification.yaml.YAMLServiceSpecFactory;
-import org.apache.mesos.state.StateStore;
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -19,7 +16,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 
-import static org.apache.mesos.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 
 public class ServiceSpecTest {
     @ClassRule
@@ -31,6 +28,7 @@ public class ServiceSpecTest {
     @BeforeClass
     public static void beforeAll() {
         environmentVariables.set("EXECUTOR_URI", "");
+        environmentVariables.set("LIBMESOS_URI", "");
         environmentVariables.set("PORT0", "8080");
         environmentVariables.set("BROKER_COUNT", "2");
         environmentVariables.set("BROKER_CPUS", "0.1");
@@ -47,7 +45,7 @@ public class ServiceSpecTest {
 
     @Test
     public void testServiceSpecDeserialization() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = ServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
@@ -58,42 +56,27 @@ public class ServiceSpecTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testServiceSpecValidation() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("svc.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        File file = new File(getClass().getClassLoader().getResource("svc.yml").getFile());
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(generateRawSpecFromYAML(file));
 
         TestingServer testingServer = new TestingServer();
-        StateStore stateStore = DefaultScheduler.createStateStore(
-                serviceSpec,
-                testingServer.getConnectString());
-        ConfigStore configStore = DefaultScheduler.createConfigStore(
-                serviceSpec,
-                testingServer.getConnectString(),
-                Collections.emptyList());
 
-        Protos.FrameworkID FRAMEWORK_ID =
-                Protos.FrameworkID.newBuilder()
-                        .setValue("test-framework-id")
-                        .build();
+        Protos.FrameworkID FRAMEWORK_ID = Protos.FrameworkID.newBuilder()
+                .setValue("test-framework-id")
+                .build();
 
-        Protos.MasterInfo MASTER_INFO =
-                Protos.MasterInfo.newBuilder()
-                        .setId("test-master-id")
-                        .setIp(0)
-                        .setPort(0)
-                        .build();
+        Protos.MasterInfo MASTER_INFO = Protos.MasterInfo.newBuilder()
+                .setId("test-master-id")
+                .setIp(0)
+                .setPort(0)
+                .build();
 
-        ConfigurationUpdater.UpdateResult configUpdateResult = DefaultScheduler
-                .updateConfig(serviceSpec, stateStore, configStore);
-
-        OfferRequirementProvider offerRequirementProvider = DefaultScheduler
-                .createOfferRequirementProvider(stateStore, configUpdateResult.targetId);
-
-        DefaultScheduler defaultScheduler = DefaultScheduler
-                .create(serviceSpec, stateStore, configStore, offerRequirementProvider);
-        defaultScheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
+        Scheduler scheduler = DefaultScheduler.newBuilder(serviceSpec)
+            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+            .build();
+        scheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
+        testingServer.close();
     }
 }
