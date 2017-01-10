@@ -25,7 +25,7 @@ def setup_module(module):
     uninstall()
     options = {
         "service": {
-            "spec_file": "sidecar.yml"
+            "spec_file": "examples/sidecar.yml"
         }
     }
 

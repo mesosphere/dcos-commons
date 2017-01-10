@@ -53,9 +53,9 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("count") Integer count,
             @JsonProperty("container") ContainerSpec container,
             @JsonProperty("uris") Collection<URI> uris,
-            @JsonProperty("task_specs") List<TaskSpec> tasks,
-            @JsonProperty("placement_rule") PlacementRule placementRule,
-            @JsonProperty("resource_sets") Collection<ResourceSet> resources) {
+            @JsonProperty("task-specs") List<TaskSpec> tasks,
+            @JsonProperty("placement-rule") PlacementRule placementRule,
+            @JsonProperty("resource-sets") Collection<ResourceSet> resources) {
         this.type = type;
         this.user = user;
         this.count = count;

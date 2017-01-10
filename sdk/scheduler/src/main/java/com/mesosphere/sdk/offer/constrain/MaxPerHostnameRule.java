@@ -67,7 +67,7 @@ public class MaxPerHostnameRule implements PlacementRule {
     @JsonCreator
     public MaxPerHostnameRule(
             @JsonProperty("max") int maxTasksPerSelectedHostname,
-            @JsonProperty("task_filter") StringMatcher taskFilter) {
+            @JsonProperty("task-filter") StringMatcher taskFilter) {
         this.maxTasksPerHostname = maxTasksPerSelectedHostname;
         if (taskFilter == null) { // null when unspecified in serialized data
             taskFilter = AnyMatcher.create();
@@ -115,14 +115,14 @@ public class MaxPerHostnameRule implements PlacementRule {
         return maxTasksPerHostname;
     }
 
-    @JsonProperty("task_filter")
+    @JsonProperty("task-filter")
     private StringMatcher getTaskFilter() {
         return taskFilter;
     }
 
     @Override
     public String toString() {
-        return String.format("MaxPerHostnameRule{max=%s, task_filter=%s}",
+        return String.format("MaxPerHostnameRule{max=%s, task-filter=%s}",
                 maxTasksPerHostname, taskFilter);
     }
 

@@ -25,11 +25,11 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     @JsonCreator
     public DefaultHealthCheckSpec(
             @JsonProperty("command") String command,
-            @JsonProperty("max_consecutive_failures") Integer maxConsecutiveFailures,
+            @JsonProperty("max-consecutive-failures") Integer maxConsecutiveFailures,
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
             @JsonProperty("timeout") Integer timeout,
-            @JsonProperty("grace_period") Integer gracePeriod) {
+            @JsonProperty("grace-period") Integer gracePeriod) {
         this.command = command;
         this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.delay = delay;
@@ -70,7 +70,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     }
 
     @Override
-    @JsonProperty("max_consecutive_failures")
+    @JsonProperty("max-consecutive-failures")
     @Min(0)
     public Integer getMaxConsecutiveFailures() {
         return maxConsecutiveFailures;

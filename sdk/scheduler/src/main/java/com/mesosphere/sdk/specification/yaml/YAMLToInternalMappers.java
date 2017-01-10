@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  */
 public class YAMLToInternalMappers {
 
-    static DefaultServiceSpec from(RawServiceSpecification rawSvcSpec) throws Exception {
+    static DefaultServiceSpec from(RawServiceSpec rawSvcSpec) throws Exception {
         final String role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
         final String principal = rawSvcSpec.getPrincipal();
 
@@ -64,8 +64,8 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static ConfigFileSpecification from(RawConfiguration rawConfiguration) throws IOException {
-        return new DefaultConfigFileSpecification(
+    private static ConfigFileSpec from(RawConfiguration rawConfiguration) throws IOException {
+        return new DefaultConfigFileSpec(
                 rawConfiguration.getDest(),
                 new File(rawConfiguration.getTemplate()));
     }
@@ -176,7 +176,7 @@ public class YAMLToInternalMappers {
             commandSpecBuilder.user(user.get());
         }
 
-        List<ConfigFileSpecification> configFiles = new LinkedList<>();
+        List<ConfigFileSpec> configFiles = new LinkedList<>();
         if (rawTask.getConfigurations() != null) {
             for (RawConfiguration rawConfig : rawTask.getConfigurations()) {
                 configFiles.add(from(rawConfig));

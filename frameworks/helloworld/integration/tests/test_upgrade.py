@@ -15,11 +15,6 @@ from tests.test_utils import (
 )
 
 
-MASTER_CUSTOM_NAME='Master Custom'
-# TODO: replace this URL once we have a stock version from which to upgrade
-MASTER_CUSTOM_URL='https://infinity-artifacts.s3.amazonaws.com/reference-latest/stub-universe-reference.zip'
-
-
 def setup_module(module):
     uninstall()
 
@@ -28,23 +23,43 @@ def teardown_module(module):
     uninstall()
 
 
-@pytest.mark.skip(reason="Currently fails...")
 @pytest.mark.sanity
-def test_upgrade():
+@pytest.mark.upgrade
+def test_upgrade_downgrade():
+    # Ensure both Universe and the test repo exist.
+    # In particular, the Framework Test Suite only runs packages from Universe;
+    # it doesn't add a test repo like the PR jobs.
+    if len(shakedown.get_package_repos()['repositories']) != 2:
+        print('No test repo found.  Skipping test_upgrade_downgrade')
+        return
+
+    test_repo_name, test_repo_url = get_test_repo_info()
     test_version = get_pkg_version()
     print('Found test version: {}'.format(test_version))
-    add_repo(test_version)
+    remove_repo(test_repo_name, test_version)
     master_version = get_pkg_version()
     print('Found master version: {}'.format(master_version))
+
     print('Installing master version')
     install(master_version)
     check_health()
+
     print('Upgrading to test version')
     destroy_service()
+    add_repo(test_repo_name, test_repo_url, prev_version=master_version)
     install(test_version)
     check_health()
-    # clean up
-    remove_repo(master_version)
+
+    print('Downgrading to master version')
+    destroy_service()
+    install(master_version)
+    check_health()
+
+
+def get_test_repo_info():
+    repos = shakedown.get_package_repos()
+    test_repo = repos['repositories'][0]
+    return test_repo['name'], test_repo['uri']
 
 
 def get_pkg_version():
@@ -54,10 +69,10 @@ def get_pkg_version():
     return match.group(1)
 
 
-def add_repo(prev_version):
+def add_repo(repo_name, repo_url, prev_version):
     assert shakedown.add_package_repo(
-        MASTER_CUSTOM_NAME,
-        MASTER_CUSTOM_URL,
+        repo_name,
+        repo_url,
         0)
     # Make sure the new repo packages are available
     new_default_version_available(prev_version)
@@ -84,6 +99,6 @@ def destroy_service():
     spin(fn, success_predicate)
 
 
-def remove_repo(prev_version):
-    assert shakedown.remove_package_repo(MASTER_CUSTOM_NAME)
+def remove_repo(repo_name, prev_version):
+    assert shakedown.remove_package_repo(repo_name)
     new_default_version_available(prev_version)

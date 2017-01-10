@@ -27,9 +27,9 @@ public class DefaultResourceSet implements ResourceSet {
     @NotNull
     @Size(min = 1)
     @Valid
-    private Collection<ResourceSpecification> resources;
+    private Collection<ResourceSpec> resources;
     @Valid
-    private Collection<VolumeSpecification> volumes;
+    private Collection<VolumeSpec> volumes;
     @NotNull
     @Size(min = 1)
     String role;
@@ -40,8 +40,8 @@ public class DefaultResourceSet implements ResourceSet {
     @JsonCreator
     public DefaultResourceSet(
             @JsonProperty("id") String id,
-            @JsonProperty("resource_specifications") Collection<ResourceSpecification> resources,
-            @JsonProperty("volume_specifications") Collection<VolumeSpecification> volumes,
+            @JsonProperty("resource-specifications") Collection<ResourceSpec> resources,
+            @JsonProperty("volume-specifications") Collection<VolumeSpec> volumes,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal) {
         this.id = id;
@@ -85,12 +85,12 @@ public class DefaultResourceSet implements ResourceSet {
     }
 
     @Override
-    public Collection<ResourceSpecification> getResources() {
+    public Collection<ResourceSpec> getResources() {
         return resources;
     }
 
     @Override
-    public Collection<VolumeSpecification> getVolumes() {
+    public Collection<VolumeSpec> getVolumes() {
         return volumes;
     }
 
@@ -109,8 +109,8 @@ public class DefaultResourceSet implements ResourceSet {
      */
     public static final class Builder {
         private String id;
-        private Collection<ResourceSpecification> resources;
-        private Collection<VolumeSpecification> volumes;
+        private Collection<ResourceSpec> resources;
+        private Collection<VolumeSpec> volumes;
         private String role;
         private String principal;
 
@@ -133,7 +133,7 @@ public class DefaultResourceSet implements ResourceSet {
         }
 
         public Builder cpus(Double cpus) {
-            DefaultResourceSpecification cpuResource = DefaultResourceSpecification.newBuilder()
+            DefaultResourceSpec cpuResource = DefaultResourceSpec.newBuilder()
                     .name("cpus")
                     .role(role)
                     .principal(principal)
@@ -152,7 +152,7 @@ public class DefaultResourceSet implements ResourceSet {
         }
 
         public Builder memory(Double memory) {
-            DefaultResourceSpecification memoryResource = DefaultResourceSpecification.newBuilder()
+            DefaultResourceSpec memoryResource = DefaultResourceSpec.newBuilder()
                     .name("mem")
                     .role(role)
                     .principal(principal)
@@ -172,15 +172,15 @@ public class DefaultResourceSet implements ResourceSet {
         public Builder addVolume(String volumeType,
                                  Double size,
                                  String containerPath) {
-            VolumeSpecification.Type volumeTypeEnum;
+            VolumeSpec.Type volumeTypeEnum;
             try {
-                volumeTypeEnum = VolumeSpecification.Type.valueOf(volumeType);
+                volumeTypeEnum = VolumeSpec.Type.valueOf(volumeType);
             } catch (Exception e) {
                 throw new IllegalArgumentException(String.format(
                         "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
-                        volumeType, containerPath, Arrays.asList(VolumeSpecification.Type.values())));
+                        volumeType, containerPath, Arrays.asList(VolumeSpec.Type.values())));
             }
-            DefaultVolumeSpecification volume = new DefaultVolumeSpecification(
+            DefaultVolumeSpec volume = new DefaultVolumeSpec(
                     size,
                     volumeTypeEnum,
                     containerPath,
@@ -203,7 +203,7 @@ public class DefaultResourceSet implements ResourceSet {
                 rangesBuilder.addRange(Protos.Value.Range.newBuilder().setBegin(p).setEnd(p));
 
                 if (rawPort.getVip() != null) {
-                    resources.add(new NamedVIPSpecification(
+                    resources.add(new NamedVIPSpec(
                             rawPort.getName(),
                             rawPort.getVip().getPrefix(),
                             rawPort.getVip().getPort(),
@@ -216,7 +216,7 @@ public class DefaultResourceSet implements ResourceSet {
                             principal,
                             null));
                 } else {
-                    resources.add(new PortSpecification(
+                    resources.add(new PortSpec(
                             rawPort.getName(),
                             Constants.PORTS_RESOURCE_TYPE,
                             Protos.Value.newBuilder()
@@ -238,7 +238,7 @@ public class DefaultResourceSet implements ResourceSet {
          * @param resources the {@code resources} to set
          * @return a reference to this Builder
          */
-        public Builder resources(Collection<ResourceSpecification> resources) {
+        public Builder resources(Collection<ResourceSpec> resources) {
             this.resources = resources;
             return this;
         }
@@ -249,7 +249,7 @@ public class DefaultResourceSet implements ResourceSet {
          * @param volumes the {@code volumes} to set
          * @return a reference to this Builder
          */
-        public Builder volumes(Collection<VolumeSpecification> volumes) {
+        public Builder volumes(Collection<VolumeSpec> volumes) {
             this.volumes = volumes;
             return this;
         }

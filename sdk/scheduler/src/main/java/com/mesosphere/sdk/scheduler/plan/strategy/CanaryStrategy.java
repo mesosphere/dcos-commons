@@ -109,7 +109,7 @@ public class CanaryStrategy implements Strategy<Step> {
     @Override
     public void proceed() {
         if (canaryProceedSteps == null) {
-            logger.warn("Proceed has no effect before canary has initialized.");
+            logger.warn("Proceed has no effect to children before strategy initialization.");
             return;
         }
 

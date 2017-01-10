@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -28,6 +29,8 @@ import java.util.List;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
+
+    public static final String DEFAULT_ZK_CONNECTION = "master.mesos:2181";
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
@@ -55,15 +58,17 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("api_port") int apiPort,
+            @JsonProperty("api-port") int apiPort,
             @JsonProperty("zookeeper") String zookeeperConnection,
-            @JsonProperty("pod_specs") List<PodSpec> pods,
-            @JsonProperty("replacement_failure_policy") ReplacementFailurePolicy replacementFailurePolicy) {
+            @JsonProperty("pod-specs") List<PodSpec> pods,
+            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
         this.name = name;
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
-        this.zookeeperConnection = zookeeperConnection;
+        // If no zookeeperConnection string is configured, fallback to the default value.
+        this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
+                ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
     }
@@ -73,7 +78,9 @@ public class DefaultServiceSpec implements ServiceSpec {
         role = builder.role;
         principal = builder.principal;
         apiPort = builder.apiPort;
-        zookeeperConnection = builder.zookeeperConnection;
+        // If no zookeeperConnection string is configured, fallback to the default value.
+        zookeeperConnection = StringUtils.isBlank(builder.zookeeperConnection)
+                ? DEFAULT_ZK_CONNECTION : builder.zookeeperConnection;
         pods = builder.pods;
         replacementFailurePolicy = builder.replacementFailurePolicy;
     }
@@ -220,10 +227,10 @@ public class DefaultServiceSpec implements ServiceSpec {
                 RegexMatcher.class,
                 TaskTypeRule.class,
                 TaskTypeLabelConverter.class,
-                DefaultResourceSpecification.class,
-                DefaultVolumeSpecification.class,
-                PortSpecification.class,
-                NamedVIPSpecification.class);
+                DefaultResourceSpec.class,
+                DefaultVolumeSpec.class,
+                PortSpec.class,
+                NamedVIPSpec.class);
 
         private final ObjectMapper objectMapper;
 

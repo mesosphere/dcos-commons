@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * A VolumeSpecification defines the features of a Volume.
+ * A VolumeSpec defines the features of a Volume.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-public interface VolumeSpecification extends ResourceSpecification {
+public interface VolumeSpec extends ResourceSpec {
 
     /**
      * Types of Volumes.
@@ -21,6 +21,6 @@ public interface VolumeSpecification extends ResourceSpecification {
     @JsonProperty("type")
     Type getType();
 
-    @JsonProperty("container_path")
+    @JsonProperty("container-path")
     String getContainerPath();
 }

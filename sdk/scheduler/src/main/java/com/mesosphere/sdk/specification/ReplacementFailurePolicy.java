@@ -12,20 +12,20 @@ import javax.validation.constraints.Min;
  */
 public class ReplacementFailurePolicy {
     @Min(0)
-    private Integer permanentFailureTimoutMs;
+    private Integer permanentFailureTimoutMins;
     @Min(0)
-    private Integer minReplaceDelayMs;
+    private Integer minReplaceDelayMins;
 
     public ReplacementFailurePolicy(
-            @JsonProperty("permanent_failure_timeout_ms") Integer permanentFailureTimoutMs,
-            @JsonProperty("min_replace_delay_ms") Integer minReplaceDelayMs) {
-        this.permanentFailureTimoutMs = permanentFailureTimoutMs;
-        this.minReplaceDelayMs = minReplaceDelayMs;
+            @JsonProperty("permanent-failure-timeout-mins") Integer permanentFailureTimoutMins,
+            @JsonProperty("min-replace-delay-mins") Integer minReplaceDelayMins) {
+        this.permanentFailureTimoutMins = permanentFailureTimoutMins;
+        this.minReplaceDelayMins = minReplaceDelayMins;
     }
 
     private ReplacementFailurePolicy(Builder builder) {
-        setPermanentFailureTimoutMs(builder.permanentFailureTimoutMs);
-        setMinReplaceDelayMs(builder.minReplaceDelayMs);
+        setPermanentFailureTimoutMins(builder.permanentFailureTimoutMs);
+        setMinReplaceDelayMins(builder.minReplaceDelayMs);
     }
 
     public static Builder newBuilder() {
@@ -34,25 +34,25 @@ public class ReplacementFailurePolicy {
 
     public static Builder newBuilder(ReplacementFailurePolicy copy) {
         Builder builder = new Builder();
-        builder.permanentFailureTimoutMs = copy.permanentFailureTimoutMs;
-        builder.minReplaceDelayMs = copy.minReplaceDelayMs;
+        builder.permanentFailureTimoutMs = copy.permanentFailureTimoutMins;
+        builder.minReplaceDelayMs = copy.minReplaceDelayMins;
         return builder;
     }
 
-    public Integer getPermanentFailureTimoutMs() {
-        return permanentFailureTimoutMs;
+    public Integer getPermanentFailureTimoutMins() {
+        return permanentFailureTimoutMins;
     }
 
-    public void setPermanentFailureTimoutMs(Integer permanentFailureTimoutMs) {
-        this.permanentFailureTimoutMs = permanentFailureTimoutMs;
+    public void setPermanentFailureTimoutMins(Integer permanentFailureTimoutMins) {
+        this.permanentFailureTimoutMins = permanentFailureTimoutMins;
     }
 
-    public Integer getMinReplaceDelayMs() {
-        return minReplaceDelayMs;
+    public Integer getMinReplaceDelayMins() {
+        return minReplaceDelayMins;
     }
 
-    public void setMinReplaceDelayMs(Integer minReplaceDelayMs) {
-        this.minReplaceDelayMs = minReplaceDelayMs;
+    public void setMinReplaceDelayMins(Integer minReplaceDelayMins) {
+        this.minReplaceDelayMins = minReplaceDelayMins;
     }
 
     @Override
@@ -76,10 +76,10 @@ public class ReplacementFailurePolicy {
         }
 
         /**
-         * Sets the {@code permanentFailureTimoutMs} and returns a reference to this Builder so that the methods can be
-         * chained together.
+         * Sets the {@code permanentFailureTimoutMins} and returns a reference to this Builder so that the methods can
+         * be chained together.
          *
-         * @param permanentFailureTimoutMs the {@code permanentFailureTimoutMs} to set
+         * @param permanentFailureTimoutMs the {@code permanentFailureTimoutMins} to set
          * @return a reference to this Builder
          */
         public Builder permanentFailureTimoutMs(Integer permanentFailureTimoutMs) {
@@ -88,10 +88,10 @@ public class ReplacementFailurePolicy {
         }
 
         /**
-         * Sets the {@code minReplaceDelayMs} and returns a reference to this Builder so that the methods can be chained
-         * together.
+         * Sets the {@code minReplaceDelayMins} and returns a reference to this Builder so that the methods can be
+         * chained together.
          *
-         * @param minReplaceDelayMs the {@code minReplaceDelayMs} to set
+         * @param minReplaceDelayMs the {@code minReplaceDelayMins} to set
          * @return a reference to this Builder
          */
         public Builder minReplaceDelayMs(Integer minReplaceDelayMs) {
