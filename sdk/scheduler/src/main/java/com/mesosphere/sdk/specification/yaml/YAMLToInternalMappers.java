@@ -28,15 +28,14 @@ import java.util.stream.Collectors;
 public class YAMLToInternalMappers {
 
     /**
-     * Converts the provided YAML {@link RawServiceSpecification} into a new {@link ServiceSpec}.
+     * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
      * @param rawSvcSpec the raw service specification representing a YAML file
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
     static DefaultServiceSpec from(
-            RawServiceSpecification rawSvcSpec,
-            YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
+            RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
 
         String role = null;
@@ -70,6 +69,7 @@ public class YAMLToInternalMappers {
                 .apiPort(apiPort)
                 .zookeeperConnection(zookeeper);
 
+        // Add all pods
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawSvcSpec.getPods();
         TaskConfigRouter taskConfigRouter = new DefaultTaskConfigRouter();
@@ -84,6 +84,7 @@ public class YAMLToInternalMappers {
         }
         builder.pods(pods);
 
+        // Add failure policy if needed
         RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
         if (replacementFailurePolicy != null) {
             Integer minReplaceDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
@@ -191,10 +192,10 @@ public class YAMLToInternalMappers {
             commandSpecBuilder.user(user.get());
         }
 
-        List<ConfigFileSpecification> configFiles = new ArrayList<>();
-        if (MapUtils.isNotEmpty(rawTask.getConfigurations())) {
+        List<ConfigFileSpec> configFiles = new ArrayList<>();
+        if (rawTask.getConfigurations() != null) {
             for (RawConfiguration rawConfig : rawTask.getConfigurations().values()) {
-                configFiles.add(new DefaultConfigFileSpecification(
+                configFiles.add(new DefaultConfigFileSpec(
                         rawConfig.getDest(), fileReader.read(rawConfig.getTemplate())));
             }
         }

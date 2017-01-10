@@ -34,32 +34,31 @@ public class YAMLServiceSpecFactory {
         }
     }
 
-    public static final RawServiceSpecification generateRawSpecFromYAML(File pathToYaml) throws Exception {
+    public static final RawServiceSpec generateRawSpecFromYAML(File pathToYaml) throws Exception {
         return generateRawSpecFromYAML(FileUtils.readFileToString(pathToYaml, CHARSET));
     }
 
-    public static final RawServiceSpecification generateRawSpecFromYAML(final String yaml) throws Exception {
+    public static final RawServiceSpec generateRawSpecFromYAML(final String yaml) throws Exception {
         final String yamlWithEnv = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
         LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
         if (!CommonTaskUtils.isMustacheFullyRendered(yamlWithEnv)) {
             throw new IllegalStateException("YAML contains unsubstitued variables.");
         }
-        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpecification.class);
+        return YAML_MAPPER.readValue(yamlWithEnv.getBytes(CHARSET), RawServiceSpec.class);
     }
 
     /**
-     * Converts the provided YAML {@link RawServiceSpecification} into a new {@link ServiceSpec}.
+     * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
-     * @param rawServiceSpecification the raw service specification representing a YAML file
+     * @param rawServiceSpec the raw service specification representing a YAML file
      * @throws Exception if the conversion fails
      */
-    public static final DefaultServiceSpec generateServiceSpec(
-            RawServiceSpecification rawServiceSpecification) throws Exception {
-        return generateServiceSpec(rawServiceSpecification, new FileReader());
+    public static final DefaultServiceSpec generateServiceSpec(RawServiceSpec rawServiceSpec) throws Exception {
+        return generateServiceSpec(rawServiceSpec, new FileReader());
     }
 
     /**
-     * Converts the provided YAML {@link RawServiceSpecification} into a new {@link ServiceSpec}. This version allows
+     * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}. This version allows
      * providing a custom file reader for use in testing.
      *
      * @param rawServiceSpecification the raw service specification representing a YAML file
@@ -68,7 +67,7 @@ public class YAMLServiceSpecFactory {
      */
     @VisibleForTesting
     public static final DefaultServiceSpec generateServiceSpec(
-            RawServiceSpecification rawServiceSpecification, FileReader fileReader) throws Exception {
-        return YAMLToInternalMappers.from(rawServiceSpecification, fileReader);
+            RawServiceSpec rawServiceSpec, FileReader fileReader) throws Exception {
+        return YAMLToInternalMappers.from(rawServiceSpec, fileReader);
     }
 }

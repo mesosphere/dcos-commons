@@ -42,8 +42,10 @@ public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
 
     @Override
     public void proceed() {
+        super.proceed();
+        
         if (!initialized.get())  {
-            logger.warn("Proceed has no effect before strategy initialization.");
+            logger.warn("Proceed has no effect to children before strategy initialization.");
             return;
         }
 

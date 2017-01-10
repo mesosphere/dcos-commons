@@ -9,6 +9,6 @@ pods:
         cpus: 0.1
         memory: 512
         configurations:
-          conf:
+          conf-doesnt-exist:
             template: file-doesnt-exist.conf.mustache
             dest: conf/file-doesnt-exist.conf

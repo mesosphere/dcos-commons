@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import org.apache.mesos.Protos;
@@ -38,7 +39,6 @@ import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
 import com.mesosphere.sdk.state.PersistentOperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -226,7 +226,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Sets the {@link Plan}s from the provided {@link RawServiceSpecification} to this instance, using a
+         * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
          * {@link DefaultPlanGenerator} to handle conversion. This is overridden by any plans manually provided by
          * {@link #setPlans(Collection)}.
          *
@@ -234,7 +234,7 @@ public class DefaultScheduler implements Scheduler, Observer {
          * @throws IllegalStateException if the plans were already set either via this call or via
          *     {@link #setPlans(Collection)}
          */
-        public Builder setPlansFrom(RawServiceSpecification rawServiceSpec) throws ConfigStoreException {
+        public Builder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
             if (rawServiceSpec.getPlans() != null) {
                 this.yamlPlans.clear();
                 this.yamlPlans.putAll(rawServiceSpec.getPlans());
@@ -243,11 +243,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
-         * Sets the provided {@link Plan}s to this instance. This may be used when no {@link RawServiceSpecification} is
-         * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpecification)}.
+         * Sets the provided {@link Plan}s to this instance. This may be used when no {@link RawServiceSpec} is
+         * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
          *
          * @throws IllegalStateException if the plans were already set either via this call or via
-         *     {@link #setPlans(RawServiceSpecification)}
+         *     {@link #setPlans(RawServiceSpec)}
          */
         public Builder setPlans(Collection<Plan> plans) {
             this.manualPlans.clear();
@@ -470,10 +470,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
             this.permanentFailureTimeoutMs =
-                    Optional.ofNullable(replacementFailurePolicy.getPermanentFailureTimoutMs());
+                    Optional.ofNullable(replacementFailurePolicy.getPermanentFailureTimoutMins());
             // interpret unset/null as zero delay:
-            this.destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMs() == null
-                    ? 0 : replacementFailurePolicy.getMinReplaceDelayMs();
+            this.destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMins() == null
+                    ? 0 : replacementFailurePolicy.getMinReplaceDelayMins();
         } else {
             // default values if policy section is unset:
             this.permanentFailureTimeoutMs = Optional.of(PERMANENT_FAILURE_DELAY_MS);

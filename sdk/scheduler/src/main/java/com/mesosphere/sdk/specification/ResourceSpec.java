@@ -9,11 +9,11 @@ import org.apache.mesos.Protos;
 import java.util.Optional;
 
 /**
- * A ResourceSpecification encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
+ * A ResourceSpec encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
  * TaskSpecification.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-public interface ResourceSpecification {
+public interface ResourceSpec {
 
     @JsonProperty("value")
     Protos.Value getValue();

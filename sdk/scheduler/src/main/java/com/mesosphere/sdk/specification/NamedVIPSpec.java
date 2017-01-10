@@ -17,7 +17,7 @@ import javax.validation.constraints.Size;
 /**
  * This class represents a port mapped to a DC/OS named VIP.
  */
-public class NamedVIPSpecification extends DefaultResourceSpecification implements ResourceSpecification {
+public class NamedVIPSpec extends DefaultResourceSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String portName;
@@ -33,17 +33,17 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
     private final Integer vipPort;
 
     @JsonCreator
-    public NamedVIPSpecification(
+    public NamedVIPSpec(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey,
-            @JsonProperty("port_name") String portName,
+            @JsonProperty("env-key") String envKey,
+            @JsonProperty("port-name") String portName,
             @JsonProperty("protocol") String protocol,
             @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
-            @JsonProperty("vip_name") String vipName,
-            @JsonProperty("vip_port") Integer vipPort) {
+            @JsonProperty("vip-name") String vipName,
+            @JsonProperty("vip-port") Integer vipPort) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
         this.protocol = protocol;
@@ -54,7 +54,7 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
         ValidationUtils.validate(this);
     }
 
-    @JsonProperty("port_name")
+    @JsonProperty("port-name")
     public String getPortName() {
         return portName;
     }
@@ -69,12 +69,12 @@ public class NamedVIPSpecification extends DefaultResourceSpecification implemen
         return visibility;
     }
 
-    @JsonProperty("vip_name")
+    @JsonProperty("vip-name")
     public String getVipName() {
         return vipName;
     }
 
-    @JsonProperty("vip_port")
+    @JsonProperty("vip-port")
     public Integer getVipPort() {
         return vipPort;
     }

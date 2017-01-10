@@ -100,8 +100,8 @@ public class OfferRequirementTestUtils {
 
     private static PodSpec addResources(
             PodSpec podSpec,
-            Collection<ResourceSpecification> resources,
-            Collection<VolumeSpecification> volumes,
+            Collection<ResourceSpec> resources,
+            Collection<VolumeSpec> volumes,
             List<String> avoidAgents,
             List<String> collocateAgents) {
         Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
@@ -126,7 +126,7 @@ public class OfferRequirementTestUtils {
         return podBuilder.build();
     }
 
-    private static ResourceSpecification specFromResource(Protos.Resource resource, String principal) {
+    private static ResourceSpec specFromResource(Protos.Resource resource, String principal) {
         Protos.Value.Builder valueBuilder = Protos.Value.newBuilder();
 
         valueBuilder.setType(resource.getType());
@@ -144,7 +144,7 @@ public class OfferRequirementTestUtils {
                 throw new IllegalArgumentException("Resource has unknown type");
         }
 
-        return new DefaultResourceSpecification(
+        return new DefaultResourceSpec(
                 resource.getName(),
                 valueBuilder.build(),
                 resource.getRole(),
@@ -152,19 +152,19 @@ public class OfferRequirementTestUtils {
                 null);
     }
 
-    private static VolumeSpecification volumeFromResource(Protos.Resource resource, String principal) {
-        VolumeSpecification.Type volumeType;
+    private static VolumeSpec volumeFromResource(Protos.Resource resource, String principal) {
+        VolumeSpec.Type volumeType;
 
         Protos.Resource.DiskInfo.Source.Type resourceType = resource.getDisk().getSource().getType();
         if (resource.getDisk().hasSource() && resourceType.equals(Protos.Resource.DiskInfo.Source.Type.MOUNT)) {
-            volumeType = VolumeSpecification.Type.MOUNT;
+            volumeType = VolumeSpec.Type.MOUNT;
         } else if (resource.getDisk().hasSource() && resourceType.equals(Protos.Resource.DiskInfo.Source.Type.PATH)) {
-            volumeType = VolumeSpecification.Type.PATH;
+            volumeType = VolumeSpec.Type.PATH;
         } else {
-            volumeType = VolumeSpecification.Type.ROOT;
+            volumeType = VolumeSpec.Type.ROOT;
         }
 
-        return new DefaultVolumeSpecification(
+        return new DefaultVolumeSpec(
                 resource.getScalar().getValue(),
                 volumeType,
                 resource.getDisk().getVolume().getContainerPath(),

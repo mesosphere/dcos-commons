@@ -1,7 +1,7 @@
 name: "data-store"
 scheduler:
-  principal: "data-store-principal"
-  zookeeper: master.mesos:2181
+  principal: "some-other-principal"
+  zookeeper: non-default-zk:2181
   api-port: {{PORT_API}}
 replacement-failure-policy:
   permanent-failure-timeout-ms: 10
@@ -46,10 +46,10 @@ pods:
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
         configurations:
-          config-one.conf:
+          config-one:
             template: config-one.conf.mustache
             dest: conf/config-one.conf
-          config-two.xml:
+          config-two:
             template: config-two.xml.mustache
             dest: conf/config-two.xml
         health-check:
@@ -85,7 +85,7 @@ pods:
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
         configurations:
-          config-three.conf:
+          config-three:
             template: config-three.conf.mustache
             dest: conf/config-three.conf
         health-check:

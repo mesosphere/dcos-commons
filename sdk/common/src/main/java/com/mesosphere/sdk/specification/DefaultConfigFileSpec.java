@@ -8,17 +8,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Basic implementation of {@link ConfigFileSpecification} which returns the provided values.
+ * Basic implementation of {@link ConfigFileSpec} which returns the provided values.
  */
-public class DefaultConfigFileSpecification implements ConfigFileSpecification {
+public class DefaultConfigFileSpec implements ConfigFileSpec {
 
     private final String relativePath;
     private final String templateContent;
 
     @JsonCreator
-    public DefaultConfigFileSpecification(
-            @JsonProperty("relative_path") String relativePath,
-            @JsonProperty("template_content") String templateContent) {
+    public DefaultConfigFileSpec(
+            @JsonProperty("relative-path") String relativePath,
+            @JsonProperty("template-content") String templateContent) {
         this.relativePath = relativePath;
         this.templateContent = templateContent;
     }

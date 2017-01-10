@@ -1,0 +1,12 @@
+name: "hello-world"
+scheduler:
+  zookeeper: custom.master.mesos:2181
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512

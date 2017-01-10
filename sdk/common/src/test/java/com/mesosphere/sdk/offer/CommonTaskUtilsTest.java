@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.apache.commons.io.FileUtils;
-import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.ConfigFileSpecification;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpecification;
+import com.mesosphere.sdk.specification.ConfigFileSpec;
+import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,9 +54,9 @@ public class CommonTaskUtilsTest {
     @Test
     public void testSetGetConfigTemplates() throws InvalidProtocolBufferException {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        Collection<ConfigFileSpecification> configs = Arrays.asList(
-                new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                new DefaultConfigFileSpecification("../relative/path/to/config2", "this is a second config template"));
+        Collection<ConfigFileSpec> configs = Arrays.asList(
+                new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
+                new DefaultConfigFileSpec("../relative/path/to/config2", "this is a second config template"));
         CommonTaskUtils.setConfigFiles(taskBuilder, configs);
         Assert.assertEquals(configs, CommonTaskUtils.getConfigFiles(taskBuilder.build()));
     }
@@ -68,10 +68,10 @@ public class CommonTaskUtilsTest {
         for (int i = 0; i < 256 * 1024; ++i) {
             sb.append('a');
         }
-        Collection<ConfigFileSpecification> configs = Arrays.asList(
-                new DefaultConfigFileSpecification("../relative/path/to/config", sb.toString()),
-                new DefaultConfigFileSpecification("../relative/path/to/config2", sb.toString()),
-                new DefaultConfigFileSpecification("../relative/path/to/config3", "a"));
+        Collection<ConfigFileSpec> configs = Arrays.asList(
+                new DefaultConfigFileSpec("../relative/path/to/config", sb.toString()),
+                new DefaultConfigFileSpec("../relative/path/to/config2", sb.toString()),
+                new DefaultConfigFileSpec("../relative/path/to/config3", "a"));
         CommonTaskUtils.setConfigFiles(taskBuilder, configs);
     }
 

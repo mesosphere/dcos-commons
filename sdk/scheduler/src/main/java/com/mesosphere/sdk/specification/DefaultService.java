@@ -16,7 +16,7 @@ import org.apache.mesos.Scheduler;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.JettyApiServer;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -52,9 +52,9 @@ public class DefaultService implements Service {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
     }
 
-    public DefaultService(RawServiceSpecification rawServiceSpecification) throws Exception {
-        this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification))
-                .setPlansFrom(rawServiceSpecification));
+    public DefaultService(RawServiceSpec rawServiceSpec) throws Exception {
+        this(DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec))
+                .setPlansFrom(rawServiceSpec));
     }
 
     public DefaultService(ServiceSpec serviceSpecification, Collection<Plan> plans) throws Exception {
@@ -163,14 +163,10 @@ public class DefaultService implements Service {
         new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
 
-    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         final String serviceName = serviceSpec.getName();
 
-        Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceName)
-                .setFailoverTimeout(TWO_WEEK_SEC)
-                .setUser(USER)
-                .setCheckpoint(true);
+        Protos.FrameworkInfo.Builder fwkInfoBuilder = getFrameworkInfoBuilder(serviceName);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
         if (StringUtils.isEmpty(serviceSpec.getRole())) {
@@ -193,5 +189,17 @@ public class DefaultService implements Service {
         }
 
         return fwkInfoBuilder.build();
+    }
+
+    /**
+     * Returns a default {@link Protos.FrameworkInfo.Builder} based on the service name. Can be overridden to
+     * specify other framework properties (e.g., web UI URL).
+     */
+    protected Protos.FrameworkInfo.Builder getFrameworkInfoBuilder(String serviceName) {
+        return Protos.FrameworkInfo.newBuilder()
+                .setName(serviceName)
+                .setFailoverTimeout(TWO_WEEK_SEC)
+                .setUser(USER)
+                .setCheckpoint(true);
     }
 }

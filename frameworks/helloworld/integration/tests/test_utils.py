@@ -133,7 +133,7 @@ def spin(fn, success_predicate, *args, **kwargs):
             is_successful, error_message = success_predicate(result)
 
         if is_successful:
-            print('Success state reached, exiting spin. prev_err={}'.format(error_message))
+            print('Success state reached, exiting spin.')
             break
         print('Waiting for success state... err={}'.format(error_message))
         time.sleep(1)
@@ -193,6 +193,7 @@ def request(request_fn, *args, **kwargs):
         )
 
     return spin(request_fn, success_predicate, *args, **kwargs)
+
 
 def run_dcos_cli_cmd(cmd):
     (stdout, stderr, ret) = shakedown.run_dcos_command(cmd)

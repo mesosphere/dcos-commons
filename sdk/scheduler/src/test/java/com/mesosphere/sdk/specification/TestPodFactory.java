@@ -52,7 +52,7 @@ public class TestPodFactory {
             String name,
             String cmd,
             ResourceSet resourceSet,
-            Collection<ConfigFileSpecification> configs) {
+            Collection<ConfigFileSpec> configs) {
         return DefaultTaskSpec.newBuilder()
                 .name(name)
                 .goalState(GoalState.RUNNING)
@@ -71,7 +71,7 @@ public class TestPodFactory {
                 .id(id)
                 .cpus(cpu)
                 .memory(mem)
-                .addVolume(VolumeSpecification.Type.ROOT.toString(), disk, TestConstants.CONTAINER_PATH)
+                .addVolume(VolumeSpec.Type.ROOT.toString(), disk, TestConstants.CONTAINER_PATH)
                 .build();
     }
 

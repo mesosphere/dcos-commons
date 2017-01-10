@@ -18,6 +18,6 @@ pods:
         uris:
           - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
         configurations:
-          server.properties:
+          server-properties:
             template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
             dest: "kafka_2.11-0.10.0.0/config/server.properties"

@@ -23,10 +23,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-site.xml:
+          hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
@@ -55,10 +55,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-site.xml:
+          hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
@@ -71,10 +71,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-site.xml:
+          hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
@@ -87,10 +87,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-bootstrap-site.xml:
+          hdfs-bootstrap-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
@@ -110,10 +110,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-site.xml:
+          hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
@@ -127,10 +127,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-site.xml:
+          hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
@@ -159,10 +159,10 @@ pods:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configurations:
-          core-site.xml:
+          core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          hdfs-site.xml:
+          hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:

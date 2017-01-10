@@ -16,26 +16,26 @@ import javax.validation.constraints.Size;
 /**
  * This class represents a port resource, with associated environment name.
  */
-public class PortSpecification extends DefaultResourceSpecification implements ResourceSpecification {
+public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String portName;
 
     @JsonCreator
-    public PortSpecification(
+    public PortSpec(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env_key") String envKey,
-            @JsonProperty("port_name") String portName) {
+            @JsonProperty("env-key") String envKey,
+            @JsonProperty("port-name") String portName) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
 
         ValidationUtils.validate(this);
     }
 
-    @JsonProperty("port_name")
+    @JsonProperty("port-name")
     public String getPortName() {
         return portName;
     }

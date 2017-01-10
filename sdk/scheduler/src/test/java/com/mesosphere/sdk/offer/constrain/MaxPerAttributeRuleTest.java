@@ -463,7 +463,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void testDeserializeAllParams() throws IOException {
-        String str = "{ '@type': 'MaxPerAttributeRule', 'max': 2, 'matcher': { '@type': 'AnyMatcher' }, 'task_filter': { '@type': 'ExactMatcher', 'string': 'foo' } }".replace('\'', '"');
+        String str = "{ '@type': 'MaxPerAttributeRule', 'max': 2, 'matcher': { '@type': 'AnyMatcher' }, 'task-filter': { '@type': 'ExactMatcher', 'string': 'foo' } }".replace('\'', '"');
         SerializationUtils.fromString(str,
                 PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }

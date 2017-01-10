@@ -4,7 +4,7 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpecification;
+import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
@@ -157,7 +157,7 @@ public class TaskUtilsTest {
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template")));
+                        new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template")));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -169,16 +169,16 @@ public class TaskUtilsTest {
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpecification("../relative/path/to/config2", "second config")));
+                        new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
+                        new DefaultConfigFileSpec("../relative/path/to/config2", "second config")));
 
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpecification("../diff/path/to/config", "this is a diff config template"),
-                        new DefaultConfigFileSpecification("../diff/path/to/config2", "diff second config")));
+                        new DefaultConfigFileSpec("../diff/path/to/config", "this is a diff config template"),
+                        new DefaultConfigFileSpec("../diff/path/to/config2", "diff second config")));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -190,16 +190,16 @@ public class TaskUtilsTest {
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpecification("../relative/path/to/config2", "second config")));
+                        new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
+                        new DefaultConfigFileSpec("../relative/path/to/config2", "second config")));
 
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpecification("../relative/path/to/config2", "second config")));
+                        new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
+                        new DefaultConfigFileSpec("../relative/path/to/config2", "second config")));
 
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -211,8 +211,8 @@ public class TaskUtilsTest {
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpecification("../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpecification("../relative/path/to/config", "same path should fail")));
+                        new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
+                        new DefaultConfigFileSpec("../relative/path/to/config", "same path should fail")));
     }
 
     private static Protos.TaskID getTaskId(String value) {

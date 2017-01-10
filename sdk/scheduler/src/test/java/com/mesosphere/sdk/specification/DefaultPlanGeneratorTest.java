@@ -5,7 +5,7 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpecification;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -52,8 +52,8 @@ public class DefaultPlanGeneratorTest {
     public void testFullManualPlan() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("full-manual-plan.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
 
         stateStore = DefaultScheduler.createStateStore(
                 serviceSpec,
@@ -63,7 +63,7 @@ public class DefaultPlanGeneratorTest {
         Assert.assertNotNull(serviceSpec);
 
         DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore);
-        for (Map.Entry<String, RawPlan> entry : rawServiceSpecification.getPlans().entrySet()) {
+        for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
             Assert.assertEquals(2, plan.getChildren().size());
@@ -76,8 +76,8 @@ public class DefaultPlanGeneratorTest {
     public void testPartialManualPlan() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("partial-manual-plan.yml").getFile());
-        RawServiceSpecification rawServiceSpecification = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
 
         stateStore = DefaultScheduler.createStateStore(
                 serviceSpec,
@@ -87,7 +87,7 @@ public class DefaultPlanGeneratorTest {
         Assert.assertNotNull(serviceSpec);
 
         DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore);
-        for (Map.Entry<String, RawPlan> entry : rawServiceSpecification.getPlans().entrySet()) {
+        for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
             Assert.assertEquals(2, plan.getChildren().size());

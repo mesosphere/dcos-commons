@@ -4,9 +4,9 @@ import com.google.inject.Inject;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.ResourceSpecification;
+import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.VolumeSpecification;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import org.apache.mesos.Protos.*;
@@ -111,13 +111,13 @@ public class OfferEvaluator {
         for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
             String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
             if (tasksToLaunch.contains(taskName)) {
-                for (ResourceSpecification r : taskSpec.getResourceSet().getResources()) {
+                for (ResourceSpec r : taskSpec.getResourceSet().getResources()) {
                     Resource taskResource = ResourceUtils.getResource(
                             offerRequirement.getTaskRequirement(taskName).getTaskInfo(), r.getName());
                     evaluationPipeline.add(r.getEvaluationStage(taskResource, taskName));
                 }
 
-                for (VolumeSpecification v : taskSpec.getResourceSet().getVolumes()) {
+                for (VolumeSpec v : taskSpec.getResourceSet().getVolumes()) {
                     Resource taskResource = ResourceUtils.getResource(
                             offerRequirement.getTaskRequirement(taskName).getTaskInfo(), v.getName());
                     evaluationPipeline.add(v.getEvaluationStage(taskResource, taskName));
