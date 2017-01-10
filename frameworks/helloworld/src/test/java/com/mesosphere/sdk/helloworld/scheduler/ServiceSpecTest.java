@@ -1,11 +1,12 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import org.apache.curator.test.TestingServer;
-import org.apache.mesos.SchedulerDriver;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStoreCache;
+import org.apache.curator.test.TestingServer;
+import org.apache.mesos.SchedulerDriver;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
@@ -15,6 +16,8 @@ import java.io.File;
 import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ServiceSpecTest {
 
@@ -102,10 +105,16 @@ public class ServiceSpecTest {
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
+
+        Capabilities mockCapabilities = mock(Capabilities.class);
+        when(mockCapabilities.supportsNamedVips()).thenReturn(true);
+        when(mockCapabilities.supportsRLimits()).thenReturn(true);
+
         DefaultScheduler.newBuilder(serviceSpec)
-            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
-            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
-            .build();
+                .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+                .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+                .setCapabilities(mockCapabilities)
+                .build();
         testingServer.close();
     }
 }

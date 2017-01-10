@@ -14,6 +14,10 @@ pods:
         RLIMIT_AS:
           soft: 5
           hard: 10
+      volumes:
+        - mode: RW
+          container-path: /data
+          host-path: persistent-volume/data
     resource-sets:
       meta-data-resources:
         cpus: 0.1

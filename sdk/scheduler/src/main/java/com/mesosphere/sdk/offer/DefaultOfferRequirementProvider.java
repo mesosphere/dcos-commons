@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
+import com.mesosphere.sdk.specification.yaml.ContainerVolume;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -423,14 +424,45 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
         if (containerSpec.getImageName().isPresent()) {
-            containerInfo.getDockerBuilder().setImage(containerSpec.getImageName().get());
+            containerInfo.getMesosBuilder()
+                    .getImageBuilder()
+                        .setType(Protos.Image.Type.DOCKER)
+                        .getDockerBuilder()
+                            .setName(containerSpec.getImageName().get());
         }
 
         if (!containerSpec.getRLimits().isEmpty()) {
             containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
         }
 
+        if (!containerSpec.getVolumes().isEmpty()) {
+            containerInfo.addAllVolumes(getContainerVolumes(containerSpec.getVolumes()));
+        }
+
         return containerInfo.build();
+    }
+
+    private static Iterable<? extends Protos.Volume> getContainerVolumes(Collection<ContainerVolume> volumes) {
+        return volumes.stream()
+                .map(containerVolume -> Protos.Volume.newBuilder()
+                        .setMode(getMode(containerVolume.getMode()))
+                        .setContainerPath(containerVolume.getContainerPath())
+                        .setHostPath(containerVolume.getHostPath())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private static Protos.Volume.Mode getMode(String mode) {
+        switch (mode) {
+            case "RW":
+            case "rw":
+                return Protos.Volume.Mode.RW;
+            case "RO":
+            case "ro":
+                return Protos.Volume.Mode.RO;
+            default:
+                return Protos.Volume.Mode.RW;
+        }
     }
 
     private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
