@@ -139,15 +139,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final List<Plan> manualPlans = new ArrayList<>();
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
+        private Capabilities capabilities;
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
-
-            try {
-                new CapabilityValidator(new Capabilities(new DcosCluster())).validate(serviceSpec);
-            } catch (CapabilityValidator.CapabilityValidationException e) {
-                throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
-            }
         }
 
         /**
@@ -256,6 +251,17 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Allow setting the capabilities of the DC/OS cluster.  Generally this should not be used except in test
+         * environments as it may return incorrect information regarding the capabilities of the DC/OS cluster.
+         * @param capabilities the capabilities used to validate the ServiceSpec
+         */
+        @VisibleForTesting
+        public Builder setCapabilities(Capabilities capabilities) {
+            this.capabilities = capabilities;
+            return this;
+        }
+
+        /**
          * Creates a new scheduler instance with the provided values or their defaults.
          *
          * @return a new scheduler instance
@@ -263,6 +269,16 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
         public DefaultScheduler build() {
+            if (capabilities == null) {
+                this.capabilities = new Capabilities(new DcosCluster());
+            }
+
+            try {
+                new CapabilityValidator(capabilities).validate(serviceSpec);
+            } catch (CapabilityValidator.CapabilityValidationException e) {
+                throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
+            }
+
             // Get custom or default state store (defaults handled by getStateStore())::
             final StateStore stateStore = getStateStore();
 

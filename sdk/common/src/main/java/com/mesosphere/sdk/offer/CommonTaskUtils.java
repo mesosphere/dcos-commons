@@ -436,8 +436,10 @@ public class CommonTaskUtils {
      */
     public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
         if (!taskInfo.hasExecutor()) {
+            LOGGER.info("Nothing to unpack.");
             return taskInfo;
         } else {
+            LOGGER.info("Unpacking.");
             TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
             ExecutorInfo pkgExecutorInfo = ExecutorInfo.parseFrom(taskInfo.getData());
 
