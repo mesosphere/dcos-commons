@@ -139,6 +139,9 @@ public class DefaultStep extends DefaultObservable implements Step {
     @Override
     public Status getStatus() {
         synchronized (statusLock) {
+            if (status == Status.PENDING && getStrategy().isInterrupted()) {
+                return Status.WAITING;
+            }
             return status;
         }
     }
