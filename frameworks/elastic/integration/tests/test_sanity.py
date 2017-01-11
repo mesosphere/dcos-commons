@@ -19,7 +19,8 @@ DEFAULT_SETTINGS_MAPPINGS = {
 def setup_module(module):
     uninstall()
     gc_frameworks()
-    shakedown.install_package_and_wait(package_name=PACKAGE_NAME, options_file=None, timeout_sec=WAIT_TIME_IN_SECONDS)
+    shakedown.install_package_and_wait(package_name=PACKAGE_NAME, service_name=PACKAGE_NAME, options_file=None,
+                                       timeout_sec=WAIT_TIME_IN_SECONDS)
 
 
 def setup_function(function):
