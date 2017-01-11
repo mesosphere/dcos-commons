@@ -14,7 +14,7 @@ TEST_CONTENT_SMALL = "This is some test data"
 # TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
+HDFS_CMD_TIMEOUT_SEC = 15 * 60
 
 
 def setup_module(module):
@@ -27,7 +27,6 @@ def teardown_module(module):
     uninstall()
 
 
-@pytest.mark.skip(reason="Failing test")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
@@ -45,7 +44,6 @@ def test_integrity_on_data_node_failure():
     check_health()
 
 
-@pytest.mark.skip(reason="Failing test")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_name_node_failure():
