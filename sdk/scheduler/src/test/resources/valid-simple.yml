@@ -1,6 +1,5 @@
 name: "data-store"
 principal: "data-store-principal"
-zookeeper: master.mesos:2181
 api-port: {{PORT0}}
 pods:
   meta-data:

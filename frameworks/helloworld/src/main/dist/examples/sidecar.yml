@@ -1,0 +1,53 @@
+name: "hello-world"
+principal: "hello-world-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+pods:
+  hello:
+    count: 2
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+        volumes:
+          - path: "hello-container-path"
+            type: ROOT
+            size: 1024
+      sidecar-resources:
+        cpus: 1
+        memory: 256
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: hello-resources
+        env:
+          SLEEP_DURATION: 1000
+      once:
+        goal: FINISHED
+        cmd: "echo 'I run only once' >> hello-container-path/output"
+        resource-set: sidecar-resources
+      sidecar:
+        goal: FINISHED
+        cmd: "echo 'sidecar' >> hello-container-path/output"
+        resource-set: sidecar-resources
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      server-deploy:
+        strategy: parallel
+        pod: hello
+        tasks: [server]
+      once-deploy:
+        strategy: parallel
+        pod: hello
+        tasks: [once]
+  sidecar:
+    strategy: serial
+    phases:
+      sidecar-deploy:
+        strategy: parallel
+        pod: hello
+        tasks: [sidecar]

@@ -1,14 +1,24 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
-import org.apache.mesos.specification.DefaultService;
+import com.mesosphere.sdk.specification.DefaultService;
 
 import java.io.File;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Main.
+ * Kafka service.
  */
 public class Main {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) throws Exception {
-        new DefaultService(new File(args[0]));
+        if (args.length > 0) {
+            new DefaultService(new File(args[0]));
+        } else {
+            LOGGER.error("Missing file argument");
+            System.exit(1);
+        }
     }
 }

@@ -1,0 +1,55 @@
+name: "hello-world"
+principal: "hello-world-principal"
+api-port: 8080
+pods:
+  hello:
+    count: 2
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+        ports:
+          - name: http
+            port: 8080
+        volumes:
+          - path: "hello-container-path"
+            type: ROOT
+            size: 1024
+      once-resources:
+        cpus: 1
+        memory: 256
+        volumes:
+          - path: "once-container-path"
+            type: ROOT
+            size: 1024
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: hello-resources
+        env:
+          SLEEP_DURATION: 1000
+        health-check:
+          cmd: "stat hello-container-path/output"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
+      once:
+        goal: FINISHED
+        cmd: "echo 'I run only once' >> once-container-path/runonce"
+        resource-set: once-resources
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      server-deploy:
+        strategy: parallel
+        pod: hello
+        tasks: [server]
+      once-deploy:
+        strategy: parallel
+        pod: hello
+        tasks: [once]

@@ -12,7 +12,6 @@ PACKAGE_NAME = 'hello-world'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-DEFAULT_TASK_COUNT = 1
 
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'
@@ -31,7 +30,14 @@ else:
     DEFAULT_OPTIONS_DICT = {}
 
 
-def check_health(expected_tasks = DEFAULT_TASK_COUNT):
+def get_task_count():
+    config = get_marathon_config()
+    return int(config['env']['HELLO_COUNT']) + int(config['env']['WORLD_COUNT'])
+
+
+def check_health():
+    expected_tasks = get_task_count()
+
     def fn():
         try:
             return shakedown.get_service_tasks(PACKAGE_NAME)
@@ -49,10 +55,23 @@ def check_health(expected_tasks = DEFAULT_TASK_COUNT):
 
     return spin(fn, success_predicate)
 
+
 def get_deployment_plan():
+    return _get_plan("deploy")
+
+
+def get_sidecar_plan():
+    return _get_plan("sidecar")
+
+
+def start_sidecar_plan():
+    return dcos.http.post(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/sidecar/start")
+
+
+def _get_plan(plan):
     def fn():
         try:
-            return dcos.http.get(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/deploy")
+            return dcos.http.get("{}/v1/plans/{}".format(shakedown.dcos_service_url(PACKAGE_NAME), plan))
         except dcos.errors.DCOSHTTPException:
             return []
 
@@ -71,13 +90,18 @@ def get_deployment_plan():
     return spin(fn, success_predicate)
 
 
-def install(package_version=None, package_name=PACKAGE_NAME, additional_options = {}):
+def install(
+        package_version=None,
+        package_name=PACKAGE_NAME,
+        additional_options = {},
+        wait_for_completion=True):
     merged_options = _nested_dict_merge(DEFAULT_OPTIONS_DICT, additional_options)
     print('Installing {} with options: {}'.format(PACKAGE_NAME, merged_options))
-    shakedown.install_package_and_wait(
+    shakedown.install_package(
         package_name=PACKAGE_NAME,
         package_version=package_version,
-        options_json=merged_options)
+        options_json=merged_options,
+        wait_for_completion=wait_for_completion)
 
 
 def uninstall():
@@ -109,7 +133,7 @@ def spin(fn, success_predicate, *args, **kwargs):
             is_successful, error_message = success_predicate(result)
 
         if is_successful:
-            print('Success state reached, exiting spin. prev_err={}'.format(error_message))
+            print('Success state reached, exiting spin.')
             break
         print('Waiting for success state... err={}'.format(error_message))
         time.sleep(1)
@@ -172,7 +196,10 @@ def request(request_fn, *args, **kwargs):
 
 
 def run_dcos_cli_cmd(cmd):
-    print('Running {}'.format(cmd))
-    stdout = subprocess.check_output(cmd, shell=True).decode('utf-8')
-    print(stdout)
+    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd)
+    if ret != 0:
+        err = "Got error code {} when running command 'dcos {}':\nstdout: {}\nstderr: {}".format(
+            ret, cmd, stdout, stderr)
+        print(err)
+        raise Exception(err)
     return stdout

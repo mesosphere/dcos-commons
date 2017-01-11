@@ -1,13 +1,12 @@
 name:
 principal: "data-store-principal"
-zookeeper: master.mesos:2181
 api-port:
 replacement-failure-policy:
   permanent-failure-timeout-ms: -1
   min-replace-delay-ms: -1
 pods:
   meta-data:
-    placement: "avoid-type: meta-data"
+    placement: "hostname:UNIQUE"
     count: 2
     resource-sets:
       - id: meta-data-resources
@@ -56,7 +55,7 @@ pods:
             delay: 0
             timeout: 10
   data-store:
-    placement: "avoid-type: data-store"
+    placement: "hostname:UNIQUE"
     count: 3
     resource-sets:
       - id: data-store-resources

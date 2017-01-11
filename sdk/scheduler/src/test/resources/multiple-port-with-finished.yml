@@ -1,0 +1,22 @@
+name: "hello-world"
+principal: "test-principal"
+api-port: {{PORT0}}
+pods:
+  pod-type:
+    count: 1
+    resource-sets:
+      task-resources:
+        ports:
+          - name: test-port-name
+            port: 10000
+          - name: test-port-name2
+            port: 10001
+    tasks:
+      finished-task:
+        goal: FINISHED
+        cmd: "./finished-cmd"
+        resource-set: task-resources
+      test-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        resource-set: task-resources
