@@ -125,15 +125,22 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
         if (rawPod.getContainer() != null) {
+            RawContainer rawContainer = rawPod.getContainer();
             builder.container(
                     new DefaultContainerSpec(
-                            rawPod.getContainer().getImageName(), from(rawPod.getContainer().getRLimits())));
+                            rawContainer.getImageName(),
+                            from(rawContainer.getRLimits()),
+                            rawContainer.getVolumes()));
         }
 
         return builder.build();
     }
 
     private static Collection<RLimit> from(LinkedHashMap<String, RawRLimit> rawRLimits) throws Exception {
+        if (rawRLimits == null) {
+            return Collections.emptyList();
+        }
+
         List<RLimit> rlimits = new ArrayList<>();
         for (Map.Entry<String, RawRLimit> entry : rawRLimits.entrySet()) {
             RawRLimit rawRLimit = entry.getValue();

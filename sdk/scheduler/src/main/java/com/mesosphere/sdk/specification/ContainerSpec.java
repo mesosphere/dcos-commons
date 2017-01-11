@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mesosphere.sdk.specification.util.RLimit;
+import com.mesosphere.sdk.specification.yaml.ContainerVolume;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -17,4 +18,7 @@ public interface ContainerSpec {
 
     @JsonProperty("rlimits")
     Collection<RLimit> getRLimits();
+
+    @JsonProperty("volumes")
+    Collection<ContainerVolume> getVolumes();
 }
