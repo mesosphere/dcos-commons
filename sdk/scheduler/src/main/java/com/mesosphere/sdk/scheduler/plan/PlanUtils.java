@@ -125,7 +125,7 @@ public class PlanUtils {
             result = Status.WAITING;
             LOGGER.debug("({} status={}) At least one element has status: {}",
                     parent.getName(), result, Status.WAITING);
-        }  else if (allHaveStatus(Status.PENDING, children)) {
+        } else if (allHaveStatus(Status.PENDING, children)) {
             result = Status.PENDING;
             LOGGER.debug("({} status={}) All elements have status: {}",
                     parent.getName(), result, Status.PENDING);
