@@ -22,9 +22,6 @@ DC/OS Elasticsearch provides the following features:
 *   Multiple clusters for multiple tenancy with DC/OS
 *   High availability runtime configuration and software updates
 *   Storage volumes for enhanced data durability, known as Mesos Dynamic Reservations and Persistent Volumes
-*   Integration with syslog-compatible logging services for diagnostics and troubleshooting
-*   Integration with statsd-compatible metrics services for capacity and performance monitoring
-*   Node placement strategy ensures Elasticsearch nodes are not collocated with other nodes of the same type
 
 <a name="getting-started"></a>
 # Getting Started
@@ -41,88 +38,73 @@ dcos node ssh --master-proxy --leader
 *   Step 2. Explore your cluster.
 
 ```bash
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/health?v'
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
+curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/health?v'
+curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
 ```
 
 *   Step 3. Create and check indices.
 
 ```bash
-curl -s -u elastic:changeme -XPUT 'data.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
+curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
+curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
 ```
 
-*   Step 4. Store and retrieve data.
+*   Step 4. Store and retrieve coordinator.
 
 ```bash
-curl -s -u elastic:changeme -XPUT 'data.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
+curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
 {
   "name": "John Doe"
 }'
-curl -s -u elastic:changeme -XGET 'data.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
+curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
 ```
 
 *   Step 5. Check status.
 
 ```bash
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/health?v'
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
-curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
+curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/health?v'
+curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
+curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
 ```
 
 
-### Note: if you installed coordinator nodes, you should direct all queries to them instead of your data nodes:
+### Note: if you did not install coordinator nodes, you should direct all queries to your data nodes instead:
 
 ```bash
-curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
+curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'
 ```
  
 ## Kibana
 
-To access your Kibana service running in DC/OS, you'll need to set up a HAProxy on one of your public slave nodes.
+To access your Kibana service running in DC/OS 1.9, you will need to manually patch the Lua code in Admin Router to account for a bug. If for whatever reason you are running a multi-master DC/OS install, you will need to edit the Lua file on each master. Once the bug is fixed in DC/OS 1.9.x and you are running a version of Admin Router with the bugfix, you will not have to do this.
 
-*   Step 1. From your DC/OS Dashboard, click Services in the left navigation.
- 
-*   Step 2. Click deploy service
-
-*   Step 3. Toggle to JSON mode and paste in this JSON:
-
-```json
-{
-    "id": "haproxy",
-    "mem": 128,
-    "cpus": 0.5,
-    "requirePorts": true,
-    "instances": 1,
-    "container": {
-        "type": "DOCKER",
-        "docker": {
-            "network": "HOST",
-            "image": "sargun/haproxy-demo:3"
-        }
-    },
-    "env": {
-        "CONFIGURL": "https://gist.githubusercontent.com/loren/c4eca3cd7b638a97346843bdef62a2d4/raw/e5bf09b79c4efbe847f9f7d75c489f4616ad558b/haproxy.cfg"
-    },
-    "acceptedResourceRoles": [
-        "slave_public"
-    ]
-}
+```bash
+dcos node ssh --master-proxy --leader
+sudo vi /opt/mesosphere/packages/adminrouter--**/nginx/conf/master/service.lua
 ```
+For DC/OS EE, delete line 36: 
+```
+parsed_webui_url.host = host
+```
+For open source DC/OS, delete [this block](https://github.com/dcos/adminrouter/pull/30/files)
 
-* Step 4. (Optional) If you changed your service name from the default 'elastic' to something else, you'll need to modify the `haproxy.cfg` file accordingly.
+```bash
+sudo systemctl restart dcos-adminrouter
+```
+Make sure Kibana is fully up and running. Depending on your Kibana node’s resources, it can easily take ~10 minutes to launch, so look in the stdout log for it to complete. This line takes the longest: 
 
-* Step 5. Click on the `haproxy` service to see which public slave node it's running on. Let's say it's `a.b.c.d`.
- 
-* Step 6. Determine the publicly facing IP address.
- 
- ```bash
- dcos node ssh --master-proxy --leader
- ssh a.b.c.d
- curl ifconfig.co
- ```
-
-* Step 7. Browse to port 80 on that IP address, and you should see Kibana login. The default username/password is `elastic`/`changeme`.
+```
+Optimizing and caching browser bundles...
+```
+Then you’ll see this:
+```
+{"type":"log","@timestamp":"2016-12-08T22:37:46Z","tags":["listening","info"],"pid":12263,"message":"Server running at http://0.0.0.0:5601"}
+```
+Then go to this URL: 
+```
+http://$DCOS_URL/service/{{cluster-name}}/login
+```
+And login with `elastic`/`changeme`
 
 <a name="install-and-customize"></a>
 # Install and Customize
@@ -139,21 +121,40 @@ This command creates a new Elasticsearch cluster with the default name `elastic`
 
 ## Custom Installation
 
-You can customize the Elasticsearch cluster in a variety of ways by specifying a JSON options file. Sample JSON options file named `custom_heap.json` with a JVM heap size specified for each Elasticsearch node:
+You can customize the Elasticsearch cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, ports, and plugins:
 
-    {
-        "nodes": {
-            "heap": {
-                "size": 768
-            }
-        }
-    }
+```json
+{
+  "service": {
+    "name": "another-cluster"
+  },
+  "master_nodes": {
+    "http_port": 19200,
+    "transport_port": 19300
+  },
+  "data_nodes": {
+    "http_port": 19201,
+    "transport_port": 19301
+  },
+  "ingest_nodes": {
+    "http_port": 19202,
+    "transport_port": 19302
+  },
+  "coordinator_nodes": {
+    "http_port": 19203,
+    "transport_port": 19303
+  },
+  "elasticsearch": {
+    "plugins": "analysis-icu,analysis-kuromoji"
+  }
+}
 
+```
 
-The command below creates a cluster using the `custom_heap.json` file:
+The command below creates a cluster using a `custom.json` file:
 
 ```bash
-dcos package install --app --options=custom_name.json elastic
+dcos package install --app --options=custom.json elastic
 ```
 
 ## Multiple Elasticsearch cluster installation
@@ -175,7 +176,7 @@ The command below creates a cluster using `custom_name.json`:
 dcos package install --app --options=custom_name.json elastic
 ```
 
-See [Configuration Options](#configuration-options) for a list of fields that can be customized via an options JSON file when the Elasticsearch cluster is created.
+See [Configuring](#configuring) for a list of fields that can be customized via an options JSON file when the Elasticsearch cluster is created.
 
 
 ## Uninstall
@@ -204,8 +205,6 @@ you would use
 - `framework_principal` is `customers-principal`.
 - `zk_path` is `dcos-service-customers`.
 
-
-
 If you are using the Enterprise Edition of DC/OS with Authentication enabled you will need to include the token in the GET command.
 
 ```bash
@@ -223,11 +222,78 @@ You can customize your cluster in-place when it is up and running.
 
 The Elasticsearch scheduler runs as a Marathon process and can be reconfigured by changing values within Marathon. These are the general steps to follow:
 
-1.  View your Marathon dashboard at `http://$DCOS_URI/marathon`
+1.  View your Marathon dashboard at `http://$DCOS_URI/#/services/overview`
 2.  In the list of `Applications`, click the name of the Elasticsearch service to be updated.
 3.  Within the Elasticsearch instance details view, click the `Configuration` tab, then click the `Edit` button.
-4.  In the dialog that appears, expand the `Environment Variables` section and update any field(s) to their desired value(s). For example, to [increase the number of data nodes](#node-count), edit the value for `DATA_NODE_COUNT`. Do not edit the value for `FRAMEWORK_NAME`.
+4.  In the dialog that appears, expand the `Environment Variables` section and update any field(s) to their desired value(s). For example, to increase the number of data nodes, edit the value for `DATA_NODE_COUNT`. Do not edit the value for `FRAMEWORK_NAME`, `MASTER_NODE_TRANSPORT_PORT`, or any of the disk type/size fields.
 5.  Click `Change and deploy configuration` to apply any changes and cleanly reload the Elasticsearch service scheduler. The Elasticsearch cluster itself will persist across the change.
+
+## Configuration guidelines
+
+- Service name: This needs to be unique for each instance of the framework that is running. It is also used as your cluster name.
+- Service user. This absolutely must be a non-root user. The user must exist already on each agent. The default user for CoreOS-based clusters is core.
+- Plugins: X-Pack will already be installed for you, but you can specify other plugins via a comma separated list of plugin names (e.g., “analysis-icu”) or plugin URIs.
+- CPU/RAM/Disk/Heap: These will be specific to your DC/OS cluster and your Elasticsearch use cases. Please refer to Elastic’s guidelines for configuration.
+- Node counts: for now, at least 1 data node is required for the cluster to operate at all. You do not need to use a coordinator node unless you are using Kibana. There is no maximum for node counts.
+- Ports: you can pick whatever ports work for your DC/OS cluster. The defaults have master nodes listening on 9200, data nodes on 9201, ingest on 9202, and coordinators on 9203 for HTTP. For transport port numbers, the defaults are the HTTP port number + 100 (i.e., 9300, 9301, 9302, and 9303). If you want each elasticsearch node to run on a different agent and never be collocated with any other elasticsearch nodes in the same cluster, specify the same HTTP and transport port values for each node type. If you want multiple master nodes from different clusters on the same host, you'll need to specify different master http and transport ports for each cluster.
+- Serial vs Parallel deployment. By default, the Elastic framework tells Mesos to install/update everything in parallel. You can change this to serial to have each node installed one at a time.
+
+It can be confusing to understand what parts of the Elasticsearch cluster can be modified through the Mesosphere DC/OS framework at runtime, what gets specified initially and is immutable, and what gets modified directly through the Elasticsearch cluster update settings API. The most important settings are the immutable ones, so let’s start with those.
+
+### Immutable settings (at cluster creation time via Elastic package UI or JSON options file via CLI)
+
+- Service name (aka cluster name). Can be hyphenated, but not underscored.
+- Master transport port
+- Disk sizes/types
+- Modifiable settings (at runtime via Marathon env vars):
+- Plugins
+- CPU
+- RAM
+- JVM Heap (do not exceed ½ available node RAM)
+- All ports except master transport port
+- Node counts (up, not down)
+- Deployment/Upgrade strategy (serial/parallel). Note that serial deployment does not yet wait for the cluster to reach green before proceeding to the next node. This is a known limitation.
+
+Any other modifiable settings would be covered by the various Elasticsearch APIs (cluster settings, index settings, templates, aliases, scripts). It’s possible that some of the more common cluster settings will get exposed through future versions of the Elastic DC/OS framework.
+
+# Viewing Plans via CLI
+
+You can view the deploy plan for the Elastic framework via the service URL: `http://$DCOS_URL/service/dcos-{{cluster-name}}/v1/plans`
+
+# Topology
+
+Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator, kibana. 
+
+The default placement strategy distributes all instances of the same node task type to different agents. So, no two master nodes would run on the same agent, but a data node might get placed onto an agent that is also running a master node.
+
+![agent](https://s3.amazonaws.com/loren-elastic-assets/Default+Specialized+by+Agent+-+Page+1.png "Private Nodes Grouped by Agent")
+![vip](https://s3.amazonaws.com/loren-elastic-assets/Default+Specialized+-+Page+1.png "Private Nodes Grouped by Named VIP")
+
+No matter how big or small the cluster is, there will always be exactly 3 master-only nodes with `minimum_master_nodes = 2`.
+
+## Default Topology (with minimum resources to run on 3 agents)
+
+- 3 master-only nodes
+- 2 data-only nodes
+- 1 ingest-only node
+- 1 Kibana node with X-Pack installed
+- 1 coordinator node
+
+The master/data/ingest/coordinator nodes are set up to only perform their one role. That is, master nodes do not store data, and ingest nodes do not store cluster state. This is how Elastic (the company) wants the clusters to look in order to support them commercially. It may seem like over-specialization for small clusters. But for medium/large clusters it's the safer bet. The predominant theme for this topology is “safety”. Down the road we intend on offering a "staging" topology with a theme of “economy” so you could install a simple 1, 2, or 3 node cluster with each node performing all roles. 
+
+## Minimal Topology
+
+You can set up a minimal development/staging cluster without ingest nodes, coordinator nodes, or kibana. You’ll still get 3 master nodes placed on 3 separate hosts. If you don’t care about replication, you can even use just 1 data node. By default, Elasticsearch creates indices with a replication factor of 1 (i.e., 1 primary shard + 1 replica), so with 1 data node, your cluster will be stuck in a ‘yellow’ state unless you change the replication factor.
+
+Note that with X-Pack installed, the default monitoring behavior is to try to write to an ingest node every few seconds. Without an ingest node, you will see frequent warnings in your master node error logs. While they can be ignored, you can easily turn them off by disabling X-Pack monitoring in your cluster like this:
+
+```bash
+curl -XPUT -u elastic:changeme master.elastic.l4lb.thisdcos.directory:9200/_cluster/settings -d '{
+    "persistent" : {
+        "xpack.monitoring.collection.interval" : -1
+    }
+}'
+```
 
 <a name="limitations"></a>
 # Limitations
@@ -238,4 +304,4 @@ The Elasticsearch service's core responsibility is to deploy and maintain the de
 
 ## Nodes
 
-The maximum number of deployable nodes is constrained by the DC/OS cluster's resources. Each Elasticsearch node has specified required resources, so nodes may not be placed if the DC/OS cluster lacks the requisite resources. Also, only one Elasticsearch node from a single cluster may be placed on a given DC/OS agent. 
+The maximum number of deployable nodes is constrained by the DC/OS cluster's resources. Each Elasticsearch node has specified required resources, so nodes may not be placed if the DC/OS cluster lacks the requisite resources.
