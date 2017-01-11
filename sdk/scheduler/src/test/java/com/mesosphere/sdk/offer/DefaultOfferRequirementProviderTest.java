@@ -54,8 +54,14 @@ public class DefaultOfferRequirementProviderTest {
         environmentVariables.set("LIBMESOS_URI", "");
         environmentVariables.set("PORT0", "8080");
 
+        podInstance = getPodInstance("valid-minimal-health.yml");
+
+        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+    }
+
+    private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal-health.yml").getFile());
+        File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
                 .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
 
@@ -67,9 +73,7 @@ public class DefaultOfferRequirementProviderTest {
                 .pods(Arrays.asList(podSpec))
                 .build();
 
-        podInstance = new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
-
-        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        return new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
     }
 
     @Test
@@ -97,6 +101,19 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(TestConstants.TASK_CMD, taskInfo.getCommand().getValue());
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
         Assert.assertFalse(taskInfo.hasContainer());
+    }
+
+    @Test
+    public void testNewOfferRequirementDocker() throws Exception {
+        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance));
+
+        Protos.ContainerInfo containerInfo =
+                offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getContainer();
+        Assert.assertEquals(containerInfo.getType(), Protos.ContainerInfo.Type.MESOS);
+        Assert.assertEquals(containerInfo.getMesos().getImage().getDocker().getName(), "group/image");
     }
 
     @Test

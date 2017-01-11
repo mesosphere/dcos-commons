@@ -14,7 +14,6 @@ public class RawTask {
 
     private final String goal;
     private final String cmd;
-    private final String image;
     private final Map<String, String> env;
     private final Collection<RawConfiguration> configurations;
     private final Collection<String> uris;
@@ -28,7 +27,6 @@ public class RawTask {
     private RawTask(
             @JsonProperty("goal") String goal,
             @JsonProperty("cmd") String cmd,
-            @JsonProperty("image") String image,
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configurations") Collection<RawConfiguration> configurations,
             @JsonProperty("uris") Collection<String> uris,
@@ -40,7 +38,6 @@ public class RawTask {
             @JsonProperty("resource-set") String resourceSet) {
         this.goal = goal;
         this.cmd = cmd;
-        this.image = image;
         this.env = env;
         this.configurations = configurations;
         this.uris = uris;
@@ -74,10 +71,6 @@ public class RawTask {
 
     public String getCmd() {
         return cmd;
-    }
-
-    public String getImage() {
-        return image;
     }
 
     public Map<String, String> getEnv() {
