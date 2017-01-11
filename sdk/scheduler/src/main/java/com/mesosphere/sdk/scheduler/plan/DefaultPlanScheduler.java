@@ -78,7 +78,6 @@ public class DefaultPlanScheduler implements PlanScheduler {
             return Collections.emptyList();
         }
 
-        //TODO: if you interrupt in the middle, after getCandidates, it will still omit it, correct?
         if (!(step.isPending() || step.isPrepared())) {
             logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return Collections.emptyList();
