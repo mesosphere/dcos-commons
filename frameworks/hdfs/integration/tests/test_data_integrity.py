@@ -97,6 +97,7 @@ def run_hdfs_command(host, command):
         {}""".format(hdfs_dir_cmd, java_home, command)
 
     rc, output = shakedown.run_command_on_agent(host, full_command)
+    print("output: {}".format(output))
     return rc, output
 
 
