@@ -5,8 +5,6 @@ import dcos
 import requests
 import shakedown
 
-DEFAULT_HTTP_PORT = 9200
-
 PACKAGE_NAME = 'elastic'
 WAIT_TIME_IN_SECONDS = 900
 DEFAULT_TASK_COUNT = 8
@@ -54,13 +52,13 @@ def wait_for_dcos_tasks_health(task_count):
     return shakedown.wait_for(lambda: tasks_running_success_predicate(task_count), timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
-def index_health_success_predicate(index_name, color, http_port):
-    result = get_elasticsearch_index_health(index_name, http_port)
+def index_health_success_predicate(index_name, color):
+    result = get_elasticsearch_index_health(index_name)
     return result and result["status"] == color
 
 
-def check_elasticsearch_index_health(index_name, color, http_port=DEFAULT_HTTP_PORT):
-    return shakedown.wait_for(lambda: index_health_success_predicate(index_name, color, http_port),
+def check_elasticsearch_index_health(index_name, color):
+    return shakedown.wait_for(lambda: index_health_success_predicate(index_name, color),
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
@@ -131,9 +129,9 @@ def get_hosts_with_plugin(plugin_name):
 
 
 @as_json
-def get_elasticsearch_index_health(index_name, http_port=DEFAULT_HTTP_PORT):
+def get_elasticsearch_index_health(index_name):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/_cluster/health/{}'".format(curl_api("GET", http_port), index_name))
+        "{}/_cluster/health/{}'".format(curl_api("GET"), index_name))
     return output
 
 
@@ -221,8 +219,8 @@ def marathon_api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 
 
-def curl_api(method, http_port=DEFAULT_HTTP_PORT):
-    return "curl -X{} -s -u elastic:changeme 'http://master-0-server.{}.mesos:{}".format(method, PACKAGE_NAME, http_port)
+def curl_api(method):
+    return "curl -X{} -s -u elastic:changeme 'http://master.{}.l4lb.thisdcos.directory:9200".format(method, PACKAGE_NAME)
 
 
 def get_marathon_host():
