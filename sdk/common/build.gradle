@@ -25,6 +25,7 @@ dependencies {
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
     compile "com.google.code.findbugs:annotations:${findbugsAnnotationsVer}"
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"

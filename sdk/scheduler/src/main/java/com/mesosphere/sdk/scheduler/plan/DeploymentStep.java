@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
@@ -19,7 +18,7 @@ public class DeploymentStep extends AbstractStep {
     private final List<String> errors;
     private final PodInstanceRequirement podInstanceRequirement;
 
-    private Map<String, Status> tasks = new HashMap<>();
+    private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
@@ -49,7 +48,7 @@ public class DeploymentStep extends AbstractStep {
             if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
                 for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
                     if (!taskInfo.getTaskId().getValue().equals("")) {
-                        tasks.put(taskInfo.getTaskId().getValue(), Status.PREPARED);
+                        tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
                     }
                 }
             }
@@ -113,7 +112,7 @@ public class DeploymentStep extends AbstractStep {
     public synchronized void update(Protos.TaskStatus status) {
         logger.info("Step {} received status: {}", getName(), TextFormat.shortDebugString(status));
 
-        if (!tasks.containsKey(status.getTaskId().getValue())) {
+        if (!tasks.containsKey(status.getTaskId())) {
             logger.debug("Step {} ignoring irrelevant TaskStatus: {}",
                     getName(), TextFormat.shortDebugString(status));
             return;
@@ -152,18 +151,20 @@ public class DeploymentStep extends AbstractStep {
                 setTaskStatus(status.getTaskId(), Status.STARTING);
                 break;
             case TASK_RUNNING:
-                    if (goalState.equals(GoalState.RUNNING)) {
-                        setTaskStatus(status.getTaskId(), Status.COMPLETE);
-                    } else {
-                        setTaskStatus(status.getTaskId(), Status.STARTING);
-                    }
+                Protos.TaskInfo taskInfo = tasks.get(status.getTaskId()).getTaskInfo();
+                if (goalState.equals(GoalState.RUNNING)
+                        && CommonTaskUtils.readinessCheckSucceeded(taskInfo, status)) {
+                    setTaskStatus(status.getTaskId(), Status.COMPLETE);
+                } else {
+                    setTaskStatus(status.getTaskId(), Status.STARTING);
+                }
                 break;
             case TASK_FINISHED:
-                    if (goalState.equals(GoalState.FINISHED)) {
-                        setTaskStatus(status.getTaskId(), Status.COMPLETE);
-                    } else {
-                        setTaskStatus(status.getTaskId(), Status.PENDING);
-                    }
+                if (goalState.equals(GoalState.FINISHED)) {
+                    setTaskStatus(status.getTaskId(), Status.COMPLETE);
+                } else {
+                    setTaskStatus(status.getTaskId(), Status.PENDING);
+                }
                 break;
             default:
                 logger.warn("Failed to process unexpected state: " + status.getState());
@@ -173,18 +174,21 @@ public class DeploymentStep extends AbstractStep {
     }
 
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
-        tasks.replace(taskID.getValue(), status);
-        logger.info("Status for: {} is: {}", taskID.getValue(), status);
+        if (tasks.containsKey(taskID)) {
+            TaskStatusPair taskStatusPair = new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status);
+            tasks.replace(taskID, taskStatusPair);
+            logger.info("Status for: {} is: {}", taskID.getValue(), status);
+        }
     }
 
-    private Status getStatus(Map<String, Status> tasks) {
+    private Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
         if (tasks.isEmpty()) {
             return Status.PENDING;
         }
 
-        for (Map.Entry<String, Status> entry : tasks.entrySet()) {
-            String taskId = entry.getKey();
-            Status status = entry.getValue();
+        for (Map.Entry<Protos.TaskID, TaskStatusPair> entry : tasks.entrySet()) {
+            String taskId = entry.getKey().getValue();
+            Status status = entry.getValue().getStatus();
             logger.info("TaskId: {} has status: {}", taskId, status);
             if (!status.equals(Status.COMPLETE)) {
                 // Keep and log current status
@@ -210,8 +214,21 @@ public class DeploymentStep extends AbstractStep {
         return Objects.hash(getId());
     }
 
-    @VisibleForTesting
-    public Map<String, Status> getExpectedTasks() {
-        return tasks;
+    private static class TaskStatusPair {
+        private final Protos.TaskInfo taskInfo;
+        private final Status status;
+
+        public TaskStatusPair(Protos.TaskInfo taskInfo, Status status) {
+            this.taskInfo = taskInfo;
+            this.status = status;
+        }
+
+        public Protos.TaskInfo getTaskInfo() {
+            return taskInfo;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
     }
 }
