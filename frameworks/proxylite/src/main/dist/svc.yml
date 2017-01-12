@@ -5,12 +5,12 @@ api-port: {{PORT0}}
 pods:
   web:
     container:
-      image-name: nlsun/httpd
+      image-name: ubuntu:14.04
     count: 1
     tasks:
       server:
         goal: RUNNING
-        cmd: "bash /start {{PORT_HTTPD}}"
+        cmd: "python3 -m http.server 4041"
         cpus: {{PROXY_LITE_CPUS}}
         memory: {{PROXY_LITE_MEM}}
         ports:
