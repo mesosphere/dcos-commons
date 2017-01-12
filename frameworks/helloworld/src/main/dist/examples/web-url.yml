@@ -1,4 +1,6 @@
 name: "hello-world"
+scheduler:
+  web-url: http://hello-world.marathon.mesos:{{PORT_API}}
 pods:
   hello:
     count: {{HELLO_COUNT}}

@@ -24,11 +24,11 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("api-port")
     int getApiPort();
 
-    @JsonProperty("zookeeper")
-    String getZookeeperConnection();
-
     @JsonProperty("web-url")
     String getWebUrl();
+
+    @JsonProperty("zookeeper")
+    String getZookeeperConnection();
 
     @JsonProperty("replacement-failure-policy")
     ReplacementFailurePolicy getReplacementFailurePolicy();

@@ -41,9 +41,8 @@ public class DefaultServiceSpec implements ServiceSpec {
     @NotNull
     @Min(value = 0, message = "API port value should be >= 0")
     private Integer apiPort;
-
-    private String zookeeperConnection;
     private String webUrl;
+    private String zookeeperConnection;
 
     @Valid
     @NotNull
@@ -60,33 +59,33 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("api-port") int apiPort,
-            @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("web-url") String webUrl,
+            @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
         this.name = name;
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
+        this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
                 ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
-        this.webUrl = webUrl;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
+        ValidationUtils.validate(this);
     }
 
     private DefaultServiceSpec(Builder builder) {
-        name = builder.name;
-        role = builder.role;
-        principal = builder.principal;
-        apiPort = builder.apiPort;
-        // If no zookeeperConnection string is configured, fallback to the default value.
-        zookeeperConnection = StringUtils.isBlank(builder.zookeeperConnection)
-                ? DEFAULT_ZK_CONNECTION : builder.zookeeperConnection;
-        webUrl = builder.webUrl;
-        pods = builder.pods;
-        replacementFailurePolicy = builder.replacementFailurePolicy;
+        this(
+                builder.name,
+                builder.role,
+                builder.principal,
+                builder.apiPort,
+                builder.webUrl,
+                builder.zookeeperConnection,
+                builder.pods,
+                builder.replacementFailurePolicy);
     }
 
     public static Builder newBuilder() {
@@ -127,13 +126,13 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public String getZookeeperConnection() {
-        return zookeeperConnection;
+    public String getWebUrl() {
+        return webUrl;
     }
 
     @Override
-    public String getWebUrl() {
-        return webUrl;
+    public String getZookeeperConnection() {
+        return zookeeperConnection;
     }
 
     @Override
@@ -281,8 +280,8 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String role;
         private String principal;
         private Integer apiPort;
-        private String zookeeperConnection;
         private String webUrl;
+        private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
 
@@ -335,18 +334,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Sets the {@code zookeeperConnection} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param zookeeperConnection the {@code zookeeperConnection} to set
-         * @return a reference to this Builder
-         */
-        public Builder zookeeperConnection(String zookeeperConnection) {
-            this.zookeeperConnection = zookeeperConnection;
-            return this;
-        }
-
-        /**
          * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
          * can be chained together.
          *
@@ -355,6 +342,18 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder webUrl(String webUrl) {
             this.webUrl = webUrl;
+            return this;
+        }
+
+        /**
+         * Sets the {@code zookeeperConnection} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param zookeeperConnection the {@code zookeeperConnection} to set
+         * @return a reference to this Builder
+         */
+        public Builder zookeeperConnection(String zookeeperConnection) {
+            this.zookeeperConnection = zookeeperConnection;
             return this;
         }
 
@@ -398,9 +397,7 @@ public class DefaultServiceSpec implements ServiceSpec {
          * @return a {@code DefaultServiceSpec} built with parameters of this {@code DefaultServiceSpec.Builder}
          */
         public DefaultServiceSpec build() {
-            DefaultServiceSpec defaultServiceSpec = new DefaultServiceSpec(this);
-            ValidationUtils.validate(defaultServiceSpec);
-            return defaultServiceSpec;
+            return new DefaultServiceSpec(this);
         }
     }
 }
