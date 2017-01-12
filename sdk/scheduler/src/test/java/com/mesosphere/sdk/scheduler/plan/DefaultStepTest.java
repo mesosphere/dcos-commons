@@ -44,7 +44,7 @@ public class DefaultStepTest {
 
     @Test
     public void testCompleteTerminal() {
-        DefaultStep step = new DefaultStep(
+        DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
                 PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)),

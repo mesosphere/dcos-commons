@@ -20,8 +20,7 @@ public abstract class ElementBuilder<P extends ParentElement<? extends Element>,
         this.name = name;
     }
 
-    public ElementBuilder<P, C> addAll(C element)
-            throws DependencyStrategyHelper.InvalidDependencyException {
+    public ElementBuilder<P, C> add(C element) throws DependencyStrategyHelper.InvalidDependencyException {
         dependencyStrategyHelper.addElement(element);
         return this;
     }
@@ -29,7 +28,7 @@ public abstract class ElementBuilder<P extends ParentElement<? extends Element>,
     public ElementBuilder<P, C> addAll(Collection<C> elements)
             throws DependencyStrategyHelper.InvalidDependencyException {
         for (C element : elements) {
-            addAll(element);
+            add(element);
         }
         return this;
     }

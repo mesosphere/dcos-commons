@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Offer;
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,9 +30,9 @@ public class PlanUtils {
     }
 
     public static final Collection<? extends Step> getCandidates(Plan plan, Collection<String> dirtyAssets) {
-        Collection<Phase> candidatePhases = plan.getStrategy().getCandidates(plan, dirtyAssets);
+        Collection<Phase> candidatePhases = plan.getStrategy().getCandidates(plan.getChildren(), dirtyAssets);
         Collection<Step> candidateSteps = candidatePhases.stream()
-                .map(phase -> phase.getStrategy().getCandidates(phase, dirtyAssets))
+                .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))
                 .flatMap(steps -> steps.stream())
                 .collect(Collectors.toList());
 
@@ -50,14 +50,17 @@ public class PlanUtils {
                 .collect(Collectors.toSet());
     }
 
-    @SuppressWarnings("rawtypes")
+    /**
+     * Implements default logic for determining whether the provided {@link Element} appears to be eligible for
+     * performing work.
+     */
     public static boolean isEligibleCandidate(Element element, Collection<String> dirtyAssets) {
-        if (element instanceof ParentElement && ((ParentElement) element).getStrategy().isInterrupted()) {
+        if (element instanceof Interruptible && ((Interruptible) element).isInterrupted()) {
             return false;
         }
         if (element instanceof Step) {
-            Step step = (Step) element;
-            if (step.getAsset().isPresent() && dirtyAssets.contains(step.getAsset().get())) {
+            Optional<String> asset = ((Step) element).getAsset();
+            if (asset.isPresent() && dirtyAssets.contains(asset.get())) {
                 return false;
             }
         }
@@ -111,12 +114,6 @@ public class PlanUtils {
         // Ordering matters throughout this method.  Modify with care.
         // Also note that this function MUST NOT call parent.getStatus() as that creates a circular call.
 
-        final Strategy<? extends Element> strategy = parent.getStrategy();
-        if (strategy == null) {
-            LOGGER.error("Parent element returned null strategy: {}", parent.getName());
-            return Status.ERROR;
-        }
-
         final Collection<? extends Element> children = parent.getChildren();
         if (children == null) {
             LOGGER.error("Parent element returned null list of children: {}", parent.getName());
@@ -130,9 +127,13 @@ public class PlanUtils {
         } else if (CollectionUtils.isEmpty(children)) {
             result = Status.COMPLETE;
             LOGGER.debug("({} status={}) Empty collection of elements encountered.", parent.getName(), result);
+        } else if (parent.isInterrupted()) {
+            result = Status.WAITING;
+            LOGGER.debug("({} status={}) Parent element is interrupted",
+                    parent.getName(), result);
         } else if (anyHaveStatus(Status.PREPARED, children)) {
             result = Status.PREPARED;
-            LOGGER.debug("({} status={}) At least one phase has status: {}",
+            LOGGER.debug("({} status={}) At least one element has status: {}",
                     parent.getName(), result, Status.PREPARED);
         } else if (anyHaveStatus(Status.WAITING, children)) {
             result = Status.WAITING;
@@ -157,7 +158,7 @@ public class PlanUtils {
                     parent.getName(), result, Status.STARTING);
         } else {
             result = Status.ERROR;
-            LOGGER.debug("({} status={}) Unexpected state. PlanElements: {}",
+            LOGGER.warn("({} status={}) Unexpected state. children: {}",
                     parent.getName(), result, children);
         }
 

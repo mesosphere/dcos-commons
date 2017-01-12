@@ -556,7 +556,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
         // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
         // whole.
-        deploymentPlanManager.getPlan().getStrategy().proceed();
+        deploymentPlanManager.getPlan().proceed();
     }
 
     /**

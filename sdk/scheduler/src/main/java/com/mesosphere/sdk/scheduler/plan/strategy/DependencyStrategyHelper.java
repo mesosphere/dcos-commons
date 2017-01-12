@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.ParentElement;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 
 import java.util.*;
@@ -14,6 +13,9 @@ import java.util.stream.Collectors;
  * @param <C> is the type of {@link Element}s to which the dependencies captured here apply.
  */
 public class DependencyStrategyHelper<C extends Element> {
+    /**
+     * Mapping of elements to their prerequisites which must be {@link Element#isComplete()}.
+     */
     private final Map<C, Set<C>> dependencies;
 
     public DependencyStrategyHelper() {
@@ -22,11 +24,7 @@ public class DependencyStrategyHelper<C extends Element> {
 
     public DependencyStrategyHelper(Collection<C> elements) {
         this.dependencies = new HashMap<>();
-        elements.forEach(child -> dependencies.put(child, new HashSet<>()));
-    }
-
-    public DependencyStrategyHelper(ParentElement<C> parentElement) {
-        this(parentElement.getChildren());
+        elements.forEach(element -> dependencies.put(element, new HashSet<>()));
     }
 
     public void addElement(C element) throws InvalidDependencyException {
@@ -51,7 +49,10 @@ public class DependencyStrategyHelper<C extends Element> {
         dependencies.put(child, deps);
     }
 
-    public Collection<C> getCandidates(Collection<String> dirtyAssets) {
+    public Collection<C> getCandidates(boolean isInterrupted, Collection<String> dirtyAssets) {
+        if (isInterrupted) {
+            return Collections.emptyList();
+        }
         return dependencies.entrySet().stream()
                 .filter(entry -> PlanUtils.isEligibleCandidate(entry.getKey(), dirtyAssets))
                 .filter(entry -> dependenciesFulfilled(entry.getValue()))

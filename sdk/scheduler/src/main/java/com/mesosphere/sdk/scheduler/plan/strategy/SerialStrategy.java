@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.ParentElement;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,22 +16,19 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
     protected DependencyStrategyHelper<C> dependencyStrategyHelper;
 
     @Override
-    public Collection<C> getCandidates(ParentElement<C> parentElement, Collection<String> dirtyAssets) {
-        if (isInterrupted()) {
-            return Collections.emptyList();
-        }
-
-       return getDependencyStrategyHelper(parentElement).getCandidates(dirtyAssets);
+    public Collection<C> getCandidates(Collection<C> elements, Collection<String> dirtyAssets) {
+        // Configure prerequisites before getting candidates:
+        return getDependencyStrategyHelper(elements).getCandidates(isInterrupted(), dirtyAssets);
     }
 
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }
 
-    private DependencyStrategyHelper<C> getDependencyStrategyHelper(ParentElement<C> element) {
+    private DependencyStrategyHelper<C> getDependencyStrategyHelper(Collection<C> elements) {
         if (dependencyStrategyHelper == null) {
-            dependencyStrategyHelper = new DependencyStrategyHelper<>(element);
-            List<C> planElements = element.getChildren().stream()
+            dependencyStrategyHelper = new DependencyStrategyHelper<>(elements);
+            List<C> planElements = elements.stream()
                     .filter(el -> !el.isComplete())
                     .collect(Collectors.toList());
             Collections.reverse(planElements);

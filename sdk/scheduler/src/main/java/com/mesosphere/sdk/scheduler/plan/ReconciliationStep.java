@@ -1,12 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.DefaultObservable;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 
@@ -15,17 +10,14 @@ import java.util.*;
  * framework. The Step will be complete when it receives status for all
  * known tasks and then performs implicit reconciliation.
  */
-public class ReconciliationStep extends DefaultObservable implements Step {
-
-    private static final Logger logger = LoggerFactory.getLogger(ReconciliationStep.class);
+public class ReconciliationStep extends AbstractStep {
 
     private final Reconciler reconciler;
-    private final UUID id = UUID.randomUUID();
-    private Status status;
 
     /**
      * Factory method.
-     * @param reconciler The reconciler to use for reconciliation.
+     *
+     * @param reconciler The reconciler to use for reconciliation
      * @return A new ReconciliationStep
      */
     public static final ReconciliationStep create(Reconciler reconciler) {
@@ -33,8 +25,8 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     }
 
     private ReconciliationStep(final Reconciler reconciler) {
+        super("Reconciliation", Status.PENDING);
         this.reconciler = reconciler;
-        setStatus(Status.PENDING);
     }
 
     @Override
@@ -86,22 +78,12 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public String getName() {
-        return "Reconciliation";
-    }
-
-    @Override
     public Status getStatus() {
         if (reconciler.isReconciled()) {
             setStatus(Status.COMPLETE);
         }
 
-        return status;
+        return super.getStatus();
     }
 
     @Override
@@ -118,22 +100,5 @@ public class ReconciliationStep extends DefaultObservable implements Step {
     @Override
     public List<String> getErrors() {
         return Collections.emptyList();
-    }
-
-    /**
-     * Updates the status setting and logs the outcome. Should only be called either by tests, by
-     * {@code this}, or by subclasses.
-     *
-     * @param newStatus the new status to be set
-     */
-    @VisibleForTesting
-    void setStatus(Status newStatus) {
-        Status oldStatus = status;
-        status = newStatus;
-        logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
-
-        if (!Objects.equals(oldStatus, newStatus)) {
-            notifyObservers();
-        }
     }
 }

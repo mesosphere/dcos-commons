@@ -16,7 +16,7 @@ import java.util.Optional;
  * <p>
  * See {@link Plan} docs for more background.
  */
-public interface Step extends Element {
+public interface Step extends Element, Interruptible {
     /**
      * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. Returns an
      * {@link OfferRequirement}, or an empty Optional if obtaining/updating resource requirements are not
@@ -46,7 +46,9 @@ public interface Step extends Element {
     /**
      * Reports whether the Asset associated with this Step is dirty.
      */
-    boolean isAssetDirty();
+    default boolean isAssetDirty() {
+        return isInProgress();
+    }
 
     /**
      * Thrown on invalid Step construction attempt.

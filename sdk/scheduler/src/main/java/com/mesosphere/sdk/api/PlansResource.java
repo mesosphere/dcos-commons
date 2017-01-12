@@ -74,7 +74,7 @@ public class PlansResource {
                 plan.restart();
             }
 
-            plan.getStrategy().proceed();
+            plan.proceed();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: start"))
                     .build();
@@ -93,7 +93,7 @@ public class PlansResource {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
             Plan plan = planManagerOptional.get().getPlan();
-            plan.getStrategy().interrupt();
+            plan.interrupt();
             plan.restart();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: stop"))
@@ -108,7 +108,7 @@ public class PlansResource {
     public Response continueCommand(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
-            planManagerOptional.get().getPlan().getStrategy().proceed();
+            planManagerOptional.get().getPlan().proceed();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: continue"))
                     .build();
@@ -122,7 +122,7 @@ public class PlansResource {
     public Response interruptCommand(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
-            planManagerOptional.get().getPlan().getStrategy().interrupt();
+            planManagerOptional.get().getPlan().interrupt();
             return Response.status(Response.Status.OK)
                     .entity(new CommandResultInfo("Received cmd: interrupt"))
                     .build();
@@ -164,7 +164,7 @@ public class PlansResource {
             if (phaseId == null && stepId == null) {
                 Plan plan = planManagerOptional.get().getPlan();
                 plan.restart();
-                plan.getStrategy().proceed();
+                plan.proceed();
             } else {
                 Optional<Step> step = getStep(planManagerOptional.get(), phaseId, stepId);
                 if (step.isPresent()) {

@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.ParentElement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.*;
@@ -14,9 +13,10 @@ import java.util.*;
 public class RandomStrategy<C extends Element> extends InterruptibleStrategy<C> {
 
     @Override
-    public Collection<C> getCandidates(ParentElement<C> parentElement, Collection<String> dirtyAssets) {
-        DependencyStrategyHelper<C> strategyHelper = new DependencyStrategyHelper<>(parentElement);
-        List<C> candidates = new ArrayList<>(strategyHelper.getCandidates(dirtyAssets));
+    public Collection<C> getCandidates(Collection<C> elements, Collection<String> dirtyAssets) {
+        // No prerequites configured, with random selection of one entry from the resulting candidates:
+        List<C> candidates = new ArrayList<>(
+                new DependencyStrategyHelper<>(elements).getCandidates(isInterrupted(), dirtyAssets));
         Collections.shuffle(candidates);
         Optional<C> candidateOptional = candidates.stream().findFirst();
 

@@ -1,55 +1,41 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.ParentElement;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * A CanaryStrategy blocks deployment entirely by default until human intervention through the {@link #proceed()} call.
- * After a single {@link #proceed()} call it again blocks until human intervention.  Any further calls to
- * {@link #proceed()} will indicate the strategy should continue without further intervention.
+ * A CanaryStrategy is a gatekeeper around another underlying strategy. It requires that the user manually invoke
+ * {@link #proceed()} calls in order to move along a deployment. This allows the user to manually check that the
+ * deployment looks good before a full rollout is attempted.
+ *
+ * The default is to do nothing until a first {@link #proceed()} call is received, at which point the first {@link Step}
+ * is deployed. The user may then examine whether the deployment of that first {@link Step} was successful before
+ * invoking a {@link #proceed()} call. By default this second {@link #proceed()} will result in deploying all the other
+ * {@link Step}s according to the rules of the underlying strategy. The number of {@link #proceed()} calls required to
+ * enter this state may be customized via the CanaryStrategy constructor.
  *
  * Unlike other strategies, CanaryStrategy may only be applied to {@link com.mesosphere.sdk.scheduler.plan.Phase}s to
- * manage the progress of child {@link Step}s. This is a measure to avoid user/developer error resulting from ambiguity
- * in what should happen when a CanaryStrategy is applied to a {@link com.mesosphere.sdk.scheduler.plan.Plan}. In
- * practice developers and users should be able to get their desired behavior by directly applying CanaryStrategy to
- * some subset of the {@link Phases}s in their plan.
+ * manage the progress of child {@link Step}s. This requirement avoids user or developer error resulting from ambiguity
+ * in what should happen when e.g. a CanaryStrategy is applied to a {@link com.mesosphere.sdk.scheduler.plan.Plan}
+ * against child {@link com.mesosphere.sdk.scheduler.plan.Phase}s. In practice, developers and users should be able to
+ * get their desired behavior by directly applying CanaryStrategy to some subset of the
+ * {@link com.mesosphere.sdk.scheduler.plan.Phase}s in their {@link com.mesosphere.sdk.scheduler.plan.Plan}.
  */
 public class CanaryStrategy implements Strategy<Step> {
 
     /**
-     * One proceed() to launch the first block, then a second proceed() to launch all the rest
+     * One proceed() to launch the first block, then a second proceed() to launch all the rest.
      */
     private static final int DEFAULT_PROCEED_COUNT = 2;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final int requiredProceeds;
-    private final Strategy<Step> postCanaryStrategy;
+    private final Strategy<Step> strategy;
 
-    private List<InterruptableStep> canaryProceedSteps;
-
-    /**
-     * Simple struct for keeping track of steps which require a proceed() to get unblocked by a canary operation
-     */
-    private static class InterruptableStep {
-        private final Step step;
-        private boolean proceedNeeded;
-
-        private InterruptableStep(Step step) {
-            this.step = step;
-            this.proceedNeeded = true;
-        }
-    }
+    public Collection<Step> canarySteps;
 
     /**
      * Creates a new Canary Strategy which will require 2 {@link #proceed()} calls from a user before following the
@@ -71,85 +57,68 @@ public class CanaryStrategy implements Strategy<Step> {
      */
     public CanaryStrategy(Strategy<Step> postCanaryStrategy, int requiredProceeds) {
         this.requiredProceeds = requiredProceeds;
-        this.postCanaryStrategy = postCanaryStrategy;
+        this.strategy = postCanaryStrategy;
+        this.canarySteps = null;
     }
 
     @Override
-    public Collection<Step> getCandidates(ParentElement<Step> parentElement, Collection<String> dirtyAssets) {
-        if (canaryProceedSteps == null) {
-            // Create a list of steps which will first require proceed() calls before the floodgates of default serial
-            // behavior are opened.
-            // Note that this assumes these steps do not switch state on their own before being returned as candidates:
-            // - If a non-candidate step later became in-progress or complete on it's own, we would still require an
-            //   explicit proceed() call against it.
-            // - Conversely, any steps which are currently in-progress or complete but later revert to pending or
-            //   waiting would not require proceed() calls, but they would be executed out of order, following the
-            //   canary steps which were originally selected.
-            canaryProceedSteps = parentElement.getChildren().stream()
-                    .filter(step -> (step.isPending() || step.isWaiting()))
+    public Collection<Step> getCandidates(Collection<Step> steps, Collection<String> dirtyAssets) {
+        if (canarySteps == null) {
+            // Create the N initial canary steps by marking them as interrupted.
+            canarySteps = steps.stream()
+                    .filter(step -> (step.isPending() || step.isInterrupted()))
                     .limit(requiredProceeds)
-                    .map(step -> new InterruptableStep(step))
+                    .collect(Collectors.toList());
+            canarySteps.forEach(step -> step.interrupt());
+        }
+
+        if (getNextCanaryStep() != null) {
+            // Still in canary. Only return subset of canary steps which are now eligible due to proceed() calls.
+            return canarySteps.stream()
+                    .filter(step -> PlanUtils.isEligibleCandidate(step, dirtyAssets))
                     .collect(Collectors.toList());
         }
 
-        // Manual canary logic: find the first eligible step, or stop if we hit a step that requires a proceed() call.
-        for (InterruptableStep interruptableStep : canaryProceedSteps) {
-            if (interruptableStep.proceedNeeded) {
-                // search reached a step in the list which still requires a canary proceed. stop now.
-                return Collections.emptyList();
-            } else if (PlanUtils.isEligibleCandidate(interruptableStep.step, dirtyAssets)) {
-                return Arrays.asList(interruptableStep.step);
-            }
-        }
-
-        // Canary steps are all proceedNeeded=false. fall back to default serial logic.
-        return postCanaryStrategy.getCandidates(parentElement, dirtyAssets);
-    }
-
-    @Override
-    public void proceed() {
-        if (canaryProceedSteps == null) {
-            logger.warn("Proceed has no effect to children before strategy initialization.");
-            return;
-        }
-
-        // Update locally interrupted step, or fall back to default proceed()
-        InterruptableStep nextCanaryStep = getNextCanaryStep();
-        if (nextCanaryStep != null) {
-            nextCanaryStep.proceedNeeded = false;
-        } else {
-            postCanaryStrategy.proceed();
-        }
+        // Canary period has ended. Revert to underlying strategy for the rest of the operation.
+        return strategy.getCandidates(steps, dirtyAssets);
     }
 
     @Override
     public void interrupt() {
-        if (canaryProceedSteps == null) {
-            logger.warn("Interrupt has no effect before canary has initialized.");
+        Step canaryStep = getNextCanaryStep();
+        if (canaryStep != null) {
+            // Ignoring interrupt as we are still in canary and therefore already interrupted.
             return;
         }
+        strategy.interrupt();
+    }
 
-        // Only listen to interrupts when the canary operation isn't active. In other words, if we're already
-        // 'interrupted' by the canary itself, an explicit interrupt() call from the user should be a no-op.
-        if (getNextCanaryStep() != null) {
-            logger.warn("Interrupt has no effect before canary has completed.");
-        } else {
-            postCanaryStrategy.interrupt();
+    @Override
+    public void proceed() {
+        Step canaryStep = getNextCanaryStep();
+        if (canaryStep != null) {
+            canaryStep.proceed();
+            return;
         }
+        strategy.proceed();
     }
 
     @Override
     public boolean isInterrupted() {
-        return getNextCanaryStep() != null || postCanaryStrategy.isInterrupted();
+        Step canaryStep = getNextCanaryStep();
+        if (canaryStep != null) {
+            return true;
+        }
+        return strategy.isInterrupted();
     }
 
-    private InterruptableStep getNextCanaryStep() {
-        if (canaryProceedSteps == null) {
+    private Step getNextCanaryStep() {
+        if (canarySteps == null) {
             return null;
         }
-        for (InterruptableStep step : canaryProceedSteps) {
-            if (step.proceedNeeded) {
-                return step;
+        for (Step canaryStep : canarySteps) {
+            if (canaryStep.isInterrupted()) {
+                return canaryStep;
             }
         }
         return null;

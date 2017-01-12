@@ -9,7 +9,7 @@ import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
  *
  * @param <C> the type of the child elements
  */
-public interface ParentElement<C extends Element> extends Element {
+public interface ParentElement<C extends Element> extends Element, Interruptible {
 
     /**
      * Gets the children of this Element.
@@ -20,4 +20,16 @@ public interface ParentElement<C extends Element> extends Element {
      * Gets the {@link Strategy} applied to the deployment of this Element's children.
      */
     Strategy<C> getStrategy();
+
+    default void interrupt() {
+        getStrategy().interrupt();
+    }
+
+    default void proceed() {
+        getStrategy().proceed();
+    }
+
+    default boolean isInterrupted() {
+        return getStrategy().isInterrupted();
+    }
 }

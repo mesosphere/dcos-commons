@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.ParentElement;
 
 import java.util.Collection;
 
@@ -19,7 +18,8 @@ public class DependencyStrategy<C extends Element> extends InterruptibleStrategy
     }
 
     @Override
-    public Collection<C> getCandidates(ParentElement<C> parentElement, Collection<String> dirtyAssets) {
-        return helper.getCandidates(dirtyAssets);
+    public Collection<C> getCandidates(Collection<C> elements, Collection<String> dirtyAssets) {
+        // Fixed prerequites as defined in the provided helper:
+        return helper.getCandidates(isInterrupted(), dirtyAssets);
     }
 }
