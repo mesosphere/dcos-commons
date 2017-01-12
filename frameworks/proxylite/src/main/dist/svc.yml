@@ -10,7 +10,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 -m http.server 4041"
+        cmd: "echo $PORT_HTTPD && python3 -m http.server $PORT_HTTPD"
         cpus: {{PROXY_LITE_CPUS}}
         memory: {{PROXY_LITE_MEM}}
         ports:
@@ -23,7 +23,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "chmod 755 /proxy-lite/run.sh && /proxy-lite/run.sh"
+        cmd: "chmod 755 /proxylite/run.sh && /proxylite/run.sh"
         cpus: {{PROXY_LITE_CPUS}}
         memory: {{PROXY_LITE_MEM}}
         ports:
@@ -33,4 +33,4 @@ pods:
           BACKENDS: {{BACKENDS}}
         configurations:
          - template: "{{CONFIG_TEMPLATE_PATH}}/haproxy.cfg"
-           dest: /proxy-lite/haproxy.cfg
+           dest: /proxylite/haproxy.cfg

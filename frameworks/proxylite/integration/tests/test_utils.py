@@ -30,13 +30,8 @@ else:
     DEFAULT_OPTIONS_DICT = {}
 
 
-def get_task_count():
-    config = get_marathon_config()
-    return int(config['env']['PROXYLITE_COUNT']) + int(config['env']['WORLD_COUNT'])
-
-
 def check_health():
-    expected_tasks = get_task_count()
+    expected_tasks = 2
 
     def fn():
         try:
