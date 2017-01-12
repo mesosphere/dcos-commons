@@ -1,0 +1,31 @@
+name: "proxylite"
+principal: "proxylite-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+pods:
+  proxylite:
+    count: {{PROXYLITE_COUNT}}
+    placement: {{PROXYLITE_PLACEMENT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo proxylite-$POD_INSTANCE_INDEX >> proxylite-container-path/$OUTPUT_FILENAME && sleep $SLEEP_DURATION"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        volumes:
+          - path: "proxylite-container-path"
+            type: ROOT
+            size: {{PROXYLITE_DISK}}
+  world:
+    count: {{WORLD_COUNT}}
+    placement: {{WORLD_PLACEMENT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world-$POD_INSTANCE_INDEX >> world-container-path/$OUTPUT_FILENAME && sleep $SLEEP_DURATION"
+        cpus: {{WORLD_CPUS}}
+        memory: {{WORLD_MEM}}
+        volumes:
+          - path: "world-container-path"
+            type: ROOT
+            size: {{WORLD_DISK}}

@@ -1,0 +1,53 @@
+name: "proxylite"
+principal: "proxylite-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+pods:
+  proxylite:
+    count: 2
+    resource-sets:
+      proxylite-resources:
+        cpus: {{PROXYLITE_CPUS}}
+        memory: 256
+        volumes:
+          - path: "proxylite-container-path"
+            type: ROOT
+            size: 1024
+      sidecar-resources:
+        cpus: 1
+        memory: 256
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> proxylite-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: proxylite-resources
+        env:
+          SLEEP_DURATION: 1000
+      once:
+        goal: FINISHED
+        cmd: "echo 'I run only once' >> proxylite-container-path/output"
+        resource-set: sidecar-resources
+      sidecar:
+        goal: FINISHED
+        cmd: "echo 'sidecar' >> proxylite-container-path/output"
+        resource-set: sidecar-resources
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      server-deploy:
+        strategy: parallel
+        pod: proxylite
+        tasks: [server]
+      once-deploy:
+        strategy: parallel
+        pod: proxylite
+        tasks: [once]
+  sidecar:
+    strategy: serial
+    phases:
+      sidecar-deploy:
+        strategy: parallel
+        pod: proxylite
+        tasks: [sidecar]
