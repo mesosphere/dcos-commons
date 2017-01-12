@@ -225,7 +225,7 @@ public class DefaultResourceSet implements ResourceSet {
                         rawEndpoint.getEnvKey(),
                         name,
                         protocol,
-                        toVisibility(rawVip.isVisible()),
+                        toVisibility(rawVip.isAdvertise()),
                         vipName,
                         rawVip.getPort()));
             } else {

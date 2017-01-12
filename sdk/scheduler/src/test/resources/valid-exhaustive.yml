@@ -27,7 +27,7 @@ pods:
             vip:
               port: 80
               protocol: sctp
-              visible: false
+              advertise: false
         volumes:
           index:
             path: "index-container-path"
