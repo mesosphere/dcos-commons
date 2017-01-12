@@ -12,6 +12,7 @@ import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
@@ -112,6 +113,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
     protected Map<String, EndpointProducer> customEndpointProducers;
+    protected Optional<RestartHook> customRestartHook;
     protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -134,6 +136,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private Optional<StateStore> stateStoreOptional = Optional.empty();
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
         private Optional<Collection<ConfigValidator<ServiceSpec>>> configValidatorsOptional = Optional.empty();
+        private Optional<RestartHook> restartHookOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
         private final List<Plan> manualPlans = new ArrayList<>();
@@ -205,6 +208,16 @@ public class DefaultScheduler implements Scheduler, Observer {
          */
         public Builder setConfigValidators(Collection<ConfigValidator<ServiceSpec>> configValidators) {
             this.configValidatorsOptional = Optional.of(configValidators);
+            return this;
+        }
+
+        /**
+         * Specifies a custom {@link RestartHook} to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.
+         * This may be used to define any custom teardown behavior which should be invoked before a task is restarted
+         * and/or replaced.
+         */
+        public Builder setRestartHook(RestartHook restartHook) {
+            this.restartHookOptional = Optional.of(restartHook);
             return this;
         }
 
@@ -328,7 +341,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     stateStore,
                     configStore,
                     createOfferRequirementProvider(stateStore, configUpdateResult.targetId),
-                    endpointProducers);
+                    endpointProducers,
+                    restartHookOptional);
         }
     }
 
@@ -475,13 +489,15 @@ public class DefaultScheduler implements Scheduler, Observer {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
-            Map<String, EndpointProducer> customEndpointProducers) {
+            Map<String, EndpointProducer> customEndpointProducers,
+            Optional<RestartHook> restartHookOptional) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
+        this.customRestartHook = restartHookOptional;
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
@@ -612,7 +628,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
-        resources.add(new PodsResource(taskKiller, stateStore));
+        if (customRestartHook.isPresent()) {
+            resources.add(new PodsResource(taskKiller, stateStore, customRestartHook.get()));
+        } else {
+            resources.add(new PodsResource(taskKiller, stateStore));
+        }
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         // use add() instead of put(): throw exception instead of waiting indefinitely
