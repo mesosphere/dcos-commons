@@ -5,7 +5,7 @@ api-port: {{PORT0}}
 pods:
   proxylite:
     container:
-      image-name: nlsun/proxy-lite
+      image-name: nlsun/proxylite
     count: 1
     tasks:
       server:

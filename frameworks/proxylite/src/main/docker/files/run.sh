@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+set -x
 
 echo "proxy-lite: STARTING" >&2
 
