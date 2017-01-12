@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 /**
- * Hello World Service.
+ * Proxy-Lite Service.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -29,12 +29,9 @@ public class Main {
         @Override
         protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
             Protos.FrameworkInfo frameworkInfo = super.getFrameworkInfo(serviceSpec, stateStore);
-            frameworkInfo = frameworkInfo.toBuilder()
+            return frameworkInfo.toBuilder()
                     .setWebuiUrl("http://www.google.com/")
                     .build();
-
-            LOGGER.info("Using custom FrameworkInfo: {}", frameworkInfo);
-            return frameworkInfo;
         }
     }
 }
