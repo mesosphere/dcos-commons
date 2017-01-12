@@ -29,6 +29,5 @@ def setup_module(module):
 def test_httpd_proxy():
     request(
         dcos.http.get,
-        '{}/httpd'.format(shakedown.dcos_service_url('proxylite')),
-        json=config)
+        '{}/httpd'.format(shakedown.dcos_service_url('proxylite')))
 
