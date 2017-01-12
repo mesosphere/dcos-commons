@@ -30,7 +30,7 @@ public class Main {
         protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
             Protos.FrameworkInfo frameworkInfo = super.getFrameworkInfo(serviceSpec, stateStore);
             return frameworkInfo.toBuilder()
-                    .setWebuiUrl("http://www.google.com/")
+                    .setWebuiUrl("http://www.google.com")
                     .build();
         }
     }
