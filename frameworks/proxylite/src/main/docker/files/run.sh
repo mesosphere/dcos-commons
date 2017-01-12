@@ -12,7 +12,8 @@ fi
 HAPROXYCFG="/proxy-lite/haproxy.cfg"
 RAWHAPROXYCFG="${HAPROXYCFG}.raw"
 
-python3 /proxy-lite/configure.py "$RAWHAPROXYCFG" "$HAPROXYCFG" "$PORT_PROXY" "${BACKENDS}"
+echo "proxy-lite: SKIPPING CONFIGURATION" >&2
+#python3 /proxy-lite/configure.py "$RAWHAPROXYCFG" "$HAPROXYCFG" "$PORT_PROXY" "${BACKENDS}"
 
 echo "proxy-lite: WROTE CONFIGURATION" >&2
 
