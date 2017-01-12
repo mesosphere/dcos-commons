@@ -16,11 +16,13 @@ public class RawServiceSpec {
     private final WriteOnceLinkedHashMap<String, RawPod> pods;
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
     private final RawReplacementFailurePolicy replacementFailurePolicy;
+    private final String webUrl;
 
     private RawServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("principal") String principal,
             @JsonProperty("api-port") Integer apiPort,
+            @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeper,
             @JsonProperty("pods") WriteOnceLinkedHashMap<String, RawPod> pods,
             @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans,
@@ -28,6 +30,7 @@ public class RawServiceSpec {
         this.name = name;
         this.principal = principal;
         this.apiPort = apiPort;
+        this.webUrl = webUrl;
         this.zookeeper = zookeeper;
         this.pods = pods;
         this.plans = plans;
@@ -44,6 +47,10 @@ public class RawServiceSpec {
 
     public Integer getApiPort() {
         return apiPort;
+    }
+
+    public String getWebUrl() {
+        return webUrl;
     }
 
     public String getZookeeper() {

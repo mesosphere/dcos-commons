@@ -57,6 +57,7 @@ public class YAMLToInternalMappers {
         return builder
                 .name(rawSvcSpec.getName())
                 .apiPort(rawSvcSpec.getApiPort())
+                .webUrl(rawSvcSpec.getWebUrl())
                 .principal(principal)
                 .zookeeperConnection(rawSvcSpec.getZookeeper())
                 .pods(pods)

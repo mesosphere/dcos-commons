@@ -41,7 +41,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     @NotNull
     @Min(value = 0, message = "API port value should be >= 0")
     private Integer apiPort;
-
+    private String webUrl;
     private String zookeeperConnection;
 
     @Valid
@@ -59,6 +59,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("api-port") int apiPort,
+            @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
@@ -66,23 +67,25 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
+        this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
                 ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
+        ValidationUtils.validate(this);
     }
 
     private DefaultServiceSpec(Builder builder) {
-        name = builder.name;
-        role = builder.role;
-        principal = builder.principal;
-        apiPort = builder.apiPort;
-        // If no zookeeperConnection string is configured, fallback to the default value.
-        zookeeperConnection = StringUtils.isBlank(builder.zookeeperConnection)
-                ? DEFAULT_ZK_CONNECTION : builder.zookeeperConnection;
-        pods = builder.pods;
-        replacementFailurePolicy = builder.replacementFailurePolicy;
+        this(
+                builder.name,
+                builder.role,
+                builder.principal,
+                builder.apiPort,
+                builder.webUrl,
+                builder.zookeeperConnection,
+                builder.pods,
+                builder.replacementFailurePolicy);
     }
 
     public static Builder newBuilder() {
@@ -119,6 +122,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public int getApiPort() {
         return apiPort;
+    }
+
+    @Override
+    public String getWebUrl() {
+        return webUrl;
     }
 
     @Override
@@ -271,6 +279,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String role;
         private String principal;
         private Integer apiPort;
+        private String webUrl;
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
@@ -320,6 +329,17 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder apiPort(Integer apiPort) {
             this.apiPort = apiPort;
+            return this;
+        }
+
+        /**
+         * Sets the {@code webUrl} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param webUrl the {@code webUrl} to set
+         * @return a reference to this Builder
+         */
+        public Builder webUrl(String webUrl) {
+            this.webUrl = webUrl;
             return this;
         }
 
@@ -375,9 +395,7 @@ public class DefaultServiceSpec implements ServiceSpec {
          * @return a {@code DefaultServiceSpec} built with parameters of this {@code DefaultServiceSpec.Builder}
          */
         public DefaultServiceSpec build() {
-            DefaultServiceSpec defaultServiceSpec = new DefaultServiceSpec(this);
-            ValidationUtils.validate(defaultServiceSpec);
-            return defaultServiceSpec;
+            return new DefaultServiceSpec(this);
         }
     }
 }

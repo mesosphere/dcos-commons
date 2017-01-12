@@ -55,39 +55,45 @@ public class ServiceSpecTest {
     }
 
     @Test
-    public void test_yml_base() throws Exception {
+    public void testYmlBase() throws Exception {
         deserializeServiceSpec("svc.yml");
         validateServiceSpec("svc.yml");
     }
 
     @Test
-    public void test_yml_simple() throws Exception {
+    public void testYmlSimple() throws Exception {
         deserializeServiceSpec("examples/simple.yml");
         validateServiceSpec("examples/simple.yml");
     }
 
     @Test
-    public void test_yml_plan() throws Exception {
+    public void testYmlPlan() throws Exception {
         deserializeServiceSpec("examples/plan.yml");
         validateServiceSpec("examples/plan.yml");
     }
 
     @Test
-    public void test_yml_sidecar() throws Exception {
+    public void testYmlSidecar() throws Exception {
         deserializeServiceSpec("examples/sidecar.yml");
         validateServiceSpec("examples/sidecar.yml");
     }
 
     @Test
-    public void test_yml_taskcfg() throws Exception {
+    public void testYmlTaskcfg() throws Exception {
         deserializeServiceSpec("examples/taskcfg.yml");
         validateServiceSpec("examples/taskcfg.yml");
     }
 
     @Test
-    public void test_yml_uri() throws Exception {
+    public void testYmlUri() throws Exception {
         deserializeServiceSpec("examples/uri.yml");
         validateServiceSpec("examples/uri.yml");
+    }
+
+    @Test
+    public void testYmlWebUrl() throws Exception {
+        deserializeServiceSpec("examples/web-url.yml");
+        validateServiceSpec("examples/web-url.yml");
     }
 
     private void deserializeServiceSpec(String fileName) throws Exception {
