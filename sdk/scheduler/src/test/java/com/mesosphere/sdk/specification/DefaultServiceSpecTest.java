@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.FileReader;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
