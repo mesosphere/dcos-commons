@@ -66,6 +66,8 @@ public class CustomExecutor implements Executor {
 
         try {
             Protos.TaskInfo unpackedTaskInfo = CommonTaskUtils.unpackTaskInfo(task);
+            LOGGER.info("Unpacked task: {}", unpackedTaskInfo);
+            LOGGER.info("Unpacked command: {}", unpackedTaskInfo.getCommand());
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(unpackedTaskInfo, driver);
 
             Future<?> future = executorService.submit(taskToExecute);
