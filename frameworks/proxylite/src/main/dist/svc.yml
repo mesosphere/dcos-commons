@@ -19,3 +19,6 @@ pods:
            port: 4040
         env:
           BACKENDS: {{BACKENDS}}
+        configurations:
+         - template: "{{CONFIG_TEMPLATE_PATH}}/haproxy.cfg"
+           dest: /proxy-lite/haproxy.cfg

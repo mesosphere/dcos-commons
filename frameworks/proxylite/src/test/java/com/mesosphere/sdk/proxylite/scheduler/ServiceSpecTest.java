@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
@@ -36,6 +37,8 @@ public class ServiceSpecTest {
         environmentVariables.set("PROXY_LITE_CPUS", "0.1");
         environmentVariables.set("PROXY_LITE_MEM", "512");
         environmentVariables.set("BACKENDS", "backends");
+        URL resource = ServiceSpecTest.class.getClassLoader().getResource("haproxy.cfg");
+        environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
     @Before
