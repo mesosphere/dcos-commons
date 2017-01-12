@@ -1,20 +1,19 @@
 package com.mesosphere.sdk.proxylite.scheduler;
 
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * Hello World Service.
  */
 public class Main {
-    private static final Integer COUNT = Integer.valueOf(System.getenv("PROXYLITE_COUNT"));
-    private static final Double CPUS = Double.valueOf(System.getenv("PROXYLITE_CPUS"));
-    private static final String POD_TYPE = "proxylite";
-    private static final String TASK_NAME = "proxylite";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
@@ -30,9 +29,12 @@ public class Main {
         @Override
         protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
             Protos.FrameworkInfo frameworkInfo = super.getFrameworkInfo(serviceSpec, stateStore);
-            return frameworkInfo.toBuilder()
-                    .setWebuiUrl("FIX ME HERE!")
+            frameworkInfo = frameworkInfo.toBuilder()
+                    .setWebuiUrl("http://www.google.com/")
                     .build();
+
+            LOGGER.info("Using custom FrameworkInfo: {}", frameworkInfo);
+            return frameworkInfo;
         }
     }
 }

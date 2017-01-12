@@ -33,20 +33,9 @@ public class ServiceSpecTest {
         environmentVariables.set("LIBMESOS_URI", "");
         environmentVariables.set("PORT0", "8080");
 
-        environmentVariables.set("SLEEP_DURATION", "1000");
-        environmentVariables.set("PROXYLITE_COUNT", "2");
-        environmentVariables.set("PROXYLITE_PORT", "4444");
-        environmentVariables.set("PROXYLITE_VIP_NAME", "proxylite");
-        environmentVariables.set("PROXYLITE_VIP_PORT", "9999");
-        environmentVariables.set("PROXYLITE_CPUS", "0.1");
-        environmentVariables.set("PROXYLITE_MEM", "512");
-        environmentVariables.set("PROXYLITE_DISK", "5000");
-
-        environmentVariables.set("WORLD_COUNT", "3");
-        environmentVariables.set("WORLD_CPUS", "0.2");
-        environmentVariables.set("WORLD_MEM", "1024");
-        environmentVariables.set("WORLD_FAILS", "3");
-        environmentVariables.set("WORLD_DISK", "5000");
+        environmentVariables.set("PROXY_LITE_CPUS", "0.1");
+        environmentVariables.set("PROXY_LITE_MEM", "512");
+        environmentVariables.set("BACKENDS", "backends");
     }
 
     @Before
@@ -58,36 +47,6 @@ public class ServiceSpecTest {
     public void test_yml_base() throws Exception {
         deserializeServiceSpec("svc.yml");
         validateServiceSpec("svc.yml");
-    }
-
-    @Test
-    public void test_yml_simple() throws Exception {
-        deserializeServiceSpec("examples/simple.yml");
-        validateServiceSpec("examples/simple.yml");
-    }
-
-    @Test
-    public void test_yml_plan() throws Exception {
-        deserializeServiceSpec("examples/plan.yml");
-        validateServiceSpec("examples/plan.yml");
-    }
-
-    @Test
-    public void test_yml_sidecar() throws Exception {
-        deserializeServiceSpec("examples/sidecar.yml");
-        validateServiceSpec("examples/sidecar.yml");
-    }
-
-    @Test
-    public void test_yml_taskcfg() throws Exception {
-        deserializeServiceSpec("examples/taskcfg.yml");
-        validateServiceSpec("examples/taskcfg.yml");
-    }
-
-    @Test
-    public void test_yml_uri() throws Exception {
-        deserializeServiceSpec("examples/uri.yml");
-        validateServiceSpec("examples/uri.yml");
     }
 
     private void deserializeServiceSpec(String fileName) throws Exception {
