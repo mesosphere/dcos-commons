@@ -166,6 +166,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         setHealthCheck(taskInfoBuilder, taskSpec);
+        setReadinessCheck(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder.build();
     }
@@ -218,6 +219,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         setHealthCheck(taskInfoBuilder, taskSpec);
+        setReadinessCheck(taskInfoBuilder, taskSpec);
 
         return new TaskRequirement(taskInfoBuilder.build());
     }
@@ -512,7 +514,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private static void setHealthCheck(Protos.TaskInfo.Builder taskInfo, TaskSpec taskSpec) {
         if (!taskSpec.getHealthCheck().isPresent()) {
-            LOGGER.debug("No health checks defined for taskSpec: {}", taskSpec.getName());
+            LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
             return;
         }
 
@@ -531,5 +533,30 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     CommonTaskUtils.fromMapToEnvironment(
                             taskSpec.getCommand().get().getEnvironment()));
         }
+    }
+
+    private static void setReadinessCheck(Protos.TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
+        if (!taskSpec.getReadinessCheck().isPresent()) {
+            LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
+            return;
+        }
+
+        ReadinessCheckSpec readinessCheckSpec = taskSpec.getReadinessCheck().get();
+        Protos.HealthCheck.Builder builder = Protos.HealthCheck.newBuilder()
+                .setDelaySeconds(readinessCheckSpec.getDelay())
+                .setIntervalSeconds(readinessCheckSpec.getInterval())
+                .setTimeoutSeconds(readinessCheckSpec.getTimeout())
+                .setConsecutiveFailures(0)
+                .setGracePeriodSeconds(0);
+
+        Protos.CommandInfo.Builder readinessCheckCommandBuilder = builder.getCommandBuilder()
+                .setValue(readinessCheckSpec.getCommand());
+        if (taskSpec.getCommand().isPresent()) {
+            readinessCheckCommandBuilder.setEnvironment(
+                    CommonTaskUtils.fromMapToEnvironment(
+                            taskSpec.getCommand().get().getEnvironment()));
+        }
+
+        CommonTaskUtils.setReadinessCheck(taskInfoBuilder, builder.build());
     }
 }
