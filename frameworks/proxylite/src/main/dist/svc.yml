@@ -3,15 +3,27 @@ principal: "proxylite-principal"
 zookeeper: master.mesos:2181
 api-port: {{PORT0}}
 pods:
+  web:
+    container:
+      image-name: nlsun/httpd
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "bash /start {{PORT_HTTPD}}"
+        cpus: {{PROXY_LITE_CPUS}}
+        memory: {{PROXY_LITE_MEM}}
+        ports:
+         - name: HTTPD
+           port: 4041
   proxylite:
     container:
-      image-name: nlsun/proxylite
+      image-name: nlsun/proxylite # Put this in the real Mesosphere account
     count: 1
     tasks:
       server:
         goal: RUNNING
         cmd: "chmod 755 /proxy-lite/run.sh && /proxy-lite/run.sh"
-        #cmd: "while :; do ping google.com; sleep 1; done"
         cpus: {{PROXY_LITE_CPUS}}
         memory: {{PROXY_LITE_MEM}}
         ports:
