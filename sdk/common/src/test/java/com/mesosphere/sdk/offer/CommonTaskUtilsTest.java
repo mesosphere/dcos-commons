@@ -4,7 +4,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -141,6 +140,21 @@ public class CommonTaskUtilsTest {
         Assert.assertTrue(yaml.contains("api-port: {{PORT_API}}"));
         String renderedYaml = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
         Assert.assertTrue(renderedYaml.contains(String.format("api-port: %d", TestConstants.PORT_API_VALUE)));
+    }
+
+    @Test
+    public void testReadinessCheckTagging() throws TaskException {
+        Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID);
+        Protos.HealthCheck inReadinessCheck = Protos.HealthCheck.newBuilder()
+                .setDelaySeconds(1.0)
+                .build();
+        CommonTaskUtils.setReadinessCheck(builder, inReadinessCheck);
+        Protos.HealthCheck outReadinessCheck = CommonTaskUtils.getReadinessCheck(builder.build()).get();
+
+        Assert.assertEquals(inReadinessCheck.getDelaySeconds(), outReadinessCheck.getDelaySeconds(), 0.0);
     }
 
     private static Protos.TaskID getTaskId(String value) {

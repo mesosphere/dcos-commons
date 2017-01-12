@@ -350,7 +350,7 @@ public class DefaultServiceSpec implements ServiceSpec {
          * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
          * can be chained together.
          *
-         * @param webuiUrl the web URL to set
+         * @param webUrl the web URL to set
          * @return a reference to this Builder
          */
         public Builder webUrl(String webUrl) {

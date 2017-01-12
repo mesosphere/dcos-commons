@@ -102,6 +102,15 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
+    private static ReadinessCheckSpec from(RawReadinessCheck rawReadinessCheck) {
+        return DefaultReadinessCheckSpec.newBuilder()
+                .command(rawReadinessCheck.getCmd())
+                .delay(rawReadinessCheck.getDelay())
+                .interval(rawReadinessCheck.getInterval())
+                .timeout(rawReadinessCheck.getTimeout())
+                .build();
+    }
+
     private static PodSpec from(
             RawPod rawPod,
             YAMLServiceSpecFactory.FileReader fileReader,
@@ -220,11 +229,17 @@ public class YAMLToInternalMappers {
                     .build();
         }
 
+        ReadinessCheckSpec readinessCheckSpec = null;
+        if (rawTask.getReadinessCheck() != null) {
+           readinessCheckSpec = from(rawTask.getReadinessCheck());
+        }
+
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
+                .readinessCheckSpec(readinessCheckSpec)
                 .name(taskName)
                 .uris(uris);
 

@@ -1,26 +1,20 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 /**
- * Default implementation of {@link HealthCheckSpec}.
+ * Default implementation of {@link ReadinessCheckSpec}.
  */
-public class DefaultHealthCheckSpec implements HealthCheckSpec {
+public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     @NotNull
     private String command;
-
-    @NotNull
-    @Min(1)
-    private Integer maxConsecutiveFailures;
 
     @NotNull
     @Min(0)
@@ -34,86 +28,56 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     @Min(0)
     private Integer timeout;
 
-    @NotNull
-    @Min(0)
-    private Integer gracePeriod;
-
-    @JsonCreator
-    public DefaultHealthCheckSpec(
+    public DefaultReadinessCheckSpec(
             @JsonProperty("command") String command,
-            @JsonProperty("max-consecutive-failures") Integer maxConsecutiveFailures,
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
-            @JsonProperty("timeout") Integer timeout,
-            @JsonProperty("grace-period") Integer gracePeriod) {
+            @JsonProperty("timeout") Integer timeout) {
         this.command = command;
-        this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.delay = delay;
         this.interval = interval;
         this.timeout = timeout;
-        this.gracePeriod = gracePeriod;
     }
 
-    private DefaultHealthCheckSpec(Builder builder) {
+    private DefaultReadinessCheckSpec(Builder builder) {
+        super();
         command = builder.command;
-        maxConsecutiveFailures = builder.maxConsecutiveFailures;
         delay = builder.delay;
         interval = builder.interval;
         timeout = builder.timeout;
-        gracePeriod = builder.gracePeriod;
     }
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    public static Builder newBuilder(DefaultHealthCheckSpec copy) {
+    public static Builder newBuilder(DefaultReadinessCheckSpec copy) {
         Builder builder = new Builder();
         builder.command = copy.command;
-        builder.maxConsecutiveFailures = copy.maxConsecutiveFailures;
         builder.delay = copy.delay;
         builder.interval = copy.interval;
         builder.timeout = copy.timeout;
-        builder.gracePeriod = copy.gracePeriod;
         return builder;
     }
 
     @Override
-    @NotNull
-    @Size(min = 1)
     public String getCommand() {
         return command;
     }
 
     @Override
-    @JsonProperty("max-consecutive-failures")
-    @Min(0)
-    public Integer getMaxConsecutiveFailures() {
-        return maxConsecutiveFailures;
-    }
-
-    @Override
-    @Min(0)
     public Integer getDelay() {
         return delay;
     }
 
     @Override
-    @Min(0)
     public Integer getInterval() {
         return interval;
     }
 
     @Override
-    @Min(0)
     public Integer getTimeout() {
         return timeout;
-    }
-
-    @Override
-    @Min(0)
-    public Integer getGracePeriod() {
-        return gracePeriod;
     }
 
     @Override
@@ -132,15 +96,13 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     }
 
     /**
-     * {@code DefaultHealthCheckSpec} builder static inner class.
+     * {@code DefaultReadinessCheckSpec} builder static inner class.
      */
     public static final class Builder {
         private String command;
-        private Integer maxConsecutiveFailures;
         private Integer delay;
         private Integer interval;
         private Integer timeout;
-        private Integer gracePeriod;
 
         private Builder() {
         }
@@ -153,18 +115,6 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
          */
         public Builder command(String command) {
             this.command = command;
-            return this;
-        }
-
-        /**
-         * Sets the {@code maxConsecutiveFailures} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param maxConsecutiveFailures the {@code maxConsecutiveFailures} to set
-         * @return a reference to this Builder
-         */
-        public Builder maxConsecutiveFailures(Integer maxConsecutiveFailures) {
-            this.maxConsecutiveFailures = maxConsecutiveFailures;
             return this;
         }
 
@@ -203,26 +153,14 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         }
 
         /**
-         * Sets the {@code gracePeriod} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param gracePeriod the {@code gracePeriod} to set
-         * @return a reference to this Builder
-         */
-        public Builder gracePeriod(Integer gracePeriod) {
-            this.gracePeriod = gracePeriod;
-            return this;
-        }
-
-        /**
          * Returns a {@code DefaultHealthCheckSpec} built from the parameters previously set.
          *
          * @return a {@code DefaultHealthCheckSpec} built with parameters of this {@code DefaultHealthCheckSpec.Builder}
          */
-        public DefaultHealthCheckSpec build() {
-            DefaultHealthCheckSpec defaultHealthCheckSpec = new DefaultHealthCheckSpec(this);
-            ValidationUtils.validate(defaultHealthCheckSpec);
-            return defaultHealthCheckSpec;
+        public DefaultReadinessCheckSpec build() {
+            DefaultReadinessCheckSpec defaultReadinessCheckSpec = new DefaultReadinessCheckSpec(this);
+            ValidationUtils.validate(defaultReadinessCheckSpec);
+            return defaultReadinessCheckSpec;
         }
     }
 }

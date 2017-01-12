@@ -39,14 +39,16 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
-        OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
-        List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(podInstanceRequirement, offerRequirement);
-        List<OfferRecommendation> recommendations = Collections.emptyList();
 
+        List<OfferRecommendation> recommendations = Collections.emptyList();
         for (int i = 0; i < offers.size(); ++i) {
             if (!recommendations.isEmpty()) {
                 break;
             }
+
+            OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
+            List<OfferEvaluationStage> evaluationStages =
+                    getEvaluationPipeline(podInstanceRequirement, offerRequirement);
 
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
@@ -64,6 +66,7 @@ public class OfferEvaluator {
             }
 
             if (!failureNotifications.isEmpty()) {
+                recommendations.clear();
                 logger.info("- {}: failed {} evaluation stages out of {} for the following reasons:",
                         i + 1, failureNotifications.size(), evaluationStages.size());
                 for (String notification : failureNotifications) {

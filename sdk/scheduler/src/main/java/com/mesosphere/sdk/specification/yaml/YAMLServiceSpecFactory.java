@@ -61,7 +61,7 @@ public class YAMLServiceSpecFactory {
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}. This version allows
      * providing a custom file reader for use in testing.
      *
-     * @param rawServiceSpecification the raw service specification representing a YAML file
+     * @param rawServiceSpec the raw service specification representing a YAML file
      * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */

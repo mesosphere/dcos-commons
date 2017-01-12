@@ -14,7 +14,6 @@ public class RawTask {
 
     private final String goal;
     private final String cmd;
-    private final String image;
     private final Map<String, String> env;
     private final RawConfiguration configuration;
     private final WriteOnceLinkedHashMap<String, RawConfiguration> configurations;
@@ -23,6 +22,7 @@ public class RawTask {
     private final Integer memory;
     private final WriteOnceLinkedHashMap<String, RawEndpoint> endpoints;
     private final RawHealthCheck healthCheck;
+    private final RawReadinessCheck readinessCheck;
     private final RawVolume volume;
     private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
     private final String resourceSet;
@@ -30,7 +30,6 @@ public class RawTask {
     private RawTask(
             @JsonProperty("goal") String goal,
             @JsonProperty("cmd") String cmd,
-            @JsonProperty("image") String image,
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configuration") RawConfiguration configuration,
             @JsonProperty("configurations") WriteOnceLinkedHashMap<String, RawConfiguration> configurations,
@@ -39,12 +38,12 @@ public class RawTask {
             @JsonProperty("memory") Integer memory,
             @JsonProperty("endpoints") WriteOnceLinkedHashMap<String, RawEndpoint> endpoints,
             @JsonProperty("health-check") RawHealthCheck healthCheck,
+            @JsonProperty("readiness-check") RawReadinessCheck readinessCheck,
             @JsonProperty("volume") RawVolume volume,
             @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
             @JsonProperty("resource-set") String resourceSet) {
         this.goal = goal;
         this.cmd = cmd;
-        this.image = image;
         this.env = env;
         this.configuration = configuration;
         this.configurations = configurations;
@@ -53,6 +52,7 @@ public class RawTask {
         this.memory = memory;
         this.endpoints = endpoints;
         this.healthCheck = healthCheck;
+        this.readinessCheck = readinessCheck;
         this.volume = volume;
         this.volumes = volumes;
         this.resourceSet = resourceSet;
@@ -74,16 +74,16 @@ public class RawTask {
         return healthCheck;
     }
 
+    public RawReadinessCheck getReadinessCheck() {
+        return readinessCheck;
+    }
+
     public String getGoal() {
         return goal;
     }
 
     public String getCmd() {
         return cmd;
-    }
-
-    public String getImage() {
-        return image;
     }
 
     public Map<String, String> getEnv() {

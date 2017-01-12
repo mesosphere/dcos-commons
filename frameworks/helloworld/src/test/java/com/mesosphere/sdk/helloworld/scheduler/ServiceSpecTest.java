@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ServiceSpecTest {
 
@@ -104,10 +107,16 @@ public class ServiceSpecTest {
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
+
+        Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsNamedVips()).thenReturn(true);
+        when(capabilities.supportsRLimits()).thenReturn(true);
+
         DefaultScheduler.newBuilder(serviceSpec)
-            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
-            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
-            .build();
+                .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+                .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+                .setCapabilities(capabilities)
+                .build();
         testingServer.close();
     }
 }
