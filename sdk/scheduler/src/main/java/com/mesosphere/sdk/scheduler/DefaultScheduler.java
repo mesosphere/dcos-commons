@@ -616,7 +616,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
-        resources.add(new ConfigResource<ServiceSpec>(configStore));
+        resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
@@ -757,7 +757,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                 try {
                     stateStore.storeStatus(status);
                     planCoordinator.getPlanManagers().stream()
-                            .filter(planManager -> !planManager.getPlan().isWaiting())
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
 
