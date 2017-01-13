@@ -68,6 +68,9 @@ public class ElasticServiceTest {
         environmentVariables.set("KIBANA_PORT", "5602");
         environmentVariables.set("KIBANA_PASSWORD", "changeme");
         URL resource = ElasticServiceTest.class.getClassLoader().getResource("elastic_service.yml");
+        environmentVariables.set("PROXYLITE_CPUS", ".1");
+        environmentVariables.set("PROXYLITE_MEM", "32");
+        environmentVariables.set("PROXYLITE_PORT", "4040");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 

@@ -1,7 +1,7 @@
 name: {{SERVICE_NAME}}
 principal: "{{SERVICE_NAME}}-principal"
 zookeeper: master.mesos:2181
-web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:4040
+web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:{{PROXYLITE_PORT}}
 api-port: {{PORT0}}
 pods:
   kibana:
@@ -268,11 +268,11 @@ pods:
       server:
         goal: RUNNING
         cmd: "/proxylite/run.sh"
-        cpus: 0.1
-        memory: 256
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
         ports:
          - name: PROXYLITE
-           port: 4040
+           port: {{PROXYLITE_PORT}}
         env:
           EXTERNAL_ROUTES: "/v1,/kibana"
           INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{SERVICE_NAME}}.l4lb.thisdcos.directory:5601"

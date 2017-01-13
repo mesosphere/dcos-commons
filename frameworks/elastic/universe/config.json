@@ -352,6 +352,32 @@
         "password",
         "count"
       ]
+    },
+    "proxylite": {
+      "description": "Proxylite configuration properties",
+      "type": "object",
+      "properties": {
+        "cpus": {
+          "description": "Proxylite cpu requirements",
+          "type": "number",
+          "default": 0.1
+        },
+        "mem": {
+          "description": "Proxylite mem requirements",
+          "type": "integer",
+          "default": 100
+        },
+        "port": {
+          "description": "HTTP port for Proxylite to listen on.",
+          "type": "integer",
+          "default": 4040
+        }
+      },
+      "required": [
+        "cpus",
+        "mem",
+        "port"
+      ]
     }
   }
 }
