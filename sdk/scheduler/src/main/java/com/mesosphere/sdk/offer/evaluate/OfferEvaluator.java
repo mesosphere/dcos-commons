@@ -68,11 +68,14 @@ public class OfferEvaluator {
 
             if (failedOutcomeCount != 0) {
                 recommendations.clear();
-                logger.info("- {}: failed {} of {} evaluation stages with the following reasons:",
-                        i + 1, failedOutcomeCount, evaluationStages.size());
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append(String.format(
+                        "- %d: failed %d of %d evaluation stages with the following reasons:%n",
+                        i + 1, failedOutcomeCount, evaluationStages.size()));
                 for (EvaluationOutcome outcome : outcomes) {
-                    logOutcome(outcome, "");
+                    logOutcome(stringBuilder, outcome, "");
                 }
+                logger.info(stringBuilder.toString().trim());
 
                 continue;
             }
@@ -85,10 +88,10 @@ public class OfferEvaluator {
         return recommendations;
     }
 
-    private static void logOutcome(EvaluationOutcome outcome, String indent) {
-        logger.info("-{}    {}", indent, outcome.toString());
+    private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
+        stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
         for (EvaluationOutcome child : outcome.getChildren()) {
-            logOutcome(child, indent + "  ");
+            logOutcome(stringBuilder, child, indent + "  ");
         }
     }
 
