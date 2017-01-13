@@ -19,8 +19,6 @@ ext {
     mockitoVer = "1.9.5"
 }
 
-buildDir = new File(rootProject.projectDir, "build/")
-
 dependencies {
     compile project(":scheduler")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
@@ -29,17 +27,13 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVer}"
 }
 
+distZip.dependsOn ":executor:distZip"
+distZip.finalizedBy copyExecutor
+
 distributions {
     main {
         baseName = 'kafka-scheduler'
         version = ''
-    }
-}
-
-test {
-    filter {
-        //include all tests from package
-        includeTestsMatching "com.mesosphere.sdk.kafka.*"
     }
 }
 

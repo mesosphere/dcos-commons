@@ -23,8 +23,6 @@ dependencies {
 apply plugin: 'java'
 apply plugin: 'application'
 
-buildDir = new File(rootProject.projectDir, "build/")
-
 distributions {
     main {
         baseName = 'executor'

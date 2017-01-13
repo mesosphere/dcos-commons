@@ -28,19 +28,13 @@ dependencies {
     testCompile "org.mockito:mockito-all:${mockitoVer}"
 }
 
-buildDir = new File(rootProject.projectDir, "build/")
+distZip.dependsOn ":executor:distZip"
+distZip.finalizedBy copyExecutor
 
 distributions {
     main {
         baseName = 'hello-world-scheduler'
         version = ''
-    }
-}
-
-test {
-    filter {
-        //include all tests from package
-        includeTestsMatching "com.mesosphere.sdk.helloworld.*"
     }
 }
 
