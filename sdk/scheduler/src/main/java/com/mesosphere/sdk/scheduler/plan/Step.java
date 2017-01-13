@@ -47,7 +47,7 @@ public interface Step extends Element, Interruptible {
      * Reports whether the Asset associated with this Step is dirty.
      */
     default boolean isAssetDirty() {
-        return isInProgress();
+        return isPrepared() || isStarting();
     }
 
     /**

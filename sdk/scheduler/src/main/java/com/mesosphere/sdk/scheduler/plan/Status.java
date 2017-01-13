@@ -22,8 +22,6 @@ public enum Status {
 
     /**
      * Execution experienced an error.
-     *
-     * This value is only returned and never set to a variable.
      */
     ERROR,
 
@@ -56,7 +54,6 @@ public enum Status {
     COMPLETE,
 
     //TODO: make enum implement an interface, forbid step status to be set to WAITING or IN_PROGRESS
-
     /**
      * Only returned by Phase and Plan getStatus, to state that at least one child is complete and at
      * least one child is in progress (either PENDING or PREPARED).
