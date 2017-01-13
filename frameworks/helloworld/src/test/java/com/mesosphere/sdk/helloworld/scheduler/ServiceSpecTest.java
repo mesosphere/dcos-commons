@@ -5,7 +5,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.TestConstants;
 
@@ -17,7 +17,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.util.Collections;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,8 +100,7 @@ public class ServiceSpecTest {
 
     private void deserializeServiceSpec(String fileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -109,7 +108,8 @@ public class ServiceSpecTest {
 
     private void validateServiceSpec(String fileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(generateRawSpecFromYAML(file));
+        RawServiceSpec rawSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawSpec);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
@@ -122,6 +122,7 @@ public class ServiceSpecTest {
                 .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
                 .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
                 .setCapabilities(capabilities)
+                .setPlansFrom(rawSpec)
                 .build();
         testingServer.close();
     }

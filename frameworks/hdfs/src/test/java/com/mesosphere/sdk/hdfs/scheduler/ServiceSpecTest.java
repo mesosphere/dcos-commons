@@ -2,7 +2,7 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.TestConstants;
 
@@ -17,7 +17,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 
 public class ServiceSpecTest {
     @ClassRule
@@ -70,20 +70,19 @@ public class ServiceSpecTest {
 
     @Test
     public void testOneTimePlanDeserialization() throws Exception {
-        testDeserialization("hdfs_svc.yml");
+        testDeserialization("svc.yml");
     }
 
     @Test
     public void testOneTimePlanValidation() throws Exception {
-        testValidation("hdfs_svc.yml");
+        testValidation("svc.yml");
     }
 
     private void testDeserialization(String yamlFileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(yamlFileName).getFile());
 
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -91,14 +90,15 @@ public class ServiceSpecTest {
 
     private void testValidation(String yamlFileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(yamlFileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        RawServiceSpec rawSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawSpec);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
         DefaultScheduler.newBuilder(serviceSpec)
             .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
             .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+            .setPlansFrom(rawSpec)
             .build();
         testingServer.close();
     }

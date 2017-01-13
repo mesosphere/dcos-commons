@@ -6,7 +6,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import org.junit.*;
@@ -18,7 +18,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 
 public class ServiceSpecTest {
 
@@ -53,8 +53,7 @@ public class ServiceSpecTest {
         ClassLoader classLoader = ServiceSpecTest.class.getClassLoader();
         File file = new File(classLoader.getResource("svc.yml").getFile());
 
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -63,7 +62,8 @@ public class ServiceSpecTest {
     @Test
     public void testServiceSpecValidation() throws Exception {
         File file = new File(getClass().getClassLoader().getResource("svc.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(generateRawSpecFromYAML(file));
+        RawServiceSpec rawSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawSpec);
 
         TestingServer testingServer = new TestingServer();
 
@@ -80,6 +80,7 @@ public class ServiceSpecTest {
         Scheduler scheduler = DefaultScheduler.newBuilder(serviceSpec)
             .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
             .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+            .setPlansFrom(rawSpec)
             .build();
         scheduler.registered(mockSchedulerDriver, FRAMEWORK_ID, MASTER_INFO);
         testingServer.close();

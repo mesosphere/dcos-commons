@@ -72,7 +72,7 @@ public class OfferEvaluatorTest {
         CommandInfo command = CommonTaskUtils.unpackTaskInfo(taskInfo).getCommand();
         Assert.assertEquals(4, command.getEnvironment().getVariablesCount());
         Environment.Variable variable = command.getEnvironment().getVariables(3);
-        Assert.assertEquals("PORT_" + TestConstants.PORT_NAME, variable.getName());
+        Assert.assertEquals(TestConstants.PORT_ENV_NAME, variable.getName());
         Assert.assertEquals(String.valueOf(10000), variable.getValue());
     }
 
@@ -181,11 +181,11 @@ public class OfferEvaluatorTest {
         CommandInfo command = CommonTaskUtils.unpackTaskInfo(taskInfo).getCommand();
         Assert.assertEquals(5, command.getEnvironment().getVariablesCount());
         Environment.Variable variable = command.getEnvironment().getVariables(3);
-        Assert.assertEquals("PORT_" + TestConstants.PORT_NAME, variable.getName());
+        Assert.assertEquals(TestConstants.PORT_ENV_NAME, variable.getName());
         Assert.assertEquals(String.valueOf(10000), variable.getValue());
 
         variable = command.getEnvironment().getVariables(4);
-        Assert.assertEquals("PORT_" + TestConstants.PORT_NAME + "2", variable.getName());
+        Assert.assertEquals(TestConstants.PORT_ENV_NAME + "2", variable.getName());
         Assert.assertEquals(String.valueOf(10001), variable.getValue());
 
         Assert.assertEquals(10000, taskPortResource.getRanges().getRange(0).getBegin());
@@ -924,7 +924,7 @@ public class OfferEvaluatorTest {
         existingTaskInfo.getCommandBuilder()
                 .getEnvironmentBuilder()
                 .addVariablesBuilder()
-                .setName("PORT_" + TestConstants.PORT_NAME)
+                .setName(TestConstants.PORT_ENV_NAME)
                 .setValue(Long.toString(resource.getRanges().getRange(0).getBegin()));
         offerRequirement.updateTaskRequirement(TestConstants.TASK_NAME, existingTaskInfo.build());
         stateStore.storeTasks(Arrays.asList(existingTaskInfo.build()));

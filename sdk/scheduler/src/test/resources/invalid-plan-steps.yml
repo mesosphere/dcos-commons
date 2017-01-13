@@ -40,8 +40,8 @@ pods:
         resource-set: once-resources
       other:
         goal: FINISHED
-        cmd: "echo 'I run parallel to once against hello resources' >> hello-container-path/other"
-        resource-set: hello-resources
+        cmd: "echo 'I should fail because run alongside once with the same resources' >> hello-container-path/other"
+        resource-set: once-resources
   world:
     count: 2
     resource-sets:

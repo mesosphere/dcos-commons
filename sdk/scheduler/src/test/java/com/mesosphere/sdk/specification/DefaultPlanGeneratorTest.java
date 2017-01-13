@@ -67,7 +67,7 @@ public class DefaultPlanGeneratorTest {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
             Assert.assertEquals(2, plan.getChildren().size());
-            Assert.assertEquals(1, plan.getChildren().get(0).getChildren().size());
+            Assert.assertEquals(2, plan.getChildren().get(0).getChildren().size());
             Assert.assertEquals(1, plan.getChildren().get(1).getChildren().size());
         }
     }

@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 
 import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -21,10 +20,14 @@ import java.util.stream.Collectors;
  */
 public class DefaultPlanGenerator implements PlanGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanGenerator.class);
-    private final DefaultStepFactory stepFactory;
+    private final StepFactory stepFactory;
 
     public DefaultPlanGenerator(ConfigTargetStore configTargetStore, StateStore stateStore) {
-        this.stepFactory = new DefaultStepFactory(configTargetStore, stateStore);
+        this(new DefaultStepFactory(configTargetStore, stateStore));
+    }
+
+    public DefaultPlanGenerator(StepFactory stepFactory) {
+        this.stepFactory = stepFactory;
     }
 
     @Override
@@ -37,15 +40,17 @@ public class DefaultPlanGenerator implements PlanGenerator {
     }
 
     @VisibleForTesting
-    protected Phase from(RawPhase rawPhase, String phaseName, Collection<PodSpec> podsSpecs) {
-        Optional<PodSpec> podSpecOptnl = filter(rawPhase.getPod(), podsSpecs);
-        if (!podSpecOptnl.isPresent()) {
-            throw new IllegalStateException("Pod not found: " + rawPhase.getPod());
+    protected Phase from(RawPhase rawPhase, String phaseName, Collection<PodSpec> podSpecs) {
+        Optional<PodSpec> podSpecOptional = filter(rawPhase.getPod(), podSpecs);
+        if (!podSpecOptional.isPresent()) {
+            throw new IllegalStateException(String.format(
+                    "Unable to find pod '%s' referenced by phase '%s'",
+                    rawPhase.getPod(), phaseName));
         }
-        PodSpec podSpec = podSpecOptnl.get();
+        PodSpec podSpec = podSpecOptional.get();
 
         final List<Step> steps = new LinkedList<>();
-        if (MapUtils.isEmpty(rawPhase.getSteps())) {
+        if (rawPhase.getSteps() == null || rawPhase.getSteps().isEmpty()) {
             // Generate steps from pod's tasks that are in RUNNING state.
             for (int i = 0; i < podSpec.getCount(); i++) {
                 List<String> taskNames = podSpec.getTasks().stream()
@@ -61,7 +66,13 @@ public class DefaultPlanGenerator implements PlanGenerator {
                 steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
             }
         } else {
-            for (Map.Entry<Integer, List<String>> rawStep : rawPhase.getSteps().entrySet()) {
+            for (Map<Integer, List<String>> rawStepMap : rawPhase.getSteps()) {
+                if (rawStepMap.size() != 1) {
+                    throw new IllegalStateException(String.format(
+                            "Malformed step in phase '%s': Map should contain a single entry, but has %d: %s",
+                            phaseName, rawStepMap.size(), rawStepMap));
+                }
+                Map.Entry<Integer, List<String>> rawStep = rawStepMap.entrySet().iterator().next();
                 steps.add(from(
                         new DefaultPodInstance(podSpec, rawStep.getKey()),
                         rawStep.getValue()));
@@ -70,8 +81,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
         return DefaultPhaseFactory.getPhase(phaseName, steps, StrategyFactory.generateForSteps(rawPhase.getStrategy()));
     }
 
-    @VisibleForTesting
-    protected Step from(PodInstance podInstance, List<String> tasksToLaunch) {
+    private Step from(PodInstance podInstance, List<String> tasksToLaunch) {
         try {
             return stepFactory.getStep(podInstance, tasksToLaunch);
         } catch (Exception e) {

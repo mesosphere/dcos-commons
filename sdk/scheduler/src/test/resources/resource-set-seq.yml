@@ -45,5 +45,5 @@ plans:
         strategy: serial
         pod: name
         steps:
-          0: [format]
-          1: [node]
+          - 0: [format]
+          - 1: [node]

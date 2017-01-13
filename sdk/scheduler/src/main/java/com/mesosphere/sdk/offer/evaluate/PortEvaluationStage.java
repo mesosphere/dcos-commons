@@ -133,8 +133,12 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         return dynamicPort;
     }
 
+    /**
+     * Returns a environment variable-style rendering of the provided {@code portName}. The name is uppercased, "PORT_"
+     * is added to the beginning, and invalid characters are replaced with underscores.
+     */
     private static String getPortEnvironmentVariable(String portName) {
-        return "PORT_" + portName;
+        return "PORT_" + portName.toUpperCase().replaceAll("[^a-zA-Z0-9_]", "_");
     }
 
     private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, int port) {

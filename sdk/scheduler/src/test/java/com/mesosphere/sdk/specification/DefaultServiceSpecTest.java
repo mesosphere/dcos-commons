@@ -37,6 +37,8 @@ import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 public class DefaultServiceSpecTest {
     @Rule public final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
     @Mock private FileReader mockFileReader;
+    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock private StateStore mockStateStore;
 
     @Before
     public void beforeEach() {
@@ -135,6 +137,18 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-config-file.yml").getFile());
         generateServiceSpec(generateRawSpecFromYAML(file));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void invalidPlanSteps() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
+        RawServiceSpec rawSpec = generateRawSpecFromYAML(file);
+        DefaultScheduler.newBuilder(generateServiceSpec(rawSpec))
+            .setConfigStore(mockConfigStore)
+            .setStateStore(mockStateStore)
+            .setPlansFrom(rawSpec)
+            .build();
     }
 
     @Test
