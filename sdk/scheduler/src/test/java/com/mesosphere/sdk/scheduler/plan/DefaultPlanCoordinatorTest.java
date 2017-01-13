@@ -164,7 +164,7 @@ public class DefaultPlanCoordinatorTest {
     public void testOnePlanManagerPendingSufficientOffer() throws Exception {
         final Plan plan = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManager = new DefaultPlanManager(plan);
-        planManager.getPlan().getStrategy().proceed();
+        planManager.getPlan().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManager), planScheduler);
         Assert.assertEquals(1, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
@@ -196,8 +196,8 @@ public class DefaultPlanCoordinatorTest {
         final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecificationB);
         final DefaultPlanManager planManagerA = new DefaultPlanManager(planA);
         final DefaultPlanManager planManagerB = new DefaultPlanManager(planB);
-        planManagerA.getPlan().getStrategy().proceed();
-        planManagerB.getPlan().getStrategy().proceed();
+        planManagerA.getPlan().proceed();
+        planManagerB.getPlan().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB), planScheduler);
         Assert.assertEquals(2, coordinator.processOffers(schedulerDriver, getOffers(SUFFICIENT_CPUS,
@@ -213,8 +213,8 @@ public class DefaultPlanCoordinatorTest {
         final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecB);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
-        planManagerA.getPlan().getStrategy().proceed();
-        planManagerB.getPlan().getStrategy().proceed();
+        planManagerA.getPlan().proceed();
+        planManagerB.getPlan().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);
@@ -252,14 +252,14 @@ public class DefaultPlanCoordinatorTest {
         final Plan planB = new DefaultPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManagerA = new DefaultPlanManager(planA);
         final PlanManager planManagerB = new DefaultPlanManager(planB);
-        planManagerA.getPlan().getStrategy().proceed();
-        planManagerB.getPlan().getStrategy().proceed();
+        planManagerA.getPlan().proceed();
+        planManagerB.getPlan().proceed();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
                 Arrays.asList(planManagerA, planManagerB),
                 planScheduler);
 
         Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
-        ((DefaultStep) planB.getChildren().get(0).getChildren().get(0)).setStatus(Status.PREPARED);
+        ((DeploymentStep) planB.getChildren().get(0).getChildren().get(0)).setStatus(Status.PREPARED);
 
         // PlanA and PlanB have similar asset names. PlanA is configured to run before PlanB.
         // In a given offer cycle, PlanA's asset is PENDING, where as PlanB's asset is already in PREPARED.

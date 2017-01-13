@@ -16,7 +16,7 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
         // All plans begin in an interrupted state.  The deploy plan will
         // be automatically proceeded when appropriate.  Other plans are
         // sidecar plans and should be externally proceeded.
-        plan.getStrategy().interrupt();
+        plan.interrupt();
         this.plan = plan;
         this.plan.subscribe(this);
     }

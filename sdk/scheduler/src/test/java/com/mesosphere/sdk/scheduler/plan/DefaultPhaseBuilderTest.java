@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.DependencyStrategyHelper;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -32,10 +32,6 @@ public class DefaultPhaseBuilderTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(step0.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(step1.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(step2.getStrategy()).thenReturn(new SerialStrategy<>());
-        when(step3.getStrategy()).thenReturn(new SerialStrategy<>());
 
         when(step0.getName()).thenReturn("step0");
         when(step1.getName()).thenReturn("step1");
@@ -61,48 +57,48 @@ public class DefaultPhaseBuilderTest {
         phaseBuilder.addDependency(step1, step0);
         DefaultPhase phase = phaseBuilder.build();
 
-        Assert.assertEquals(step0, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(step0, getCandidates(phase).iterator().next());
 
         when(step0.isComplete()).thenReturn(true);
         when(step0.isPending()).thenReturn(false);
-        Assert.assertEquals(step1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(step1, getCandidates(phase).iterator().next());
 
         // Try again, shouldn't change.
-        Assert.assertEquals(step1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(step1, getCandidates(phase).iterator().next());
 
         when(step1.isComplete()).thenReturn(true);
         when(step1.isPending()).thenReturn(false);
-        Assert.assertEquals(step2, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(step2, getCandidates(phase).iterator().next());
 
         when(step2.isComplete()).thenReturn(true);
         when(step2.isPending()).thenReturn(false);
-        Assert.assertTrue(phase.getStrategy().getCandidates(phase, Collections.emptyList()).isEmpty());
+        Assert.assertTrue(getCandidates(phase).isEmpty());
     }
 
     @Test
     public void testBuildParallelPlan() throws DependencyStrategyHelper.InvalidDependencyException {
-        phaseBuilder.addAll(step0);
-        phaseBuilder.addAll(step1);
-        phaseBuilder.addAll(step2);
+        phaseBuilder.add(step0);
+        phaseBuilder.add(step1);
+        phaseBuilder.add(step2);
         DefaultPhase phase = phaseBuilder.build();
 
-        Assert.assertEquals(3, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
+        Assert.assertEquals(3, getCandidates(phase).size());
 
         when(step0.isComplete()).thenReturn(true);
         when(step0.isPending()).thenReturn(false);
-        Assert.assertEquals(2, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
+        Assert.assertEquals(2, getCandidates(phase).size());
 
         // Try again, shouldn't change.
-        Assert.assertEquals(2, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
+        Assert.assertEquals(2, getCandidates(phase).size());
 
         when(step2.isComplete()).thenReturn(true);
         when(step2.isPending()).thenReturn(false);
-        Assert.assertEquals(1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
-        Assert.assertEquals(step1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(1, getCandidates(phase).size());
+        Assert.assertEquals(step1, getCandidates(phase).iterator().next());
 
         when(step1.isComplete()).thenReturn(true);
         when(step1.isPending()).thenReturn(false);
-        Assert.assertTrue(phase.getStrategy().getCandidates(phase, Collections.emptyList()).isEmpty());
+        Assert.assertTrue(getCandidates(phase).isEmpty());
     }
 
     @Test
@@ -113,29 +109,33 @@ public class DefaultPhaseBuilderTest {
         phaseBuilder.addDependency(step2, step0);
         DefaultPhase phase = phaseBuilder.build();
 
-        Assert.assertEquals(1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
-        Assert.assertEquals(step0, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(1, getCandidates(phase).size());
+        Assert.assertEquals(step0, getCandidates(phase).iterator().next());
 
         when(step0.isComplete()).thenReturn(true);
         when(step0.isPending()).thenReturn(false);
-        Assert.assertEquals(2, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
+        Assert.assertEquals(2, getCandidates(phase).size());
 
         when(step1.isComplete()).thenReturn(true);
         when(step1.isPending()).thenReturn(false);
-        Assert.assertEquals(1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
-        Assert.assertEquals(step2, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(1, getCandidates(phase).size());
+        Assert.assertEquals(step2, getCandidates(phase).iterator().next());
 
         // Try again, shouldn't change.
-        Assert.assertEquals(1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
-        Assert.assertEquals(step2, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(1, getCandidates(phase).size());
+        Assert.assertEquals(step2, getCandidates(phase).iterator().next());
 
         when(step2.isComplete()).thenReturn(true);
         when(step2.isPending()).thenReturn(false);
-        Assert.assertEquals(1, phase.getStrategy().getCandidates(phase, Collections.emptyList()).size());
-        Assert.assertEquals(step3, phase.getStrategy().getCandidates(phase, Collections.emptyList()).iterator().next());
+        Assert.assertEquals(1, getCandidates(phase).size());
+        Assert.assertEquals(step3, getCandidates(phase).iterator().next());
 
         when(step3.isComplete()).thenReturn(true);
         when(step3.isPending()).thenReturn(false);
-        Assert.assertTrue(phase.getStrategy().getCandidates(phase, Collections.emptyList()).isEmpty());
+        Assert.assertTrue(getCandidates(phase).isEmpty());
+    }
+
+    private static Collection<Step> getCandidates(Phase phase) {
+        return phase.getStrategy().getCandidates(phase.getChildren(), Collections.emptyList());
     }
 }

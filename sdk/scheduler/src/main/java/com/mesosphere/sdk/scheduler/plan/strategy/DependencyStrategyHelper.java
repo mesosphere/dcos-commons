@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,8 +12,10 @@ import java.util.stream.Collectors;
  *
  * @param <C> is the type of {@link Element}s to which the dependencies captured here apply.
  */
-@SuppressWarnings("rawtypes")
 public class DependencyStrategyHelper<C extends Element> {
+    /**
+     * Mapping of elements to their prerequisites which must be {@link Element#isComplete()}.
+     */
     private final Map<C, Set<C>> dependencies;
 
     public DependencyStrategyHelper() {
@@ -22,11 +24,7 @@ public class DependencyStrategyHelper<C extends Element> {
 
     public DependencyStrategyHelper(Collection<C> elements) {
         this.dependencies = new HashMap<>();
-        elements.forEach(child -> dependencies.put(child, new HashSet<>()));
-    }
-
-    public DependencyStrategyHelper(Element<C> parentElement) {
-        this(parentElement.getChildren());
+        elements.forEach(element -> dependencies.put(element, new HashSet<>()));
     }
 
     public void addElement(C element) throws InvalidDependencyException {
@@ -51,49 +49,22 @@ public class DependencyStrategyHelper<C extends Element> {
         dependencies.put(child, deps);
     }
 
-    public Collection<C> getCandidates(Collection<String> dirtyAssets) {
-        if (dependencies.isEmpty()) {
+    public Collection<C> getCandidates(boolean isInterrupted, Collection<String> dirtyAssets) {
+        if (isInterrupted) {
             return Collections.emptyList();
         }
-
-        Collection<C> candidates = dependencies.entrySet().stream()
-                .filter(entry -> !entry.getKey().getStrategy().isInterrupted())
-                .filter(entry -> !entry.getKey().isComplete())
-                .filter(entry -> !entry.getKey().hasErrors())
+        return dependencies.entrySet().stream()
+                .filter(entry -> PlanUtils.isEligibleCandidate(entry.getKey(), dirtyAssets))
                 .filter(entry -> dependenciesFulfilled(entry.getValue()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());
-
-        if (candidates.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        if (!(candidates.stream().findFirst().get() instanceof Step)) {
-            return candidates;
-        }
-
-        List<C> filtered = new ArrayList<C>();
-        for (C candidate : candidates) {
-            Step step = (Step) candidate;
-
-            // If a Step doesn't encapsulate an Asset, it may be a candidate, otherwise
-            // it may be a candidate if it does not conflict with the already dirty assets.
-            Optional<String> asset = step.getAsset();
-            if (!asset.isPresent()) {
-                filtered.add(candidate);
-            } else if (!dirtyAssets.contains(asset.get())) {
-                filtered.add(candidate);
-            }
-        }
-
-        return filtered;
     }
 
     public Map<C, Set<C>> getDependencies() {
         return dependencies;
     }
 
-    private boolean dependenciesFulfilled(Set<C> deps) {
+    private static <C extends Element> boolean dependenciesFulfilled(Set<C> deps) {
         if (deps.isEmpty()) {
             return true;
         } else {
