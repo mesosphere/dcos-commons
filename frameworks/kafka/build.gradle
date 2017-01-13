@@ -28,6 +28,7 @@ dependencies {
 }
 
 distZip.dependsOn ":executor:distZip"
+distZip.finalizedBy copyExecutor
 
 distributions {
     main {
