@@ -10,7 +10,7 @@ The following describe what's needed to manually generate the docs on your syste
 
 ## Requirements
 
-1. `jekyll` installed via `gem installed jekyll`
+1. `jekyll` installed via `gem install jekyll` (note: you may need to install `ruby-dev` beforehand)
 2. Java SDK including `javadoc`
 
 ## View docs locally

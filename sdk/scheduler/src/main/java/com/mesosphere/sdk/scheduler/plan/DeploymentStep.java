@@ -1,53 +1,37 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.DefaultObservable;
-import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 /**
- * This class is a default implementation of the Step interface.
+ * Step which implements the deployment of a pod.
  */
-public class DefaultStep extends DefaultObservable implements Step {
-    /** Non-static to ensure that we inherit the names of subclasses. */
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+public class DeploymentStep extends AbstractStep {
 
-    private final String name;
-    private final UUID id = UUID.randomUUID();
     private final List<String> errors;
-    private final Strategy<Step> strategy = new ParallelStrategy<>();
-    private final Object statusLock = new Object();
     private final PodInstanceRequirement podInstanceRequirement;
-    private Status status;
+
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
      * by the step, and any {@code errors} to be displayed to the user.
      */
-    public DefaultStep(
+    public DeploymentStep(
             String name,
             Status status,
             PodInstanceRequirement podInstanceRequirement,
             List<String> errors) {
-        this.name = name;
-        this.status = status;
-        this.podInstanceRequirement = podInstanceRequirement;
+        super(name, status);
         this.errors = errors;
-
-        setStatus(status); // Log initial status
+        this.podInstanceRequirement = podInstanceRequirement;
     }
 
     /**
@@ -100,11 +84,6 @@ public class DefaultStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public boolean isAssetDirty() {
-        return isInProgress();
-    }
-
-    @Override
     public void restart() {
         logger.warn("Restarting step: '{} [{}]'", getName(), getId());
         setStatus(Status.PENDING);
@@ -124,36 +103,6 @@ public class DefaultStep extends DefaultObservable implements Step {
     @Override
     public List<String> getErrors() {
         return errors;
-    }
-
-    @Override
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Status getStatus() {
-        synchronized (statusLock) {
-            if (status == Status.PENDING && getStrategy().isInterrupted()) {
-                return Status.WAITING;
-            }
-            return status;
-        }
-    }
-
-    @Override
-    public List<Element<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Strategy<Step> getStrategy() {
-        return strategy;
     }
 
     /**
@@ -263,26 +212,6 @@ public class DefaultStep extends DefaultObservable implements Step {
     @Override
     public int hashCode() {
         return Objects.hash(getId());
-    }
-
-    /**
-     * Updates the status setting and logs the outcome. Should only be called either by tests, by
-     * {@code this}, or by subclasses.
-     *
-     * @param newStatus the new status to be set
-     */
-    @VisibleForTesting
-    void setStatus(Status newStatus) {
-        Status oldStatus;
-        synchronized (statusLock) {
-            oldStatus = status;
-            status = newStatus;
-            logger.info(getName() + ": changed status from: " + oldStatus + " to: " + newStatus);
-        }
-
-        if (!Objects.equals(oldStatus, newStatus)) {
-            notifyObservers();
-        }
     }
 
     private static class TaskStatusPair {

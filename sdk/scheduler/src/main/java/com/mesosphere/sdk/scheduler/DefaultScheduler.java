@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
@@ -585,15 +584,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         deploymentPlanManager = new DefaultPlanManager(deployPlan);
 
-        // All plans are initially created with an interrupted strategy.
-        // Normally we don't want the deployment plan to be interrupted,
-        // except in the case of the CanaryStrategy which explicitly
-        // indicates the end-user wants the deployment plan to start out
-        // interrupted.
-        Plan plan = deploymentPlanManager.getPlan();
-        if (!(plan.getStrategy() instanceof CanaryStrategy)) {
-            plan.getStrategy().proceed();
-        }
+        // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
+        // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
+        // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
+        // whole.
+        deploymentPlanManager.getPlan().proceed();
     }
 
     /**
@@ -621,7 +616,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
-        resources.add(new ConfigResource<ServiceSpec>(configStore));
+        resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
@@ -762,7 +757,6 @@ public class DefaultScheduler implements Scheduler, Observer {
                 try {
                     stateStore.storeStatus(status);
                     planCoordinator.getPlanManagers().stream()
-                            .filter(planManager -> !planManager.getPlan().isWaiting())
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
 

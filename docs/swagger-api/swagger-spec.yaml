@@ -6,35 +6,80 @@ info:
   description: "The DC/OS Stateful Service SDK"
 basePath: "/v1"
 tags:
-- name: "tasks"
-  description: "The tasks the service must perform"
+- name: "endpoints"
+  description: "The endpoints that the service offers for client access"
 - name: "plans"
-  description: "The deployment plan for the tasks"
+  description: "Deployment, maintenance, and recovery plans being executed by the service"
+- name: "pods"
+  description: "The pods which compose the service"
 - name: "configurations"
-  description: "The service's configuration"
+  description: "Historical and current target configurations for the service"
+- name: "state"
+  description: "Additional persisted state"
 schemes:
 - "http"
 paths:
+  /endpoints:
+    get:
+      tags:
+      - "endpoints"
+      summary: "Returns connection information for all endpoints."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "format"
+        in: "query"
+        description: "The hostname format in the returned data, either unset for hostnames or 'native' for IPs."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Connection information for all endpoints."
+        500:
+          description: "Failed to retrieve connection information."
+  /endpoints/{name}:
+    get:
+      tags:
+      - "endpoints"
+      summary: "Returns connection information for the requested endpoint."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name of the endpoint."
+        required: true
+        type: "string"
+      - name: "format"
+        in: "query"
+        description: "The hostname format in the returned data, either unset for hostnames or 'native' for IPs."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Connection information for the endpoint."
+        404:
+          description: "Requested endpoint not found."
+        500:
+          description: "Failed to retrieve connection information."
   /plans:
     get:
       tags:
       - "plans"
       summary: "Returns list of all configured plans."
-      description: "Returns list of all configured plans."
       parameters: []
       responses:
         200:
           description: "List of plans."
         404:
           description: "Plans not found."
-  /plans/{planName}:
+  /plans/{name}:
     get:
       tags:
       - "plans"
-      summary: "Returns a full list of the Plan's contents (incl all Phases/Blocks)."
-      description: "Returns a full list of the Plan's contents (incl all Phases/Blocks)."
+      summary: "Returns a full list of the Plan's contents (incl all Phases/Steps)."
       parameters:
-      - name: "planName"
+      - name: "name"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -44,14 +89,45 @@ paths:
           description: "List of the plan's contents."
         404:
           description: "Plan not found."
-  /plans/{planName}/continue:
+  /plans/{name}/start:
+    post:
+      tags:
+      - "plans"
+      summary: "Restarts or resumes the execution of the plan. If the plan is complete, it is restarted. If the plan is stopped, its progress is resumed. If the plan is already in progress this has no effect."
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name of the plan."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Received cmd: start"
+        404:
+          description: "Plan not found."
+  /plans/{name}/stop:
+    post:
+      tags:
+      - "plans"
+      summary: "Stops and resets the execution of the plan."
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name of the plan."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Received cmd: stop"
+        404:
+          description: "Plan not found."
+  /plans/{name}/continue:
     post:
       tags:
       - "plans"
       summary: "Continues the execution of the plan."
-      description: "Continues the execution of the plan."
       parameters:
-      - name: "planName"
+      - name: "name"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -61,14 +137,13 @@ paths:
           description: "Received cmd continue."
         404:
           description: "Plan not found."
-  /plans/{planName}/forceComplete:
+  /plans/{name}/forceComplete:
     post:
       tags:
       - "plans"
       summary: "Force complete your plan."
-      description: "Force complete your plan."
       parameters:
-      - name: "planName"
+      - name: "name"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -78,14 +153,13 @@ paths:
           description: "Received cmd forceComplete."
         404:
           description: "Plan not found."
-  /plans/{planName}/interrupt:
+  /plans/{name}/interrupt:
     post:
       tags:
       - "plans"
       summary: "Interrupts the execution of the specified plan."
-      description: "Interrupts the execution of the specified plan."
       parameters:
-      - name: "planName"
+      - name: "name"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -95,14 +169,13 @@ paths:
           description: "Received cmd interrupt."
         404:
           description: "Plan not found."
-  /plans/{planName}/restart:
+  /plans/{name}/restart:
     post:
       tags:
       - "plans"
-      summary: "Restart your plan."
-      description: "Restart your plan."
+      summary: "Restarts the specified plan regardless of its current state."
       parameters:
-      - name: "planName"
+      - name: "name"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -112,100 +185,117 @@ paths:
           description: "Received cmd restart."
         404:
           description: "Plan not found."
-  /tasks:
+  /pods:
     get:
       tags:
-      - "tasks"
-      summary: "Produces a listing of the names of all stored tasks."
-      description: "Produces a listing of the names of all stored tasks."
+      - "pods"
+      summary: "Produces a listing of the names of all pods."
       produces:
       - "application/json"
       parameters: []
       responses:
         200:
-          description: "List of tasks"
-        404:
-          description: "Failed to fetch list of task names"
-  /tasks/connection/{taskName}:
+          description: "List of pods."
+        500:
+          description: "Failed to fetch list of pod names."
+  /pods/status:
     get:
       tags:
-      - "tasks"
-      summary: "Returns connection information for the given task."
-      description: "Returns connection information for the given task."
+      - "pods"
+      summary: "Produces a summarized listing of all pod statuses."
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "List of pod statuses."
+        500:
+          description: "Failed to fetch list of pod statuses."
+  /pods/{name}/info:
+    get:
+      tags:
+      - "pods"
+      summary: "Returns information about the specified pod."
       produces:
       - "application/json"
       parameters:
-      - name: "taskName"
+      - name: "name"
         in: "path"
-        description: "The name of the task."
+        description: "The name of the pod."
         required: true
         type: "string"
       responses:
         200:
-          description: "Connection information for the task."
+          description: "Information about the pod."
         404:
-          description: "Connection information not found."
-  /tasks/info/{taskName}:
-    get:
-      tags:
-      - "tasks"
-      summary: "Returns information about the specified task."
-      description: "Returns information about the specified task."
-      produces:
-      - "application/json"
-      parameters:
-      - name: "taskName"
-        in: "path"
-        description: "The name of the task."
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "Information about the task."
-        404:
-          description: "Failed to fetch requested TaskInfo for task."
-  /tasks/restart/{taskName}:
+          description: "Requested pod was not found."
+        500:
+          description: "Failed to fetch information for pod."
+  /pods/{name}/restart:
     post:
       tags:
-      - "tasks"
-      summary: "Restarts a task you specify."
-      description: "Restarts a task you specify."
+      - "pods"
+      summary: "Restarts a pod and attempts to relaunch it on the same cluster node."
       parameters:
-      - name: "taskName"
+      - name: "name"
         in: "path"
-        description: "The name of the task."
+        description: "The name of the pod."
         required: true
         type: "string"
       responses:
         200:
-          description: "Task restarted.."
+          description: "Pod restarted."
         404:
-          description: "User requested to kill non-existent task."
-  /tasks/status/{taskName}:
+          description: "Requested pod was not found."
+        409:
+          description: "Custom restart hook rejected pod restart."
+        500:
+          description: "Failed to restart pod."
+  /pods/{name}/replace:
+    post:
+      tags:
+      - "pods"
+      summary: "Restarts a pod and attempts to relaunch it on the next available cluster node."
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name of the pod."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Pod replaced."
+        404:
+          description: "Requested pod was not found."
+        409:
+          description: "Custom replace hook rejected pod replace."
+        500:
+          description: "Failed to replace pod."
+  /pods/{name}/status:
     get:
       tags:
-      - "tasks"
-      summary: "Produces the TaskStatus for the provided task name."
-      description: "Produces the TaskStatus for the provided task name."
+      - "pods"
+      summary: "Produces the status for the requested pod name."
       produces:
       - "application/json"
       parameters:
-      - name: "taskName"
+      - name: "name"
         in: "path"
-        description: "The name of the task."
+        description: "The name of the pod."
         required: true
         type: "string"
       responses:
         200:
-          description: "Status of the task."
+          description: "Status of the pod."
         404:
-          description: "Failed to fetch requested TaskStatus for task."
+          description: "Requested pod was not found."
+        500:
+          description: "Failed to fetch requested status for pod."
   /configurations:
     get:
       tags:
       - "configurations"
       summary: "Produces an ID listing of all stored configurations."
-      description: "Produces an ID listing of all stored configurations."
       produces:
       - "application/json"
       parameters: []
@@ -218,8 +308,7 @@ paths:
     get:
       tags:
       - "configurations"
-      summary: "Produces the content of the provided configuration ID."
-      description: "Produces the content of the provided configuration ID."
+      summary: "Produces the content of the requested configuration ID."
       produces:
       - "application/json"
       parameters:
@@ -238,7 +327,6 @@ paths:
       tags:
       - "configurations"
       summary: "Produces the ID of the current target configuration."
-      description: "Produces the ID of the current target configuration."
       produces:
       - "application/json"
       responses:
@@ -251,7 +339,6 @@ paths:
       tags:
       - "configurations"
       summary: "Produces the content of the current target configuration."
-      description: "Produces the content of the current target configuration."
       produces:
       - "application/json"
       responses:
@@ -259,3 +346,47 @@ paths:
           description: "The content of the current target configuration."
         404:
           description: "."
+  /state/frameworkId:
+    get:
+      tags:
+      - "state"
+      summary: "Produces the currently registered Mesos Framework ID."
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The current Framework ID."
+        500:
+          description: "Framework ID not available."
+  /state/properties:
+    get:
+      tags:
+      - "state"
+      summary: "Lists any custom property keys in persistent storage."
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The list of custom property keys."
+        500:
+          description: "Unable to fetch list of properties."
+  /state/properties/{key}:
+    get:
+      tags:
+      - "state"
+      summary: "Produces the content of the requested property key."
+      produces:
+      - "application/json"
+      parameters:
+      - name: "key"
+        in: "path"
+        description: "The name of the property to be retrieved."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "The deserialized content of the property."
+        204:
+          description: "No deserializer was provided by the service developer to deserialize this property."
+        500:
+          description: "Failed to fetch requested property."

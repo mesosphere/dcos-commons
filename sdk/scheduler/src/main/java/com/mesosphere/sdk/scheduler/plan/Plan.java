@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 /**
- * Defines the interface for one or more {@link Phase}s, along with any errors encountered while
- * processing those Phases. The Plan is a representation of any work that is currently being
- * performed, divided into steps represented by one or more {@link Phase}, and each step divided
+ * Defines the interface for a collection of one or more {@link Phase}s, along with any errors encountered while
+ * processing those {@link Phase}s. The Plan is a representation of any work that is currently being
+ * performed, divided into steps represented by one or more {@link Phase}s, and each step divided
  * into one or more {@link Step}s. This structure is a logical abstraction of a multi-phase process
  * for performing upgrades or maintenance on a service.
  * <p>
@@ -15,4 +15,4 @@ package com.mesosphere.sdk.scheduler.plan;
  * If any errors occurred during the rollout, the process would pause and the Plan would contain a
  * list of one or more error messages to be shown to the user,
  */
-public interface Plan extends Element<Phase> {}
+public interface Plan extends ParentElement<Phase> {}
