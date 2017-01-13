@@ -27,11 +27,8 @@ public class NotRule implements PlacementRule {
     @Override
     public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         EvaluationOutcome child = rule.filter(offer, offerRequirement, tasks);
-        if (child.isPassing()) {
-            return EvaluationOutcome.fail(this, Arrays.asList(child), "Nested rule passed, returning failure");
-        } else {
-            return EvaluationOutcome.pass(this, Arrays.asList(child), "Nested rule failed, returning success");
-        }
+        return EvaluationOutcome.create(
+                !child.isPassing(), this, Arrays.asList(child), "Returning opposite of child rule:");
     }
 
     @JsonProperty("rule")

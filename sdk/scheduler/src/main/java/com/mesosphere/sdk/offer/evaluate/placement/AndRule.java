@@ -34,20 +34,20 @@ public class AndRule implements PlacementRule {
         if (rules.isEmpty()) {
             return EvaluationOutcome.fail(this, "No rules to AND together is treated as 'always fail'");
         }
-        boolean isAllPassing = true;
+        int passingCount = 0;
         Collection<EvaluationOutcome> children = new ArrayList<>();
         for (PlacementRule rule : rules) {
             EvaluationOutcome child = rule.filter(offer, offerRequirement, tasks);
-            if (!child.isPassing()) {
-                isAllPassing = false;
+            if (child.isPassing()) {
+                passingCount++;
             }
             children.add(child);
         }
-        if (isAllPassing) {
-            return EvaluationOutcome.pass(this, children, "All %d rules passed", rules.size());
-        } else {
-            return EvaluationOutcome.fail(this, children, "At least one of %d rules failed", rules.size());
-        }
+        return EvaluationOutcome.create(
+                passingCount == rules.size(),
+                this,
+                children,
+                "%d of %d rules are passing:", passingCount, rules.size());
     }
 
     @JsonProperty("rules")

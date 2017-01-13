@@ -31,20 +31,17 @@ public class OrRule implements PlacementRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
-        boolean isAnyPassing = false;
+        int passingCount = 0;
         Collection<EvaluationOutcome> children = new ArrayList<>();
         for (PlacementRule rule : rules) {
             EvaluationOutcome child = rule.filter(offer, offerRequirement, tasks);
             if (child.isPassing()) {
-                isAnyPassing = true;
+                passingCount++;
             }
             children.add(child);
         }
-        if (isAnyPassing) {
-            return EvaluationOutcome.pass(this, children, "At least one of %d rules passed", rules.size());
-        } else {
-            return EvaluationOutcome.fail(this, children, "All %d rules failed", rules.size());
-        }
+        return EvaluationOutcome.create(
+                passingCount != 0, this, children, "%d of %d rules are passing:", passingCount, rules.size());
     }
 
     @JsonProperty("rules")

@@ -31,15 +31,7 @@ public class EvaluationOutcome {
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
     public static EvaluationOutcome pass(Object source, String reasonFormat, Object... reasonArgs) {
-        return pass(source, Collections.emptyList(), reasonFormat, reasonArgs);
-    }
-
-    /**
-     * Returns a new passing outcome object with the provided descriptive reason and child outcomes.
-     */
-    public static EvaluationOutcome pass(
-            Object source, Collection<EvaluationOutcome> children, String reasonFormat, Object... reasonArgs) {
-        return new EvaluationOutcome(Type.PASS, source, children, reasonFormat, reasonArgs);
+        return create(true, source, Collections.emptyList(), reasonFormat, reasonArgs);
     }
 
     /**
@@ -50,15 +42,19 @@ public class EvaluationOutcome {
      * @param reasonArgs format arguments, if any, to apply against {@code reasonFormat}
      */
     public static EvaluationOutcome fail(Object source, String reasonFormat, Object... reasonArgs) {
-        return fail(source, Collections.emptyList(), reasonFormat, reasonArgs);
+        return create(false, source, Collections.emptyList(), reasonFormat, reasonArgs);
     }
 
     /**
-     * Returns a new failing outcome object with the provided descriptive reason and child outcomes.
+     * Returns a new outcome object with the provided outcome type, descriptive reason, and child outcomes.
      */
-    public static EvaluationOutcome fail(
-            Object source, Collection<EvaluationOutcome> children, String reasonFormat, Object... reasonArgs) {
-        return new EvaluationOutcome(Type.FAIL, source, children, reasonFormat, reasonArgs);
+    public static EvaluationOutcome create(
+            boolean isPassing,
+            Object source,
+            Collection<EvaluationOutcome> children,
+            String reasonFormat,
+            Object... reasonArgs) {
+        return new EvaluationOutcome(isPassing ? Type.PASS : Type.FAIL, source, children, reasonFormat, reasonArgs);
     }
 
     private EvaluationOutcome(
