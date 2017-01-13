@@ -1,12 +1,9 @@
 name: "data-store"
+web-url: http://webui.data-store.mesos
 scheduler:
   principal: "some-other-principal"
   zookeeper: non-default-zk:2181
   api-port: {{PORT_API}}
-  web-url: http://webui.data-store.mesos
-replacement-failure-policy:
-  permanent-failure-timeout-ms: 10
-  min-replace-delay-ms: 10
 pods:
   meta-data:
     placement: "hostname:UNIQUE"
@@ -20,7 +17,7 @@ pods:
       meta-data-resources:
         cpus: 0.1
         memory: 512
-        endpoints:
+        ports:
           http:
             port: 8080
             env-key: HTTP_PORT
@@ -46,7 +43,7 @@ pods:
           TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
-        configurations:
+        configs:
           config-one:
             template: config-one.conf.mustache
             dest: conf/config-one.conf
@@ -67,7 +64,7 @@ pods:
       data-store-resources:
         cpus: 0.1
         memory: 512
-        endpoints:
+        ports:
           http:
             port: 8080
             vip:
@@ -85,9 +82,10 @@ pods:
           TASK_NAME: "data-store"
           CONTAINER_PATH_SUFFIX: "-container-path"
           SLEEP_DURATION: "1000"
-        configuration:
-          template: config-three.conf.mustache
-          dest: conf/config-three.conf
+        configs:
+          config-three:
+            template: config-three.conf.mustache
+            dest: conf/config-three.conf
         health-check:
           cmd: "stat $TASK_NAME$CONTAINER_PATH_SUFFIX/output"
           interval: 5

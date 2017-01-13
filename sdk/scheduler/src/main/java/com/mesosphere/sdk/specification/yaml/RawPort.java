@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML port.
  */
-public class RawEndpoint {
+public class RawPort {
 
     private final Integer port;
     private final String envKey;
     private final RawVip vip;
 
-    private RawEndpoint(
+    private RawPort(
             @JsonProperty("port") Integer port,
             @JsonProperty("env-key") String envKey,
             @JsonProperty("vip") RawVip vip) {

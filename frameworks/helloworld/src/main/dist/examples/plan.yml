@@ -14,7 +14,7 @@ pods:
           size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-        endpoints:
+        ports:
           test:
             port: 9999
 

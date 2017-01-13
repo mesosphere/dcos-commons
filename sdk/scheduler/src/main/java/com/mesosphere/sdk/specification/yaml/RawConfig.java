@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML Configuration section.
  */
-public class RawConfiguration {
+public class RawConfig {
 
     private final String template;
     private final String dest;
 
-    private RawConfiguration(
+    private RawConfig(
             @JsonProperty("template") String template,
             @JsonProperty("dest") String dest) {
         this.template = template;

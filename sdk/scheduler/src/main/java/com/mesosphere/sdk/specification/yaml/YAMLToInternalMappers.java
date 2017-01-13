@@ -42,15 +42,13 @@ public class YAMLToInternalMappers {
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
-        String webUrl = null;
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
             apiPort = rawScheduler.getApiPort();
             zookeeper = rawScheduler.getZookeeper();
-            webUrl = rawScheduler.getWebUrl();
         }
-        // Fall back to defaults as needed:
+        // Fall back to defaults as needed, if either RawScheduler or a given RawScheduler field is missing:
         if (StringUtils.isEmpty(role)) {
             role = SchedulerUtils.nameToRole(rawSvcSpec.getName());
         }
@@ -70,7 +68,7 @@ public class YAMLToInternalMappers {
                 .principal(principal)
                 .apiPort(apiPort)
                 .zookeeperConnection(zookeeper)
-                .webUrl(webUrl);
+                .webUrl(rawSvcSpec.getWebUrl());
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
@@ -86,18 +84,6 @@ public class YAMLToInternalMappers {
                     principal));
         }
         builder.pods(pods);
-
-        // Add failure policy if needed
-        RawReplacementFailurePolicy replacementFailurePolicy = rawSvcSpec.getReplacementFailurePolicy();
-        if (replacementFailurePolicy != null) {
-            Integer minReplaceDelayMs = replacementFailurePolicy.getMinReplaceDelayMs();
-            Integer permanentFailureTimoutMs = replacementFailurePolicy.getPermanentFailureTimoutMs();
-
-            builder.replacementFailurePolicy(ReplacementFailurePolicy.newBuilder()
-                    .minReplaceDelayMs(minReplaceDelayMs)
-                    .permanentFailureTimoutMs(permanentFailureTimoutMs)
-                    .build());
-        }
 
         return builder.build();
     }
@@ -134,7 +120,7 @@ public class YAMLToInternalMappers {
                                 rawResourceSetName,
                                 rawResourceSet.getCpus(),
                                 rawResourceSet.getMemory(),
-                                rawResourceSet.getEndpoints(),
+                                rawResourceSet.getPorts(),
                                 rawResourceSet.getVolume(),
                                 rawResourceSet.getVolumes(),
                                 role,
@@ -205,12 +191,8 @@ public class YAMLToInternalMappers {
         }
 
         List<ConfigFileSpec> configFiles = new ArrayList<>();
-        if (rawTask.getConfiguration() != null) {
-            configFiles.add(new DefaultConfigFileSpec(
-                    rawTask.getConfiguration().getDest(), fileReader.read(rawTask.getConfiguration().getTemplate())));
-        }
-        if (rawTask.getConfigurations() != null) {
-            for (RawConfiguration rawConfig : rawTask.getConfigurations().values()) {
+        if (rawTask.getConfigs() != null) {
+            for (RawConfig rawConfig : rawTask.getConfigs().values()) {
                 configFiles.add(new DefaultConfigFileSpec(
                         rawConfig.getDest(), fileReader.read(rawConfig.getTemplate())));
             }
@@ -255,7 +237,7 @@ public class YAMLToInternalMappers {
                     taskName + "-resource-set",
                     rawTask.getCpus(),
                     rawTask.getMemory(),
-                    rawTask.getEndpoints(),
+                    rawTask.getPorts(),
                     rawTask.getVolume(),
                     rawTask.getVolumes(),
                     role,
@@ -269,7 +251,7 @@ public class YAMLToInternalMappers {
             String id,
             Double cpus,
             Integer memory,
-            WriteOnceLinkedHashMap<String, RawEndpoint> rawEndpoints,
+            WriteOnceLinkedHashMap<String, RawPort> rawEndpoints,
             RawVolume rawSingleVolume,
             WriteOnceLinkedHashMap<String, RawVolume> rawVolumes,
             String role,
@@ -302,8 +284,8 @@ public class YAMLToInternalMappers {
         }
 
         if (rawEndpoints != null) {
-            for (Map.Entry<String, RawEndpoint> rawEndpoint : rawEndpoints.entrySet()) {
-                resourceSetBuilder.addEndpoint(rawEndpoint.getKey(), rawEndpoint.getValue());
+            for (Map.Entry<String, RawPort> rawEndpoint : rawEndpoints.entrySet()) {
+                resourceSetBuilder.addPort(rawEndpoint.getKey(), rawEndpoint.getValue());
             }
         }
 

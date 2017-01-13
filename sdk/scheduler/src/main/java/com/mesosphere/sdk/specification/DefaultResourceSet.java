@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
-import com.mesosphere.sdk.specification.yaml.RawEndpoint;
+import com.mesosphere.sdk.specification.yaml.RawPort;
 import com.mesosphere.sdk.specification.yaml.RawVip;
 
 import javax.validation.Valid;
@@ -205,15 +205,15 @@ public class DefaultResourceSet implements ResourceSet {
             return this;
         }
 
-        public Builder addEndpoint(String name, RawEndpoint rawEndpoint) {
+        public Builder addPort(String name, RawPort rawPort) {
             Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
                     .setType(Protos.Value.Type.RANGES);
             portValueBuilder.getRangesBuilder().addRangeBuilder()
-                    .setBegin(rawEndpoint.getPort())
-                    .setEnd(rawEndpoint.getPort());
+                    .setBegin(rawPort.getPort())
+                    .setEnd(rawPort.getPort());
 
-            if (rawEndpoint.getVip() != null) {
-                final RawVip rawVip = rawEndpoint.getVip();
+            if (rawPort.getVip() != null) {
+                final RawVip rawVip = rawPort.getVip();
                 final String protocol =
                         StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
                 final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
@@ -222,7 +222,7 @@ public class DefaultResourceSet implements ResourceSet {
                         portValueBuilder.build(),
                         role,
                         principal,
-                        rawEndpoint.getEnvKey(),
+                        rawPort.getEnvKey(),
                         name,
                         protocol,
                         toVisibility(rawVip.isAdvertise()),
@@ -234,7 +234,7 @@ public class DefaultResourceSet implements ResourceSet {
                         portValueBuilder.build(),
                         role,
                         principal,
-                        rawEndpoint.getEnvKey(),
+                        rawPort.getEnvKey(),
                         name));
             }
             return this;

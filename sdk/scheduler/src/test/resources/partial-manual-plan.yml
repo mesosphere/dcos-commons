@@ -6,7 +6,7 @@ pods:
       hello-resources:
         cpus: {{HELLO_CPUS}}
         memory: 256
-        endpoints:
+        ports:
           http:
             port: 8080
         volume:

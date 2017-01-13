@@ -1,7 +1,4 @@
 name: "data-store"
-replacement-failure-policy:
-  permanent-failure-timeout-ms: 10
-  min-replace-delay-ms: 10
 pods:
   meta-data:
     placement: "hostname:UNIQUE"
@@ -10,7 +7,7 @@ pods:
       meta-data-resources:
         cpus: 0.1
         memory: 512
-        endpoints:
+        ports:
           http:
             port: 8080
         volume:

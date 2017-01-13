@@ -6,7 +6,7 @@ pods:
       test-task:
         goal: RUNNING
         cmd: "./task-cmd"
-        endpoints:
+        ports:
           test-port-name:
             port: 10000
             vip:

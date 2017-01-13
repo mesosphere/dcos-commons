@@ -10,7 +10,7 @@ pods:
         cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode"
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
-        endpoints:
+        ports:
           journal-rpc:
             port: {{JOURNAL_NODE_RPC_PORT}}
           journal-http:
@@ -22,7 +22,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
@@ -37,7 +37,7 @@ pods:
       name-resources:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
-        endpoints:
+        ports:
           name-rpc:
             port: {{NAME_NODE_RPC_PORT}}
           name-http:
@@ -54,7 +54,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
@@ -70,7 +70,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
@@ -86,7 +86,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
@@ -109,7 +109,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
@@ -126,7 +126,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
@@ -144,7 +144,7 @@ pods:
         cmd: "./resolve-dns.sh && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
-        endpoints:
+        ports:
           data-rpc:
             port: {{DATA_NODE_RPC_PORT}}
           data-http:
@@ -158,7 +158,7 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
+        configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml

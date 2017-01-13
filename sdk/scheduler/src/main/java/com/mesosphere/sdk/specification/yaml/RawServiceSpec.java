@@ -10,26 +10,30 @@ import java.util.LinkedHashMap;
 public class RawServiceSpec {
 
     private final String name;
+    private final String webUrl;
     private final RawScheduler scheduler;
     private final WriteOnceLinkedHashMap<String, RawPod> pods;
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
-    private final RawReplacementFailurePolicy replacementFailurePolicy;
 
     private RawServiceSpec(
             @JsonProperty("name") String name,
+            @JsonProperty("web-url") String webUrl,
             @JsonProperty("scheduler") RawScheduler scheduler,
             @JsonProperty("pods") WriteOnceLinkedHashMap<String, RawPod> pods,
-            @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans,
-            @JsonProperty("replacement-failure-policy") RawReplacementFailurePolicy replacementFailurePolicy) {
+            @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans) {
         this.name = name;
+        this.webUrl = webUrl;
         this.scheduler = scheduler;
         this.pods = pods;
         this.plans = plans;
-        this.replacementFailurePolicy = replacementFailurePolicy;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getWebUrl() {
+        return webUrl;
     }
 
     public RawScheduler getScheduler() {
@@ -42,10 +46,6 @@ public class RawServiceSpec {
 
     public WriteOnceLinkedHashMap<String, RawPlan> getPlans() {
         return plans;
-    }
-
-    public RawReplacementFailurePolicy getReplacementFailurePolicy() {
-        return replacementFailurePolicy;
     }
 }
 

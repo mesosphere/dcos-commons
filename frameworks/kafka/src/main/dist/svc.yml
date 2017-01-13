@@ -6,7 +6,7 @@ pods:
       broker:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
-        endpoints:
+        ports:
           broker-port:
             port: 9092
         volume:
@@ -17,7 +17,7 @@ pods:
         cmd: "env && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
         uris:
           - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
-        configurations:
+        configs:
           server-properties:
             template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
             dest: "kafka_2.11-0.10.0.0/config/server.properties"

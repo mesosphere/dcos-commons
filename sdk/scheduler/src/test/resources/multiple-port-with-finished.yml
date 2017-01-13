@@ -4,7 +4,7 @@ pods:
     count: 1
     resource-sets:
       task-resources:
-        endpoints:
+        ports:
           test-port-name:
             port: 10000
           test-port-name2:

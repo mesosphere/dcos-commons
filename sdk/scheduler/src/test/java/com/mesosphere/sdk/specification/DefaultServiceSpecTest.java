@@ -116,18 +116,6 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void invalidReplacementFailurePolicy() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-replacement-failure-policy.yml").getFile());
-        try {
-            generateServiceSpec(generateRawSpecFromYAML(file));
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertTrue(constraintViolations.size() > 0);
-        }
-    }
-
-    @Test
     public void invalidPodName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());

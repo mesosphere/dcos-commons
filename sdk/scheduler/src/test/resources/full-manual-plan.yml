@@ -1,7 +1,4 @@
 name: "hello-world"
-replacement-failure-policy:
-  permanent-failure-timeout-ms: 10
-  min-replace-delay-ms: 10
 pods:
   hello:
     count: 2
@@ -9,7 +6,7 @@ pods:
       hello-resources:
         cpus: {{HELLO_CPUS}}
         memory: 256
-        endpoints:
+        ports:
           http:
             port: 8080
         volume:
@@ -47,7 +44,7 @@ pods:
       world-resources:
         cpus: 1
         memory: 256
-        endpoints:
+        ports:
           http:
             port: 8080
         volume:
@@ -68,7 +65,6 @@ pods:
           max-consecutive-failures: 3
           delay: 0
           timeout: 10
-
 plans:
   deploy:
     strategy: serial
