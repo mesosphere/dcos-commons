@@ -114,20 +114,6 @@ dependencies {
     testCompile project(":testing")
 }
 
-test {
-    filter {
-        //include all tests from package
-        includeTestsMatching "com.mesosphere.sdk.scheduler.*"
-    }
-}
-
-test {
-    filter {
-        //include all tests from package
-        includeTestsMatching "com.mesosphere.sdk.scheduler.*"
-    }
-}
-
 distributions {
     main {
         mainClassName = ''
