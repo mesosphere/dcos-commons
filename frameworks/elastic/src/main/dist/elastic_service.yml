@@ -265,7 +265,7 @@ pods:
           timeout: 10
   proxylite:
     container:
-      image-name: nlsun/proxylite:0.0.1
+      image-name: nlsun/proxylite:0.0.2
     count: 1
     tasks:
       server:
