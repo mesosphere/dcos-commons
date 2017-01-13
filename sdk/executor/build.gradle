@@ -30,4 +30,11 @@ distributions {
     }
 }
 
+test {
+    filter {
+        //include all tests from package
+        includeTestsMatching "com.mesosphere.sdk.executor.*"
+    }
+}
+
 mainClassName = 'com.mesosphere.sdk.executor.Main'
