@@ -28,6 +28,8 @@ dependencies {
 distZip.dependsOn ":executor:distZip"
 distZip.finalizedBy copyExecutor
 
+distZip.dependsOn ":executor:distZip"
+
 distributions {
     main {
         baseName = 'kafka-scheduler'
