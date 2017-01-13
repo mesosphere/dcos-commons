@@ -265,7 +265,7 @@ pods:
           timeout: 10
   proxylite:
     container:
-      image-name: nlsun/proxylite:0.0.0
+      image-name: nlsun/proxylite:0.0.1
     count: 1
     tasks:
       server:
@@ -274,20 +274,18 @@ pods:
         cpus: 0.1
         memory: 256
         ports:
-         - name: PROXY
+         - name: PROXYLITE
            port: 4040
         env:
-          PROXY_PORT: 4040
-          NO_RUN_PROXY: 'true'
           EXTERNAL_ROUTES: "/v1,/kibana"
-          INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana-0-server.{{SERVICE_NAME}}.mesos:{{KIBANA_PORT}}"
+          INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{SERVICE_NAME}}.l4lb.thisdcos.directory:5601"
 
 plans:
   deploy:
     strategy: {{PLAN_STRATEGY}}
     phases:
       proxylite-deploy:
-        strategy: {{PLAN_STRATEGY}}
+        strategy: serial
         pod: proxylite
       master-deploy:
         strategy: {{PLAN_STRATEGY}}
