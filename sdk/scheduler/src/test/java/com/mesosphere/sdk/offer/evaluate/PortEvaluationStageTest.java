@@ -22,9 +22,11 @@ public class PortEvaluationStageTest {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
         OfferRecommendationSlate offerRecommendationSlate = new OfferRecommendationSlate();
 
-        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                desiredPorts, TestConstants.TASK_NAME, "test-port", 0);
-        portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, offerRecommendationSlate);
+        PortEvaluationStage portEvaluationStage =
+                new PortEvaluationStage(desiredPorts, TestConstants.TASK_NAME, "test-port", 0);
+        EvaluationOutcome outcome =
+                portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, offerRecommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(1, offerRecommendationSlate.getRecommendations().size());
 
@@ -51,9 +53,11 @@ public class PortEvaluationStageTest {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
         OfferRecommendationSlate offerRecommendationSlate = new OfferRecommendationSlate();
 
-        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                desiredPorts, TestConstants.TASK_NAME, "test-port", 10000);
-        portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, offerRecommendationSlate);
+        PortEvaluationStage portEvaluationStage =
+                new PortEvaluationStage(desiredPorts, TestConstants.TASK_NAME, "test-port", 10000);
+        EvaluationOutcome outcome =
+                portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, offerRecommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(1, offerRecommendationSlate.getRecommendations().size());
 
@@ -82,12 +86,9 @@ public class PortEvaluationStageTest {
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 desiredPorts, TestConstants.TASK_NAME, "test-port", 10001);
-        try {
-            portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, offerRecommendationSlate);
-        } catch (OfferEvaluationException e) {
-            // Expected.
-        }
-
+        EvaluationOutcome outcome =
+                portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, offerRecommendationSlate);
+        Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, offerRecommendationSlate.getRecommendations().size());
     }
 
@@ -110,9 +111,11 @@ public class PortEvaluationStageTest {
                 .setValue("10000");
         offerRequirement.updateTaskRequirement(TestConstants.TASK_NAME, builder.build());
 
-        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                expectedPorts, TestConstants.TASK_NAME, "test-port", 0);
-        portEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+        PortEvaluationStage portEvaluationStage =
+                new PortEvaluationStage(expectedPorts, TestConstants.TASK_NAME, "test-port", 0);
+        EvaluationOutcome outcome =
+                portEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(0, offerRecommendationSlate.getRecommendations().size());
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());

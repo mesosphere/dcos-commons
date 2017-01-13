@@ -53,35 +53,43 @@ public class OfferEvaluator {
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
             OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
-            List<String> failureNotifications = new ArrayList<>();
+
+            List<EvaluationOutcome> outcomes = new ArrayList<>();
+            int failedOutcomeCount = 0;
+
             for (OfferEvaluationStage evaluationStage : evaluationStages) {
-                try {
-                    evaluationStage.evaluate(
-                            resourcePool,
-                            offerRequirement,
-                            recommendationSlate);
-                } catch (OfferEvaluationException e) {
-                    failureNotifications.add(evaluationStage.getClass().getName() + e.getMessage());
+                EvaluationOutcome outcome =
+                        evaluationStage.evaluate(resourcePool, offerRequirement, recommendationSlate);
+                outcomes.add(outcome);
+                if (!outcome.isPassing()) {
+                    failedOutcomeCount++;
                 }
             }
 
-            if (!failureNotifications.isEmpty()) {
+            if (failedOutcomeCount != 0) {
                 recommendations.clear();
-                logger.info("- {}: failed {} evaluation stages out of {} for the following reasons:",
-                        i + 1, failureNotifications.size(), evaluationStages.size());
-                for (String notification : failureNotifications) {
-                    logger.info("-    {}", notification);
+                logger.info("- {}: failed {} of {} evaluation stages with the following reasons:",
+                        i + 1, failedOutcomeCount, evaluationStages.size());
+                for (EvaluationOutcome outcome : outcomes) {
+                    logOutcome(outcome, "");
                 }
 
                 continue;
             }
 
             recommendations = recommendationSlate.getRecommendations();
-            logger.info("- {}: passed resource requirements, returning {} recommendations: {}",
-                    i + 1, recommendations.size(), TextFormat.shortDebugString(offer));
+            logger.info("- {}: passed all {} evaluation stages, returning {} recommendations: {}",
+                    i + 1, evaluationStages.size(), recommendations.size(), TextFormat.shortDebugString(offer));
         }
 
         return recommendations;
+    }
+
+    private static void logOutcome(EvaluationOutcome outcome, String indent) {
+        logger.info("-{}    {}", indent, outcome.toString());
+        for (EvaluationOutcome child : outcome.getChildren()) {
+            logOutcome(child, indent + "  ");
+        }
     }
 
     private List<OfferEvaluationStage> getEvaluationPipeline(
