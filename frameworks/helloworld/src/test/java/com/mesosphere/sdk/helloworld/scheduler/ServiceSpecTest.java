@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -15,6 +16,8 @@ import java.io.File;
 import java.util.Collections;
 
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ServiceSpecTest {
 
@@ -52,43 +55,45 @@ public class ServiceSpecTest {
     }
 
     @Test
-    public void test_yml_base() throws Exception{
+    public void testYmlBase() throws Exception {
         deserializeServiceSpec("svc.yml");
-    }
-
-    @Test
-    public void test_yml_simple() throws Exception{
-        deserializeServiceSpec("svc_simple.yml");
-    }
-
-    @Test
-    public void test_yml_withPlan() throws Exception{
-        deserializeServiceSpec("svc_plan.yml");
-    }
-
-    @Test
-    public void test_yml_withPlan_uris() throws Exception{
-        deserializeServiceSpec("svc_uri.yml");
-    }
-
-    @Test
-    public void test_validate_yml_base() throws Exception{
         validateServiceSpec("svc.yml");
     }
 
     @Test
-    public void test_validate_yml_simple() throws Exception{
-        validateServiceSpec("svc_simple.yml");
+    public void testYmlSimple() throws Exception {
+        deserializeServiceSpec("examples/simple.yml");
+        validateServiceSpec("examples/simple.yml");
     }
 
     @Test
-    public void test_validate_yml_withPlan() throws Exception{
-        validateServiceSpec("svc_plan.yml");
+    public void testYmlPlan() throws Exception {
+        deserializeServiceSpec("examples/plan.yml");
+        validateServiceSpec("examples/plan.yml");
     }
 
     @Test
-    public void test_validate_yml_withPlan_uri() throws Exception{
-        validateServiceSpec("svc_uri.yml");
+    public void testYmlSidecar() throws Exception {
+        deserializeServiceSpec("examples/sidecar.yml");
+        validateServiceSpec("examples/sidecar.yml");
+    }
+
+    @Test
+    public void testYmlTaskcfg() throws Exception {
+        deserializeServiceSpec("examples/taskcfg.yml");
+        validateServiceSpec("examples/taskcfg.yml");
+    }
+
+    @Test
+    public void testYmlUri() throws Exception {
+        deserializeServiceSpec("examples/uri.yml");
+        validateServiceSpec("examples/uri.yml");
+    }
+
+    @Test
+    public void testYmlWebUrl() throws Exception {
+        deserializeServiceSpec("examples/web-url.yml");
+        validateServiceSpec("examples/web-url.yml");
     }
 
     private void deserializeServiceSpec(String fileName) throws Exception {
@@ -106,10 +111,16 @@ public class ServiceSpecTest {
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
+
+        Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsNamedVips()).thenReturn(true);
+        when(capabilities.supportsRLimits()).thenReturn(true);
+
         DefaultScheduler.newBuilder(serviceSpec)
-            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
-            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
-            .build();
+                .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
+                .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
+                .setCapabilities(capabilities)
+                .build();
         testingServer.close();
     }
 }

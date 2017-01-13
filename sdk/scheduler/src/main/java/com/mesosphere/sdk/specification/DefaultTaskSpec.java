@@ -21,19 +21,25 @@ public class DefaultTaskSpec implements TaskSpec {
     @NotNull
     @Size(min = 1)
     private String name;
+
     @NotNull
     private GoalState goalState;
+
     @Valid
     private CommandSpec commandSpec;
+
     @Valid
     private HealthCheckSpec healthCheckSpec;
 
-    private Collection<URI> uris;
+    @Valid
+    private ReadinessCheckSpec readinessCheckSpec;
 
-    private Collection<ConfigFileSpec> configFiles;
     @Valid
     @NotNull
     private ResourceSet resourceSet;
+
+    private Collection<URI> uris;
+    private Collection<ConfigFileSpec> configFiles;
 
     @JsonCreator
     public DefaultTaskSpec(
@@ -42,6 +48,7 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("resource-set") ResourceSet resourceSet,
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
+            @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
         this.name = name;
@@ -49,6 +56,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.resourceSet = resourceSet;
         this.commandSpec = commandSpec;
         this.healthCheckSpec = healthCheckSpec;
+        this.readinessCheckSpec = readinessCheckSpec;
         this.uris = uris;
         this.configFiles = configFiles;
     }
@@ -60,6 +68,7 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.resourceSet,
                 builder.commandSpec,
                 builder.healthCheckSpec,
+                builder.readinessCheckSpec,
                 builder.uris,
                 builder.configFiles);
     }
@@ -106,6 +115,11 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
+    public Optional<ReadinessCheckSpec> getReadinessCheck() {
+        return Optional.ofNullable(readinessCheckSpec);
+    }
+
+    @Override
     public Collection<URI> getUris() {
         return uris;
     }
@@ -143,6 +157,7 @@ public class DefaultTaskSpec implements TaskSpec {
         private ResourceSet resourceSet;
         private CommandSpec commandSpec;
         private HealthCheckSpec healthCheckSpec;
+        private ReadinessCheckSpec readinessCheckSpec;
         private Collection<URI> uris;
         private Collection<ConfigFileSpec> configFiles;
 
@@ -198,6 +213,18 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder healthCheckSpec(HealthCheckSpec healthCheckSpec) {
             this.healthCheckSpec = healthCheckSpec;
+            return this;
+        }
+
+        /**
+         * Sets the {@code readinessChecksSpec} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param readinessCheckSpec the {@code readinessCheckSpec} to set
+         * @return a reference to this Builder
+         */
+        public Builder readinessCheckSpec(ReadinessCheckSpec readinessCheckSpec) {
+            this.readinessCheckSpec = readinessCheckSpec;
             return this;
         }
 

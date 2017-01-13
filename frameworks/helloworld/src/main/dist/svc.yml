@@ -18,6 +18,13 @@ pods:
             size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-check:
+          cmd: "stat hello-container-path/output"
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
   world:
     count: {{WORLD_COUNT}}
     placement: {{WORLD_PLACEMENT}}
@@ -33,3 +40,8 @@ pods:
             size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+        readiness-check:
+          cmd: BYTES="$(wc -c world-container-path/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
+          interval: 5
+          delay: 0
+          timeout: 10

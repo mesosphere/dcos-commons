@@ -88,7 +88,7 @@ public class DefaultService implements Service {
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);
         final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
-                "Duplicate service named '%s', or recently restarted instance of '%s'?",
+                        "Duplicate service named '%s', or recently restarted instance of '%s'?",
                 lockPath, serviceName, serviceName);
         try {
             for (int i = 0; i < LOCK_ATTEMPTS; ++i) {
@@ -163,7 +163,7 @@ public class DefaultService implements Service {
         new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
 
-    private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = getFrameworkInfoBuilder(serviceName);
@@ -186,6 +186,10 @@ public class DefaultService implements Service {
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
         if (optionalFrameworkId.isPresent()) {
             fwkInfoBuilder.setId(optionalFrameworkId.get());
+        }
+
+        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
+            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
         }
 
         return fwkInfoBuilder.build();

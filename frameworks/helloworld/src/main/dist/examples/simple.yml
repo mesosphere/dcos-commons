@@ -8,7 +8,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:

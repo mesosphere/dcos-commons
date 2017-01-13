@@ -284,7 +284,7 @@ public class CuratorStateStore implements StateStore {
         try {
             byte[] bytes = curator.get(path);
             if (bytes.length > 0) {
-                return Optional.of(Protos.TaskInfo.parseFrom(bytes));
+                return Optional.of(CommonTaskUtils.unpackTaskInfo(Protos.TaskInfo.parseFrom(bytes)));
             } else {
                 throw new StateStoreException(String.format(
                         "Failed to retrieve TaskInfo for TaskName: %s", taskName));

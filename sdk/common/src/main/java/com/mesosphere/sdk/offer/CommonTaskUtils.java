@@ -8,13 +8,16 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.GoalState;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,6 +38,16 @@ public class CommonTaskUtils {
      * Label key against which the offer agent's hostname is stored.
      */
     private static final String OFFER_HOSTNAME_KEY = "offer_hostname";
+
+    /**
+     * Label key against which the readiness check (if present) is stored.
+     */
+    private static final String READINESS_CHECK_KEY = "readiness_check";
+
+    /**
+     * Label key used to find the result of a readiness check in a TaskStatus label.
+     */
+    public static final String READINESS_CHECK_PASSED_KEY = "readiness_check_passed";
 
     /**
      * Label key against which the Task Type is stored.
@@ -273,6 +286,66 @@ public class CommonTaskUtils {
     }
 
     /**
+     * Stores the {@link Attribute}s from the provided {@link Offer} into the {@link TaskInfo} as a
+     * {@link Label}. Any existing stored attributes are overwritten.
+     */
+    public static TaskInfo.Builder setReadinessCheck(TaskInfo.Builder taskBuilder, HealthCheck readinessCheck) {
+        byte[] encodedBytes = Base64.encodeBase64(readinessCheck.toByteArray());
+        String readinessCheckStr = new String(encodedBytes, StandardCharsets.UTF_8);
+        return taskBuilder.setLabels(
+                withLabelSet(taskBuilder.getLabels(), READINESS_CHECK_KEY, readinessCheckStr));
+    }
+
+    /**
+     * Returns the string representations of any {@link Offer} {@link Attribute}s which were
+     * embedded in the provided {@link TaskInfo}.
+     */
+    public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
+        Optional<String> readinessCheckStrOptional = findLabelValue(taskInfo.getLabels(), READINESS_CHECK_KEY);
+        if (!readinessCheckStrOptional.isPresent()) {
+            return Optional.empty();
+        }
+
+        byte[] decodedBytes = Base64.decodeBase64(readinessCheckStrOptional.get());
+        try {
+            return Optional.of(HealthCheck.parseFrom(decodedBytes));
+        } catch (InvalidProtocolBufferException e) {
+            throw new TaskException(e);
+        }
+    }
+
+    /**
+     * Returns whether or not a readiness check succeeded.  If the indicated TaskInfo does not have
+     * a readiness check, then this method indicates that the readiness check has passed.  Otherwise
+     * failures to parse readiness checks are interpreted as readiness check failures.  If some value other
+     * than "true" is present in the readiness check label of the TaskStatus, the readiness check has
+     * failed.
+     * @param taskInfo A TaskInfo which may or may not have a readiness check defined.
+     * @param taskStatus A TaskStatus which may or may not contain a readiness check label.
+     * @return the result of a readiness check for the indicated TaskInfo and TaskStatus.
+     */
+    public static boolean readinessCheckSucceeded(TaskInfo taskInfo, TaskStatus taskStatus) {
+        Optional<HealthCheck> healthCheckOptional = Optional.empty();
+        try {
+            healthCheckOptional = getReadinessCheck(taskInfo);
+        } catch (TaskException e) {
+            LOGGER.error("Failed to get readiness check.", e);
+            return false;
+        }
+
+        if (healthCheckOptional.isPresent()) {
+            Optional<String> readinessCheckResult = findLabelValue(taskStatus.getLabels(), READINESS_CHECK_PASSED_KEY);
+            if (readinessCheckResult.isPresent()) {
+                return readinessCheckResult.get().equals("true");
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
      * Any templates with matching paths will be overwritten.
      *
@@ -371,7 +444,7 @@ public class CommonTaskUtils {
                                   SlaveID slaveID,
                                   ExecutorID executorID,
                                   String message) {
-        sendStatus(driver, state, taskID, slaveID, executorID, message, null);
+        sendStatus(driver, state, taskID, slaveID, executorID, message, null, null);
     }
 
     /**
@@ -383,6 +456,7 @@ public class CommonTaskUtils {
                                   SlaveID slaveID,
                                   ExecutorID executorID,
                                   String message,
+                                  Labels labels,
                                   byte[] data) {
         final TaskStatus.Builder builder = TaskStatus.newBuilder();
 
@@ -397,8 +471,16 @@ public class CommonTaskUtils {
             builder.setData(ByteString.copyFrom(data));
         }
 
-        final TaskStatus taskStatus = builder.build();
-        driver.sendStatusUpdate(taskStatus);
+        if (labels != null) {
+            builder.setLabels(labels);
+        }
+
+        try {
+            final TaskStatus taskStatus = builder.build();
+            driver.sendStatusUpdate(taskStatus);
+        } catch (Throwable t) {
+            LOGGER.info("Failed to build task status.", t);
+        }
     }
 
     /**
@@ -436,8 +518,10 @@ public class CommonTaskUtils {
      */
     public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
         if (!taskInfo.hasExecutor()) {
+            LOGGER.info("Nothing to unpack.");
             return taskInfo;
         } else {
+            LOGGER.info("Unpacking.");
             TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
             ExecutorInfo pkgExecutorInfo = ExecutorInfo.parseFrom(taskInfo.getData());
 

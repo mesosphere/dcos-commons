@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.executor;
 
+import org.apache.mesos.ExecutorDriver;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.HealthCheck;
 import org.junit.Assert;
@@ -33,6 +35,8 @@ public class HealthCheckMonitorTest {
     @Mock private HealthCheckHandler.ProcessRunner mockProcessRunner;
     @Mock private LaunchedTask mockLaunchedTask;
     @Mock private ExecutorTask mockExecutorTask;
+    @Mock private ExecutorDriver executorDriver;
+    private Protos.TaskInfo taskInfo = Protos.TaskInfo.getDefaultInstance();
 
     @Before
     public void beforeEach() {
@@ -51,6 +55,8 @@ public class HealthCheckMonitorTest {
                 .setCommand(CommandInfo.newBuilder().setValue(COMMAND).build())
                 .build();
         final HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 mockProcessRunner,
                 healthCheck,
                 scheduledExecutorService,

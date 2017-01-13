@@ -1,11 +1,11 @@
 package com.mesosphere.sdk.executor;
 
-import org.apache.mesos.Protos;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import org.apache.mesos.ExecutorDriver;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,21 +25,23 @@ import java.util.concurrent.TimeUnit;
 public class HealthCheckHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckHandler.class);
 
+    private final ExecutorDriver executorDriver;
     private final Protos.HealthCheck healthCheck;
     private final ScheduledExecutorService scheduledExecutorService;
     private final HealthCheckRunner healthCheckRunner;
 
     public static HealthCheckHandler create(
+            ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
+            Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
             HealthCheckStats healthCheckStats)
             throws HealthCheckValidationException {
-        if (!taskInfo.hasHealthCheck()) {
-            throw new HealthCheckValidationException("The following task does not contain a HealthCheck: " + taskInfo);
-        }
         return new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 new ProcessRunner(),
-                taskInfo.getHealthCheck(),
+                healthCheck,
                 scheduledExecutorService,
                 healthCheckStats);
     }
@@ -49,15 +51,23 @@ public class HealthCheckHandler {
      */
     @VisibleForTesting
     HealthCheckHandler(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
             ProcessRunner processRunner,
             Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
             HealthCheckStats healthCheckStats)
             throws HealthCheckValidationException {
         validate(healthCheck);
+        this.executorDriver = executorDriver;
         this.healthCheck = healthCheck;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.healthCheckRunner = new HealthCheckRunner(processRunner, healthCheck, healthCheckStats);
+        this.healthCheckRunner = new HealthCheckRunner(
+                executorDriver,
+                taskInfo,
+                processRunner,
+                healthCheck,
+                healthCheckStats);
     }
 
     public ScheduledFuture<?> start() {
@@ -117,14 +127,20 @@ public class HealthCheckHandler {
     private static class HealthCheckRunner implements Runnable {
         private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckRunner.class);
 
+        private final ExecutorDriver executorDriver;
+        private final Protos.TaskInfo taskInfo;
         private final ProcessRunner processRunner;
         private final Protos.HealthCheck healthCheck;
         private final HealthCheckStats healthCheckStats;
 
         private HealthCheckRunner(
+                ExecutorDriver executorDriver,
+                Protos.TaskInfo taskInfo,
                 ProcessRunner processRunner,
                 Protos.HealthCheck healthCheck,
                 HealthCheckStats healthCheckStats) {
+            this.executorDriver = executorDriver;
+            this.taskInfo = taskInfo;
             this.processRunner = processRunner;
             this.healthCheck = healthCheck;
             this.healthCheckStats = healthCheckStats;
@@ -146,6 +162,7 @@ public class HealthCheckHandler {
 
                 LOGGER.info("Running health check process: {}", command);
                 int exitValue = processRunner.run(processBuilder, healthCheck.getTimeoutSeconds());
+
                 if (exitValue != 0) {
                     healthCheckStats.failed();
                     LOGGER.error("Health check failed with exit code {}: {}", exitValue, commandInfo);
@@ -156,14 +173,43 @@ public class HealthCheckHandler {
 
                 LOGGER.debug("Health check stats: {}", healthCheckStats);
             } catch (Throwable t) {
-                LOGGER.error(String.format("Health check failed with exception: %s", commandInfo), t);
+                LOGGER.error(String.format("Check failed with exception: %s", commandInfo), t);
                 healthCheckStats.failed();
             }
 
+            // Health checks have a positive consecutive failure count, readiness
+            // checks do not.
+            if (healthCheck.getConsecutiveFailures() > 0) {
+                handleHealthCheck();
+            } else {
+                handleReadinessCheck();
+            }
+        }
+
+        private void handleHealthCheck() {
             if (healthCheckStats.getConsecutiveFailures() >= healthCheck.getConsecutiveFailures()) {
                 throw new HealthCheckRuntimeException(
                         "Health check exceeded its maximum consecutive failures.",
                         healthCheckStats);
+            }
+        }
+
+        private void handleReadinessCheck() {
+            if (healthCheckStats.getTotalSuccesses() > 0) {
+                Protos.Labels labels = Protos.Labels.newBuilder().build();
+                labels = CommonTaskUtils.withLabelSet(
+                        labels,
+                        CommonTaskUtils.READINESS_CHECK_PASSED_KEY,
+                        "true").build();
+                CommonTaskUtils.sendStatus(
+                        executorDriver,
+                        Protos.TaskState.TASK_RUNNING,
+                        taskInfo.getTaskId(),
+                        taskInfo.getSlaveId(),
+                        taskInfo.getExecutor().getExecutorId(),
+                        "Readiness check passed",
+                        labels,
+                        null);
             }
         }
     }
