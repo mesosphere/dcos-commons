@@ -6,4 +6,4 @@ server.host: 0.0.0.0
 server.port: {{KIBANA_PORT}}
 xpack.security.encryptionKey: {{MESOS_FRAMEWORK_ID}}
 xpack.reporting.encryptionKey: {{MESOS_FRAMEWORK_ID}}
-server.basePath: "/service/{{SERVICE_NAME}}"
+server.basePath: "/service/{{SERVICE_NAME}}/kibana"
