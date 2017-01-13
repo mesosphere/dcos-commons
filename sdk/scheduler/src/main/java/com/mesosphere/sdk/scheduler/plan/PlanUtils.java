@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Offer;
@@ -14,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,9 +30,9 @@ public class PlanUtils {
     }
 
     public static final Collection<? extends Step> getCandidates(Plan plan, Collection<String> dirtyAssets) {
-        Collection<Phase> candidatePhases = plan.getStrategy().getCandidates(plan, dirtyAssets);
+        Collection<Phase> candidatePhases = plan.getStrategy().getCandidates(plan.getChildren(), dirtyAssets);
         Collection<Step> candidateSteps = candidatePhases.stream()
-                .map(phase -> phase.getStrategy().getCandidates(phase, dirtyAssets))
+                .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))
                 .flatMap(steps -> steps.stream())
                 .collect(Collectors.toList());
 
@@ -50,22 +50,36 @@ public class PlanUtils {
                 .collect(Collectors.toSet());
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final void update(Element<? extends Element> parent, TaskStatus taskStatus) {
+    /**
+     * Implements default logic for determining whether the provided {@link Element} appears to be eligible for
+     * performing work.
+     */
+    public static boolean isEligibleCandidate(Element element, Collection<String> dirtyAssets) {
+        if (element instanceof Interruptible && ((Interruptible) element).isInterrupted()) {
+            return false;
+        }
+        if (element instanceof Step) {
+            Optional<String> asset = ((Step) element).getAsset();
+            if (asset.isPresent() && dirtyAssets.contains(asset.get())) {
+                return false;
+            }
+        }
+        return !element.isComplete() && !element.hasErrors();
+    }
+
+    public static final void update(ParentElement<? extends Element> parent, TaskStatus taskStatus) {
         Collection<? extends Element> children = parent.getChildren();
         LOGGER.info("Updated {} with TaskStatus: {}", parent.getName(), TextFormat.shortDebugString(taskStatus));
         children.forEach(element -> element.update(taskStatus));
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final void restart(Element<? extends Element> parent) {
+    public static final void restart(ParentElement<? extends Element> parent) {
         Collection<? extends Element> children = parent.getChildren();
         LOGGER.info("Restarting elements within {}: {}", parent.getName(), children);
         children.forEach(element -> element.restart());
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final void forceComplete(Element<? extends Element> parent) {
+    public static final void forceComplete(ParentElement<? extends Element> parent) {
         Collection<? extends Element> children = parent.getChildren();
         LOGGER.info("Forcing completion of elements within {}: {}", parent.getName(), children);
         children.forEach(element -> element.forceComplete());
@@ -74,7 +88,7 @@ public class PlanUtils {
     /**
      * Returns a reasonable user-visible status message describing this {@link Element}.
      */
-    public static final String getMessage(Element<?> element) {
+    public static final String getMessage(Element element) {
         return String.format("%s: '%s [%s]' has status: '%s'.",
                 element.getClass().getName(), element.getName(), element.getId(), element.getStatus());
     }
@@ -87,8 +101,7 @@ public class PlanUtils {
      * @param parent The parent element whose children will be scanned
      * @return a combined list of all errors from the parent and all its children
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static final List<String> getErrors(List<String> parentErrors, Element<? extends Element> parent) {
+    public static final List<String> getErrors(List<String> parentErrors, ParentElement<? extends Element> parent) {
         // Note that this function MUST NOT call parent.getErrors() as that creates a circular call.
         List<String> errors = new ArrayList<>(); // copy list to avoid modifying parentErrors in-place
         errors.addAll(parentErrors);
@@ -97,16 +110,9 @@ public class PlanUtils {
         return errors;
     }
 
-    @SuppressWarnings("rawtypes")
-    public static final Status getStatus(Element<? extends Element> parent) {
+    public static final Status getStatus(ParentElement<? extends Element> parent) {
         // Ordering matters throughout this method.  Modify with care.
         // Also note that this function MUST NOT call parent.getStatus() as that creates a circular call.
-
-        final Strategy<? extends Element> strategy = parent.getStrategy();
-        if (strategy == null) {
-            LOGGER.error("Parent element returned null strategy: {}", parent.getName());
-            return Status.ERROR;
-        }
 
         final Collection<? extends Element> children = parent.getChildren();
         if (children == null) {
@@ -121,9 +127,13 @@ public class PlanUtils {
         } else if (CollectionUtils.isEmpty(children)) {
             result = Status.COMPLETE;
             LOGGER.debug("({} status={}) Empty collection of elements encountered.", parent.getName(), result);
+        } else if (parent.isInterrupted()) {
+            result = Status.WAITING;
+            LOGGER.debug("({} status={}) Parent element is interrupted",
+                    parent.getName(), result);
         } else if (anyHaveStatus(Status.PREPARED, children)) {
             result = Status.PREPARED;
-            LOGGER.debug("({} status={}) At least one phase has status: {}",
+            LOGGER.debug("({} status={}) At least one element has status: {}",
                     parent.getName(), result, Status.PREPARED);
         } else if (anyHaveStatus(Status.WAITING, children)) {
             result = Status.WAITING;
@@ -148,19 +158,17 @@ public class PlanUtils {
                     parent.getName(), result, Status.STARTING);
         } else {
             result = Status.ERROR;
-            LOGGER.debug("({} status={}) Unexpected state. PlanElements: {}",
+            LOGGER.warn("({} status={}) Unexpected state. children: {}",
                     parent.getName(), result, children);
         }
 
         return result;
     }
 
-    @SuppressWarnings("rawtypes")
     public static boolean allHaveStatus(Status status, Collection<? extends Element> elements) {
         return elements.stream().allMatch(element -> element.getStatus() == status);
     }
 
-    @SuppressWarnings("rawtypes")
     public static boolean anyHaveStatus(Status status, Collection<? extends Element> elements) {
         return elements.stream().anyMatch(element -> element.getStatus() == status);
     }

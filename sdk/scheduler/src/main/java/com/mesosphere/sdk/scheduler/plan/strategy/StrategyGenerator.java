@@ -7,7 +7,6 @@ import com.mesosphere.sdk.scheduler.plan.Element;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
 public interface StrategyGenerator<C extends Element> {
     Strategy<C> generate();
 }

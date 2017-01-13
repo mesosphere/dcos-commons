@@ -71,6 +71,14 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
             ConfigurationFactory<T> factory,
             String frameworkName,
             String connectionString,
+            RetryPolicy retryPolicy) {
+        this(factory, frameworkName, connectionString, retryPolicy, "", "");
+    }
+
+    public CuratorConfigStore(
+            ConfigurationFactory<T> factory,
+            String frameworkName,
+            String connectionString,
             String username,
             String password) {
         this(factory, frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);

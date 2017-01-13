@@ -47,7 +47,7 @@ public class DefaultStepFactory implements StepFactory {
             Status status = taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos);
             String stepName = TaskUtils.getStepName(podInstance, tasksToLaunch);
 
-            return new DefaultStep(
+            return new DeploymentStep(
                     stepName,
                     status,
                     PodInstanceRequirement.create(podInstance, tasksToLaunch),

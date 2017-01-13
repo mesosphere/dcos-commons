@@ -6,6 +6,7 @@ import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -47,6 +48,15 @@ public final class RangeAlgorithms {
         return i1.equals(i2);
     }
 
+    public static List<Range> createRanges(Collection<Integer> elements) {
+        int[] integers = toIntArray(elements);
+        return intervalsToRanges(new IntervalSet(integers).getIntervals());
+    }
+
+    public static int countValuesInRanges(List<Range> ranges) {
+        return rangesToIntervalSet(ranges).size();
+    }
+
     public static Ranges fromRangeList(List<Range> ranges) {
         return Ranges.newBuilder().addAllRange(ranges).build();
     }
@@ -63,6 +73,18 @@ public final class RangeAlgorithms {
         return builder.build();
     }
 
+    private static int[] toIntArray(Collection<Integer> integers){
+        int[] output = new int[integers.size()];
+
+        int i = 0;
+        for (Integer input : integers) {
+            output[i] = input;
+            i++;
+        }
+
+        return output;
+    }
+
     private static List<Interval> rangesToIntervals(List<Range> ranges) {
         List<Interval> intervals = new ArrayList<Interval>();
 
@@ -71,6 +93,10 @@ public final class RangeAlgorithms {
         }
 
         return intervals;
+    }
+
+    private static IntervalSet rangesToIntervalSet(List<Range> ranges) {
+        return intervalsToIntervalSet(rangesToIntervals(ranges));
     }
 
     private static List<Range> intervalsToRanges(List<Interval> intervals) {

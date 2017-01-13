@@ -57,6 +57,7 @@ public class YAMLToInternalMappers {
         return builder
                 .name(rawSvcSpec.getName())
                 .apiPort(rawSvcSpec.getApiPort())
+                .webUrl(rawSvcSpec.getWebUrl())
                 .principal(principal)
                 .zookeeperConnection(rawSvcSpec.getZookeeper())
                 .pods(pods)
@@ -78,6 +79,15 @@ public class YAMLToInternalMappers {
                 .interval(rawHealthCheck.getInterval())
                 .maxConsecutiveFailures(rawHealthCheck.getMaxConsecutiveFailures())
                 .timeout(rawHealthCheck.getTimeout())
+                .build();
+    }
+
+    private static ReadinessCheckSpec from(RawReadinessCheck rawReadinessCheck) {
+        return DefaultReadinessCheckSpec.newBuilder()
+                .command(rawReadinessCheck.getCmd())
+                .delay(rawReadinessCheck.getDelay())
+                .interval(rawReadinessCheck.getInterval())
+                .timeout(rawReadinessCheck.getTimeout())
                 .build();
     }
 
@@ -134,6 +144,10 @@ public class YAMLToInternalMappers {
     }
 
     private static Collection<RLimit> from(LinkedHashMap<String, RawRLimit> rawRLimits) throws Exception {
+        if (rawRLimits == null) {
+            return Collections.emptyList();
+        }
+
         List<RLimit> rlimits = new ArrayList<>();
         for (Map.Entry<String, RawRLimit> entry : rawRLimits.entrySet()) {
             RawRLimit rawRLimit = entry.getValue();
@@ -188,11 +202,17 @@ public class YAMLToInternalMappers {
             healthCheckSpec = from(rawTask.getHealthCheck());
         }
 
+        ReadinessCheckSpec readinessCheckSpec = null;
+        if (rawTask.getReadinessCheck() != null) {
+           readinessCheckSpec = from(rawTask.getReadinessCheck());
+        }
+
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
+                .readinessCheckSpec(readinessCheckSpec)
                 .name(taskName)
                 .uris(uris);
 

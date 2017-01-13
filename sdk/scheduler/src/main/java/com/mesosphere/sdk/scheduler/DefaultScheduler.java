@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
@@ -12,6 +11,7 @@ import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.config.*;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
@@ -112,6 +112,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
     protected Map<String, EndpointProducer> customEndpointProducers;
+    protected Optional<RestartHook> customRestartHook;
     protected Reconciler reconciler;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -134,20 +135,16 @@ public class DefaultScheduler implements Scheduler, Observer {
         private Optional<StateStore> stateStoreOptional = Optional.empty();
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
         private Optional<Collection<ConfigValidator<ServiceSpec>>> configValidatorsOptional = Optional.empty();
+        private Optional<RestartHook> restartHookOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
         private final List<Plan> manualPlans = new ArrayList<>();
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
+        private Capabilities capabilities;
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
-
-            try {
-                new CapabilityValidator(new Capabilities(new DcosCluster())).validate(serviceSpec);
-            } catch (CapabilityValidator.CapabilityValidationException e) {
-                throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
-            }
         }
 
         /**
@@ -214,6 +211,16 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Specifies a custom {@link RestartHook} to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.
+         * This may be used to define any custom teardown behavior which should be invoked before a task is restarted
+         * and/or replaced.
+         */
+        public Builder setRestartHook(RestartHook restartHook) {
+            this.restartHookOptional = Optional.of(restartHook);
+            return this;
+        }
+
+        /**
          * Specifies a custom {@link EndpointProducer} to be added to the /endpoints API. This may be used by services
          * which wish to expose custom endpoint information via that API.
          *
@@ -256,6 +263,17 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Allow setting the capabilities of the DC/OS cluster.  Generally this should not be used except in test
+         * environments as it may return incorrect information regarding the capabilities of the DC/OS cluster.
+         * @param capabilities the capabilities used to validate the ServiceSpec
+         */
+        @VisibleForTesting
+        public Builder setCapabilities(Capabilities capabilities) {
+            this.capabilities = capabilities;
+            return this;
+        }
+
+        /**
          * Creates a new scheduler instance with the provided values or their defaults.
          *
          * @return a new scheduler instance
@@ -263,6 +281,16 @@ public class DefaultScheduler implements Scheduler, Observer {
          *     {@link OfferRequirementProvider}, or if creating a default {@link ConfigStore} failed
          */
         public DefaultScheduler build() {
+            if (capabilities == null) {
+                this.capabilities = new Capabilities(new DcosCluster());
+            }
+
+            try {
+                new CapabilityValidator(capabilities).validate(serviceSpec);
+            } catch (CapabilityValidator.CapabilityValidationException e) {
+                throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
+            }
+
             // Get custom or default state store (defaults handled by getStateStore())::
             final StateStore stateStore = getStateStore();
 
@@ -312,7 +340,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     stateStore,
                     configStore,
                     createOfferRequirementProvider(stateStore, configUpdateResult.targetId),
-                    endpointProducers);
+                    endpointProducers,
+                    restartHookOptional);
         }
     }
 
@@ -459,13 +488,15 @@ public class DefaultScheduler implements Scheduler, Observer {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
-            Map<String, EndpointProducer> customEndpointProducers) {
+            Map<String, EndpointProducer> customEndpointProducers,
+            Optional<RestartHook> restartHookOptional) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
+        this.customRestartHook = restartHookOptional;
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
@@ -553,15 +584,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         deploymentPlanManager = new DefaultPlanManager(deployPlan);
 
-        // All plans are initially created with an interrupted strategy.
-        // Normally we don't want the deployment plan to be interrupted,
-        // except in the case of the CanaryStrategy which explicitly
-        // indicates the end-user wants the deployment plan to start out
-        // interrupted.
-        Plan plan = deploymentPlanManager.getPlan();
-        if (!(plan.getStrategy() instanceof CanaryStrategy)) {
-            plan.getStrategy().proceed();
-        }
+        // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
+        // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
+        // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
+        // whole.
+        deploymentPlanManager.getPlan().proceed();
     }
 
     /**
@@ -596,7 +623,11 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
-        resources.add(new PodsResource(taskKiller, stateStore));
+        if (customRestartHook.isPresent()) {
+            resources.add(new PodsResource(taskKiller, stateStore, customRestartHook.get()));
+        } else {
+            resources.add(new PodsResource(taskKiller, stateStore));
+        }
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
         resources.add(new TaskResource(stateStore, taskKiller, serviceSpec.getName()));
         // use add() instead of put(): throw exception instead of waiting indefinitely

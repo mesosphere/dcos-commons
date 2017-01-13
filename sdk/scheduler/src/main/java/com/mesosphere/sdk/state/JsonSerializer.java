@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.config.SerializationUtils;
 
 import java.io.IOException;
@@ -9,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Implementation of {@link Serializer} for JSON input/output.
  */
-public class JsonSerializer implements Serializer {
+public class JsonSerializer implements PropertyDeserializer, Serializer {
     private static final Charset DEFAULT_CHAR_SET = StandardCharsets.UTF_8;
     private final Charset charset;
 
@@ -29,5 +30,10 @@ public class JsonSerializer implements Serializer {
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> clazz) throws IOException {
         return SerializationUtils.fromJsonString(new String(bytes, charset), clazz);
+    }
+
+    @Override
+    public String toJsonString(String key, byte[] value) throws StateStoreException {
+        return new String(value, charset);
     }
 }

@@ -59,13 +59,6 @@ public class ProcessTask implements ExecutorTask {
     public static ProcessTask create(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
-            ProcessBuilder processBuilder) {
-        return create(executorDriver, taskInfo, processBuilder, true);
-    }
-
-    public static ProcessTask create(
-            ExecutorDriver executorDriver,
-            Protos.TaskInfo taskInfo,
             ProcessBuilder processBuilder,
             boolean exitOnTermination) {
         return new ProcessTask(executorDriver, taskInfo, processBuilder, exitOnTermination);
@@ -100,6 +93,18 @@ public class ProcessTask implements ExecutorTask {
 
             LOGGER.info("Executing command: {}", processBuilder.command());
             LOGGER.info("With Environment: {}", processBuilder.environment());
+
+            if (processBuilder.command().isEmpty()) {
+                final String errorMessage = "Empty command found for: " + taskInfo.getName();
+                CommonTaskUtils.sendStatus(
+                        driver,
+                        Protos.TaskState.TASK_ERROR,
+                        taskInfo.getTaskId(),
+                        taskInfo.getSlaveId(),
+                        taskInfo.getExecutor().getExecutorId(),
+                        errorMessage);
+                return;
+            }
 
             this.process = processBuilder.start();
 

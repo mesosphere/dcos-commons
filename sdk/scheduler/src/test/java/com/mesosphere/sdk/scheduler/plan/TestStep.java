@@ -1,9 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.scheduler.DefaultObservable;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -11,28 +9,14 @@ import java.util.*;
 /**
  * This class is an implementation of the Step interface for test purposes.
  */
-public class TestStep extends DefaultObservable implements Step {
-
-    private final UUID id = UUID.randomUUID();
-    private Status status = Status.PENDING;
-    private String name;
+public class TestStep extends AbstractStep {
 
     public TestStep() {
-        this.name = "test-step";
+        this("test-step");
     }
 
     public TestStep(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public List<Element<?>> getChildren() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Strategy<? extends Step> getStrategy() {
-        return new SerialStrategy<>();
+        super(name, Status.PENDING);
     }
 
     @Override
@@ -56,18 +40,8 @@ public class TestStep extends DefaultObservable implements Step {
     }
 
     @Override
-    public boolean isAssetDirty() {
-        return isInProgress();
-    }
-
-    @Override
     public void update(Protos.TaskStatus status) {
         // Left intentionally empty
-    }
-
-    @Override
-    public UUID getId() {
-        return id;
     }
 
     @Override
@@ -78,16 +52,6 @@ public class TestStep extends DefaultObservable implements Step {
     @Override
     public List<String> getErrors() {
         return Collections.emptyList();
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Status getStatus() {
-        return status;
     }
 
     @Override
@@ -102,6 +66,11 @@ public class TestStep extends DefaultObservable implements Step {
 
     @VisibleForTesting
     public void setStatus(Status status) {
-        this.status = status;
+        super.setStatus(status);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("TestStep[%s:%s]", getName(), getStatus());
     }
 }

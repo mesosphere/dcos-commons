@@ -14,7 +14,6 @@ public class RawTask {
 
     private final String goal;
     private final String cmd;
-    private final String image;
     private final Map<String, String> env;
     private final Collection<RawConfiguration> configurations;
     private final Collection<String> uris;
@@ -22,13 +21,13 @@ public class RawTask {
     private final Integer memory;
     private final Collection<RawPort> ports;
     private final RawHealthCheck healthCheck;
+    private final RawReadinessCheck readinessCheck;
     private final Collection<RawVolume> volumes;
     private final String resourceSet;
 
     private RawTask(
             @JsonProperty("goal") String goal,
             @JsonProperty("cmd") String cmd,
-            @JsonProperty("image") String image,
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configurations") Collection<RawConfiguration> configurations,
             @JsonProperty("uris") Collection<String> uris,
@@ -36,11 +35,11 @@ public class RawTask {
             @JsonProperty("memory") Integer memory,
             @JsonProperty("ports") Collection<RawPort> ports,
             @JsonProperty("health-check") RawHealthCheck healthCheck,
+            @JsonProperty("readiness-check") RawReadinessCheck readinessCheck,
             @JsonProperty("volumes") Collection<RawVolume> volumes,
             @JsonProperty("resource-set") String resourceSet) {
         this.goal = goal;
         this.cmd = cmd;
-        this.image = image;
         this.env = env;
         this.configurations = configurations;
         this.uris = uris;
@@ -48,6 +47,7 @@ public class RawTask {
         this.memory = memory;
         this.ports = ports;
         this.healthCheck = healthCheck;
+        this.readinessCheck = readinessCheck;
         this.volumes = volumes;
         this.resourceSet = resourceSet;
     }
@@ -68,16 +68,16 @@ public class RawTask {
         return healthCheck;
     }
 
+    public RawReadinessCheck getReadinessCheck() {
+        return readinessCheck;
+    }
+
     public String getGoal() {
         return goal;
     }
 
     public String getCmd() {
         return cmd;
-    }
-
-    public String getImage() {
-        return image;
     }
 
     public Map<String, String> getEnv() {

@@ -163,14 +163,10 @@ public class DefaultService implements Service {
         new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
 
-    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         final String serviceName = serviceSpec.getName();
 
-        Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceName)
-                .setFailoverTimeout(TWO_WEEK_SEC)
-                .setUser(USER)
-                .setCheckpoint(true);
+        Protos.FrameworkInfo.Builder fwkInfoBuilder = getFrameworkInfoBuilder(serviceName);
 
         // Use provided role if specified, otherwise default to "<svcname>-role".
         if (StringUtils.isEmpty(serviceSpec.getRole())) {
@@ -192,6 +188,22 @@ public class DefaultService implements Service {
             fwkInfoBuilder.setId(optionalFrameworkId.get());
         }
 
+        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
+            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
+        }
+
         return fwkInfoBuilder.build();
+    }
+
+    /**
+     * Returns a default {@link Protos.FrameworkInfo.Builder} based on the service name. Can be overridden to
+     * specify other framework properties (e.g., web UI URL).
+     */
+    protected Protos.FrameworkInfo.Builder getFrameworkInfoBuilder(String serviceName) {
+        return Protos.FrameworkInfo.newBuilder()
+                .setName(serviceName)
+                .setFailoverTimeout(TWO_WEEK_SEC)
+                .setUser(USER)
+                .setCheckpoint(true);
     }
 }

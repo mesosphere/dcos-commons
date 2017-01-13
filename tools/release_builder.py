@@ -267,15 +267,17 @@ class UniverseReleaseBuilder(object):
             filediffs = {}
 
             shared_files = last_dir_files & this_dir_files
-            if filename in shared_files:
+            for filename in shared_files:
                 # file exists in both new and old: calculate diff
                 last_filename = os.path.join(last_dir, filename)
                 this_filename = os.path.join(this_dir, filename)
-                with open(last_file, 'r') as last_file, open(this_file, 'r') as this_file:
-                    filediffs[filename] = ''.join(difflib.unified_diff(
+                with open(last_filename, 'r') as last_file, open(this_filename, 'r') as this_file:
+                    filediff = ''.join(difflib.unified_diff(
                         last_file.readlines(), this_file.readlines(),
                         fromfile='{}/{}'.format(lastnum, filename),
                         tofile='{}/{}'.format(lastnum + 1, filename)))
+                    if filediff:
+                        filediffs[filename] = filediff
         else:
             filediffs = {}
             removed_files = {}

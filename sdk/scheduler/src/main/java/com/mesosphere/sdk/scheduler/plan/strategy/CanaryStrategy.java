@@ -1,60 +1,165 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.mesosphere.sdk.scheduler.plan.PlanUtils;
+import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * A CanaryStrategy blocks deployment entirely by default until human intervention through the {@link #proceed()} call.
- * After a single {@link #proceed()} call it again blocks until human intervention.  Any further calls to
- * {@link #proceed()} will indicate the strategy should continue without further intervention.
+ * A CanaryStrategy is a gatekeeper around another underlying strategy. It requires that the user manually invoke
+ * {@link #proceed()} calls in order to move along a deployment. This allows the user to manually check that the
+ * deployment looks good before a full rollout is attempted.
  *
- * @param <C> is the type of {@link Element}s to which the Strategy applies.
+ * The default is to do nothing until a first {@link #proceed()} call is received, at which point the first {@link Step}
+ * is deployed. The user may then examine whether the deployment of that first {@link Step} was successful before
+ * invoking a {@link #proceed()} call. By default this second {@link #proceed()} will result in deploying all the other
+ * {@link Step}s according to the rules of the underlying strategy. The number of {@link #proceed()} calls required to
+ * enter this state may be customized via the CanaryStrategy constructor.
+ *
+ * Unlike other strategies, CanaryStrategy may only be applied to {@link com.mesosphere.sdk.scheduler.plan.Phase}s to
+ * manage the progress of child {@link Step}s. This requirement avoids user or developer error resulting from ambiguity
+ * in what should happen when e.g. a CanaryStrategy is applied to a {@link com.mesosphere.sdk.scheduler.plan.Plan}
+ * against child {@link com.mesosphere.sdk.scheduler.plan.Phase}s. In practice, developers and users should be able to
+ * get their desired behavior by directly applying CanaryStrategy to some subset of the
+ * {@link com.mesosphere.sdk.scheduler.plan.Phase}s in their {@link com.mesosphere.sdk.scheduler.plan.Plan}.
  */
-@SuppressWarnings("rawtypes")
-public class CanaryStrategy<C extends Element> extends SerialStrategy<C> {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private AtomicBoolean initialized = new AtomicBoolean(false);
-    private List<Element> children;
+public class CanaryStrategy implements Strategy<Step> {
+
+    /**
+     * One proceed() to launch the first block, then a second proceed() to launch all the rest.
+     */
+    private static final int DEFAULT_PROCEED_COUNT = 2;
+
+    private final int requiredProceeds;
+    private final Strategy<Step> strategy;
+
+    public Collection<Step> canarySteps;
+
+    /**
+     * Creates a new Canary Strategy which will require 2 {@link #proceed()} calls from a user before following the
+     * provided {@code postCanaryStrategy}.
+     *
+     * @param postCanaryStrategy the strategy to use after the canary stage has completed
+     */
+    public CanaryStrategy(Strategy<Step> postCanaryStrategy) {
+        this(postCanaryStrategy, DEFAULT_PROCEED_COUNT);
+    }
+
+    /**
+     * Creates a new Canary Strategy which will require a specified number of {@link #proceed()} calls from a user
+     * before following the provided {@code postCanaryStrategy}.
+     *
+     * @param postCanaryStrategy the strategy to use after the canary stage has completed
+     * @param requiredProceeds the number of {@link #proceed()} calls to require before the provided strategy is
+     *     executed
+     */
+    public CanaryStrategy(Strategy<Step> postCanaryStrategy, int requiredProceeds) {
+        this.requiredProceeds = requiredProceeds;
+        this.strategy = postCanaryStrategy;
+        this.canarySteps = null;
+    }
 
     @Override
-    public Collection<C> getCandidates(Element<C> parentElement, Collection<String> dirtyAssets) {
-        if (!initialized.get()) {
-            children = parentElement.getChildren().stream()
-                    .filter(element -> (element.isPending() || element.isWaiting()))
+    public Collection<Step> getCandidates(Collection<Step> steps, Collection<String> dirtyAssets) {
+        if (canarySteps == null) {
+            // Create the N initial canary steps by marking them as interrupted.
+            canarySteps = steps.stream()
+                    .filter(step -> (step.isPending() || step.isInterrupted()))
+                    .limit(requiredProceeds)
                     .collect(Collectors.toList());
-
-            for (int i = 0; i < 2 && i < children.size(); i++) {
-                children.get(i).getStrategy().interrupt();
-            }
-
-            initialized.set(true);
+            canarySteps.forEach(step -> step.interrupt());
         }
 
-        return super.getCandidates(parentElement, dirtyAssets);
+        if (getNextCanaryStep() != null) {
+            // Still in canary. Only return subset of canary steps which are now eligible due to proceed() calls.
+            return canarySteps.stream()
+                    .filter(step -> PlanUtils.isEligibleCandidate(step, dirtyAssets))
+                    .collect(Collectors.toList());
+        }
+
+        // Canary period has ended. Revert to underlying strategy for the rest of the operation.
+        return strategy.getCandidates(steps, dirtyAssets);
+    }
+
+    @Override
+    public void interrupt() {
+        Step canaryStep = getNextCanaryStep();
+        if (canaryStep != null) {
+            // Ignoring interrupt as we are still in canary and therefore already interrupted.
+            return;
+        }
+        strategy.interrupt();
     }
 
     @Override
     public void proceed() {
-        super.proceed();
-        
-        if (!initialized.get())  {
-            logger.warn("Proceed has no effect to children before strategy initialization.");
+        Step canaryStep = getNextCanaryStep();
+        if (canaryStep != null) {
+            canaryStep.proceed();
             return;
         }
+        strategy.proceed();
+    }
 
-        Optional<Element> elementOptional = children.stream()
-                .filter(element -> element.getStrategy().isInterrupted())
-                .findFirst();
+    @Override
+    public boolean isInterrupted() {
+        Step canaryStep = getNextCanaryStep();
+        if (canaryStep != null) {
+            return true;
+        }
+        return strategy.isInterrupted();
+    }
 
-        if (elementOptional.isPresent()) {
-            elementOptional.get().getStrategy().proceed();
+    private Step getNextCanaryStep() {
+        if (canarySteps == null) {
+            return null;
+        }
+        for (Step canaryStep : canarySteps) {
+            if (canaryStep.isInterrupted()) {
+                return canaryStep;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * This class generates Strategy objects of the appropriate type.
+     *
+     * @param <C> is the type of {@link Element}s to which the Strategy applies.
+     */
+    public static class Generator implements StrategyGenerator<Step> {
+
+        private final int requiredProceeds;
+        private final Strategy<Step> postCanaryStrategy;
+
+        /**
+         * Creates a new generator which will require 2 {@link #proceed()} calls from a user before following the
+         * provided {@code postCanaryStrategy}.
+         *
+         * @param postCanaryStrategy the strategy to use after the canary stage has completed
+         */
+        public Generator(Strategy<Step> postCanaryStrategy) {
+            this(postCanaryStrategy, DEFAULT_PROCEED_COUNT);
+        }
+
+        /**
+         * Creates a new generator which will require a specified number of {@link #proceed()} calls from a user before
+         * following the provided {@code postCanaryStrategy}.
+         *
+         * @param postCanaryStrategy the strategy to use after the canary stage has completed
+         * @param requiredProceeds the number of {@link #proceed()} calls to require before the provided strategy is
+         *     executed
+         */
+        public Generator(Strategy<Step> postCanaryStrategy, int requiredProceeds) {
+            this.requiredProceeds = requiredProceeds;
+            this.postCanaryStrategy = postCanaryStrategy;
+        }
+
+        @Override
+        public Strategy<Step> generate() {
+            return new CanaryStrategy(postCanaryStrategy, requiredProceeds);
         }
     }
 }
