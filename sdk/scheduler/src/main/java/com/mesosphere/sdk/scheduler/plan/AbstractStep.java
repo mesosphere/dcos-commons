@@ -44,7 +44,7 @@ public abstract class AbstractStep extends DefaultObservable implements Step {
     @Override
     public Status getStatus() {
         synchronized (statusLock) {
-            if (interrupted &&  ( status == Status.PENDING || status == Status.PREPARED)) {
+            if (interrupted &&  (status == Status.PENDING || status == Status.PREPARED)) {
                 return Status.WAITING;
             }
             return status;
