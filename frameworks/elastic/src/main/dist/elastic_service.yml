@@ -3,9 +3,6 @@ principal: "{{SERVICE_NAME}}-principal"
 zookeeper: master.mesos:2181
 web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:4040
 api-port: {{PORT0}}
-replacement-failure-policy:
-  permanent-failure-timeout-ms: 100000
-  min-replace-delay-ms: 100000
 pods:
   kibana:
     count: {{KIBANA_COUNT}}
