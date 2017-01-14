@@ -18,20 +18,13 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     private final String portName;
     private final int port;
 
-    public PortEvaluationStage(
-            Protos.Resource resource,
-            String taskName,
-            String portName,
-            int port) {
+    public PortEvaluationStage(Protos.Resource resource, String taskName, String portName, int port) {
         super(resource, taskName);
         this.portName = portName;
         this.port = port;
     }
 
-    public PortEvaluationStage(
-            Protos.Resource resource,
-            String portName,
-            int port) {
+    public PortEvaluationStage(Protos.Resource resource, String portName, int port) {
         this(resource, null, portName, port);
     }
 

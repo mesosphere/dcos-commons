@@ -35,7 +35,7 @@ public class RawVip {
         return protocol;
     }
 
-    public Boolean isAdvertise() {
+    public Boolean isAdvertised() {
         return advertise;
     }
 }
