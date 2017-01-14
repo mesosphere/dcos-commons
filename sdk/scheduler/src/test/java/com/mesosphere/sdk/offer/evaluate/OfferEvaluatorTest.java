@@ -11,7 +11,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentOperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testing.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;

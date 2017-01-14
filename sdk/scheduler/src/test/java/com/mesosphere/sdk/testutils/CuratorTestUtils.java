@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.testing;
+package com.mesosphere.sdk.testutils;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
