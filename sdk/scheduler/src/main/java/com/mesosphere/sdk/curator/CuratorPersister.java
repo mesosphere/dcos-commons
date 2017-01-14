@@ -1,21 +1,15 @@
 package com.mesosphere.sdk.curator;
 
+import com.mesosphere.sdk.storage.Persister;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
-import com.mesosphere.sdk.storage.Persister;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The CuratorPersistor implementation of the {@link Persister} interface
@@ -35,6 +29,10 @@ public class CuratorPersister implements Persister {
 
     public CuratorPersister(String connectionString, RetryPolicy retryPolicy) {
         this(createClient(connectionString, retryPolicy));
+    }
+
+    public CuratorPersister(String connectionString, RetryPolicy retryPolicy, String userName, String password) {
+        this(createClient(connectionString, retryPolicy, userName, password));
     }
 
     public CuratorPersister(CuratorFramework client) {
@@ -107,6 +105,30 @@ public class CuratorPersister implements Persister {
 
     private static CuratorFramework createClient(String connectionString, RetryPolicy retryPolicy) {
         CuratorFramework client = CuratorFrameworkFactory.newClient(connectionString, retryPolicy);
+        client.start();
+        return client;
+    }
+
+    /**
+     * Create new CuratorFramework client using the Builder to add Auth & ACL.
+     * @param connectionString
+     * @param retryPolicy
+     * @param userName
+     * @param password
+     * @return
+     */
+    private static CuratorFramework createClient(String connectionString,
+                                                 RetryPolicy retryPolicy,
+                                                 String username,
+                                                 String password) {
+        if (username.equals("") && password.equals("")) {
+            return createClient(connectionString, retryPolicy);
+        }
+
+        CuratorFramework client = CuratorUtils.getClientWithAcl(connectionString,
+                retryPolicy,
+                username,
+                password);
         client.start();
         return client;
     }
