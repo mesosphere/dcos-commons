@@ -389,7 +389,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
      *     {@link DefaultServiceSpec}, mainly useful for deserializing custom implementations of
-     *     {@link com.mesosphere.sdk.offer.constrain.PlacementRule}s.
+     *     {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}s.
      * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
      *                              unrecognized deserialization type
      */

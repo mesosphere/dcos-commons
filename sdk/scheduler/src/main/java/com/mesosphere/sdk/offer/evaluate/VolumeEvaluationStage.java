@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.offer.OfferRequirement}, ensuring that it
  * contains an appropriately-sized volume, and creating any necessary instances of
@@ -29,16 +31,16 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         ResourceRequirement resourceRequirement = getResourceRequirement();
         Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
         if (!mesosResourceOptional.isPresent()) {
-            throw new OfferEvaluationException(String.format(
-                    "Failed to satisfy resource requirement: %s",
-                    TextFormat.shortDebugString(resourceRequirement.getResource())));
+            return fail(this, "Failed to satisfy required volume '%s': %s",
+                    resourceRequirement.getName(),
+                    TextFormat.shortDebugString(resourceRequirement.getResource()));
         }
 
         final MesosResource mesosResource = mesosResourceOptional.get();
@@ -59,8 +61,12 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
         logger.info("  Generated '{}' resource for task: [{}]",
                 resourceRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
 
-        validateRequirements(offerRequirement);
+        EvaluationOutcome failure = validateRequirements(offerRequirement);
+        if (failure != null) {
+            return failure;
+        }
         setProtos(offerRequirement, fulfilledResource);
+        return pass(this, "Offer contains sufficient '%s'", resourceRequirement.getName());
     }
 
     @Override

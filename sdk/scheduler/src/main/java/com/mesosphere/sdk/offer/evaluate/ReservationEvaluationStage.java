@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class evaluates an offer for remaining reserved resources in the offer that have only been partially claimed by
  * the given {@link OfferRequirement}, and creates an {@link UnreserveOfferRecommendation} for each so that they are
@@ -26,7 +28,7 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) {
@@ -41,5 +43,6 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
                         new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), unreserveResource));
             }
         }
+        return pass(this, "Added reservation information to offer requirement");
     }
 }
