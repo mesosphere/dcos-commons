@@ -111,6 +111,14 @@ dependencies {
     testCompile "org.mock-server:mockserver-netty:${mockServerVer}"
     testCompile "org.springframework.integration:spring-integration-http:${springVer}"
     testCompile "org.awaitility:awaitility:${awaitilityVer}"
+    testCompile project(":testing")
+}
+
+test {
+    filter {
+        //include all tests from package
+        includeTestsMatching "com.mesosphere.sdk.scheduler.*"
+    }
 }
 
 distributions {
