@@ -10,7 +10,7 @@ import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.constrain.*;
+import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
@@ -33,8 +34,8 @@ public class DefaultOfferRequirementProviderTest {
     private static final double CPU = 1.0;
     private static final PlacementRule ALLOW_ALL = new PlacementRule() {
         @Override
-        public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
-            return offer;
+        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.pass(this, "pass for test");
         }
     };
 

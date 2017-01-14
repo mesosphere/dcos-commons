@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
-import com.mesosphere.sdk.offer.constrain.PlacementUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;

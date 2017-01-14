@@ -3,8 +3,8 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.OfferRecommendationSlate;
 import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.constrain.AgentRule;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.AgentRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -28,7 +28,9 @@ public class PlacementRuleEvaluationStageTest {
 
         PlacementRuleEvaluationStage placementRuleEvaluationStage = new PlacementRuleEvaluationStage(
                 Collections.emptyList());
-        placementRuleEvaluationStage.evaluate(mesosResourcePool, offerRequirement, new OfferRecommendationSlate());
+        EvaluationOutcome outcome = placementRuleEvaluationStage.evaluate(
+                mesosResourcePool, offerRequirement, new OfferRecommendationSlate());
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
         Assert.assertTrue(mesosResourcePool.getUnreservedMergedPool().get("cpus").getScalar().getValue() == 1.0);
@@ -45,17 +47,14 @@ public class PlacementRuleEvaluationStageTest {
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desired, rule);
 
-        PlacementRuleEvaluationStage placementRuleEvaluationStage = new PlacementRuleEvaluationStage(
-                Collections.emptyList());
-        boolean failed = false;
-        try {
-            placementRuleEvaluationStage.evaluate(mesosResourcePool, offerRequirement, new OfferRecommendationSlate());
-        } catch (OfferEvaluationException e) {
-            failed = true;
-        }
+        PlacementRuleEvaluationStage placementRuleEvaluationStage =
+                new PlacementRuleEvaluationStage(Collections.emptyList());
+        EvaluationOutcome outcome = placementRuleEvaluationStage.evaluate(
+                mesosResourcePool, offerRequirement, new OfferRecommendationSlate());
 
-        Assert.assertTrue(failed);
-        Assert.assertEquals(0, mesosResourcePool.getUnreservedMergedPool().size());
+        Assert.assertFalse(outcome.isPassing());
+        Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
+        Assert.assertTrue(mesosResourcePool.getUnreservedMergedPool().get("cpus").getScalar().getValue() == 1.0);
     }
 
     private static Protos.Offer offerWithAgent(String agentId, Protos.Resource resource) {

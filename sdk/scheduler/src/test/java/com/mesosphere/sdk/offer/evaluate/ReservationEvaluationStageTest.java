@@ -23,8 +23,9 @@ public class ReservationEvaluationStageTest {
                 Arrays.asList(resourceId));
         OfferRecommendationSlate offerRecommendationSlate = new OfferRecommendationSlate();
 
-        reservationEvaluationStage.evaluate(new MesosResourcePool(offer), null, offerRecommendationSlate);
-
+        EvaluationOutcome outcome =
+                reservationEvaluationStage.evaluate(new MesosResourcePool(offer), null, offerRecommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
         Assert.assertEquals(1, offerRecommendationSlate.getRecommendations().size());
 
         OfferRecommendation recommendation = offerRecommendationSlate.getRecommendations().get(0);
