@@ -9,6 +9,9 @@ project(":sdk/scheduler").name = "scheduler"
 include 'sdk/executor'
 project(":sdk/executor").name = "executor"
 
+include 'sdk/testing'
+project(":sdk/testing").name = "testing"
+
 include 'frameworks/helloworld'
 project(":frameworks/helloworld").name = "helloworld"
 

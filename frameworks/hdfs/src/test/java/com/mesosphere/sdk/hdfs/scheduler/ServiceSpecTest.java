@@ -1,105 +1,46 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testing.BaseServiceSpecTest;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import org.apache.curator.test.TestingServer;
-import org.apache.mesos.SchedulerDriver;
-import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.io.File;
-import java.net.URL;
-import java.util.Collections;
-
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
-
-public class ServiceSpecTest {
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-    @Mock
-    private SchedulerDriver mockSchedulerDriver;
+public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @BeforeClass
     public static void beforeAll() {
-        environmentVariables.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
-
-        environmentVariables.set("SERVICE_NAME", "hdfs");
-        environmentVariables.set("SERVICE_PRINCIPAL", "principal");
-        environmentVariables.set("JOURNAL_CPUS", "1.0");
-        environmentVariables.set("JOURNAL_MEM", "1024");
-        environmentVariables.set("JOURNAL_DISK", "1024");
-        environmentVariables.set("JOURNAL_DISK_TYPE", "MOUNT");
-        environmentVariables.set("JOURNAL_NODE_RPC_PORT", "1");
-        environmentVariables.set("JOURNAL_NODE_HTTP_PORT", "1");
-        environmentVariables.set("ZKFC_CPUS", "1.0");
-        environmentVariables.set("ZKFC_MEM", "1024");
-        environmentVariables.set("NAME_CPUS", "1.0");
-        environmentVariables.set("NAME_MEM", "1024");
-        environmentVariables.set("NAME_DISK", "1024");
-        environmentVariables.set("NAME_DISK_TYPE", "MOUNT");
-        environmentVariables.set("NAME_NODE_RPC_PORT", "1");
-        environmentVariables.set("NAME_NODE_HTTP_PORT", "1");
-        environmentVariables.set("DATA_COUNT", "3");
-        environmentVariables.set("DATA_CPUS", "1.0");
-        environmentVariables.set("DATA_MEM", "1024");
-        environmentVariables.set("DATA_DISK", "1024");
-        environmentVariables.set("DATA_DISK_TYPE", "MOUNT");
-        environmentVariables.set("DATA_NODE_RPC_PORT", "1");
-        environmentVariables.set("DATA_NODE_HTTP_PORT", "1");
-        environmentVariables.set("DATA_NODE_IPC_PORT", "1");
-        environmentVariables.set("JOURNAL_STRATEGY", "parallel");
-        environmentVariables.set("DATA_STRATEGY", "parallel");
-
-        URL resource = ServiceSpecTest.class.getClassLoader().getResource("hdfs-site.xml");
-        environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
-    }
-
-    @Before
-    public void beforeEach() {
-        MockitoAnnotations.initMocks(this);
+        ENV_VARS.set("EXECUTOR_URI", "");
+        ENV_VARS.set("LIBMESOS_URI", "");
+        ENV_VARS.set("PORT_API", "8080");
+        ENV_VARS.set("SERVICE_NAME", "hdfs");
+        ENV_VARS.set("SERVICE_PRINCIPAL", "principal");
+        ENV_VARS.set("JOURNAL_CPUS", "1.0");
+        ENV_VARS.set("JOURNAL_MEM", "1024");
+        ENV_VARS.set("JOURNAL_DISK", "1024");
+        ENV_VARS.set("JOURNAL_DISK_TYPE", "MOUNT");
+        ENV_VARS.set("JOURNAL_NODE_RPC_PORT", "1");
+        ENV_VARS.set("JOURNAL_NODE_HTTP_PORT", "1");
+        ENV_VARS.set("ZKFC_CPUS", "1.0");
+        ENV_VARS.set("ZKFC_MEM", "1024");
+        ENV_VARS.set("NAME_CPUS", "1.0");
+        ENV_VARS.set("NAME_MEM", "1024");
+        ENV_VARS.set("NAME_DISK", "1024");
+        ENV_VARS.set("NAME_DISK_TYPE", "MOUNT");
+        ENV_VARS.set("NAME_NODE_RPC_PORT", "1");
+        ENV_VARS.set("NAME_NODE_HTTP_PORT", "1");
+        ENV_VARS.set("DATA_COUNT", "3");
+        ENV_VARS.set("DATA_CPUS", "1.0");
+        ENV_VARS.set("DATA_MEM", "1024");
+        ENV_VARS.set("DATA_DISK", "1024");
+        ENV_VARS.set("DATA_DISK_TYPE", "MOUNT");
+        ENV_VARS.set("DATA_NODE_RPC_PORT", "1");
+        ENV_VARS.set("DATA_NODE_HTTP_PORT", "1");
+        ENV_VARS.set("DATA_NODE_IPC_PORT", "1");
+        ENV_VARS.set("JOURNAL_STRATEGY", "parallel");
+        ENV_VARS.set("DATA_STRATEGY", "parallel");
     }
 
     @Test
-    public void testOneTimePlanDeserialization() throws Exception {
-        testDeserialization("svc.yml");
-    }
-
-    @Test
-    public void testOneTimePlanValidation() throws Exception {
-        testValidation("svc.yml");
-    }
-
-    private void testDeserialization(String yamlFileName) throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(yamlFileName).getFile());
-
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
-        Assert.assertNotNull(serviceSpec);
-        Assert.assertEquals(8080, serviceSpec.getApiPort());
-        DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
-    }
-
-    private void testValidation(String yamlFileName) throws Exception {
-        File file = new File(getClass().getClassLoader().getResource(yamlFileName).getFile());
-        RawServiceSpec rawSpec = generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawSpec);
-
-        TestingServer testingServer = new TestingServer();
-        StateStoreCache.resetInstanceForTests();
-        DefaultScheduler.newBuilder(serviceSpec)
-            .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
-            .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
-            .setPlansFrom(rawSpec)
-            .build();
-        testingServer.close();
+    public void testYaml() throws Exception {
+        super.testYaml("svc.yml");
     }
 }

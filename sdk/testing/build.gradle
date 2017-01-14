@@ -1,4 +1,4 @@
-group 'com.mesosphere.sdk.hdfs'
+group 'com.mesosphere.sdk'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
@@ -19,21 +19,14 @@ ext {
     mockitoVer = "1.9.5"
 }
 
+buildDir = new File(rootProject.projectDir, "build/")
+
 dependencies {
     compile project(":scheduler")
-    compile project(":executor")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
-    testCompile project(":testing")
+    compile "junit:junit:${junitVer}"
+    compile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
+    compile "org.mockito:mockito-all:${mockitoVer}"
 }
 
-distZip.dependsOn ":executor:distZip"
-distZip.finalizedBy copyExecutor
-
-distributions {
-    main {
-        baseName = 'hdfs-scheduler'
-        version = ''
-    }
-}
-
-mainClassName = 'com.mesosphere.sdk.hdfs.scheduler.Main'
+mainClassName = 'com.mesosphere.sdk.kafka.scheduler.Main'
