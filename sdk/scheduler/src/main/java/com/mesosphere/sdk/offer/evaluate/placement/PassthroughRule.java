@@ -21,7 +21,7 @@ public class PassthroughRule implements PlacementRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
-        return EvaluationOutcome.pass(this, "Rubber stamp approval");
+        return EvaluationOutcome.pass(this, "Passthrough rule always passes.");
     }
 
     @Override
