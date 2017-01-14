@@ -30,10 +30,13 @@ distributions {
     }
 }
 
-test {
-    filter {
-        //include all tests from package
-        includeTestsMatching "com.mesosphere.sdk.executor.*"
+check.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
     }
 }
 
