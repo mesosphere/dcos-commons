@@ -82,7 +82,7 @@
 
 1. __Graceful Shutdown for Tasks__: Support for graceful shutdown of services such as [Apache Kafka](https://kafka.apache.org/documentation#basic_ops_restarting). This is considered an optimization since hardware and software can fail unexpectedly.
 
-1. __Advanced Docker Image Support for Tasks__: Support for Docker image per task.
+1. __Advanced Docker Image Support for Tasks__: Support for Docker image per task within a pod.
 
 1. __Updatable Placement Constraints for Pods__: Enable operators to update pods placement constraints so that pods can safely replace without losing data or violating performance SLAs.
 
