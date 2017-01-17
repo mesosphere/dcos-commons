@@ -4,18 +4,16 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.OfferRecommendationSlate;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that its resources meet the
- * constraints imposed by the supplied {@link com.mesosphere.sdk.offer.constrain.PlacementRule}.
+ * constraints imposed by the supplied {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}.
  */
 public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
-    private static final Logger logger = LoggerFactory.getLogger(PlacementRuleEvaluationStage.class);
-
     private final Collection<Protos.TaskInfo> deployedTasks;
 
     public PlacementRuleEvaluationStage(Collection<Protos.TaskInfo> deployedTasks) {
@@ -23,34 +21,14 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         if (!offerRequirement.getPlacementRuleOptional().isPresent()) {
-            return;
+            return pass(this, "No placement rule defined.");
         }
-
-        Protos.Offer originalOffer = mesosResourcePool.getOffer();
-        Protos.Offer filteredOffer = offerRequirement.getPlacementRuleOptional().get().filter(
+        return offerRequirement.getPlacementRuleOptional().get().filter(
                 mesosResourcePool.getOffer(), offerRequirement, deployedTasks);
-        mesosResourcePool.update(filteredOffer);
-
-        int originalCount = originalOffer.getResourcesCount();
-        int filteredCount = filteredOffer.getResourcesCount();
-
-        if (filteredCount == originalCount) {
-            logger.info(
-                    "- Fully passed placement constraint, {} resources remain for evaluation: {}",
-                    filteredCount, filteredOffer.getId().getValue());
-        } else if (filteredCount > 0) {
-            logger.info(
-                    "- {}: Partially passed placement constraint, {} of {} resources remain for evaluation: {}",
-                    filteredCount, originalCount, filteredOffer.getId().getValue());
-        } else {
-            throw new OfferEvaluationException(String.format(
-                    "Failed placement constraint for all %s resources, removed from resource evaluation",
-                    originalCount));
-        }
     }
 }

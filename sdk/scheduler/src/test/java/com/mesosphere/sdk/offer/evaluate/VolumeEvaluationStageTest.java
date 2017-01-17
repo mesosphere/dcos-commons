@@ -22,7 +22,9 @@ public class VolumeEvaluationStageTest {
 
         VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                 desiredResource, TestConstants.TASK_NAME);
-        volumeEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+        EvaluationOutcome outcome =
+                volumeEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(2, offerRecommendationSlate.getRecommendations().size());
 
@@ -59,12 +61,9 @@ public class VolumeEvaluationStageTest {
 
         VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                 desiredResource, TestConstants.TASK_NAME);
-        try {
-            volumeEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
-        } catch (OfferEvaluationException e) {
-            // Expected.
-        }
-
+        EvaluationOutcome outcome =
+                volumeEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+        Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, offerRecommendationSlate.getRecommendations().size());
     }
 }

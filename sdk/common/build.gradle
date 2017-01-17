@@ -1,3 +1,5 @@
+apply plugin: 'java'
+
 ext {
     commonsCollectionsVer = "3.2.2"
     commonsIoVer = "2.4"
@@ -33,4 +35,12 @@ dependencies {
     testCompile "org.awaitility:awaitility:${awaitilityVer}"
 }
 
-apply plugin: 'java'
+check.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
+    }
+}

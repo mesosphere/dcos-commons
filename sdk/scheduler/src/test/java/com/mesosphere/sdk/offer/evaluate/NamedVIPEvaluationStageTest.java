@@ -23,7 +23,9 @@ public class NamedVIPEvaluationStageTest {
 
         PortEvaluationStage portEvaluationStage = new NamedVIPEvaluationStage(
                 desiredPorts, TestConstants.TASK_NAME, "test-port", 10000, "test-vip", 80);
-        portEvaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, new OfferRecommendationSlate());
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(
+                new MesosResourcePool(offer), offerRequirement, new OfferRecommendationSlate());
+        Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME)
                 .getTaskInfo().getDiscovery();

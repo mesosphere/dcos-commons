@@ -3,7 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 
 import java.net.URI;
 import java.util.Collection;

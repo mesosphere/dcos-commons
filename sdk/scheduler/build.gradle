@@ -111,11 +111,22 @@ dependencies {
     testCompile "org.mock-server:mockserver-netty:${mockServerVer}"
     testCompile "org.springframework.integration:spring-integration-http:${springVer}"
     testCompile "org.awaitility:awaitility:${awaitilityVer}"
+    testCompile project(":testing")
 }
 
 distributions {
     main {
         mainClassName = ''
         baseName = 'sdk'
+    }
+}
+
+check.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
     }
 }

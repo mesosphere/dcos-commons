@@ -19,7 +19,9 @@ public class LaunchEvaluationStageTest {
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
 
-        evaluationStage.evaluate(new MesosResourcePool(offer), offerRequirement, new OfferRecommendationSlate());
+        EvaluationOutcome outcome = evaluationStage.evaluate(
+                new MesosResourcePool(offer), offerRequirement, new OfferRecommendationSlate());
+        Assert.assertTrue(outcome.isPassing());
         Protos.TaskInfo taskInfo = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME).getTaskInfo();
 
         Protos.Label label = taskInfo.getLabels().getLabels(0);
