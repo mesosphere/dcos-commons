@@ -2,8 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
-import com.mesosphere.sdk.offer.constrain.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -1021,18 +1019,6 @@ public class OfferEvaluatorTest {
     private PodInstanceRequirement getMultipleTaskPodInstanceRequirement() throws Exception {
         return getPodInstanceRequirement(
                 Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, "multiple-task.yml");
-    }
-
-    private static OfferRequirement getOfferRequirement(
-            Protos.Resource resource, List<String> avoidAgents, List<String> collocateAgents)
-                    throws InvalidRequirementException {
-        Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
-        return OfferRequirement.create(
-                TestConstants.TASK_TYPE,
-                0,
-                Arrays.asList(TaskTestUtils.getTaskInfo(resource)),
-                Optional.empty(),
-                placement);
     }
 
     private static Offer getOffer(Resource resource) {

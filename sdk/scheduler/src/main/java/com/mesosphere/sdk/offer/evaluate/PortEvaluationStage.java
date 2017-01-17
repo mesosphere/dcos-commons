@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class evaluates an offer for its port resources against an {@link OfferRequirement}, finding ports dynamically
  * in the offer where specified by the framework and modifying {@link org.apache.mesos.Protos.TaskInfo} and
@@ -29,10 +31,10 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
         Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
                 offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().getCommand() :
@@ -45,16 +47,16 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         } else if (assignedPort == 0) {
             Optional<Integer> dynamicPort = selectDynamicPort(mesosResourcePool, offerRequirement);
             if (!dynamicPort.isPresent()) {
-                throw new OfferEvaluationException(String.format(
+                return fail(this,
                         "No ports were available for dynamic claim in offer: %s",
-                        mesosResourcePool.getOffer().toString()));
+                        mesosResourcePool.getOffer().toString());
             }
 
             assignedPort = dynamicPort.get();
         }
 
         super.setResourceRequirement(getPortRequirement(getResourceRequirement(), assignedPort));
-        super.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+        return super.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
     }
 
     @Override
