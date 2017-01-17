@@ -245,7 +245,10 @@ It can be confusing to understand what parts of the Elasticsearch cluster can be
 - Service name (aka cluster name). Can be hyphenated, but not underscored.
 - Master transport port
 - Disk sizes/types
-- Modifiable settings (at runtime via Marathon env vars):
+
+
+### Modifiable settings (at runtime via Marathon env vars):
+
 - Plugins
 - CPU
 - RAM
