@@ -715,7 +715,7 @@ Edition, but support has recently been
 and should soon be available in Open DC/OS. For more information,
 see the [dcos-metrics](http://github.com/dcos/dcos-metrics)
 repository and stop by the #day2ops channel on [DC/OS
-Slack](https://chat.dcos.io).
+Slack](http://chat.dcos.io).
 
 DC/OS Metrics automatically provides all Mesos containers with a
 unique UDP endpoint for outputting `statsd`-formatted metrics. The
