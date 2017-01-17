@@ -1,6 +1,6 @@
 name: "hello-world"
-principal: "test-principal"
-api-port: {{PORT0}}
+scheduler:
+  principal: "test-principal"
 pods:
   pod-type:
     count: 1

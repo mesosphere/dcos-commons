@@ -1,0 +1,14 @@
+name: "data-store"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      some-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
+        configs:
+          conf-doesnt-exist:
+            template: file-doesnt-exist.conf.mustache
+            dest: conf/file-doesnt-exist.conf

@@ -3,7 +3,7 @@ package com.mesosphere.sdk.testing;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreCache;
 import org.apache.curator.test.TestingServer;
 import org.junit.Assert;
@@ -15,7 +15,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.util.Collections;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,8 +40,7 @@ public class BaseServiceSpecTest {
 
     protected void deserializeServiceSpec(String fileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());
         DefaultServiceSpec.getFactory(serviceSpec, Collections.emptyList());
@@ -49,7 +48,8 @@ public class BaseServiceSpecTest {
 
     protected void validateServiceSpec(String fileName) throws Exception {
         File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(generateRawSpecFromYAML(file));
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
@@ -62,6 +62,7 @@ public class BaseServiceSpecTest {
                 .setStateStore(DefaultScheduler.createStateStore(serviceSpec, testingServer.getConnectString()))
                 .setConfigStore(DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString()))
                 .setCapabilities(capabilities)
+                .setPlansFrom(rawServiceSpec)
                 .build();
         testingServer.close();
     }

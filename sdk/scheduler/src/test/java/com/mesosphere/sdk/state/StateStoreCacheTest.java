@@ -11,7 +11,7 @@ import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.After;
 import org.junit.Before;

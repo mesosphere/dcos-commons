@@ -8,6 +8,7 @@ import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,16 +23,25 @@ public class NamedVIPEvaluationStageTest {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
 
         PortEvaluationStage portEvaluationStage = new NamedVIPEvaluationStage(
-                desiredPorts, TestConstants.TASK_NAME, "test-port", 10000, "test-vip", 80);
+                desiredPorts,
+                TestConstants.TASK_NAME,
+                "test-port",
+                10000,
+                "sctp",
+                DiscoveryInfo.Visibility.CLUSTER,
+                "test-vip",
+                80);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer), offerRequirement, new OfferRecommendationSlate());
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME)
                 .getTaskInfo().getDiscovery();
+        Assert.assertEquals(DiscoveryInfo.Visibility.CLUSTER, discoveryInfo.getVisibility());
+
         Protos.Port port = discoveryInfo.getPorts().getPorts(0);
         Assert.assertEquals(port.getNumber(), 10000);
-        Assert.assertEquals(port.getProtocol(), "tcp");
+        Assert.assertEquals(port.getProtocol(), "sctp");
 
         Protos.Label vipLabel = port.getLabels().getLabels(0);
         Assert.assertEquals(discoveryInfo.getName(), TestConstants.TASK_NAME);

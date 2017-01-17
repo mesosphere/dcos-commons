@@ -51,9 +51,6 @@ public class DefaultOfferRequirementProviderTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         podInstance = getPodInstance("valid-minimal-health.yml");
 
@@ -63,8 +60,8 @@ public class DefaultOfferRequirementProviderTest {
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(
+                YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule(ALLOW_ALL)

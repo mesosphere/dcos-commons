@@ -1,7 +1,4 @@
 name: "docker-test"
-principal: "docker-test-principal"
-zookeeper: master.mesos:2181
-api-port: 8080
 pods:
   server:
     count: 1

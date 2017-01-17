@@ -39,7 +39,7 @@ public class PortEvaluationStageTest {
 
         Protos.TaskInfo taskInfo = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME).getTaskInfo();
         Protos.Environment.Variable variable = taskInfo.getCommand().getEnvironment().getVariables(0);
-        Assert.assertEquals(variable.getName(), "PORT_test-port");
+        Assert.assertEquals(variable.getName(), "PORT_TEST_PORT");
         Assert.assertEquals(variable.getValue(), "10000");
     }
 
@@ -70,7 +70,7 @@ public class PortEvaluationStageTest {
 
         Protos.TaskInfo taskInfo = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME).getTaskInfo();
         Protos.Environment.Variable variable = taskInfo.getCommand().getEnvironment().getVariables(0);
-        Assert.assertEquals(variable.getName(), "PORT_test-port");
+        Assert.assertEquals(variable.getName(), "PORT_TEST_PORT");
         Assert.assertEquals(variable.getValue(), "10000");
     }
 
@@ -107,7 +107,7 @@ public class PortEvaluationStageTest {
         Protos.TaskInfo.Builder builder = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME)
                 .getTaskInfo().toBuilder();
         builder.getCommandBuilder().getEnvironmentBuilder().addVariablesBuilder()
-                .setName("PORT_test-port")
+                .setName("PORT_TEST_PORT")
                 .setValue("10000");
         offerRequirement.updateTaskRequirement(TestConstants.TASK_NAME, builder.build());
 

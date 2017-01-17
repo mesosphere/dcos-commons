@@ -7,25 +7,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RawPort {
 
-    private final String name;
     private final Integer port;
+    private final String envKey;
     private final RawVip vip;
 
     private RawPort(
-            @JsonProperty("name") String name,
             @JsonProperty("port") Integer port,
+            @JsonProperty("env-key") String envKey,
             @JsonProperty("vip") RawVip vip) {
-        this.name = name;
         this.port = port;
+        this.envKey = envKey;
         this.vip = vip;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public Integer getPort() {
         return port;
+    }
+
+    public String getEnvKey() {
+        return envKey;
     }
 
     public RawVip getVip() {

@@ -13,7 +13,7 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -58,9 +58,6 @@ public class DefaultRecoveryPlanManagerTest {
     @ClassRule
     public static final EnvironmentVariables environmentVariables =
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
-    static {
-        environmentVariables.set("PORT0", "8080");
-    }
 
     private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getDesiredCpu(TestPodFactory.CPU),
@@ -107,9 +104,6 @@ public class DefaultRecoveryPlanManagerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());

@@ -99,6 +99,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.principal = copy.principal;
         builder.apiPort = copy.apiPort;
         builder.zookeeperConnection = copy.zookeeperConnection;
+        builder.webUrl = copy.webUrl;
         builder.pods = copy.pods;
         builder.replacementFailurePolicy = copy.replacementFailurePolicy;
         return builder;
@@ -333,9 +334,10 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Sets the {@code webUrl} and returns a reference to this Builder so that the methods can be chained together.
+         * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
+         * can be chained together.
          *
-         * @param webUrl the {@code webUrl} to set
+         * @param webUrl the web URL to set
          * @return a reference to this Builder
          */
         public Builder webUrl(String webUrl) {

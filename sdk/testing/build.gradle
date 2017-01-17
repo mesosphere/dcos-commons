@@ -1,25 +1,8 @@
-group 'com.mesosphere.sdk'
-version '1.0-SNAPSHOT'
-
-apply plugin: 'java'
-apply plugin: 'application'
-
-repositories {
-    maven {
-        url "http://downloads.mesosphere.com/maven/"
-    }
-    maven {
-        url "http://downloads.mesosphere.com/maven-snapshot/"
-    }
-}
-
 ext {
     junitVer = "4.12"
     systemRulesVer = "1.16.0"
     mockitoVer = "1.9.5"
 }
-
-buildDir = new File(rootProject.projectDir, "build/")
 
 dependencies {
     compile project(":scheduler")
@@ -28,5 +11,3 @@ dependencies {
     compile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     compile "org.mockito:mockito-all:${mockitoVer}"
 }
-
-mainClassName = 'com.mesosphere.sdk.kafka.scheduler.Main'
