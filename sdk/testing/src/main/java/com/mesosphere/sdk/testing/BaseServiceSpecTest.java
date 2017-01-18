@@ -27,7 +27,7 @@ public class BaseServiceSpecTest {
     public static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
 
     @Before
-    public void beforeEach() {
+    public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
     }
 
@@ -66,5 +66,4 @@ public class BaseServiceSpecTest {
                 .build();
         testingServer.close();
     }
-
 }

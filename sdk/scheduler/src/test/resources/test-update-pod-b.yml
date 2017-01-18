@@ -1,0 +1,36 @@
+name: "test"
+scheduler:
+  api-port: 8080
+pods:
+  pod-a:
+    count: 1
+    resource-sets:
+      resource-set-a:
+        cpus: 1
+        memory: 1000
+        volumes:
+          volume-a:
+            path: test-container-path
+            type: ROOT
+            size: 1500
+    tasks:
+      a:
+        goal: RUNNING
+        cmd: echo a
+        resource-set: resource-set-a
+  pod-b:
+    count: 2
+    resource-sets:
+      resource-set-b:
+        cpus: 2
+        memory: 4000
+        volumes:
+          volume-b:
+            path: test-container-path
+            type: ROOT
+            size: 2500
+    tasks:
+      b:
+        goal: RUNNING
+        cmd: echo b
+        resource-set: resource-set-b
