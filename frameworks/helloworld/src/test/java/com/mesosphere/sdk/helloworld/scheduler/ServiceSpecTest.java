@@ -10,7 +10,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public static void beforeAll() {
         ENV_VARS.set("EXECUTOR_URI", "");
         ENV_VARS.set("LIBMESOS_URI", "");
-        ENV_VARS.set("PORT0", "8080");
+        ENV_VARS.set("PORT_API", "8080");
 
         ENV_VARS.set("SLEEP_DURATION", "1000");
         ENV_VARS.set("HELLO_COUNT", "2");

@@ -10,7 +10,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public static void beforeAll() {
         ENV_VARS.set("EXECUTOR_URI", "");
         ENV_VARS.set("LIBMESOS_URI", "");
-        ENV_VARS.set("PORT0", "8080");
+        ENV_VARS.set("PORT_API", "8080");
         ENV_VARS.set("SERVICE_NAME", "hdfs");
         ENV_VARS.set("SERVICE_PRINCIPAL", "principal");
         ENV_VARS.set("JOURNAL_CPUS", "1.0");
@@ -41,6 +41,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @Test
     public void testYaml() throws Exception {
-        super.testYaml("hdfs_svc.yml");
+        super.testYaml("svc.yml");
     }
 }

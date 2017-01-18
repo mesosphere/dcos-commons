@@ -23,12 +23,12 @@ public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
 
     @JsonCreator
     public PortSpec(
-            @JsonProperty("port-name") String portName,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
-            @JsonProperty("env-key") String envKey) {
+            @JsonProperty("env-key") String envKey,
+            @JsonProperty("port-name") String portName) {
         super(name, value, role, principal, envKey);
         this.portName = portName;
 

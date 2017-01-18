@@ -8,6 +8,7 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -45,7 +46,7 @@ public class DefaultPlanSchedulerTest {
             Arrays.asList(OfferID.newBuilder().setValue("offer").build());
 
     @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+    public final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
 
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
@@ -59,7 +60,6 @@ public class DefaultPlanSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        environmentVariables.set("PORT0", "8080");
         scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockStateStore, mockTaskKiller);
 
         ClassLoader classLoader = getClass().getClassLoader();

@@ -1,7 +1,6 @@
 name: {{SERVICE_NAME}}
-principal: {{SERVICE_PRINCIPAL}}
-zookeeper: master.mesos:2181
-api-port: {{PORT0}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
 pods:
   journal:
     count: 3
@@ -12,21 +11,23 @@ pods:
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
-          - name: journal_rpc
+          journal-rpc:
             port: {{JOURNAL_NODE_RPC_PORT}}
-          - name: journal_http
+          journal-http:
             port: {{JOURNAL_NODE_HTTP_PORT}}
-        volumes:
-          - path: "journal-data"
-            size: {{JOURNAL_DISK}}
-            type: {{JOURNAL_DISK_TYPE}}
+        volume:
+          path: "journal-data"
+          size: {{JOURNAL_DISK}}
+          type: {{JOURNAL_DISK_TYPE}}
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+          hdfs-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -37,14 +38,14 @@ pods:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
         ports:
-          - name: name_rpc
+          name-rpc:
             port: {{NAME_NODE_RPC_PORT}}
-          - name: name_http
+          name-http:
             port: {{NAME_NODE_HTTP_PORT}}
-        volumes:
-          - path: "name-data"
-            size: {{NAME_DISK}}
-            type: {{NAME_DISK_TYPE}}
+        volume:
+          path: "name-data"
+          size: {{NAME_DISK}}
+          type: {{NAME_DISK_TYPE}}
     tasks:
       node:
         goal: RUNNING
@@ -53,10 +54,12 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+          hdfs-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -67,10 +70,12 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+          hdfs-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -81,10 +86,12 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml"
+          hdfs-bootstrap-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -102,10 +109,12 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+          hdfs-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -117,10 +126,12 @@ pods:
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+          hdfs-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -134,23 +145,25 @@ pods:
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
-          - name: data_rpc
+          data-rpc:
             port: {{DATA_NODE_RPC_PORT}}
-          - name: data_http
+          data-http:
             port: {{DATA_NODE_HTTP_PORT}}
-          - name: data_ipc
+          data-ipc:
             port: {{DATA_NODE_IPC_PORT}}
-        volumes:
-          - path: "data-data"
-            size: {{DATA_DISK}}
-            type: {{DATA_DISK_TYPE}}
+        volume:
+          path: "data-data"
+          size: {{DATA_DISK}}
+          type: {{DATA_DISK_TYPE}}
         uris:
           - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
           - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+        configs:
+          core-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
-          - template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+          hdfs-site:
+            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
@@ -166,24 +179,17 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - pod-instance: 0
-            tasks: [format]
-          - pod-instance: 0
-            tasks: [node]
-          - pod-instance: 1
-            tasks: [bootstrap]
-          - pod-instance: 1
-            tasks: [node]
+          - 0: [format]
+          - 0: [node]
+          - 1: [bootstrap]
+          - 1: [node]
       zkfc-deploy:
         strategy: serial
         pod: zkfc
         steps:
-          - pod-instance: 0
-            tasks: [format]
-          - pod-instance: 0
-            tasks: [node]
-          - pod-instance: 1
-            tasks: [node]
+          - 0: [format]
+          - 0: [node]
+          - 1: [node]
       dn-deploy:
         strategy: {{DATA_STRATEGY}}
         pod: data

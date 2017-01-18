@@ -173,10 +173,16 @@ public class OfferRequirementTestUtils {
                 null);
     }
 
+    public static final EnvironmentVariables getApiPortEnvironment() {
+        EnvironmentVariables env = new EnvironmentVariables();
+        env.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
+        return env;
+    }
+
     public static EnvironmentVariables getOfferRequirementProviderEnvironment() {
-        EnvironmentVariables vars = new EnvironmentVariables();
-        vars.set("EXECUTOR_URI", "");
-        vars.set("LIBMESOS_URI", "");
-        return vars;
+        EnvironmentVariables env = getApiPortEnvironment();
+        env.set("EXECUTOR_URI", "");
+        env.set("LIBMESOS_URI", "");
+        return env;
     }
 }

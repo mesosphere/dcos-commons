@@ -16,6 +16,7 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos.DiscoveryInfo;
@@ -161,9 +162,9 @@ public class EndpointsResource {
             }
             // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
-            if (discoveryInfo.getVisibility() != DiscoveryInfo.Visibility.EXTERNAL) {
-                LOGGER.info("Task discovery information has {} visibility, EXTERNAL needed: {}",
-                        discoveryInfo.getVisibility(), taskInfo.getName());
+            if (discoveryInfo.getVisibility() != DefaultResourceSet.PUBLIC_VIP_VISIBILITY) {
+                LOGGER.info("Task discovery information has {} visibility, {} needed to be included in endpoints: {}",
+                        discoveryInfo.getVisibility(), DefaultResourceSet.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
                 continue;
             }
             final String directHost;

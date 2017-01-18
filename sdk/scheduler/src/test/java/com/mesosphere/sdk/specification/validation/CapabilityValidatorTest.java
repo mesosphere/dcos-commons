@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -17,14 +19,14 @@ import static org.mockito.Mockito.when;
  * This class tests {@link CapabilityValidator}.
  */
 public class CapabilityValidatorTest {
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+    public final EnvironmentVariables environmentVariables = OfferRequirementTestUtils.getApiPortEnvironment();
 
     @Mock private Capabilities mockCapabilities;
+    @Mock private FileReader mockFileReader;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        environmentVariables.set("PORT0", "8080");
     }
 
     @Test
@@ -43,8 +45,12 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
+        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -54,8 +60,12 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
+        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file), mockFileReader);
 
         capabilityValidator.validate(serviceSpec);
     }

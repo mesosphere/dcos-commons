@@ -7,7 +7,7 @@ import org.apache.mesos.Protos.SlaveID;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
-import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import org.junit.*;
 
 import java.nio.charset.StandardCharsets;

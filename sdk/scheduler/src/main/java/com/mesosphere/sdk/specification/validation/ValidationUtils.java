@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.specification.validation;
 
 import javax.validation.*;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -15,13 +14,13 @@ public class ValidationUtils {
 
     public static <T> void validate(T object) {
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        Validator validator = validatorFactory.getValidator();
-
-        Set<ConstraintViolation<T>> violations = validator.validate(object);
-
+        Set<ConstraintViolation<T>> violations = validatorFactory.getValidator().validate(object);
         validatorFactory.close();
+
         if (!violations.isEmpty()) {
-            throw new ConstraintViolationException(Objects.toString(violations), violations);
+            throw new ConstraintViolationException(
+                    String.format("Validation failed for object:%n%s%nViolations:%n%s", object, violations),
+                    violations);
         }
     }
 }

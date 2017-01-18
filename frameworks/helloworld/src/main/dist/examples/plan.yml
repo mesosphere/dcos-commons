@@ -1,7 +1,4 @@
 name: "hello-world"
-principal: "hello-world-principal"
-zookeeper: master.mesos:2181
-api-port: {{PORT0}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
@@ -11,15 +8,15 @@ pods:
         cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        volumes:
-          - path: "hello-container-path"
-            type: ROOT
-            size: {{HELLO_DISK}}
+        volume:
+          path: "hello-container-path"
+          type: ROOT
+          size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         ports:
-         - name: test
-           port: 9999
+          test:
+            port: 9999
 
   world:
     count: {{WORLD_COUNT}}
@@ -27,10 +24,10 @@ pods:
       world-resource:
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
-        volumes:
-          - path: "world-container-path"
-            type: ROOT
-            size: {{WORLD_DISK}}
+        volume:
+          path: "world-container-path"
+          type: ROOT
+          size: {{WORLD_DISK}}
     tasks:
       server:
         goal: RUNNING

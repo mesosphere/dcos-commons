@@ -205,47 +205,85 @@ public class ResourceUtils {
     }
 
     public static TaskInfo.Builder addVIP(
-            TaskInfo.Builder builder, String vipName, Integer vipPort, Resource resource) {
+            TaskInfo.Builder builder,
+            String vipName,
+            Integer vipPort,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            Resource resource) {
         if (builder.hasDiscovery()) {
-            addVIP(builder.getDiscoveryBuilder(), vipName, vipPort, (int) resource.getRanges().getRange(0).getBegin());
+            addVIP(
+                    builder.getDiscoveryBuilder(),
+                    vipName,
+                    protocol,
+                    vipPort,
+                    (int) resource.getRanges().getRange(0).getBegin());
         } else {
-            builder.setDiscovery(getVIPDiscoveryInfo(builder.getName(), vipName, vipPort, resource));
+            builder.setDiscovery(getVIPDiscoveryInfo(
+                    builder.getName(),
+                    vipName,
+                    vipPort,
+                    protocol,
+                    visibility,
+                    resource));
         }
 
         return builder;
     }
 
     public static ExecutorInfo.Builder addVIP(
-            ExecutorInfo.Builder builder, String vipName, Integer vipPort, Resource resource) {
+            ExecutorInfo.Builder builder,
+            String vipName,
+            Integer vipPort,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            Resource resource) {
         if (builder.hasDiscovery()) {
-            addVIP(builder.getDiscoveryBuilder(), vipName, vipPort, (int) resource.getRanges().getRange(0).getBegin());
+            addVIP(
+                    builder.getDiscoveryBuilder(),
+                    vipName,
+                    protocol,
+                    vipPort,
+                    (int) resource.getRanges().getRange(0).getBegin());
         } else {
-            builder.setDiscovery(getVIPDiscoveryInfo(builder.getName(), vipName, vipPort, resource));
+            builder.setDiscovery(getVIPDiscoveryInfo(
+                    builder.getName(),
+                    vipName,
+                    vipPort,
+                    protocol,
+                    visibility,
+                    resource));
         }
 
         return builder;
     }
 
     private static DiscoveryInfo.Builder addVIP(
-            DiscoveryInfo.Builder builder, String vipName, Integer vipPort, int destPort) {
+            DiscoveryInfo.Builder builder, String vipName, String protocol, Integer vipPort, int destPort) {
         builder.getPortsBuilder()
                 .addPortsBuilder()
                 .setNumber(destPort)
-                .setProtocol("tcp")
+                .setProtocol(protocol)
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
         return builder;
     }
 
-    public static DiscoveryInfo getVIPDiscoveryInfo(String taskName, String vipName, Integer vipPort, Resource r) {
+    public static DiscoveryInfo getVIPDiscoveryInfo(
+            String taskName,
+            String vipName,
+            Integer vipPort,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            Resource r) {
         DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setVisibility(visibility)
                 .setName(taskName);
 
         discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
                 .setNumber((int) r.getRanges().getRange(0).getBegin())
-                .setProtocol("tcp")
+                .setProtocol(protocol)
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 

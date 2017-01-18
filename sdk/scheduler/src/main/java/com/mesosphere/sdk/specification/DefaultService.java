@@ -182,6 +182,10 @@ public class DefaultService implements Service {
             fwkInfoBuilder.setPrincipal(serviceSpec.getPrincipal());
         }
 
+        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
+            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
+        }
+
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
         if (optionalFrameworkId.isPresent()) {
