@@ -1,4 +1,7 @@
-# SDK Developer Guide
+---
+layout: gh-basic
+title: SDK Developer Guide
+---
 
 This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.
 
