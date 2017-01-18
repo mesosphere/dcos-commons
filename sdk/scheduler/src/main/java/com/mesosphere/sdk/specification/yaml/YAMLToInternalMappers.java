@@ -192,9 +192,11 @@ public class YAMLToInternalMappers {
 
         List<ConfigFileSpec> configFiles = new ArrayList<>();
         if (rawTask.getConfigs() != null) {
-            for (RawConfig rawConfig : rawTask.getConfigs().values()) {
+            for (Map.Entry<String, RawConfig> configEntry : rawTask.getConfigs().entrySet()) {
                 configFiles.add(new DefaultConfigFileSpec(
-                        rawConfig.getDest(), fileReader.read(rawConfig.getTemplate())));
+                        configEntry.getKey(),
+                        configEntry.getValue().getDest(),
+                        fileReader.read(configEntry.getValue().getTemplate())));
             }
         }
 

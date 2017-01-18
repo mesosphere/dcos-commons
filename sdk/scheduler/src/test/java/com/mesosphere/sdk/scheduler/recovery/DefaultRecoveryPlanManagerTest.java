@@ -18,6 +18,8 @@ import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -108,9 +110,7 @@ public class DefaultRecoveryPlanManagerTest {
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
-        stateStore = new CuratorStateStore(
-                "test-framework-name",
-                testingServer.getConnectString());
+        stateStore = new CuratorStateStore(TestConstants.SERVICE_NAME, testingServer.getConnectString());
 
         serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(YAMLServiceSpecFactory
                 .generateRawSpecFromYAML(new File(getClass()
@@ -137,7 +137,8 @@ public class DefaultRecoveryPlanManagerTest {
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        offerRequirementProvider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        offerRequirementProvider = new DefaultOfferRequirementProvider(
+                stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
         final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider),

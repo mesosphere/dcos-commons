@@ -22,6 +22,7 @@ public class ResourceUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtils.class);
 
     public static final String VIP_PREFIX = "VIP_";
+    public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
     public static Resource getUnreservedResource(String name, Value value) {
         return setResource(Resource.newBuilder().setRole("*"), name, value);

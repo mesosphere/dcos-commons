@@ -47,7 +47,8 @@ public class OfferEvaluatorTest {
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
         stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
-        offerRequirementProvider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        offerRequirementProvider =
+                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
         evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
         operationRecorder = new PersistentOperationRecorder(stateStore);
     }

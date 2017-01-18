@@ -8,6 +8,13 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(as = DefaultConfigFileSpec.class)
 public interface ConfigFileSpec {
+
+    /**
+     * Name for this config. Must be unique within a given task specification.
+     */
+    @JsonProperty("name")
+    String getName();
+
     /**
      * Path where this file will be written, relative to the initial working directory of the task.
      */

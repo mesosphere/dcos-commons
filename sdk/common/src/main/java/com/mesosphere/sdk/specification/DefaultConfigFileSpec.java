@@ -12,15 +12,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class DefaultConfigFileSpec implements ConfigFileSpec {
 
+    private final String name;
     private final String relativePath;
     private final String templateContent;
 
     @JsonCreator
     public DefaultConfigFileSpec(
+            @JsonProperty("name") String name,
             @JsonProperty("relative-path") String relativePath,
             @JsonProperty("template-content") String templateContent) {
+        this.name = name;
         this.relativePath = relativePath;
         this.templateContent = templateContent;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

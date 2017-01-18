@@ -4,8 +4,6 @@ package com.mesosphere.sdk.offer;
  * This class encapsulates constants of relevance to the SDK.
  */
 public class Constants {
-    public static final int CONFIG_TEMPLATE_LIMIT_BYTES = 512 * 1024; // 512KB
-
     public static final String COMMAND_DATA_PACKAGE_EXECUTOR = "command_data_package_executor";
     public static final String TASK_NAME_DELIM = "__";
 

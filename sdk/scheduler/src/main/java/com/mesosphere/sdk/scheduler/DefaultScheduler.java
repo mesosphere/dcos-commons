@@ -339,7 +339,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                     plans,
                     stateStore,
                     configStore,
-                    createOfferRequirementProvider(stateStore, configUpdateResult.targetId),
+                    new DefaultOfferRequirementProvider(stateStore, serviceSpec.getName(), configUpdateResult.targetId),
                     endpointProducers,
                     restartHookOptional);
         }
@@ -469,14 +469,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
         }
-    }
-
-    /**
-     * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which expects
-     * tasks tagged with the provided {@code targetConfigurationId}.
-     */
-    public static OfferRequirementProvider createOfferRequirementProvider(StateStore stateStore, UUID targetConfigId) {
-        return new DefaultOfferRequirementProvider(stateStore, targetConfigId);
     }
 
     /**
@@ -616,6 +608,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
+        resources.add(new ArtifactResource(configStore));
         resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {

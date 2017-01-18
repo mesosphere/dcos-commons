@@ -5,6 +5,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
+
+import com.mesosphere.sdk.config.ConfigStoreException.Reason;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
@@ -107,7 +109,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                             "configuration {}, with {} errors across {} validators:\n{}",
                     targetConfigId, errors.size(), validators.size(), sj.toString());
             if (targetConfig == null) {
-                throw new ConfigStoreException(String.format(
+                throw new ConfigStoreException(Reason.LOGIC_ERROR, String.format(
                         "Configuration failed validation without any prior target configuration" +
                                 "available for fallback. Initial launch with invalid configuration? " +
                                 "%d Errors: %s", errors.size(), sj.toString()));

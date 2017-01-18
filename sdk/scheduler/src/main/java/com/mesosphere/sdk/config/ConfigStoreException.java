@@ -9,15 +9,64 @@ import java.io.IOException;
  */
 public class ConfigStoreException extends IOException {
 
-    public ConfigStoreException(Throwable e) {
-        super(e);
+    /**
+     * Machine-parseable indicator of the cause for an exception.
+     */
+    public enum Reason {
+
+        /**
+         * Cause is unexpected or reason could not be determined.
+         */
+        UNKNOWN,
+
+        /**
+         * The requested data was not found.
+         */
+        NOT_FOUND,
+
+        /**
+         * The underlying storage failed to store or retrieve the requested data.
+         */
+        STORAGE_ERROR,
+
+        /**
+         * The data could not be serialized or deserialized into a format suitable for storage.
+         */
+        SERIALIZATION_ERROR,
+
+        /**
+         * The requested operation is invalid.
+         */
+        LOGIC_ERROR
     }
 
-    public ConfigStoreException(String message) {
+    private final Reason reason;
+
+    public ConfigStoreException(Reason reason, Throwable cause) {
+        super(cause);
+        this.reason = reason;
+    }
+
+    public ConfigStoreException(Reason reason, String message) {
         super(message);
+        this.reason = reason;
     }
 
-    public ConfigStoreException(String message, Throwable cause) {
+    public ConfigStoreException(Reason reason, String message, Throwable cause) {
         super(message, cause);
+        this.reason = reason;
+    }
+
+    /**
+     * Returns the machine-parseable reason for this exception. Primarily used for debugging/logging purposes and for
+     * delineating different error cases in REST APIs.
+     */
+    public Reason getReason() {
+        return reason;
+    }
+
+    @Override
+    public String getMessage() {
+        return String.format("%s (reason: %s)", super.getMessage(), reason);
     }
 }

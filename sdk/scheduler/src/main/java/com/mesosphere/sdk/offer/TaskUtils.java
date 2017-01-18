@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.offer.CommonTaskUtils.*;
@@ -22,6 +23,7 @@ import static com.mesosphere.sdk.offer.Constants.*;
  */
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
+    private static final Pattern ENVVAR_INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9_]");
 
     private TaskUtils() {
         // do not instantiate
@@ -31,7 +33,7 @@ public class TaskUtils {
      * Returns the {@link TaskSpec} in the provided {@link com.mesosphere.sdk.specification.DefaultServiceSpec}
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
-    public static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
+    private static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
         String podType = getType(taskInfo);
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
@@ -53,6 +55,15 @@ public class TaskUtils {
         return podInstance.getPod().getTasks().stream()
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Converts the provided string to a valid environment variable name.
+     *
+     * For example: {@code hello.There!} => {@code HELLO_THERE_}
+     */
+    public static String toEnvName(String str) {
+        return ENVVAR_INVALID_CHARS.matcher(str.toUpperCase()).replaceAll("_");
     }
 
     /**
@@ -95,64 +106,6 @@ public class TaskUtils {
         return getType(taskInfo).equals(podInstance.getPod().getType())
                 && getIndex(taskInfo) == podInstance.getIndex();
     }
-
-    /**
-     * Returns the TaskInfos for a PodInstance which should be running.  The list will be empty if the PodInstance has
-     * never been launched.
-     *
-     * @param podInstance A PodInstance
-     * @param stateStore  A StateStore to search for the appropriate TaskInfos.
-     * @return The list of TaskInfos associate with a PodInstance which should be running.
-     */
-    public static List<TaskInfo> getTaskInfosShouldBeRunning(PodInstance podInstance, StateStore stateStore) {
-        List<TaskInfo> podTasks = getPodTasks(podInstance, stateStore);
-
-        List<TaskInfo> tasksShouldBeRunning = new ArrayList<>();
-        for (TaskInfo taskInfo : podTasks) {
-            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(taskInfo, podInstance);
-
-            if (taskSpecOptional.isPresent() && taskSpecOptional.get().getGoal().equals(GoalState.RUNNING)) {
-                tasksShouldBeRunning.add(taskInfo);
-            }
-        }
-
-        return tasksShouldBeRunning;
-    }
-
-    private static Optional<TaskSpec> getTaskSpec(TaskInfo taskInfo, PodInstance podInstance) {
-        for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-            String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
-            if (taskInfo.getName().equals(taskName)) {
-                return Optional.of(taskSpec);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Returns the ExecutorInfo of a PodInstance if it is still running so it may be re-used.
-     *
-     * @param podInstance A PodInstance
-     * @param stateStore  A StateStore to search for the appropriate TaskInfos.
-     * @return The ExecutorInfo if the Executor is running, Optional.empty() otherwise.
-     */
-    public static Optional<ExecutorInfo> getExecutor(PodInstance podInstance, StateStore stateStore) {
-        List<TaskInfo> shouldBeRunningTasks = getTaskInfosShouldBeRunning(podInstance, stateStore);
-
-        for (TaskInfo taskInfo : shouldBeRunningTasks) {
-            Optional<TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
-            if (taskStatusOptional.isPresent()
-                    && taskStatusOptional.get().getState() == TaskState.TASK_RUNNING) {
-                LOGGER.info("Reusing executor: ", taskInfo.getExecutor());
-                return Optional.of(taskInfo.getExecutor());
-            }
-        }
-
-        LOGGER.info("No running executor found.");
-        return Optional.empty();
-    }
-
 
     /**
      * Determines whether two TaskSpecs are different.
@@ -227,8 +180,8 @@ public class TaskUtils {
 
         // Config files
 
-        Map<String, String> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
-        Map<String, String> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
+        Map<String, ConfigFileSpec> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
+        Map<String, ConfigFileSpec> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
         if (!Objects.equals(oldConfigMap, newConfigMap)) {
             LOGGER.info("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
             return true;
@@ -271,34 +224,30 @@ public class TaskUtils {
     }
 
     /**
-     * Returns a path=>template mapping of the provided {@link ConfigFileSpec}s. Assumes
-     * that each config file is given a distinct path.
+     * Returns a name=>template mapping of the provided {@link ConfigFileSpec}s. Checks for unique paths and names
+     * across all configs.
      *
      * @throws IllegalArgumentException if multiple config specifications have matching relative path strings
      */
-    private static Map<String, String> getConfigTemplateMap(
-            Collection<ConfigFileSpec> configSpecifications) throws IllegalArgumentException {
-        Map<String, String> configMap = new HashMap<>();
-        for (ConfigFileSpec configSpecification : configSpecifications) {
-            String prevValue =
-                    configMap.put(configSpecification.getRelativePath(), configSpecification.getTemplateContent());
-            if (prevValue != null) {
+    private static Map<String, ConfigFileSpec> getConfigTemplateMap(Collection<ConfigFileSpec> configSpecs)
+            throws IllegalArgumentException {
+        Set<String> configPaths = new HashSet<>();
+        Map<String, ConfigFileSpec> configMap = new HashMap<>();
+        for (ConfigFileSpec configSpec : configSpecs) {
+            if (!configPaths.add(configSpec.getRelativePath())) {
                 throw new IllegalArgumentException(String.format(
-                        "Config templates for a given task may not share the same path. " +
-                                "path:'%s' oldContent:'%s' newContent:'%s'",
-                        configSpecification.getRelativePath(), prevValue, configSpecification.getTemplateContent()));
+                        "Config templates for a given task may not share the same path: '%s'",
+                        configSpec.getRelativePath()));
+
+            }
+            ConfigFileSpec prevSpec = configMap.put(configSpec.getName(), configSpec);
+            if (prevSpec != null) {
+                throw new IllegalArgumentException(String.format(
+                        "Config templates for a given task may not share the same name: '%s'",
+                        configSpec.getName()));
             }
         }
         return configMap;
-    }
-
-    /**
-     * Returns a {@link CommandInfo.URI} that wraps the given URI string.
-     *
-     * @param uri The URI to be encapsulated
-     */
-    public static CommandInfo.URI uri(String uri) {
-        return CommandInfo.URI.newBuilder().setValue(uri).build();
     }
 
     /**
@@ -372,7 +321,7 @@ public class TaskUtils {
         return new DefaultPodInstance(podSpec, index);
     }
 
-    public static PodSpec getPodSpec(
+    private static PodSpec getPodSpec(
             ConfigStore<ServiceSpec> configStore,
             TaskInfo taskInfo) throws TaskException {
 
