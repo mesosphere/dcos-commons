@@ -24,7 +24,7 @@ Marathon is itself a Mesos framework. Some of the tasks it launches are the sche
 
 A package specification provides a uniform way to define Marathon applications.  Those packages are stored in the Universe so end-users can easily install these DC/OS services in their datacenters..
 
-Every DC/OS service must provide a package definition in the format expected by the Universe.[ Learn more about creating Universe packages](https://github.com/mesosphere/universe).
+Every DC/OS service must provide a package definition in the format expected by the Universe. [Learn more about creating Universe packages](https://github.com/mesosphere/universe).
 
 ## Zookeeper
 
@@ -36,8 +36,9 @@ They store the desired configuration of a service and all relevant information r
 
 # Introduction to DC/OS Service Definitions
 
-At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#heading=h.kd15oqkr96qq)[s](#heading=h.kd15oqkr96qq) define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#heading=h.kd15oqkr96qq)[s](#heading=h.kd15oqkr96qq) are [packaged](#heading=h.bmk3qigsz5vm) so that the service can be deployed on a DC/OS cluster from Universe.
+At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
 
+<a name="service-spec"></a>
 ## ServiceSpec
 
 There are two ways to generate a valid ServiceSpec:  creating a YAML file or  writing Java code. Both produce a valid implementation of the Java ServiceSpec interface.  A ServiceSpec may be used to launch one or more instances of the same service within a DC/OS cluster.
@@ -69,7 +70,7 @@ pods:
 
     * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to "<svcname>-principal".
 
-    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#bookmark=id.ec61ivs93fre)[ section](#bookmark=id.ec61ivs93fre). This setting may be omitted in which case it defaults to the "PORT_API" envvar provided by Marathon.
+    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the "PORT_API" envvar provided by Marathon.
 
 * **Pods**: A pod can be defined most simply as a set of tasks. 
 
@@ -85,7 +86,7 @@ pods:
 
 * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is RUNNING, it will be started again upon exit.
 
-* **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate[ see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
+* **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
 
 * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
@@ -111,6 +112,7 @@ In the example, we have only defined types of pods and tasks. When the service i
 
 Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.  
 
+<a name="plans></a>
 ## Plans
 
 In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
@@ -231,15 +233,16 @@ The strategy associated with the deployment plan as a whole is serial, so the ph
 
 ![image alt text](image_1.png)
 
-The dependency of the world-pod phase on the hello-pod phase serializes those two phases as described at the top level strategy element. Since both hello steps depend on a the hello-pod phase, and not each other, they are executed in parallel. The second world-pod instance depends on the first, so they are launched serially.  You can earn more about the full capabilities of plans [here](#heading=h.9ejmm56erw5h) and [here](#heading=h.5s6jt86ytlqt).
+The dependency of the world-pod phase on the hello-pod phase serializes those two phases as described at the top level strategy element. Since both hello steps depend on a the hello-pod phase, and not each other, they are executed in parallel. The second world-pod instance depends on the first, so they are launched serially.  You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
 
+<a name="packaging"></a>
 ## Packaging
 
 A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: marathon.json.mustache, config.json, resource.json, and package.json. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
 
 ### Universe Package Files At-a-Glance
 
-For a fully detailed explanation of service packaging [see here](https://www.google.com/url?q=https://dcos.io/docs/1.8/development/create-package/&sa=D&ust=1483456514813000&usg=AFQjCNHW4aNXwZPXJ3MCR_wilsiUScDLkw); below we provide a brief introduction to the required files.
+For a fully detailed explanation of service packaging [see here](https://dcos.io/docs/1.8/development/create-package/); below we provide a brief introduction to the required files.
 
 * marathon.json.mustache -   A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
 
@@ -301,6 +304,7 @@ The following events occur to select a target configuration and move a service f
 
 These steps are discussed in more detail below.
 
+<a name="define-target-config"></a>
 ## Defining a Target Configuration
 
 We previously described how a DC/OS service’s scheduler is a Marathon application.  Marathon applications define a particular declarative application definition, and DC/OS services constructed with the SDK define another, the ServiceSpecs and plans.
@@ -417,7 +421,7 @@ The [config.json](https://github.com/mesosphere/dcos-commons/blob/master/framewo
 
           },
 
-The[ resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/resource.json) file is in part:
+The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/resource.json) file is in part:
 
 {
   "assets": {
@@ -459,23 +463,25 @@ pods:
 
 The port definition in marathon.json.mustache makes the PORT0 environment variables available to the scheduler. The HELLO_COUNT and HELLO_CPUS environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered marathon.json.mustache template.
 
+<a name="rendered-spec"></a>
 The final rendered ServiceSpec is:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.1
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            cpus: 0.1
+            memory: 256
+            volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50
 
+<a name="plan-execution"></a>
 ## Plan Execution
 
 ### Plan Acceptance or Rejection
@@ -490,37 +496,37 @@ There are two fundamental plan execution scenarios: **install** and **update**. 
 
 ### Install
 
-Recall the [rendered ServiceSpec from above](#bookmark=id.mhevs53741i3).  A single pod containing a single task is defined generating the following plan:
+Recall the [rendered ServiceSpec from above](#rendered-spec). A single pod containing a single task is defined generating the following plan:
 
-{
-
-	**phases**: [{
-
-		id: "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
-
-		**name: "hello"**,
-
-		**steps**: [{
-
-			id: "2e3dde39-3ea3-408b-8e00-3346bef93054",
-
-			**status: "COMPLETE"**,
-
-			**name: "hello-0:[server]"**,
-
-			message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
-
-		}],
-
-		**status: "COMPLETE"**
-
-	}],
-
-	errors: [],
-
-	**status: "COMPLETE"**
-
-}
+    {
+    
+        **phases**: [{
+    
+            id: "8ee5b023-066e-4ef7-a2c9-5fdfc00a50e5",
+    
+            **name: "hello"**,
+    
+            **steps**: [{
+    
+                id: "2e3dde39-3ea3-408b-8e00-3346bef93054",
+    
+                **status: "COMPLETE"**,
+    
+                **name: "hello-0:[server]"**,
+    
+                message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+    
+            }],
+    
+            **status: "COMPLETE"**
+    
+        }],
+    
+        errors: [],
+    
+        **status: "COMPLETE"**
+    
+    }
 
 Each pod is deployed with a phase, so we have a single phase named after the pod "hello".  Each instance of a pod is deployed with a step within that phase. Since there is a single pod instance, we have a single step named “hello-0:[server]”.  The name of the step indicates that it is deploying instance 0 of the pod “hello” with a single task named “server”.
 
@@ -542,46 +548,46 @@ This example updates the target configuration we defined in the install above. T
 
 In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS.  Below, we update this value in Marathon from 0.1 to 0.2.
 
-{
-
-  "id": "/hello-world",
-
-  ...
-
-  "env": {
-
-    ...
-
-    **"HELLO_CPUS": "0.2"**,
-
-    "HELLO_COUNT": "1"
-
-    "SLEEP_DURATION": "1000",
-
-    ...
-
-  },
-
-  ...
-
-}
+    {
+    
+      "id": "/hello-world",
+    
+      ...
+    
+      "env": {
+    
+        ...
+    
+        **"HELLO_CPUS": "0.2"**,
+    
+        "HELLO_COUNT": "1"
+    
+        "SLEEP_DURATION": "1000",
+    
+        ...
+    
+      },
+    
+      ...
+    
+    }
 
 This will result in restarting the scheduler and re-rendering the ServiceSpec template. The new template is shown below.
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        **cpus: 0.2**
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            **cpus: 0.2**
+            memory: 256
+            volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50
 
 A new plan is then generated and execution begins:
 
@@ -621,71 +627,71 @@ In this case, we have changed the resources consumed for a running task. In orde
 
 In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below changes HELLO_COUNT to 2, adding an additional instance of the hello pod.
 
-{
-
-  "id": "/hello-world",
-
-  ...
-
-  "env": {
-
-    ...
-
-    "HELLO_CPUS": "0.2",
-
-    **"HELLO_COUNT": "2"**
-
-    "SLEEP_DURATION": "1000",
-
-    ...
-
-  },
-
-  ...
-
-}
+    {
+    
+      "id": "/hello-world",
+    
+      ...
+    
+      "env": {
+    
+        ...
+    
+        "HELLO_CPUS": "0.2",
+    
+        **"HELLO_COUNT": "2"**
+    
+        "SLEEP_DURATION": "1000",
+    
+        ...
+    
+      },
+    
+      ...
+    
+    }
 
 This generates the following plan:
 
-{
-
-	phases: [{
-
-		id: "25e741c8-a775-481e-9247-d9073002bb3d",
-
-		name: "hello",
-
-		steps: [{
-
-			id: "6780372e-9154-419b-91c4-e0347ca961af",
-
-			**status: "COMPLETE"**,
-
-			name: "**hello-0**:[server]",
-
-			message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
-
-		}, {
-
-			id: "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
-
-			**status: "PENDING"**,
-
-			name: "**hello-1**:[server]",
-
-			message: "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
-
-		}],
-
-		status: "STARTING"
-
-	}],
-
-	errors: [],
-
-	status: "STARTING"
-
-}
+    {
+    
+        phases: [{
+    
+            id: "25e741c8-a775-481e-9247-d9073002bb3d",
+    
+            name: "hello",
+    
+            steps: [{
+    
+                id: "6780372e-9154-419b-91c4-e0347ca961af",
+    
+                **status: "COMPLETE"**,
+    
+                name: "**hello-0**:[server]",
+    
+                message: "DefaultStep: 'hello-0:[server]' has status: 'COMPLETE'."
+    
+            }, {
+    
+                id: "6e519f31-8e2d-41ea-955d-85fdd7e1d624",
+    
+                **status: "PENDING"**,
+    
+                name: "**hello-1**:[server]",
+    
+                message: "DefaultStep: 'hello-1:[server]' has status: 'PENDING'."
+    
+            }],
+    
+            status: "STARTING"
+    
+        }],
+    
+        errors: [],
+    
+        status: "STARTING"
+    
+    }
 
 The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration.
 
@@ -703,13 +709,13 @@ Like rollback, a special software upgrade operation is not defined. To perform a
 
 You can view the deployment plan via a REST endpoint your scheduler provides. The plans shown in the examples above were accessed by:
 
-$ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/**hello-world**/v1/plans/deploy
+    $ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/**hello-world**/v1/plans/deploy
 
 #### Interrupt
 
 You can   interrupt the execution of a plan by issuing a POST request to the appropriate endpoint:
 
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt
+    $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt
 
 Interrupting a plan stops any steps that were not being processed from being processed in the future. Any steps that were actively being processed at the time of an interrupt call will continue.
 
@@ -717,7 +723,7 @@ Interrupting a plan stops any steps that were not being processed from being pro
 
 Continue plan execution by issuing a POST request to the continue endpoint:
 
-$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue
+    $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue
 
 # Service Discovery
 
@@ -731,20 +737,20 @@ All tasks launched in DC/OS receive a DNS address. It is of the form:
 
 So a service defined as follows:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.2
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            cpus: 0.2
+            memory: 256
+            volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50
 
 would generate a single task named "hello-0-server".  The framework’s name is “hello-world”.  The Mesos-DNS address for this task would be “hello-0-server.hello-world.mesos”.
 
@@ -752,39 +758,39 @@ would generate a single task named "hello-0-server".  The framework’s name is 
 
 You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks. 
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 0.2
-        memory: 256
-**        ports:**
-
-**          http:**
-
-**            protocol: tcp **
-
-**            port: 8080**
-
-**            vip:**
-
-**              prefix: server-lb**
-
-**              port: 80**
-
-**              advertise: tru**e
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            cpus: 0.2
+            memory: 256
+    **        ports:**
+    
+    **          http:**
+    
+    **            protocol: tcp **
+    
+    **            port: 8080**
+    
+    **            vip:**
+    
+    **              prefix: server-lb**
+    
+    **              port: 80**
+    
+    **              advertise: true**
 
 Defining a VIP is additional information that can be applied to a port. VIPs are defined by a prefix, an internal port, and an external port. The internal port in this example is 8080 and the external port is 80. The prefix is automatically expanded to become an address of the form:
 
-<prefix>.<framework-name>.l4lb.thisdcos.directory
+    <prefix>.<framework-name>.l4lb.thisdcos.directory
 
 In the example above, a server task can be accessed through the address:
-
-server-lb.hello-world.l4lb.thisdcos.directory:80
+    
+    server-lb.hello-world.l4lb.thisdcos.directory:80
 
 # Testing
 
@@ -798,9 +804,9 @@ Unit tests enable you to make sure that changes to your dependencies do not resu
 
 Unit tests that follow the pattern described above will be automatically run on all pull requests, and test failures will block merges. Unit tests can be manually executed either through standard IDE test integrations or through standard gradle commands.
 
-* All tests: gradlew check
+* All tests: `gradlew check`
 
-* Individual framework: gradlew check -p frameworks/<framework-name>
+* Individual framework: `gradlew check -p frameworks/<framework-name>`
 
 ## Integration tests
 
@@ -808,159 +814,160 @@ Within the context of the SDK, integration tests validate expected service behav
 
 You can run integration tests manually using the [test.sh](https://github.com/mesosphere/dcos-commons/blob/master/test.sh) script.  If you havea particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:
 
-@pytest.mark.**special**
-def test_upgrade_downgrade():
-
-    ...
+    @pytest.mark.**special**
+    def test_upgrade_downgrade():
+    
+        ...
 
 If the following command was entered in the shell:
 
-$ export TEST_TYPES="special”
+    $ export TEST_TYPES="special”
 
 Then, only tests marked special would be executed.  A oneline example is as follows:
 
-$ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
+    $ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
 
 # Advanced  DC/OS Service Definition
 
 ## ServiceSpec (YAML)
 
-The most basic set of features present in the YAML representation of the ServiceSpec are [presented above](#heading=h.kp31g5woec9). he remaining features are introduced below.
+The most basic set of features present in the YAML representation of the ServiceSpec are [presented above](#service-spec). The remaining features are introduced below.
 
 ### Containers
 
 Each pod runs inside a single container. The ServiceSpec specifies the Docker image to run for that container and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
 
-name: "hello-world"
-
-pods:
-
-  hello:
-
-    count: 1
-
-    container:
-
-      image-name: ubuntu
-
-      rlimits:
-
-        RLIMIT_NOFILE:
-
-          soft: 1024
-
-          hard: 2048
-
-    tasks:
-
-      server:
-
-        goal: RUNNING
-
-        cmd: "echo hello"
-
-        cpus: 1.0
-
-        memory: 256
+    name: "hello-world"
+    
+    pods:
+    
+      hello:
+    
+        count: 1
+    
+        container:
+    
+          image-name: ubuntu
+    
+          rlimits:
+    
+            RLIMIT_NOFILE:
+    
+              soft: 1024
+    
+              hard: 2048
+    
+        tasks:
+    
+          server:
+    
+            goal: RUNNING
+    
+            cmd: "echo hello"
+    
+            cpus: 1.0
+    
+            memory: 256
 
 **Note:** Your framework must be run as the root user in order to raise rlimits beyond the default for a process. For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 
 ### Placement Rules
 
-Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using either of the following formats: ["field", "operator"[, "parameter"]], or field:operator[:parameter]. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#heading=h.455opsfh9u11).
+Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using either of the following formats: `["field", "operator"[, "parameter"]]`, or `field:operator[:parameter]`. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#placement-rules).
 
 We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:
 
-name: "hello-world"
+    name: "hello-world"
+    
+    pods:
+    
+      hello:
+    
+        count: 3
+    
+        **placement: ****{{HELLO_PLACEMENT}}**
+    
+        tasks:
+    
+          server:
+    
+            goal: RUNNING
+    
+            cmd: "echo hello"
+    
+            cpus: 1.0
+    
+            memory: 256
 
-pods:
+In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `"hostname:UNIQUE"` to ensure that no two hello instances are on the same agent at a time, or `“rack_id:LIKE:rack-foo-.*”` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `“rack-foo-”`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `“hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”`.
 
-  hello:
-
-    count: 3
-
-    **placement: ****{{HELLO_PLACEMENT}}**
-
-    tasks:
-
-      server:
-
-        goal: RUNNING
-
-        cmd: "echo hello"
-
-        cpus: 1.0
-
-        memory: 256
-
-In this example your configuration would expose a HELLO_PLACEMENT configuration setting with some default value. You may then provide a default value for that setting, such as "hostname:UNIQUE" to ensure that no two hello instances are on the same agent at a time, or “rack_id:LIKE:rack-foo-.*” to ensure that hello instances are only placed on agents with a rack_id which starts with “rack-foo-”. Multiple placement rules may be ANDed together by separating them with a comma, e.g. “hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”.
-
+<a name="resource-sets"></a>
 ### Resource Sets
 
 A Mesos task is always a process that consumes some resources. In the example below, the server task is a command that prints "hello" to a file while consuming 1.0 CPUs, 256 MB of memory, and 50 MB of disk space for its volume.
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            cpus: 1.0
+            memory: 256
+            volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50
+    
+    An equivalent way  to define the same task is as follows:
+    
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        resource-sets:
+    **      hello-resources:
+            cpus: 1.0
+            memory: 256
+            ****volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50**
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            **resource-set: hello-resources**
 
-An equivalent way  to define the same task is as follows:
-
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-**      hello-resources:
-        cpus: 1.0
-        memory: 256
-        ****volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50**
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        **resource-set: hello-resources**
-
-In this case, the resources are declared separately from the server task in a resource set named hello-resources. They are referenced by a resource-set element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.
+In this case, the resources are declared separately from the server task in a resource set named `hello-resources`. They are referenced by a `resource-set` element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.
 
 **Important:** At any given point in time, only a single process may be consuming a given set of resources. **Resources may never be shared simultaneously by multiple tasks**.
 
 This alternative formulation of tasks is useful when several tasks should be sequenced in the same container and have a cumulative effect on data in a volume. For example, if you want to initialize something before running the long running server task, you could write the following:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-**      initialize:
-        goal: FINISHED
-        cmd: "echo initialize >> hello-container-path/output"
-        resource-set: ****hello-resources**
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        resource-set: **hello-resources**
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        resource-sets:
+          hello-resources:
+            cpus: 1.0
+            memory: 256
+            volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50
+        tasks:
+    **      initialize:
+            goal: FINISHED
+            cmd: "echo initialize >> hello-container-path/output"
+            resource-set: ****hello-resources**
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            resource-set: **hello-resources**
 
 Both tasks now refer to the same resource set. However, since they cannot consume this resource simultaneously we must impose an ordering. We want to run the initialize task, allow it to finish, and then start the long running server task, which produces the following output in the hello-container-path/output file:
 
@@ -970,37 +977,37 @@ hello
 
 Provide an ordering by specifying a custom deployment plan. The final YAML file would be:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      initialize:
-        goal: FINISHED
-        cmd: "echo initialize >> hello-container-path/output"
-        resource-set: hello-resources
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep 1000"
-        resource-set: hello-resources
-**plans:
-  deploy:
-    phases:
-      hello-deploy:
-        strategy: serial
-        pod: hello
-        ****steps:
-          - 0: [initialize]**
-
-**          - 0: [server]**
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        resource-sets:
+          hello-resources:
+            cpus: 1.0
+            memory: 256
+            volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 50
+        tasks:
+          initialize:
+            goal: FINISHED
+            cmd: "echo initialize >> hello-container-path/output"
+            resource-set: hello-resources
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep 1000"
+            resource-set: hello-resources
+    **plans:
+      deploy:
+        phases:
+          hello-deploy:
+            strategy: serial
+            pod: hello
+            ****steps:
+              - 0: [initialize]**
+    
+    **          - 0: [server]**
 
 The plan defined above, the instance of the hello pod with index 0 should first have the initialize task run, followed by the server task. Because they refer to the same resource set and their commands print to the same file in the same volume, the sequencing of tasks has a cumulative effect on the container context. For a fully featured practical example of this pattern, [see the HDFS service here](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/hdfs/src/main/dist/hdfs_svc.yml).
 
@@ -1008,67 +1015,67 @@ The plan defined above, the instance of the hello pod with index 0 should first 
 
 You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to performance, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.
 
-name: "hello-world"
+    name: "hello-world"
+    
+    pods:
+    
+      hello:
+    
+        count: 1
+    
+        resource-sets:
+    
+          hello-resources:
+    
+            cpus: 1
+    
+            memory: 256
+    
+          **sidecar-resources:**
+    
+    **        cpus: 0.1**
+    
+    **        memory: 256**
+    
+        tasks:
+    
+          server:
+    
+            goal: RUNNING
+    
+            cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+    
+            resource-set: hello-resources
+    
+            env:
+    
+              SLEEP_DURATION: 1000
+    
+    **      sidecar:**
+    
+    **        goal: FINISHED**
+    
+    **        cmd: "echo sidecar >> output"**
+    
+    **        resource-set: sidecar-resources**
+    
+    plans:
+    
+    **  sidecar-example:**
+    
+    **    strategy: serial**
+    
+    **    phases:**
+    
+    **      sidecar-deploy:**
+    
+    **        strategy: parallel**
+    
+    **        pod: hello**
+    
+    **        tasks: [sidecar]**
 
-pods:
-
-  hello:
-
-    count: 1
-
-    resource-sets:
-
-      hello-resources:
-
-        cpus: 1
-
-        memory: 256
-
-      **sidecar-resources:**
-
-**        cpus: 0.1**
-
-**        memory: 256**
-
-    tasks:
-
-      server:
-
-        goal: RUNNING
-
-        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
-
-        resource-set: hello-resources
-
-        env:
-
-          SLEEP_DURATION: 1000
-
-**      sidecar:**
-
-**        goal: FINISHED**
-
-**        cmd: "echo sidecar >> output"**
-
-**        resource-set: sidecar-resources**
-
-plans:
-
-**  sidecar-example:**
-
-**    strategy: serial**
-
-**    phases:**
-
-**      sidecar-deploy:**
-
-**        strategy: parallel**
-
-**        pod: hello**
-
-**        tasks: [sidecar]**
-
-To initiate this plan execute an HTTP POST request against the endpoint /v1/plans/sidecar-example/start. It’s progress can be monitored like any other plan by issuing GET requests against the /v1/plans/side-car-example endpoint.
+To initiate this plan, execute an HTTP POST request against the endpoint `/v1/plans/sidecar-example/start`. Its progress can be monitored like any other plan: by issuing GET requests against the `/v1/plans/side-car-example` endpoint.
 
 Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
 
@@ -1076,55 +1083,55 @@ Because the sidecar task is defined inside the hello pod, it will run inside the
 
 You can include an arbitrary list of URIs to download before launching a task or before launching a pod. The Mesos fetcher automatically extracts and caches the URIs. To attach URIs to the context of a task, modify the YAML as below:
 
-name: "hello-world"
-
-pods:
-
-  hello:
-
-    count: 1
-
-    tasks:
-
-      server:
-
-        goal: RUNNING
-
-        cmd: "echo hello"
-
-        cpus: 1.0
-
-        memory: 256
-
-        **uris:
-          - https://foo.bar.com/package.tar.gz
-          - ****[https://foo.bar.com/bundle.tar.g**z](https://foo.bar.com/bundle.tar.gz)
+    name: "hello-world"
+    
+    pods:
+    
+      hello:
+    
+        count: 1
+    
+        tasks:
+    
+          server:
+    
+            goal: RUNNING
+    
+            cmd: "echo hello"
+    
+            cpus: 1.0
+    
+            memory: 256
+    
+            **uris:
+              - https://foo.bar.com/package.tar.gz
+              - ****[https://foo.bar.com/bundle.tar.g**z](https://foo.bar.com/bundle.tar.gz)
 
 To add URIs to a pod, modify the YAML as below:
 
-name: "hello-world"
-
-pods:
-
-  hello:
-
-    count: 1
-
-    **uris:
-      - https://foo.bar.com/package.tar.gz
-      - ****[https://foo.bar.com/bundle.tar.g**z](https://foo.bar.com/bundle.tar.gz)
-
-    tasks:
-
-      server:
-
-        goal: RUNNING
-
-        cmd: "echo hello"
-
-        cpus: 1.0
-
-        memory: 256
+    name: "hello-world"
+    
+    pods:
+    
+      hello:
+    
+        count: 1
+    
+        **uris:
+          - https://foo.bar.com/package.tar.gz
+          - ****[https://foo.bar.com/bundle.tar.g**z](https://foo.bar.com/bundle.tar.gz)
+    
+        tasks:
+    
+          server:
+    
+            goal: RUNNING
+    
+            cmd: "echo hello"
+    
+            cpus: 1.0
+    
+            memory: 256
 
 URIs included in a pod are accessible to all its tasks.
 
@@ -1132,24 +1139,24 @@ URIs included in a pod are accessible to all its tasks.
 
 It is common for a service to require configuration files to be present in the context of a task.  The SDK provides a method for defining and placing task-specific configuration files. A configuration file is template that can be dynamically rendered by environment variables. Add a configuration file to a task in the following way:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-
-                **configs:**
-
-**          config.xml:**
-
-**            template: "config.xml.mustache"**
-
-**            dest: etc/config.xml**
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello && sleep 1000"
+            cpus: 0.1
+            memory: 256
+    
+                    **configs:**
+    
+    **          config.xml:**
+    
+    **            template: "config.xml.mustache"**
+    
+    **            dest: etc/config.xml**
 
 The template is rendered by the environment variables available in the task’s context and copied to the specified dest location. Any number of configuration files may be specified.
 
@@ -1157,90 +1164,90 @@ The template is rendered by the environment variables available in the task’s 
 
 You can define the environment of a task in a few different ways. In the YML ServiceSpec, it can be defined in the following way.
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-
-        **env:**
-
-**          FOO: bar**
-
-**          BAZ: {{BAZ}}**
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello && sleep 1000"
+            cpus: 0.1
+            memory: 256
+    
+            **env:**
+    
+    **          FOO: bar**
+    
+    **          BAZ: {{BAZ}}**
 
 As in any other case, environment variables may be templated values. Schedulers written using the SDK also detect particular formats of environment. To inject a common set of environment variables into the contexts of all tasks, you can add environment variables to the scheduler’s context in the form below:
 
-TASKCFG_ALL_<KEY>: <VALUE>
+    TASKCFG_ALL_<KEY>: <VALUE>
 
 For example:
 
-TASKCFG_ALL_FOO: BAR → FOO: BAR
+    TASKCFG_ALL_FOO: BAR → FOO: BAR
 
 To inject environment variables into the contexts of all instances of a particular pod type, define environment variables of the form below to the scheduler’s context.
 
-TASKCFG_<POD-NAME>_<KEY>: <VALUE>
+    TASKCFG_<POD-NAME>_<KEY>: <VALUE>
 
 For example:
 
-TASKCFG_HELLO_BAZ: BAZ → BAZ: BAZ
+    TASKCFG_HELLO_BAZ: BAZ → BAZ: BAZ
 
 ### Health Checks
 
 Every task may have a single health check defined for it by adding a `health-check` parameter to  the ServiceSpec:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello && sleep 1000"
+            cpus: 0.1
+            memory: 256
+    
+    **      health-check:**
+    
+    **        cmd: "./check-up"**
+    
+    **        interval: 5**
+    
+    **        grace-period: 30**
+    
+    **        max-consecutive-failures: 3**
+    
+    **        delay: 0**
+    
+    **        timeout: 10**
 
-**      health-check:**
-
-**        cmd: "./check-up"**
-
-**        interval: 5**
-
-**        grace-period: 30**
-
-**        max-consecutive-failures: 3**
-
-**        delay: 0**
-
-**        timeout: 10**
-
-The interval, grace-period, delay, and timeout elements are denominated in seconds.  If the maximum consecutive number of failures is exceeded, the task will be killed.
+The interval, grace-period, delay, and timeout elements are denominated in seconds. If the maximum consecutive number of failures is exceeded, the task will be killed.
 
 ### Readiness Checks
 
 Every task may have a single readiness check defined for it by adding a `readiness-check` parameter to  the ServiceSpec:
 
-name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 256
-
-      **readiness-check:
-        cmd: "./readiness-check"
-        interval: 5
-        delay: 0
-        timeout: 10**
+    name: "hello-world"
+    pods:
+      hello:
+        count: 1
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello && sleep 1000"
+            cpus: 0.1
+            memory: 256
+    
+          **readiness-check:
+            cmd: "./readiness-check"
+            interval: 5
+            delay: 0
+            timeout: 10**
 
 The interval, delay, and timeout elements are denominated in seconds.
 
@@ -1248,84 +1255,84 @@ The interval, delay, and timeout elements are denominated in seconds.
 
 Persistent volumes allow data to be stored on disks and survive.
 
-name: "hello-world"
-pods:
-  hello:
-    count: 3
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
-        cpus: 1.0
-        memory: 256
-        **volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 5000**
+    name: "hello-world"
+    pods:
+      hello:
+        count: 3
+        tasks:
+          server:
+            goal: RUNNING
+            cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+            cpus: 1.0
+            memory: 256
+            **volume:
+              path: "hello-container-path"
+              type: ROOT
+              size: 5000**
 
-The path is relative to the sandbox path if not preceded by a leading "/".  The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/).  The PATH type is not currently supported.
+The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
 ### Proxy
 
 The proxy allows one to expose more than one endpoint through adminrouter.
 
 web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:{{PROXYLITE_PORT}}
+    
+    pods:
+    
+      proxylite:
+    
+        container:
+    
+          image-name: nlsun/proxylite:0.0.3
+    
+        count: 1
+    
+        tasks:
+    
+          server:
+    
+            goal: RUNNING
+    
+            cmd: "/proxylite/run.sh"
+    
+            cpus: {{PROXYLITE_CPUS}}
+    
+            memory: {{PROXYLITE_MEM}}
+    
+            ports:
+    
+              proxylite:
+    
+                port: {{PROXYLITE_PORT}}
+    
+            env:
+    
+              ROOT_REDIRECT: "/example"
+    
+              EXTERNAL_ROUTES: "/v1,/example"
+    
+              INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,example.com:80"
 
-pods:
+* `EXTERNAL_ROUTES` and `INTERNAL_ROUTES`
 
-  proxylite:
+    * These have a 1:1 mapping (they are both comma separated lists). There is one internal route for every external route.
 
-    container:
+    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{SERVICE_NAME}}/v1/plan`, you’ll get redirected to `{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
 
-      image-name: nlsun/proxylite:0.0.3
+* `ROOT_REDIRECT`
 
-    count: 1
-
-    tasks:
-
-      server:
-
-        goal: RUNNING
-
-        cmd: "/proxylite/run.sh"
-
-        cpus: {{PROXYLITE_CPUS}}
-
-        memory: {{PROXYLITE_MEM}}
-
-        ports:
-
-          proxylite:
-
-            port: {{PROXYLITE_PORT}}
-
-        env:
-
-          ROOT_REDIRECT: "/example"
-
-          EXTERNAL_ROUTES: "/v1,/example"
-
-          INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,example.com:80"
-
-* EXTERNAL_ROUTES and INTERNAL_ROUTES
-
-    * These have a 1:1 mapping (They are both comma separated lists), there is one internal route for every external route.
-
-    * For example, in the declaration above, if you navigate to <adminrouter>/service/{{SERVICE_NAME}}/v1/plan, you’ll get redirected to {{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1/plan
-
-* ROOT_REDIRECT
-
-    * This will set a redirect from / (a.k.a. the root path) to a path of your choosing. For example, /example redirects <adminrouter>/service/{{SERVICE_NAME}} to <adminrouter>/service/{{SERVICE_NAME}}/example
+    * This will set a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{SERVICE_NAME}}` to `<adminrouter>/service/{{SERVICE_NAME}}/example`
 
 1. Delete these 3 labels from your marathon json:
 
-    1. DCOS_SERVICE_NAME
+    1. `DCOS_SERVICE_NAME`
 
-    2. DCOS_SERVICE_PORT_INDEX
+    2. `DCOS_SERVICE_PORT_INDEX`
 
-    3. DCOS_SERVICE_SCHEME
+    3. `DCOS_SERVICE_SCHEME`
 
-2. If you have an "old" cluster (ask gabriel about what is old) then apply some patches to adminrouter (ask gabriel for those too).
+2. If you have an "old" cluster (ask Gabriel about what is old), apply some patches to adminrouter. (Ask gabriel for those too).
 
 3. Things to watch out for:
 
@@ -1335,7 +1342,7 @@ pods:
 
         1. It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
 
-        2. For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use {{SERVICE_NAME}}.marathon.mesos:{{PORT0}} as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
+        2. For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
 
     6. When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before a task it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
 
@@ -1345,58 +1352,61 @@ The YAML-based ServiceSpec is flexible and powerful, but once a service moves be
 
 All of the interfaces of the ServiceSpec  have default implementations. For example, the ServiceSpec interface is implemented by the [DefaultServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultServiceSpec.java). The default interface implementations also provide convenient fluent style construction. For example a DefaultServiceSpec can be constructed in the following way:
 
-DefaultServiceSpec.newBuilder()
+    DefaultServiceSpec.newBuilder()
+    
+        .name(SERVICE_NAME)
+    
+        .role(ROLE)
+    
+        .principal(PRINCIPAL)
+    
+        .apiPort(8080)
+    
+        .zookeeperConnection("foo.bar.com")
+    
+        .pods(Arrays.asList(pods))
+    
+        .build();
 
-    .name(SERVICE_NAME)
+The same pattern holds for all components of the ServiceSpec. [Resource sets](#resource-sets) are one area of difference between Java and YAML ServiceSpec definitions. While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a [TaskSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java).
 
-    .role(ROLE)
-
-    .principal(PRINCIPAL)
-
-    .apiPort(8080)
-
-    .zookeeperConnection("foo.bar.com")
-
-    .pods(Arrays.asList(pods))
-
-    .build();
-
-The same pattern holds for all components of the ServiceSpec. R[esource sets](#heading=h.3fd6cn4qcjw0) are one area of difference between Java and YAML ServiceSpec definitions.  While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a [TaskSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java).
-
+<a name="placement-rules"></a>
 ### Placement Rules
 
 The physical location of tasks in Mesos clusters has important implications for the availability and robustness to data loss of stateful services. You can control the placement of pods by adding placement rules to PodSpecs.
 
-You can add placement constraints to a PodSpec that has already been defined either through YAML or Java. This Java interface allows full customization of placement logic, whereas the [YAML interface](#heading=h.punywaiw8yuh) only supports specifying Marathon-style constraints. Note that the two will automatically be ANDed together if they are both provided. This allows users to specify their own deployment constraints on top of any hardcoded service constraints.
+You can add placement constraints to a PodSpec that has already been defined either through YAML or Java. This Java interface allows full customization of placement logic, whereas the [YAML interface](#placement-rules) only supports specifying Marathon-style constraints. Note that the two will automatically be ANDed together if they are both provided. This allows users to specify their own deployment constraints on top of any hardcoded service constraints.
 
 One common placement constraint is to avoid placing pods of the same type together in order to avoid correlated failures. If, for example, you want to deploy all pods of type "hello" on different Mesos agents, extend the PodSpec as follows:
 
-PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
-
-        .placementRule(TaskTypeRule.avoid("hello"))
-
-        .build();
+    PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
+    
+            .placementRule(TaskTypeRule.avoid("hello"))
+    
+            .build();
 
 This is equivalent to specifying a "hostname:UNIQUE" Marathon constraint in your YAML specification. Let’s look at a more complicated placement rule and how multiple rules may be composed. If, for example, pods of type “hello” should avoid both pods of the same type and colocate with those of “world” type, this could be expressed as:
-
-PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
-
-        .placementRule(
-
-                new AndRule(
-
-                        TaskTypeRule.avoid("hello"),
-
-                        TaskTypeRule.colocateWith("world")))
-
-        .build();
+    
+    PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
+    
+            .placementRule(
+    
+                    new AndRule(
+    
+                            TaskTypeRule.avoid("hello"),
+    
+                            TaskTypeRule.colocateWith("world")))
+    
+            .build();
 
 In addition to the AndRule, OrRule and NotRule are also available to complete the necessary suite of boolean operators. Many placement rules for common scenarios are already provided by the SDK. Consult the com.mesosphere.sdk.offer.constrain package to find the list of placement rules currently available. [A practical example is also available in the HDFS framework](https://github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69).
 
+<a name="custom-plans-java"></a>
 ## Custom Plans (Java)
 
 The YAML-based definition of plans is limited to defining custom deployment plans. You can use of the appropriate [Java plan interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java) for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by [s](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java). Default implementations of all interfaces are provided. [DefaultPlan](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java), [DefaultPhase](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java), and [DefaultStep](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultStep.java) will be of interest to advanced service authors.
 
+<a name="internals"></a>
 ### Internals
 
 Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.
@@ -1459,72 +1469,73 @@ In general, a step encapsulates an instance of a pod and the tasks to be launche
 
 You could generate three steps in the following way:
 
-StepFactory stepFactory = new DefaultStepFactory(configStore, stateStore);
-
-List<Step> steps = new ArrayList<>();
-
-steps.add(stepFactory.getStep(podInstance0, tasksToLaunch0));
-
-steps.add(stepFactory.getStep(podInstance1, tasksToLaunch1));
-
-steps.add(stepFactory.getStep(podInstance2, tasksToLaunch2));
-
-Then steps can be grouped in a phase with an accompanying strategy.
-
-Phase phase = new DefaultPhase(
-
-        "phase-name",
-
-        steps,
-
-        new SerialStrategy<>(),
-
-        Collections.emptyList()); // No errors
+    StepFactory stepFactory = new DefaultStepFactory(configStore, stateStore);
+    
+    List<Step> steps = new ArrayList<>();
+    
+    steps.add(stepFactory.getStep(podInstance0, tasksToLaunch0));
+    
+    steps.add(stepFactory.getStep(podInstance1, tasksToLaunch1));
+    
+    steps.add(stepFactory.getStep(podInstance2, tasksToLaunch2));
+    
+    Then steps can be grouped in a phase with an accompanying strategy.
+    
+    Phase phase = new DefaultPhase(
+    
+            "phase-name",
+    
+            steps,
+    
+            new SerialStrategy<>(),
+    
+            Collections.emptyList()); // No errors
 
 The phase defined above will execute its steps in a serial order. The phase can be added to a plan.
 
-Plan customPlan = new DefaultPlan(
+    Plan customPlan = new DefaultPlan(
+    
+            "plan-name",
+    
+            Arrays.asList(phase),
+    
+            new ParallelStrategy<>());
 
-        "plan-name",
-
-        Arrays.asList(phase),
-
-        new ParallelStrategy<>());
-
-In the plan above, a parallel strategy is defined so all phases will be executed simultaneously.  There is only one phase in this case. Once a plan is defined, it must be added to the PlanCoordinator/PlanManager system [described above](#heading=h.av17pklvdbq1).
+In the plan above, a parallel strategy is defined so all phases will be executed simultaneously. There is only one phase in this case. Once a plan is defined, it must be added to the PlanCoordinator/PlanManager system [described above](#internals).
 
 The easiest way to do this is to extend the DefaultService provided by the SDK.
 
-public class CustomService extends DefaultService {
-
-    public CustomService(File yamlFile, **Plan customPlan**) throws Exception {
-
-        RawServiceSpecification rawServiceSpecification =
-
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlFile);
-
-        DefaultServiceSpec defaultServiceSpecserviceSpec =
-
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
-
-        serviceSpec = defaultServiceSpecserviceSpec;
-
-        init();
-
-        plans = generatePlansFromRawSpec(rawServiceSpecification);
-
-        **plans.add(customPlan);**
-
-        
-
-        **register(serviceSpec, plans);**
-
+    public class CustomService extends DefaultService {
+    
+        public CustomService(File yamlFile, **Plan customPlan**) throws Exception {
+    
+            RawServiceSpecification rawServiceSpecification =
+    
+                    YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlFile);
+    
+            DefaultServiceSpec defaultServiceSpecserviceSpec =
+    
+                    YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+    
+            serviceSpec = defaultServiceSpecserviceSpec;
+    
+            init();
+    
+            plans = generatePlansFromRawSpec(rawServiceSpecification);
+    
+            **plans.add(customPlan);**
+    
+            
+    
+            **register(serviceSpec, plans);**
+    
+        }
+    
     }
-
-}
 
 All plans provided in the register call will be executed.
 
+<!--
 Plans
 
 * Restart / ForceComplete
@@ -1570,4 +1581,4 @@ Roadmap
 * Placement constraints in YAML
 
 * Multiple health-checks
-
+-->
