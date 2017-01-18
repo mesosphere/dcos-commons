@@ -24,7 +24,7 @@ public class ElasticServiceTest {
         environmentVariables.set("EXECUTOR_URI", "http://executor.uri");
         environmentVariables.set("LIBMESOS_URI", "http://lib.mesos.uri");
         environmentVariables.set("SCHEDULER_URI", "http://scheduler.uri");
-        environmentVariables.set("PORT0", "8080");
+        environmentVariables.set("PORT_API", "8080");
         environmentVariables.set("SERVICE_NAME", "elastic");
         environmentVariables.set("FRAMEWORK_USER", "non-root");
         environmentVariables.set("PLAN_STRATEGY", "parallel");
@@ -67,10 +67,10 @@ public class ElasticServiceTest {
         environmentVariables.set("KIBANA_DISK_TYPE", "ROOT");
         environmentVariables.set("KIBANA_PORT", "5602");
         environmentVariables.set("KIBANA_PASSWORD", "changeme");
-        URL resource = ElasticServiceTest.class.getClassLoader().getResource("elastic_service.yml");
         environmentVariables.set("PROXYLITE_CPUS", ".1");
         environmentVariables.set("PROXYLITE_MEM", "32");
         environmentVariables.set("PROXYLITE_PORT", "4040");
+        URL resource = ElasticServiceTest.class.getClassLoader().getResource("elastic_service.yml");
         environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 

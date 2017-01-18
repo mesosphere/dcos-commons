@@ -1,8 +1,5 @@
 name: {{SERVICE_NAME}}
-principal: "{{SERVICE_NAME}}-principal"
-zookeeper: master.mesos:2181
 web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:{{PROXYLITE_PORT}}
-api-port: {{PORT0}}
 pods:
   kibana:
     count: {{KIBANA_COUNT}}
@@ -19,15 +16,15 @@ pods:
         cpus: {{KIBANA_CPUS}}
         memory: {{KIBANA_MEM}}
         ports:
-          - name: http
+          http:
             port: {{KIBANA_PORT}}
             vip:
               prefix: kibana
               port: 5601
-        volumes:
-          - path: "container-path"
-            type: {{KIBANA_DISK_TYPE}}
-            size: {{KIBANA_DISK}}
+        volume:
+          path: "container-path"
+          type: {{KIBANA_DISK_TYPE}}
+          size: {{KIBANA_DISK}}
         cmd: "env && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
         env:
           SERVICE_NAME: {{SERVICE_NAME}}
@@ -38,8 +35,9 @@ pods:
           - "{{SCHEDULER_URI}}"
           - "https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
+        configs:
+          kibana:
+            template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
             dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
         health-check:
           cmd: "curl -I -s -f localhost:{{KIBANA_PORT}}/login"
@@ -63,18 +61,18 @@ pods:
         cpus: {{MASTER_NODE_CPUS}}
         memory: {{MASTER_NODE_MEM}}
         ports:
-          - name: http
+          http:
             port: {{MASTER_NODE_HTTP_PORT}}
             vip:
               prefix: master
               port: 9200
-          - name: transport
+          transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
-        volumes:
-          - path: "container-path"
-            type: {{MASTER_NODE_DISK_TYPE}}
-            size: {{MASTER_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        volume:
+          path: "container-path"
+          type: {{MASTER_NODE_DISK_TYPE}}
+          size: {{MASTER_NODE_DISK}}
+        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{MASTER_NODE_HTTP_PORT}}
@@ -91,8 +89,9 @@ pods:
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{MASTER_NODE_HTTP_PORT}}"
@@ -116,18 +115,18 @@ pods:
         cpus: {{DATA_NODE_CPUS}}
         memory: {{DATA_NODE_MEM}}
         ports:
-          - name: http
+          http:
             port: {{DATA_NODE_HTTP_PORT}}
             vip:
               prefix: data
               port: 9200
-          - name: transport
+          transport:
             port: {{DATA_NODE_TRANSPORT_PORT}}
-        volumes:
-          - path: "container-path"
-            type: {{DATA_NODE_DISK_TYPE}}
-            size: {{DATA_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        volume:
+          path: "container-path"
+          type: {{DATA_NODE_DISK_TYPE}}
+          size: {{DATA_NODE_DISK}}
+        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{DATA_NODE_HTTP_PORT}}
@@ -144,8 +143,9 @@ pods:
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{DATA_NODE_HTTP_PORT}}"
@@ -169,18 +169,18 @@ pods:
         cpus: {{INGEST_NODE_CPUS}}
         memory: {{INGEST_NODE_MEM}}
         ports:
-          - name: http
+          http:
             port: {{INGEST_NODE_HTTP_PORT}}
             vip:
               prefix: ingest
               port: 9200
-          - name: transport
+          transport:
             port: {{INGEST_NODE_TRANSPORT_PORT}}
-        volumes:
-          - path: "container-path"
-            type: {{INGEST_NODE_DISK_TYPE}}
-            size: {{INGEST_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        volume:
+          path: "container-path"
+          type: {{INGEST_NODE_DISK_TYPE}}
+          size: {{INGEST_NODE_DISK}}
+        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{INGEST_NODE_HTTP_PORT}}
@@ -197,8 +197,9 @@ pods:
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{INGEST_NODE_HTTP_PORT}}"
@@ -222,18 +223,18 @@ pods:
         cpus: {{COORDINATOR_NODE_CPUS}}
         memory: {{COORDINATOR_NODE_MEM}}
         ports:
-          - name: http
+          http:
             port: {{COORDINATOR_NODE_HTTP_PORT}}
             vip:
               prefix: coordinator
               port: 9200
-          - name: transport
+          transport:
             port: {{COORDINATOR_NODE_TRANSPORT_PORT}}
-        volumes:
-          - path: "container-path"
-            type: {{COORDINATOR_NODE_DISK_TYPE}}
-            size: {{COORDINATOR_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install_plugins.sh && ./elastic-scheduler/wait_dns.sh && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        volume:
+          path: "container-path"
+          type: {{COORDINATOR_NODE_DISK_TYPE}}
+          size: {{COORDINATOR_NODE_DISK}}
+        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
@@ -250,8 +251,9 @@ pods:
           - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
           - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
           - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
           cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{COORDINATOR_NODE_HTTP_PORT}}"
@@ -267,12 +269,12 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "/proxylite/run.sh"
+        cmd: "sleep 120 && /proxylite/run.sh"
         cpus: {{PROXYLITE_CPUS}}
         memory: {{PROXYLITE_MEM}}
         ports:
-         - name: PROXYLITE
-           port: {{PROXYLITE_PORT}}
+          PROXYLITE:
+            port: {{PROXYLITE_PORT}}
         env:
           EXTERNAL_ROUTES: "/v1,/kibana"
           INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{SERVICE_NAME}}.l4lb.thisdcos.directory:5601"
@@ -281,9 +283,6 @@ plans:
   deploy:
     strategy: {{PLAN_STRATEGY}}
     phases:
-      proxylite-deploy:
-        strategy: serial
-        pod: proxylite
       master-deploy:
         strategy: {{PLAN_STRATEGY}}
         pod: master
@@ -299,3 +298,7 @@ plans:
       kibana-deploy:
         strategy: {{PLAN_STRATEGY}}
         pod: kibana
+      proxylite-deploy:
+        strategy: serial
+        pod: proxylite
+        
