@@ -36,45 +36,45 @@ They store the desired configuration of a service and all relevant information r
 
 # Introduction to DC/OS Service Definitions
 
-At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
+At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The `[ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java)` defines what a service is and `[Plan](#plans)[s]` define how to control it in deployment, update, and failure scenarios. The `[ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java)` and `[Plan](#plans)[s]` are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
 
 <a name="service-spec"></a>
 ## ServiceSpec
 
-There are two ways to generate a valid ServiceSpec:  creating a YAML file or  writing Java code. Both produce a valid implementation of the Java ServiceSpec interface.  A ServiceSpec may be used to launch one or more instances of the same service within a DC/OS cluster.
+There are two ways to generate a valid `ServiceSpec`: creating a YAML file or writing Java code. Both produce a valid implementation of the Java `ServiceSpec` interface.  A `ServiceSpec` may be used to launch one or more instances of the same service within a DC/OS cluster.
 
-For example, one could write a ServiceSpec that describes a DC/OS service that deploys a Kafka cluster. One could then install one or more instances of a Kafka cluster in a DC/OS cluster. A ServiceSpec is in this sense similar to a class definition, which may be used to create many objects that are instances of the class.
+For example, one could write a `ServiceSpec` that describes a DC/OS service that deploys a Kafka cluster. One could then install one or more instances of a Kafka cluster in a DC/OS cluster. A `ServiceSpec` is in this sense similar to a class definition, which may be used to create many objects that are instances of the class.
 
-### Annotated Example of a ServiceSpec
+### Annotated Example of a `ServiceSpec`
 
 This simple YAML definition of a DC/OS service that prints "hello world" to stdout in a container sandbox every 1000 seconds.
 
-name: "hello-world"
-
-scheduler:
-  principal: "hello-world-principal"
-  api-port: {{PORT_API}}
-pods:
-  hello-world-pod:
-    count: 1
-    tasks:
-      hello-world-task:
-        goal: RUNNING
-        cmd: "echo hello world && sleep 1000"
-        cpus: 0.1
-        memory: 512
+    name: "hello-world"
+    
+    scheduler:
+      principal: "hello-world-principal"
+      api-port: {{PORT_API}}
+    pods:
+      hello-world-pod:
+        count: 1
+        tasks:
+          hello-world-task:
+            goal: RUNNING
+            cmd: "echo hello world && sleep 1000"
+            cpus: 0.1
+            memory: 512
 
 * **name**:  This is the name of an instance of a DC/OS service. No two instances of any service may have the same name in the same cluster.
 
-* **scheduler**: The Scheduler manages the service and keeps it running. This section contains settings which apply to the Scheduler. The scheduler section may be omitted to use reasonable defaults for all of these settings.
+* **scheduler**: The Scheduler manages the service and keeps it running. This section contains settings which apply to the Scheduler. The `scheduler` section may be omitted to use reasonable defaults for all of these settings.
 
-    * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to "<svcname>-principal".
+    * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
 
-    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the "PORT_API" envvar provided by Marathon.
+    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
 
 * **Pods**: A pod can be defined most simply as a set of tasks. 
 
-* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is hello-world-pod.
+* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
 * **count**: The number of instances of the pod.
 
@@ -82,9 +82,9 @@ pods:
 
 * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are two possible goal states: RUNNING and FINISHED. RUNNING indicates that a Task should always be running, so if it exits, it should be restarted. FINISHED indicates that if a task finishes successfully it does not need to be restarted.
+* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a Task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
 
-* **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is RUNNING, it will be started again upon exit.
+* **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
 * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
 
@@ -118,26 +118,26 @@ Since a single pod instance was requested via the *count* element, only a single
 In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
 
 The example below defines a service with two types of pods, each of which deploys two instances.
-
-name: "hello-world"
-pods:
-  **hello-pod:**
-   ** count: 2**
-    tasks:
-      hello-task:
-        goal: RUNNING
-        cmd: "**echo hello** && sleep 1000"
-        cpus: 0.1
-        memory: 512
-
-  **world-pod:
-    count: 2**
-    tasks:
-      world-task:
-        goal: RUNNING
-        cmd: "**echo world** && sleep 1000"
-        cpus: 0.1
-        memory: 512
+    
+    name: "hello-world"
+    pods:
+      **hello-pod:**
+       ** count: 2**
+        tasks:
+          hello-task:
+            goal: RUNNING
+            cmd: "**echo hello** && sleep 1000"
+            cpus: 0.1
+            memory: 512
+    
+      **world-pod:
+        count: 2**
+        tasks:
+          world-task:
+            goal: RUNNING
+            cmd: "**echo world** && sleep 1000"
+            cpus: 0.1
+            memory: 512
 
 There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying. 
 
@@ -145,59 +145,59 @@ By default, the SDK will deploy all instances of pods serially.  In the example 
 
 1. hello-pod-0-hello-task
 
-2. hello-pod-1-hello-task
+1. hello-pod-1-hello-task
 
-3. world-pod-0-world-task
+1. world-pod-0-world-task
 
-4. world-pod-1-world-task
+1. world-pod-1-world-task
 
-Each pod’s task must reach its goal of RUNNING before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.
+Each pod’s task must reach its goal of `RUNNING` before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.
 
 However, this default deployment strategy does not provide the flexibility you need to write rich services. The SDK therefore also allows you to define *plans* that orchestrate task deployment. 
 
 In this section we focus on using plans to define the initial deployment of a service. However, you can also use plans to orchestrate configuration updates, software upgrades, and recovery from complex, service-specific failure scenarios.
 
-As an example, let’s consider the scenario where we wish to deploy the hello-pods in parallel, wait for them to reach a RUNNING state and then deploy the world-pods serially.  We could amend our YAML file to look like the following:
+As an example, let’s consider the scenario where we wish to deploy the hello-pods in parallel, wait for them to reach a `RUNNING` state and then deploy the world-pods serially.  We could amend our YAML file to look like the following:
 
-name: "hello-world"
-pods:
-  hello-pod:
-    count: 2
-    tasks:
-      hello-task:
-        goal: RUNNING
-        cmd: "echo hello && sleep 1000"
-        cpus: 0.1
-        memory: 512
-
-  world-pod:
-    count: 2
-    tasks:
-      hello-task:
-        goal: RUNNING
-        cmd: "echo world && sleep 1000"
-        cpus: 0.1
-        memory: 512
-
-**plans:**
-
-**  deploy:**
-
-**    strategy: serial**
-
-**    phases:**
-
-**      hello-phase:**
-
-**        strategy: parallel**
-
-**        pod: hello-pod**
-
-**      world-phase:**
-
-**        strategy: serial**
-
-**        pod: world-pod**
+    name: "hello-world"
+    pods:
+      hello-pod:
+        count: 2
+        tasks:
+          hello-task:
+            goal: RUNNING
+            cmd: "echo hello && sleep 1000"
+            cpus: 0.1
+            memory: 512
+    
+      world-pod:
+        count: 2
+        tasks:
+          hello-task:
+            goal: RUNNING
+            cmd: "echo world && sleep 1000"
+            cpus: 0.1
+            memory: 512
+    
+    **plans:**
+    
+    **  deploy:**
+    
+    **    strategy: serial**
+    
+    **    phases:**
+    
+    **      hello-phase:**
+    
+    **        strategy: parallel**
+    
+    **        pod: hello-pod**
+    
+    **      world-phase:**
+    
+    **        strategy: serial**
+    
+    **        pod: world-pod**
 
 A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps.
 
@@ -207,25 +207,25 @@ A phase encapsulates a pod type and a step encapsulates an instance of a pod.  S
 
 The hello-phase of the example has two elements: a strategy and a pod.
 
-**plans:**
-
-**  deploy:**
-
-**    strategy: serial**
-
-**    phases:**
-
-**      hello-phase:**
-
-**        strategy: parallel**
-
-**        pod: hello-pod**
-
-**      world-phase:**
-
-**        strategy: serial**
-
-**        pod: world-pod**
+    **plans:**
+    
+    **  deploy:**
+    
+    **    strategy: serial**
+    
+    **    phases:**
+    
+    **      hello-phase:**
+    
+    **        strategy: parallel**
+    
+    **        pod: hello-pod**
+    
+    **      world-phase:**
+    
+    **        strategy: serial**
+    
+    **        pod: world-pod**
 
 The pod parameter  references the pod definition earlier in the ServiceSpec. The strategy declares how to deploy the instances of the pod. Here, they will be deployed in parallel. The world-phase section is identical, except that its elements will be deployed serially.
 
@@ -233,207 +233,207 @@ The strategy associated with the deployment plan as a whole is serial, so the ph
 
 ![image alt text](image_1.png)
 
-The dependency of the world-pod phase on the hello-pod phase serializes those two phases as described at the top level strategy element. Since both hello steps depend on a the hello-pod phase, and not each other, they are executed in parallel. The second world-pod instance depends on the first, so they are launched serially.  You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
 
 <a name="packaging"></a>
 ## Packaging
 
-A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: marathon.json.mustache, config.json, resource.json, and package.json. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
+A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: `marathon.json.mustache`, `config.json`, `resource.json`, and `package.json`. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
 
 ### Universe Package Files At-a-Glance
 
 For a fully detailed explanation of service packaging [see here](https://dcos.io/docs/1.8/development/create-package/); below we provide a brief introduction to the required files.
 
-* marathon.json.mustache -   A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
+* `marathon.json.mustache` -   A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
 
-* Resource.json -  A list of URIs of all downloaded elements.This list allows your service to be deployed in datacenters without Internet access.
+* `Resource.json` -  A list of URIs of all downloaded elements.This list allows your service to be deployed in datacenters without Internet access.
 
-* command.json - This file contains elements specific to a CLI for your service if you want to provide one.
+* `command.json` - This file contains elements specific to a CLI for your service if you want to provide one.
 
-* package.json - This file contains metadata of interest to the Universe, including the minimum version of DC/OS on which the service may be deployed.
+* `package.json` - This file contains metadata of interest to the Universe, including the minimum version of DC/OS on which the service may be deployed.
 
 The SDK provides utilities for building a package definition and deploying it to a DC/OS cluster for development purposes.  An example build.sh script constructs a package and provides instructions for the deployment.  The helloworld framework’s build.sh script provides the following output:
 
-	$ ./build.sh aws
-
-<snip>
-
-Install your package using the following commands:
-
-dcos package repo remove hello-world-aws
-
-dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
-
-dcos package install --yes hello-world
-
-$
+        $ ./build.sh aws
+    
+        <snip>
+    
+    Install your package using the following commands:
+    
+        dcos package repo remove hello-world-aws
+        
+        dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
+        
+        dcos package install --yes hello-world
+        
+        $
 
 The build.sh script takes an optional argument of aws or local:
 
-* ./build.sh aws: The package definition and build artifacts are uploaded to an S3 bucket in AWS. If you would like to override the S3 bucket location where the packages are uploaded, please add S3_BUCKET environment variable with the bucket name. For ex:
+* `./build.sh aws`: The package definition and build artifacts are uploaded to an S3 bucket in AWS. If you would like to override the S3 bucket location where the packages are uploaded, please add S3_BUCKET environment variable with the bucket name. For example:
 
-	export S3_BUCKET=my_universe_s3_bucket
+        export S3_BUCKET=my_universe_s3_bucket
 
-* ./build.sh local: The package definition and build artifacts are served by a local HTTP server. 
+* `./build.sh local`: The package definition and build artifacts are served by a local HTTP server. 
 
-Executing the final command, dcos package install --yes hello-world deploys the service to a DC/OS cluster.
+Executing the final command, `dcos package install --yes hello-world` deploys the service to a DC/OS cluster.
 
 # Basic Operations
 
 You can perform three fundamental operations on any instance of a DC/OS service: install, update, and uninstall.  With the exception of uninstall, they all follow a fundamental design principle.
 
-All services written with the SDK determine what actions to take based on a target configuration they are trying to reach.  The ServiceSpec Definies the target configuration .  When installing for the first time, a service is going from nothing to the target configuration. When performing a configuration update, a service is going from the current configuration to the target configuration. A software update is identical to a configuration update except that that the software artifacts to be deployed are changed, not just the configuration. The path a service takes to a new target configuration is always defined by a plan.
+All services written with the SDK determine what actions to take based on a target configuration they are trying to reach.  The `ServiceSpec` defines the target configuration. When installing for the first time, a service is going from nothing to the target configuration. When performing a configuration update, a service is going from the current configuration to the target configuration. A software update is identical to a configuration update except that that the software artifacts to be deployed are changed, not just the configuration. The path a service takes to a new target configuration is always defined by a plan.
 
 The following events occur to select a target configuration and move a service from its current configuration to the target.
 
 1. Define a target configuration
 
-    1. Deploy a Marathon application definition for your service’s scheduler
+    a. Deploy a Marathon application definition for your service’s scheduler
 
-    2. The scheduler renders the ServiceSpec and Plan definitions in the service’s YAML definition.
+    b. The scheduler renders the `ServiceSpec` and Plan definitions in the service’s YAML definition.
 
-2. Plan Execution
+1. Plan Execution
 
-    3. The scheduler compares previous and current ServiceSpecs:
+    a. The scheduler compares previous and current `ServiceSpec`s:
 
-        1. Validate the ServiceSpec
+      i. Validate the `ServiceSpec`
 
-        2. Determine scenario (install, update or no change)
+      i. Determine scenario (install, update or no change)
 
-    4. The plan is chosen and executed
+    b. The plan is chosen and executed
 
 These steps are discussed in more detail below.
 
 <a name="define-target-config"></a>
 ## Defining a Target Configuration
 
-We previously described how a DC/OS service’s scheduler is a Marathon application.  Marathon applications define a particular declarative application definition, and DC/OS services constructed with the SDK define another, the ServiceSpecs and plans.
+We previously described how a DC/OS service’s scheduler is a Marathon application.  Marathon applications define a particular declarative application definition, and DC/OS services constructed with the SDK define another, the `ServiceSpec`s and plans.
 
 This nested structure of declarative interfaces requires two layers of template rendering. First, the Marathon application definition must be rendered at initial install time from the combination of the marathon.json.mustache, config.json, and resource.json files. Then, the service’s YAML template is rendered using the environment variables presented to the scheduler. Let’s walk through the [checked-in helloworld example](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld).  Pay particular attention to the templated values surrounded in curly braces, as in `{{value}}`.
 
 helloworld has a [marathon.json.mustache template](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/marathon.json.mustache) which, in part, looks as follows:
 
-{
-
-...
-
-  "env": {
-
-    "FRAMEWORK_NAME": "{{service.name}}",
-
-    "HELLO_COUNT": "{{hello.count}}",
-
-    "HELLO_CPUS": "{{hello.cpus}}",
-
-...
-
-  },
-
-  "uris": [
-
-...
-
-    "{{resource.assets.uris.scheduler-zip}}",
-
-...
-
-  ],
-
-...
-
-  "portDefinitions": [
-
     {
-
-      "port": 0,
-
-      "protocol": "tcp",
-
-      "name": "api",
-
-      "labels": {}
-
+    
+    ...
+    
+      "env": {
+    
+        "FRAMEWORK_NAME": "{{service.name}}",
+    
+        "HELLO_COUNT": "{{hello.count}}",
+    
+        "HELLO_CPUS": "{{hello.cpus}}",
+    
+    ...
+    
+      },
+    
+      "uris": [
+    
+    ...
+    
+        "{{resource.assets.uris.scheduler-zip}}",
+    
+    ...
+    
+      ],
+    
+    ...
+    
+      "portDefinitions": [
+    
+        {
+    
+          "port": 0,
+    
+          "protocol": "tcp",
+    
+          "name": "api",
+    
+          "labels": {}
+    
+        }
+    
+      ]
+    
     }
-
-  ]
-
-}
 
 The [config.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/config.json) file is in part:
 
-{
-
-  "type":"object",
-
-    "properties":{
-
-      "service":{
-
-        "type":"object",
-
-        "description": "DC/OS service configuration properties",
-
+    {
+    
+      "type":"object",
+    
         "properties":{
-
-          "name" : {
-
-            "description":"The name of the service instance",
-
-            "type":"string",
-
-            "default":"hello-world"
-
+    
+          "service":{
+    
+            "type":"object",
+    
+            "description": "DC/OS service configuration properties",
+    
+            "properties":{
+    
+              "name" : {
+    
+                "description":"The name of the service instance",
+    
+                "type":"string",
+    
+                "default":"hello-world"
+    
+              },
+    
+    ...
+    
+            }
+    
           },
-
-...
-
-        }
-
-      },
-
-      "hello":{
-
-        "description":"Hello Pod configuration properties",
-
-        "type":"object",
-
-        "properties":{
-
-          "cpus":{
-
-            "description":"Hello Pod cpu requirements",
-
-            "type":"number",
-
-            "default":0.1
-
-          },
-
-...
-
-          "count":{
-
-            "description":"Number of Hello Pods to run",
-
-            "type":"integer",
-
-            "default":1
-
-          },
+    
+          "hello":{
+    
+            "description":"Hello Pod configuration properties",
+    
+            "type":"object",
+    
+            "properties":{
+    
+              "cpus":{
+    
+                "description":"Hello Pod cpu requirements",
+    
+                "type":"number",
+    
+                "default":0.1
+    
+              },
+    
+    ...
+    
+              "count":{
+    
+                "description":"Number of Hello Pods to run",
+    
+                "type":"integer",
+    
+                "default":1
+    
+              },
 
 The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/resource.json) file is in part:
 
-{
-  "assets": {
-    "uris": {
-...
-      "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
-...
+    {
+      "assets": {
+        "uris": {
+    ...
+          "scheduler-zip": "{{artifact-dir}}/hello-world-scheduler.zip",
+    ...
+        }
+      },
+    ...
+      "cli":{
     }
-  },
-...
-  "cli":{
-}
 
 The marathons.json.mustache template pulls values from the config.json and resource.json files and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can [override the initial config.json values](https://docs.mesosphere.com/latest/usage/managing-services/config/) [when installing via the command line](https://docs.mesosphere.com/1.7/usage/managing-services/config/).
 
@@ -443,28 +443,28 @@ The marathons.json.mustache template pulls values from the config.json and resou
 
 Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
 
-...
-
-pods:
-
-  hello:
-
-    count: {{HELLO_COUNT}}
-
-    tasks:
-
-      server:
-
-...
-
-        cpus: {{HELLO_CPUS}}
-
-...
+    ...
+    
+    pods:
+    
+      hello:
+    
+        count: {{HELLO_COUNT}}
+    
+        tasks:
+    
+          server:
+    
+    ...
+    
+            cpus: {{HELLO_CPUS}}
+    
+    ...
 
 The port definition in marathon.json.mustache makes the PORT0 environment variables available to the scheduler. The HELLO_COUNT and HELLO_CPUS environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered marathon.json.mustache template.
 
 <a name="rendered-spec"></a>
-The final rendered ServiceSpec is:
+The final rendered `ServiceSpec` is:
 
     name: "hello-world"
     pods:
@@ -486,17 +486,17 @@ The final rendered ServiceSpec is:
 
 ### Plan Acceptance or Rejection
 
-Once a proposed target configuration has been defined in the form of a ServiceSpec, and, optionally, a deployment plan, the scheduler must decide  what course of action to take. At the outset, a scheduler may choose to accept or reject a proposed target configuration. When a scheduler rejections a proposed target configuration the target configuration does  not change and the previous target configuration remains the target. The scheduler may reject a target configuration because it is malformed, or violates a business logic or other constraint.
+Once a proposed target configuration has been defined in the form of a `ServiceSpec`, and, optionally, a deployment plan, the scheduler must decide  what course of action to take. At the outset, a scheduler may choose to accept or reject a proposed target configuration. When a scheduler rejections a proposed target configuration the target configuration does  not change and the previous target configuration remains the target. The scheduler may reject a target configuration because it is malformed, or violates a business logic or other constraint.
 
 ### Executing a Plan
 
-Once a proposed target configuration is accepted as the target configuration, the scheduler must determine which plan to execute to reach the target. By default, if no overriding deployment plan is provided, the pods defined in the ServiceSpec will be rolled out serially.
+Once a proposed target configuration is accepted as the target configuration, the scheduler must determine which plan to execute to reach the target. By default, if no overriding deployment plan is provided, the pods defined in the `ServiceSpec` will be rolled out serially.
 
 There are two fundamental plan execution scenarios: **install** and **update**.  Let’s first walk through the deployment of the [hello world service](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml) in the install case.
 
 ### Install
 
-Recall the [rendered ServiceSpec from above](#rendered-spec). A single pod containing a single task is defined generating the following plan:
+Recall the [rendered `ServiceSpec` from above](#rendered-spec). A single pod containing a single task is defined generating the following plan:
 
     {
     
@@ -546,7 +546,7 @@ In the update case, a scheduler goes from one target configuration to the next. 
 
 This example updates the target configuration we defined in the install above. The new target configuration below increases the amount of CPU consumed by the server task.
 
-In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS.  Below, we update this value in Marathon from 0.1 to 0.2.
+In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS. Below, we update this value in Marathon from 0.1 to 0.2.
 
     {
     
@@ -572,7 +572,7 @@ In the marathon.json.mustache template we defined an environment variable named 
     
     }
 
-This will result in restarting the scheduler and re-rendering the ServiceSpec template. The new template is shown below.
+This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below.
 
     name: "hello-world"
     pods:
@@ -591,35 +591,35 @@ This will result in restarting the scheduler and re-rendering the ServiceSpec te
 
 A new plan is then generated and execution begins:
 
-{
-
-	phases: [{
-
-		id: "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
-
-		name: "hello",
-
-		steps: [{
-
-			id: "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
-
-			status: "STARTING",
-
-			name: "hello-0:[server]",
-
-			message: "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
-
-		}],
-
-		status: "STARTING"
-
-	}],
-
-	errors: [],
-
-	status: "STARTING"
-
-}
+    {
+    
+        phases: [{
+    
+            id: "ce7bf2e6-857d-4188-a21c-6469c2db92fb",
+    
+            name: "hello",
+    
+            steps: [{
+    
+                id: "c47bf620-9cd7-4bae-b9d0-f56ca00e26ce",
+    
+                status: "STARTING",
+    
+                name: "hello-0:[server]",
+    
+                message: "DefaultStep: 'hello-0:[server]' has status: 'STARTING'."
+    
+            }],
+    
+            status: "STARTING"
+    
+        }],
+    
+        errors: [],
+    
+        status: "STARTING"
+    
+    }
 
 In this case, we have changed the resources consumed for a running task. In order for it to consume new resources, the task must be killed and restarted consuming more resources. When in the PREPARED state, the task has been killed and will be restarted as soon as appropriate resources are available.
 
@@ -829,13 +829,13 @@ Then, only tests marked special would be executed.  A oneline example is as foll
 
 # Advanced  DC/OS Service Definition
 
-## ServiceSpec (YAML)
+## `ServiceSpec` (YAML)
 
-The most basic set of features present in the YAML representation of the ServiceSpec are [presented above](#service-spec). The remaining features are introduced below.
+The most basic set of features present in the YAML representation of the `ServiceSpec` are [presented above](#service-spec). The remaining features are introduced below.
 
 ### Containers
 
-Each pod runs inside a single container. The ServiceSpec specifies the Docker image to run for that container and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
+Each pod runs inside a single container. The `ServiceSpec` specifies the Docker image to run for that container and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
 
     name: "hello-world"
     
@@ -1162,7 +1162,7 @@ The template is rendered by the environment variables available in the task’s 
 
 ### Task Environment
 
-You can define the environment of a task in a few different ways. In the YML ServiceSpec, it can be defined in the following way.
+You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
     name: "hello-world"
     pods:
@@ -1199,7 +1199,7 @@ For example:
 
 ### Health Checks
 
-Every task may have a single health check defined for it by adding a `health-check` parameter to  the ServiceSpec:
+Every task may have a single health check defined for it by adding a `health-check` parameter to  the `ServiceSpec`:
 
     name: "hello-world"
     pods:
@@ -1230,7 +1230,7 @@ The interval, grace-period, delay, and timeout elements are denominated in secon
 
 ### Readiness Checks
 
-Every task may have a single readiness check defined for it by adding a `readiness-check` parameter to  the ServiceSpec:
+Every task may have a single readiness check defined for it by adding a `readiness-check` parameter to  the `ServiceSpec`:
 
     name: "hello-world"
     pods:
@@ -1346,11 +1346,11 @@ web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:{{PROXYLITE_PORT}}
 
     6. When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before a task it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
 
-## ServiceSpec (Java)
+## `ServiceSpec` (Java)
 
-The YAML-based ServiceSpec is flexible and powerful, but once a service moves beyond purely declarative requirements, its static nature becomes a barrier to development. The ServiceSpec as defined in YAML is actually just a convenience for generating a Java implementation of the [ServiceSpec interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java), which is arbitrarily modifiable by users of the SDK.
+The YAML-based `ServiceSpec` is flexible and powerful, but once a service moves beyond purely declarative requirements, its static nature becomes a barrier to development. The `ServiceSpec` as defined in YAML is actually just a convenience for generating a Java implementation of the [`ServiceSpec` interface](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java), which is arbitrarily modifiable by users of the SDK.
 
-All of the interfaces of the ServiceSpec  have default implementations. For example, the ServiceSpec interface is implemented by the [DefaultServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultServiceSpec.java). The default interface implementations also provide convenient fluent style construction. For example a DefaultServiceSpec can be constructed in the following way:
+All of the interfaces of the `ServiceSpec` have default implementations. For example, the `ServiceSpec` interface is implemented by the [`DefaultServiceSpec`](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultServiceSpec.java). The default interface implementations also provide convenient fluent style construction. For example a `DefaultServiceSpec` can be constructed in the following way:
 
     DefaultServiceSpec.newBuilder()
     
@@ -1368,7 +1368,7 @@ All of the interfaces of the ServiceSpec  have default implementations. For exam
     
         .build();
 
-The same pattern holds for all components of the ServiceSpec. [Resource sets](#resource-sets) are one area of difference between Java and YAML ServiceSpec definitions. While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a [TaskSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java).
+The same pattern holds for all components of the `ServiceSpec`. [Resource sets](#resource-sets) are one area of difference between Java and YAML `ServiceSpec` definitions. While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a [TaskSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java).
 
 <a name="placement-rules"></a>
 ### Placement Rules
