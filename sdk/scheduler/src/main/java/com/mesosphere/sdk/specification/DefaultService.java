@@ -20,6 +20,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.eclipse.jetty.util.ArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,13 +134,16 @@ public class DefaultService implements Service {
     }
 
     private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
+        Collection<Object> resourceList = new ArrayQueue<>();
+        resourceList.add(new InterruptProceed(defaultScheduler.getPlanManager()));
         new Thread(new Runnable() {
             @Override
             public void run() {
                 JettyApiServer apiServer = null;
                 try {
                     LOGGER.info("Starting API server.");
-                    apiServer = new JettyApiServer(apiPort, defaultScheduler.getResources());
+                    resourceList.addAll(defaultScheduler.getResources());
+                    apiServer = new JettyApiServer(apiPort, resourceList);
                     apiServer.start();
                 } catch (Exception e) {
                     LOGGER.error("API Server failed with exception: ", e);

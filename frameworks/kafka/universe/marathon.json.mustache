@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./kafka-scheduler/bin/kafka ./kafka-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./kafka-scheduler/bin/kafka ./kafka-scheduler/kafka_svc.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",

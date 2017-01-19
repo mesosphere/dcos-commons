@@ -527,6 +527,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         return resources;
     }
 
+    public PlanManager getPlanManager(){
+        return deploymentPlanManager;
+    }
+
     @VisibleForTesting
     void awaitTermination() throws InterruptedException {
         executor.shutdown();
