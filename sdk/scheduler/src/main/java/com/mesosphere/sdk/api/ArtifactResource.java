@@ -3,6 +3,7 @@ package com.mesosphere.sdk.api;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigStoreException.Reason;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -25,10 +26,21 @@ import java.util.stream.Collectors;
  */
 @Path("/v1/artifacts")
 public class ArtifactResource {
+    private static final String ARTIFACT_URI_FORMAT =
+            "http://api.%s.marathon." + ResourceUtils.VIP_HOST_TLD + "/v1/artifacts/template/%s/%s/%s/%s";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ConfigStore<ServiceSpec> configStore;
+
+    /**
+     * Returns a valid URL for accessing a config template artifact from a service task.
+     * Must be kept in sync with {@link #getTemplate(String, String, String, String)}.
+     */
+    public static String getTemplateUrl(
+            String serviceName, UUID configId, String podType, String taskName, String configName) {
+        return String.format(ARTIFACT_URI_FORMAT, serviceName, configId, podType, taskName, configName);
+    }
 
     public ArtifactResource(ConfigStore<ServiceSpec> configStore) {
         this.configStore = configStore;

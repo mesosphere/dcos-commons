@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.state.StateStore;
@@ -27,20 +28,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
 
-    /**
-     * Default hostname for accessing the scheduler from elsewhere in the cluster.
-     * Assumes a named VIP named 'api' which routes to the service API port. See marathon.json.mustache.
-     */
-    private static final String SCHEDULER_HOSTNAME_DEFAULT = "api.%s.marathon." + ResourceUtils.VIP_HOST_TLD;
-
-    /**
-     * URI for an artifact hosted by {@link ArtifactResource}.
-     */
-    private static final String ARTIFACT_URI_FORMAT =
-            "http://%s/v1/artifacts/template/%s/%s/%s/%s";
-
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
-    private static final String CONFIG_TEMPLATE_ENV_FORMAT = "CONFIG_TEMPLATE_%s";
+    private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
 
     private final StateStore stateStore;
     private final String serviceName;
@@ -286,17 +275,15 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             String podType,
             String taskName,
             Collection<ConfigFileSpec> configs) {
-        final String schedulerHostname = String.format(SCHEDULER_HOSTNAME_DEFAULT, serviceName);
         for (ConfigFileSpec config : configs) {
             // Provide download URI to mesos fetcher, with output destination:
-            String configUrl = String.format(ARTIFACT_URI_FORMAT,
-                    schedulerHostname, configId, podType, taskName, config.getName());
             commandInfoBuilder.addUrisBuilder()
-                    .setValue(configUrl)
+                    .setValue(ArtifactResource.getTemplateUrl(
+                            serviceName, configId, podType, taskName, config.getName()))
                     .setOutputFile(config.getRelativePath());
             // For use by bootstrap process, provide environment variable pointing to output destination:
             commandInfoBuilder.getEnvironmentBuilder().addVariablesBuilder()
-                    .setName(String.format(CONFIG_TEMPLATE_ENV_FORMAT, TaskUtils.toEnvName(config.getName())))
+                    .setName(String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())))
                     .setValue(config.getRelativePath());
         }
     }

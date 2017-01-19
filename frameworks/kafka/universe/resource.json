@@ -4,6 +4,7 @@
       "jre-tar-gz": "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u91-linux-x64.tar.gz",
       "executor-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/executor.zip",
       "libmesos-bundle-tar-gz": "http://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.8.7-1.0.2-2.tar.gz",
+      "bootstrap-tar-gz": "{{artifact-dir}}/bootstrap.tar.gz",
       "scheduler-zip": "{{artifact-dir}}/kafka-scheduler.zip"
     }
   },
