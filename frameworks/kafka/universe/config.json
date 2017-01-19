@@ -9,6 +9,11 @@
             "description":"Apache Kafka",
             "type":"string",
             "default":"kafka"
+          },
+          "cmd_prefix" : {
+            "description":"A generic prefix to start the scheduler.",
+            "type":"string",
+            "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
           }
         }
       },
