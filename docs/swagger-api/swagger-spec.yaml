@@ -11,7 +11,9 @@ tags:
 - name: "plans"
   description: "Deployment, maintenance, and recovery plans being executed by the service"
 - name: "pods"
-  description: "The pods which compose the service"
+  description: "Management of the pods and tasks which are being managed by the service"
+- name: "artifacts"
+  description: "Files served by the service scheduler to its tasks"
 - name: "configurations"
   description: "Historical and current target configurations for the service"
 - name: "state"
@@ -291,6 +293,41 @@ paths:
           description: "Requested pod was not found."
         500:
           description: "Failed to fetch requested status for pod."
+  /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}:
+    get:
+      tags:
+      - "artifacts"
+      summary: "Produces the content of a configuration file with mustache templating for rendering and use at a task."
+      produces:
+      - "text/plain"
+      parameters:
+      - name: "configurationId"
+        in: "path"
+        description: "The ID of the configuration to be retrieved from."
+        required: true
+        type: "string"
+      - name: "podType"
+        in: "path"
+        description: "The pod type for the task."
+        required: true
+        type: "string"
+      - name: "taskName"
+        in: "path"
+        description: "The task name."
+        required: true
+        type: "string"
+      - name: "configurationName"
+        in: "path"
+        description: "The name of the configuration template file."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Content of the requested file with mustache templating."
+        400:
+          description: "Invalid request: configurationId couldn't be parsed as a UUID."
+        404:
+          description: "No file was found at that location."
   /configurations:
     get:
       tags:
@@ -302,7 +339,7 @@ paths:
       responses:
         200:
           description: "List of stored configurations."
-        404:
+        500:
           description: "Failed to fetch list of configuration ids."
   /configurations/{configurationId}:
     get:
@@ -320,8 +357,12 @@ paths:
       responses:
         200:
           description: "The content of the configuration."
+        400:
+          description: "Invalid request: configurationId couldn't be parsed as a UUID."
         404:
-          description: "Failed to fetch requested configuration with id."
+          description: "Requested configuration was not found."
+        500:
+          description: "Failed to retrieve configuration with requested ID."
   /configurations/targetId:
     get:
       tags:
@@ -333,7 +374,9 @@ paths:
         200:
           description: "The ID of the current target configuration."
         404:
-          description: "Failed to fetch target configuration."
+          description: "No target configuration ID was found."
+        500:
+          description: "Failed to fetch target configuration ID."
   /configurations/target:
     get:
       tags:
@@ -345,7 +388,9 @@ paths:
         200:
           description: "The content of the current target configuration."
         404:
-          description: "."
+          description: "No target configuration was found."
+        500:
+          description: "Failed to fetch target configuration."
   /state/frameworkId:
     get:
       tags:
@@ -356,6 +401,8 @@ paths:
       responses:
         200:
           description: "The current Framework ID."
+        404:
+          description: "No Framework ID was found."
         500:
           description: "Framework ID not available."
   /state/properties:
@@ -387,6 +434,8 @@ paths:
         200:
           description: "The deserialized content of the property."
         204:
-          description: "No deserializer was provided by the service developer to deserialize this property."
+          description: "No deserializer was provided by the service developer to deserialize custom properties."
+        404:
+          description: "Requested property wasn't found."
         500:
           description: "Failed to fetch requested property."

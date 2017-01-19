@@ -11,6 +11,7 @@ import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.After;
@@ -145,7 +146,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreFrameworkIdFailureThenSuccess() {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeFrameworkId(FRAMEWORK_ID);
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeFrameworkId(FRAMEWORK_ID);
         try {
             mockedCache.storeFrameworkId(FRAMEWORK_ID);
             fail("expected exception");
@@ -201,7 +202,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStorePropertyFailureThenSuccess() {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeProperty(PROP_KEY2, PROP_VAL2);
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeProperty(PROP_KEY2, PROP_VAL2);
         try {
             mockedCache.storeProperty(PROP_KEY2, PROP_VAL2);
             fail("expected exception");
@@ -276,7 +277,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreTaskInfoFailureThenSuccess() {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeTasks(Arrays.asList(TASK2));
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeTasks(Arrays.asList(TASK2));
         try {
             mockedCache.storeTasks(Arrays.asList(TASK2));
             fail("expected exception");
@@ -378,7 +379,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreTaskStatusFailureThenSuccess() throws Exception {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeStatus(STATUS2);
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeStatus(STATUS2);
         try {
             mockedCache.storeStatus(STATUS2);
             fail("expected exception");

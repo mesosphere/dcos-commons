@@ -4,10 +4,13 @@ scheduler:
 pods:
   journal:
     count: 3
+    uris:
+      - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
+      - {{BOOTSTRAP_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode"
+        cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode"
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -19,9 +22,6 @@ pods:
           path: "journal-data"
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
@@ -46,14 +46,14 @@ pods:
           path: "name-data"
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
+    uris:
+      - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
+      - {{BOOTSTRAP_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode"
+        cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode"
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
@@ -65,11 +65,8 @@ pods:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format"
+        cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format"
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
@@ -81,11 +78,8 @@ pods:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
       bootstrap:
         goal: FINISHED
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby"
+        cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby"
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
@@ -101,14 +95,14 @@ pods:
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
         memory: {{ZKFC_MEM}}
+    uris:
+      - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
+      - {{BOOTSTRAP_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc"
+        cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc"
         resource-set: zkfc-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
@@ -121,11 +115,8 @@ pods:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK"
+        cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK"
         resource-set: zkfc-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
@@ -138,10 +129,13 @@ pods:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
   data:
     count: {{DATA_COUNT}}
+    uris:
+      - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
+      - {{BOOTSTRAP_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
+        cmd: "./bootstrap && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
@@ -155,9 +149,6 @@ pods:
           path: "data-data"
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"

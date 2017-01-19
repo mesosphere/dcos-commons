@@ -7,6 +7,8 @@ import org.apache.mesos.Protos.Offer.Operation;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +74,7 @@ public class PersistentOperationRecorder implements OperationRecorder {
         try {
             taskName = CommonTaskUtils.toTaskName(taskStatus.getTaskId());
         } catch (TaskException e) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Failed to get TaskName/ExecName from TaskStatus %s", taskStatus), e);
         }
         try {

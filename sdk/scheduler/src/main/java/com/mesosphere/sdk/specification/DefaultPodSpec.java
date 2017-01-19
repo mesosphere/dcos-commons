@@ -6,7 +6,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.specification.validation.UniqueResourceSet;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
@@ -42,9 +41,6 @@ public class DefaultPodSpec implements PodSpec {
     @Valid
     private PlacementRule placementRule;
     @Valid
-    @UniqueResourceSet
-    private Collection<ResourceSet> resources;
-    @Valid
     private Collection<URI> uris;
 
     @JsonCreator
@@ -55,8 +51,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("container") ContainerSpec container,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
-            @JsonProperty("placement-rule") PlacementRule placementRule,
-            @JsonProperty("resource-sets") Collection<ResourceSet> resources) {
+            @JsonProperty("placement-rule") PlacementRule placementRule) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -64,12 +59,11 @@ public class DefaultPodSpec implements PodSpec {
         this.uris = uris;
         this.tasks = tasks;
         this.placementRule = placementRule;
-        this.resources = resources;
     }
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count, builder.container,
-                builder.uris, builder.tasks, builder.placementRule, builder.resources);
+                builder.uris, builder.tasks, builder.placementRule);
         ValidationUtils.validate(this);
     }
 
@@ -87,9 +81,6 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
-        ArrayList<ResourceSet> resourcesCopy = new ArrayList<>();
-        resourcesCopy.addAll(copy.getResources());
-        builder.resources = resourcesCopy;
         return builder;
     }
 
@@ -124,11 +115,6 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<ResourceSet> getResources() {
-        return resources;
-    }
-
-    @Override
     public Optional<PlacementRule> getPlacementRule() {
         return Optional.ofNullable(placementRule);
     }
@@ -155,7 +141,6 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
-        private Collection<ResourceSet> resources;
 
         private Builder() {
         }
@@ -259,11 +244,6 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder placementRule(PlacementRule placementRule) {
             this.placementRule = placementRule;
-            return this;
-        }
-
-        public Builder resources(Collection<ResourceSet> resources) {
-            this.resources = resources;
             return this;
         }
 

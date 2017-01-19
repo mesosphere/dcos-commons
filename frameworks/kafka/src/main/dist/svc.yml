@@ -2,6 +2,8 @@ name: "kafka"
 pods:
   kafka:
     count: {{BROKER_COUNT}}
+    uris:
+      - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
@@ -15,8 +17,6 @@ pods:
           size: {{BROKER_DISK}}
         goal: RUNNING
         cmd: "env && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
-        uris:
-          - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
         configs:
           server-properties:
             template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"

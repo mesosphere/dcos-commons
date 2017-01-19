@@ -18,67 +18,69 @@ import (
 
 // arg handling
 
+const (
+	configTemplatePrefix = "CONFIG_TEMPLATE_"
+	resolveRetryDelay = time.Duration(1) * time.Second
+)
+
+var verbose = false
+
 type args struct {
-	verbose bool
-
 	// Whether to print the container environment up-front
-	printEnv bool
+	printEnvEnabled bool
 
+	// Whether to enable host resolution at startup
+	resolveEnabled bool
 	// Host resolution. Empty slice means disabled.
 	resolveHosts []string
 	// Timeout across all hosts. Zero means timeout disabled.
 	resolveTimeout time.Duration
-	// Duration to wait between retries.
-	resolveDelay time.Duration
 
-	// Envvars starting with prefix are assumed to be config paths
-	templatePrefix string
-	// Additional custom templates to be parsed
-	templateFiles []string
+	// Whether to enable template logic
+	templateEnabled bool
 	// Max supported bytes or 0 for no limit
 	templateMaxBytes int64
 }
 
 func parseArgs() args {
 	args := args{}
-	flag.BoolVar(&args.verbose, "verbose", false, "Extra logging of requests/responses")
+	flag.BoolVar(&verbose, "verbose", verbose, "Extra logging of requests/responses.")
 
-	flag.BoolVar(&args.printEnv, "print-env", true,
-		"Whether to print the process environment")
+	flag.BoolVar(&args.printEnvEnabled, "print-env", true,
+		"Whether to print the process environment.")
 
-	defaultHostString := "<TASK_NAME>.<FRAMEWORK_NAME>.mesos"
+	flag.BoolVar(&args.resolveEnabled, "resolve", true,
+		"Whether to enable the step of waiting for hosts to resolve. " +
+		"May be disabled for faster startup when not needed.")
 	var rawHosts string
+	defaultHostString := "<TASK_NAME>.<FRAMEWORK_NAME>.mesos"
 	flag.StringVar(&rawHosts, "resolve-hosts", defaultHostString,
-		"Comma-separated list of hosts to resolve before exiting, or an empty string to skip this.")
+		"Comma-separated list of hosts to resolve. Defaults to the hostname of the task itself.")
 	flag.DurationVar(&args.resolveTimeout, "resolve-timeout", time.Duration(5) * time.Minute,
 		"Duration to wait for all host resolutions to complete, or zero to wait indefinitely.")
-	flag.DurationVar(&args.resolveDelay, "resolve-retry-delay", time.Duration(1) * time.Second,
-		"Duration to wait between resolve attempts, or zero for no delay.")
 
-	var rawFiles string
-	flag.StringVar(&args.templatePrefix, "template-auto-prefix", "CONFIG_TEMPLATE_",
-		"Environment key prefix to search for template paths, or empty to disable this search.")
-	flag.StringVar(&rawFiles, "template-files", "",
-		"Comma-separated list of manually-specified files to be rendered, in addition to any autodetected files.")
+	flag.BoolVar(&args.templateEnabled, "template", true,
+		fmt.Sprintf("Whether to enable processing of configuration templates advertised by %s* " +
+			"env vars.", configTemplatePrefix))
 	flag.Int64Var(&args.templateMaxBytes, "template-max-bytes", 1024 * 1024,
-		"Largest config file that may be processed, or zero for no limit")
+		"Largest template file that may be processed, or zero for no limit.")
 	flag.Parse()
 
+	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
 	if (rawHosts == defaultHostString) {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
 		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
 		frameworkName, frameworkNameOk := os.LookupEnv("FRAMEWORK_NAME")
 		if !taskNameOk || !frameworkNameOk {
-			log.Fatalf("Missing required envvar(s) to build default -resolve value. " +
-				"Either specify -resolve or provide these envvars: TASK_NAME, FRAMEWORK_NAME.")
+			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
+				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_NAME.")
 		}
 		args.resolveHosts = []string{ fmt.Sprintf("%s.%s.mesos", taskName, frameworkName) }
 	} else {
 		args.resolveHosts = splitAndClean(rawHosts, ",")
 	}
 
-	args.templateFiles = splitAndClean(rawFiles, ",")
 	return args
 }
 
@@ -96,41 +98,33 @@ func splitAndClean(s string, sep string) []string {
 
 // env print
 
-func printEnv(args args) {
-	if !args.printEnv {
-		return
-	}
+func printEnv() {
 	env := os.Environ()
 	sort.Strings(env)
-	log.Printf("Bootstrapping with environment:\n", strings.Join(env, "\n"))
+	log.Printf("Bootstrapping with environment:\n%s", strings.Join(env, "\n"))
 }
 
 // dns resolve
 
-func waitForResolve(args args) {
-	if len(args.resolveHosts) == 0 {
-		log.Printf("Empty -resolve value: Skipping host resolution")
-		return
-	}
-
+func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 	var timer *time.Timer
-	if args.resolveTimeout == 0 {
+	if resolveTimeout == 0 {
 		timer = nil
 	} else {
-		timer = time.NewTimer(args.resolveTimeout)
+		timer = time.NewTimer(resolveTimeout)
 	}
-	for _, host := range args.resolveHosts {
+	for _, host := range resolveHosts {
 		log.Printf("Waiting for '%s' to resolve...", host)
 		for {
 			result, err := net.LookupHost(host)
 
 			// Check result, exit loop if suceeded:
 			if err != nil {
-				if args.verbose {
+				if verbose {
 					log.Printf("Lookup failed: %s", err)
 				}
 			} else if len(result) == 0 {
-				if args.verbose {
+				if verbose {
 					log.Printf("No results for host '%s'", host)
 				}
 			} else {
@@ -154,11 +148,11 @@ func waitForResolve(args args) {
 			}
 
 			// Wait before retry:
-			time.Sleep(args.resolveDelay)
+			time.Sleep(resolveRetryDelay)
 		}
 	}
 
-	if args.verbose {
+	if verbose {
 		log.Printf("Hosts resolved, continuing bootstrap.")
 	}
 
@@ -170,9 +164,7 @@ func waitForResolve(args args) {
 
 // template render
 
-func renderTemplate(args args, filepath string, envMap map[string]string, source string) {
-	log.Printf("Rendering template '%s'...", filepath)
-
+func renderTemplate(filepath string, envMap map[string]string, source string, templateMaxBytes int64) {
 	// Various file checks...
 	info, err := os.Stat(filepath)
 	if err != nil && os.IsNotExist(err) {
@@ -191,24 +183,24 @@ func renderTemplate(args args, filepath string, envMap map[string]string, source
 		log.Fatalf("Path from %s is not a regular file: %s (cwd=%s)",
 			source, filepath, cwd)
 	}
-	if args.templateMaxBytes != 0 {
-		if info.Size() > args.templateMaxBytes {
+	if templateMaxBytes != 0 {
+		if info.Size() > templateMaxBytes {
 			log.Fatalf("File size of path '%s' from %s exceeds maximum %ld: %ld",
-				filepath, source, args.templateMaxBytes, info.Size())
+				filepath, source, templateMaxBytes, info.Size())
 		}
 	}
 
 	// Read/render/write file.
 	oldBytes, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		log.Fatalf("Failed to read file at '%s': %s", filepath, err)
+		log.Fatalf("Failed to read file from %s at '%s': %s", source, filepath, err)
 	}
 	oldContent := string(oldBytes)
 
 	dirpath, _ := path.Split(filepath)
 	template, err := mustache.ParseStringInDir(oldContent, dirpath)
 	if err != nil {
-		log.Fatalf("Failed to parse template content from '%s': %s", filepath, err)
+		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, filepath, err)
 	}
 	newContent := template.Render(envMap)
 
@@ -218,14 +210,14 @@ func renderTemplate(args args, filepath string, envMap map[string]string, source
 	}
 
 	// Print a nice debuggable diff of the changes before they're written.
-	log.Printf("Writing changes to '%s':", filepath)
+	log.Printf("Updating '%s' from %s with the following changes:", filepath)
 	line := 0
 	for _, diffRec := range difflib.Diff(strings.Split(oldContent, "\n"), strings.Split(newContent, "\n")) {
 		switch diffRec.Delta {
 		case difflib.Common:
 			line++
 			continue
-		case difflib.LeftOnly: // should be paired with a RightOnly, don't count both as a line.
+		case difflib.LeftOnly: // should be paired with a RightOnly. don't count both for the same line.
 			line++
 		}
 		fmt.Printf("L%04d: %s\n", line, diffRec)
@@ -233,11 +225,11 @@ func renderTemplate(args args, filepath string, envMap map[string]string, source
 
 	err = ioutil.WriteFile(filepath, []byte(newContent), 0666) // mode shouldn't matter: file should exist
 	if err != nil {
-		log.Fatalf("Failed to write rendered template to '%s': %s", filepath, err)
+		log.Fatalf("Failed to write rendered template from %s to '%s': %s", source, filepath, err)
 	}
 }
 
-func renderTemplates(args args) {
+func renderTemplates(templateMaxBytes int64) {
 	// Populate map with all envvars:
 	envMap := make(map[string]string)
 	for _, entry := range os.Environ() {
@@ -245,18 +237,11 @@ func renderTemplates(args args) {
 		envMap[entrySplit[0]] = entrySplit[1]
 	}
 
-	// Check paths provided manually via args:
-	for _, path := range args.templateFiles {
-		renderTemplate(args, path, envMap, "-template-files")
-	}
-
-	// Autodetect and check paths provided by env (if enabled):
-	if len(args.templatePrefix) != 0 {
-		for _, entry := range os.Environ() {
-			if strings.HasPrefix(entry, args.templatePrefix) {
-				entrySplit := strings.SplitN(entry, "=", 2) // entry: "key=val"
-				renderTemplate(args, entrySplit[1], envMap, fmt.Sprintf("envvar '%s'", entrySplit[0]))
-			}
+	// Autodetect and check paths provided by env:
+	for _, entry := range os.Environ() {
+		if strings.HasPrefix(entry, configTemplatePrefix) {
+			entrySplit := strings.SplitN(entry, "=", 2) // entry: "key=val"
+			renderTemplate(entrySplit[1], envMap, fmt.Sprintf("envvar '%s'", entrySplit[0]), templateMaxBytes)
 		}
 	}
 }
@@ -265,8 +250,22 @@ func renderTemplates(args args) {
 
 func main() {
 	args := parseArgs()
-	printEnv(args)
-	waitForResolve(args)
-	renderTemplates(args)
+
+	if args.printEnvEnabled {
+		printEnv()
+	}
+
+	if args.resolveEnabled {
+		waitForResolve(args.resolveHosts, args.resolveTimeout)
+	} else {
+		log.Printf("Resolve disabled via -resolve=false: Skipping host resolution")
+	}
+
+	if args.templateEnabled {
+		renderTemplates(args.templateMaxBytes)
+	} else {
+		log.Printf("Template handling disabled via -template=false: Skipping any config templates")
+	}
+
 	log.Printf("Bootstrap successful.")
 }

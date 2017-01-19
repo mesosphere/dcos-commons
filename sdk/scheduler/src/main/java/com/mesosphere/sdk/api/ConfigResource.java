@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
-import com.mesosphere.sdk.config.ConfigStoreException.Reason;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.json.JSONArray;
 import org.slf4j.Logger;

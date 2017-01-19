@@ -10,7 +10,6 @@ import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -38,7 +37,7 @@ public class DefaultTaskSpec implements TaskSpec {
     @NotNull
     private ResourceSet resourceSet;
 
-    private Collection<URI> uris;
+    @Valid
     private Collection<ConfigFileSpec> configFiles;
 
     @JsonCreator
@@ -49,7 +48,6 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
-            @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
         this.name = name;
         this.goalState = goalState;
@@ -57,7 +55,6 @@ public class DefaultTaskSpec implements TaskSpec {
         this.commandSpec = commandSpec;
         this.healthCheckSpec = healthCheckSpec;
         this.readinessCheckSpec = readinessCheckSpec;
-        this.uris = uris;
         this.configFiles = configFiles;
     }
 
@@ -69,7 +66,6 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.commandSpec,
                 builder.healthCheckSpec,
                 builder.readinessCheckSpec,
-                builder.uris,
                 builder.configFiles);
     }
 
@@ -84,7 +80,6 @@ public class DefaultTaskSpec implements TaskSpec {
         builder.resourceSet = copy.getResourceSet();
         builder.commandSpec = copy.getCommand().orElse(null);
         builder.healthCheckSpec = copy.getHealthCheck().orElse(null);
-        builder.uris = copy.getUris();
         builder.configFiles = copy.getConfigFiles();
         return builder;
     }
@@ -117,11 +112,6 @@ public class DefaultTaskSpec implements TaskSpec {
     @Override
     public Optional<ReadinessCheckSpec> getReadinessCheck() {
         return Optional.ofNullable(readinessCheckSpec);
-    }
-
-    @Override
-    public Collection<URI> getUris() {
-        return uris;
     }
 
     @Override
@@ -158,7 +148,6 @@ public class DefaultTaskSpec implements TaskSpec {
         private CommandSpec commandSpec;
         private HealthCheckSpec healthCheckSpec;
         private ReadinessCheckSpec readinessCheckSpec;
-        private Collection<URI> uris;
         private Collection<ConfigFileSpec> configFiles;
 
         private Builder() {
@@ -225,17 +214,6 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder readinessCheckSpec(ReadinessCheckSpec readinessCheckSpec) {
             this.readinessCheckSpec = readinessCheckSpec;
-            return this;
-        }
-
-        /**
-         * Sets the {@code uris} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param uris the {@code uris} to set
-         * @return a reference to this Builder
-         */
-        public Builder uris(Collection<URI> uris) {
-            this.uris = uris;
             return this;
         }
 

@@ -84,7 +84,7 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
     $PUBLISH_SCRIPT \
         ${FRAMEWORK_NAME} \
         ${UNIVERSE_DIR} \
-        ${BOOTSTRAP_DIR}/bootstrap.tar.gz \
+        ${BOOTSTRAP_DIR}/bootstrap.zip \
         ${CLI_DIR}/dcos-*/dcos-* \
         ${CLI_DIR}/dcos-*/*.whl \
         ${ARTIFACT_FILES}

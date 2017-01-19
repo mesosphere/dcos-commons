@@ -10,6 +10,7 @@ import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -105,26 +106,36 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertFalse(taskInfo.hasContainer());
         Assert.assertTrue(taskInfo.hasCommand());
 
-        Assert.assertEquals(TestConstants.TASK_CMD, taskInfo.getCommand().getValue());
+        // Task command: what to run and envvars
+        CommandInfo taskCommand = taskInfo.getCommand();
+        Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
 
-        List<URI> uris = taskInfo.getCommand().getUrisList();
-        Assert.assertEquals(2, uris.size());
+        Map<String, String> taskEnv = CommonTaskUtils.fromEnvironmentToMap(taskCommand.getEnvironment());
+        Assert.assertEquals(taskEnv.toString(), 5, taskEnv.size());
+        Assert.assertEquals(taskInfo.getName(), taskEnv.get("TASK_NAME"));
+        Assert.assertEquals("true", taskEnv.get(taskInfo.getName()));
+        Assert.assertEquals("0", taskEnv.get("POD_INSTANCE_INDEX"));
+        Assert.assertEquals("conf/config-one.conf", taskEnv.get("CONFIG_TEMPLATE_CONFIG_ONE"));
+        Assert.assertEquals("../other/conf/config-two.xml", taskEnv.get("CONFIG_TEMPLATE_CONFIG_TWO"));
+
+        // Executor command: uris
+        CommandInfo executorCommand =
+                offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getCommand();
+        List<URI> uris = executorCommand.getUrisList();
+        Assert.assertEquals(5, uris.size());
+        Assert.assertEquals("test-executor-uri", uris.get(0).getValue());
+        Assert.assertEquals("test-libmesos-uri", uris.get(1).getValue());
+        Assert.assertEquals("https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz", uris.get(2).getValue());
         String artifactDirUrl = String.format("http://api.%s.marathon.%s/v1/artifacts/template/%s/%s/%s/",
                 TestConstants.SERVICE_NAME,
                 ResourceUtils.VIP_HOST_TLD,
                 uuid.toString(),
                 podInstance.getPod().getType(),
                 tasksToLaunch.get(0));
-        Assert.assertEquals(artifactDirUrl + "config-one", uris.get(0).getValue());
-        Assert.assertEquals(artifactDirUrl + "config-two", uris.get(1).getValue());
-
-        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 5, envvars.size());
-        Assert.assertEquals(taskInfo.getName(), envvars.get("TASK_NAME"));
-        Assert.assertEquals("true", envvars.get(taskInfo.getName()));
-        Assert.assertEquals("0", envvars.get("POD_INSTANCE_INDEX"));
-        Assert.assertEquals("conf/config-one.conf", envvars.get("CONFIG_TEMPLATE_CONFIG_ONE"));
-        Assert.assertEquals("../other/conf/config-two.xml", envvars.get("CONFIG_TEMPLATE_CONFIG_TWO"));
+        Assert.assertEquals(artifactDirUrl + "config-one", uris.get(3).getValue());
+        Assert.assertEquals("conf/config-one.conf", uris.get(3).getOutputFile());
+        Assert.assertEquals(artifactDirUrl + "config-two", uris.get(4).getValue());
+        Assert.assertEquals("../other/conf/config-two.xml", uris.get(4).getOutputFile());
     }
 
     @Test

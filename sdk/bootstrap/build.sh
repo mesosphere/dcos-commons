@@ -66,8 +66,8 @@ CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -ldflags="-s -w"
 if [ -n "$UPX_BINARY" ]; then
     $UPX_BINARY -q -9 "${EXE_FILENAME}"
 fi
-PKG_FILENAME=${EXE_FILENAME}.tar.gz
+PKG_FILENAME=${EXE_FILENAME}.zip
 rm -f ${PKG_FILENAME}
-tar czf ${PKG_FILENAME} ${EXE_FILENAME}
+zip ${PKG_FILENAME} ${EXE_FILENAME}
 echo $(pwd)/${PKG_FILENAME}
 popd

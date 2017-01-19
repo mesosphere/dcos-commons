@@ -3,6 +3,8 @@ package com.mesosphere.sdk.api;
 import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
@@ -63,12 +65,15 @@ public class StateResource {
             if (frameworkIDOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
                 return Response.ok(idArray.toString(), MediaType.APPLICATION_JSON).build();
+            } else {
+                logger.warn("No framework ID exists");
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
-        } catch (Exception ex) {
-            logger.error("Failed to fetch target configuration", ex);
+        } catch (StateStoreException ex) {
+            logger.error("Failed to fetch framework ID", ex);
+            return Response.serverError().build();
         }
 
-        return Response.serverError().build();
     }
 
     @Path("/properties")
@@ -77,7 +82,7 @@ public class StateResource {
         try {
             JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
             return Response.ok(keyArray.toString(), MediaType.APPLICATION_JSON).build();
-        } catch (Exception ex) {
+        } catch (StateStoreException ex) {
             logger.error("Failed to fetch list of property keys", ex);
             return Response.serverError().build();
         }
@@ -96,15 +101,16 @@ public class StateResource {
                         "No deserializer was provided to StateResource constructor", key);
                 return Response.noContent().build(); // 204 NO_CONTENT
             } else {
-                logger.info("Attempting to fetch Property for key '{}'", key);
-                byte[] value = stateStore.fetchProperty(key);
-                return Response.ok(propertyDeserializer.toJsonString(key, value),
+                logger.info("Attempting to fetch property '{}'", key);
+                return Response.ok(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)),
                         MediaType.APPLICATION_JSON).build();
             }
-        } catch (Exception ex) {
-            // Warning instead of Error: Subject to user input
-            logger.warn(String.format(
-                    "Failed to fetch requested Property for key '%s'", key), ex);
+        } catch (StateStoreException ex) {
+            if (ex.getReason() == Reason.NOT_FOUND) {
+                logger.warn(String.format("Requested property '%s' wasn't found", key), ex);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            logger.error(String.format("Failed to fetch requested property '%s'", key), ex);
             return Response.serverError().build();
         }
     }

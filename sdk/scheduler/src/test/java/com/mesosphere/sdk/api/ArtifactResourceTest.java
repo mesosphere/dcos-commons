@@ -2,12 +2,12 @@ package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.config.ConfigStoreException.Reason;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.junit.Before;
 import org.junit.Test;

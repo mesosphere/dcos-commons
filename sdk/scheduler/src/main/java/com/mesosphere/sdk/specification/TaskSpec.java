@@ -3,7 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -29,9 +28,6 @@ public interface TaskSpec {
 
     @JsonProperty("readiness-check-spec")
     Optional<ReadinessCheckSpec> getReadinessCheck();
-
-    @JsonProperty("uris")
-    Collection<URI> getUris();
 
     @JsonProperty("config-files")
     Collection<ConfigFileSpec> getConfigFiles();

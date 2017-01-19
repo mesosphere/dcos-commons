@@ -2,12 +2,13 @@ package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.config.ConfigStoreException.Reason;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,15 +51,15 @@ public class ArtifactResource {
      * Produces the content of the requested configuration template, or returns an error if that template doesn't exist
      * or the data couldn't be read.
      */
-    @Path("/template/{configurationId}/{podType}/{taskName}/{configName}")
+    @Path("/template/{configurationId}/{podType}/{taskName}/{configurationName}")
     @GET
     public Response getTemplate(
             @PathParam("configurationId") String configurationId,
             @PathParam("podType") String podType,
             @PathParam("taskName") String taskName,
-            @PathParam("configName") String configName) {
+            @PathParam("configurationName") String configurationName) {
         logger.info("Attempting to fetch template from config '{}' with pod '{}', task '{}', and template '{}'",
-                configurationId, podType, taskName, configName);
+                configurationId, podType, taskName, configurationName);
         UUID uuid;
         try {
             uuid = UUID.fromString(configurationId);
@@ -80,7 +81,7 @@ public class ArtifactResource {
             return Response.serverError().build();
         }
         try {
-            ConfigFileSpec config = getConfigFile(getTask(getPod(serviceSpec, podType), taskName), configName);
+            ConfigFileSpec config = getConfigFile(getTask(getPod(serviceSpec, podType), taskName), configurationName);
             return Response.ok(config.getTemplateContent(), MediaType.TEXT_PLAIN_TYPE).build();
         } catch (Exception ex) {
             logger.warn(String.format(

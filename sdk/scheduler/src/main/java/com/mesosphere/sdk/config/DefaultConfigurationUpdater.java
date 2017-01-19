@@ -6,7 +6,6 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.config.ConfigStoreException.Reason;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
@@ -15,6 +14,7 @@ import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import difflib.DiffUtils;
 

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mesosphere.sdk.config.ConfigStoreException.Reason;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

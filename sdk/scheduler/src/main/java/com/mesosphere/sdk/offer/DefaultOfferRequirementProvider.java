@@ -54,9 +54,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 getNewTaskInfos(
                         podInstance,
                         tasksToLaunch,
-                        serviceName,
                         targetConfigurationId),
-                Optional.of(getExecutor(podInstance)),
+                Optional.of(getExecutor(podInstance, serviceName, targetConfigurationId)),
                 podInstance.getPod().getPlacementRule());
     }
 
@@ -77,7 +76,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 Protos.TaskInfo taskInfo = getNewTaskInfo(
                         podInstance,
                         taskSpec,
-                        serviceName,
                         targetConfigurationId,
                         StateStoreUtils.getResources(stateStore, podInstance, taskSpec));
                 LOGGER.info("Generated new TaskInfo: {}", TextFormat.shortDebugString(taskInfo));
@@ -92,7 +90,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         List<TaskRequirement> taskRequirements = new ArrayList<>();
         for (Map.Entry<Protos.TaskInfo, TaskSpec> e : taskMap.entrySet()) {
             taskRequirements.add(getExistingTaskRequirement(
-                    podInstance, e.getKey(), e.getValue(), serviceName, targetConfigurationId));
+                    podInstance, e.getKey(), e.getValue(), targetConfigurationId));
         }
         validateTaskRequirements(taskRequirements);
 
@@ -100,14 +98,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 podInstance.getPod().getType(),
                 podInstance.getIndex(),
                 taskRequirements,
-                ExecutorRequirement.create(getExecutor(podInstance)),
+                ExecutorRequirement.create(getExecutor(podInstance, serviceName, targetConfigurationId)),
                 podInstance.getPod().getPlacementRule());
     }
 
     private static List<Protos.TaskInfo> getNewTaskInfos(
             PodInstance podInstance,
             Collection<String> tasksToLaunch,
-            String serviceName,
             UUID targetConfigurationId) throws InvalidRequirementException {
 
         LOGGER.info("Getting new TaskInfos for tasks: {}", tasksToLaunch);
@@ -125,7 +122,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 LOGGER.info("Generating taskInfo to launch for: {}, with resource set: {}",
                         taskSpec.getName(), taskSpec.getResourceSet().getId());
                 usedResourceSets.add(taskSpec.getResourceSet().getId());
-                taskInfos.add(getNewTaskInfo(podInstance, taskSpec, serviceName, targetConfigurationId));
+                taskInfos.add(getNewTaskInfo(podInstance, taskSpec, targetConfigurationId));
             }
         }
 
@@ -138,8 +135,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (!usedResourceSets.contains(taskSpec.getResourceSet().getId())) {
                 LOGGER.info("Generating transient taskInfo to complete pod footprint for: {}, with resource set: {}",
                         taskSpec.getName(), taskSpec.getResourceSet().getId());
-                Protos.TaskInfo taskInfo =
-                        getNewTaskInfo(podInstance, taskSpec, serviceName, targetConfigurationId);
+                Protos.TaskInfo taskInfo = getNewTaskInfo(podInstance, taskSpec, targetConfigurationId);
                 taskInfo = CommonTaskUtils.setTransient(taskInfo.toBuilder()).build();
                 usedResourceSets.add(taskSpec.getResourceSet().getId());
                 taskInfos.add(taskInfo);
@@ -152,7 +148,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static Protos.TaskInfo getNewTaskInfo(
             PodInstance podInstance,
             TaskSpec taskSpec,
-            String serviceName,
             UUID targetConfigurationId,
             Collection<Protos.Resource> resources) throws InvalidRequirementException {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
@@ -172,13 +167,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.getCommandBuilder()
                     .setValue(commandSpec.getValue())
                     .setEnvironment(getTaskEnvironment(podInstance, taskSpec, commandSpec));
-            setConfigFiles(
-                    taskInfoBuilder.getCommandBuilder(),
-                    serviceName,
-                    targetConfigurationId,
-                    podInstance.getPod().getType(),
-                    taskSpec.getName(),
-                    taskSpec.getConfigFiles());
+            setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec.getConfigFiles());
         }
 
         setHealthCheck(taskInfoBuilder, taskSpec);
@@ -188,16 +177,15 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.TaskInfo getNewTaskInfo(
-            PodInstance podInstance, TaskSpec taskSpec, String serviceName, UUID targetConfigurationId)
+            PodInstance podInstance, TaskSpec taskSpec, UUID targetConfigurationId)
                     throws InvalidRequirementException {
-        return getNewTaskInfo(podInstance, taskSpec, serviceName, targetConfigurationId, getNewResources(taskSpec));
+        return getNewTaskInfo(podInstance, taskSpec, targetConfigurationId, getNewResources(taskSpec));
     }
 
     private static TaskRequirement getExistingTaskRequirement(
             PodInstance podInstance,
             Protos.TaskInfo taskInfo,
             TaskSpec taskSpec,
-            String serviceName,
             UUID targetConfigurationId) throws InvalidRequirementException {
         List<Protos.Resource> diskResources = new ArrayList<>();
         List<Protos.Resource> otherResources = new ArrayList<>();
@@ -229,16 +217,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .setEnvironment(mergeEnvironments(
                             getTaskEnvironment(podInstance, taskSpec, commandSpec),
                             taskInfo.getCommand().getEnvironment()));
-            for (URI uri : commandSpec.getUris()) {
-                commandBuilder.addUrisBuilder().setValue(uri.toString());
-            }
-            setConfigFiles(
-                    commandBuilder,
-                    serviceName,
-                    targetConfigurationId,
-                    podInstance.getPod().getType(),
-                    taskSpec.getName(),
-                    taskSpec.getConfigFiles());
+            setBootstrapConfigFileEnv(commandBuilder, taskSpec.getConfigFiles());
             // Overwrite any prior CommandInfo:
             taskInfoBuilder.setCommand(commandBuilder);
         }
@@ -247,6 +226,16 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         setReadinessCheck(taskInfoBuilder, taskSpec);
 
         return new TaskRequirement(taskInfoBuilder.build());
+    }
+
+    private static void setBootstrapConfigFileEnv(
+            CommandInfo.Builder commandInfoBuilder, Collection<ConfigFileSpec> configs) {
+        for (ConfigFileSpec config : configs) {
+            // For use by bootstrap process, provide environment variable pointing to output destination:
+            commandInfoBuilder.getEnvironmentBuilder().addVariablesBuilder()
+                    .setName(String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())))
+                    .setValue(config.getRelativePath());
+        }
     }
 
     private static Protos.Environment getTaskEnvironment(
@@ -266,26 +255,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
         return CommonTaskUtils.fromMapToEnvironment(environment).build();
-    }
-
-    private static void setConfigFiles(
-            CommandInfo.Builder commandInfoBuilder,
-            String serviceName,
-            UUID configId,
-            String podType,
-            String taskName,
-            Collection<ConfigFileSpec> configs) {
-        for (ConfigFileSpec config : configs) {
-            // Provide download URI to mesos fetcher, with output destination:
-            commandInfoBuilder.addUrisBuilder()
-                    .setValue(ArtifactResource.getTemplateUrl(
-                            serviceName, configId, podType, taskName, config.getName()))
-                    .setOutputFile(config.getRelativePath());
-            // For use by bootstrap process, provide environment variable pointing to output destination:
-            commandInfoBuilder.getEnvironmentBuilder().addVariablesBuilder()
-                    .setName(String.format(CONFIG_TEMPLATE_KEY_FORMAT, TaskUtils.toEnvName(config.getName())))
-                    .setValue(config.getRelativePath());
-        }
     }
 
     private static Protos.Environment mergeEnvironments(Protos.Environment lhs, Protos.Environment rhs) {
@@ -424,7 +393,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
      * @param podInstance A PodInstance
      * @return The appropriate ExecutorInfo.
      */
-    private Protos.ExecutorInfo getExecutor(PodInstance podInstance) {
+    private Protos.ExecutorInfo getExecutor(
+            PodInstance podInstance, String serviceName, UUID targetConfigurationId) {
         List<Protos.TaskInfo> podTasks = TaskUtils.getPodTasks(podInstance, stateStore);
 
         for (Protos.TaskInfo taskInfo : podTasks) {
@@ -440,7 +410,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         LOGGER.info("Creating new executor for pod {}, as no RUNNING tasks were found", podInstance.getName());
-        return getNewExecutorInfo(podInstance.getPod());
+        return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
     }
 
     private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
@@ -481,7 +451,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return rLimitInfoBuilder.build();
     }
 
-    private static Protos.ExecutorInfo getNewExecutorInfo(PodSpec podSpec) throws IllegalStateException {
+    private static Protos.ExecutorInfo getNewExecutorInfo(
+            PodSpec podSpec, String serviceName, UUID targetConfigurationId) throws IllegalStateException {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
@@ -492,43 +463,62 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
         // command and user:
 
-        Protos.CommandInfo.Builder commandInfoBuilder = executorInfoBuilder.getCommandBuilder()
-                .setValue("export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && " +
-                        "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
-                        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
-                        "./executor/bin/executor");
+        Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
+                "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && " +
+                "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
+                "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
+                "./executor/bin/executor");
 
         if (podSpec.getUser().isPresent()) {
-            commandInfoBuilder.setUser(podSpec.getUser().get());
+            executorCommandBuilder.setUser(podSpec.getUser().get());
         }
 
         // URIs:
 
+        // Required in scheduler env.
         String executorUri = System.getenv(EXECUTOR_URI);
         if (executorUri == null) {
-            throw new IllegalStateException("Missing environment variable: " + EXECUTOR_URI);
+            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI);
         }
-        commandInfoBuilder.addUrisBuilder().setValue(executorUri);
+        executorCommandBuilder.addUrisBuilder().setValue(executorUri);
 
+        // Required in scheduler env.
         String libmesosUri = System.getenv(LIBMESOS_URI);
         if (libmesosUri == null) {
-            throw new IllegalStateException("Missing environment variable: " + LIBMESOS_URI);
+            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI);
         }
-        commandInfoBuilder.addUrisBuilder().setValue(libmesosUri);
+        executorCommandBuilder.addUrisBuilder().setValue(libmesosUri);
 
-        // Reuse scheduler's JAVA_URI for executors when available:
+        // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
         String javaUri = System.getenv(JAVA_URI);
         if (javaUri == null) {
             javaUri = DEFAULT_JAVA_URI;
         }
-        commandInfoBuilder.addUrisBuilder().setValue(javaUri);
+        executorCommandBuilder.addUrisBuilder().setValue(javaUri);
 
-        for (TaskSpec taskSpec : podSpec.getTasks()) {
-            if (!taskSpec.getCommand().isPresent()) {
-                continue;
+        // Any URIs defined in PodSpec itself.
+        if (podSpec.getUris() != null) {
+            for (URI uri : podSpec.getUris()) {
+                executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
             }
-            for (URI uri : taskSpec.getCommand().get().getUris()) {
-                commandInfoBuilder.addUrisBuilder().setValue(uri.toString());
+        }
+
+        // Finally any URIs for config templates defined in TaskSpecs.
+        if (podSpec.getTasks() != null) {
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                if (taskSpec.getConfigFiles() == null) {
+                    continue;
+                }
+                for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
+                    executorCommandBuilder.addUrisBuilder()
+                            .setValue(ArtifactResource.getTemplateUrl(
+                                    serviceName,
+                                    targetConfigurationId,
+                                    podSpec.getType(),
+                                    taskSpec.getName(),
+                                    config.getName()))
+                            .setOutputFile(config.getRelativePath());
+                }
             }
         }
 

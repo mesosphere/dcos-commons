@@ -2,43 +2,14 @@ package com.mesosphere.sdk.config;
 
 import java.io.IOException;
 
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 /**
  * Exception that indicates that there was an issue with storing values
  * in the config store.  The underlying exception is intended to be
  * nested for developer understanding.
  */
 public class ConfigStoreException extends IOException {
-
-    /**
-     * Machine-parseable indicator of the cause for an exception.
-     */
-    public enum Reason {
-
-        /**
-         * Cause is unexpected or reason could not be determined.
-         */
-        UNKNOWN,
-
-        /**
-         * The requested data was not found.
-         */
-        NOT_FOUND,
-
-        /**
-         * The underlying storage failed to store or retrieve the requested data.
-         */
-        STORAGE_ERROR,
-
-        /**
-         * The data could not be serialized or deserialized into a format suitable for storage.
-         */
-        SERIALIZATION_ERROR,
-
-        /**
-         * The requested operation is invalid.
-         */
-        LOGIC_ERROR
-    }
 
     private final Reason reason;
 
