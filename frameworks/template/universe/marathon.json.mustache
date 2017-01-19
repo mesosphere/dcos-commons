@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./template-scheduler/bin/template ./template-scheduler/{{service.spec_file}}",
+  "cmd": "{{service.cmd_prefix}} && ./template-scheduler/bin/template ./template-scheduler/{{service.spec_file}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -19,12 +19,6 @@
     "TEMPLATE_CPUS": "{{template.cpus}}",
     "TEMPLATE_MEM": "{{template.mem}}",
     "TEMPLATE_DISK": "{{template.disk}}",
-    "TEMPLATE_PLACEMENT": "{{template.placement}}",
-    "WORLD_COUNT": "{{world.count}}",
-    "WORLD_CPUS": "{{world.cpus}}",
-    "WORLD_MEM": "{{world.mem}}",
-    "WORLD_DISK": "{{world.disk}}",
-    "WORLD_PLACEMENT": "{{world.placement}}",
     "SLEEP_DURATION": "{{service.sleep}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"

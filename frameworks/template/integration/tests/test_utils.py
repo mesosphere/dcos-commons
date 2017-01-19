@@ -32,7 +32,32 @@ else:
 
 def get_task_count():
     config = get_marathon_config()
-    return int(config['env']['TEMPLATE_COUNT']) + int(config['env']['WORLD_COUNT'])
+    return int(config['env']['TEMPLATE_COUNT'])
+
+
+def get_marathon_config():
+    response = dcos.http.get(marathon_api_url('apps/{}/versions'.format(PACKAGE_NAME)))
+    assert response.status_code == 200, 'Marathon versions request failed'
+
+    last_index = len(response.json()['versions']) - 1
+    version = response.json()['versions'][last_index]
+
+    response = dcos.http.get(marathon_api_url('apps/{}/versions/{}'.format(PACKAGE_NAME, version)))
+    assert response.status_code == 200
+
+    config = response.json()
+    del config['uris']
+    del config['version']
+
+    return config
+
+
+def marathon_api_url(basename):
+    return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
+
+
+def marathon_api_url_with_param(basename, path_param):
+    return '{}/{}'.format(marathon_api_url(basename), path_param)
 
 
 def check_health():
@@ -51,40 +76,6 @@ def check_health():
         return (
             len(running_tasks) >= expected_tasks,
             'Service did not become healthy'
-        )
-
-    return spin(fn, success_predicate)
-
-
-def get_deployment_plan():
-    return _get_plan("deploy")
-
-
-def get_sidecar_plan():
-    return _get_plan("sidecar")
-
-
-def start_sidecar_plan():
-    return dcos.http.post(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/sidecar/start")
-
-
-def _get_plan(plan):
-    def fn():
-        try:
-            return dcos.http.get("{}/v1/plans/{}".format(shakedown.dcos_service_url(PACKAGE_NAME), plan))
-        except dcos.errors.DCOSHTTPException:
-            return []
-
-    def success_predicate(response):
-        print('Waiting for 200 response')
-        success = False
-
-        if hasattr(response, 'status_code'):
-            success = response.status_code == 200
-
-        return (
-            success,
-            'Failed to reach deployment endpoint'
         )
 
     return spin(fn, success_predicate)
@@ -158,48 +149,3 @@ def _nested_dict_merge(a, b, path=None):
         else:
             a[key] = b[key]
     return a
-
-
-def get_marathon_config():
-    response = dcos.http.get(marathon_api_url('apps/{}/versions'.format(PACKAGE_NAME)))
-    assert response.status_code == 200, 'Marathon versions request failed'
-
-    last_index = len(response.json()['versions']) - 1
-    version = response.json()['versions'][last_index]
-
-    response = dcos.http.get(marathon_api_url('apps/{}/versions/{}'.format(PACKAGE_NAME, version)))
-    assert response.status_code == 200
-
-    config = response.json()
-    del config['uris']
-    del config['version']
-
-    return config
-
-
-def marathon_api_url(basename):
-    return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
-
-
-def marathon_api_url_with_param(basename, path_param):
-    return '{}/{}'.format(marathon_api_url(basename), path_param)
-
-
-def request(request_fn, *args, **kwargs):
-    def success_predicate(response):
-        return (
-            response.status_code == 200,
-            'Request failed: %s' % response.content,
-        )
-
-    return spin(request_fn, success_predicate, *args, **kwargs)
-
-
-def run_dcos_cli_cmd(cmd):
-    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd)
-    if ret != 0:
-        err = "Got error code {} when running command 'dcos {}':\nstdout: {}\nstderr: {}".format(
-            ret, cmd, stdout, stderr)
-        print(err)
-        raise Exception(err)
-    return stdout
