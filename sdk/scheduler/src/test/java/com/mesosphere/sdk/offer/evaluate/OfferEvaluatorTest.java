@@ -70,10 +70,9 @@ public class OfferEvaluatorTest {
         Assert.assertEquals("resource_id", resourceIdLabel.getKey());
 
         CommandInfo command = CommonTaskUtils.unpackTaskInfo(taskInfo).getCommand();
-        Assert.assertEquals(4, command.getEnvironment().getVariablesCount());
-        Environment.Variable variable = command.getEnvironment().getVariables(3);
-        Assert.assertEquals(TestConstants.PORT_ENV_NAME, variable.getName());
-        Assert.assertEquals(String.valueOf(10000), variable.getValue());
+        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(command.getEnvironment());
+        Assert.assertEquals(envvars.toString(), 5, envvars.size());
+        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
     }
 
     @Test
@@ -179,14 +178,10 @@ public class OfferEvaluatorTest {
                 resourceIdLabel.getValue(), fulfilledPortResource.getReservation().getLabels().getLabels(0).getValue());
 
         CommandInfo command = CommonTaskUtils.unpackTaskInfo(taskInfo).getCommand();
-        Assert.assertEquals(5, command.getEnvironment().getVariablesCount());
-        Environment.Variable variable = command.getEnvironment().getVariables(3);
-        Assert.assertEquals(TestConstants.PORT_ENV_NAME, variable.getName());
-        Assert.assertEquals(String.valueOf(10000), variable.getValue());
-
-        variable = command.getEnvironment().getVariables(4);
-        Assert.assertEquals(TestConstants.PORT_ENV_NAME + "2", variable.getName());
-        Assert.assertEquals(String.valueOf(10001), variable.getValue());
+        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(command.getEnvironment());
+        Assert.assertEquals(envvars.toString(), 6, envvars.size());
+        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME));
+        Assert.assertEquals(String.valueOf(10001), envvars.get(TestConstants.PORT_ENV_NAME + "2"));
 
         Assert.assertEquals(10000, taskPortResource.getRanges().getRange(0).getBegin());
         Assert.assertEquals(10001, taskPortResource.getRanges().getRange(0).getEnd());

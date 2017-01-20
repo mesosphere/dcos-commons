@@ -11,6 +11,7 @@ public class Constants {
     public static final String GOAL_STATE_KEY = "goal_state";
     public static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
     public static final String TARGET_CONFIGURATION_KEY = "target_configuration";
+    public static final String FRAMEWORK_NAME_KEY = "FRAMEWORK_NAME";
     public static final String TASK_NAME_KEY = "TASK_NAME";
     public static final String TRANSIENT_FLAG_KEY = "transient";
 

@@ -67,12 +67,13 @@ func parseArgs() args {
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
-	if (rawHosts == defaultHostString) {
+	if (args.resolveEnabled && rawHosts == defaultHostString) {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
 		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
 		frameworkName, frameworkNameOk := os.LookupEnv("FRAMEWORK_NAME")
 		if !taskNameOk || !frameworkNameOk {
+			printEnv()
 			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
 				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_NAME.")
 		}
@@ -162,18 +163,17 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 	}
 }
 
-// template render
+// template download/read and render
 
-func renderTemplate(filepath string, envMap map[string]string, source string, templateMaxBytes int64) {
-	// Various file checks...
-	info, err := os.Stat(filepath)
+func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
+	info, err := os.Stat(inPath)
 	if err != nil && os.IsNotExist(err) {
 		cwd, err := os.Getwd()
 		if err != nil {
 			cwd = err.Error()
 		}
 		log.Fatalf("Path from %s doesn't exist: %s (cwd=%s)",
-			source, filepath, cwd)
+			source, inPath, cwd)
 	}
 	if !info.Mode().IsRegular() {
 		cwd, err := os.Getwd()
@@ -181,38 +181,33 @@ func renderTemplate(filepath string, envMap map[string]string, source string, te
 			cwd = err.Error()
 		}
 		log.Fatalf("Path from %s is not a regular file: %s (cwd=%s)",
-			source, filepath, cwd)
+			source, inPath, cwd)
 	}
-	if templateMaxBytes != 0 {
-		if info.Size() > templateMaxBytes {
-			log.Fatalf("File size of path '%s' from %s exceeds maximum %ld: %ld",
-				filepath, source, templateMaxBytes, info.Size())
-		}
+	if templateMaxBytes != 0 && info.Size() > templateMaxBytes {
+		log.Fatalf("File '%s' from %s is %d bytes, exceeds maximum %d bytes",
+			inPath, source, info.Size(), templateMaxBytes)
 	}
 
-	// Read/render/write file.
-	oldBytes, err := ioutil.ReadFile(filepath)
+	data, err := ioutil.ReadFile(inPath)
 	if err != nil {
-		log.Fatalf("Failed to read file from %s at '%s': %s", source, filepath, err)
+		log.Fatalf("Failed to read file from %s at '%s': %s", source, inPath, err)
 	}
-	oldContent := string(oldBytes)
+	return data
+}
 
-	dirpath, _ := path.Split(filepath)
-	template, err := mustache.ParseStringInDir(oldContent, dirpath)
+func renderTemplate(origContent string, outPath string, envMap map[string]string, source string) {
+	dirpath, _ := path.Split(outPath)
+	template, err := mustache.ParseStringInDir(origContent, dirpath)
 	if err != nil {
-		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, filepath, err)
+		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, outPath, err)
 	}
 	newContent := template.Render(envMap)
 
-	if oldContent == newContent {
-		log.Printf("Nothing to be changed in '%s'. Skipping file write.", filepath)
-		return
-	}
-
 	// Print a nice debuggable diff of the changes before they're written.
-	log.Printf("Updating '%s' from %s with the following changes:", filepath)
+	log.Printf("Writing rendered '%s' from %s with the following changes (%d bytes -> %d bytes):",
+		outPath, source, len(origContent), len(newContent))
 	line := 0
-	for _, diffRec := range difflib.Diff(strings.Split(oldContent, "\n"), strings.Split(newContent, "\n")) {
+	for _, diffRec := range difflib.Diff(strings.Split(origContent, "\n"), strings.Split(newContent, "\n")) {
 		switch diffRec.Delta {
 		case difflib.Common:
 			line++
@@ -220,12 +215,12 @@ func renderTemplate(filepath string, envMap map[string]string, source string, te
 		case difflib.LeftOnly: // should be paired with a RightOnly. don't count both for the same line.
 			line++
 		}
-		fmt.Printf("L%04d: %s\n", line, diffRec)
+		fmt.Fprintf(os.Stderr, "L%04d: %s\n", line, diffRec)
 	}
 
-	err = ioutil.WriteFile(filepath, []byte(newContent), 0666) // mode shouldn't matter: file should exist
+	err = ioutil.WriteFile(outPath, []byte(newContent), 0666) // mode shouldn't matter: file should exist
 	if err != nil {
-		log.Fatalf("Failed to write rendered template from %s to '%s': %s", source, filepath, err)
+		log.Fatalf("Failed to write rendered template from %s to '%s': %s", source, outPath, err)
 	}
 }
 
@@ -233,16 +228,26 @@ func renderTemplates(templateMaxBytes int64) {
 	// Populate map with all envvars:
 	envMap := make(map[string]string)
 	for _, entry := range os.Environ() {
-		entrySplit := strings.SplitN(entry, "=", 2) // entry: "key=val"
-		envMap[entrySplit[0]] = entrySplit[1]
+		keyVal := strings.SplitN(entry, "=", 2) // entry: "key=val"
+		envMap[keyVal[0]] = keyVal[1]
 	}
 
-	// Autodetect and check paths provided by env:
+	// Handle CONFIG_TEMPLATE_* entries in env, passing them the full env map that we'd built above:
 	for _, entry := range os.Environ() {
-		if strings.HasPrefix(entry, configTemplatePrefix) {
-			entrySplit := strings.SplitN(entry, "=", 2) // entry: "key=val"
-			renderTemplate(entrySplit[1], envMap, fmt.Sprintf("envvar '%s'", entrySplit[0]), templateMaxBytes)
+		if !strings.HasPrefix(entry, configTemplatePrefix) {
+			continue
 		}
+
+		envKeyVal := strings.SplitN(entry, "=", 2) // entry: "CONFIG_TEMPLATE_<name>=<src-path>,<dest-path>"
+		srcDest := strings.SplitN(envKeyVal[1], ",", 2) // value: "<src-path>,<dest-path>"
+		if len(srcDest) != 2 {
+			log.Fatalf("Provided value for %s is invalid: Should be two strings separated by a comma, got: %s",
+				envKeyVal[0], envKeyVal[1])
+		}
+
+		source := fmt.Sprintf("envvar '%s'", envKeyVal[0])
+		data := openTemplate(srcDest[0], source, templateMaxBytes)
+		renderTemplate(string(data), srcDest[1], envMap, source)
 	}
 }
 

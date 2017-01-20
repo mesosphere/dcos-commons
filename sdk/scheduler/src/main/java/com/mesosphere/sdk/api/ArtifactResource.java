@@ -58,8 +58,8 @@ public class ArtifactResource {
             @PathParam("podType") String podType,
             @PathParam("taskName") String taskName,
             @PathParam("configurationName") String configurationName) {
-        logger.info("Attempting to fetch template from config '{}' with pod '{}', task '{}', and template '{}'",
-                configurationId, podType, taskName, configurationName);
+        logger.info("Attempting to fetch template '{}' from config '{}' with pod '{}', task '{}'",
+                configurationName, configurationId, podType, taskName);
         UUID uuid;
         try {
             uuid = UUID.fromString(configurationId);

@@ -111,12 +111,15 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(TestConstants.TASK_CMD, taskCommand.getValue());
 
         Map<String, String> taskEnv = CommonTaskUtils.fromEnvironmentToMap(taskCommand.getEnvironment());
-        Assert.assertEquals(taskEnv.toString(), 5, taskEnv.size());
+        Assert.assertEquals(taskEnv.toString(), 6, taskEnv.size());
+        Assert.assertEquals(TestConstants.SERVICE_NAME, taskEnv.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), taskEnv.get("TASK_NAME"));
         Assert.assertEquals("true", taskEnv.get(taskInfo.getName()));
         Assert.assertEquals("0", taskEnv.get("POD_INSTANCE_INDEX"));
-        Assert.assertEquals("conf/config-one.conf", taskEnv.get("CONFIG_TEMPLATE_CONFIG_ONE"));
-        Assert.assertEquals("../other/conf/config-two.xml", taskEnv.get("CONFIG_TEMPLATE_CONFIG_TWO"));
+        Assert.assertEquals("config-templates/config-one,conf/config-one.conf",
+                taskEnv.get("CONFIG_TEMPLATE_CONFIG_ONE"));
+        Assert.assertEquals("config-templates/config-two,../other/conf/config-two.xml",
+                taskEnv.get("CONFIG_TEMPLATE_CONFIG_TWO"));
 
         // Executor command: uris
         CommandInfo executorCommand =
@@ -133,9 +136,9 @@ public class DefaultOfferRequirementProviderTest {
                 podInstance.getPod().getType(),
                 tasksToLaunch.get(0));
         Assert.assertEquals(artifactDirUrl + "config-one", uris.get(3).getValue());
-        Assert.assertEquals("conf/config-one.conf", uris.get(3).getOutputFile());
+        Assert.assertEquals("config-templates/config-one", uris.get(3).getOutputFile());
         Assert.assertEquals(artifactDirUrl + "config-two", uris.get(4).getValue());
-        Assert.assertEquals("../other/conf/config-two.xml", uris.get(4).getOutputFile());
+        Assert.assertEquals("config-templates/config-two", uris.get(4).getOutputFile());
     }
 
     @Test
@@ -165,7 +168,8 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(taskInfo.getCommand().getUrisList().isEmpty());
 
         Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(envvars.toString(), 3, envvars.size());
+        Assert.assertEquals(envvars.toString(), 4, envvars.size());
+        Assert.assertEquals(TestConstants.SERVICE_NAME, envvars.get("FRAMEWORK_NAME"));
         Assert.assertEquals(taskInfo.getName(), envvars.get("TASK_NAME"));
         Assert.assertEquals("true", envvars.get(taskInfo.getName()));
         Assert.assertEquals("0", envvars.get("POD_INSTANCE_INDEX"));

@@ -29,8 +29,6 @@ pods:
           hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
   name:
     count: 2
     resource-sets:
@@ -61,8 +59,6 @@ pods:
           hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
         goal: FINISHED
         cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format"
@@ -74,8 +70,6 @@ pods:
           hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
       bootstrap:
         goal: FINISHED
         cmd: "./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby"
@@ -87,8 +81,6 @@ pods:
           hdfs-bootstrap-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
   zkfc:
     count: 2
     resource-sets:
@@ -111,7 +103,6 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
       format:
         goal: FINISHED
@@ -125,7 +116,6 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
   data:
     count: {{DATA_COUNT}}
@@ -156,8 +146,6 @@ pods:
           hdfs-site:
             template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
 
 plans:
   deploy:
