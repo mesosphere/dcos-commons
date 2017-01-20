@@ -1,0 +1,64 @@
+name: "proxylite"
+principal: "proxylite-principal"
+zookeeper: master.mesos:2181
+api-port: {{PORT0}}
+pods:
+  proxylite:
+    count: {{PROXYLITE_COUNT}}
+    uris:
+      - "https://github.com/mesosphere/dcos-commons/blob/master/README.md"
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cat README.md && echo proxylite >> proxylite-container-path/output && sleep $SLEEP_DURATION"
+        uris:
+          - "https://github.com/mesosphere/dcos-commons/blob/master/docs/generate.sh"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        volumes:
+          - path: "proxylite-container-path"
+            type: ROOT
+            size: {{PROXYLITE_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        ports:
+         - name: test
+           port: 9999
+
+  world:
+    count: {{WORLD_COUNT}}
+    resource-sets:
+      world-resource:
+        cpus: {{WORLD_CPUS}}
+        memory: {{WORLD_MEM}}
+        volumes:
+          - path: "world-container-path"
+            type: ROOT
+            size: {{WORLD_DISK}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cat README.md && echo world >> world-container-path/output && sleep $SLEEP_DURATION"
+        uris:
+           - "https://github.com/mesosphere/dcos-commons/blob/master/frameworks/proxylite/README.md"
+        resource-set: world-resource
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-check:
+          cmd: "stat proxylite-container-path/output"
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      proxylite-deploy:
+        strategy: parallel
+        pod: proxylite
+      world-deploy:
+        strategy: parallel
+        pod: world
+

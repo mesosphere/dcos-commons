@@ -20,3 +20,6 @@ project(":frameworks/kafka").name = "kafka"
 
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
+
+include 'frameworks/proxylite'
+project(":frameworks/proxylite").name = "proxylite"

@@ -1,0 +1,253 @@
+Tue Jan 10 23:17:46 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] I0110 23:17:46.305068  9738 exec.cpp:161] Version: 1.0.1
+Tue Jan 10 23:17:46 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] I0110 23:17:46.403849  9730 exec.cpp:236] Executor registered on agent 404768b2-ba52-490e-b943-efaf256e709a-S2
+Tue Jan 10 23:17:49 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 4200 [Thread-0] INFO com.mesosphere.sdk.executor.CustomExecutor - Registered executor: value: "hello__7a0733fb-ff56-46e6-989d-461f5aae35e3"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 5497 [Thread-2] INFO com.mesosphere.sdk.executor.CustomExecutor - Launching task: name: "hello-0-server"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] task_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   value: "hello-0-server__431daae6-c5df-447b-b6dd-467b3717fe6e"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] slave_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   value: "404768b2-ba52-490e-b943-efaf256e709a-S2"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] resources {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "cpus"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   type: SCALAR
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   scalar {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: 0.1
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   role: "hello-world-role"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   reservation {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         key: "resource_id"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         value: "cf8dde54-eacd-4232-a4c8-b22a2e3f6cc7"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] resources {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "mem"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   type: SCALAR
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   scalar {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: 252.0
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   role: "hello-world-role"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   reservation {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         key: "resource_id"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         value: "18e28d65-b423-4098-ab8f-21cc53617193"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] resources {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "disk"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   type: SCALAR
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   scalar {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: 25.0
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   role: "hello-world-role"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   disk {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     persistence {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       id: "4a259528-7aa9-4b95-8cc1-23c2832244c7"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     volume {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       container_path: "hello-container-path"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       mode: RW
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   reservation {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         key: "resource_id"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         value: "d89e9291-ee85-48ee-b48a-b4197f59b817"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] executor {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   executor_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "hello__7a0733fb-ff56-46e6-989d-461f5aae35e3"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   command {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     uris {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       value: "https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20170110-151611-r814NE7D8L4BidfI/executor.zip"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     uris {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       value: "http://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.8.7-1.0.2.tar.gz"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     uris {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       value: "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./executor/bin/executor"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   framework_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "404768b2-ba52-490e-b943-efaf256e709a-0016"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "hello"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] data: "\n\037\n\035command_data_package_executor\"\337\004\n\037\n\035command_data_package_executor\"\271\004\n\037\n\035command_data_package_executor\"\223\004\n\037\n\035command_data_package_executor\"\355\003\n\037\n\035command_data_package_executor\"\365\001\n\037\n\035command_data_package_executor:\321\001\022d\n\026\n\016hello-0-server\022\004true\n\024\n\016SLEEP_DURATION\022\00210\n\033\n\tTASK_NAME\022\016hello-0-server\n\027\n\022POD_INSTANCE_INDEX\022\0010\032isleep 5 && cat /proc/self/mountinfo && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION:\321\001\022d\n\026\n\016hello-0-server\022\004true\n\033\n\tTASK_NAME\022\016hello-0-server\n\024\n\016SLEEP_DURATION\022\00210\n\027\n\022POD_INSTANCE_INDEX\022\0010\032isleep 5 && cat /proc/self/mountinfo && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION:\000:\000:\000:\000"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "goal_state"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "RUNNING"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "target_configuration"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "8f1a64b8-5c71-448b-8ed2-b81ae2ad122c"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "offer_attributes"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: ""
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "task_type"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "hello"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "index"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "0"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "offer_hostname"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "10.0.1.8"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 5500 [Thread-2] INFO com.mesosphere.sdk.offer.CommonTaskUtils - Unpacking.
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 5500 [Thread-2] INFO com.mesosphere.sdk.offer.CommonTaskUtils - Unpacked executorInfo: executor_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   value: "command_data_package_executor"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] data: "\n\037\n\035command_data_package_executor\"\271\004\n\037\n\035command_data_package_executor\"\223\004\n\037\n\035command_data_package_executor\"\355\003\n\037\n\035command_data_package_executor\"\365\001\n\037\n\035command_data_package_executor:\321\001\022d\n\026\n\016hello-0-server\022\004true\n\024\n\016SLEEP_DURATION\022\00210\n\033\n\tTASK_NAME\022\016hello-0-server\n\027\n\022POD_INSTANCE_INDEX\022\0010\032isleep 5 && cat /proc/self/mountinfo && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION:\321\001\022d\n\026\n\016hello-0-server\022\004true\n\033\n\tTASK_NAME\022\016hello-0-server\n\024\n\016SLEEP_DURATION\022\00210\n\027\n\022POD_INSTANCE_INDEX\022\0010\032isleep 5 && cat /proc/self/mountinfo && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION:\000:\000:\000"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] command {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 5699 [Thread-2] INFO com.mesosphere.sdk.executor.CustomExecutor - Unpacked task: name: "hello-0-server"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] task_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   value: "hello-0-server__431daae6-c5df-447b-b6dd-467b3717fe6e"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] slave_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   value: "404768b2-ba52-490e-b943-efaf256e709a-S2"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] resources {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "cpus"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   type: SCALAR
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   scalar {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: 0.1
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   role: "hello-world-role"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   reservation {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         key: "resource_id"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         value: "cf8dde54-eacd-4232-a4c8-b22a2e3f6cc7"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] resources {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "mem"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   type: SCALAR
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   scalar {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: 252.0
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   role: "hello-world-role"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   reservation {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         key: "resource_id"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         value: "18e28d65-b423-4098-ab8f-21cc53617193"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] resources {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "disk"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   type: SCALAR
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   scalar {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: 25.0
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   role: "hello-world-role"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   disk {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     persistence {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       id: "4a259528-7aa9-4b95-8cc1-23c2832244c7"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     volume {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       container_path: "hello-container-path"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       mode: RW
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   reservation {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     principal: "hello-world-principal"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         key: "resource_id"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]         value: "d89e9291-ee85-48ee-b48a-b4197f59b817"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] executor {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   executor_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "hello__7a0733fb-ff56-46e6-989d-461f5aae35e3"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   command {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     uris {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       value: "https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20170110-151611-r814NE7D8L4BidfI/executor.zip"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     uris {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       value: "http://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.8.7-1.0.2.tar.gz"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     uris {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]       value: "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./executor/bin/executor"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   framework_id {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "404768b2-ba52-490e-b943-efaf256e709a-0016"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   name: "hello"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] data: "\n\037\n\035command_data_package_executor\"\271\004\n\037\n\035command_data_package_executor\"\223\004\n\037\n\035command_data_package_executor\"\355\003\n\037\n\035command_data_package_executor\"\365\001\n\037\n\035command_data_package_executor:\321\001\022d\n\026\n\016hello-0-server\022\004true\n\024\n\016SLEEP_DURATION\022\00210\n\033\n\tTASK_NAME\022\016hello-0-server\n\027\n\022POD_INSTANCE_INDEX\022\0010\032isleep 5 && cat /proc/self/mountinfo && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION:\321\001\022d\n\026\n\016hello-0-server\022\004true\n\033\n\tTASK_NAME\022\016hello-0-server\n\024\n\016SLEEP_DURATION\022\00210\n\027\n\022POD_INSTANCE_INDEX\022\0010\032isleep 5 && cat /proc/self/mountinfo && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION:\000:\000:\000"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] command {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "goal_state"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "RUNNING"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "target_configuration"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "8f1a64b8-5c71-448b-8ed2-b81ae2ad122c"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "offer_attributes"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: ""
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "task_type"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "hello"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "index"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "0"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   labels {
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     key: "offer_hostname"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]     value: "10.0.1.8"
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]   }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] }
+Tue Jan 10 23:17:51 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 5700 [Thread-2] INFO com.mesosphere.sdk.executor.CustomExecutor - Unpacked command: 
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 7398 [Thread-2] INFO com.mesosphere.sdk.executor.CustomExecutor - No health check for task: hello-0-server
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 7398 [pool-2-thread-1] INFO com.mesosphere.sdk.executor.ProcessTask - Executing command: [/bin/sh, -c, ]
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 7399 [pool-2-thread-1] INFO com.mesosphere.sdk.executor.ProcessTask - With Environment: {MESOS_EXECUTOR_SHUTDOWN_GRACE_PERIOD=5secs, PATH=/usr/bin:/bin, LIBPROCESS_NUM_WORKER_THREADS=8, JAVA_HOME=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39/jre1.8.0_112/, MESOS_SLAVE_ID=404768b2-ba52-490e-b943-efaf256e709a-S2, MESOS_HTTP_COMMAND_EXECUTOR=0, XFILESEARCHPATH=/usr/dt/app-defaults/%L/Dt, MESOS_SUBSCRIPTION_BACKOFF_MAX=2secs, LIBPROCESS_PORT=0, MESOS_NATIVE_LIBRARY=/opt/mesosphere/packages/mesos--1d9b1c9170fa245e6bf1a2ab3700903a405f0a70/lib/libmesos-1.2.0.so, MESOS_SANDBOX=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39, MESOS_NATIVE_JAVA_LIBRARY=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39/libmesos-bundle/lib/libmesos-1.0.1.so, MESOS_EXECUTOR_ID=hello__7a0733fb-ff56-46e6-989d-461f5aae35e3, LD_LIBRARY_PATH=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39/libmesos-bundle/lib, MESOS_FRAMEWORK_ID=404768b2-ba52-490e-b943-efaf256e709a-0016, PWD=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39, MESOS_DIRECTORY=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39, SHELL=/usr/bin/bash, MESOS_AGENT_ENDPOINT=10.0.1.8:5051, LIBPROCESS_IP=10.0.1.8, MESOS_CHECKPOINT=1, OLDPWD=/var/lib/mesos/slave/slaves/404768b2-ba52-490e-b943-efaf256e709a-S2/frameworks/404768b2-ba52-490e-b943-efaf256e709a-0016/executors/hello__7a0733fb-ff56-46e6-989d-461f5aae35e3/runs/0a3d0766-e93a-45b3-94c8-5819ed735f39/executor, SASL_PATH=/opt/mesosphere/lib/sasl2, STATSD_UDP_PORT=34671, MESOS_RECOVERY_TIMEOUT=15mins, MESOS_SLAVE_PID=slave(1)@10.0.1.8:5051, STATSD_UDP_HOST=198.51.100.1, NLSPATH=/usr/dt/lib/nls/msg/%L/%N.cat, SHLVL=1}
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 8199 [pool-2-thread-1] INFO com.mesosphere.sdk.executor.ProcessTask - Launching Task: hello-0-server
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 8201 [pool-2-thread-1] INFO com.mesosphere.sdk.executor.ProcessTask - Task: value: "hello-0-server__431daae6-c5df-447b-b6dd-467b3717fe6e"
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642]  exited with code: 00
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 8201 [pool-2-thread-1] INFO com.mesosphere.sdk.executor.ProcessTask - Executor is exiting because exitOnTermination: true
+Tue Jan 10 23:17:53 2017 ip-10-0-1-8.us-west-2.compute.internal hello [9642] 8296 [pool-3-thread-1] INFO com.mesosphere.sdk.executor.Main - Driver stopped: status = DRIVER_STOPPED
