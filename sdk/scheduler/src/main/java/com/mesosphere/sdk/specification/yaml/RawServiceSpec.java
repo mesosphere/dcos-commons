@@ -28,6 +28,15 @@ public class RawServiceSpec {
         this.plans = plans;
     }
 
+    private RawServiceSpec(Builder builder) {
+       this(
+               builder.name,
+               builder.webUrl,
+               builder.scheduler,
+               builder.pods,
+               builder.plans);
+    }
+
     public String getName() {
         return name;
     }
@@ -46,6 +55,53 @@ public class RawServiceSpec {
 
     public WriteOnceLinkedHashMap<String, RawPlan> getPlans() {
         return plans;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawServiceSpec} builder.
+     */
+    public static final class Builder {
+        private String name;
+        private String webUrl;
+        private RawScheduler scheduler;
+        private WriteOnceLinkedHashMap<String, RawPod> pods;
+        private WriteOnceLinkedHashMap<String, RawPlan> plans;
+
+        private Builder() {
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder webUrl(String webUrl) {
+            this.webUrl = webUrl;
+            return this;
+        }
+
+        public Builder scheduler(RawScheduler scheduler) {
+            this.scheduler = scheduler;
+            return this;
+        }
+
+        public Builder pods(WriteOnceLinkedHashMap<String, RawPod> pods) {
+            this.pods = pods;
+            return this;
+        }
+
+        public Builder plans(WriteOnceLinkedHashMap<String, RawPlan> plans) {
+            this.plans = plans;
+            return this;
+        }
+
+        public RawServiceSpec build() {
+            return new RawServiceSpec(this);
+        }
     }
 }
 

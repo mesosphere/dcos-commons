@@ -23,6 +23,10 @@ public class RawVip {
         this.advertise = advertise;
     }
 
+    private RawVip(Builder builder) {
+        this(builder.port, builder.prefix, builder.protocol, builder.advertise);
+    }
+
     public int getPort() {
         return port;
     }
@@ -37,5 +41,46 @@ public class RawVip {
 
     public Boolean isAdvertised() {
         return advertise;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawVip} builder.
+     */
+    public static final class Builder {
+        private int port;
+        private String prefix;
+        private String protocol;
+        private Boolean advertise;
+
+        private Builder() {
+        }
+
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder prefix(String prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        public Builder protocol(String protocol) {
+            this.protocol = protocol;
+            return this;
+        }
+
+        public Builder advertise(Boolean advertise) {
+            this.advertise = advertise;
+            return this;
+        }
+
+        public RawVip build() {
+            return new RawVip(this);
+        }
     }
 }

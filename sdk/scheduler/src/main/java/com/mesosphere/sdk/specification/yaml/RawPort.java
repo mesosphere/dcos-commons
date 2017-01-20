@@ -20,6 +20,10 @@ public class RawPort {
         this.vip = vip;
     }
 
+    private RawPort(Builder builder) {
+        this(builder.port, builder.envKey, builder.vip);
+    }
+
     public Integer getPort() {
         return port;
     }
@@ -30,5 +34,40 @@ public class RawPort {
 
     public RawVip getVip() {
         return vip;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawPort} builder.
+     */
+    public static final class Builder {
+        private Integer port;
+        private String envKey;
+        private RawVip vip;
+
+        private Builder() {
+        }
+
+        public Builder port(Integer port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder envKey(String envKey) {
+            this.envKey = envKey;
+            return this;
+        }
+
+        public Builder envKey(RawVip vip) {
+            this.vip = vip;
+            return this;
+        }
+
+        public RawPort build() {
+            return new RawPort(this);
+        }
     }
 }

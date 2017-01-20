@@ -26,6 +26,15 @@ public class RawResourceSet {
         this.volumes = volumes;
     }
 
+    private RawResourceSet(Builder builder) {
+        this(
+                builder.cpus,
+                builder.memory,
+                builder.ports,
+                builder.volume,
+                builder.volumes);
+    }
+
     public Double getCpus() {
         return cpus;
     }
@@ -44,5 +53,52 @@ public class RawResourceSet {
 
     public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
         return volumes;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawResourceSet} builder.
+     */
+    public static final class Builder {
+        private Double cpus;
+        private Integer memory;
+        private WriteOnceLinkedHashMap<String, RawPort> ports;
+        private RawVolume volume;
+        private WriteOnceLinkedHashMap<String, RawVolume> volumes;
+
+        private Builder() {
+        }
+
+        public Builder cpus(Double cpus) {
+            this.cpus = cpus;
+            return this;
+        }
+
+        public Builder memory(Integer memory) {
+            this.memory = memory;
+            return this;
+        }
+
+        public Builder ports(WriteOnceLinkedHashMap<String, RawPort> ports) {
+            this.ports = ports;
+            return this;
+        }
+
+        public Builder volume(RawVolume volume) {
+            this.volume = volume;
+            return this;
+        }
+
+        public Builder volumes(WriteOnceLinkedHashMap<String, RawVolume> volumes) {
+            this.volumes = volumes;
+            return this;
+        }
+
+        public RawResourceSet build() {
+            return new RawResourceSet(this);
+        }
     }
 }

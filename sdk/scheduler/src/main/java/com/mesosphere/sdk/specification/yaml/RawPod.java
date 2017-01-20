@@ -40,6 +40,18 @@ public class RawPod {
         this.resourceSets = resourceSets;
     }
 
+    private RawPod(Builder builder) {
+        this(
+                builder.resourceSets,
+                builder.placement,
+                builder.count,
+                builder.container,
+                builder.strategy,
+                builder.uris,
+                builder.tasks,
+                builder.user);
+    }
+
     public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
         return resourceSets;
     }
@@ -70,5 +82,70 @@ public class RawPod {
 
     public String getUser() {
         return user;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawPod} builder.
+     */
+    public static final class Builder {
+        private String placement;
+        private Integer count;
+        private RawContainer container;
+        private String strategy;
+        private String user;
+        private Collection<String> uris;
+        private WriteOnceLinkedHashMap<String, RawTask> tasks;
+        private WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
+
+        private Builder() {
+        }
+
+        public Builder placement(String placement) {
+            this.placement = placement;
+            return this;
+        }
+
+        public Builder count(Integer count) {
+            this.count = count;
+            return this;
+        }
+
+        public Builder container(RawContainer container) {
+            this.container = container;
+            return this;
+        }
+
+        public Builder strategy(String strategy) {
+            this.strategy = strategy;
+            return this;
+        }
+
+        public Builder user(String user) {
+            this.user = user;
+            return this;
+        }
+
+        public Builder uris(Collection<String> uris) {
+            this.uris = uris;
+            return this;
+        }
+
+        public Builder tasks(WriteOnceLinkedHashMap<String, RawTask> tasks) {
+            this.tasks = tasks;
+            return this;
+        }
+
+        public Builder resourceSets(WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets) {
+            this.resourceSets = resourceSets;
+            return this;
+        }
+
+        public RawPod build() {
+            return new RawPod(this);
+        }
     }
 }

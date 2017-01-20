@@ -25,6 +25,14 @@ public class RawPhase {
         this.tasks = tasks;
     }
 
+    private RawPhase(Builder builder) {
+        this(
+                builder.strategy,
+                builder.steps,
+                builder.pod,
+                builder.tasks);
+    }
+
     public String getStrategy() {
         return strategy;
     }
@@ -39,6 +47,47 @@ public class RawPhase {
 
     public List<String> getTasks() {
         return tasks;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawPhase} builder.
+     */
+    public static final class Builder {
+        private String strategy;
+        private String pod;
+        private List<WriteOnceLinkedHashMap<Integer, List<String>>> steps;
+        private List<String> tasks;
+
+        private Builder() {
+        }
+
+        public Builder strategy(String strategy) {
+            this.strategy = strategy;
+            return this;
+        }
+
+        public Builder pod(String pod) {
+            this.pod = pod;
+            return this;
+        }
+
+        public Builder scheduler(List<WriteOnceLinkedHashMap<Integer, List<String>>> steps) {
+            this.steps = steps;
+            return this;
+        }
+
+        public Builder tasks(List<String> tasks) {
+            this.tasks = tasks;
+            return this;
+        }
+
+        public RawPhase build() {
+            return new RawPhase(this);
+        }
     }
 }
 
