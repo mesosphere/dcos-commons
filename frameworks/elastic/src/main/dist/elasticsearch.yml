@@ -10,8 +10,8 @@ cluster.name: {{SERVICE_NAME}}
 node.name: {{TASK_NAME}}
 path.data: "container-path/data"
 path.logs: "container-path/logs"
-http.port: {{HTTP_PORT}}
-transport.tcp.port: {{TRANSPORT_PORT}}
+http.port: {{PORT_HTTP}}
+transport.tcp.port: {{PORT_TRANSPORT}}
 bootstrap.memory_lock: false
 node.master: {{MASTER_ENABLED}}
 node.data: {{DATA_ENABLED}}

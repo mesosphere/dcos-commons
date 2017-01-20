@@ -17,7 +17,7 @@ pods:
         memory: {{KIBANA_MEM}}
         ports:
           http:
-            port: {{KIBANA_PORT}}
+            port: 0
             vip:
               prefix: kibana
               port: 5601
@@ -30,7 +30,6 @@ pods:
           SERVICE_NAME: {{SERVICE_NAME}}
           MESOS_FRAMEWORK_ID: {{MESOS_FRAMEWORK_ID}}
           KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
-          KIBANA_PORT: {{KIBANA_PORT}}
         uris:
           - "{{SCHEDULER_URI}}"
           - "https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz"
@@ -40,7 +39,7 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
             dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
         health-check:
-          cmd: "curl -I -s -f localhost:{{KIBANA_PORT}}/login"
+          cmd: "curl -I -s -f localhost:$PORT_HTTP/login"
           interval: 5
           grace-period: 600
           max-consecutive-failures: 3
@@ -62,7 +61,7 @@ pods:
         memory: {{MASTER_NODE_MEM}}
         ports:
           http:
-            port: {{MASTER_NODE_HTTP_PORT}}
+            port: 0
             vip:
               prefix: master
               port: 9200
@@ -75,8 +74,6 @@ pods:
         cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          HTTP_PORT: {{MASTER_NODE_HTTP_PORT}}
-          TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
           DATA_ENABLED: false
           INGEST_ENABLED: false
@@ -94,10 +91,10 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
-          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{MASTER_NODE_HTTP_PORT}}"
-          interval: 5
-          grace-period: 300
-          max-consecutive-failures: 3
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
           delay: 0
           timeout: 10
   data:
@@ -116,12 +113,12 @@ pods:
         memory: {{DATA_NODE_MEM}}
         ports:
           http:
-            port: {{DATA_NODE_HTTP_PORT}}
+            port: 0
             vip:
               prefix: data
               port: 9200
           transport:
-            port: {{DATA_NODE_TRANSPORT_PORT}}
+            port: 0
         volume:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
@@ -129,8 +126,6 @@ pods:
         cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          HTTP_PORT: {{DATA_NODE_HTTP_PORT}}
-          TRANSPORT_PORT: {{DATA_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: true
           INGEST_ENABLED: false
@@ -148,10 +143,10 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
-          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{DATA_NODE_HTTP_PORT}}"
-          interval: 5
-          grace-period: 300
-          max-consecutive-failures: 3
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
           delay: 0
           timeout: 10
   ingest:
@@ -170,12 +165,12 @@ pods:
         memory: {{INGEST_NODE_MEM}}
         ports:
           http:
-            port: {{INGEST_NODE_HTTP_PORT}}
+            port: 0
             vip:
               prefix: ingest
               port: 9200
           transport:
-            port: {{INGEST_NODE_TRANSPORT_PORT}}
+            port: 0
         volume:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
@@ -183,8 +178,6 @@ pods:
         cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          HTTP_PORT: {{INGEST_NODE_HTTP_PORT}}
-          TRANSPORT_PORT: {{INGEST_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: true
@@ -202,10 +195,10 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
-          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{INGEST_NODE_HTTP_PORT}}"
-          interval: 5
-          grace-period: 300
-          max-consecutive-failures: 3
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
           delay: 0
           timeout: 10
   coordinator:
@@ -224,12 +217,12 @@ pods:
         memory: {{COORDINATOR_NODE_MEM}}
         ports:
           http:
-            port: {{COORDINATOR_NODE_HTTP_PORT}}
+            port: 0
             vip:
               prefix: coordinator
               port: 9200
           transport:
-            port: {{COORDINATOR_NODE_TRANSPORT_PORT}}
+            port: 0
         volume:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
@@ -237,8 +230,6 @@ pods:
         cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          HTTP_PORT: {{COORDINATOR_NODE_HTTP_PORT}}
-          TRANSPORT_PORT: {{COORDINATOR_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: false
@@ -256,10 +247,10 @@ pods:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
         health-check:
-          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:{{COORDINATOR_NODE_HTTP_PORT}}"
-          interval: 5
-          grace-period: 300
-          max-consecutive-failures: 3
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
           delay: 0
           timeout: 10
   proxylite:

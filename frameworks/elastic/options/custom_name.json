@@ -3,20 +3,7 @@
     "name": "another-cluster"
   },
   "master_nodes": {
-    "http_port": 19200,
-    "transport_port": 19300
-  },
-  "data_nodes": {
-    "http_port": 19201,
-    "transport_port": 19301
-  },
-  "ingest_nodes": {
-    "http_port": 19202,
-    "transport_port": 19302
-  },
-  "coordinator_nodes": {
-    "http_port": 19203,
-    "transport_port": 19303
+    "transport_port": 9301
   },
   "elasticsearch": {
     "plugins": "analysis-icu,analysis-kuromoji"

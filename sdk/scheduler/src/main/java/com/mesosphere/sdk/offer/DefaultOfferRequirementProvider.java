@@ -563,4 +563,3 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         CommonTaskUtils.setReadinessCheck(taskInfoBuilder, builder.build());
     }
 }
-

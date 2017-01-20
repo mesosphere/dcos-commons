@@ -78,13 +78,8 @@
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
         },
-        "http_port": {
-          "description": "HTTP port for master nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9200
-        },
         "transport_port": {
-          "description": "Transport port for master nodes to listen on. Use 0 to let Mesos pick a port for you.",
+          "description": "Transport port for master nodes to listen on.",
           "type": "integer",
           "default": 9300
         },
@@ -96,7 +91,8 @@
       "required": [
         "cpus",
         "mem",
-        "disk"
+        "disk",
+        "transport_port"
       ]
     },
     "data_nodes": {
@@ -143,16 +139,6 @@
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
-        },
-        "http_port": {
-          "description": "HTTP port for data nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9201
-        },
-        "transport_port": {
-          "description": "Transport port for data nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9301
         },
         "placement": {
           "description": "Marathon-style placement constraints",
@@ -211,16 +197,6 @@
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
         },
-        "http_port": {
-          "description": "HTTP port for ingest nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9202
-        },
-        "transport_port": {
-          "description": "Transport port for ingest nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9302
-        },
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
@@ -278,16 +254,6 @@
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
         },
-        "http_port": {
-          "description": "HTTP port for coordinator nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9203
-        },
-        "transport_port": {
-          "description": "Transport port for coordinator nodes to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 9303
-        },
         "placement": {
           "description": "Marathon-style placement constraints",
           "type": "string"
@@ -329,11 +295,6 @@
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
-        },
-        "port": {
-          "description": "HTTP port for Kibana to listen on. Use 0 to let Mesos pick a port for you.",
-          "type": "integer",
-          "default": 5601
         },
         "password": {
           "description": "'kibana' user password for basic authentication with Elasticsearch",
