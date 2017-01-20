@@ -13,7 +13,8 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.*;
+import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
+import static com.mesosphere.sdk.offer.Constants.TASK_NAME_KEY;
 
 /**
  * A default implementation of the OfferRequirementProvider interface.
@@ -165,8 +166,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .setEnvironment(getTaskEnvironment(podInstance, taskSpec, commandSpec));
         }
 
-        setHealthCheck(taskInfoBuilder, taskSpec);
-        setReadinessCheck(taskInfoBuilder, taskSpec);
+        setHealthCheck(taskInfoBuilder, podInstance, taskSpec, taskSpec.getCommand().get());
+        setReadinessCheck(taskInfoBuilder, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return taskInfoBuilder.build();
     }
@@ -218,8 +219,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setCommand(commandBuilder);
         }
 
-        setHealthCheck(taskInfoBuilder, taskSpec);
-        setReadinessCheck(taskInfoBuilder, taskSpec);
+        setHealthCheck(taskInfoBuilder, podInstance, taskSpec, taskSpec.getCommand().get());
+        setReadinessCheck(taskInfoBuilder, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(taskInfoBuilder.build());
     }
@@ -512,7 +513,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return executorInfoBuilder.build();
     }
 
-    private static void setHealthCheck(Protos.TaskInfo.Builder taskInfo, TaskSpec taskSpec) {
+    private static void setHealthCheck(Protos.TaskInfo.Builder taskInfo,
+                                       PodInstance podInstance,
+                                       TaskSpec taskSpec,
+                                       CommandSpec commandSpec) {
         if (!taskSpec.getHealthCheck().isPresent()) {
             LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -529,13 +533,14 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.CommandInfo.Builder healthCheckCommandBuilder = taskInfo.getHealthCheckBuilder().getCommandBuilder()
                 .setValue(healthCheckSpec.getCommand());
         if (taskSpec.getCommand().isPresent()) {
-            healthCheckCommandBuilder.setEnvironment(
-                    CommonTaskUtils.fromMapToEnvironment(
-                            taskSpec.getCommand().get().getEnvironment()));
+            healthCheckCommandBuilder.setEnvironment(getTaskEnvironment(podInstance, taskSpec, commandSpec));
         }
     }
 
-    private static void setReadinessCheck(Protos.TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
+    private static void setReadinessCheck(Protos.TaskInfo.Builder taskInfoBuilder,
+                                          PodInstance podInstance,
+                                          TaskSpec taskSpec,
+                                          CommandSpec commandSpec) {
         if (!taskSpec.getReadinessCheck().isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -552,9 +557,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.CommandInfo.Builder readinessCheckCommandBuilder = builder.getCommandBuilder()
                 .setValue(readinessCheckSpec.getCommand());
         if (taskSpec.getCommand().isPresent()) {
-            readinessCheckCommandBuilder.setEnvironment(
-                    CommonTaskUtils.fromMapToEnvironment(
-                            taskSpec.getCommand().get().getEnvironment()));
+            readinessCheckCommandBuilder.setEnvironment(getTaskEnvironment(podInstance, taskSpec, commandSpec));
         }
 
         CommonTaskUtils.setReadinessCheck(taskInfoBuilder, builder.build());

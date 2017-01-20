@@ -1,0 +1,18 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      test-task-name:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        ports:
+          test-port:
+            port: 10000
+        health-check:
+          cmd: "/bin/true"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
