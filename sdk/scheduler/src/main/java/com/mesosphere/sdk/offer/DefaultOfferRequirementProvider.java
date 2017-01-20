@@ -28,8 +28,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
 
     private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
 
-    private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
-
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
 
@@ -172,8 +170,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
         }
 
-        setHealthCheck(taskInfoBuilder, taskSpec);
-        setReadinessCheck(taskInfoBuilder, taskSpec);
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return taskInfoBuilder.build();
     }
@@ -225,8 +223,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             taskInfoBuilder.setCommand(commandBuilder);
         }
 
-        setHealthCheck(taskInfoBuilder, taskSpec);
-        setReadinessCheck(taskInfoBuilder, taskSpec);
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(taskInfoBuilder.build());
     }
@@ -479,7 +477,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // command and user:
 
         Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
-                "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && " +
+                "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
                 "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
                 "./executor/bin/executor");
@@ -541,7 +539,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return executorInfoBuilder.build();
     }
 
-    private static void setHealthCheck(Protos.TaskInfo.Builder taskInfo, TaskSpec taskSpec) {
+    private static void setHealthCheck(
+            Protos.TaskInfo.Builder taskInfo,
+            String serviceName,
+            PodInstance podInstance,
+            TaskSpec taskSpec,
+            CommandSpec commandSpec) {
         if (!taskSpec.getHealthCheck().isPresent()) {
             LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -559,12 +562,16 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setValue(healthCheckSpec.getCommand());
         if (taskSpec.getCommand().isPresent()) {
             healthCheckCommandBuilder.setEnvironment(
-                    CommonTaskUtils.fromMapToEnvironment(
-                            taskSpec.getCommand().get().getEnvironment()));
+                    getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
         }
     }
 
-    private static void setReadinessCheck(Protos.TaskInfo.Builder taskInfoBuilder, TaskSpec taskSpec) {
+    private static void setReadinessCheck(
+            Protos.TaskInfo.Builder taskInfoBuilder,
+            String serviceName,
+            PodInstance podInstance,
+            TaskSpec taskSpec,
+            CommandSpec commandSpec) {
         if (!taskSpec.getReadinessCheck().isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -582,8 +589,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setValue(readinessCheckSpec.getCommand());
         if (taskSpec.getCommand().isPresent()) {
             readinessCheckCommandBuilder.setEnvironment(
-                    CommonTaskUtils.fromMapToEnvironment(
-                            taskSpec.getCommand().get().getEnvironment()));
+                    getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
         }
 
         CommonTaskUtils.setReadinessCheck(taskInfoBuilder, builder.build());
