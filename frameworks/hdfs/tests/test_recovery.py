@@ -3,17 +3,7 @@ import shakedown
 import os
 import time
 
-from tests.test_utils import (
-    PACKAGE_NAME,
-    check_health,
-    install,
-    uninstall,
-    kill_task_with_pattern
-)
-
-
-def get_scheduler_host():
-    return shakedown.get_service_ips('marathon').pop()
+PACKAGE_NAME = 'hdfs'
 
 
 def setup_module():
@@ -52,7 +42,7 @@ def test_kill_journal_node():
 @pytest.mark.skip(reason="This test currently fails. Skipping for now.")
 @pytest.mark.recovery
 def test_kill_scheduler():
-    kill_task_with_pattern('hdfs.scheduler.Main', get_scheduler_host())
+    kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
 
     check_health()
 

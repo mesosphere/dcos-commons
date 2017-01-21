@@ -383,7 +383,7 @@ Shakedown tests:
 ```
 $ TEST_TYPES="sanity or recovery" \
 CLUSTER_URL=http://your-dcos-cluster.com \
-  ./run_tests.py shakedown /path/to/your/shakedown/tests/ /path/to/shakedown/requirements.txt
+  ./run_tests.py shakedown /path/to/your/tests/ /path/to/your/tests/requirements.txt
 ```
 
 dcos-tests (Mesosphere-internal, deprecated in favor of Shakedown):

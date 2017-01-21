@@ -4,22 +4,10 @@ import shakedown
 import inspect
 import os
 
-from tests.test_utils import (
-    DEFAULT_HDFS_TASK_COUNT,
-    HDFS_POD_TYPES,
-    PACKAGE_NAME,
-    check_health,
-    get_marathon_config,
-    get_deployment_plan,
-    install,
-    marathon_api_url,
-    request,
-    uninstall,
-    spin,
-    get_task_ids,
-    tasks_updated,
-    tasks_not_updated
-)
+PACKAGE_NAME = 'hdfs'
+
+HDFS_POD_TYPES = {"journal", "name", "data"}
+DEFAULT_HDFS_TASK_COUNT = 10 # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 
 def setup_module(module):

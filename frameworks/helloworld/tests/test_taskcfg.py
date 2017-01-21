@@ -5,23 +5,7 @@ import re
 import shakedown
 import time
 
-from tests.test_utils import (
-    PACKAGE_NAME,
-    TASK_RUNNING_STATE,
-    WAIT_TIME_IN_SECONDS,
-    check_health,
-    get_marathon_config,
-    get_deployment_plan,
-    get_sidecar_plan,
-    get_task_count,
-    install,
-    marathon_api_url,
-    request,
-    run_dcos_cli_cmd,
-    uninstall,
-    spin,
-    start_sidecar_plan
-)
+PACKAGE_NAME = 'hello-world'
 
 
 def setup_module(module):

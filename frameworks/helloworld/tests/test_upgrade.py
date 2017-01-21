@@ -3,16 +3,7 @@ import pytest
 import re
 import shakedown
 
-from tests.test_utils import (
-    PACKAGE_NAME,
-    check_health,
-    install,
-    marathon_api_url_with_param,
-    request,
-    run_dcos_cli_cmd,
-    spin,
-    uninstall,
-)
+PACKAGE_NAME = 'hello-world'
 
 
 def setup_module(module):

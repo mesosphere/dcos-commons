@@ -1,14 +1,8 @@
 import shakedown
-import pytest 
+import pytest
 import time
 
-from tests.test_utils import (
-    PACKAGE_NAME,
-    install,
-    uninstall,
-    check_health,
-    kill_task_with_pattern
-)
+PACKAGE_NAME = 'hdfs'
 
 TEST_CONTENT_SMALL = "This is some test data"
 # TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
