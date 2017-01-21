@@ -219,6 +219,11 @@ pods:
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           DATANODE: true
+        readiness-check:
+          cmd: EXPECTED_DATA_COUNT="$(./hadoop-2.6.0-cdh5.7.1/bin/hdfs dfsadmin -report | grep 'Name' | wc -l)" &&  [ $EXPECTED_DATA_COUNT -eq $DATA_COUNT ]
+          interval: 10
+          delay: 0
+          timeout: 300
 
 plans:
   deploy:
