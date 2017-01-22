@@ -66,16 +66,17 @@ public class OfferEvaluator {
                 }
             }
 
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("\n");
+            for (EvaluationOutcome outcome : outcomes) {
+                logOutcome(stringBuilder, outcome, "");
+            }
+            logger.info(stringBuilder.toString().trim());
+
             if (failedOutcomeCount != 0) {
                 recommendations.clear();
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append(String.format(
-                        "- %d: failed %d of %d evaluation stages with the following reasons:%n",
-                        i + 1, failedOutcomeCount, evaluationStages.size()));
-                for (EvaluationOutcome outcome : outcomes) {
-                    logOutcome(stringBuilder, outcome, "");
-                }
-                logger.info(stringBuilder.toString().trim());
+                logger.info("- %d: failed %d of %d evaluation stages.",
+                        i + 1, failedOutcomeCount, evaluationStages.size());
 
                 continue;
             }
@@ -132,8 +133,8 @@ public class OfferEvaluator {
                 }
 
                 for (VolumeSpec v : taskSpec.getResourceSet().getVolumes()) {
-                    Resource taskResource = ResourceUtils.getResource(
-                            offerRequirement.getTaskRequirement(taskName).getTaskInfo(), v.getName());
+                    Resource taskResource = ResourceUtils.getDiskResource(
+                            offerRequirement.getTaskRequirement(taskName).getTaskInfo(), v.getContainerPath());
                     evaluationPipeline.add(v.getEvaluationStage(taskResource, taskName));
                 }
                 evaluationPipeline.add(new LaunchEvaluationStage(taskName));
