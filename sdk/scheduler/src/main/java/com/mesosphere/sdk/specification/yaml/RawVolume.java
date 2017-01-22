@@ -61,7 +61,7 @@ public class RawVolume {
             return this;
         }
 
-        public Builder protocol(int size) {
+        public Builder size(int size) {
             this.size = size;
             return this;
         }

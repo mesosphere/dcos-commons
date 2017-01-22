@@ -199,7 +199,7 @@ public class RawTask {
             return this;
         }
 
-        public Builder readinessCheck(RawVolume volume) {
+        public Builder volume(RawVolume volume) {
             this.volume = volume;
             return this;
         }
@@ -209,7 +209,7 @@ public class RawTask {
             return this;
         }
 
-        public Builder volumes(String resourceSet) {
+        public Builder resourceSet(String resourceSet) {
             this.resourceSet = resourceSet;
             return this;
         }

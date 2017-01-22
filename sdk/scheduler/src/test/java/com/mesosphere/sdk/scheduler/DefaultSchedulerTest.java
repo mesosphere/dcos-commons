@@ -12,11 +12,8 @@ import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.specification.DefaultPodSpec;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.yaml.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.testutils.*;
@@ -39,13 +36,11 @@ import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 import org.mockito.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateRawSpecFromYAML;
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateServiceSpec;
 import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
@@ -93,10 +88,10 @@ public class DefaultSchedulerTest {
         CuratorTestUtils.clear(testingServer);
         StateStoreCache.resetInstanceForTests();
 
-        SERVICE_SPEC = getServiceSpec("test-scheduler.yml");
-        UPDATED_POD_A_SERVICE_SPEC = getServiceSpec("test-update-pod-a.yml");
-        UPDATED_POD_B_SERVICE_SPEC = getServiceSpec("test-update-pod-b.yml");
-        SCALED_POD_A_SERVICE_SPEC = getServiceSpec("test-scale-pod-a.yml");
+        SERVICE_SPEC = generateServiceSpec(getRawServiceSpec());
+        UPDATED_POD_A_SERVICE_SPEC = generateServiceSpec(getRawServiceSpecUpdateA());
+        UPDATED_POD_B_SERVICE_SPEC = generateServiceSpec(getRawServiceSpecUpdateB());
+        SCALED_POD_A_SERVICE_SPEC = generateServiceSpec(getRawServiceSpecScaleA());
 
         stateStore = DefaultScheduler.createStateStore(SERVICE_SPEC, testingServer.getConnectString());
         configStore = DefaultScheduler.createConfigStore(SERVICE_SPEC, testingServer.getConnectString());
@@ -702,10 +697,105 @@ public class DefaultSchedulerTest {
         }
     }
 
-    private ServiceSpec getServiceSpec(String fileName) throws Exception {
-        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
-        return generateServiceSpec(rawServiceSpec);
+    /**
+     * test-scheduler.yml
+     *
+     * name: "test"
+     * pods:
+     *   pod-a:
+     *   count: 1
+     *   resource-sets:
+     *     resource-set-a:
+     *       cpus: 1
+     *       memory: 1000
+     *       volume:
+     *         path: test-container-path
+     *         type: ROOT
+     *         size: 1500
+     *   tasks:
+     *     a:
+     *       goal: RUNNING
+     *       cmd: echo a
+     *       resource-set: resource-set-a
+     *   pod-b:
+     *     count: 2
+     *     resource-sets:
+     *       resource-set-b:
+     *         cpus: 2
+     *         memory: 2000
+     *         volume:
+     *           path: test-container-path
+     *           type: ROOT
+     *           size: 2500
+     *     tasks:
+     *       b:
+     *         goal: RUNNING
+     *         cmd: echo b
+     *         resource-set: resource-set-b
+     */
+    private RawServiceSpec getRawServiceSpec() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 1.0, 1000, 1));
+        pods.put("pod-b", getRawPod("b", 2.0, 2000, 2));
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpecUpdateA() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 2.0, 1000, 1)); // From 1.0 cpus to 2.0 cpus
+        pods.put("pod-b", getRawPod("b", 2.0, 2000, 2));
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpecUpdateB() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 1.0, 1000, 1));
+        pods.put("pod-b", getRawPod("b", 2.0, 4000, 2)); // From 2000 mem to 4000 mem
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpecScaleA() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 1.0, 1000, 2)); // From 1 count to 2 count
+        pods.put("pod-b", getRawPod("b", 2.0, 2000, 2));
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpec(WriteOnceLinkedHashMap<String, RawPod> pods) {
+        return RawServiceSpec.newBuilder()
+                .name("test")
+                .pods(pods)
+                .build();
+    }
+
+    private RawPod getRawPod(String name, double cpus, int memory, int count) {
+        WriteOnceLinkedHashMap<String, RawTask> task =  new WriteOnceLinkedHashMap<>();
+        task.put(
+                name,
+                RawTask.newBuilder()
+                        .goal("RUNNING")
+                        .cmd("echo " + name)
+                        .resourceSet("resource-set-" + name)
+                        .build());
+
+        WriteOnceLinkedHashMap<String, RawResourceSet> resourceSet =  new WriteOnceLinkedHashMap<>();
+        resourceSet.put(
+                "resource-set-" + name,
+                RawResourceSet.newBuilder()
+                        .cpus(cpus)
+                        .memory(memory)
+                        .volume(RawVolume.newBuilder()
+                                .path("test-container-path")
+                                .type("ROOT")
+                                .size(1500)
+                                .build())
+                        .build());
+
+        return RawPod.newBuilder()
+                .count(count)
+                .tasks(task)
+                .resourceSets(resourceSet)
+                .build();
     }
 
     private static final DefaultServiceSpec.Builder getServiceSpec(String serviceName, PodSpec... pods) {

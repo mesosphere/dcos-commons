@@ -61,7 +61,7 @@ public class RawPort {
             return this;
         }
 
-        public Builder envKey(RawVip vip) {
+        public Builder vip(RawVip vip) {
             this.vip = vip;
             return this;
         }
