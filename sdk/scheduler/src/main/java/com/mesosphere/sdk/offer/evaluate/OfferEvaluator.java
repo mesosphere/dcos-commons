@@ -48,7 +48,13 @@ public class OfferEvaluator {
 
             OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
             List<OfferEvaluationStage> evaluationStages =
-                    getEvaluationPipeline(podInstanceRequirement, offerRequirement);
+                    null;
+            try {
+                evaluationStages = getEvaluationPipeline(podInstanceRequirement, offerRequirement);
+            } catch (TaskException e) {
+                logger.error("Failed to generate evaluation pipeline.", e);
+                return Collections.emptyList();
+            }
 
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
@@ -98,7 +104,7 @@ public class OfferEvaluator {
 
     private List<OfferEvaluationStage> getEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
-            OfferRequirement offerRequirement) throws InvalidRequirementException {
+            OfferRequirement offerRequirement) throws InvalidRequirementException, TaskException {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
 
         evaluationPipeline.add(new PlacementRuleEvaluationStage(stateStore.fetchTasks()));

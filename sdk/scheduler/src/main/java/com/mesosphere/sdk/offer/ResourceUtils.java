@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
@@ -411,7 +412,7 @@ public class ResourceUtils {
      * @param resource the resource to install on the task
      * @return the supplied builder, modified to include the resource
      */
-    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) {
+    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
         if (resource.hasDisk()) {
             return setDiskResource(builder, resource);
         }
@@ -428,26 +429,27 @@ public class ResourceUtils {
                 resource.getName(), TextFormat.shortDebugString(builder.build())));
     }
 
-    private static TaskInfo.Builder setDiskResource(TaskInfo.Builder builder, Resource resource) {
+    private static TaskInfo.Builder setDiskResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
         if (!resource.hasDisk() || !resource.getDisk().hasVolume()) {
             throw new IllegalArgumentException(String.format("Resource should have a disk with a volume."));
         }
 
         String resourceContainerPath = resource.getDisk().getVolume().getContainerPath();
-        for (int i = 0; i < builder.getResourcesCount(); ++i) {
-            Resource currResource = builder.getResources(i);
-            if (currResource.hasDisk() && currResource.getDisk().hasVolume()) {
-                String currDiskContainerPath = currResource.getDisk().getVolume().getContainerPath();
-                if (resourceContainerPath.equals(currDiskContainerPath)) {
-                    builder.setResources(i, resource);
-                    return builder;
-                }
-            }
-        }
+        OptionalInt index = IntStream.range(0, builder.getResourcesCount())
+                .filter(i -> builder.getResources(i).hasDisk())
+                .filter(i -> builder.getResources(i).getDisk().hasVolume())
+                .filter(i -> resourceContainerPath.equals(
+                        builder.getResources(i).getDisk().getVolume().getContainerPath()))
+                .findFirst();
 
-        throw new IllegalArgumentException(String.format(
-                "Task has no matching disk resource '%s': %s",
-                resource, TextFormat.shortDebugString(builder.build())));
+        if (index.isPresent()) {
+            builder.setResources(index.getAsInt(), resource);
+            return builder;
+        } else {
+            throw new TaskException(String.format(
+                    "Task has no matching disk resource '%s': %s",
+                    resource, TextFormat.shortDebugString(builder.build())));
+        }
     }
 
     /**
@@ -689,10 +691,19 @@ public class ResourceUtils {
         return Source.newBuilder().setType(Source.Type.MOUNT).build();
     }
 
-    public static Resource getDiskResource(TaskInfo taskInfo, String containerPath) {
-        return taskInfo.getResourcesList().stream()
-                .filter(resource -> resource.getName().equals("disk"))
+    public static Resource getDiskResource(TaskInfo taskInfo, String containerPath) throws TaskException {
+        Optional<Resource> resourceOptional = taskInfo.getResourcesList().stream()
+                .filter(resource -> resource.hasDisk())
+                .filter(resource -> resource.getDisk().hasVolume())
                 .filter(resource -> resource.getDisk().getVolume().getContainerPath().equals(containerPath))
-                .findFirst().get();
+                .findFirst();
+
+        if (resourceOptional.isPresent()) {
+            return resourceOptional.get();
+        } else {
+            throw new TaskException(String.format(
+                    "Task has no disk resource with container path '%s': %s",
+                    containerPath, TextFormat.shortDebugString(taskInfo)));
+        }
     }
 }

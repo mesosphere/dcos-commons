@@ -129,7 +129,16 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         if (failure != null) {
             return failure;
         }
-        setProtos(offerRequirement, fulfilledResource);
+
+        try {
+            setProtos(offerRequirement, fulfilledResource);
+        } catch (TaskException e) {
+            logger.error("Failed to set protos on OfferRequirement.", e);
+            return fail(this, "Failed to satisfy required resource '%s': %s",
+                    resourceRequirement.getName(),
+                    TextFormat.shortDebugString(resourceRequirement.getResource()));
+        }
+
         return pass(this, "Offer contains sufficient '%s'", resourceRequirement.getName());
     }
 
@@ -146,7 +155,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return null;
     }
 
-    protected void setProtos(OfferRequirement offerRequirement, Resource resource) {
+    protected void setProtos(OfferRequirement offerRequirement, Resource resource) throws TaskException {
         if (getTaskName().isPresent()) {
             offerRequirement.updateTaskRequirement(
                     getTaskName().get(),
