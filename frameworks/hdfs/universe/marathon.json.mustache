@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 2048,
   "instances": 1,
-  "cmd": "{{service.cmd_prefix}} && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/svc.yml",
+  "cmd": "{{service.cmd_prefix}} && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/{{service.spec_file}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",

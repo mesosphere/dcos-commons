@@ -19,6 +19,11 @@
           "description":"A generic prefix to start the scheduler.",
           "type":"string",
           "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
+        },
+        "spec_file" : {
+          "description":"The name of the service spec yaml file.",
+          "type":"string",
+          "default":"svc.yml"
         }
       }
     },
