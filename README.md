@@ -119,7 +119,7 @@ volume:
 ===============
 ### References
 * [Quick Start Guide - Java](docs/tutorials/quick-start-java.md)
-* Developer Guide ... *coming soon!*
+* [Developer Guide](https://mesosphere.github.io/dcos-commons/dev-guide/developer-guide.html)
 * [Javadocs](http://mesosphere.github.io/dcos-commons/api/index.html)
 
 ===============
