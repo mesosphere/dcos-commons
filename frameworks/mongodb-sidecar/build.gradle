@@ -1,5 +1,5 @@
 group 'fwd.cloud'
-version '1.0-SNAPSHOT'
+version '1.1-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'application'
@@ -23,26 +23,17 @@ dependencies {
     compile project(":scheduler")
     compile project(":executor")
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
-    testCompile "junit:junit:${junitVer}"
-    testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
-    testCompile "org.mockito:mockito-all:${mockitoVer}"
+    testCompile project(":testing")
 }
 
-buildDir = new File(rootProject.projectDir, "build/")
+distZip.dependsOn ":executor:distZip"
+distZip.finalizedBy copyExecutor
 
 distributions {
     main {
-        baseName = 'scheduler'
+        baseName = 'mongodb-sidecar-scheduler'
         version = ''
     }
 }
-
-test {
-    filter {
-        //include all tests from package
-        includeTestsMatching "fwd.cloud.frameworks.mongodbsidecar.*"
-    }
-}
-
 
 mainClassName = 'fwd.cloud.frameworks.mongodbsidecar.scheduler.Main'
