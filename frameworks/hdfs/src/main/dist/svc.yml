@@ -15,9 +15,9 @@ pods:
         memory: {{JOURNAL_MEM}}
         ports:
           journal-rpc:
-            port: {{JOURNAL_NODE_RPC_PORT}}
+            port: {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}
           journal-http:
-            port: {{JOURNAL_NODE_HTTP_PORT}}
+            port: {{TASKCFG_ALL_JOURNAL_NODE_HTTP_PORT}}
         volume:
           path: journal-data
           size: {{JOURNAL_DISK}}
@@ -42,9 +42,9 @@ pods:
         memory: {{NAME_MEM}}
         ports:
           name-rpc:
-            port: {{NAME_NODE_RPC_PORT}}
+            port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
           name-http:
-            port: {{NAME_NODE_HTTP_PORT}}
+            port: {{TASKCFG_ALL_NAME_NODE_HTTP_PORT}}
         volume:
           path: name-data
           size: {{NAME_DISK}}
@@ -144,11 +144,11 @@ pods:
         memory: {{DATA_MEM}}
         ports:
           data-rpc:
-            port: {{DATA_NODE_RPC_PORT}}
+            port: {{TASKCFG_ALL_DATA_NODE_RPC_PORT}}
           data-http:
-            port: {{DATA_NODE_HTTP_PORT}}
+            port: {{TASKCFG_ALL_DATA_NODE_HTTP_PORT}}
           data-ipc:
-            port: {{DATA_NODE_IPC_PORT}}
+            port: {{TASKCFG_ALL_DATA_NODE_IPC_PORT}}
         volume:
           path: data-data
           size: {{DATA_DISK}}
