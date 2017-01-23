@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * A BaseTest for use in writing offer evaluation tests.
  */
-public class OfferEvaluatorBaseTest {
+public class OfferEvaluatorTestBase {
     public static final EnvironmentVariables environmentVariables =
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
 
