@@ -4,10 +4,13 @@ scheduler:
 pods:
   journal:
     count: 3
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode"
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -16,23 +19,23 @@ pods:
           journal-http:
             port: {{JOURNAL_NODE_HTTP_PORT}}
         volume:
-          path: "journal-data"
+          path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
   name:
     count: 2
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
@@ -43,60 +46,54 @@ pods:
           name-http:
             port: {{NAME_NODE_HTTP_PORT}}
         volume:
-          path: "name-data"
+          path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode"
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format"
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
       bootstrap:
         goal: FINISHED
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby"
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
   zkfc:
     count: 2
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
     resource-sets:
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
@@ -104,44 +101,45 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc"
+        cmd: ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc
         resource-set: zkfc-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK"
+        cmd: ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
   data:
     count: {{DATA_COUNT}}
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
+        cmd: >
+               ./resolve-dns.sh &&
+               mkdir -p /var/lib/hadoop-hdfs &&
+               chown root /var/lib/hadoop-hdfs &&
+               ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
@@ -152,18 +150,15 @@ pods:
           data-ipc:
             port: {{DATA_NODE_IPC_PORT}}
         volume:
-          path: "data-data"
+          path: data-data
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
