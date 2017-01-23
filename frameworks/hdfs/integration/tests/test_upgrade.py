@@ -49,7 +49,7 @@ def test_upgrade_downgrade():
     master_version = get_pkg_version()
     print('Found master version: {}'.format(master_version))
     print('Installing master version')
-    install({'package_version': master_version})
+    install(package_version=master_version)
     check_health()
     write_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
     # gives chance for write to succeed and replication to occur
@@ -103,7 +103,7 @@ def new_default_version_available(prev_version):
 
 def destroy_and_install(version):
     destroy_service()
-    install({'package_version': version})
+    install(package_version=version)
 
 
 def destroy_service():
