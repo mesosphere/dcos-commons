@@ -1,0 +1,137 @@
+{
+  "type":"object",
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS service configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"mongodb-sidecar"
+          },
+          "principal" : {
+            "description":"Mesos principal name",
+            "type":"string",
+            "default":"mongodb-sidecar-principal"
+          },
+          "spec_file" : {
+            "description":"The name of the service spec yaml file.",
+            "type":"string",
+            "default":"svc.yml"
+          }
+        }
+      },
+      "mongodb":{
+        "description":"MongoDB server node configuration properties",
+        "type":"object",
+        "properties":{
+          "port":{
+            "description":"MongoDB server listening port",
+            "type":"number",
+            "default":27017
+          },
+          "restPort":{
+            "description":"MongoDB server rest interface listening port",
+            "type":"number",
+            "default":28017
+          },
+          "cpus":{
+            "description":"MongoDB server node cpu requirements",
+            "type":"number",
+            "default":0.1
+          },
+          "mem":{
+            "description":"MongoDB server node mem requirements",
+            "type":"integer",
+            "default":256
+          },
+          "disk":{
+            "description":"MongoDB server node disk requirements (local persistent volumes)",
+            "type":"integer",
+            "default":256
+          },
+          "count":{
+            "description":"Number of MongoDB server nodes to run",
+            "type":"integer",
+            "default":3
+          },
+          "replicaSetName":{
+            "description":"Name of the MongoDB ReplicaSet",
+            "type":"string",
+            "default":"rs"
+          },
+          "constraint":{
+            "description":"Marathon-style constraint for MongoDB server nodes (use empty string to override the default hostname UNIQUE behavior)",
+            "type":"string",
+            "default":"[['hostname', 'UNIQUE']]"
+          },
+          "version":{
+            "description":"MongoDB server version",
+            "type":"string",
+            "default":"3.4.1"
+          }
+        },
+        "required":[
+          "cpus",
+          "mem",
+          "disk",
+          "count"
+        ]
+      },
+      "sidecar":{
+        "description":"MongoDB sidecar configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"MongoDB sidecar node cpu requirements",
+            "type":"number",
+            "default":0.4
+          },
+          "mem":{
+            "description":"MongoDB sidecar node mem requirements",
+            "type":"integer",
+            "default":256
+          },
+          "imageName":{
+            "description":"Docker image for sidecar app",
+            "type":"string",
+            "default":"shirkevich/mongodb-sidecar:0.0.16"
+          },
+          "cmd":{
+            "description":"Docker cmd to run inside sidecar",
+            "type":"string",
+            "default":"/app/sidecar.rb"
+          },
+          "zk_url":{
+            "description":"zk url",
+            "type":"string",
+            "default":"zk-1.zk:2181"
+          },
+          "mesos_url":{
+            "description":"mesos url",
+            "type":"string",
+            "default":"http://master.mesos/mesos"
+          },
+          "log_level":{
+            "description":"Desired log level",
+            "type":"string",
+            "default":"info"
+          },
+          "delay":{
+            "description":"How long to sleep between work cycles",
+            "type":"number",
+            "default":10
+          }
+        },
+        "required":[
+          "cpus",
+          "mem",
+          "imageName",
+          "cmd",
+          "zk_url",
+          "mesos_url"
+        ]
+      }
+    }
+}

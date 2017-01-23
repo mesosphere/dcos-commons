@@ -1,0 +1,20 @@
+{
+  "packagingVersion": "3.0",
+  "name": "mongodb-sidecar",
+  "version": "{{package-version}}",
+  "maintainer": "mikhail.shirkov@fwd.cloud",
+  "description": "MongoDB RS sidecar framework for DC/OS",
+  "selected": false,
+  "framework": true,
+  "tags": ["MongoDB", "ReplicaSet", "database", "nosql", "db", "json", "stateful"],
+  "preInstallNotes": "This DC/OS Service is currently EXPERIMENTAL. There may be bugs, incomplete features, incorrect documentation, or other discrepancies.",
+  "postInstallNotes": "The MongoDB sidecar service was istalled!",
+  "postUninstallNotes": "The MongoDB sidecar service was unistalled!",
+  "minDcosReleaseVersion" : "1.8",
+  "licenses": [
+    {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  ]
+}

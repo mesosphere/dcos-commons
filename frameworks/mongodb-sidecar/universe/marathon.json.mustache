@@ -1,0 +1,73 @@
+{
+  "id": "{{service.name}}",
+  "cpus": 0.4,
+  "mem": 768,
+  "instances": 1,
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/mongodb-sidecar ./scheduler/{{service.spec_file}}",
+  "labels": {
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
+    "DCOS_MIGRATION_API_VERSION": "v1",
+    "DCOS_MIGRATION_API_PATH": "/v1/plan",
+    "MARATHON_SINGLE_INSTANCE_APP":"true",
+    "DCOS_SERVICE_NAME": "{{service.name}}",
+    "DCOS_SERVICE_PORT_INDEX": "0",
+    "DCOS_SERVICE_SCHEME": "http"
+  },
+  "env": {
+    "SERVICE_NAME": "{{service.name}}",
+    "SERVICE_PRINCIPAL": "{{service.principal}}",
+    "MONGODB_PORT": "{{mongodb.port}}",
+    "MONGODB_REST_PORT": "{{mongodb.restPort}}",
+    "MONGODB_COUNT": "{{mongodb.count}}",
+    "MONGODB_CPUS": "{{mongodb.cpus}}",
+    "MONGODB_MEM": "{{mongodb.mem}}",
+    "MONGODB_DISK": "{{mongodb.disk}}",
+    "MONGODB_REPLSET": "{{mongodb.replicaSetName}}",
+    {{#mongodb.constraint}}
+    "MONGODB_CONSTRAINT": "{{mongodb.constraint}}",
+    {{/mongodb.constraint}}
+    "MONGODB_VERSION": "{{mongodb.version}}",
+    "SIDECAR_COUNT": "1",
+    "SIDECAR_CPUS": "{{sidecar.cpus}}",
+    "SIDECAR_MEM": "{{sidecar.mem}}",
+    "SIDECAR_DISK": "0",
+    "SIDECAR_APP_NAME": "{{service.name}}",
+    "SIDECAR_DELAY": "{{sidecar.delay}}",
+    "SIDECAR_IMAGE": "{{sidecar.imageName}}",
+    "SIDECAR_CMD": "{{sidecar.cmd}}",
+    "SIDECAR_ZK_URL": "{{sidecar.zk_url}}",
+    "SIDECAR_MESOS_URL": "{{sidecar.mesos_url}}",
+    "SIDECAR_LOG_LEVEL": "{{sidecar.log_level}}",
+    "CONFIG_TEMPLATE_PATH": "scheduler",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  },
+  "fetch": [
+    {"uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true},
+    {"uri": "{{resource.assets.uris.scheduler-zip}}", "cache": true},
+    {"uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true}
+  ],
+  "upgradeStrategy":{
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  },
+  "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "api",
+      "labels": {}
+    }
+  ],
+  "healthChecks": [
+    {
+      "gracePeriodSeconds": 120,
+      "intervalSeconds": 30,
+      "maxConsecutiveFailures": 3,
+      "path": "/v1/tasks",
+      "portIndex": 0,
+      "protocol": "HTTP",
+      "timeoutSeconds": 5
+    }
+  ]
+}

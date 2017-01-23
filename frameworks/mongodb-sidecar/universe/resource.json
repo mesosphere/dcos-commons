@@ -1,0 +1,15 @@
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz",
+      "libmesos-bundle-tar-gz": "http://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.8.7-1.0.2-2.tar.gz",
+      "executor-zip": "{{artifact-dir}}/executor.zip",
+      "scheduler-zip": "{{artifact-dir}}/scheduler.zip"
+    }
+  },
+  "images": {
+    "icon-small": "https://raw.githubusercontent.com/konpa/devicon/master/icons/mongodb/mongodb-original.svg",
+    "icon-medium": "https://raw.githubusercontent.com/konpa/devicon/master/icons/mongodb/mongodb-original.svg",
+    "icon-large": "https://raw.githubusercontent.com/konpa/devicon/master/icons/mongodb/mongodb-original.svg"
+  }
+}
