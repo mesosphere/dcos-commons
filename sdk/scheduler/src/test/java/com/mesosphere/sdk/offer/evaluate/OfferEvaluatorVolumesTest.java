@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 /**
  * Offer evaluation tests concerning volumes.
  */
-public class OfferEvaluatorVolumesTest extends OfferEvaluatorBaseTest {
+public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testCreateMultipleVolumes() throws Exception {
         Resource desiredCpu = ResourceTestUtils.getUnreservedCpu(1);

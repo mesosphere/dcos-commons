@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("PMD")
-public class OfferEvaluatorTest extends OfferEvaluatorBaseTest {
+public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveTaskDynamicPort() throws Exception {
