@@ -40,6 +40,7 @@ public class ResourceCleanerTest {
     private static final Resource EXPECTED_RESOURCE_2 = ResourceUtils.getExpectedRootVolume(
             999.0,
             EXPECTED_RESOURCE_2_ID,
+            TestConstants.CONTAINER_PATH,
             TestConstants.ROLE,
             TestConstants.PRINCIPAL,
             EXPECTED_RESOURCE_2_ID);
@@ -47,6 +48,7 @@ public class ResourceCleanerTest {
     private static final Resource UNEXPECTED_RESOURCE_1 = ResourceUtils.getExpectedRootVolume(
             1000.0,
             UNEXPECTED_RESOURCE_1_ID,
+            TestConstants.CONTAINER_PATH,
             TestConstants.ROLE,
             TestConstants.PRINCIPAL,
             UNEXPECTED_RESOURCE_1_ID);
@@ -61,6 +63,7 @@ public class ResourceCleanerTest {
     private static final Resource UNEXPECTED_RESOURCE_3 = ResourceUtils.getExpectedRootVolume(
             1001.0,
             UNEXPECTED_RESOURCE_3_ID,
+            TestConstants.CONTAINER_PATH,
             TestConstants.ROLE,
             TestConstants.PRINCIPAL,
             UNEXPECTED_RESOURCE_3_ID);

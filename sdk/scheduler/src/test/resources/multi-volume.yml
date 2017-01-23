@@ -1,0 +1,18 @@
+name: "test-multi-volume"
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "./cmd"
+        cpus: 1
+        volumes:
+          pv0:
+            path: "pv0"
+            type: ROOT
+            size: 1
+          pv1:
+            path: "pv1"
+            type: ROOT
+            size: 2
