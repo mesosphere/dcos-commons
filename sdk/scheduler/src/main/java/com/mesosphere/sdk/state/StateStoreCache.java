@@ -1,22 +1,20 @@
 package com.mesosphere.sdk.state;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
-import com.mesosphere.sdk.curator.CuratorStateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Thread-safe caching layer for an underlying {@link StateStore}.
@@ -206,7 +204,15 @@ public class StateStoreCache implements StateStore {
     public Collection<TaskInfo> fetchTasks() throws StateStoreException {
         RLOCK.lock();
         try {
-            return nameToTask.values();
+            Collection<TaskInfo> unpackedTaskInfos = new ArrayList<>(nameToTask.values().size());
+            for (TaskInfo taskInfo : nameToTask.values()) {
+                try {
+                    unpackedTaskInfos.add(CommonTaskUtils.unpackTaskInfo(taskInfo));
+                } catch (InvalidProtocolBufferException e) {
+                    throw new StateStoreException(e);
+                }
+            }
+            return unpackedTaskInfos;
         } finally {
             RLOCK.unlock();
         }
@@ -216,7 +222,13 @@ public class StateStoreCache implements StateStore {
     public Optional<TaskInfo> fetchTask(String taskName) throws StateStoreException {
         RLOCK.lock();
         try {
-            return Optional.ofNullable(nameToTask.get(taskName));
+            if (nameToTask.containsKey(taskName)) {
+                return Optional.ofNullable(CommonTaskUtils.unpackTaskInfo(nameToTask.get(taskName)));
+            } else {
+                return Optional.empty();
+            }
+        } catch (InvalidProtocolBufferException e) {
+            throw new StateStoreException(e);
         } finally {
             RLOCK.unlock();
         }

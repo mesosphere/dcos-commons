@@ -113,6 +113,30 @@ public class StateStoreCacheTest {
     }
 
     @Test
+    public void testFetchTaskUnpacked() {
+        TaskInfo packedTaskInfo = CommonTaskUtils.packTaskInfo(TaskInfo.newBuilder(TASK)
+                .setExecutor(TaskTestUtils.getExecutorInfo(Collections.EMPTY_LIST)).build());
+        when(mockStore.fetchTasks()).thenReturn(Arrays.asList(packedTaskInfo));
+        when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS));
+        mockedCache = new StateStoreCache(mockStore);
+        Optional<TaskInfo> taskInfoOptional = mockedCache.fetchTask(packedTaskInfo.getName());
+        assertTrue(taskInfoOptional.isPresent());
+        assertTrue(taskInfoOptional.get().hasCommand());
+    }
+
+    @Test
+    public void testFetchTasksUnpacked() {
+        TaskInfo packedTaskInfo = CommonTaskUtils.packTaskInfo(TaskInfo.newBuilder(TASK)
+                .setExecutor(TaskTestUtils.getExecutorInfo(Collections.EMPTY_LIST)).build());
+        when(mockStore.fetchTasks()).thenReturn(Arrays.asList(packedTaskInfo));
+        when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS));
+        mockedCache = new StateStoreCache(mockStore);
+        Optional<TaskInfo> taskInfoOptional = mockedCache.fetchTask(packedTaskInfo.getName());
+        assertTrue(taskInfoOptional.isPresent());
+        assertTrue(taskInfoOptional.get().hasCommand());
+    }
+
+    @Test
     public void testFrameworkIdSingleThread() {
         cache.consistencyCheckForTests();
         assertFalse(cache.fetchFrameworkId().isPresent());
