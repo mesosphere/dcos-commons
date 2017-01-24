@@ -1,41 +1,27 @@
-#!/usr/bin/python
+'''Utilities relating to interaction with service plans'''
 
 import dcos
-import shakedown
 import sdk_cmd
-
-# Utilities relating to interaction with service plans
-
-
-def get_deployment_plan():
-    return _get_plan("deploy")
+import sdk_spin
+import shakedown
 
 
-def get_sidecar_plan():
-    return _get_plan("sidecar")
+def get_deployment_plan(service_name):
+    return _get_plan(service_name, "deploy")
 
 
-def start_sidecar_plan():
-    return dcos.http.post(shakedown.dcos_service_url(PACKAGE_NAME) + "/v1/plans/sidecar/start")
+def get_sidecar_plan(service_name):
+    return _get_plan(service_name, "sidecar")
 
 
-def _get_plan(plan):
+def start_sidecar_plan(service_name):
+    return dcos.http.post(shakedown.dcos_service_url(service_name) + "/v1/plans/sidecar/start")
+
+
+def _get_plan(service_name, plan):
     def fn():
-        try:
-            return dcos.http.get("{}/v1/plans/{}".format(shakedown.dcos_service_url(PACKAGE_NAME), plan))
-        except dcos.errors.DCOSHTTPException:
-            return []
-
-    def success_predicate(response):
-        print('Waiting for 200 response')
-        success = False
-
-        if hasattr(response, 'status_code'):
-            success = response.status_code == 200
-
-        return (
-            success,
-            'Failed to reach deployment endpoint'
-        )
-
-    return spin(fn, success_predicate)
+        response = dcos.http.get("{}/v1/plans/{}".format(
+            shakedown.dcos_service_url(service_name), plan))
+        response.raise_for_status()
+        return response
+    return sdk_spin.time_wait_return(lambda: fn())

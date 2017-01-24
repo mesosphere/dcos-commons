@@ -1,26 +1,29 @@
-import dcos.http
-import json
 import pytest
-import re
-import shakedown
 
-PACKAGE_NAME = 'hello-world'
+import sdk_install as install
+import sdk_plan as plan
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT
+)
 
 
 def setup_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/web-url.yml"
         }
     }
 
-    install(None, PACKAGE_NAME, options)
+    # this config produces 1 hello's + 0 world's:
+    install.install(PACKAGE_NAME, 1, additional_options=options)
 
 
 @pytest.mark.sanity
 def test_deploy():
-    deployment_plan = get_deployment_plan().json()
+    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
     print("deployment_plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 1)

@@ -1,17 +1,24 @@
-import dcos.http
 import pytest
 import re
 import shakedown
 
-PACKAGE_NAME = 'hello-world'
+import sdk_cmd as cmd
+import sdk_install as install
+import sdk_marathon as marathon
+import sdk_spin as spin
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT
+)
 
 
 def setup_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
 
 
 def teardown_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -32,19 +39,16 @@ def test_upgrade_downgrade():
     print('Found master version: {}'.format(master_version))
 
     print('Installing master version')
-    install(master_version)
-    check_health()
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
 
     print('Upgrading to test version')
-    destroy_service()
+    marathon.destroy_app(PACKAGE_NAME)
     add_repo(test_repo_name, test_repo_url, prev_version=master_version)
-    install(test_version)
-    check_health()
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=test_version)
 
     print('Downgrading to master version')
-    destroy_service()
-    install(master_version)
-    check_health()
+    marathon.destroy_app(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
 
 
 def get_test_repo_info():
@@ -54,7 +58,7 @@ def get_test_repo_info():
 
 
 def get_pkg_version():
-    pkg_description = run_dcos_cli_cmd('package describe {}'.format(PACKAGE_NAME))
+    pkg_description = cmd.run_cli('package describe {}'.format(PACKAGE_NAME))
     regex = r'"version": "(\S+)"'
     match = re.search(regex, pkg_description)
     return match.group(1)
@@ -70,24 +74,7 @@ def add_repo(repo_name, repo_url, prev_version):
 
 
 def new_default_version_available(prev_version):
-    def fn():
-        get_pkg_version()
-    def success_predicate(pkg_version):
-        return (pkg_version != prev_version, 'Package version has not changed')
-    spin(fn, success_predicate)
-
-
-def destroy_service():
-    destroy_endpoint = marathon_api_url_with_param('apps', PACKAGE_NAME)
-    request(dcos.http.delete, destroy_endpoint)
-    # Make sure the scheduler has been destroyed
-    def fn():
-        shakedown.get_service(PACKAGE_NAME)
-
-    def success_predicate(service):
-        return (service == None, 'Service not destroyed')
-
-    spin(fn, success_predicate)
+    spin.time_wait_noisy(lambda: get_pkg_version() != prev_version)
 
 
 def remove_repo(repo_name, prev_version):

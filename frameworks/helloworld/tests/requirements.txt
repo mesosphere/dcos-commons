@@ -1,3 +1,0 @@
-requests==2.10.0
-
--e git+https://github.com/dcos/shakedown.git@master#egg=shakedown

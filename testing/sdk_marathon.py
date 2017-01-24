@@ -1,44 +1,40 @@
-#!/usr/bin/python
+'''Utilities relating to interaction with Marathon'''
 
-import dcos
+import sdk_cmd
+import sdk_spin
 import shakedown
 
-# Utilities relating to interaction with Marathon
 
+def get_config(app_name):
+    def fn():
+        # do not retry each individual query: version may change under us between the two requests
+        response = sdk_cmd.request('get', api_url('apps/{}/versions'.format(app_name)), retry=False)
+        versions = response.json()['versions']
+        if len(versions) == 0:
+            raise Exception('No versions found for app {}'.format(app_name))
+        # string sort of versions: put newest timestamp at end of list
+        versions.sort()
+        return sdk_cmd.request('get', api_url('apps/{}/versions/{}'.format(app_name, versions[-1])), retry=False)
 
-def get_marathon_config():
-    response = dcos.http.get(marathon_api_url('apps/{}/versions'.format(PACKAGE_NAME)))
-    assert response.status_code == 200, 'Marathon versions request failed'
-
-    last_index = len(response.json()['versions']) - 1
-    version = response.json()['versions'][last_index]
-
-    response = dcos.http.get(marathon_api_url('apps/{}/versions/{}'.format(PACKAGE_NAME, version)))
-    assert response.status_code == 200
-
-    config = response.json()
+    config = sdk_spin.time_wait_return(lambda: fn()).json()
     del config['uris']
     del config['version']
 
     return config
 
 
-def destroy_marathon_app(app_name):
-    request(dcos.http.delete, marathon_api_url_with_param('apps', app_name))
+def destroy_app(app_name):
+    sdk_cmd.request('delete', api_url_with_param('apps', app_name))
     # Make sure the scheduler has been destroyed
 
     def fn():
-        shakedown.get_service(app_name)
-
-    def success_predicate(service):
-        return service is None, 'Service not destroyed'
-
-    spin(fn, success_predicate)
+        return shakedown.get_service(app_name) is None
+    sdk_spin.time_wait_noisy(lambda: fn())
 
 
-def marathon_api_url(basename):
+def api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 
 
-def marathon_api_url_with_param(basename, path_param):
-    return '{}/{}'.format(marathon_api_url(basename), path_param)
+def api_url_with_param(basename, path_param):
+    return '{}/{}'.format(api_url(basename), path_param)

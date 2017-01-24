@@ -1,17 +1,26 @@
-import dcos.http
 import dcos.marathon
 import json
 import pytest
 import re
 import shakedown
 
-PACKAGE_NAME = 'hello-world'
+import sdk_cmd as cmd
+import sdk_install as install
+import sdk_marathon as marathon
+import sdk_spin as spin
+import sdk_tasks as tasks
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT,
+    configured_task_count,
+    check_running
+)
 
 
 def setup_module(module):
-    uninstall()
-    install()
-    check_health()
+    install.uninstall(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.sanity
@@ -34,46 +43,40 @@ def test_no_colocation_in_podtypes():
 
 @pytest.mark.sanity
 def test_bump_hello_cpus():
-    check_health()
-    hello_ids = get_task_ids('hello')
+    check_running()
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    config = get_marathon_config()
+    config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
     config['env']['HELLO_CPUS'] = str(cpus + 0.1)
-    request(
-        dcos.http.put,
-        marathon_api_url('apps/' + PACKAGE_NAME),
-        json=config)
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
-    tasks_updated('hello', hello_ids)
-    check_health()
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    check_running()
 
 
 @pytest.mark.sanity
 def test_bump_hello_nodes():
-    check_health()
+    check_running()
 
-    hello_ids = get_task_ids('hello')
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
     print('hello ids: ' + str(hello_ids))
 
-    config = get_marathon_config()
-    nodeCount = int(config['env']['HELLO_COUNT']) + 1
-    config['env']['HELLO_COUNT'] = str(nodeCount)
-    request(
-        dcos.http.put,
-        marathon_api_url('apps/' + PACKAGE_NAME),
-        json=config)
+    config = marathon.get_config(PACKAGE_NAME)
+    node_count = int(config['env']['HELLO_COUNT']) + 1
+    config['env']['HELLO_COUNT'] = str(node_count)
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
-    check_health()
-    tasks_not_updated('hello', hello_ids)
+    check_running()
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
 
 
 @pytest.mark.sanity
 def test_pods_list():
-    stdout = run_dcos_cli_cmd('hello-world pods list')
+    stdout = cmd.run_cli('hello-world pods list')
     jsonobj = json.loads(stdout)
-    assert len(jsonobj) == get_task_count()
+    assert len(jsonobj) == configured_task_count()
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
     first_world = -1
@@ -90,10 +93,10 @@ def test_pods_list():
 
 @pytest.mark.sanity
 def test_pods_status_all():
-    stdout = run_dcos_cli_cmd('hello-world pods status')
+    stdout = cmd.run_cli('hello-world pods status')
     jsonobj = json.loads(stdout)
-    assert len(jsonobj) == get_task_count()
-    for k,v in jsonobj.items():
+    assert len(jsonobj) == configured_task_count()
+    for k, v in jsonobj.items():
         assert re.match('(hello|world)-[0-9]+', k)
         assert len(v) == 1
         task = v[0]
@@ -105,7 +108,7 @@ def test_pods_status_all():
 
 @pytest.mark.sanity
 def test_pods_status_one():
-    stdout = run_dcos_cli_cmd('hello-world pods status hello-0')
+    stdout = cmd.run_cli('hello-world pods status hello-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]
@@ -117,7 +120,7 @@ def test_pods_status_one():
 
 @pytest.mark.sanity
 def test_pods_info():
-    stdout = run_dcos_cli_cmd('hello-world pods info world-1')
+    stdout = cmd.run_cli('hello-world pods info world-1')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]
@@ -129,47 +132,47 @@ def test_pods_info():
 
 @pytest.mark.sanity
 def test_pods_restart():
-    hello_ids = get_task_ids('hello-0')
+    hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello-0')
 
     # get current agent id:
-    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
+    stdout = cmd.run_cli('hello-world pods info hello-0')
     old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
-    stdout = run_dcos_cli_cmd('hello-world pods restart hello-0')
+    stdout = cmd.run_cli('hello-world pods restart hello-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
 
-    tasks_updated('hello', hello_ids)
-    check_health()
+    tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    check_running()
 
     # check agent didn't move:
-    stdout = run_dcos_cli_cmd('hello-world pods info hello-0')
+    stdout = cmd.run_cli('hello-world pods info hello-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     assert old_agent == new_agent
 
 
 @pytest.mark.sanity
 def test_pods_replace():
-    world_ids = get_task_ids('world-0')
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world-0')
 
     # get current agent id:
-    stdout = run_dcos_cli_cmd('hello-world pods info world-0')
+    stdout = cmd.run_cli('hello-world pods info world-0')
     old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
-    jsonobj = json.loads(run_dcos_cli_cmd('hello-world pods replace world-0'))
+    jsonobj = json.loads(cmd.run_cli('hello-world pods replace world-0'))
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'world-0-server'
 
-    tasks_updated('world-0', world_ids)
-    check_health()
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_ids)
+    check_running()
 
     # check agent moved:
-    stdout = run_dcos_cli_cmd('hello-world pods info world-0')
+    stdout = cmd.run_cli('hello-world pods info world-0')
     new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
     #assert old_agent != new_agent
@@ -202,17 +205,11 @@ def test_lock():
     marathon_client.update_app(app_id, {"instances": 2})
 
     # Wait for second scheduler to fail
-    fn = lambda: marathon_client.get_app(app_id).get(
-        "lastTaskFailure", {}).get("timestamp", None)
-    success = lambda timestamp: (timestamp != old_timestamp,
-                                 "second scheduler has not yet failed")
-    spin(fn, success)
+    def fn():
+        timestamp = marathon_client.get_app(app_id).get("lastTaskFailure", {}).get("timestamp", None)
+        return timestamp != old_timestamp
+    spin.time_wait_noisy(lambda: fn())
 
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
-
-
-def get_task_count():
-    config = sdk_marathon.get_marathon_config()
-    return int(config['env']['HELLO_COUNT']) + int(config['env']['WORLD_COUNT'])

@@ -1,26 +1,28 @@
-import dcos.http
-import json
 import pytest
-import re
-import shakedown
 
-PACKAGE_NAME = 'hello-world'
+import sdk_install as install
+import sdk_plan as plan
+
+from tests.config import (
+    PACKAGE_NAME
+)
 
 
 def setup_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/sidecar.yml"
         }
     }
 
-    install(None, PACKAGE_NAME, options)
+    # this yml has 2 hello's + 0 world's:
+    install.install(PACKAGE_NAME, 2, additional_options=options)
 
 
 @pytest.mark.sanity
 def test_deploy():
-    deployment_plan = get_deployment_plan().json()
+    deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()
     print("deployment_plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 2)
@@ -32,8 +34,8 @@ def test_deploy():
 
 @pytest.mark.sanity
 def test_sidecar():
-    start_sidecar_plan()
-    sidecar_plan = get_sidecar_plan().json()
+    plan.start_sidecar_plan(PACKAGE_NAME)
+    sidecar_plan = plan.get_sidecar_plan(PACKAGE_NAME).json()
     print("sidecar_plan: " + str(sidecar_plan))
 
     assert(len(sidecar_plan['phases']) == 1)

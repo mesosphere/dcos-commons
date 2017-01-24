@@ -4,12 +4,21 @@ import re
 import shakedown
 import time
 
+import sdk_cmd as cmd
+import sdk_install as install
+import sdk_marathon as marathon
+import sdk_package as package
+import sdk_tasks as tasks
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_HDFS_TASK_COUNT
+)
+
 from tests.test_data_integrity import (
     write_some_data,
     read_some_data
 )
-
-PACKAGE_NAME = 'hdfs'
 
 MASTER_CUSTOM_NAME='Master Custom'
 # TODO: replace this URL once we have a stable, released version from which to upgrade
@@ -19,7 +28,7 @@ TEST_FILE_NAME = "upgrade_test"
 
 
 def setup_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.skip(reason="Waiting for released version from which to upgrade")
@@ -27,36 +36,33 @@ def setup_module(module):
 @pytest.mark.sanity
 def test_upgrade_downgrade():
     # Ensure both Universe and the test repo exist.
-    if len(get_repo_list()) != 2:
+    if len(package.get_repo_list()) != 2:
         print('No test repo found.  Skipping test_upgrade_downgrade')
         return
 
-    test_version = get_pkg_version()
+    test_version = package.get_pkg_version()
     print('Found test version: {}'.format(test_version))
 
-    add_repo(MASTER_CUSTOM_NAME, MASTER_CUSTOM_URL, prev_version=test_version)
+    package.add_repo(MASTER_CUSTOM_NAME, MASTER_CUSTOM_URL, prev_version=test_version)
 
-    master_version = get_pkg_version()
+    master_version = package.get_pkg_version()
     print('Found master version: {}'.format(master_version))
     print('Installing master version')
-    install({'package_version': master_version})
-    check_health()
+    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT, additional_options={'package_version': master_version})
     write_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
     # gives chance for write to succeed and replication to occur
     time.sleep(5)
 
 
     print('Upgrading to test version')
-    destroy_marathon_app(PACKAGE_NAME)
-    install({'package_version': test_version})
-    check_health()
+    marathon.destroy_app(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT, additional_options={'package_version': test_version})
     read_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
 
     print('Downgrading to master version')
-    destroy_marathon_app(PACKAGE_NAME)
-    install({'package_version': master_version})
-    check_health()
+    marathon.destroy_app(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT, additional_options={'package_version': master_version})
     read_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
 
     # clean up
-    remove_repo(MASTER_CUSTOM_NAME, PACKAGE_NAME, master_version)
+    package.remove_repo(MASTER_CUSTOM_NAME, PACKAGE_NAME, master_version)

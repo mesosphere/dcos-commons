@@ -4,58 +4,53 @@ import shakedown
 import inspect
 import os
 
-PACKAGE_NAME = 'hdfs'
+import sdk_cmd as cmd
+import sdk_install as install
+import sdk_marathon as marathon
+import sdk_tasks as tasks
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_HDFS_TASK_COUNT,
+    check_running
+)
 
 HDFS_POD_TYPES = {"journal", "name", "data"}
-DEFAULT_HDFS_TASK_COUNT = 10 # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 
 def setup_module(module):
-    uninstall()
-    install()
-    check_health()
-
-
-@pytest.mark.sanity
-def test_install_worked():
-    pass
+    install.uninstall(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT)
 
 
 @pytest.mark.sanity
 def test_bump_journal_cpus():
-    check_health()
-    journal_ids = get_task_ids('journal')
+    tasks.check_running(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT)
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
     print('journal ids: ' + str(journal_ids))
 
-    config = get_marathon_config()
+    config = marathon.get_config(PACKAGE_NAME)
     print('marathon config: ')
     print(config)
     cpus = float(config['env']['JOURNAL_CPUS'])
     config['env']['JOURNAL_CPUS'] = str(cpus + 0.1)
-    r = request(
-        dcos.http.put,
-        marathon_api_url('apps/' + PACKAGE_NAME),
-        json=config)
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
-    tasks_updated('journal', journal_ids)
-
-    check_health()
+    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
+    check_running()
 
 
 @pytest.mark.sanity
 def test_bump_data_nodes():
-    check_health()
+    check_running()
 
-    data_ids = get_task_ids('data')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
     print('data ids: ' + str(data_ids))
 
-    config = get_marathon_config()
-    nodeCount = int(config['env']['DATA_COUNT']) + 1
-    config['env']['DATA_COUNT'] = str(nodeCount)
-    r = request(
-        dcos.http.put,
-        marathon_api_url('apps/' + PACKAGE_NAME),
-        json=config)
+    config = marathon.get_config(PACKAGE_NAME)
+    node_count = int(config['env']['DATA_COUNT']) + 1
+    config['env']['DATA_COUNT'] = str(node_count)
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
-    check_health(DEFAULT_HDFS_TASK_COUNT + 1)
-    tasks_not_updated('data', data_ids)
+    check_running(DEFAULT_HDFS_TASK_COUNT + 1)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
