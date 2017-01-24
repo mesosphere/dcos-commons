@@ -15,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
-            new DefaultService(new File(args[0]));
+            new KafkaService(new File(args[0]));
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
