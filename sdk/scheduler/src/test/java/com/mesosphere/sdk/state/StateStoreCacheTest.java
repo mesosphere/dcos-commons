@@ -1,18 +1,15 @@
 package com.mesosphere.sdk.state;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
+import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -21,15 +18,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link StateStoreCache}
@@ -110,30 +102,6 @@ public class StateStoreCacheTest {
         when(mockStore.fetchTasks()).thenReturn(Arrays.asList(TASK));
         when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS, STATUS2));
         mockedCache = new StateStoreCache(mockStore);
-    }
-
-    @Test
-    public void testFetchTaskUnpacked() {
-        TaskInfo packedTaskInfo = CommonTaskUtils.packTaskInfo(TaskInfo.newBuilder(TASK)
-                .setExecutor(TaskTestUtils.getExecutorInfo(Collections.EMPTY_LIST)).build());
-        when(mockStore.fetchTasks()).thenReturn(Arrays.asList(packedTaskInfo));
-        when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS));
-        mockedCache = new StateStoreCache(mockStore);
-        Optional<TaskInfo> taskInfoOptional = mockedCache.fetchTask(packedTaskInfo.getName());
-        assertTrue(taskInfoOptional.isPresent());
-        assertTrue(taskInfoOptional.get().hasCommand());
-    }
-
-    @Test
-    public void testFetchTasksUnpacked() {
-        TaskInfo packedTaskInfo = CommonTaskUtils.packTaskInfo(TaskInfo.newBuilder(TASK)
-                .setExecutor(TaskTestUtils.getExecutorInfo(Collections.EMPTY_LIST)).build());
-        when(mockStore.fetchTasks()).thenReturn(Arrays.asList(packedTaskInfo));
-        when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS));
-        mockedCache = new StateStoreCache(mockStore);
-        Optional<TaskInfo> taskInfoOptional = mockedCache.fetchTask(packedTaskInfo.getName());
-        assertTrue(taskInfoOptional.isPresent());
-        assertTrue(taskInfoOptional.get().hasCommand());
     }
 
     @Test

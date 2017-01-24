@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,7 +36,13 @@ public class PersistentOperationRecorder implements OperationRecorder {
     private void recordTasks(List<Protos.TaskInfo> taskInfos) throws StateStoreException {
         logger.info(String.format("Recording %d updated TaskInfos/TaskStatuses:", taskInfos.size()));
         List<Protos.TaskStatus> taskStatuses = new ArrayList<>();
-        for (Protos.TaskInfo taskInfo : taskInfos) {
+        Collection<Protos.TaskInfo> unpackedTaskInfos;
+        try {
+            unpackedTaskInfos = CommonTaskUtils.unpackTaskInfos(taskInfos);
+        } catch (InvalidProtocolBufferException e) {
+            throw new StateStoreException(e);
+        }
+        for (Protos.TaskInfo taskInfo : unpackedTaskInfos) {
             if (!taskInfo.getTaskId().getValue().equals("")) {
                 Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
                         .setTaskId(taskInfo.getTaskId())
@@ -51,7 +59,7 @@ public class PersistentOperationRecorder implements OperationRecorder {
             }
         }
 
-        stateStore.storeTasks(taskInfos);
+        stateStore.storeTasks(unpackedTaskInfos);
         for (Protos.TaskStatus taskStatus : taskStatuses) {
             recordTaskStatus(taskStatus);
         }
