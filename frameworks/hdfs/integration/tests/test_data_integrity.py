@@ -14,7 +14,7 @@ TEST_CONTENT_SMALL = "This is some test data"
 # TODO: TEST_CONTENT_LARGE = Give a large file as input to the write/read commands...
 TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
-HDFS_CMD_TIMEOUT_SEC = 5 * 60
+HDFS_CMD_TIMEOUT_SEC = 15 * 60
 
 
 def setup_module(module):
@@ -99,6 +99,7 @@ def run_hdfs_command(host, command):
         {}""".format(hdfs_dir_cmd, java_home, command)
 
     rc, output = shakedown.run_command_on_agent(host, full_command)
+    print("output: {}".format(output))
     return rc, output
 
 
