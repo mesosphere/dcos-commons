@@ -1,4 +1,7 @@
-name: "kafka"
+name: {{FRAMEWORK_NAME}}
+principal: {{FRAMEWORK_PRINCIPLE}}
+zookeeper: master.mesos:2181
+api-port: {{PORT1}}
 pods:
   kafka:
     count: {{BROKER_COUNT}}
@@ -14,10 +17,10 @@ pods:
           type: ROOT
           size: {{BROKER_DISK}}
         goal: RUNNING
-        cmd: "env && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
+        cmd: "env && exec $MESOS_SANDBOX/{{KAFKA_VER_NAME}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VER_NAME}}/config/server.properties"
         uris:
           - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
-        configs:
-          server-properties:
-            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-            dest: "kafka_2.11-0.10.0.0/config/server.properties"
+          - {{KAFKA_URI}}
+        configurations:
+          - template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+            dest: "{{KAFKA_VER_NAME}}/config/server.properties"
