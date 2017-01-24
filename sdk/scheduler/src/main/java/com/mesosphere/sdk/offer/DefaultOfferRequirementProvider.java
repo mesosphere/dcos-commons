@@ -24,7 +24,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final String EXECUTOR_URI = "EXECUTOR_URI";
     private static final String LIBMESOS_URI = "LIBMESOS_URI";
     private static final String JAVA_URI = "JAVA_URI";
-    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64.tar.gz";
+    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u121-linux-x64.tar.gz";
 
     private static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
 
