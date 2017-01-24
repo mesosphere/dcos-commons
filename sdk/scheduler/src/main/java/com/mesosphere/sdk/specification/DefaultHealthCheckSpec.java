@@ -15,11 +15,27 @@ import javax.validation.constraints.Size;
  * Default implementation of {@link HealthCheckSpec}.
  */
 public class DefaultHealthCheckSpec implements HealthCheckSpec {
+    @NotNull
     private String command;
+
+    @NotNull
+    @Min(1)
     private Integer maxConsecutiveFailures;
+
+    @NotNull
+    @Min(0)
     private Integer delay;
+
+    @NotNull
+    @Min(0)
     private Integer interval;
+
+    @NotNull
+    @Min(0)
     private Integer timeout;
+
+    @NotNull
+    @Min(0)
     private Integer gracePeriod;
 
     @JsonCreator

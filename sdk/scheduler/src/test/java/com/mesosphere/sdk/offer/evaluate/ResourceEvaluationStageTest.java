@@ -22,9 +22,11 @@ public class ResourceEvaluationStageTest {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
         OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
 
-        ResourceEvaluationStage resourceEvaluationStage = new ResourceEvaluationStage(
-                desiredResource, TestConstants.TASK_NAME);
-        resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+        ResourceEvaluationStage resourceEvaluationStage =
+                new ResourceEvaluationStage(desiredResource, TestConstants.TASK_NAME);
+        EvaluationOutcome outcome =
+                resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
 
         Protos.Value remaining = mesosResourcePool.getUnreservedMergedPool().get("cpus");
         Assert.assertTrue(1.0 == remaining.getScalar().getValue());
@@ -51,9 +53,11 @@ public class ResourceEvaluationStageTest {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedResource);
         OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
 
-        ResourceEvaluationStage resourceEvaluationStage = new ResourceEvaluationStage(
-                expectedResource, TestConstants.TASK_NAME);
-        resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+        ResourceEvaluationStage resourceEvaluationStage =
+                new ResourceEvaluationStage(expectedResource, TestConstants.TASK_NAME);
+        EvaluationOutcome outcome =
+                resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());
         Assert.assertEquals(1, recommendationSlate.getRecommendations().size());
@@ -80,12 +84,9 @@ public class ResourceEvaluationStageTest {
 
         ResourceEvaluationStage resourceEvaluationStage = new ResourceEvaluationStage(
                 desiredResource, TestConstants.TASK_NAME);
-        try {
-            resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
-        } catch (OfferEvaluationException e) {
-            // Expected.
-        }
-
+        EvaluationOutcome outcome =
+                resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+        Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, recommendationSlate.getRecommendations().size());
     }
 }

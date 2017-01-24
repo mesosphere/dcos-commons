@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -49,141 +50,6 @@ public class CommonTaskUtilsTest {
         Assert.assertEquals(testTargetConfigurationId, CommonTaskUtils.getTargetConfiguration(taskInfo));
     }
 
-
-    /*
-    @Test
-    public void testAreDifferentTaskSpecificationsResourcesLength() {
-        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addResource(new DefaultResourceSpecification(
-                        "foo",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        Assert.assertTrue(CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreDifferentTaskSpecificationsNoResourceOverlap() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addResource(new DefaultResourceSpecification(
-                        "bar",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addResource(new DefaultResourceSpecification(
-                        "foo",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        Assert.assertTrue(CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreNotDifferentTaskSpecificationsResourcesMatch() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addResource(new DefaultResourceSpecification(
-                        "bar",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addResource(new DefaultResourceSpecification(
-                        "bar",
-                        Protos.Value.newBuilder()
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0).build())
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRINCIPAL));
-
-        Assert.assertFalse(CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void testAreDifferentTaskSpecificationsConfigsSamePathFailsValidation() {
-        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config",
-                        "two configs with same path should fail validation"));
-        CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification);
-    }
-
-    @Test
-    public void testAreDifferentTaskSpecificationsConfigsLength() {
-        TaskSpecification oldTaskSpecification = TestPodFactory.getTaskSpec();
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config",
-                        "this is a config template"));
-
-        Assert.assertTrue(CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreDifferentTaskSpecificationsNoConfigOverlap() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../different/path/to/config",
-                        "different path to a different template"))
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        Assert.assertTrue(CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-
-    @Test
-    public void testAreNotDifferentTaskSpecificationsConfigMatch() {
-        TestTaskSpecification oldTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        TestTaskSpecification newTaskSpecification = new TestTaskSpecification(TestPodFactory.getTaskSpec())
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config",
-                        "this is a config template"))
-                .addConfigFile(new DefaultConfigFileSpec(
-                        "../relative/path/to/config2",
-                        "this is a second config template"));
-
-        Assert.assertFalse(CommonTaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
-    }
-    */
-
     @Test
     public void testSetGetConfigTemplates() throws InvalidProtocolBufferException {
         Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
@@ -208,9 +74,53 @@ public class CommonTaskUtilsTest {
         CommonTaskUtils.setConfigFiles(taskBuilder, configs);
     }
 
+    @Test
+    public void testSetGetOfferAttributes() {
+        Protos.Offer.Builder offerBuilder = Protos.Offer.newBuilder()
+                .setId(TestConstants.OFFER_ID)
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME);
+        Protos.Attribute.Builder attrBuilder =
+                offerBuilder.addAttributesBuilder().setName("1").setType(Protos.Value.Type.RANGES);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(5).setEnd(6);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("2").setType(Protos.Value.Type.SCALAR);
+        attrBuilder.getScalarBuilder().setValue(123.4567);
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("3").setType(Protos.Value.Type.SET);
+        attrBuilder.getSetBuilder().addItem("foo").addItem("bar").addItem("baz");
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("4").setType(Protos.Value.Type.RANGES);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(7).setEnd(8);
+        attrBuilder.getRangesBuilder().addRangeBuilder().setBegin(10).setEnd(12);
+
+        Assert.assertTrue(CommonTaskUtils.getOfferAttributeStrings(getTestTaskInfo()).isEmpty());
+
+        Protos.TaskInfo.Builder tb = CommonTaskUtils.setOfferAttributes(
+                getTestTaskInfo().toBuilder(), offerBuilder.build());
+        List<String> expectedStrings = new ArrayList<>();
+        expectedStrings.add("1:[5-6,10-12]");
+        expectedStrings.add("2:123.457");
+        expectedStrings.add("3:{foo,bar,baz}");
+        expectedStrings.add("4:[7-8,10-12]");
+        Assert.assertEquals(expectedStrings, CommonTaskUtils.getOfferAttributeStrings(tb.build()));
+
+        tb = CommonTaskUtils.setOfferAttributes(
+                getTestTaskInfo().toBuilder(), offerBuilder.clearAttributes().build());
+        Assert.assertTrue(CommonTaskUtils.getOfferAttributeStrings(tb.build()).isEmpty());
+    }
+
     @Test(expected = TaskException.class)
     public void testGetMissingTaskTypeFails() throws TaskException {
         CommonTaskUtils.getType(getTestTaskInfo());
+    }
+
+    @Test
+    public void testTaskLostNeedsRecovery() {
+        Protos.TaskStatus taskStatus = Protos.TaskStatus.newBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setState(Protos.TaskState.TASK_LOST)
+                .build();
+        Assert.assertTrue(CommonTaskUtils.isRecoveryNeeded(taskStatus));
     }
 
     @Test
@@ -219,18 +129,32 @@ public class CommonTaskUtilsTest {
                 getTestTaskInfo().toBuilder(), "foo").build()));
         Assert.assertEquals("", CommonTaskUtils.getType(CommonTaskUtils.setType(
                 getTestTaskInfo().toBuilder(), "").build()));
-
     }
 
     @Test
     public void testApplyEnvToMustache() throws IOException {
-        environmentVariables.set("PORT0", "8080");
+        environmentVariables.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
         String yaml = FileUtils.readFileToString(file);
-        Assert.assertTrue(yaml.contains("api-port: {{PORT0}}"));
+        Assert.assertTrue(yaml.contains("api-port: {{PORT_API}}"));
         String renderedYaml = CommonTaskUtils.applyEnvToMustache(yaml, System.getenv());
-        Assert.assertTrue(renderedYaml.contains("api-port: 8080"));
+        Assert.assertTrue(renderedYaml.contains(String.format("api-port: %d", TestConstants.PORT_API_VALUE)));
+    }
+
+    @Test
+    public void testReadinessCheckTagging() throws TaskException {
+        Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID);
+        Protos.HealthCheck inReadinessCheck = Protos.HealthCheck.newBuilder()
+                .setDelaySeconds(1.0)
+                .build();
+        CommonTaskUtils.setReadinessCheck(builder, inReadinessCheck);
+        Protos.HealthCheck outReadinessCheck = CommonTaskUtils.getReadinessCheck(builder.build()).get();
+
+        Assert.assertEquals(inReadinessCheck.getDelaySeconds(), outReadinessCheck.getDelaySeconds(), 0.0);
     }
 
     private static Protos.TaskID getTaskId(String value) {

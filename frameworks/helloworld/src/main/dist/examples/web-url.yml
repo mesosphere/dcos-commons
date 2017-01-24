@@ -1,0 +1,13 @@
+name: "hello-world"
+web-url: http://hello-world.marathon.mesos:{{PORT_API}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

@@ -1,3 +1,5 @@
+apply plugin: 'java'
+
 ext {
     commonsCollectionsVer = "3.2.2"
     commonsIoVer = "2.4"
@@ -25,6 +27,7 @@ dependencies {
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
     compile "com.google.code.findbugs:annotations:${findbugsAnnotationsVer}"
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
@@ -32,4 +35,12 @@ dependencies {
     testCompile "org.awaitility:awaitility:${awaitilityVer}"
 }
 
-apply plugin: 'java'
+check.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
+    }
+}

@@ -1,0 +1,16 @@
+name: {{FRAMEWORK_NAME}}
+pods:
+  template:
+    count: {{TEMPLATE_COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo template >> template-container-path/output && sleep $SLEEP_DURATION"
+        cpus: {{TEMPLATE_CPUS}}
+        memory: {{TEMPLATE_MEM}}
+        volume:
+          path: "template-container-path"
+          type: ROOT
+          size: {{TEMPLATE_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

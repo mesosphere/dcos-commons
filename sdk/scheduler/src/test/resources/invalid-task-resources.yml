@@ -1,9 +1,4 @@
 name: "data-store"
-principal: "data-store-principal"
-api-port: {{PORT0}}
-replacement-failure-policy:
-  permanent-failure-timeout-ms: 10
-  min-replace-delay-ms: 10
 pods:
   meta-data:
     placement: "hostname:UNIQUE"
@@ -13,12 +8,12 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          - name: http
+          http:
             port: 8080
-        volumes:
-          - path: "meta-data-container-path"
-            type: ROOT
-            size: 5000
+        volume:
+          path: "meta-data-container-path"
+          type: ROOT
+          size: 5000
     tasks:
       meta-data-task:
         goal: RUNNING

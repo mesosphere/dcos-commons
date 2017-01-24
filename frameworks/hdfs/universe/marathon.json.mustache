@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 2048,
   "instances": 1,
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && env && export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/hdfs_svc.yml",
+  "cmd": "{{service.cmd_prefix}} && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/{{service.spec_file}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",

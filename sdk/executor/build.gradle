@@ -23,12 +23,20 @@ dependencies {
 apply plugin: 'java'
 apply plugin: 'application'
 
-buildDir = new File(rootProject.projectDir, "build/")
-
 distributions {
     main {
         baseName = 'executor'
         version = ''
+    }
+}
+
+check.finalizedBy jacocoTestReport
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
     }
 }
 

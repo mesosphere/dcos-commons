@@ -12,8 +12,7 @@ import java.util.Collection;
  * @param <P> is the type of the Parent {@link Element} which this builder produces.
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
-public abstract class ElementBuilder<P extends Element<C>, C extends Element> {
+public abstract class ElementBuilder<P extends ParentElement<? extends Element>, C extends Element> {
     protected final DependencyStrategyHelper<C> dependencyStrategyHelper = new DependencyStrategyHelper<>();
     protected String name;
 
@@ -21,8 +20,7 @@ public abstract class ElementBuilder<P extends Element<C>, C extends Element> {
         this.name = name;
     }
 
-    public ElementBuilder<P, C> addAll(C element)
-            throws DependencyStrategyHelper.InvalidDependencyException {
+    public ElementBuilder<P, C> add(C element) throws DependencyStrategyHelper.InvalidDependencyException {
         dependencyStrategyHelper.addElement(element);
         return this;
     }
@@ -30,7 +28,7 @@ public abstract class ElementBuilder<P extends Element<C>, C extends Element> {
     public ElementBuilder<P, C> addAll(Collection<C> elements)
             throws DependencyStrategyHelper.InvalidDependencyException {
         for (C element : elements) {
-            addAll(element);
+            add(element);
         }
         return this;
     }

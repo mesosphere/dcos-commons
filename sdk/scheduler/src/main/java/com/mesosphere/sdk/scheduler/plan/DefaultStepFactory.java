@@ -32,7 +32,7 @@ public class DefaultStepFactory implements StepFactory {
 
     @Override
     public Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch)
-            throws Step.InvalidStepException, InvalidRequirementException {
+            throws Step.InvalidStepException {
 
         LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
         validate(podInstance, tasksToLaunch);
@@ -47,7 +47,7 @@ public class DefaultStepFactory implements StepFactory {
             Status status = taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos);
             String stepName = TaskUtils.getStepName(podInstance, tasksToLaunch);
 
-            return new DefaultStep(
+            return new DeploymentStep(
                     stepName,
                     status,
                     PodInstanceRequirement.create(podInstance, tasksToLaunch),
@@ -67,11 +67,11 @@ public class DefaultStepFactory implements StepFactory {
                 .map(taskSpec -> taskSpec.getResourceSet().getId())
                 .collect(Collectors.toList());
 
-        Set<String> resourceSetIdsSet = new HashSet<>(resourceSetIds);
-
-        if (resourceSetIdsSet.size() < resourceSetIds.size()) {
-            throw new Step.InvalidStepException(
-                    "Attempted to launch multiple Tasks using the same resource set id: " + resourceSetIds);
+        if (new HashSet<>(resourceSetIds).size() < resourceSetIds.size()) {
+            throw new Step.InvalidStepException(String.format(
+                    "Attempted to simultaneously launch tasks: %s in pod: %s using the same resource set id: %s. " +
+                    "These tasks should either be run in separate steps or use different resource set ids",
+                    tasksToLaunch, podInstance.getName(), resourceSetIds));
         }
     }
 
@@ -94,7 +94,7 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo, UUID targetConfigId)
-            throws TaskException, ConfigStoreException, Step.InvalidStepException {
+            throws TaskException, Step.InvalidStepException {
 
         boolean isOnTarget = isOnTarget(taskInfo, targetConfigId);
         boolean hasReachedGoal = hasReachedGoalState(podInstance, taskInfo);
@@ -102,7 +102,7 @@ public class DefaultStepFactory implements StepFactory {
         if (hasReachedGoal) {
             GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
             if (goalState.equals(GoalState.FINISHED)) {
-                LOGGER.info("Automatically on target configuration due to having reached FINISHED goal.");
+                LOGGER.info("Automatically on target configuration due to having reached {} goal.", goalState);
                 isOnTarget = true;
             }
         }
@@ -118,8 +118,7 @@ public class DefaultStepFactory implements StepFactory {
 
     }
 
-    private static boolean isOnTarget(Protos.TaskInfo taskInfo, UUID targetConfigId)
-            throws ConfigStoreException, TaskException {
+    private static boolean isOnTarget(Protos.TaskInfo taskInfo, UUID targetConfigId) throws TaskException {
         UUID taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
         return targetConfigId.equals(taskConfigId);
     }
@@ -157,5 +156,4 @@ public class DefaultStepFactory implements StepFactory {
             throw new Step.InvalidStepException("Unexpected goal state encountered: " + goalState);
         }
     }
-
 }

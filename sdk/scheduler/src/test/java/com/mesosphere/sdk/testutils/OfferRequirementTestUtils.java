@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
-import com.mesosphere.sdk.offer.constrain.PlacementUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -173,10 +173,16 @@ public class OfferRequirementTestUtils {
                 null);
     }
 
+    public static final EnvironmentVariables getApiPortEnvironment() {
+        EnvironmentVariables env = new EnvironmentVariables();
+        env.set("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
+        return env;
+    }
+
     public static EnvironmentVariables getOfferRequirementProviderEnvironment() {
-        EnvironmentVariables vars = new EnvironmentVariables();
-        vars.set("EXECUTOR_URI", "");
-        vars.set("LIBMESOS_URI", "");
-        return vars;
+        EnvironmentVariables env = getApiPortEnvironment();
+        env.set("EXECUTOR_URI", "");
+        env.set("LIBMESOS_URI", "");
+        return env;
     }
 }

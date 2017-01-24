@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.testutils;
 
-import org.apache.mesos.Protos;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 import java.util.List;

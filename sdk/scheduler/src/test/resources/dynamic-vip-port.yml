@@ -1,6 +1,4 @@
 name: "hello-world"
-principal: "test-principal"
-api-port: {{PORT0}}
 pods:
   pod-type:
     count: 1
@@ -9,8 +7,9 @@ pods:
         goal: RUNNING
         cmd: "./task-cmd"
         ports:
-          - name: test-port-name
+          test-port-name:
             port: 0
+            env-key: TEST_PORT
             vip:
               prefix: testvip
               port: 8080

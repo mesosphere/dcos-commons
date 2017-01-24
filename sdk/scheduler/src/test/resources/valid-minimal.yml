@@ -1,6 +1,4 @@
 name: "hello-world"
-principal: "hello-world-principal"
-api-port: {{PORT0}}
 pods:
   pod-type:
     count: 1

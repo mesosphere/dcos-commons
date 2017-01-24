@@ -14,6 +14,11 @@
             "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
             "type":"string",
             "default":"V0"
+          },
+          "cmd_prefix" : {
+            "description":"A generic prefix to start the scheduler.",
+            "type":"string",
+            "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
           }
         }
       },

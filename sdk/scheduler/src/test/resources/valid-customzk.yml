@@ -1,7 +1,6 @@
 name: "hello-world"
-principal: "hello-world-principal"
-zookeeper: custom.master.mesos:2181
-api-port: {{PORT0}}
+scheduler:
+  zookeeper: custom.master.mesos:2181
 pods:
   pod-type:
     count: 1

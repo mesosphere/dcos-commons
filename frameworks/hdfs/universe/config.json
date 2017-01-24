@@ -14,6 +14,16 @@
           "description":"The principal for the HDFS service instance.",
           "type":"string",
           "default":"hdfs-principal"
+        },
+        "cmd_prefix" : {
+          "description":"A generic prefix to start the scheduler.",
+          "type":"string",
+          "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
+        },
+        "spec_file" : {
+          "description":"The name of the service spec yaml file.",
+          "type":"string",
+          "default":"svc.yml"
         }
       }
     },
@@ -152,72 +162,60 @@
     },
     "hdfs": {
       "type": "object",
-      "id": "http://hdfs/dcos/mesosphere.com/hdfs",
       "description": "HDFS File System configuration options",
       "properties": {
         "name_node_rpc_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/name_node_rpc_port",
           "description": "The RPC port for HDFS Name Nodes.",
           "default": 9001
         },
         "name_node_http_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/name_node_http_port",
           "description": "The HTTP port for HDFS Name Nodes. ",
           "default": 9002
         },
         "journal_node_rpc_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/journal_node_rpc_port",
           "description": "The RPC port used by Journal Nodes.",
           "default": 8485
         },
         "journal_node_http_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/journal_node_http_port",
           "description": "The HTTP port used by Journal Nodes.",
           "default": 8480
         },
         "data_node_rpc_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/data_node_rpc_port",
           "description": "The RPC port used by Data Nodes.",
           "default": 9003
         },
         "data_node_http_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/data_node_http_port",
           "description": "The HTTP port used by Data Nodes.",
           "default": 9004
         },
         "data_node_ipc_port": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/data_node_ipc_port",
           "description": "The IPS port used by Data Nodes.",
           "default": 9005
         },
         "permissions_enabled": {
           "type": "boolean",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/permissions_enabled",
           "description": "If true, permissions checking is enabled",
           "default": false
         },
         "name_node_heartbeat_recheck_interval": {
           "type": "integer",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/name_node_heartbeat_recheck_interval",
           "description": "This time decides the interval to check for expired datanodes.",
           "default": 60000
         },
         "compress_image": {
           "type": "boolean",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/compress_image",
           "description": "If true, the File System image will be compressed.",
           "default": true
         },
         "image_compression_codec": {
           "type": "string",
-          "id": "http://hdfs/dcos/mesosphere.com/hdfs/image_compression_codec",
           "description": "The image compression codec for the File System image.",
           "default": "org.apache.hadoop.io.compress.SnappyCodec"
         }

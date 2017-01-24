@@ -2,7 +2,9 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.constrain.TestPlacementUtils;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -16,14 +18,13 @@ import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testing.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -167,8 +168,6 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
 
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
@@ -189,7 +188,7 @@ public class DefaultSchedulerTest {
     public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
-                        .placementRule(TestPlacementUtils.ALL)
+                        .placementRule(TestPlacementUtils.PASS)
                         .build())
                 .build();
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
@@ -228,14 +227,14 @@ public class DefaultSchedulerTest {
     public void testConstructConfigStoreWithRegisteredGoodCustomType() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
                 DefaultPodSpec.newBuilder(podA)
-                        .placementRule(TestPlacementUtils.ALL)
+                        .placementRule(TestPlacementUtils.PASS)
                         .build())
                 .build();
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
         DefaultScheduler.createConfigStore(
                 serviceSpecification,
                 testingServer.getConnectString(),
-                Arrays.asList(TestPlacementUtils.ALL.getClass()));
+                Arrays.asList(TestPlacementUtils.PASS.getClass()));
     }
 
     @Test
@@ -707,13 +706,11 @@ public class DefaultSchedulerTest {
 
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
-        public Offer filter(Offer offer, OfferRequirement offerRequirement,
+        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
                             Collection<TaskInfo> tasks) {
-            return offer;
+            return EvaluationOutcome.pass(this, "test pass");
         }
     }
-
-    ;
 
     private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
 
@@ -725,9 +722,9 @@ public class DefaultSchedulerTest {
         }
 
         @Override
-        public Offer filter(Offer offer, OfferRequirement offerRequirement,
+        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement,
                             Collection<TaskInfo> tasks) {
-            return offer;
+            return EvaluationOutcome.pass(this, "test pass");
         }
 
         @JsonProperty("message")

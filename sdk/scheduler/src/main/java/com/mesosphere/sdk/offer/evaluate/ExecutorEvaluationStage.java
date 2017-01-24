@@ -6,6 +6,8 @@ import com.mesosphere.sdk.offer.OfferRecommendationSlate;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import org.apache.mesos.Protos;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that executor IDs match between
  * the two and setting the executor ID for a newly-launching pod.
@@ -31,21 +33,21 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         if (!offerRequirement.getExecutorRequirementOptional().isPresent()) {
-            return;
+            return pass(this, "No executor requirement defined");
         }
 
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.ExecutorInfo executorInfo = offerRequirement.getExecutorRequirementOptional()
                 .get().getExecutorInfo();
         if (!hasExpectedExecutorId(offer)) {
-            throw new OfferEvaluationException(String.format(
-                    "Offer: '%s' does not contain the needed ExecutorID: '%s'",
-                    offer.getId().getValue().toString(), executorInfo.getExecutorId().getValue().toString()));
+            return fail(this,
+                    "Offer does not contain the needed Executor ID: '%s'",
+                    executorInfo.getExecutorId().getValue().toString());
         }
 
         // Set executor ID *after* the other check above for its presence:
@@ -58,6 +60,7 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
         offerRequirement.updateExecutorRequirement(executorInfo.toBuilder()
                 .setExecutorId(newExecutorId)
                 .build());
+        return pass(this, "Offer contains the matching Executor ID");
     }
 
     private boolean hasExpectedExecutorId(Protos.Offer offer) {

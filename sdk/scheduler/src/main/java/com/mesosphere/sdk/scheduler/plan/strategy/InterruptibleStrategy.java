@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
-@SuppressWarnings("rawtypes")
 public abstract class InterruptibleStrategy<C extends Element> implements Strategy<C> {
     private AtomicBoolean interrupted = new AtomicBoolean(false);
 
