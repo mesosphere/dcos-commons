@@ -204,6 +204,11 @@
       "type": "object",
       "description": "HDFS File System configuration options",
       "properties": {
+        "version": {
+          "type": "string",
+          "description": "The version of HDFS being used.",
+          "default": "hadoop-2.6.0-cdh5.7.1"
+        },
         "name_node_rpc_port": {
           "type": "integer",
           "description": "The RPC port for HDFS Name Nodes.",
@@ -266,6 +271,7 @@
         }
       },
       "required": [
+        "version",
         "name_node_rpc_port",
         "name_node_http_port",
         "journal_node_rpc_port",
