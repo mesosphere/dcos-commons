@@ -10,7 +10,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -25,10 +25,10 @@ pods:
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
   name:
     count: 2
     uris:
@@ -50,37 +50,43 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
       bootstrap:
         goal: FINISHED
-        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
   zkfc:
     count: 2
     uris:
@@ -93,28 +99,28 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
   data:
@@ -129,7 +135,7 @@ pods:
                ./bootstrap &&
                mkdir -p /var/lib/hadoop-hdfs &&
                chown root /var/lib/hadoop-hdfs &&
-               ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode
+               ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
@@ -146,10 +152,12 @@ pods:
         configs:
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
 
 plans:
   deploy:
