@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -17,6 +19,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
  * environments.
  */
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
     private final String portName;
     private final int port;
 
@@ -78,10 +81,45 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             }
 
             Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
-            ResourceUtils.setResource(taskInfoBuilder, ports);
+            try {
+                ResourceUtils.setResource(taskInfoBuilder, ports);
+            } catch (TaskException e) {
+                LOGGER.error("Failed to set resource on TaskInfo.", e);
+            }
+
             taskInfoBuilder.setCommand(
                     CommandUtils.addEnvVar(
                             taskInfoBuilder.getCommand(), getPortEnvironmentVariable(portName), Long.toString(port)));
+
+            // Add port to the health check (if defined)
+            if (taskInfoBuilder.hasHealthCheck()) {
+                taskInfoBuilder.getHealthCheckBuilder().setCommand(
+                        CommandUtils.addEnvVar(
+                                taskInfoBuilder.getHealthCheckBuilder().getCommand(),
+                                getPortEnvironmentVariable(portName),
+                                Long.toString(port)));
+            } else {
+                LOGGER.info("Health check is not defined for task: {}", taskName);
+            }
+
+            // Add port to the readiness check (if defined)
+            try {
+                Optional<Protos.HealthCheck> readinessCheck = CommonTaskUtils.getReadinessCheck(taskInfo);
+                if (readinessCheck.isPresent()) {
+                    Protos.HealthCheck readinessCheckToMutate = readinessCheck.get();
+                    Protos.CommandInfo readinessCommandWithPort = CommandUtils.addEnvVar(
+                            readinessCheckToMutate.getCommand(),
+                            getPortEnvironmentVariable(portName),
+                            Long.toString(port));
+                    Protos.HealthCheck readinessCheckWithPort = Protos.HealthCheck.newBuilder(readinessCheckToMutate)
+                            .setCommand(readinessCommandWithPort).build();
+                    CommonTaskUtils.setReadinessCheck(taskInfoBuilder, readinessCheckWithPort);
+                } else {
+                    LOGGER.info("Readiness check is not defined for task: {}", taskName);
+                }
+            } catch (TaskException e) {
+                LOGGER.error("Got exception while adding PORT env vars to ReadinessCheck", e);
+            }
             offerRequirement.updateTaskRequirement(taskName, taskInfoBuilder.build());
         } else {
             Protos.ExecutorInfo executorInfo = offerRequirement.getExecutorRequirementOptional()

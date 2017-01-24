@@ -1,4 +1,4 @@
-name: "hello-world"
+name: hello-world
 pods:
   hello:
     count: {{HELLO_COUNT}}
@@ -6,17 +6,17 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
-          path: "hello-container-path"
+          path: hello-container-path
           type: ROOT
           size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-check:
-          cmd: "stat hello-container-path/output"
+          cmd: stat hello-container-path/output
           interval: 5
           grace-period: 30
           delay: 0
@@ -28,17 +28,25 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo world >> world-container-path/output && sleep $SLEEP_DURATION"
+        cmd: >
+               echo world1 >> world-container-path1/output &&
+               echo world2 >> world-container-path2/output &&
+               sleep $SLEEP_DURATION
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
-        volume:
-          path: "world-container-path"
-          type: ROOT
-          size: {{WORLD_DISK}}
+        volumes:
+          vol1:
+            path: world-container-path1
+            type: ROOT
+            size: {{HELLO_DISK}}
+          vol2:
+            path: world-container-path2
+            type: ROOT
+            size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:
-          cmd: BYTES="$(wc -c world-container-path/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
+          cmd: BYTES="$(wc -c world-container-path2/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
           interval: 5
           delay: 0
           timeout: 10

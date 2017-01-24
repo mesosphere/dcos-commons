@@ -15,5 +15,5 @@ The following describe what's needed to manually generate the docs on your syste
 
 ## View docs locally
 
-1. Run `./generate.sh` locally.
+1. Run `./generate.sh` locally from the `docs/` folder.
 2. Visit the provided `file://` URL in your browser.
