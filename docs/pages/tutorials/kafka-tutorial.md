@@ -1,4 +1,7 @@
-# Kafka Labs
+---
+layout: tutorials-basic
+title: Kafka Tutorial 
+---
 
 In this tutorial we'll be walking through step-by-step instructions on getting a Kafka service up and running. This tutorial assumes you've already setup a local cluster using the [Quick Start](https://github.com/mesosphere/dcos-commons/blob/master/README.md) guide and that you're in the VM environment.
 

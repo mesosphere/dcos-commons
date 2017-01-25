@@ -76,7 +76,22 @@ public class CuratorStateStore implements StateStore {
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorStateStore(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry());
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), "", "");
+    }
+
+    public CuratorStateStore(
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy) {
+        this(frameworkName, connectionString, retryPolicy, "", "");
+    }
+
+    public CuratorStateStore(
+            String frameworkName,
+            String connectionString,
+            String username,
+            String password) {
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);
     }
 
     /**
@@ -87,8 +102,12 @@ public class CuratorStateStore implements StateStore {
      * @param retryPolicy      The custom {@link RetryPolicy}
      */
     public CuratorStateStore(
-            String frameworkName, String connectionString, RetryPolicy retryPolicy) {
-        this.curator = new CuratorPersister(connectionString, retryPolicy);
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy,
+            String username,
+            String password) {
+        this.curator = new CuratorPersister(connectionString, retryPolicy, username, password);
 
         // Check version up-front:
         int currentVersion = new CuratorSchemaVersionStore(curator, frameworkName).fetch();
@@ -328,7 +347,7 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve TaskStatus for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            logger.warn("No TaskStatus found for the requested name: " + taskName + " at: " + path);
             return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);

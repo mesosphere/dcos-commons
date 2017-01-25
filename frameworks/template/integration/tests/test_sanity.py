@@ -1,10 +1,6 @@
 import pytest
 
-from tests.test_utils import (
-    check_health,
-    install,
-    uninstall
-)
+from tests.test_utils import *
 
 
 def setup_module(module):
@@ -15,4 +11,4 @@ def setup_module(module):
 
 @pytest.mark.sanity
 def test_install():
-    pass
+    check_dcos_service_health()
