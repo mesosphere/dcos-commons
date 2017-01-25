@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>Glossary</title>
+<link rel="stylesheet" type="text/css" media="all" href="gh-basic.css" />
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="index.html">
+<p align="left">
+  <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" />
+</p>
+<p><img src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status" /></p>
+</a>
+
+<h1>Glossary</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><a href="documentation.html"><strong>Documentation</strong></a></td>
+      <td><a href="tutorials.html"><strong>Tutorials</strong></a></td>
+      <td><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md"><strong>Contributing</strong></a></td>
+      <td><a href="https://chat.dcos.io" target="_blank"><strong>Slack</strong></a></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="d">D</h2>
+
+<h3 id="deploy-plan">Deploy Plan</h3>
+<p>A Deploy Plan explicity defines the order in which work needs to be performed in order to successfully deploy a given service.</p>
+
+<h2 id="h">H</h2>
+
+<h3 id="health-check">Health Check</h3>
+<p>A health check is a command that can be executed periodically to determine whether or not a given task is healthy.</p>
+
+<h2 id="p">P</h2>
+
+<h3 id="plan">Plan</h3>
+<p>A <code class="highlighter-rouge">Plan</code> orders work across pods and assists the Service Scheduler to perform orchestration. A Plan is composed of one or many <code class="highlighter-rouge">Phase</code>(s).</p>
+
+<h3 id="phase">Phase</h3>
+<p>A <code class="highlighter-rouge">Phase</code> is an ordered collection of <code class="highlighter-rouge">Step</code>(s).</p>
+
+<h3 id="step">Step</h3>
+<p>A <code class="highlighter-rouge">Step</code> is work that needs to be performed for a given <code class="highlighter-rouge">Pod</code> instance.</p>
+
+<h3 id="pod">Pod</h3>
+<p>A <code class="highlighter-rouge">Pod</code> is a group of tasks that share the same resources (e.g., CPU, memory, volumes) and are operated on together.</p>
+
+<h2 id="r">R</h2>
+
+<h3 id="reservation">Reservation</h3>
+<p>Resource Reservation ensures that the resources allocated to a given task aren’t reallocated to any other task in the event of failure, task restart, etc.</p>
+
+<h3 id="resource-set">Resource Set</h3>
+<p>A Resource Set is a collection of resources, like CPUs, memory, ports, volumes, etc, that are pre-reserved and can be used to launch task(s) in a given Pod instance. A Pod can be composed of tasks using different resource sets.</p>
+
+<h2 id="s">S</h2>
+
+<h3 id="strategy">Strategy</h3>
+<p>Strategy determines whether children of a given Plan (i.e., Phase) or Phase (i.e., Step) are executed in serial or parallel.</p>
+
+<h2 id="t">T</h2>
+
+<h3 id="task">Task</h3>
+<p>A Task is a unit of execution of work.</p>
+
+<h2 id="v">V</h2>
+
+<h3 id="volume">Volume</h3>
+<p>A Volume represents reserved and persistent storage that is available to a framework across task executions.</p>
+
+</div>
+</body>
+
+</html>

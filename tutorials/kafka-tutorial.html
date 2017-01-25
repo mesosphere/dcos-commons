@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>Kafka Tutorial</title>
+<link rel="stylesheet" type="text/css" media="all" href="tutorials-basic.css" />
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../index.html">
+<p align="left">
+  <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" />
+</p>
+<p><img src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status" /></p>
+</a>
+
+<h1>Kafka Tutorial</h1>
+
+<table>
+  <tbody>
+    <tr>
+      <td><a href="../documentation.html"><strong>Documentation</strong></a></td>
+      <td><a href="../tutorials.html"><strong>Tutorials</strong></a></td>
+      <td><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md"><strong>Contributing</strong></a></td>
+      <td><a href="https://chat.dcos.io" target="_blank"><strong>Slack</strong></a></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>In this tutorial we’ll be walking through step-by-step instructions on getting a Kafka service up and running. This tutorial assumes you’ve already setup a local cluster using the <a href="https://github.com/mesosphere/dcos-commons/blob/master/README.md">Quick Start</a> guide and that you’re in the VM environment.</p>
+
+<h4 id="steps">Steps:</h4>
+
+<ol>
+  <li>Change directory into <code class="highlighter-rouge">dcos-commons</code> and create a new service by running: <code class="highlighter-rouge">cd /dcos-commons &amp;&amp; ./new-service examples/kafka</code>.</li>
+  <li>This will create a clone of the <code class="highlighter-rouge">hello-world</code> service which you should then modify.</li>
+  <li>Next change directory to where the Kafka service definition is: <code class="highlighter-rouge">cd examples/kafka/src/main/dist/</code></li>
+  <li>With an editor of your choice open <code class="highlighter-rouge">svc.yml</code>. Notice that some values, such as <code class="highlighter-rouge">&lt;task-name&gt;_COUNT</code> and <code class="highlighter-rouge">&lt;task-name&gt;_CPUS</code> are mustached.[0]</li>
+  <li>The name of a task can be anything but since Kafka has brokers, change the type of the task in the Kafka pod from <code class="highlighter-rouge">server</code> to <code class="highlighter-rouge">broker</code>.</li>
+  <li>Also notice that <code class="highlighter-rouge">count</code> is specified as a property of the <code class="highlighter-rouge">kafka</code> pod. This indicates there will be <code class="highlighter-rouge">count</code> kafka pods, each of which will run a <code class="highlighter-rouge">broker</code>.</li>
+  <li>Next, add the following property to the <code class="highlighter-rouge">broker</code> task in order to open up the necessary port.
+```
+ports:
+    <ul>
+      <li>name: broker-port
+port: 9092
+```</li>
+    </ul>
+  </li>
+  <li>
+    <p>Now, let’s modify the command that will start each <code class="highlighter-rouge">broker</code>. This is also a property of the <code class="highlighter-rouge">broker</code> task:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>cmd: "env &amp;&amp; exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Adding this to each <code class="highlighter-rouge">broker</code> will fetch the Kafka binary in order to execute the above command:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>uris:
+   - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>The following property allows for custom configuration of each <code class="highlighter-rouge">broker</code>:</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>configurations:
+   - template: "/server.properties.mustache"
+     dest: "kafka_2.11-0.10.0.0/config/server.properties"
+</code></pre>
+    </div>
+    <ol>
+      <li>The <code class="highlighter-rouge">server.properties.mustache</code> should live in the current directory (<code class="highlighter-rouge">src/main/dist</code>).</li>
+    </ol>
+  </li>
+  <li>Save and exit the <code class="highlighter-rouge">svc.yml</code> file then download the <code class="highlighter-rouge">server.properties.mustache</code> file mentioned above:
+    <div class="highlighter-rouge"><pre class="highlight"><code>curl -O https://raw.githubusercontent.com/mesosphere/dcos-commons/29c38ea81948c8fe550a9d77974f78155c318815/frameworks/kafka/src/main/dist/server.properties.mustache &gt; server.properties.mustache
+</code></pre>
+    </div>
+  </li>
+  <li>Next, create the symlink that’s required to get the unit tests to pass and confirm that it’s created:
+    <div class="highlighter-rouge"><pre class="highlight"><code>   cd ../resources &amp;&amp; ln -s ../dist/server.properties.mustache &amp;&amp; ls -l
+</code></pre>
+    </div>
+  </li>
+  <li>Open <code class="highlighter-rouge">/dcos-commons/examples/kafka/src/test/java/com/mesosphere/sdk/kafka/scheduler/ServiceSpecTest.java</code> and add the following beneath the currently set environment variables and make sure to import the URL type:
+    <div class="highlighter-rouge"><pre class="highlight"><code>   // place at top
+   import java.net.URL;
+</code></pre>
+    </div>
+    <div class="highlighter-rouge"><pre class="highlight"><code>   URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
+   environmentVariables.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
+</code></pre>
+    </div>
+  </li>
+  <li>Save and exit the file. Next, open <code class="highlighter-rouge">/dcos-commons/examples/kafka/universe/marathon.json.mustache</code> and add the following as the first item of the <code class="highlighter-rouge">env</code> list:
+    <div class="highlighter-rouge"><pre class="highlight"><code>   "CONFIG_TEMPLATE_PATH": "scheduler",
+</code></pre>
+    </div>
+  </li>
+  <li>Run the following command from the root directory of the service:
+    <div class="highlighter-rouge"><pre class="highlight"><code> cd /dcos-commons/examples/kafka &amp;&amp; ./build.sh local
+</code></pre>
+    </div>
+  </li>
+  <li>Now, install the service via <code class="highlighter-rouge">dcos package install kafka</code> and visit your dashboard to see Kafka running: http://172.17.0.2/#/services/%2Fkafka/</li>
+</ol>
+
+<p>[0] The mustaching provides support for dynamically updating a service’s configuration at runtime.</p>
+
+</div>
+</body>
+
+</html>
