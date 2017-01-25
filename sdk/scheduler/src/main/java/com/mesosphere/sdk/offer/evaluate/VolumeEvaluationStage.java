@@ -65,7 +65,14 @@ public class VolumeEvaluationStage extends ResourceEvaluationStage implements Of
         if (failure != null) {
             return failure;
         }
-        setProtos(offerRequirement, fulfilledResource);
+
+        try {
+            setProtos(offerRequirement, fulfilledResource);
+        } catch (TaskException e) {
+            logger.error("Failed to set protos on OfferRequirement.", e);
+            return fail(this, "Setting protos on the OfferRequirement must succeed.");
+        }
+
         return pass(this, "Offer contains sufficient '%s'", resourceRequirement.getName());
     }
 

@@ -1,6 +1,6 @@
 ---
 layout: gh-basic
-title: Tutorial
+title: Data Store Tutorial
 ---
 
 # Overview

@@ -50,6 +50,7 @@ public class ResourceTestUtils {
         return ResourceUtils.getExpectedRootVolume(
                 diskSize,
                 resourceId,
+                TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
                 TestConstants.PERSISTENCE_ID);
