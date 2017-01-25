@@ -180,14 +180,14 @@ class GithubStatusUpdater(object):
         request = self._build_request(state, message, details_url)
         response = self._send_request(request)
         if response.status < 200 or response.status >= 300:
+            # log failure, but don't abort the build
             logger.error('Got {} response to update request:'.format(response.status))
             logger.error('Request:')
             logger.error(pprint.pformat(request))
             logger.error('Response:')
             logger.error(pprint.pformat(response.read()))
-            return False
+            return
         logger.info('Updated GitHub PR with status: {}'.format(request['path']))
-        return True
 
 
 def print_help(argv):
@@ -207,10 +207,7 @@ def main(argv):
         return 1
     context_label = argv[2]
     message = ' '.join(argv[3:])
-    if GithubStatusUpdater(context_label).update(state, message):
-        return 0
-    else:
-        return 1
+    GithubStatusUpdater(context_label).update(state, message)
 
 
 if __name__ == '__main__':
