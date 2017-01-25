@@ -1,4 +1,7 @@
-# Glossary
+---
+layout: gh-basic
+title: Glossary
+---
 
 ## D
 
