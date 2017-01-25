@@ -7,14 +7,14 @@ import sdk_tasks as tasks
 
 from tests.config import (
     PACKAGE_NAME,
-    DEFAULT_HDFS_TASK_COUNT,
+    DEFAULT_TASK_COUNT,
     check_running
 )
 
 
 def setup_module():
     install.uninstall(PACKAGE_NAME)
-    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 def teardown_module(module):

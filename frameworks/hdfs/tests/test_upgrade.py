@@ -12,7 +12,7 @@ import sdk_tasks as tasks
 
 from tests.config import (
     PACKAGE_NAME,
-    DEFAULT_HDFS_TASK_COUNT
+    DEFAULT_TASK_COUNT
 )
 
 from tests.test_data_integrity import (
@@ -48,7 +48,7 @@ def test_upgrade_downgrade():
     master_version = package.get_pkg_version()
     print('Found master version: {}'.format(master_version))
     print('Installing master version')
-    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT, package_version=master_version)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
     write_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
     # gives chance for write to succeed and replication to occur
     time.sleep(5)
@@ -56,12 +56,12 @@ def test_upgrade_downgrade():
 
     print('Upgrading to test version')
     marathon.destroy_app(PACKAGE_NAME)
-    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT, package_version=test_version)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=test_version)
     read_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
 
     print('Downgrading to master version')
     marathon.destroy_app(PACKAGE_NAME)
-    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT, package_version=master_version)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
     read_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
 
     # clean up

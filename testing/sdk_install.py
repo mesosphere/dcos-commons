@@ -47,7 +47,7 @@ def install(
             service_name, deploying_apps))
         return not '/{}'.format(service_name) in deploying_apps
     sdk_spin.time_wait_noisy(lambda: fn())
-    print('Install done after {:.1f}s'.format(time.time() - start))
+    print('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
 
 
 def uninstall(service_name, package_name=None):
@@ -73,8 +73,10 @@ def uninstall(service_name, package_name=None):
 
     finish = time.time()
 
-    print('Uninstall done after pkg({:.1f}s) + janitor({:.1f}s) = total({:.1f}s)'.format(
-        janitor_start - start, finish - janitor_start, finish - start))
+    print('Uninstall done after pkg({}) + janitor({}) = total({})'.format(
+        sdk_spin.pretty_time(janitor_start - start),
+        sdk_spin.pretty_time(finish - janitor_start),
+        sdk_spin.pretty_time(finish - start)))
 
 
 def get_package_options(additional_options={}):

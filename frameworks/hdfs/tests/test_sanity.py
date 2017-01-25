@@ -11,7 +11,7 @@ import sdk_tasks as tasks
 
 from tests.config import (
     PACKAGE_NAME,
-    DEFAULT_HDFS_TASK_COUNT,
+    DEFAULT_TASK_COUNT,
     check_running
 )
 
@@ -20,12 +20,12 @@ HDFS_POD_TYPES = {"journal", "name", "data"}
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    install.install(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.sanity
 def test_bump_journal_cpus():
-    tasks.check_running(PACKAGE_NAME, DEFAULT_HDFS_TASK_COUNT)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
     print('journal ids: ' + str(journal_ids))
 
@@ -52,5 +52,5 @@ def test_bump_data_nodes():
     config['env']['DATA_COUNT'] = str(node_count)
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
-    check_running(DEFAULT_HDFS_TASK_COUNT + 1)
+    check_running(DEFAULT_TASK_COUNT + 1)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
