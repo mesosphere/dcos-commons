@@ -584,7 +584,7 @@ There are two service discovery options that are relevant to the SDK: mesos-dns 
 
 All tasks launched in DC/OS receive a DNS address. It is of the form:
 
-<task-name>.<framework-name>.mesos
+    <task-name>.<framework-name>.mesos
 
 So a service defined as follows:
 
