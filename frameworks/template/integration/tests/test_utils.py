@@ -1,18 +1,12 @@
 import os
-import time
 
 import dcos
-import inspect
-import os
 import shakedown
-import subprocess
-
 
 PACKAGE_NAME = 'template'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'
 if os.environ.get('SECURITY', '') == 'strict':
@@ -60,39 +54,34 @@ def marathon_api_url_with_param(basename, path_param):
     return '{}/{}'.format(marathon_api_url(basename), path_param)
 
 
+def check_dcos_service_health():
+    return shakedown.service_healthy(PACKAGE_NAME)
+
+
+def tasks_running_success_predicate(task_count):
+    tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    running_tasks = [t for t in tasks if t['state'] == TASK_RUNNING_STATE]
+    print('Waiting for {} healthy tasks, got {}/{}'.format(task_count, len(running_tasks), len(tasks)))
+    return len(running_tasks) == task_count
+
+
+def wait_for_dcos_tasks_health(task_count):
+    return shakedown.wait_for(lambda: tasks_running_success_predicate(task_count), timeout_seconds=WAIT_TIME_IN_SECONDS)
+
+
 def check_health():
     expected_tasks = get_task_count()
-
-    def fn():
-        try:
-            return shakedown.get_service_tasks(PACKAGE_NAME)
-        except dcos.errors.DCOSHTTPException:
-            return []
-
-    def success_predicate(tasks):
-        running_tasks = [t for t in tasks if t['state'] == TASK_RUNNING_STATE]
-        print('Waiting for {} healthy tasks, got {}/{}'.format(
-            expected_tasks, len(running_tasks), len(tasks)))
-        return (
-            len(running_tasks) >= expected_tasks,
-            'Service did not become healthy'
-        )
-
-    return spin(fn, success_predicate)
+    wait_for_dcos_tasks_health(expected_tasks)
 
 
-def install(
-        package_version=None,
-        package_name=PACKAGE_NAME,
-        additional_options = {},
-        wait_for_completion=True):
-    merged_options = _nested_dict_merge(DEFAULT_OPTIONS_DICT, additional_options)
-    print('Installing {} with options: {}'.format(PACKAGE_NAME, merged_options))
+def install():
+    print('Installing {} with options: {}'.format(PACKAGE_NAME, DEFAULT_OPTIONS_DICT))
     shakedown.install_package(
         package_name=PACKAGE_NAME,
-        package_version=package_version,
-        options_json=merged_options,
-        wait_for_completion=wait_for_completion)
+        service_name=PACKAGE_NAME,
+        package_version=None,
+        options_json=DEFAULT_OPTIONS_DICT,
+        wait_for_completion=True)
 
 
 def uninstall():
@@ -111,41 +100,3 @@ def uninstall():
             )[0].strip()
         )
     )
-
-
-def spin(fn, success_predicate, *args, **kwargs):
-    end_time = time.time() + WAIT_TIME_IN_SECONDS
-    while time.time() < end_time:
-        try:
-            result = fn(*args, **kwargs)
-        except Exception as e:
-            is_successful, error_message = False, str(e)
-        else:
-            is_successful, error_message = success_predicate(result)
-
-        if is_successful:
-            print('Success state reached, exiting spin.')
-            break
-        print('Waiting for success state... err={}'.format(error_message))
-        time.sleep(1)
-
-    assert is_successful, error_message
-
-    return result
-
-
-def _nested_dict_merge(a, b, path=None):
-    "ripped from http://stackoverflow.com/questions/7204805/dictionaries-of-dictionaries-merge"
-    if path is None: path = []
-    a = a.copy()
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                _nested_dict_merge(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass # same leaf value
-            else:
-                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
-        else:
-            a[key] = b[key]
-    return a
