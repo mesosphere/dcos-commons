@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that it contains a sufficient amount
  * or value of the supplied {@link Resource}, and creating a {@link ReserveOfferRecommendation} or
@@ -57,16 +59,16 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) throws OfferEvaluationException {
+            OfferRecommendationSlate offerRecommendationSlate) {
         ResourceRequirement resourceRequirement = getResourceRequirement();
         Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
         if (!mesosResourceOptional.isPresent()) {
-            throw new OfferEvaluationException(String.format(
-                    "Failed to satisfy resource requirement: %s",
-                    TextFormat.shortDebugString(resourceRequirement.getResource())));
+            return fail(this, "Failed to satisfy required resource '%s': %s",
+                    resourceRequirement.getName(),
+                    TextFormat.shortDebugString(resourceRequirement.getResource()));
         }
 
         final MesosResource mesosResource = mesosResourceOptional.get();
@@ -109,7 +111,8 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                                 new ReserveOfferRecommendation(mesosResourcePool.getOffer(), reserveResource));
                         fulfilledResource = getFulfilledResource(new MesosResource(resourceRequirement.getResource()));
                     } else {
-                        throw new OfferEvaluationException("Insufficient resources to increase resource usage.");
+                        return fail(this, "Insufficient resources to increase reservation of resource '%s'.",
+                                resourceRequirement.getName());
                     }
                 }
             }
@@ -122,24 +125,37 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         logger.info("  Generated '{}' resource for task: [{}]",
                 resourceRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
 
-        validateRequirements(offerRequirement);
-        setProtos(offerRequirement, fulfilledResource);
+        EvaluationOutcome failure = validateRequirements(offerRequirement);
+        if (failure != null) {
+            return failure;
+        }
+
+        try {
+            setProtos(offerRequirement, fulfilledResource);
+        } catch (TaskException e) {
+            logger.error("Failed to set protos on OfferRequirement.", e);
+            return fail(this, "Failed to satisfy required resource '%s': %s",
+                    resourceRequirement.getName(),
+                    TextFormat.shortDebugString(resourceRequirement.getResource()));
+        }
+
+        return pass(this, "Offer contains sufficient '%s'", resourceRequirement.getName());
     }
 
-    protected void validateRequirements(OfferRequirement offerRequirement) throws OfferEvaluationException {
+    protected EvaluationOutcome validateRequirements(OfferRequirement offerRequirement) {
         if (!getTaskName().isPresent() && offerRequirement.getExecutorRequirementOptional().isPresent()) {
             Protos.ExecutorID executorID = offerRequirement.getExecutorRequirementOptional()
                     .get()
                     .getExecutorInfo()
                     .getExecutorId();
             if (!executorID.getValue().isEmpty() && getResourceRequirement().reservesResource()) {
-                throw new OfferEvaluationException(
-                        "When using an existing Executor, no new resources may be required.");
+                return fail(this, "When using an existing Executor, no new resources may be required.");
             }
         }
+        return null;
     }
 
-    protected void setProtos(OfferRequirement offerRequirement, Resource resource) {
+    protected void setProtos(OfferRequirement offerRequirement, Resource resource) throws TaskException {
         if (getTaskName().isPresent()) {
             offerRequirement.updateTaskRequirement(
                     getTaskName().get(),

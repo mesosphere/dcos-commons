@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.offer.constrain.AndRule;
-import com.mesosphere.sdk.offer.constrain.TaskTypeRule;
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;

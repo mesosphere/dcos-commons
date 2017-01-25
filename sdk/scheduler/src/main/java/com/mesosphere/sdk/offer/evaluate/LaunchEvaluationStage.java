@@ -5,6 +5,8 @@ import org.apache.mesos.Protos;
 
 import java.util.Optional;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+
 /**
  * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo} in an {@link OfferRequirement}, ensuring
  * that this metadata is available in the task's environment and creating an {@link LaunchOfferRecommendation}.
@@ -17,7 +19,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public void evaluate(
+    public EvaluationOutcome evaluate(
             MesosResourcePool mesosResourcePool,
             OfferRequirement offerRequirement,
             OfferRecommendationSlate offerRecommendationSlate) {
@@ -37,5 +39,6 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Protos.TaskInfo taskInfo = CommonTaskUtils.packTaskInfo(taskBuilder.build());
         offerRequirement.updateTaskRequirement(taskBuilder.getName(), taskInfo);
         offerRecommendationSlate.addLaunchRecommendation(new LaunchOfferRecommendation(offer, taskInfo));
+        return pass(this, "Added launch information to offer requirement");
     }
 }

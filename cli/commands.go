@@ -202,10 +202,6 @@ type PlanHandler struct {
 	StepId  string
 }
 
-func (cmd *PlanHandler) RunActive(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/plan/status"))
-	return nil
-}
 func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
 	// custom behavior: ignore 503 error
 	response := HTTPQuery(CreateHTTPRequest("GET", "v1/plan"))
@@ -245,7 +241,6 @@ func HandlePlanSection(app *kingpin.Application) {
 	cmd := &PlanHandler{}
 	plan := app.Command("plan", "Query service plans")
 
-	plan.Command("active", "Display the active operation chain, if any").Action(cmd.RunActive)
 	plan.Command("show", "Display the full plan").Action(cmd.RunShow)
 
 	plan.Command("continue", "Continue a currently Waiting operation").Action(cmd.RunContinue)

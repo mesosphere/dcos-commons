@@ -1,9 +1,4 @@
 name: "hello-world"
-principal: "hello-world-principal"
-api-port: 8080
-replacement-failure-policy:
-  permanent-failure-timeout-ms: 10
-  min-replace-delay-ms: 10
 pods:
   hello:
     count: 2
@@ -12,19 +7,19 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: 256
         ports:
-          - name: http
+          http:
             port: 8080
-        volumes:
-          - path: "hello-container-path"
-            type: ROOT
-            size: 1024
+        volume:
+          path: "hello-container-path"
+          type: ROOT
+          size: 1024
       once-resources:
         cpus: 1
         memory: 256
-        volumes:
-          - path: "once-container-path"
-            type: ROOT
-            size: 1024
+        volume:
+          path: "once-container-path"
+          type: ROOT
+          size: 1024
     tasks:
       server:
         goal: RUNNING
@@ -43,6 +38,10 @@ pods:
         goal: FINISHED
         cmd: "echo 'I run only once' >> once-container-path/runonce"
         resource-set: once-resources
+      other:
+        goal: FINISHED
+        cmd: "echo 'I run parallel to once against hello resources' >> hello-container-path/other"
+        resource-set: hello-resources
   world:
     count: 2
     resource-sets:
@@ -50,12 +49,12 @@ pods:
         cpus: 1
         memory: 256
         ports:
-          - name: http
+          http:
             port: 8080
-        volumes:
-          - path: "world-container-path"
-            type: ROOT
-            size: 1024
+        volume:
+          path: "world-container-path"
+          type: ROOT
+          size: 1024
     tasks:
       server:
         goal: RUNNING
@@ -70,7 +69,6 @@ pods:
           max-consecutive-failures: 3
           delay: 0
           timeout: 10
-
 plans:
   deploy:
     strategy: serial
@@ -79,11 +77,10 @@ plans:
         strategy: serial
         pod: hello
         steps:
-          - pod-instance: 0
-            tasks: [once, server]
+          - 0: [once, other]
+          - 0: [server]
       world-deploy:
         strategy: serial
         pod: world
         steps:
-          - pod-instance: 1
-            tasks: [server]
+          - 1: [server]

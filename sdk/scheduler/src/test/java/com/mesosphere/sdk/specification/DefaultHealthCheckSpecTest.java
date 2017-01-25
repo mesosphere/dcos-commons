@@ -35,7 +35,7 @@ public class DefaultHealthCheckSpecTest {
                     .build();
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertEquals(6, constraintViolations.size());
+            Assert.assertEquals(11, constraintViolations.size());
         }
     }
 }

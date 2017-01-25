@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.executor;
 
+import com.mesosphere.sdk.offer.TaskException;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -66,12 +67,15 @@ public class CustomExecutor implements Executor {
 
         try {
             Protos.TaskInfo unpackedTaskInfo = CommonTaskUtils.unpackTaskInfo(task);
+            LOGGER.info("Unpacked task: {}", unpackedTaskInfo);
+            LOGGER.info("Unpacked command: {}", unpackedTaskInfo.getCommand());
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(unpackedTaskInfo, driver);
 
             Future<?> future = executorService.submit(taskToExecute);
             LaunchedTask launchedTask = new LaunchedTask(taskToExecute, future);
             launchedTasks.put(unpackedTaskInfo.getTaskId(), launchedTask);
-            scheduleHealthCheck(unpackedTaskInfo, launchedTask);
+            scheduleHealthCheck(driver, unpackedTaskInfo, launchedTask);
+            scheduleReadinessCheck(driver, unpackedTaskInfo, launchedTask);
         } catch (Throwable t) {
             LOGGER.error("Error launching task = {}. Reason: {}", task, t);
 
@@ -86,21 +90,57 @@ public class CustomExecutor implements Executor {
         }
     }
 
-    private void scheduleHealthCheck(Protos.TaskInfo taskInfo, LaunchedTask launchedTask) {
+    private void scheduleHealthCheck(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            LaunchedTask launchedTask) {
+
         if (!taskInfo.hasHealthCheck()) {
             LOGGER.info("No health check for task: " + taskInfo.getName());
             return;
         }
 
+        scheduleCheck(executorDriver, taskInfo, taskInfo.getHealthCheck(), launchedTask);
+    }
+
+    private void scheduleReadinessCheck(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            LaunchedTask launchedTask) {
+
+        Optional<Protos.HealthCheck> readinessCheckOptional = Optional.empty();
+        try {
+            readinessCheckOptional = CommonTaskUtils.getReadinessCheck(taskInfo);
+        } catch (TaskException e) {
+            LOGGER.error("Failed to extract readiness check.", e);
+            return;
+        }
+
+        if (!readinessCheckOptional.isPresent()){
+            LOGGER.info("No readiness check for task: " + taskInfo.getName());
+            return;
+        }
+
+        scheduleCheck(executorDriver, taskInfo, readinessCheckOptional.get(), launchedTask);
+    }
+
+    private void scheduleCheck(
+            ExecutorDriver executorDriver,
+            Protos.TaskInfo taskInfo,
+            Protos.HealthCheck check,
+            LaunchedTask launchedTask) {
+
         try {
             HealthCheckMonitor healthCheckMonitor =
                     new HealthCheckMonitor(
                             HealthCheckHandler.create(
+                                    executorDriver,
                                     taskInfo,
+                                    check,
                                     scheduledExecutorService,
                                     new HealthCheckStats(taskInfo.getName())),
                             launchedTask);
-            LOGGER.info("Submitting health check monitor.");
+            LOGGER.info("Submitting check monitor.");
             Future<Optional<HealthCheckStats>> futureOptionalHealthCheckStats =
                     executorService.submit(healthCheckMonitor);
 
@@ -110,16 +150,17 @@ public class CustomExecutor implements Executor {
                     try {
                         Optional<HealthCheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
                         if (optionalHealthCheckStats.isPresent()) {
-                            LOGGER.error("Health check exited with statistics: " + optionalHealthCheckStats.get());
+                            LOGGER.error("Check exited with statistics: " + optionalHealthCheckStats.get());
                         }
                     } catch (InterruptedException | ExecutionException e) {
-                        LOGGER.error("Failed to get health check stats with exception: ", e);
+                        LOGGER.error("Failed to get check stats with exception: ", e);
                     }
                 }
             });
         } catch (HealthCheckHandler.HealthCheckValidationException ex) {
-            LOGGER.error("Task did not generate a health check with exception: ", ex);
+            LOGGER.error("Task did not generate a check with exception: ", ex);
         }
+
     }
 
     @Override

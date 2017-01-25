@@ -1,11 +1,16 @@
 package com.mesosphere.sdk.executor;
 
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -13,6 +18,7 @@ import java.util.concurrent.*;
 
 import static org.awaitility.Awaitility.to;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.mockito.Mockito.*;
 
 /**
@@ -26,7 +32,19 @@ public class HealthCheckHandlerTest {
     private static final double TIMEOUT_S = 456;
 
     private ScheduledExecutorService scheduledExecutorService;
-    @Mock HealthCheckHandler.ProcessRunner mockProcessRunner;
+    @Mock private HealthCheckHandler.ProcessRunner mockProcessRunner;
+    @Mock private ExecutorDriver executorDriver;
+    @Captor private ArgumentCaptor<Protos.TaskStatus> taskStatusCaptor;
+    private Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
+            .setExecutorId(TestConstants.EXECUTOR_ID)
+            .setCommand(TestConstants.COMMAND_INFO)
+            .build();
+    private Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+            .setName(TestConstants.TASK_NAME)
+            .setTaskId(TestConstants.TASK_ID)
+            .setSlaveId(TestConstants.AGENT_ID)
+            .setExecutor(executorInfo)
+            .build();
 
     @Before
     public void beforeEach() {
@@ -45,6 +63,8 @@ public class HealthCheckHandlerTest {
         int maxConsecutiveFailures = 1;
         HealthCheckStats healthCheckStats = new HealthCheckStats("test");
         HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -72,6 +92,8 @@ public class HealthCheckHandlerTest {
         int maxConsecutiveFailures = 3;
         HealthCheckStats healthCheckStats = new HealthCheckStats("test");
         HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -99,6 +121,8 @@ public class HealthCheckHandlerTest {
         int maxConsecutiveFailures = 1;
         HealthCheckStats healthCheckStats = new HealthCheckStats("test");
         HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -126,6 +150,8 @@ public class HealthCheckHandlerTest {
         int maxConsecutiveFailures = 3;
         HealthCheckStats healthCheckStats = new HealthCheckStats("test");
         HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -152,6 +178,8 @@ public class HealthCheckHandlerTest {
     public void testSuccess() throws Exception {
         HealthCheckStats healthCheckStats = new HealthCheckStats("test");
         HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
                 mockProcessRunner,
                 getHealthCheck(1),
                 scheduledExecutorService,
@@ -177,7 +205,9 @@ public class HealthCheckHandlerTest {
                 .build();
 
         HealthCheckHandler.create(
+                executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
@@ -191,7 +221,9 @@ public class HealthCheckHandlerTest {
                 .build();
 
         HealthCheckHandler.create(
+                executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
@@ -203,7 +235,9 @@ public class HealthCheckHandlerTest {
                 .build();
 
         HealthCheckHandler.create(
+                executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
     }
@@ -217,9 +251,42 @@ public class HealthCheckHandlerTest {
                 .build();
 
         HealthCheckHandler.create(
+                executorDriver,
                 taskInfo,
+                taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new HealthCheckStats("test"));
+    }
+
+    @Test
+    public void testReadinessSuccess() throws Exception {
+        HealthCheckStats healthCheckStats = new HealthCheckStats("test");
+        HealthCheckHandler healthCheckHandler = new HealthCheckHandler(
+                executorDriver,
+                taskInfo,
+                mockProcessRunner,
+                getReadinessCheck(),
+                scheduledExecutorService,
+                healthCheckStats);
+
+        when(mockProcessRunner.run(any(), anyDouble())).thenReturn(0);
+
+        healthCheckHandler.start();
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(to(healthCheckStats).getTotalSuccesses(), greaterThanOrEqualTo(1L));
+
+        Assert.assertEquals(0, healthCheckStats.getTotalFailures());
+        Assert.assertEquals(0, healthCheckStats.getConsecutiveFailures());
+        long consecutiveSuccesses = healthCheckStats.getConsecutiveSuccesses();
+        Assert.assertTrue("Found consecutive successes: " + consecutiveSuccesses, consecutiveSuccesses >= 1);
+
+        verify(mockProcessRunner, atLeast((int)consecutiveSuccesses)).run(any(), eq(TIMEOUT_S));
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(to(healthCheckStats).getTotalSuccesses(), greaterThanOrEqualTo(1L));
+
+        verify(executorDriver, atLeastOnce()).sendStatusUpdate(taskStatusCaptor.capture());
+        String readinessCheckKey = taskStatusCaptor.getValue().getLabels().getLabels(0).getKey();
+        String readinessCheckValue = taskStatusCaptor.getValue().getLabels().getLabels(0).getValue();
+        Assert.assertEquals(CommonTaskUtils.READINESS_CHECK_PASSED_KEY, readinessCheckKey);
+        Assert.assertEquals("true", readinessCheckValue);
     }
 
     private static Protos.TaskInfo getTask() {
@@ -242,5 +309,9 @@ public class HealthCheckHandlerTest {
                         .setValue("this_command_should_not_be_run")
                         .build())
                 .build();
+    }
+
+    private static Protos.HealthCheck getReadinessCheck() {
+        return getHealthCheck(0);
     }
 }

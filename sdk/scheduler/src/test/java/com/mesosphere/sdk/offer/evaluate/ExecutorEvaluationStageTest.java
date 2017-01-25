@@ -15,7 +15,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class ExecutorEvaluationStageTest {
-    @Test(expected = OfferEvaluationException.class)
     public void testRejectOfferWithoutExpectedExecutorId() throws Exception {
         String resourceId = UUID.randomUUID().toString();
         Protos.Resource expectedTaskCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId);
@@ -35,7 +34,9 @@ public class ExecutorEvaluationStageTest {
                 OfferTestUtils.getOffer(Arrays.asList(expectedExecutorMem, expectedTaskCpu)));
 
         ExecutorEvaluationStage executorEvaluationStage = new ExecutorEvaluationStage(execInfo.get().getExecutorId());
-        executorEvaluationStage.evaluate(resources, offerRequirement, new OfferRecommendationSlate());
+        EvaluationOutcome outcome =
+                executorEvaluationStage.evaluate(resources, offerRequirement, new OfferRecommendationSlate());
+        Assert.assertTrue(outcome.isPassing());
     }
 
     @Test
@@ -55,7 +56,9 @@ public class ExecutorEvaluationStageTest {
                         TestConstants.EXECUTOR_ID, Arrays.asList(expectedExecutorMem, expectedTaskCpu)));
 
         ExecutorEvaluationStage executorEvaluationStage = new ExecutorEvaluationStage(execInfo.getExecutorId());
-        executorEvaluationStage.evaluate(resources, offerRequirement, new OfferRecommendationSlate());
+        EvaluationOutcome outcome =
+                executorEvaluationStage.evaluate(resources, offerRequirement, new OfferRecommendationSlate());
+        Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(
                 execInfo.getExecutorId(),

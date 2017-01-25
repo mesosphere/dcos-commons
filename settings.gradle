@@ -9,6 +9,9 @@ project(":sdk/scheduler").name = "scheduler"
 include 'sdk/executor'
 project(":sdk/executor").name = "executor"
 
+include 'sdk/testing'
+project(":sdk/testing").name = "testing"
+
 include 'frameworks/helloworld'
 project(":frameworks/helloworld").name = "helloworld"
 
@@ -20,3 +23,6 @@ project(":frameworks/polymorph").name = "polymorph"
 
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
+
+include 'frameworks/template'
+project(":frameworks/template").name = "template"

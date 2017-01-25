@@ -4,7 +4,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
+
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 
 import java.util.ArrayList;
 import java.util.Collection;

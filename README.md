@@ -67,9 +67,6 @@ The service specification declaratively defines the `helloworld` service:
 
 ```yaml
 name: "helloworld"
-principal: "helloworld-principal"
-zookeeper: master.mesos:2181
-api-port: 8080
 pods:
   helloworld:
     count: {{COUNT}}
@@ -79,10 +76,10 @@ pods:
         cmd: "echo 'Hello World!' >> helloworld-container-volume/output && sleep 10"
         cpus: {{SERVER_CPU}}
         memory: 32
-        volumes:
-          - path: "helloworld-container-volume"
-            type: ROOT
-            size: 64
+        volume:
+          path: "helloworld-container-volume"
+          type: ROOT
+          size: 64
 ```
 
 In above yaml file, we have:
@@ -113,16 +110,16 @@ We have configured it to use `{{SERVER_CPU}}` CPUs (which defaults to `0.5` for 
 * And finally, configured a `64 MB` persistent volume for our server task where the task data can be persisted using:
 
 ```yaml
-volumes:
-  - path: "helloworld-container-volume"
-    type: ROOT
-    size: 64
+volume:
+  path: "helloworld-container-volume"
+  type: ROOT
+  size: 64
 ```
 
 ===============
 ### References
 * [Quick Start Guide - Java](docs/tutorials/quick-start-java.md)
-* Developer Guide ... *coming soon!*
+* [Developer Guide](https://mesosphere.github.io/dcos-commons/dev-guide/developer-guide.html)
 * [Javadocs](http://mesosphere.github.io/dcos-commons/api/index.html)
 
 ===============

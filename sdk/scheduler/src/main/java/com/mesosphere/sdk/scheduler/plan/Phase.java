@@ -9,4 +9,4 @@ package com.mesosphere.sdk.scheduler.plan;
  * <p>
  * See {@link Plan} docs for more background.
  */
-public interface Phase extends Element<Step> {}
+public interface Phase extends ParentElement<Step> { }

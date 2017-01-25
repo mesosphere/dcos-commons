@@ -1,0 +1,190 @@
+name: {{SERVICE_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+pods:
+  journal:
+    count: 3
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode
+        cpus: {{JOURNAL_CPUS}}
+        memory: {{JOURNAL_MEM}}
+        ports:
+          journal-rpc:
+            port: {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}
+          journal-http:
+            port: {{TASKCFG_ALL_JOURNAL_NODE_HTTP_PORT}}
+        volume:
+          path: journal-data
+          size: {{JOURNAL_DISK}}
+          type: {{JOURNAL_DISK_TYPE}}
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+  name:
+    count: 2
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
+    resource-sets:
+      name-resources:
+        cpus: {{NAME_CPUS}}
+        memory: {{NAME_MEM}}
+        ports:
+          name-rpc:
+            port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
+          name-http:
+            port: {{TASKCFG_ALL_NAME_NODE_HTTP_PORT}}
+        volume:
+          path: name-data
+          size: {{NAME_DISK}}
+          type: {{NAME_DISK_TYPE}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode
+        resource-set: name-resources
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+      format:
+        goal: FINISHED
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format
+        resource-set: name-resources
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+      bootstrap:
+        goal: FINISHED
+        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby
+        resource-set: name-resources
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-bootstrap-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+  zkfc:
+    count: 2
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
+    resource-sets:
+      zkfc-resources:
+        cpus: {{ZKFC_CPUS}}
+        memory: {{ZKFC_MEM}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc
+        resource-set: zkfc-resources
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+      format:
+        goal: FINISHED
+        cmd: ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK
+        resource-set: zkfc-resources
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+  data:
+    count: {{DATA_COUNT}}
+    uris:
+      - {{HDFS_URI}}
+      - {{RESOLVE_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: >
+               ./resolve-dns.sh &&
+               mkdir -p /var/lib/hadoop-hdfs &&
+               chown root /var/lib/hadoop-hdfs &&
+               ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode
+        cpus: {{DATA_CPUS}}
+        memory: {{DATA_MEM}}
+        ports:
+          data-rpc:
+            port: {{TASKCFG_ALL_DATA_NODE_RPC_PORT}}
+          data-http:
+            port: {{TASKCFG_ALL_DATA_NODE_HTTP_PORT}}
+          data-ipc:
+            port: {{TASKCFG_ALL_DATA_NODE_IPC_PORT}}
+        volume:
+          path: data-data
+          size: {{DATA_DISK}}
+          type: {{DATA_DISK_TYPE}}
+        configs:
+          core-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      jn-deploy:
+        strategy: {{JOURNAL_STRATEGY}}
+        pod: journal
+      nn-deploy:
+        strategy: serial
+        pod: name
+        steps:
+          - 0: [format]
+          - 0: [node]
+          - 1: [bootstrap]
+          - 1: [node]
+      zkfc-deploy:
+        strategy: serial
+        pod: zkfc
+        steps:
+          - 0: [format]
+          - 0: [node]
+          - 1: [node]
+      dn-deploy:
+        strategy: {{DATA_STRATEGY}}
+        pod: data

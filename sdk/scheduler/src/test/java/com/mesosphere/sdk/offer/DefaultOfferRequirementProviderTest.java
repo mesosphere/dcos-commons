@@ -1,14 +1,11 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.constrain.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -20,7 +17,6 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,8 +29,8 @@ public class DefaultOfferRequirementProviderTest {
     private static final double CPU = 1.0;
     private static final PlacementRule ALLOW_ALL = new PlacementRule() {
         @Override
-        public Offer filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
-            return offer;
+        public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.pass(this, "pass for test");
         }
     };
 
@@ -50,14 +46,14 @@ public class DefaultOfferRequirementProviderTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        environmentVariables.set("EXECUTOR_URI", "");
-        environmentVariables.set("LIBMESOS_URI", "");
-        environmentVariables.set("PORT0", "8080");
 
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal-health.yml").getFile());
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory
-                .generateServiceSpec(YAMLServiceSpecFactory.generateRawSpecFromYAML(file));
+        podInstance = getPodInstance("valid-minimal-health.yml");
+
+        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+    }
+
+    private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
+        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName);
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule(ALLOW_ALL)
@@ -67,9 +63,7 @@ public class DefaultOfferRequirementProviderTest {
                 .pods(Arrays.asList(podSpec))
                 .build();
 
-        podInstance = new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
-
-        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        return new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
     }
 
     @Test
@@ -97,6 +91,19 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals(TestConstants.TASK_CMD, taskInfo.getCommand().getValue());
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
         Assert.assertFalse(taskInfo.hasContainer());
+    }
+
+    @Test
+    public void testNewOfferRequirementDocker() throws Exception {
+        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance));
+
+        Protos.ContainerInfo containerInfo =
+                offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getContainer();
+        Assert.assertEquals(containerInfo.getType(), Protos.ContainerInfo.Type.MESOS);
+        Assert.assertEquals(containerInfo.getMesos().getImage().getDocker().getName(), "group/image");
     }
 
     @Test

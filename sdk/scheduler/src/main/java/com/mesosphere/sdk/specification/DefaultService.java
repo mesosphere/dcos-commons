@@ -163,7 +163,7 @@ public class DefaultService implements Service {
         new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
 
-    private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = getFrameworkInfoBuilder(serviceName);
@@ -182,10 +182,18 @@ public class DefaultService implements Service {
             fwkInfoBuilder.setPrincipal(serviceSpec.getPrincipal());
         }
 
+        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
+            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
+        }
+
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
         if (optionalFrameworkId.isPresent()) {
             fwkInfoBuilder.setId(optionalFrameworkId.get());
+        }
+
+        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
+            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
         }
 
         return fwkInfoBuilder.build();

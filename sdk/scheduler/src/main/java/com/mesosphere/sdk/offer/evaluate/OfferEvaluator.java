@@ -39,51 +39,72 @@ public class OfferEvaluator {
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Offer> offers)
             throws StateStoreException, InvalidRequirementException {
-        OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
-        List<OfferEvaluationStage> evaluationStages = getEvaluationPipeline(podInstanceRequirement, offerRequirement);
-        List<OfferRecommendation> recommendations = Collections.emptyList();
 
+        List<OfferRecommendation> recommendations = Collections.emptyList();
         for (int i = 0; i < offers.size(); ++i) {
             if (!recommendations.isEmpty()) {
                 break;
             }
 
+            OfferRequirement offerRequirement = getOfferRequirement(podInstanceRequirement);
+            List<OfferEvaluationStage> evaluationStages =
+                    null;
+            try {
+                evaluationStages = getEvaluationPipeline(podInstanceRequirement, offerRequirement);
+            } catch (TaskException e) {
+                logger.error("Failed to generate evaluation pipeline.", e);
+                return Collections.emptyList();
+            }
+
             Offer offer = offers.get(i);
             MesosResourcePool resourcePool = new MesosResourcePool(offer);
             OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
-            List<String> failureNotifications = new ArrayList<>();
+
+            List<EvaluationOutcome> outcomes = new ArrayList<>();
+            int failedOutcomeCount = 0;
+
             for (OfferEvaluationStage evaluationStage : evaluationStages) {
-                try {
-                    evaluationStage.evaluate(
-                            resourcePool,
-                            offerRequirement,
-                            recommendationSlate);
-                } catch (OfferEvaluationException e) {
-                    failureNotifications.add(evaluationStage.getClass().getName() + e.getMessage());
+                EvaluationOutcome outcome =
+                        evaluationStage.evaluate(resourcePool, offerRequirement, recommendationSlate);
+                outcomes.add(outcome);
+                if (!outcome.isPassing()) {
+                    failedOutcomeCount++;
                 }
             }
 
-            if (!failureNotifications.isEmpty()) {
-                logger.info("- {}: failed {} evaluation stages out of {} for the following reasons:",
-                        i + 1, failureNotifications.size(), evaluationStages.size());
-                for (String notification : failureNotifications) {
-                    logger.info("-    {}", notification);
-                }
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("\n");
+            for (EvaluationOutcome outcome : outcomes) {
+                logOutcome(stringBuilder, outcome, "");
+            }
+            logger.info(stringBuilder.toString().trim());
+
+            if (failedOutcomeCount != 0) {
+                recommendations.clear();
+                logger.info("- %d: failed %d of %d evaluation stages.",
+                        i + 1, failedOutcomeCount, evaluationStages.size());
 
                 continue;
             }
 
             recommendations = recommendationSlate.getRecommendations();
-            logger.info("- {}: passed resource requirements, returning {} recommendations: {}",
-                    i + 1, recommendations.size(), TextFormat.shortDebugString(offer));
+            logger.info("- {}: passed all {} evaluation stages, returning {} recommendations: {}",
+                    i + 1, evaluationStages.size(), recommendations.size(), TextFormat.shortDebugString(offer));
         }
 
         return recommendations;
     }
 
+    private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
+        stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
+        for (EvaluationOutcome child : outcome.getChildren()) {
+            logOutcome(stringBuilder, child, indent + "  ");
+        }
+    }
+
     private List<OfferEvaluationStage> getEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
-            OfferRequirement offerRequirement) throws InvalidRequirementException {
+            OfferRequirement offerRequirement) throws InvalidRequirementException, TaskException {
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
 
         evaluationPipeline.add(new PlacementRuleEvaluationStage(stateStore.fetchTasks()));
@@ -118,8 +139,8 @@ public class OfferEvaluator {
                 }
 
                 for (VolumeSpec v : taskSpec.getResourceSet().getVolumes()) {
-                    Resource taskResource = ResourceUtils.getResource(
-                            offerRequirement.getTaskRequirement(taskName).getTaskInfo(), v.getName());
+                    Resource taskResource = ResourceUtils.getDiskResource(
+                            offerRequirement.getTaskRequirement(taskName).getTaskInfo(), v.getContainerPath());
                     evaluationPipeline.add(v.getEvaluationStage(taskResource, taskName));
                 }
                 evaluationPipeline.add(new LaunchEvaluationStage(taskName));
