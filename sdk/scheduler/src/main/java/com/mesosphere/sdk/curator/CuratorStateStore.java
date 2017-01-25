@@ -347,7 +347,7 @@ public class CuratorStateStore implements StateStore {
                         "Failed to retrieve TaskStatus for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            logger.warn("No TaskStatus found for the requested name: " + taskName + " at: " + path);
             return Optional.empty();
         } catch (Exception e) {
             throw new StateStoreException(e);
