@@ -1,14 +1,15 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.google.protobuf.ByteString;
+import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.Protos.Credential;
 import org.apache.mesos.Protos.FrameworkInfo;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.protobuf.ByteString;
 
 /**
  * Factory class for creating {@link MesosSchedulerDriver}s.
@@ -99,9 +100,9 @@ public class SchedulerDriverFactory {
             final String masterUrl,
             final Credential credential) {
         if (credential == null) {
-            return new MesosSchedulerDriver(scheduler, frameworkInfo, masterUrl);
+            return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true);
         } else {
-            return new MesosSchedulerDriver(scheduler, frameworkInfo, masterUrl, credential);
+            return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential);
         }
     }
 
