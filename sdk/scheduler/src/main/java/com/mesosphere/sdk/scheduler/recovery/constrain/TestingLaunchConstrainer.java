@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
-import org.apache.mesos.Protos.Offer.Operation;
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 
 /**
@@ -20,7 +20,7 @@ public class TestingLaunchConstrainer implements LaunchConstrainer {
     }
 
     @Override
-    public void launchHappened(Operation launchOperation, RecoveryType recoveryType) {
+    public void launchHappened(LaunchOfferRecommendation recommendation, RecoveryType recoveryType) {
         // Does nothing when the launch happens
     }
 

@@ -374,28 +374,6 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return resources.get(0).toBuilder().clearRanges().build();
     }
 
-    private static Map<String, Protos.Resource> getResourceMap(Collection<Protos.Resource> resources) {
-        Map<String, Protos.Resource> resourceMap = new HashMap<>();
-        for (Protos.Resource resource : resources) {
-            if (!resource.hasDisk()) {
-                resourceMap.put(resource.getName(), resource);
-            }
-        }
-
-        return resourceMap;
-    }
-
-    private static Collection<Protos.Resource> getVolumes(Collection<Protos.Resource> resources) {
-        List<Protos.Resource> volumes = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
-            if (resource.hasDisk()) {
-                volumes.add(resource);
-            }
-        }
-
-        return volumes;
-    }
-
     /**
      * Returns the ExecutorInfo of a PodInstance if it is still running so it may be re-used, otherwise
      * it returns a new ExecutorInfo.

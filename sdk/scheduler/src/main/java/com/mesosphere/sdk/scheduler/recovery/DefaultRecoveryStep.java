@@ -1,14 +1,14 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.specification.PodInstance;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -40,10 +40,12 @@ public class DefaultRecoveryStep extends DeploymentStep {
     }
 
     @Override
-    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
-        super.updateOfferStatus(operations);
-        if (CollectionUtils.isNotEmpty(operations)) {
-            launchConstrainer.launchHappened(operations.iterator().next(), recoveryType);
+    public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
+        super.updateOfferStatus(recommendations);
+        for (OfferRecommendation recommendation : recommendations) {
+            if (recommendation instanceof LaunchOfferRecommendation) {
+                launchConstrainer.launchHappened((LaunchOfferRecommendation) recommendation, recoveryType);
+            }
         }
     }
 

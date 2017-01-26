@@ -9,7 +9,6 @@ import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos.*;
@@ -512,24 +511,6 @@ public class CommonTaskUtils {
                     .clearCommand()
                     .build();
         }
-    }
-
-    /**
-     * This method is similar to {@link #unpackTaskInfo(TaskInfo)}, just applied over a {@link Collection} of
-     * {@link TaskInfo}s.
-     *
-     * @param packedTaskInfos Collection of TaskInfos to be unpacked.
-     * @return
-     */
-    public static Collection<TaskInfo> unpackTaskInfos(Collection<TaskInfo> packedTaskInfos)
-            throws InvalidProtocolBufferException {
-        Collection<TaskInfo> unpackedTaskInfos = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(packedTaskInfos)) {
-            for (TaskInfo packedTaskInfo : packedTaskInfos) {
-                unpackedTaskInfos.add(unpackTaskInfo(packedTaskInfo));
-            }
-        }
-        return unpackedTaskInfos;
     }
 
     /**

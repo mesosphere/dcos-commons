@@ -770,7 +770,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
-        recordOperations(recommendations, sufficientOffer);
+        recordOperations(recommendations);
 
         // Launch Task with RUNNING goal state, later.
         podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
@@ -836,7 +836,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
-        recordOperations(recommendations, sufficientOffer);
+        recordOperations(recommendations);
 
         // Attempt to launch task again as non-failed.
         podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
@@ -931,9 +931,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         return getPodInstanceRequirement(false, "multiple-task.yml");
     }
 
-    private void recordOperations(List<OfferRecommendation> recommendations, Offer offer) throws Exception {
+    private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
         for (OfferRecommendation recommendation : recommendations) {
-            operationRecorder.record(recommendation.getOperation(), offer);
+            operationRecorder.record(recommendation);
         }
     }
 }

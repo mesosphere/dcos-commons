@@ -74,7 +74,7 @@ public class OfferAccepter {
     private void record(List<OfferRecommendation> recommendations) throws Exception {
         for (OfferRecommendation recommendation : recommendations) {
             for (OperationRecorder recorder : recorders) {
-                recorder.record(recommendation.getOperation(), recommendation.getOffer());
+                recorder.record(recommendation);
             }
         }
     }

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -26,8 +27,8 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
-        if (operations.isEmpty()) {
+    public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
+        if (recommendations.isEmpty()) {
             setStatus(Status.PREPARED);
         } else {
             setStatus(Status.STARTING);
