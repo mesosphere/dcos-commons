@@ -11,6 +11,7 @@ com.mesosphere.sdk.kafka.scheduler
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.offer.evaluate.placement
+com.mesosphere.sdk.prototype.scheduler
 com.mesosphere.sdk.reconciliation
 com.mesosphere.sdk.scheduler
 com.mesosphere.sdk.scheduler.plan
