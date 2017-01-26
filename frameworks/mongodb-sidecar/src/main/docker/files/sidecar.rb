@@ -47,31 +47,30 @@ mongo.setup(@mongo_binary, zk, @logger)
 @logger.info("Mongo inited", {mongo_info: mongo.inspect})
 
 
-sinatra_thread = Thread.new do
-  # Thread.handle_interrupt(RuntimeError => :immidiate) do
-    SinatraServer.set :logger, @logger
-    SinatraServer.set :mongo, mongo
-    SinatraServer.run!
-  # end
-end
-
-# initialize or add unuzed servers to replica
-while(true) do
-  begin
-    if zk.replicaset_ititiated?
-      # mongo_master = mongo.find_mongo_master(zk.available_servers)
-      mongo.add_to_replicaset(mesos.find_unused_servers)
-    else
-      mongo.init_replicaset(mesos.find_unused_servers)
+Thread::abort_on_exception = true
+main_thread = Thread.new do
+  # initialize or add unuzed servers to replica
+  while(true) do
+    begin
+      if zk.replicaset_ititiated?
+        mongo.add_to_replicaset(mesos.find_unused_servers)
+      else
+        mongo.init_replicaset(mesos.find_unused_servers)
+      end
+      sleep(10)
+    rescue SystemExit, Interrupt
+      exit
+    rescue Exception => e
+      @logger.error("something bad happened", error: e.inspect)
+      @logger.debug(e.backtrace)
+      abort(e)
     end
-    sleep(10)
-  rescue Exception => e
-    @logger.error("something bad happened", error: e.inspect)
-    @logger.debug(e.backtrace)
-    abort(e.inspect)
   end
 end
 
+SinatraServer.set :logger, @logger
+SinatraServer.set :mongo, mongo
+SinatraServer.run!
 
 # It should never gets past here
-sinatra_thread.join
+# main_thread.join
