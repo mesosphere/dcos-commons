@@ -20,6 +20,8 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
  */
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
+    private static final String PORT_ENV_FORMAT = "PORT_%s";
+
     private final String portName;
     private final int port;
 
@@ -171,7 +173,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
      * is added to the beginning, and invalid characters are replaced with underscores.
      */
     private static String getPortEnvironmentVariable(String portName) {
-        return "PORT_" + portName.toUpperCase().replaceAll("[^a-zA-Z0-9_]", "_");
+        return String.format(PORT_ENV_FORMAT, TaskUtils.toEnvName(portName));
     }
 
     private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, int port) {

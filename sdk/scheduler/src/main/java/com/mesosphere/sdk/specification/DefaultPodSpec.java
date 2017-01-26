@@ -6,7 +6,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.specification.validation.UniqueResourceSet;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
@@ -18,6 +17,7 @@ import javax.validation.constraints.Size;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,25 +27,22 @@ import java.util.Optional;
 public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Size(min = 1)
-    private String type;
-    private String user;
+    private final String type;
+    private final String user;
     @NotNull
     @Min(0)
-    private Integer count;
+    private final Integer count;
     @Valid
-    private ContainerSpec container;
+    private final ContainerSpec container;
     @NotNull
     @Valid
     @Size(min = 1)
     @UniqueTaskName(message = "Task names must be unique")
-    private List<TaskSpec> tasks;
+    private final List<TaskSpec> tasks;
     @Valid
-    private PlacementRule placementRule;
+    private final PlacementRule placementRule;
     @Valid
-    @UniqueResourceSet
-    private Collection<ResourceSet> resources;
-    @Valid
-    private Collection<URI> uris;
+    private final Collection<URI> uris;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -55,21 +52,19 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("container") ContainerSpec container,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
-            @JsonProperty("placement-rule") PlacementRule placementRule,
-            @JsonProperty("resource-sets") Collection<ResourceSet> resources) {
+            @JsonProperty("placement-rule") PlacementRule placementRule) {
         this.type = type;
         this.user = user;
         this.count = count;
         this.container = container;
-        this.uris = uris;
+        this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
-        this.resources = resources;
     }
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count, builder.container,
-                builder.uris, builder.tasks, builder.placementRule, builder.resources);
+                builder.uris, builder.tasks, builder.placementRule);
         ValidationUtils.validate(this);
     }
 
@@ -87,9 +82,6 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
-        ArrayList<ResourceSet> resourcesCopy = new ArrayList<>();
-        resourcesCopy.addAll(copy.getResources());
-        builder.resources = resourcesCopy;
         return builder;
     }
 
@@ -124,11 +116,6 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<ResourceSet> getResources() {
-        return resources;
-    }
-
-    @Override
     public Optional<PlacementRule> getPlacementRule() {
         return Optional.ofNullable(placementRule);
     }
@@ -155,7 +142,6 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
-        private Collection<ResourceSet> resources;
 
         private Builder() {
         }
@@ -259,11 +245,6 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder placementRule(PlacementRule placementRule) {
             this.placementRule = placementRule;
-            return this;
-        }
-
-        public Builder resources(Collection<ResourceSet> resources) {
-            this.resources = resources;
             return this;
         }
 

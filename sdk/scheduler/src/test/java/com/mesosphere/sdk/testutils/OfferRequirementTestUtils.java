@@ -181,8 +181,8 @@ public class OfferRequirementTestUtils {
 
     public static EnvironmentVariables getOfferRequirementProviderEnvironment() {
         EnvironmentVariables env = getApiPortEnvironment();
-        env.set("EXECUTOR_URI", "");
-        env.set("LIBMESOS_URI", "");
+        env.set("EXECUTOR_URI", "test-executor-uri");
+        env.set("LIBMESOS_URI", "test-libmesos-uri");
         return env;
     }
 }

@@ -4,12 +4,11 @@ pods:
     count: {{HELLO_COUNT}}
     uris:
       - "https://github.com/mesosphere/dcos-commons/blob/master/README.md"
+      - "https://github.com/mesosphere/dcos-commons/blob/master/docs/generate.sh"
     tasks:
       server:
         goal: RUNNING
         cmd: "cat README.md && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
-        uris:
-          - "https://github.com/mesosphere/dcos-commons/blob/master/docs/generate.sh"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -32,12 +31,12 @@ pods:
           path: "world-container-path"
           type: ROOT
           size: {{WORLD_DISK}}
+    uris:
+      - "https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/README.md"
     tasks:
       server:
         goal: RUNNING
         cmd: "cat README.md && echo world >> world-container-path/output && sleep $SLEEP_DURATION"
-        uris:
-           - "https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/README.md"
         resource-set: world-resource
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}

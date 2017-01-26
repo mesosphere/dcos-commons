@@ -15,6 +15,8 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Offer;
@@ -51,7 +53,8 @@ public class OfferEvaluatorTestBase {
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
         stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
-        offerRequirementProvider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        offerRequirementProvider =
+                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
         evaluator = new OfferEvaluator(stateStore, offerRequirementProvider);
         operationRecorder = new PersistentOperationRecorder(stateStore);
     }

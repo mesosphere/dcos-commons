@@ -5,8 +5,6 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.mesosphere.sdk.specification.ConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -344,55 +342,6 @@ public class CommonTaskUtils {
         } else {
             return true;
         }
-    }
-
-    /**
-     * Stores the provided config file data in the provided {@link TaskInfo}'s {@code labels} field.
-     * Any templates with matching paths will be overwritten.
-     *
-     * @throws IllegalStateException if the sum total of the provided template content exceeds 100KB
-     *                               (102,400B)
-     */
-    public static TaskInfo.Builder setConfigFiles(
-            TaskInfo.Builder taskBuilder, Collection<ConfigFileSpec> configs)
-            throws IllegalStateException {
-        int totalSize = 0;
-        for (ConfigFileSpec config : configs) {
-            totalSize += config.getTemplateContent().length();
-            // Store with the config template prefix:
-            taskBuilder.setLabels(CommonTaskUtils.withLabelSet(taskBuilder.getLabels(),
-                    CONFIG_TEMPLATE_KEY_PREFIX + config.getRelativePath(),
-                    config.getTemplateContent()));
-        }
-        if (totalSize > CONFIG_TEMPLATE_LIMIT_BYTES) {
-            // NOTE: We don't bother checking across multiple set() calls. This is just meant to
-            // keep things reasonable without being a perfect check.
-            throw new IllegalStateException(String.format(
-                    "Provided config template content of %dB across %d files exceeds limit of %dB. "
-                            + "Reduce the size of your config templates by at least %dB.",
-                    totalSize, configs.size(), CONFIG_TEMPLATE_LIMIT_BYTES,
-                    totalSize - CONFIG_TEMPLATE_LIMIT_BYTES));
-        }
-        return taskBuilder;
-    }
-
-    /**
-     * Retrieves the config file data, if any, from the provided {@link TaskInfo}'s {@code labels}
-     * field. If no data is found, returns an empty collection.
-     */
-    public static Collection<ConfigFileSpec> getConfigFiles(TaskInfo taskInfo)
-            throws InvalidProtocolBufferException {
-        List<ConfigFileSpec> configs = new ArrayList<>();
-        for (Label label : taskInfo.getLabels().getLabelsList()) {
-            // Extract all labels whose key has the expected prefix:
-            if (!label.getKey().startsWith(CONFIG_TEMPLATE_KEY_PREFIX)) {
-                continue;
-            }
-            configs.add(new DefaultConfigFileSpec(
-                    label.getKey().substring(CONFIG_TEMPLATE_KEY_PREFIX.length()),
-                    label.getValue()));
-        }
-        return configs;
     }
 
     /**

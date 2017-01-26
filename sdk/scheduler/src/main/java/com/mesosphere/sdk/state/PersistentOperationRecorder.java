@@ -5,6 +5,7 @@ import org.apache.mesos.Protos;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,11 +25,11 @@ public class PersistentOperationRecorder implements OperationRecorder {
     @Override
     public void record(OfferRecommendation offerRecommendation) throws Exception {
         if (offerRecommendation instanceof LaunchOfferRecommendation) {
-            recordTasks(((LaunchOfferRecommendation) offerRecommendation).getTaskInfo());
+            recordTask(((LaunchOfferRecommendation) offerRecommendation).getTaskInfo());
         }
     }
 
-    private void recordTasks(Protos.TaskInfo taskInfo) throws StateStoreException {
+    private void recordTask(Protos.TaskInfo taskInfo) throws StateStoreException {
         Protos.TaskStatus taskStatus = null;
         if (!taskInfo.getTaskId().getValue().equals("")) {
             // Record initial TaskStatus of STAGING:

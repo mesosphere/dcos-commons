@@ -13,6 +13,7 @@ import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -207,7 +208,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             error.append("- Result:\n");
             error.append(loopbackSpecification.toJsonString());
             error.append('\n');
-            throw new ConfigStoreException(error.toString());
+            throw new ConfigStoreException(Reason.LOGIC_ERROR, error.toString());
         }
         return factory;
     }
@@ -262,7 +263,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 return SerializationUtils.fromString(
                         new String(bytes, CHARSET), DefaultServiceSpec.class, objectMapper);
             } catch (IOException e) {
-                throw new ConfigStoreException(
+                throw new ConfigStoreException(Reason.SERIALIZATION_ERROR,
                         "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
             }
         }

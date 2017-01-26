@@ -33,9 +33,6 @@ public interface PodSpec {
     @JsonProperty("task-specs")
     List<TaskSpec> getTasks();
 
-    @JsonProperty("resource-sets")
-    Collection<ResourceSet> getResources();
-
     @JsonProperty("placement-rule")
     Optional<PlacementRule> getPlacementRule();
 

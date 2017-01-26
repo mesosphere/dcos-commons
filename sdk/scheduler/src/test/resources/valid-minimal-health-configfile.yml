@@ -15,3 +15,10 @@ pods:
           max-consecutive-failures: 3
           delay: 0
           timeout: 10
+        configs:
+          config-one:
+            template: config-one.conf.mustache
+            dest: conf/config-one.conf
+          config-two:
+            template: config-two.xml.mustache
+            dest: ../other/conf/config-two.xml

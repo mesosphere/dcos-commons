@@ -121,7 +121,7 @@ class CITester(object):
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
             jenkins_args = ''
         if requirements_txt:
-            logger.info('Using provided requirements.txt: {}'.format(requirements.txt))
+            logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
         else:
             # generate default requirements:
             logger.info('No requirements.txt provided, using default requirements')
