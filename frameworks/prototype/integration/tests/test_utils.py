@@ -7,26 +7,30 @@ PACKAGE_NAME = 'prototype'
 WAIT_TIME_IN_SECONDS = 15 * 60
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
+SPEC_URL = 'https://gist.githubusercontent.com/mohitsoni/29d03e7d73135d4a8d2ea54b508bbcf9/raw/fb495434dcc507d3afc79fa761afe57bb31975c4/service.yml'
 
 # expected SECURITY values: 'permissive', 'strict', 'disabled'
 if os.environ.get('SECURITY', '') == 'strict':
     print('Using strict mode test configuration')
     PRINCIPAL = 'service-acct'
+
     DEFAULT_OPTIONS_DICT = {
         "service": {
             "principal": PRINCIPAL,
-            "secret_name": "secret"
+            "secret_name": "secret",
+            "name": "prototype",
+            "specification_uri": SPEC_URL
         }
     }
 else:
     print('Using default test configuration')
     PRINCIPAL = 'prototype-principal'
-    DEFAULT_OPTIONS_DICT = {}
-
-
-def get_task_count():
-    config = get_marathon_config()
-    return int(config['env']['PROTOTYPE_COUNT'])
+    DEFAULT_OPTIONS_DICT = {
+        "service": {
+            "name": "prototype",
+            "specification_uri": SPEC_URL
+        }
+    }
 
 
 def get_marathon_config():
@@ -70,7 +74,7 @@ def wait_for_dcos_tasks_health(task_count):
 
 
 def check_health():
-    expected_tasks = get_task_count()
+    expected_tasks = 1
     wait_for_dcos_tasks_health(expected_tasks)
 
 
