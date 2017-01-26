@@ -195,6 +195,7 @@ font-style: italic;
   <h2>Table of Contents </h2>
   <div class="method-summary"></div>
   <ol>
+  <li><a href="#artifactsTemplateConfigurationIdPodTypeTaskNameConfigurationNameGet"><code><span class="http-method">get</span> /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}</code></a></li>
   <li><a href="#configurationsConfigurationIdGet"><code><span class="http-method">get</span> /configurations/{configurationId}</code></a></li>
   <li><a href="#configurationsGet"><code><span class="http-method">get</span> /configurations</code></a></li>
   <li><a href="#configurationsTargetGet"><code><span class="http-method">get</span> /configurations/target</code></a></li>
@@ -220,6 +221,54 @@ font-style: italic;
   <li><a href="#statePropertiesKeyGet"><code><span class="http-method">get</span> /state/properties/{key}</code></a></li>
   </ol>
 
+  <div class="method"><a name="artifactsTemplateConfigurationIdPodTypeTaskNameConfigurationNameGet"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}</code></pre></div>
+    <div class="method-summary">Produces the content of a configuration file with mustache templating for rendering and use at a task. (<span class="nickname">artifactsTemplateConfigurationIdPodTypeTaskNameConfigurationNameGet</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">configurationId (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The ID of the configuration to be retrieved from. </div><div class="param">podType (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The pod type for the task. </div><div class="param">taskName (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The task name. </div><div class="param">configurationName (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the configuration template file. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>text/plain</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Content of the requested file with mustache templating.
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Invalid request: configurationId couldn&#39;t be parsed as a UUID.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    No file was found at that location.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <div class="method"><a name="configurationsConfigurationIdGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -254,8 +303,14 @@ font-style: italic;
     <h4 class="field-label">200</h4>
     The content of the configuration.
         <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Invalid request: configurationId couldn&#39;t be parsed as a UUID.
+        <a href="#"></a>
     <h4 class="field-label">404</h4>
-    Failed to fetch requested configuration with id.
+    Requested configuration was not found.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to retrieve configuration with requested ID.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
@@ -287,7 +342,7 @@ font-style: italic;
     <h4 class="field-label">200</h4>
     List of stored configurations.
         <a href="#"></a>
-    <h4 class="field-label">404</h4>
+    <h4 class="field-label">500</h4>
     Failed to fetch list of configuration ids.
         <a href="#"></a>
   </div> <!-- method -->
@@ -321,7 +376,10 @@ font-style: italic;
     The content of the current target configuration.
         <a href="#"></a>
     <h4 class="field-label">404</h4>
-    .
+    No target configuration was found.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to fetch target configuration.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
@@ -354,7 +412,10 @@ font-style: italic;
     The ID of the current target configuration.
         <a href="#"></a>
     <h4 class="field-label">404</h4>
-    Failed to fetch target configuration.
+    No target configuration ID was found.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to fetch target configuration ID.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
@@ -959,6 +1020,9 @@ font-style: italic;
     <h4 class="field-label">200</h4>
     The current Framework ID.
         <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    No Framework ID was found.
+        <a href="#"></a>
     <h4 class="field-label">500</h4>
     Framework ID not available.
         <a href="#"></a>
@@ -1032,7 +1096,10 @@ font-style: italic;
     The deserialized content of the property.
         <a href="#"></a>
     <h4 class="field-label">204</h4>
-    No deserializer was provided by the service developer to deserialize this property.
+    No deserializer was provided by the service developer to deserialize custom properties.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Requested property wasn&#39;t found.
         <a href="#"></a>
     <h4 class="field-label">500</h4>
     Failed to fetch requested property.
