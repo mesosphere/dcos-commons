@@ -55,6 +55,23 @@ public class RawTask {
         this.resourceSet = resourceSet;
     }
 
+    private RawTask(Builder builder) {
+        this(
+                builder.goal,
+                builder.cmd,
+                builder.env,
+                builder.configs,
+                builder.uris,
+                builder.cpus,
+                builder.memory,
+                builder.ports,
+                builder.healthCheck,
+                builder.readinessCheck,
+                builder.volume,
+                builder.volumes,
+                builder.resourceSet);
+    }
+
     public Double getCpus() {
         return cpus;
     }
@@ -105,5 +122,100 @@ public class RawTask {
 
     public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
         return volumes;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawTask} builder.
+     */
+    public static final class Builder {
+        private String goal;
+        private String cmd;
+        private Map<String, String> env;
+        private WriteOnceLinkedHashMap<String, RawConfig> configs;
+        private Collection<String> uris;
+        private Double cpus;
+        private Integer memory;
+        private WriteOnceLinkedHashMap<String, RawPort> ports;
+        private RawHealthCheck healthCheck;
+        private RawReadinessCheck readinessCheck;
+        private RawVolume volume;
+        private WriteOnceLinkedHashMap<String, RawVolume> volumes;
+        private String resourceSet;
+
+        private Builder() {
+        }
+
+        public Builder goal(String goal) {
+            this.goal = goal;
+            return this;
+        }
+
+        public Builder cmd(String cmd) {
+            this.cmd = cmd;
+            return this;
+        }
+
+        public Builder env(Map<String, String> env) {
+            this.env = env;
+            return this;
+        }
+
+        public Builder configs(WriteOnceLinkedHashMap<String, RawConfig> configs) {
+            this.configs = configs;
+            return this;
+        }
+
+        public Builder uris(Collection<String> uris) {
+            this.uris = uris;
+            return this;
+        }
+
+        public Builder cpus(Double cpus) {
+            this.cpus = cpus;
+            return this;
+        }
+
+        public Builder memory(Integer memory) {
+            this.memory = memory;
+            return this;
+        }
+
+        public Builder ports(WriteOnceLinkedHashMap<String, RawPort> ports) {
+            this.ports = ports;
+            return this;
+        }
+
+        public Builder healthCheck(RawHealthCheck healthCheck) {
+            this.healthCheck = healthCheck;
+            return this;
+        }
+
+        public Builder readinessCheck(RawReadinessCheck readinessCheck) {
+            this.readinessCheck = readinessCheck;
+            return this;
+        }
+
+        public Builder volume(RawVolume volume) {
+            this.volume = volume;
+            return this;
+        }
+
+        public Builder volumes(WriteOnceLinkedHashMap<String, RawVolume> volumes) {
+            this.volumes = volumes;
+            return this;
+        }
+
+        public Builder resourceSet(String resourceSet) {
+            this.resourceSet = resourceSet;
+            return this;
+        }
+
+        public RawTask build() {
+            return new RawTask(this);
+        }
     }
 }

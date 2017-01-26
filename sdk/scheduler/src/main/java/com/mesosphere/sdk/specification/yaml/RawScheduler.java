@@ -23,6 +23,10 @@ public class RawScheduler {
         this.zookeeper = zookeeper;
     }
 
+    private RawScheduler(Builder builder) {
+        this(builder.role, builder.principal, builder.apiPort, builder.zookeeper);
+    }
+
     public String getRole() {
         return role;
     }
@@ -37,5 +41,46 @@ public class RawScheduler {
 
     public String getZookeeper() {
         return zookeeper;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawScheduler} builder.
+     */
+    public static final class Builder {
+        private String role;
+        private String principal;
+        private Integer apiPort;
+        private String zookeeper;
+
+        private Builder() {
+        }
+
+        public Builder role(String role) {
+            this.role = role;
+            return this;
+        }
+
+        public Builder principal(String principal) {
+            this.principal = principal;
+            return this;
+        }
+
+        public Builder apiPort(Integer apiPort) {
+            this.apiPort = apiPort;
+            return this;
+        }
+
+        public Builder zookeeper(String zookeeper) {
+            this.zookeeper = zookeeper;
+            return this;
+        }
+
+        public RawScheduler build() {
+            return new RawScheduler(this);
+        }
     }
 }

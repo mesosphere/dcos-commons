@@ -23,11 +23,44 @@ public class RawContainer {
         }
     }
 
+    private RawContainer(Builder builder) {
+        this(builder.imageName, builder.rlimits);
+    }
+
     public LinkedHashMap<String, RawRLimit> getRLimits() {
         return rlimits;
     }
 
     public String getImageName() {
         return imageName;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawContainer} builder.
+     */
+    public static final class Builder {
+        private String imageName;
+        private WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
+
+        private Builder() {
+        }
+
+        public Builder imageName(String imageName) {
+            this.imageName = imageName;
+            return this;
+        }
+
+        public Builder dest(WriteOnceLinkedHashMap<String, RawRLimit> rlimits) {
+            this.rlimits = rlimits;
+            return this;
+        }
+
+        public RawContainer build() {
+            return new RawContainer(this);
+        }
     }
 }

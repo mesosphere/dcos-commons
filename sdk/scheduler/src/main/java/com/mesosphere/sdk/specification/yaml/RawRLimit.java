@@ -16,11 +16,44 @@ public class RawRLimit {
         this.hard = hard;
     }
 
+    private RawRLimit(Builder builder) {
+        this(builder.soft, builder.hard);
+    }
+
     public Long getSoft() {
         return soft;
     }
 
     public Long getHard() {
         return hard;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawRLimit} builder.
+     */
+    public static final class Builder {
+        private Long soft;
+        private Long hard;
+
+        private Builder() {
+        }
+
+        public Builder soft(Long soft) {
+            this.soft = soft;
+            return this;
+        }
+
+        public Builder hard(Long hard) {
+            this.hard = hard;
+            return this;
+        }
+
+        public RawRLimit build() {
+            return new RawRLimit(this);
+        }
     }
 }

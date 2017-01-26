@@ -2,10 +2,21 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.yaml.*;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -14,20 +25,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.awaitility.Awaitility;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -44,6 +41,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.generateServiceSpec;
 import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -57,103 +55,23 @@ import static org.mockito.Mockito.*;
 @SuppressWarnings({"PMD.TooManyStaticImports", "unchecked"})
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
-    @ClassRule
-    public static final EnvironmentVariables environmentVariables =
+    @ClassRule public static final EnvironmentVariables environmentVariables =
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
-    @Mock
-    private SchedulerDriver mockSchedulerDriver;
-    @Captor
-    private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
-    @Captor
-    private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
 
-    private static final String SERVICE_NAME = "test-service";
-    private static final int TASK_A_COUNT = 1;
-    private static final String TASK_A_POD_NAME = "POD-A";
-    private static final String TASK_A_NAME = "A";
-    private static final double TASK_A_CPU = 1.0;
-    private static final double UPDATED_TASK_A_CPU = TASK_A_CPU + 1.0;
-    private static final double TASK_A_MEM = 1000.0;
-    private static final double TASK_A_DISK = 1500.0;
-    private static final String TASK_A_CMD = "echo " + TASK_A_NAME;
+    @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
+    @Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
 
-    private static final int TASK_B_COUNT = 2;
-    private static final String TASK_B_POD_NAME = "POD-B";
-    private static final String TASK_B_NAME = "B";
-    private static final double TASK_B_CPU = 2.0;
-    private static final double TASK_B_MEM = 2000.0;
-    private static final double UPDATED_TASK_B_MEM = 2000.0 * 2;
-    private static final double TASK_B_DISK = 2500.0;
-    private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
-
-    private static final PodSpec podA = TestPodFactory.getPodSpec(
-            TASK_A_POD_NAME,
-            TestConstants.RESOURCE_SET_ID + "-A",
-            TASK_A_NAME,
-            TASK_A_CMD,
-            TASK_A_COUNT,
-            TASK_A_CPU,
-            TASK_A_MEM,
-            TASK_A_DISK);
-
-    private static final PodSpec podB = TestPodFactory.getPodSpec(
-            TASK_B_POD_NAME,
-            TestConstants.RESOURCE_SET_ID + "-B",
-            TASK_B_NAME,
-            TASK_B_CMD,
-            TASK_B_COUNT,
-            TASK_B_CPU,
-            TASK_B_MEM,
-            TASK_B_DISK);
-
-    private static final PodSpec updatedPodA = TestPodFactory.getPodSpec(
-            TASK_A_POD_NAME,
-            TestConstants.RESOURCE_SET_ID + "-A",
-            TASK_A_NAME,
-            TASK_A_CMD,
-            TASK_A_COUNT,
-            UPDATED_TASK_A_CPU,
-            TASK_A_MEM,
-            TASK_A_DISK);
-
-    private static final PodSpec updatedPodB = TestPodFactory.getPodSpec(
-            TASK_B_POD_NAME,
-            TestConstants.RESOURCE_SET_ID + "-B",
-            TASK_B_NAME,
-            TASK_B_CMD,
-            TASK_B_COUNT,
-            TASK_B_CPU,
-            UPDATED_TASK_B_MEM,
-            TASK_B_DISK);
-
-    private static final PodSpec scaledPodA = TestPodFactory.getPodSpec(
-            TASK_A_POD_NAME,
-            TestConstants.RESOURCE_SET_ID + "-A",
-            TASK_A_NAME,
-            TASK_A_CMD,
-            TASK_A_COUNT + 1,
-            TASK_A_CPU,
-            TASK_A_MEM,
-            TASK_A_DISK);
-
-    private static final DefaultServiceSpec.Builder getServiceSpec(PodSpec... pods) {
-        return DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME)
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .apiPort(0)
-                .zookeeperConnection("foo.bar.com")
-                .pods(Arrays.asList(pods));
-    }
-
-    private static final ServiceSpec SERVICE_SPECIFICATION = getServiceSpec(podA, podB).build();
-    private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
-    private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
-    private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
+    @Mock private SchedulerDriver mockSchedulerDriver;
+    @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
+    @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor2;
 
     private static TestingServer testingServer;
+    private ServiceSpec SERVICE_SPEC;
+    private ServiceSpec UPDATED_POD_A_SERVICE_SPEC;
+    private ServiceSpec UPDATED_POD_B_SERVICE_SPEC;
+    private ServiceSpec SCALED_POD_A_SERVICE_SPEC;
+    private static final String POD_A_TYPE = "pod-a";
+    private static final String POD_B_TYPE = "pod-b";
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
@@ -168,14 +86,20 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
-
         StateStoreCache.resetInstanceForTests();
-        stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
-        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION)
+
+        SERVICE_SPEC = generateServiceSpec(getRawServiceSpec());
+        UPDATED_POD_A_SERVICE_SPEC = generateServiceSpec(getRawServiceSpecUpdateA());
+        UPDATED_POD_B_SERVICE_SPEC = generateServiceSpec(getRawServiceSpecUpdateB());
+        SCALED_POD_A_SERVICE_SPEC = generateServiceSpec(getRawServiceSpecScaleA());
+
+        stateStore = DefaultScheduler.createStateStore(SERVICE_SPEC, testingServer.getConnectString());
+        configStore = DefaultScheduler.createConfigStore(SERVICE_SPEC, testingServer.getConnectString());
+        defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPEC)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build();
+
         register();
     }
 
@@ -187,7 +111,8 @@ public class DefaultSchedulerTest {
     @Test(expected = ConfigStoreException.class)
     public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
+                SERVICE_SPEC.getName(),
+                DefaultPodSpec.newBuilder(getPodSpec(SERVICE_SPEC, POD_A_TYPE))
                         .placementRule(TestPlacementUtils.PASS)
                         .build())
                 .build();
@@ -198,7 +123,8 @@ public class DefaultSchedulerTest {
     @Test(expected = ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
+                SERVICE_SPEC.getName(),
+                DefaultPodSpec.newBuilder(getPodSpec(SERVICE_SPEC, POD_A_TYPE))
                         .placementRule(new PlacementRuleMissingEquality())
                         .build())
                 .build();
@@ -212,7 +138,8 @@ public class DefaultSchedulerTest {
     @Test(expected = ConfigStoreException.class)
     public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
+                SERVICE_SPEC.getName(),
+                DefaultPodSpec.newBuilder(getPodSpec(SERVICE_SPEC, POD_A_TYPE))
                         .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
                         .build())
                 .build();
@@ -226,7 +153,8 @@ public class DefaultSchedulerTest {
     @Test
     public void testConstructConfigStoreWithRegisteredGoodCustomType() throws ConfigStoreException {
         ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
+                SERVICE_SPEC.getName(),
+                DefaultPodSpec.newBuilder(getPodSpec(SERVICE_SPEC, POD_A_TYPE))
                         .placementRule(TestPlacementUtils.PASS)
                         .build())
                 .build();
@@ -247,7 +175,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testLaunchA() throws InterruptedException {
-        installStep(0, 0, getSufficientOfferForTaskA());
+        installStep(0, 0, getSufficientOfferForTaskA(SERVICE_SPEC));
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING), getStepStatuses(plan));
@@ -257,7 +185,7 @@ public class DefaultSchedulerTest {
     public void testLaunchB() throws InterruptedException {
         // Launch A-0
         testLaunchA();
-        installStep(1, 0, getSufficientOfferForTaskB());
+        installStep(1, 0, getSufficientOfferForTaskB(SERVICE_SPEC));
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
@@ -272,7 +200,7 @@ public class DefaultSchedulerTest {
 
         // Offer sufficient Resource and wait for its acceptance
         UUID offerId = UUID.randomUUID();
-        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(SERVICE_SPEC, offerId)));
         defaultScheduler.awaitTermination();
         Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING), getStepStatuses(plan));
     }
@@ -282,7 +210,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPEC)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build();
@@ -297,7 +225,7 @@ public class DefaultSchedulerTest {
         // Launch A and B in original configuration
         testLaunchB();
         defaultScheduler.awaitTermination();
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_B_SERVICE_SPEC)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build();
@@ -313,7 +241,7 @@ public class DefaultSchedulerTest {
         testLaunchB();
         defaultScheduler.awaitTermination();
 
-        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(SCALED_POD_A_SERVICE_SPEC)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build();
@@ -331,7 +259,7 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(stepTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
-        Protos.Offer offer1 = getSufficientOfferForTaskA();
+        Protos.Offer offer1 = getSufficientOfferForTaskA(SERVICE_SPEC);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer1));
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
                 collectionThat(contains(offer1.getId())),
@@ -360,7 +288,7 @@ public class DefaultSchedulerTest {
         Protos.Resource mem = ResourceTestUtils.getDesiredMem(1.0);
         mem = ResourceUtils.setResourceId(mem, UUID.randomUUID().toString());
 
-        Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA())
+        Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA(SERVICE_SPEC))
                 .addAllResources(operations.stream()
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
@@ -368,7 +296,7 @@ public class DefaultSchedulerTest {
                 .addResources(cpus)
                 .addResources(mem)
                 .build();
-        Protos.Offer offerB = Protos.Offer.newBuilder(getSufficientOfferForTaskB())
+        Protos.Offer offerB = Protos.Offer.newBuilder(getSufficientOfferForTaskB(SERVICE_SPEC))
                 .addAllResources(operations.stream()
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
@@ -376,7 +304,7 @@ public class DefaultSchedulerTest {
                 .addResources(cpus)
                 .addResources(mem)
                 .build();
-        Protos.Offer offerC = Protos.Offer.newBuilder(getSufficientOfferForTaskB())
+        Protos.Offer offerC = Protos.Offer.newBuilder(getSufficientOfferForTaskB(SERVICE_SPEC))
                 .addAllResources(operations.stream()
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
@@ -459,7 +387,7 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(stepTaskA0.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
-        Protos.Offer offer1 = getSufficientOfferForTaskA();
+        Protos.Offer offer1 = getSufficientOfferForTaskA(SERVICE_SPEC);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer1));
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
                 collectionThat(contains(offer1.getId())),
@@ -481,7 +409,7 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(defaultScheduler.recoveryPlanManager.getPlan().getChildren().get(0).getChildren().isEmpty());
 
         // Perform Configuration Update
-        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPECIFICATION)
+        defaultScheduler = DefaultScheduler.newBuilder(UPDATED_POD_A_SERVICE_SPEC)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build();
@@ -492,7 +420,9 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
 
         List<Protos.Resource> expectedResources = getExpectedResources(operations);
-        Protos.Resource neededAdditionalResource = ResourceTestUtils.getUnreservedCpu(UPDATED_TASK_A_CPU - TASK_A_CPU);
+        double updatedTaskACpu = getResourceValue(getPodSpec(UPDATED_POD_A_SERVICE_SPEC, POD_A_TYPE), "cpus");
+        double taskACpu = getResourceValue(getPodSpec(SERVICE_SPEC, POD_A_TYPE), "cpus");
+        Protos.Resource neededAdditionalResource = ResourceTestUtils.getUnreservedCpu(updatedTaskACpu - taskACpu);
         expectedResources.add(neededAdditionalResource);
 
         // Start update Step
@@ -582,21 +512,30 @@ public class DefaultSchedulerTest {
         defaultScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
 
-    private Protos.Offer getInsufficientOfferForTaskA(UUID offerId) {
-        return Protos.Offer.newBuilder()
-                .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(TestConstants.HOSTNAME)
-                .addAllResources(
-                        Arrays.asList(
-                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU / 2.0),
-                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM / 2.0)))
+    private Protos.Offer getSufficientOfferForTaskA(ServiceSpec serviceSpec) {
+        return getSufficientOffer(serviceSpec, POD_A_TYPE);
+    }
+
+    private Protos.Offer getSufficientOfferForTaskB(ServiceSpec serviceSpec) {
+        return getSufficientOffer(serviceSpec, POD_B_TYPE);
+    }
+
+    private Protos.Offer getSufficientOffer(ServiceSpec serviceSpec, String podType) {
+        return getScaledOffer(serviceSpec, podType, 1.0);
+    }
+
+    private Protos.Offer getInsufficientOfferForTaskA(ServiceSpec serviceSpec, UUID offerId) {
+        return getScaledOffer(serviceSpec, POD_A_TYPE, 0.5).toBuilder()
+                .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()))
                 .build();
     }
 
-    private Protos.Offer getSufficientOfferForTaskA() {
+    private Protos.Offer getScaledOffer(ServiceSpec serviceSpec, String podType, double scale) {
         UUID offerId = UUID.randomUUID();
+        PodSpec podSpec = getPodSpec(serviceSpec, podType);
+        double cpu = getResourceValue(podSpec, "cpus");
+        double mem = getResourceValue(podSpec, "mem");
+        double disk = getVolumeValue(podSpec);
 
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
@@ -605,27 +544,42 @@ public class DefaultSchedulerTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addAllResources(
                         Arrays.asList(
-                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM),
-                                ResourceTestUtils.getUnreservedDisk(TASK_A_DISK)))
+                                ResourceTestUtils.getUnreservedCpu(cpu * scale),
+                                ResourceTestUtils.getUnreservedMem(mem * scale),
+                                ResourceTestUtils.getUnreservedDisk(disk * scale)))
                 .build();
     }
 
-    private Protos.Offer getSufficientOfferForTaskB() {
-        UUID offerId = UUID.randomUUID();
-
-        return Protos.Offer.newBuilder()
-                .setId(Protos.OfferID.newBuilder().setValue(offerId.toString()).build())
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(TestConstants.HOSTNAME)
-                .addAllResources(
-                        Arrays.asList(
-                                ResourceTestUtils.getUnreservedCpu(TASK_B_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_B_MEM),
-                                ResourceTestUtils.getUnreservedDisk(TASK_B_DISK)))
-                .build();
+    private PodSpec getPodSpec(ServiceSpec serviceSpec, String podType) {
+        return serviceSpec.getPods().stream()
+                .filter(podSpec -> podSpec.getType().equals(podType))
+                .findAny()
+                .get();
     }
+
+    private double getResourceValue(PodSpec podSpec, String resourceName) {
+        return podSpec.getResources().stream().findAny().get()
+                .getResources().stream()
+                .filter(resourceSpec -> resourceSpec.getName().equals(resourceName))
+                .findAny().get()
+                .getValue()
+                .getScalar()
+                .getValue();
+    }
+
+    /**
+     * Returns a volume's disk size from the PodSpec.  Assumes there is a single volume in the PodSpec to get meaningful
+     * results.
+     */
+    private double getVolumeValue(PodSpec podSpec) {
+        return podSpec.getResources().stream().findAny().get()
+                .getVolumes().stream()
+                .findAny().get()
+                .getValue()
+                .getScalar()
+                .getValue();
+    }
+
 
     private static List<Status> getStepStatuses(Plan plan) {
         return plan.getChildren().stream()
@@ -694,9 +648,9 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
-        taskIds.add(installStep(0, 0, getSufficientOfferForTaskA()));
-        taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
-        taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
+        taskIds.add(installStep(0, 0, getSufficientOfferForTaskA(SERVICE_SPEC)));
+        taskIds.add(installStep(1, 0, getSufficientOfferForTaskB(SERVICE_SPEC)));
+        taskIds.add(installStep(1, 1, getSufficientOfferForTaskB(SERVICE_SPEC)));
 
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
         Assert.assertTrue(stateStore.isSuppressed());
@@ -743,5 +697,114 @@ public class DefaultSchedulerTest {
         }
     }
 
-    ;
+    /**
+     * test-scheduler.yml
+     *
+     * name: "test"
+     * pods:
+     *   pod-a:
+     *   count: 1
+     *   resource-sets:
+     *     resource-set-a:
+     *       cpus: 1
+     *       memory: 1000
+     *       volume:
+     *         path: test-container-path
+     *         type: ROOT
+     *         size: 1500
+     *   tasks:
+     *     a:
+     *       goal: RUNNING
+     *       cmd: echo a
+     *       resource-set: resource-set-a
+     *   pod-b:
+     *     count: 2
+     *     resource-sets:
+     *       resource-set-b:
+     *         cpus: 2
+     *         memory: 2000
+     *         volume:
+     *           path: test-container-path
+     *           type: ROOT
+     *           size: 2500
+     *     tasks:
+     *       b:
+     *         goal: RUNNING
+     *         cmd: echo b
+     *         resource-set: resource-set-b
+     */
+    private RawServiceSpec getRawServiceSpec() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 1.0, 1000, 1));
+        pods.put("pod-b", getRawPod("b", 2.0, 2000, 2));
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpecUpdateA() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 2.0, 1000, 1)); // From 1.0 cpus to 2.0 cpus
+        pods.put("pod-b", getRawPod("b", 2.0, 2000, 2));
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpecUpdateB() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 1.0, 1000, 1));
+        pods.put("pod-b", getRawPod("b", 2.0, 4000, 2)); // From 2000 mem to 4000 mem
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpecScaleA() {
+        WriteOnceLinkedHashMap<String, RawPod> pods =  new WriteOnceLinkedHashMap<>();
+        pods.put("pod-a", getRawPod("a", 1.0, 1000, 2)); // From 1 count to 2 count
+        pods.put("pod-b", getRawPod("b", 2.0, 2000, 2));
+        return getRawServiceSpec(pods);
+    }
+
+    private RawServiceSpec getRawServiceSpec(WriteOnceLinkedHashMap<String, RawPod> pods) {
+        return RawServiceSpec.newBuilder()
+                .name("test")
+                .pods(pods)
+                .build();
+    }
+
+    private RawPod getRawPod(String name, double cpus, int memory, int count) {
+        WriteOnceLinkedHashMap<String, RawTask> task =  new WriteOnceLinkedHashMap<>();
+        task.put(
+                name,
+                RawTask.newBuilder()
+                        .goal("RUNNING")
+                        .cmd("echo " + name)
+                        .resourceSet("resource-set-" + name)
+                        .build());
+
+        WriteOnceLinkedHashMap<String, RawResourceSet> resourceSet =  new WriteOnceLinkedHashMap<>();
+        resourceSet.put(
+                "resource-set-" + name,
+                RawResourceSet.newBuilder()
+                        .cpus(cpus)
+                        .memory(memory)
+                        .volume(RawVolume.newBuilder()
+                                .path("test-container-path")
+                                .type("ROOT")
+                                .size(1500)
+                                .build())
+                        .build());
+
+        return RawPod.newBuilder()
+                .count(count)
+                .tasks(task)
+                .resourceSets(resourceSet)
+                .build();
+    }
+
+    private static final DefaultServiceSpec.Builder getServiceSpec(String serviceName, PodSpec... pods) {
+        return DefaultServiceSpec.newBuilder()
+                .name(serviceName)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .apiPort(0)
+                .zookeeperConnection("foo.bar.com")
+                .pods(Arrays.asList(pods));
+    }
 }

@@ -20,6 +20,10 @@ public class RawResource {
         this.envKey = envKey;
     }
 
+    private RawResource(Builder builder) {
+        this(builder.name, builder.value, builder.envKey);
+    }
+
     public String getName() {
         return name;
     }
@@ -30,5 +34,40 @@ public class RawResource {
 
     public String getEnvKey() {
         return envKey;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawResource} builder.
+     */
+    public static final class Builder {
+        private String name;
+        private String value;
+        private String envKey;
+
+        private Builder() {
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder value(String value) {
+            this.value = value;
+            return this;
+        }
+
+        public Builder envKey(String envKey) {
+            this.envKey = envKey;
+            return this;
+        }
+
+        public RawResource build() {
+            return new RawResource(this);
+        }
     }
 }

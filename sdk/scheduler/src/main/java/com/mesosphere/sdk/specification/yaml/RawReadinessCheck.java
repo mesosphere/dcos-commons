@@ -22,6 +22,10 @@ public class RawReadinessCheck {
         this.timeout = timeoutSecs;
     }
 
+    private RawReadinessCheck(Builder builder) {
+        this(builder.cmd, builder.interval, builder.delay, builder.timeout);
+    }
+
     public String getCmd() {
         return cmd;
     }
@@ -36,5 +40,46 @@ public class RawReadinessCheck {
 
     public Integer getTimeout() {
         return timeout;
+    }
+
+    public static RawReadinessCheck.Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawReadinessCheck} builder.
+     */
+    public static class Builder {
+        protected String cmd;
+        protected Integer interval;
+        protected Integer delay;
+        protected Integer timeout;
+
+        protected Builder() {
+        }
+
+        public Builder cmd(String cmd) {
+            this.cmd = cmd;
+            return this;
+        }
+
+        public Builder interval(Integer interval) {
+            this.interval = interval;
+            return this;
+        }
+
+        public Builder delay(Integer delay) {
+            this.delay = delay;
+            return this;
+        }
+
+        public Builder timeout(Integer timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        public RawReadinessCheck build() {
+            return new RawReadinessCheck(this);
+        }
     }
 }

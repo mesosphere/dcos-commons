@@ -22,11 +22,51 @@ public class RawHealthCheck extends RawReadinessCheck {
         this.maxConsecutiveFailures = maxConsecutiveFailures;
     }
 
+    private RawHealthCheck(Builder builder) {
+        this(
+                builder.cmd,
+                builder.interval,
+                builder.gracePeriodSecs,
+                builder.maxConsecutiveFailures,
+                builder.delay,
+                builder.timeout);
+    }
+
     public Integer getGracePeriod() {
         return gracePeriod;
     }
 
     public Integer getMaxConsecutiveFailures() {
         return maxConsecutiveFailures;
+    }
+
+    public static RawHealthCheck.Builder newBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * {@link RawHealthCheck} builder.
+     */
+    public static final class Builder extends RawReadinessCheck.Builder {
+        private Integer gracePeriodSecs;
+        private Integer maxConsecutiveFailures;
+
+        private Builder() {
+            super();
+        }
+
+        public Builder gracePeriodsSecs(Integer gracePeriodSecs) {
+            this.gracePeriodSecs = gracePeriodSecs;
+            return this;
+        }
+
+        public Builder maxConsecutiveFailures(Integer maxConsecutiveFailures) {
+            this.maxConsecutiveFailures = maxConsecutiveFailures;
+            return this;
+        }
+
+        public RawHealthCheck build() {
+            return new RawHealthCheck(this);
+        }
     }
 }
