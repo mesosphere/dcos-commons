@@ -48,7 +48,7 @@ public class CustomExecutorTest {
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
                                 .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                        TaskTestUtils.createEnvironmentVariable("TASK_TYPE", "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -75,7 +75,7 @@ public class CustomExecutorTest {
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
                                 .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                        TaskTestUtils.createEnvironmentVariable("TASK_TYPE", "TEST")))
                         .build()
                         .toByteString())
                 .build();
@@ -130,7 +130,7 @@ public class CustomExecutorTest {
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
                                 .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                        TaskTestUtils.createEnvironmentVariable("TASK_TYPE", "TEST")))
                         .build()
                         .toByteString())
                 .build();
