@@ -3,7 +3,7 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "export PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH && env && ./scheduler/bin/polymorph service.yml",
+  "cmd": "{{service.cmd_prefix}} && ./prototype-scheduler/bin/prototype {{service.specification_file_name}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -14,14 +14,15 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   "env": {
-    "LD_LIBRARY_PATH": "/opt/mesosphere/lib",
     "FRAMEWORK_NAME": "{{service.name}}",
-    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}"
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
-    "{{service.specification-uri}}"
+    "{{service.specification_uri}}",
+    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

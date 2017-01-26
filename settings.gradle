@@ -18,11 +18,11 @@ project(":frameworks/helloworld").name = "helloworld"
 include 'frameworks/kafka'
 project(":frameworks/kafka").name = "kafka"
 
-include 'frameworks/polymorph'
-project(":frameworks/polymorph").name = "polymorph"
-
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
 
 include 'frameworks/template'
 project(":frameworks/template").name = "template"
+
+include 'frameworks/prototype'
+project(":frameworks/prototype").name = "prototype"
