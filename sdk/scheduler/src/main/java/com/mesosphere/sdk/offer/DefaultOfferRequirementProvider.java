@@ -510,29 +510,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         executorCommandBuilder.addUrisBuilder().setValue(javaUri);
 
         // Any URIs defined in PodSpec itself.
-        if (podSpec.getUris() != null) {
-            for (URI uri : podSpec.getUris()) {
-                executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
-            }
+        for (URI uri : podSpec.getUris()) {
+            executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
         }
 
         // Finally any URIs for config templates defined in TaskSpecs.
-        if (podSpec.getTasks() != null) {
-            for (TaskSpec taskSpec : podSpec.getTasks()) {
-                if (taskSpec.getConfigFiles() == null) {
-                    continue;
-                }
-                for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                    executorCommandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
-                            .setOutputFile(getConfigTemplateDownloadPath(config))
-                            .setExtract(false);
-                }
+        for (TaskSpec taskSpec : podSpec.getTasks()) {
+            for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
+                executorCommandBuilder.addUrisBuilder()
+                        .setValue(ArtifactResource.getTemplateUrl(
+                                serviceName,
+                                targetConfigurationId,
+                                podSpec.getType(),
+                                taskSpec.getName(),
+                                config.getName()))
+                        .setOutputFile(getConfigTemplateDownloadPath(config))
+                        .setExtract(false);
             }
         }
 

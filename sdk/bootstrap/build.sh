@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # exit immediately on failure
 set -e
 
 BOOTSTRAP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-REPO_ROOT_DIR=$(dirname $(dirname $BOOTSTRAP_DIR))
+REPO_ROOT_DIR="$(dirname $(dirname $BOOTSTRAP_DIR))"
 
 if [ -z "$GOPATH" -o -z "$(which go)" ]; then
   echo "Missing GOPATH environment variable or 'go' executable. Please configure a Go build environment."
@@ -12,8 +12,8 @@ if [ -z "$GOPATH" -o -z "$(which go)" ]; then
 fi
 
 REPO_NAME=dcos-commons # CI dir does not match repo name
-GOPATH_MESOSPHERE=$GOPATH/src/github.com/mesosphere
-GOPATH_BOOTSTRAP=$GOPATH_MESOSPHERE/$REPO_NAME/sdk/bootstrap
+GOPATH_MESOSPHERE="$GOPATH/src/github.com/mesosphere"
+GOPATH_BOOTSTRAP="$GOPATH_MESOSPHERE/$REPO_NAME/sdk/bootstrap"
 EXE_FILENAME=bootstrap
 
 GO_VERSION=$(go version | awk '{print $3}')
@@ -49,15 +49,15 @@ fi
 
 # Configure GOPATH with dcos-commons symlink (rather than having it pull master):
 echo "Creating GOPATH symlink into dcos-commons: $GOPATH"
-rm -rf $GOPATH_MESOSPHERE/$REPO_NAME
-mkdir -p $GOPATH_MESOSPHERE
-pushd $GOPATH_MESOSPHERE
-ln -s $REPO_ROOT_DIR $REPO_NAME
+rm -rf "$GOPATH_MESOSPHERE/$REPO_NAME"
+mkdir -p "$GOPATH_MESOSPHERE"
+pushd "$GOPATH_MESOSPHERE"
+ln -s "$REPO_ROOT_DIR" $REPO_NAME
 popd
 echo "Created symlink $GOPATH_MESOSPHERE/$REPO_NAME -> $REPO_ROOT_DIR"
 
 # run get/build from within GOPATH:
-pushd $GOPATH_BOOTSTRAP
+pushd "$GOPATH_BOOTSTRAP"
 go get
 echo "Building ${EXE_FILENAME}"
 rm -f ${EXE_FILENAME}

@@ -17,6 +17,7 @@ import javax.validation.constraints.Size;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,22 +27,22 @@ import java.util.Optional;
 public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Size(min = 1)
-    private String type;
-    private String user;
+    private final String type;
+    private final String user;
     @NotNull
     @Min(0)
-    private Integer count;
+    private final Integer count;
     @Valid
-    private ContainerSpec container;
+    private final ContainerSpec container;
     @NotNull
     @Valid
     @Size(min = 1)
     @UniqueTaskName(message = "Task names must be unique")
-    private List<TaskSpec> tasks;
+    private final List<TaskSpec> tasks;
     @Valid
-    private PlacementRule placementRule;
+    private final PlacementRule placementRule;
     @Valid
-    private Collection<URI> uris;
+    private final Collection<URI> uris;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -56,7 +57,7 @@ public class DefaultPodSpec implements PodSpec {
         this.user = user;
         this.count = count;
         this.container = container;
-        this.uris = uris;
+        this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
     }

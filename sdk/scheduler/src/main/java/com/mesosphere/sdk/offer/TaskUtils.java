@@ -58,9 +58,11 @@ public class TaskUtils {
     }
 
     /**
-     * Converts the provided string to a valid environment variable name.
+     * Converts the provided string to a conventional environment variable name, consisting of numbers, uppercase
+     * letters, and underscores. Strictly speaking, lowercase characters are not invalid, but this avoids them to follow
+     * convention.
      *
-     * For example: {@code hello.There!} => {@code HELLO_THERE_}
+     * For example: {@code hello.There999!} => {@code HELLO_THERE999_}
      */
     public static String toEnvName(String str) {
         return ENVVAR_INVALID_CHARS.matcher(str.toUpperCase()).replaceAll("_");
@@ -242,6 +244,7 @@ public class TaskUtils {
             }
             ConfigFileSpec prevSpec = configMap.put(configSpec.getName(), configSpec);
             if (prevSpec != null) {
+                // A config of this name is already present in the map.
                 throw new IllegalArgumentException(String.format(
                         "Config templates for a given task may not share the same name: '%s'",
                         configSpec.getName()));

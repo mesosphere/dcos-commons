@@ -49,7 +49,17 @@ public class ArtifactResource {
 
     /**
      * Produces the content of the requested configuration template, or returns an error if that template doesn't exist
-     * or the data couldn't be read.
+     * or the data couldn't be read. Configuration templates are versioned against configuration IDs, which (despite the
+     * similar naming) are not directly related. See also {@link ConfigResource} for more information on configuration
+     * IDs.
+     *
+     * @param configurationId the id of the configuration set to be retrieved from -- this should match the
+     *     configuration the task is on. this allows old tasks to continue retrieving old configurations
+     * @param podType the name/type of the pod, eg 'index' or 'data'
+     * @param taskName the name of the task
+     * @param configurationName the name of the configuration to be retrieved
+     * @return an HTTP response containing the content of the requested configuration, or an HTTP error
+     * @see ConfigResource
      */
     @Path("/template/{configurationId}/{podType}/{taskName}/{configurationName}")
     @GET

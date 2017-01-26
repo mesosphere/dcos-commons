@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -19,26 +20,26 @@ import java.util.Optional;
 public class DefaultTaskSpec implements TaskSpec {
     @NotNull
     @Size(min = 1)
-    private String name;
+    private final String name;
 
     @NotNull
-    private GoalState goalState;
+    private final GoalState goalState;
 
     @Valid
-    private CommandSpec commandSpec;
+    private final CommandSpec commandSpec;
 
     @Valid
-    private HealthCheckSpec healthCheckSpec;
+    private final HealthCheckSpec healthCheckSpec;
 
     @Valid
-    private ReadinessCheckSpec readinessCheckSpec;
+    private final ReadinessCheckSpec readinessCheckSpec;
 
     @Valid
     @NotNull
-    private ResourceSet resourceSet;
+    private final ResourceSet resourceSet;
 
     @Valid
-    private Collection<ConfigFileSpec> configFiles;
+    private final Collection<ConfigFileSpec> configFiles;
 
     @JsonCreator
     public DefaultTaskSpec(
@@ -55,7 +56,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.commandSpec = commandSpec;
         this.healthCheckSpec = healthCheckSpec;
         this.readinessCheckSpec = readinessCheckSpec;
-        this.configFiles = configFiles;
+        this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
     }
 
     private DefaultTaskSpec(Builder builder) {
