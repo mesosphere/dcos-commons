@@ -1,6 +1,10 @@
 import pytest
 
-from tests.test_utils import *
+from tests.config import *
+import sdk_install as install
+import sdk_tasks as tasks
+import sdk_marathon as marathon
+
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
@@ -17,19 +21,18 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 
 def setup_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
     gc_frameworks()
-    shakedown.install_package_and_wait(package_name=PACKAGE_NAME, service_name=PACKAGE_NAME, options_file=None,
-                                       timeout_sec=WAIT_TIME_IN_SECONDS)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 def setup_function(function):
-    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     wait_for_expected_nodes_to_exist()
 
 
 def teardown_module(module):
-    uninstall()
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.fixture
@@ -95,12 +98,12 @@ def test_master_reelection():
 @pytest.mark.recovery
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
-    config = get_elasticsearch_config()
+    config = marathon.get_config(PACKAGE_NAME)
     config['env']['ELASTICSEARCH_PLUGINS'] = plugin_name
     marathon_update(config)
     check_plugin_installed(plugin_name)
 
-    config = get_elasticsearch_config()
+    config = marathon.get_config(PACKAGE_NAME)
     config['env']['ELASTICSEARCH_PLUGINS'] = ""
     marathon_update(config)
     check_plugin_uninstalled(plugin_name)
@@ -108,16 +111,16 @@ def test_plugin_install_and_uninstall(default_populated_index):
 
 @pytest.mark.recovery
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
-    initial_task_ids = get_task_ids()
+    initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     shakedown.kill_process_on_host(get_marathon_host(), "scheduler.Main")
-    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT)
-    current_task_ids = get_task_ids()
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    current_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     assert initial_task_ids == current_task_ids
 
 
 @pytest.mark.recovery
 def test_bump_node_counts():
-    config = get_elasticsearch_config()
+    config = marathon.get_config(PACKAGE_NAME)
     data_nodes = int(config['env']['DATA_NODE_COUNT'])
     config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
     ingest_nodes = int(config['env']['INGEST_NODE_COUNT'])
@@ -126,4 +129,4 @@ def test_bump_node_counts():
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     marathon_update(config)
 
-    wait_for_dcos_tasks_health(DEFAULT_TASK_COUNT + 3)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT + 3)
