@@ -3,7 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -23,5 +22,5 @@ public interface CommandSpec {
     Optional<String> getUser();
 
     @JsonProperty("uris")
-    Collection<URI> getUris();
+    Collection<UriSpec> getUris();
 }

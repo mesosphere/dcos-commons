@@ -9,7 +9,6 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -212,8 +211,17 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .setValue(commandSpec.getValue())
                     .setEnvironment(mergeEnvironments(getTaskEnvironment(
                             podInstance, taskSpec, commandSpec), taskInfo.getCommand().getEnvironment()));
-            for (URI uri : commandSpec.getUris()) {
-                commandBuilder.addUrisBuilder().setValue(uri.toString());
+            for (UriSpec uri : commandSpec.getUris()) {
+                commandBuilder.addUrisBuilder()
+                        .setValue(uri.toString())
+                        .setExecutable(uri.isExecutable())
+                        .setExtract(uri.shouldExtract())
+                        .setCache(uri.shouldCache());
+
+                if (uri.getOutputFile().isPresent()) {
+                    commandBuilder.addUrisBuilder()
+                            .setOutputFile(uri.getOutputFile().get());
+                }
             }
             // Overwrite any prior CommandInfo:
             taskInfoBuilder.setCommand(commandBuilder);
@@ -505,8 +513,17 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             if (!taskSpec.getCommand().isPresent()) {
                 continue;
             }
-            for (URI uri : taskSpec.getCommand().get().getUris()) {
-                commandInfoBuilder.addUrisBuilder().setValue(uri.toString());
+            for (UriSpec uri : taskSpec.getCommand().get().getUris()) {
+                commandInfoBuilder.addUrisBuilder()
+                        .setValue(uri.toString())
+                        .setExecutable(uri.isExecutable())
+                        .setExtract(uri.shouldExtract())
+                        .setCache(uri.shouldCache());
+
+                if (uri.getOutputFile().isPresent()) {
+                    commandInfoBuilder.addUrisBuilder()
+                            .setOutputFile(uri.getOutputFile().get());
+                }
             }
         }
 

@@ -2,15 +2,14 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.mesosphere.sdk.config.ConfigNamespace;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -24,18 +23,20 @@ public class DefaultCommandSpec implements CommandSpec {
     private String value;
     private Map<String, String> environment;
     private String user;
-    private Collection<URI> uris;
+    @Valid
+    private Collection<UriSpec> uris;
 
     @JsonCreator
     public DefaultCommandSpec(
             @JsonProperty("value") String value,
             @JsonProperty("environment") Map<String, String> environment,
             @JsonProperty("user") String user,
-            @JsonProperty("uris") Collection<URI> uris) {
+            @JsonProperty("uris") Collection<UriSpec> uris) {
         this.value = value;
         this.environment = environment;
         this.user = user;
         this.uris = uris;
+        ValidationUtils.validate(this);
     }
 
     private DefaultCommandSpec(Builder builder) {
@@ -88,7 +89,7 @@ public class DefaultCommandSpec implements CommandSpec {
     }
 
     @Override
-    public Collection<URI> getUris() {
+    public Collection<UriSpec> getUris() {
         return uris;
     }
 
@@ -111,7 +112,7 @@ public class DefaultCommandSpec implements CommandSpec {
         private String value;
         private Map<String, String> environment;
         private String user;
-        private Collection<URI> uris;
+        private Collection<UriSpec> uris;
 
         /**
          * Creates a new {@link Builder} with the provided {@link ConfigNamespace} containing override envvars.
@@ -175,7 +176,7 @@ public class DefaultCommandSpec implements CommandSpec {
          * @param uris the {@code uris} to set
          * @return a reference to this Builder
          */
-        public Builder uris(Collection<URI> uris) {
+        public Builder uris(Collection<UriSpec> uris) {
             this.uris = uris;
             return this;
         }
@@ -186,9 +187,7 @@ public class DefaultCommandSpec implements CommandSpec {
          * @return a {@code DefaultCommandSpec} built with parameters of this {@code DefaultCommandSpec.Builder}
          */
         public DefaultCommandSpec build() {
-            DefaultCommandSpec defaultCommandSpec = new DefaultCommandSpec(this);
-            ValidationUtils.validate(defaultCommandSpec);
-            return defaultCommandSpec;
+            return new DefaultCommandSpec(this);
         }
     }
 }

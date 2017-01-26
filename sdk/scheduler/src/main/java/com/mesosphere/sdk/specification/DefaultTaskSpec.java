@@ -2,15 +2,14 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -38,7 +37,7 @@ public class DefaultTaskSpec implements TaskSpec {
     @NotNull
     private ResourceSet resourceSet;
 
-    private Collection<URI> uris;
+    private Collection<UriSpec> uris;
     private Collection<ConfigFileSpec> configFiles;
 
     @JsonCreator
@@ -49,7 +48,7 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
-            @JsonProperty("uris") Collection<URI> uris,
+            @JsonProperty("uris") Collection<UriSpec> uris,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
         this.name = name;
         this.goalState = goalState;
@@ -59,6 +58,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.readinessCheckSpec = readinessCheckSpec;
         this.uris = uris;
         this.configFiles = configFiles;
+        ValidationUtils.validate(this);
     }
 
     private DefaultTaskSpec(Builder builder) {
@@ -120,7 +120,7 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
-    public Collection<URI> getUris() {
+    public Collection<UriSpec> getUris() {
         return uris;
     }
 
@@ -157,9 +157,9 @@ public class DefaultTaskSpec implements TaskSpec {
         private ResourceSet resourceSet;
         private CommandSpec commandSpec;
         private HealthCheckSpec healthCheckSpec;
-        private ReadinessCheckSpec readinessCheckSpec;
-        private Collection<URI> uris;
+        private Collection<UriSpec> uris;
         private Collection<ConfigFileSpec> configFiles;
+        private ReadinessCheckSpec readinessCheckSpec;
 
         private Builder() {
         }
@@ -234,7 +234,7 @@ public class DefaultTaskSpec implements TaskSpec {
          * @param uris the {@code uris} to set
          * @return a reference to this Builder
          */
-        public Builder uris(Collection<URI> uris) {
+        public Builder uris(Collection<UriSpec> uris) {
             this.uris = uris;
             return this;
         }
@@ -257,9 +257,7 @@ public class DefaultTaskSpec implements TaskSpec {
          * @return a {@code DefaultTaskSpec} built with parameters of this {@code DefaultTaskSpec.Builder}
          */
         public DefaultTaskSpec build() {
-            DefaultTaskSpec defaultTaskSpec = new DefaultTaskSpec(this);
-            ValidationUtils.validate(defaultTaskSpec);
-            return defaultTaskSpec;
+            return new DefaultTaskSpec(this);
         }
     }
 }

@@ -3,9 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
@@ -13,6 +10,9 @@ import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -226,6 +226,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 AndRule.class,
                 AnyMatcher.class,
                 AttributeRule.class,
+                DefaultResourceSpec.class,
+                DefaultUriSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
