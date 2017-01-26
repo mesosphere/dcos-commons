@@ -1,0 +1,39 @@
+group 'com.mesosphere.sdk'
+version '1.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    maven {
+        url "http://downloads.mesosphere.com/maven/"
+    }
+    maven {
+        url "http://downloads.mesosphere.com/maven-snapshot/"
+    }
+}
+
+ext {
+    junitVer = "4.12"
+    systemRulesVer = "1.16.0"
+    mockitoVer = "1.9.5"
+}
+
+dependencies {
+    compile project(":scheduler")
+    compile project(":executor")
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.21'
+    testCompile project(":testing")
+}
+
+distZip.dependsOn ":executor:distZip"
+distZip.finalizedBy copyExecutor
+
+distributions {
+    main {
+        baseName = 'template-scheduler'
+        version = ''
+    }
+}
+
+mainClassName = 'com.mesosphere.sdk.template.scheduler.Main'

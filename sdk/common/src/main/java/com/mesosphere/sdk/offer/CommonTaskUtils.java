@@ -7,6 +7,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.GoalState;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos.*;
@@ -197,7 +198,7 @@ public class CommonTaskUtils {
     /**
      * Returns the pod instance index of the provided task, or throws {@link TaskException} if no index data was found.
      *
-     * @throws TaskException if the index data wasn't found
+     * @throws TaskException         if the index data wasn't found
      * @throws NumberFormatException if parsing the index as an integer failed
      */
     public static int getIndex(TaskInfo taskInfo) throws TaskException {
@@ -318,7 +319,8 @@ public class CommonTaskUtils {
      * failures to parse readiness checks are interpreted as readiness check failures.  If some value other
      * than "true" is present in the readiness check label of the TaskStatus, the readiness check has
      * failed.
-     * @param taskInfo A TaskInfo which may or may not have a readiness check defined.
+     *
+     * @param taskInfo   A TaskInfo which may or may not have a readiness check defined.
      * @param taskStatus A TaskStatus which may or may not contain a readiness check label.
      * @return the result of a readiness check for the indicated TaskInfo and TaskStatus.
      */
@@ -459,6 +461,24 @@ public class CommonTaskUtils {
                     .clearCommand()
                     .build();
         }
+    }
+
+    /**
+     * This method is similar to {@link #unpackTaskInfo(TaskInfo)}, just applied over a {@link Collection} of
+     * {@link TaskInfo}s.
+     *
+     * @param packedTaskInfos Collection of TaskInfos to be unpacked.
+     * @return
+     */
+    public static Collection<TaskInfo> unpackTaskInfos(Collection<TaskInfo> packedTaskInfos)
+            throws InvalidProtocolBufferException {
+        Collection<TaskInfo> unpackedTaskInfos = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(packedTaskInfos)) {
+            for (TaskInfo packedTaskInfo : packedTaskInfos) {
+                unpackedTaskInfos.add(unpackTaskInfo(packedTaskInfo));
+            }
+        }
+        return unpackedTaskInfos;
     }
 
     /**

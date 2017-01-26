@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 /**
  * This class encapsulates common methods for manipulating Resources.
@@ -105,6 +106,7 @@ public class ResourceUtils {
     public static Resource getExpectedRootVolume(
             double diskSize,
             String resourceId,
+            String containerPath,
             String role,
             String principal,
             String persistenceId) {
@@ -114,7 +116,7 @@ public class ResourceUtils {
                 .build();
         Resource.Builder resBuilder = Resource.newBuilder(ResourceUtils.getUnreservedResource("disk", diskValue));
         resBuilder.setRole(role);
-        resBuilder.setDisk(getExpectedRootVolumeDiskInfo(persistenceId, principal));
+        resBuilder.setDisk(getExpectedRootVolumeDiskInfo(persistenceId, containerPath, principal));
         resBuilder.setReservation(getExpectedReservationInfo(resourceId, principal));
 
         return resBuilder.build();
@@ -411,7 +413,11 @@ public class ResourceUtils {
      * @param resource the resource to install on the task
      * @return the supplied builder, modified to include the resource
      */
-    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) {
+    public static TaskInfo.Builder setResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
+        if (resource.hasDisk()) {
+            return setDiskResource(builder, resource);
+        }
+
         for (int i = 0; i < builder.getResourcesCount(); ++i) {
             if (builder.getResources(i).getName().equals(resource.getName())) {
                 builder.setResources(i, resource);
@@ -422,6 +428,29 @@ public class ResourceUtils {
         throw new IllegalArgumentException(String.format(
                 "Task has no resource with name '%s': %s",
                 resource.getName(), TextFormat.shortDebugString(builder.build())));
+    }
+
+    private static TaskInfo.Builder setDiskResource(TaskInfo.Builder builder, Resource resource) throws TaskException {
+        if (!resource.hasDisk() || !resource.getDisk().hasVolume()) {
+            throw new IllegalArgumentException(String.format("Resource should have a disk with a volume."));
+        }
+
+        String resourceContainerPath = resource.getDisk().getVolume().getContainerPath();
+        OptionalInt index = IntStream.range(0, builder.getResourcesCount())
+                .filter(i -> builder.getResources(i).hasDisk())
+                .filter(i -> builder.getResources(i).getDisk().hasVolume())
+                .filter(i -> resourceContainerPath.equals(
+                        builder.getResources(i).getDisk().getVolume().getContainerPath()))
+                .findFirst();
+
+        if (index.isPresent()) {
+            builder.setResources(index.getAsInt(), resource);
+            return builder;
+        } else {
+            throw new TaskException(String.format(
+                    "Task has no matching disk resource '%s': %s",
+                    resource, TextFormat.shortDebugString(builder.build())));
+        }
     }
 
     /**
@@ -643,16 +672,39 @@ public class ResourceUtils {
                 .build();
     }
 
-    private static DiskInfo getExpectedRootVolumeDiskInfo(String persistenceId, String principal) {
+    private static DiskInfo getExpectedRootVolumeDiskInfo(
+            String persistenceId,
+            String containerPath,
+            String principal) {
         return DiskInfo.newBuilder()
                 .setPersistence(Persistence.newBuilder()
                         .setId(persistenceId)
                         .setPrincipal(principal)
+                        .build())
+                .setVolume(Volume.newBuilder()
+                        .setContainerPath(containerPath)
+                        .setMode(Volume.Mode.RW)
                         .build())
                 .build();
     }
 
     private static DiskInfo.Source getDesiredMountVolumeSource() {
         return Source.newBuilder().setType(Source.Type.MOUNT).build();
+    }
+
+    public static Resource getDiskResource(TaskInfo taskInfo, String containerPath) throws TaskException {
+        Optional<Resource> resourceOptional = taskInfo.getResourcesList().stream()
+                .filter(resource -> resource.hasDisk())
+                .filter(resource -> resource.getDisk().hasVolume())
+                .filter(resource -> resource.getDisk().getVolume().getContainerPath().equals(containerPath))
+                .findFirst();
+
+        if (resourceOptional.isPresent()) {
+            return resourceOptional.get();
+        } else {
+            throw new TaskException(String.format(
+                    "Task has no disk resource with container path '%s': %s",
+                    containerPath, TextFormat.shortDebugString(taskInfo)));
+        }
     }
 }

@@ -12,6 +12,8 @@ public class CuratorTestUtils {
     private static final int RETRY_DELAY_MS = 1000;
     private static final String ZOOKEEPER_ROOT_NODE_NAME = "zookeeper";
 
+    public static final String USERNAME = "testusername";
+    public static final String PASSWORD = "testpassword";
 
     public static void clear(TestingServer testingServer) throws Exception {
         CuratorFramework client = getClient(testingServer);

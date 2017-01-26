@@ -83,7 +83,12 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             }
 
             Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
-            ResourceUtils.setResource(taskInfoBuilder, ports);
+            try {
+                ResourceUtils.setResource(taskInfoBuilder, ports);
+            } catch (TaskException e) {
+                LOGGER.error("Failed to set resource on TaskInfo.", e);
+            }
+
             taskInfoBuilder.setCommand(
                     CommandUtils.addEnvVar(
                             taskInfoBuilder.getCommand(), getPortEnvironmentVariable(portName), Long.toString(port)));
