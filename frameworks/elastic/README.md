@@ -119,7 +119,7 @@ This command creates a new Elasticsearch cluster with the default name `elastic`
 
 ## Custom Installation
 
-You can customize the Elasticsearch cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, ports, and plugins:
+You can customize the Elasticsearch cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:
 
 ```json
 {
@@ -127,20 +127,7 @@ You can customize the Elasticsearch cluster in a variety of ways by specifying a
     "name": "another-cluster"
   },
   "master_nodes": {
-    "http_port": 19200,
     "transport_port": 19300
-  },
-  "data_nodes": {
-    "http_port": 19201,
-    "transport_port": 19301
-  },
-  "ingest_nodes": {
-    "http_port": 19202,
-    "transport_port": 19302
-  },
-  "coordinator_nodes": {
-    "http_port": 19203,
-    "transport_port": 19303
   },
   "elasticsearch": {
     "plugins": "analysis-icu,analysis-kuromoji"
@@ -230,7 +217,8 @@ You can customize your cluster in-place when it is up and running. These are the
 - Plugins: X-Pack will already be installed for you, but you can specify other plugins via a comma-separated list of plugin names (e.g., “analysis-icu”) or plugin URIs.
 - CPU/RAM/Disk/Heap: These will be specific to your DC/OS cluster and your Elasticsearch use cases. Please refer to Elastic’s guidelines for configuration.
 - Node counts: At least 1 data node is required for the cluster to operate at all. You do not need to use a coordinator node unless you are using Kibana. There is no maximum for node counts.
-- Ports: You can pick whichever ports work for your DC/OS cluster. The defaults have master nodes listening on 9200, data nodes on 9201, ingest on 9202, and coordinators on 9203 for HTTP. For transport port numbers, the defaults are the HTTP port number + 100 (i.e., 9300, 9301, 9302, and 9303). If you want each Elasticsearch node to run on a different agent and never be collocated with any other elasticsearch nodes in the same cluster, specify the same HTTP and transport port values for each node type. If you want multiple master nodes from different clusters on the same host, specify different master HTTP and transport ports for each cluster.
+- If you are running Kibana, make sure you have exactly 1 proxylite task running. Pick an available port for it to listen on. If you are not running Kibana, do not run a proxylite task.
+- Master transport port: You can pick whichever port works for your DC/OS cluster. The default is 9300. If you want multiple master nodes from different clusters on the same host, specify different master HTTP and transport ports for each cluster. If you want to ensure a particular distribution of nodes of one task type (e.g., master nodes spread across 3 racks, data nodes on one class of machines), specify this via the Marathon placement constraint. 
 - Serial vs Parallel deployment. By default, the Elastic framework tells Mesos to install and update everything in parallel. You can change this to serial in order to have each node installed one at a time.
 
 It can be confusing to understand which parts of the Elasticsearch cluster can be modified through the Mesosphere DC/OS framework at runtime, what gets specified initially and is immutable, and what gets modified directly through the Elasticsearch cluster update settings API. The most important settings are the immutable ones, so let’s start with those.
@@ -247,7 +235,6 @@ It can be confusing to understand which parts of the Elasticsearch cluster can b
 - CPU
 - RAM
 - JVM Heap (do not exceed ½ available node RAM)
-- All ports except master transport port
 - Node counts (up, not down)
 - Deployment/Upgrade strategy (serial/parallel). Note that serial deployment does not yet wait for the cluster to reach green before proceeding to the next node. This is a known limitation.
 
