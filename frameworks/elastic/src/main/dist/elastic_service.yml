@@ -260,12 +260,14 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "sleep 120 && /proxylite/run.sh"
+        cmd: "./elastic-scheduler/resolve-dns.sh kibana-0-server.{{SERVICE_NAME}}.mesos && /proxylite/run.sh"
         cpus: {{PROXYLITE_CPUS}}
         memory: {{PROXYLITE_MEM}}
         ports:
           PROXYLITE:
             port: {{PROXYLITE_PORT}}
+        uris:
+          - "{{SCHEDULER_URI}}"
         env:
           EXTERNAL_ROUTES: "/v1,/kibana"
           INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{SERVICE_NAME}}.l4lb.thisdcos.directory:5601"
