@@ -1,6 +1,0 @@
-{
-    "service": {
-        "principal": "service-acct",
-        "secret_name": "secret"
-    }
-}
