@@ -318,7 +318,8 @@ public class CuratorStateStore implements StateStore {
             logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
             return Optional.empty();
         } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            throw new StateStoreException(Reason.STORAGE_ERROR,
+                    String.format("Failed to retrieve task named %s", taskName), e);
         }
     }
 

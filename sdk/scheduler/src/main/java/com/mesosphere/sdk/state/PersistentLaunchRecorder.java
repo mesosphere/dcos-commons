@@ -12,24 +12,24 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
 /**
- * Records the state of accepted offers.
+ * Records the result of launched tasks to persistent storage.
  */
-public class PersistentOperationRecorder implements OperationRecorder {
+public class PersistentLaunchRecorder implements OperationRecorder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
 
-    public PersistentOperationRecorder(StateStore stateStore) {
+    public PersistentLaunchRecorder(StateStore stateStore) {
         this.stateStore = stateStore;
     }
 
     @Override
     public void record(OfferRecommendation offerRecommendation) throws Exception {
-        if (offerRecommendation instanceof LaunchOfferRecommendation) {
-            recordTask(((LaunchOfferRecommendation) offerRecommendation).getTaskInfo());
+        if (!(offerRecommendation instanceof LaunchOfferRecommendation)) {
+            return;
         }
-    }
 
-    private void recordTask(Protos.TaskInfo taskInfo) throws StateStoreException {
+        Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) offerRecommendation).getTaskInfo();
+
         Protos.TaskStatus taskStatus = null;
         if (!taskInfo.getTaskId().getValue().equals("")) {
             // Record initial TaskStatus of STAGING:
@@ -43,6 +43,7 @@ public class PersistentOperationRecorder implements OperationRecorder {
 
             taskStatus = taskStatusBuilder.build();
         }
+
         logger.info("Persisting launch operation{}: {}",
                 taskStatus != null ? " with STAGING status" : "",
                 TextFormat.shortDebugString(taskInfo));

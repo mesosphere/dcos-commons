@@ -435,8 +435,23 @@ public class CommonTaskUtils {
 
     /**
      * Mesos requirements do not allow a TaskInfo to simultaneously have a Command and Executor.  In order to
-     * workaround this we encapsulate a TaskInfo's Command and Data fields in an ExecutorInfo and store it in the
-     * data field of the TaskInfo.
+     * workaround this we encapsulate a TaskInfo's Command field in an ExecutorInfo and store it in the data field of
+     * the TaskInfo.
+     *
+     * Unpacked:
+     * - taskInfo
+     *   - executor
+     *   - data: custom
+     *   - command
+     *
+     * Packed:
+     * - taskInfo
+     *   - executor
+     *   - data: serialized executorinfo
+     *     - data: custom
+     *     - command
+     *
+     * @see #unpackTaskInfo(TaskInfo)
      */
     public static TaskInfo packTaskInfo(TaskInfo taskInfo) {
         if (!taskInfo.hasExecutor()) {
@@ -447,8 +462,6 @@ public class CommonTaskUtils {
 
             if (taskInfo.hasCommand()) {
                 executorInfoBuilder.setCommand(taskInfo.getCommand());
-            } else {
-                executorInfoBuilder.setCommand(CommandInfo.getDefaultInstance());
             }
 
             if (taskInfo.hasData()) {
@@ -464,16 +477,27 @@ public class CommonTaskUtils {
 
     /**
      * This method reverses the work done in {@link #packTaskInfo(TaskInfo)} such that the original
-     * TaskInfo is regenerated.
+     * TaskInfo is regenerated. If the provided {@link TaskInfo} doesn't appear to have packed data
+     * then this operation does nothing.
+     *
+     * TODO(nickbp): Make this function only visible to Custom Executor code. Scheduler shouldn't ever call it.
+     *
+     * @see #packTaskInfo(TaskInfo)
      */
-    public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) throws InvalidProtocolBufferException {
-        if (!taskInfo.hasExecutor()) {
-            LOGGER.info("Nothing to unpack.");
+    public static TaskInfo unpackTaskInfo(TaskInfo taskInfo) {
+        if (!taskInfo.hasData() || !taskInfo.hasExecutor()) {
             return taskInfo;
         } else {
-            LOGGER.info("Unpacking.");
             TaskInfo.Builder taskBuilder = TaskInfo.newBuilder(taskInfo);
-            ExecutorInfo pkgExecutorInfo = ExecutorInfo.parseFrom(taskInfo.getData());
+            ExecutorInfo pkgExecutorInfo;
+            try {
+                pkgExecutorInfo = ExecutorInfo.parseFrom(taskInfo.getData());
+            } catch (InvalidProtocolBufferException e) {
+                // This TaskInfo has a data field, but it doesn't parse as an ExecutorInfo. Not a packed TaskInfo?
+                // TODO(nickbp): This try/catch should be removed once CuratorStateStore is no longer speculatively
+                //               unpacking all TaskInfos.
+                return taskInfo;
+            }
 
             if (pkgExecutorInfo.hasCommand()) {
                 taskBuilder.setCommand(pkgExecutorInfo.getCommand());
@@ -481,6 +505,8 @@ public class CommonTaskUtils {
 
             if (pkgExecutorInfo.hasData()) {
                 taskBuilder.setData(pkgExecutorInfo.getData());
+            } else {
+                taskBuilder.clearData();
             }
 
             return taskBuilder.build();
