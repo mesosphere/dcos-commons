@@ -49,7 +49,7 @@ public class CustomExecutor implements Executor {
 
     @Override
     public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-        LOGGER.info("Re-registered on slave: {}", TextFormat.shortDebugString(slaveInfo));
+        LOGGER.info("Re-registered on slave: {}", slaveInfo.getId().getValue());
         this.slaveInfo = slaveInfo;
     }
 
@@ -165,14 +165,14 @@ public class CustomExecutor implements Executor {
         // TODO(mohit): Implement SIGKILL shutdown. Currently only perform SIGTERM.
         try {
             if (!launchedTasks.containsKey(taskId)) {
-                LOGGER.error("Unable to kill unknown TaskID: {}", TextFormat.shortDebugString(taskId));
+                LOGGER.error("Unable to kill unknown TaskID: {}", taskId.getValue());
                 return;
             }
-            LOGGER.info("Stopping task as part of killTask: {}", TextFormat.shortDebugString(taskId));
+            LOGGER.info("Stopping task as part of killTask: {}", taskId.getValue());
             final LaunchedTask launchedTask = launchedTasks.get(taskId);
             launchedTask.stop();
         } catch (Throwable t) {
-            LOGGER.error(String.format("Error killing task %s", TextFormat.shortDebugString(taskId)), t);
+            LOGGER.error(String.format("Error killing task %s", taskId.getValue()), t);
         }
     }
 
@@ -189,10 +189,10 @@ public class CustomExecutor implements Executor {
         for (Map.Entry<Protos.TaskID, LaunchedTask> entry : launchedTasks.entrySet()) {
             final Protos.TaskID taskId = entry.getKey();
             try {
-                LOGGER.info("Stopping task as part of executor shutdown: {}", TextFormat.shortDebugString(taskId));
+                LOGGER.info("Stopping task as part of executor shutdown: {}", taskId.getValue());
                 killTask(driver, taskId);
             } catch (Throwable t) {
-                LOGGER.error(String.format("Error stopping task %s", TextFormat.shortDebugString(taskId)), t);
+                LOGGER.error(String.format("Error stopping task %s", taskId.getValue()), t);
             }
         }
     }
