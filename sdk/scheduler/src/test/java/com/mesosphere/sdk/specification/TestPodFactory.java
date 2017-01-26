@@ -6,7 +6,6 @@ import com.mesosphere.sdk.config.ConfigNamespace;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * This class provides TaskTypeSpecifications for testing purposes.
@@ -59,7 +58,6 @@ public class TestPodFactory {
                 .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder(ConfigNamespace.emptyInstance())
                         .value(cmd)
-                        .uris(Collections.emptyList())
                         .environment(Collections.emptyMap())
                         .build())
                 .configFiles(configs)
@@ -88,14 +86,9 @@ public class TestPodFactory {
     }
 
     public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
-        List<ResourceSet> resourceSets = taskSpecs.stream()
-                .map(taskSpec -> taskSpec.getResourceSet())
-                .collect(Collectors.toList());
-
         return DefaultPodSpec.newBuilder()
                 .type(type)
                 .count(count)
-                .resources(resourceSets)
                 .tasks(taskSpecs)
                 .build();
     }

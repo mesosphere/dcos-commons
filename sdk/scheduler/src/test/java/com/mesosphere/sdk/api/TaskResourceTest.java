@@ -8,6 +8,8 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -52,7 +54,7 @@ public class TaskResourceTest {
 
     @Test
     public void testGetTaskNamesFails() {
-        when(mockStateStore.fetchTaskNames()).thenThrow(new StateStoreException("hi"));
+        when(mockStateStore.fetchTaskNames()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
         Response response = resource.getTaskNames();
         assertEquals(500, response.getStatus());
     }
@@ -70,7 +72,7 @@ public class TaskResourceTest {
     @Test
     public void testGetTaskInfoFails() {
         String taskName = "task1";
-        when(mockStateStore.fetchTask(taskName)).thenThrow(new StateStoreException("hi"));
+        when(mockStateStore.fetchTask(taskName)).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
         Response response = resource.getTaskInfo(taskName);
         assertEquals(500, response.getStatus());
     }

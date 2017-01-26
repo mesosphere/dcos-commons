@@ -6,11 +6,11 @@ pods:
     count: 3
     uris:
       - {{HDFS_URI}}
-      - {{RESOLVE_URI}}
+      - {{BOOTSTRAP_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode
+        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -29,13 +29,11 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
   name:
     count: 2
     uris:
       - {{HDFS_URI}}
-      - {{RESOLVE_URI}}
+      - {{BOOTSTRAP_URI}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
@@ -52,7 +50,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode
+        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode
         resource-set: name-resources
         configs:
           core-site:
@@ -61,11 +59,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format
+        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           core-site:
@@ -74,11 +70,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
       bootstrap:
         goal: FINISHED
-        cmd: env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby
+        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
           core-site:
@@ -87,13 +81,11 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
   zkfc:
     count: 2
     uris:
       - {{HDFS_URI}}
-      - {{RESOLVE_URI}}
+      - {{BOOTSTRAP_URI}}
     resource-sets:
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
@@ -101,7 +93,7 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc
+        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           core-site:
@@ -111,11 +103,10 @@ pods:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
       format:
         goal: FINISHED
-        cmd: ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK
+        cmd: ./bootstrap && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           core-site:
@@ -125,18 +116,17 @@ pods:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
   data:
     count: {{DATA_COUNT}}
     uris:
       - {{HDFS_URI}}
-      - {{RESOLVE_URI}}
+      - {{BOOTSTRAP_URI}}
     tasks:
       node:
         goal: RUNNING
         cmd: >
-               ./resolve-dns.sh &&
+               ./bootstrap &&
                mkdir -p /var/lib/hadoop-hdfs &&
                chown root /var/lib/hadoop-hdfs &&
                ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode
@@ -160,8 +150,6 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
 
 plans:
   deploy:

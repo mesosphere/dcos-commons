@@ -137,7 +137,8 @@ public class PortEvaluationStageTest {
     public void testPortOnHealthCheck() throws Exception {
         DefaultPodInstance podInstance = getPodInstance("valid-port-healthcheck.yml");
         StateStore stateStore = Mockito.mock(StateStore.class);
-        DefaultOfferRequirementProvider provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        DefaultOfferRequirementProvider provider =
+                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance,
                 TaskUtils.getTaskNames(podInstance));
 
@@ -189,7 +190,8 @@ public class PortEvaluationStageTest {
     public void testPortOnReadinessCheck() throws Exception {
         DefaultPodInstance podInstance = getPodInstance("valid-port-readinesscheck.yml");
         StateStore stateStore = Mockito.mock(StateStore.class);
-        DefaultOfferRequirementProvider provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        DefaultOfferRequirementProvider provider =
+                new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance,
                 TaskUtils.getTaskNames(podInstance));
 
