@@ -15,6 +15,7 @@ def get_config(app_name):
 
     return config
 
+
 def destroy_app(app_name):
     sdk_cmd.request('delete', api_url_with_param('apps', app_name))
     # Make sure the scheduler has been destroyed
