@@ -57,8 +57,8 @@ public class SchedulerUtils {
     /**
      * Immediately exits the process with the ordinal value of the provided {@code errorCode}.
      */
-    @SuppressWarnings({"DM_EXIT"})
+    @SuppressWarnings("DM_EXIT")
     public static void hardExit(SchedulerErrorCode errorCode) {
-        System.exit(errorCode.ordinal());
+        System.exit(errorCode.getValue());
     }
 }
