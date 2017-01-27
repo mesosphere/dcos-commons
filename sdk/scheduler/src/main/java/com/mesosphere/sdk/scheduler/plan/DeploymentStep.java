@@ -2,6 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.GoalState;
@@ -41,16 +43,16 @@ public class DeploymentStep extends AbstractStep {
      * @param operations The Operations which were performed in response to the {@link PodInstanceRequirement} provided
      *                   by {@link #start()}
      */
-    private synchronized void setTaskIds(Collection <Protos.Offer.Operation> operations) {
+    private synchronized void setTaskIds(Collection<OfferRecommendation> recommendations) {
         tasks.clear();
 
-        for (Protos.Offer.Operation operation : operations) {
-            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                for (Protos.TaskInfo taskInfo : operation.getLaunch().getTaskInfosList()) {
-                    if (!taskInfo.getTaskId().getValue().equals("")) {
-                        tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
-                    }
-                }
+        for (OfferRecommendation recommendation : recommendations) {
+            if (!(recommendation instanceof LaunchOfferRecommendation)) {
+                continue;
+            }
+            Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) recommendation).getTaskInfo();
+            if (!taskInfo.getTaskId().getValue().equals("")) {
+                tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
             }
         }
 
@@ -63,15 +65,15 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
+    public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
-        logger.info("Updated step '{} [{}]' with {} operations:", getName(), getId(), operations.size());
-        for (Protos.Offer.Operation operation : operations) {
-            logger.info("  {}", TextFormat.shortDebugString(operation));
+        logger.info("Updated step '{} [{}]' with {} recommendations:", getName(), getId(), recommendations.size());
+        for (OfferRecommendation recommendation : recommendations) {
+            logger.info("  {}", TextFormat.shortDebugString(recommendation.getOperation()));
         }
-        setTaskIds(operations);
+        setTaskIds(recommendations);
 
-        if (operations.isEmpty()) {
+        if (recommendations.isEmpty()) {
             setStatus(Status.PREPARED);
         } else {
             setStatus(Status.STARTING);
