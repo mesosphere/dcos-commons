@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -22,6 +23,10 @@ import java.nio.charset.StandardCharsets;
 public class YAMLServiceSpecFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(YAMLServiceSpecFactory.class);
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    static {
+        // If the user provides duplicate fields (e.g. 'count' twice), throw an error instead of silently dropping data:
+        YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+    }
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /**

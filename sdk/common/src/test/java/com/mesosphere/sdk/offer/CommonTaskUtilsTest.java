@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.mesosphere.sdk.specification.ConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.mesos.Protos;
@@ -48,30 +45,6 @@ public class CommonTaskUtilsTest {
         Protos.TaskInfo taskInfo = CommonTaskUtils.setTargetConfiguration(
                 getTestTaskInfo().toBuilder(), testTargetConfigurationId).build();
         Assert.assertEquals(testTargetConfigurationId, CommonTaskUtils.getTargetConfiguration(taskInfo));
-    }
-
-    @Test
-    public void testSetGetConfigTemplates() throws InvalidProtocolBufferException {
-        Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        Collection<ConfigFileSpec> configs = Arrays.asList(
-                new DefaultConfigFileSpec("../relative/path/to/config", "this is a config template"),
-                new DefaultConfigFileSpec("../relative/path/to/config2", "this is a second config template"));
-        CommonTaskUtils.setConfigFiles(taskBuilder, configs);
-        Assert.assertEquals(configs, CommonTaskUtils.getConfigFiles(taskBuilder.build()));
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void testSetTemplatesTooBig() throws InvalidProtocolBufferException {
-        Protos.TaskInfo.Builder taskBuilder = getTestTaskInfo().toBuilder();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 256 * 1024; ++i) {
-            sb.append('a');
-        }
-        Collection<ConfigFileSpec> configs = Arrays.asList(
-                new DefaultConfigFileSpec("../relative/path/to/config", sb.toString()),
-                new DefaultConfigFileSpec("../relative/path/to/config2", sb.toString()),
-                new DefaultConfigFileSpec("../relative/path/to/config3", "a"));
-        CommonTaskUtils.setConfigFiles(taskBuilder, configs);
     }
 
     @Test

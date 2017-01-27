@@ -1,10 +1,14 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.collect.Sets;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
+
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.reconciliation.Reconciler;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.TaskTestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -119,11 +123,10 @@ public class ReconciliationStepTest {
 
     @Test(expected=UnsupportedOperationException.class)
     public void testUpdateOfferStatusTrueFails() {
-        Protos.Offer.Operation op = Protos.Offer.Operation.newBuilder()
-                .setType(Protos.Offer.Operation.Type.LAUNCH)
-                .build();
-        List<Protos.Offer.Operation> operations = Arrays.asList(op);
-        step.updateOfferStatus(operations);
+        LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
+                OfferTestUtils.getEmptyOfferBuilder().build(),
+                TaskTestUtils.getTaskInfo(Collections.emptyList()));
+        step.updateOfferStatus(Arrays.asList(launchRec));
     }
 
     @Test

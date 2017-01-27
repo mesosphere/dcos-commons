@@ -1,10 +1,7 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -16,7 +13,6 @@ public class RawTask {
     private final String cmd;
     private final Map<String, String> env;
     private final WriteOnceLinkedHashMap<String, RawConfig> configs;
-    private final Collection<String> uris;
     private final Double cpus;
     private final Integer memory;
     private final WriteOnceLinkedHashMap<String, RawPort> ports;
@@ -31,7 +27,6 @@ public class RawTask {
             @JsonProperty("cmd") String cmd,
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
-            @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("cpus") Double cpus,
             @JsonProperty("memory") Integer memory,
             @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
@@ -44,7 +39,6 @@ public class RawTask {
         this.cmd = cmd;
         this.env = env;
         this.configs = configs;
-        this.uris = uris;
         this.cpus = cpus;
         this.memory = memory;
         this.ports = ports;
@@ -85,10 +79,6 @@ public class RawTask {
 
     public Map<String, String> getEnv() {
         return env;
-    }
-
-    public Collection<String> getUris() {
-        return CollectionUtils.isEmpty(uris) ? Collections.emptyList() : uris;
     }
 
     public WriteOnceLinkedHashMap<String, RawPort> getPorts() {

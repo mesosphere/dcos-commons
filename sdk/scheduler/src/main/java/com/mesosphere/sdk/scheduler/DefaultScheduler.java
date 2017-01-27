@@ -39,7 +39,7 @@ import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.state.PersistentOperationRecorder;
+import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
 
@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -93,7 +94,12 @@ public class DefaultScheduler implements Scheduler, Observer {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
+
     protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
+    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
+    // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
+    protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
+
     protected final ServiceSpec serviceSpec;
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
@@ -339,7 +345,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                     plans,
                     stateStore,
                     configStore,
-                    createOfferRequirementProvider(stateStore, configUpdateResult.targetId),
+                    new DefaultOfferRequirementProvider(stateStore, serviceSpec.getName(), configUpdateResult.targetId),
                     endpointProducers,
                     restartHookOptional);
         }
@@ -382,9 +388,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Creates and returns a new default {@link ConfigStore} suitable for passing to
      * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to
-     * {@link DefaultScheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} (SchedulerDriver,
-     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}.
+     * signified by a call to {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
@@ -472,14 +476,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which expects
-     * tasks tagged with the provided {@code targetConfigurationId}.
-     */
-    public static OfferRequirementProvider createOfferRequirementProvider(StateStore stateStore, UUID targetConfigId) {
-        return new DefaultOfferRequirementProvider(stateStore, targetConfigId);
-    }
-
-    /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
     protected DefaultScheduler(
@@ -559,7 +555,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider), stateStore, taskKiller);
@@ -616,6 +612,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
+        resources.add(new ArtifactResource(configStore));
         resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
@@ -656,6 +653,13 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
+        if (isAlreadyRegistered.getAndSet(true)) {
+            // This may occur as the result of a master election.
+            LOGGER.info("Already registered, calling reregistered()");
+            reregistered(driver, masterInfo);
+            return;
+        }
+
         LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
         try {
             initialize(driver);
@@ -680,8 +684,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        LOGGER.error("Re-registration implies we were unregistered.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
         reconciler.start();
         reconciler.reconcile(driver);
         suppressOrRevive();

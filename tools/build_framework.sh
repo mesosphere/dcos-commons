@@ -43,6 +43,14 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Executor Bootstrap (Go):
+BOOTSTRAP_DIR=${TOOLS_DIR}/../sdk/bootstrap
+${BOOTSTRAP_DIR}/build.sh
+if [ $? -ne 0 ]; then
+    _notify_github failure "Bootstrap build failed"
+    exit 1
+fi
+
 # CLI (Go):
 # /home/user/dcos-commons/frameworks/helloworld/cli => frameworks/helloworld/cli
 REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
@@ -76,6 +84,7 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
     $PUBLISH_SCRIPT \
         ${FRAMEWORK_NAME} \
         ${UNIVERSE_DIR} \
+        ${BOOTSTRAP_DIR}/bootstrap.zip \
         ${CLI_DIR}/dcos-*/dcos-* \
         ${CLI_DIR}/dcos-*/*.whl \
         ${ARTIFACT_FILES}

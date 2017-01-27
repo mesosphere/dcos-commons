@@ -10,7 +10,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +55,23 @@ public class ConfigResource<T extends Configuration> {
     @Path("/{configurationId}")
     @GET
     public Response getConfiguration(@PathParam("configurationId") String configurationId) {
+        logger.info("Attempting to fetch config with id '{}'", configurationId);
+        UUID uuid;
         try {
-            logger.info("Attempting to fetch config with id '{}'", configurationId);
-            return fetchConfig(UUID.fromString(configurationId));
+            uuid = UUID.fromString(configurationId);
         } catch (Exception ex) {
-            // Warning instead of Error: Subject to user input
             logger.warn(String.format(
+                    "Failed to parse requested configuration id '%s' as a UUID", configurationId), ex);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            return fetchConfig(uuid);
+        } catch (ConfigStoreException ex) {
+            if (ex.getReason() == Reason.NOT_FOUND) {
+                logger.warn(String.format("Requested configuration '%s' doesn't exist", configurationId), ex);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            logger.error(String.format(
                     "Failed to fetch requested configuration with id '%s'", configurationId), ex);
             return Response.serverError().build();
         }
@@ -74,7 +88,11 @@ public class ConfigResource<T extends Configuration> {
             // return a JSONArray to line up with getConfigurationIds()
             JSONArray configArray = new JSONArray(Arrays.asList(configStore.getTargetConfig()));
             return Response.ok(configArray.toString(), MediaType.APPLICATION_JSON).build();
-        } catch (Exception ex) {
+        } catch (ConfigStoreException ex) {
+            if (ex.getReason() == Reason.NOT_FOUND) {
+                logger.warn("No target configuration exists", ex);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
             logger.error("Failed to fetch target configuration", ex);
             return Response.serverError().build();
         }
@@ -90,13 +108,18 @@ public class ConfigResource<T extends Configuration> {
         UUID targetId;
         try {
             targetId = configStore.getTargetConfig();
-        } catch (Exception ex) {
+        } catch (ConfigStoreException ex) {
+            if (ex.getReason() == Reason.NOT_FOUND) {
+                logger.warn("No target configuration exists", ex);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
             logger.error("Failed to fetch ID of target configuration", ex);
             return Response.serverError().build();
         }
         try {
             return fetchConfig(targetId);
-        } catch (Exception ex) {
+        } catch (ConfigStoreException ex) {
+            // Return 500 even if exception is NOT_FOUND: The data should be present.
             logger.error(String.format("Failed to fetch target configuration '%s'", targetId), ex);
             return Response.serverError().build();
         }
@@ -105,7 +128,7 @@ public class ConfigResource<T extends Configuration> {
     /**
      * Returns an HTTP response containing the content of the requested configuration.
      */
-    private Response fetchConfig(UUID id) throws Exception {
+    private Response fetchConfig(UUID id) throws ConfigStoreException {
         // return the content provided by the config verbatim, treat as plaintext
         return Response.ok(configStore.fetch(id).toJsonString(),
                 MediaType.APPLICATION_JSON).build();

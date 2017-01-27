@@ -1,0 +1,39 @@
+{
+  "id": "{{service.name}}",
+  "cpus": 1.0,
+  "mem": 1230,
+  "instances": 1,
+  "cmd": "{{service.cmd_prefix}} && ./prototype-scheduler/bin/prototype {{service.specification_file_name}}",
+  "labels": {
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
+    "DCOS_MIGRATION_API_VERSION": "v1",
+    "DCOS_MIGRATION_API_PATH": "/v1/plan",
+    "MARATHON_SINGLE_INSTANCE_APP":"true",
+    "DCOS_SERVICE_NAME": "{{service.name}}",
+    "DCOS_SERVICE_PORT_INDEX": "0",
+    "DCOS_SERVICE_SCHEME": "http"
+  },
+  "env": {
+    "FRAMEWORK_NAME": "{{service.name}}",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  },
+  "uris": [
+    "{{resource.assets.uris.jre-tar-gz}}",
+    "{{resource.assets.uris.scheduler-zip}}",
+    "{{service.specification_uri}}",
+    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  ],
+  "upgradeStrategy":{
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  },
+  "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "api",
+      "labels": {}
+    }
+  ]
+}

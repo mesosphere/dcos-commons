@@ -35,9 +35,10 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         taskBuilder = CommonTaskUtils.setType(taskBuilder, offerRequirement.getType());
         taskBuilder = CommonTaskUtils.setIndex(taskBuilder, offerRequirement.getIndex());
         taskBuilder = CommonTaskUtils.setHostname(taskBuilder, offer);
+        Protos.TaskInfo taskInfo = taskBuilder.build();
 
-        Protos.TaskInfo taskInfo = CommonTaskUtils.packTaskInfo(taskBuilder.build());
-        offerRequirement.updateTaskRequirement(taskBuilder.getName(), taskInfo);
+        offerRequirement.updateTaskRequirement(taskInfo.getName(), taskInfo);
+
         offerRecommendationSlate.addLaunchRecommendation(new LaunchOfferRecommendation(offer, taskInfo));
         return pass(this, "Added launch information to offer requirement");
     }

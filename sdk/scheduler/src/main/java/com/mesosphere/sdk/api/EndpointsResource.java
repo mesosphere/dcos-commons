@@ -36,7 +36,6 @@ public class EndpointsResource {
 
     private static final String RESPONSE_KEY_DIRECT = "direct";
     private static final String RESPONSE_KEY_VIP = "vip";
-    private static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 
     private final StateStore stateStore;
     private final String serviceName;
@@ -227,7 +226,7 @@ public class EndpointsResource {
             vipEndpoint.append(RESPONSE_KEY_DIRECT, directHostPort);
             // populate 'vip' field if not yet populated (due to another task with the same vip):
             vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.%s:%d",
-                    vipInfo.name, serviceName, VIP_HOST_TLD, vipInfo.port));
+                    vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port));
         }
 
         if (!foundAnyVips) {

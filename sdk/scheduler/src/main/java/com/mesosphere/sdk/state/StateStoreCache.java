@@ -2,6 +2,8 @@ package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -95,7 +97,7 @@ public class StateStoreCache implements StateStore {
             // Get the name from the corresponding TaskInfo for this task ID:
             TaskInfo task = idToTask.get(status.getTaskId());
             if (task == null) {
-                throw new StateStoreException(String.format(
+                throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                         "The following TaskInfo is not present: %s. TaskInfo must be present in " +
                                 "order to store a TaskStatus. All Tasks: %s", status.getTaskId(), idToTask));
             }
@@ -165,7 +167,7 @@ public class StateStoreCache implements StateStore {
                 }
             }
             if (taskName == null) {
-                throw new StateStoreException(String.format(
+                throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                         "The following TaskInfo is not present in the StateStore: %s. " +
                                 "TaskInfo must be present in order to store a TaskStatus.", status.getTaskId()));
             }
@@ -258,7 +260,7 @@ public class StateStoreCache implements StateStore {
         try {
             byte[] val = properties.get(key);
             if (val == null) { // emulate StateStore contract
-                throw new StateStoreException(String.format(
+                throw new StateStoreException(Reason.NOT_FOUND, String.format(
                         "Property key does not exist: %s (known keys are: %s)",
                         key, properties.keySet()));
             }

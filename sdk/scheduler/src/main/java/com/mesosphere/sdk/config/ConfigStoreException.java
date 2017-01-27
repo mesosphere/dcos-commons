@@ -2,6 +2,8 @@ package com.mesosphere.sdk.config;
 
 import java.io.IOException;
 
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 /**
  * Exception that indicates that there was an issue with storing values
  * in the config store.  The underlying exception is intended to be
@@ -9,15 +11,33 @@ import java.io.IOException;
  */
 public class ConfigStoreException extends IOException {
 
-    public ConfigStoreException(Throwable e) {
-        super(e);
+    private final Reason reason;
+
+    public ConfigStoreException(Reason reason, Throwable cause) {
+        super(cause);
+        this.reason = reason;
     }
 
-    public ConfigStoreException(String message) {
+    public ConfigStoreException(Reason reason, String message) {
         super(message);
+        this.reason = reason;
     }
 
-    public ConfigStoreException(String message, Throwable cause) {
+    public ConfigStoreException(Reason reason, String message, Throwable cause) {
         super(message, cause);
+        this.reason = reason;
+    }
+
+    /**
+     * Returns the machine-parseable reason for this exception. Primarily used for debugging/logging purposes and for
+     * delineating different error cases in REST APIs.
+     */
+    public Reason getReason() {
+        return reason;
+    }
+
+    @Override
+    public String getMessage() {
+        return String.format("%s (reason: %s)", super.getMessage(), reason);
     }
 }

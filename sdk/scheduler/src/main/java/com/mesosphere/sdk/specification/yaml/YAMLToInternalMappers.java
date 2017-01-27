@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -104,11 +103,6 @@ public class YAMLToInternalMappers {
             ConfigNamespace configNamespace,
             String role,
             String principal) throws Exception {
-        Collection<URI> uris = new ArrayList<>();
-        for (String uriStr : rawPod.getUris()) {
-            uris.add(new URI(uriStr));
-        }
-
         WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
         if (MapUtils.isNotEmpty(rawResourceSets)) {
@@ -135,20 +129,22 @@ public class YAMLToInternalMappers {
                     entry.getValue(),
                     fileReader,
                     entry.getKey(),
-                    uris,
-                    Optional.ofNullable(rawPod.getUser()),
                     configNamespace,
                     resourceSets,
                     role,
                     principal));
+        }
+        Collection<URI> podUris = new ArrayList<>();
+        for (String uriStr : rawPod.getUris()) {
+            podUris.add(new URI(uriStr));
         }
 
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
                 .count(rawPod.getCount())
                 .tasks(taskSpecs)
                 .type(podName)
-                .user(rawPod.getUser())
-                .resources(resourceSets);
+                .uris(podUris)
+                .user(rawPod.getUser());
 
         PlacementRule placementRule = MarathonConstraintParser.parse(rawPod.getPlacement());
         if (!(placementRule instanceof PassthroughRule)) {
@@ -170,31 +166,22 @@ public class YAMLToInternalMappers {
             RawTask rawTask,
             YAMLServiceSpecFactory.FileReader fileReader,
             String taskName,
-            Collection<URI> podUris,
-            Optional<String> user,
             ConfigNamespace configNamespace,
             Collection<ResourceSet> resourceSets,
             String role,
             String principal) throws Exception {
-        Collection<URI> uris = new ArrayList<>();
-        for (String uriStr : rawTask.getUris()) {
-            uris.add(new URI(uriStr));
-        }
-        uris.addAll(podUris);
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(configNamespace)
                 .environment(rawTask.getEnv())
-                .uris(uris)
                 .value(rawTask.getCmd());
-        if (user.isPresent()) {
-            commandSpecBuilder.user(user.get());
-        }
 
         List<ConfigFileSpec> configFiles = new ArrayList<>();
         if (rawTask.getConfigs() != null) {
-            for (RawConfig rawConfig : rawTask.getConfigs().values()) {
+            for (Map.Entry<String, RawConfig> configEntry : rawTask.getConfigs().entrySet()) {
                 configFiles.add(new DefaultConfigFileSpec(
-                        rawConfig.getDest(), fileReader.read(rawConfig.getTemplate())));
+                        configEntry.getKey(),
+                        configEntry.getValue().getDest(),
+                        fileReader.read(configEntry.getValue().getTemplate())));
             }
         }
 
@@ -222,8 +209,7 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
-                .name(taskName)
-                .uris(uris);
+                .name(taskName);
 
         if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
             // Use resource set content:
@@ -260,6 +246,10 @@ public class YAMLToInternalMappers {
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
         if (rawVolumes != null) {
+            if (rawSingleVolume != null) {
+                throw new IllegalArgumentException(String.format(
+                        "Both 'volume' and 'volumes' may not be specified at the same time: %s", id));
+            }
             // Note: volume names for multiple volumes are currently ignored
             for (RawVolume rawVolume : rawVolumes.values()) {
                 resourceSetBuilder.addVolume(
