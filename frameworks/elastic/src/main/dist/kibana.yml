@@ -1,4 +1,4 @@
-elasticsearch.url: "http://coordinator.{{SERVICE_NAME}}.l4lb.thisdcos.directory:9200"
+elasticsearch.url: "http://coordinator.{{FRAMEWORK_NAME}}.l4lb.thisdcos.directory:9200"
 elasticsearch.username: kibana
 elasticsearch.password: "{{KIBANA_PASSWORD}}"
 server.name: kibana-{{POD_INSTANCE_INDEX}}
@@ -6,4 +6,4 @@ server.host: 0.0.0.0
 server.port: {{PORT_HTTP}}
 xpack.security.encryptionKey: {{MESOS_FRAMEWORK_ID}}
 xpack.reporting.encryptionKey: {{MESOS_FRAMEWORK_ID}}
-server.basePath: "/service/{{SERVICE_NAME}}/kibana"
+server.basePath: "/service/{{FRAMEWORK_NAME}}/kibana"

@@ -1,8 +1,13 @@
-name: {{SERVICE_NAME}}
-web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:{{PROXYLITE_PORT}}
+name: {{FRAMEWORK_NAME}}
+web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
 pods:
   kibana:
     count: {{KIBANA_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -25,15 +30,10 @@ pods:
           path: "container-path"
           type: {{KIBANA_DISK_TYPE}}
           size: {{KIBANA_DISK}}
-        cmd: "env && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
+        cmd: "./bootstrap && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
         env:
-          SERVICE_NAME: {{SERVICE_NAME}}
           MESOS_FRAMEWORK_ID: {{MESOS_FRAMEWORK_ID}}
           KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
-        uris:
-          - "{{SCHEDULER_URI}}"
-          - "https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz"
-          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
         configs:
           kibana:
             template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
@@ -47,6 +47,12 @@ pods:
           timeout: 10
   master:
     count: 3
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -71,21 +77,15 @@ pods:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
           DATA_ENABLED: false
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
-          SERVICE_NAME: {{SERVICE_NAME}}
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
-        uris:
-          - "{{SCHEDULER_URI}}"
-          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
-          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
-          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -99,6 +99,12 @@ pods:
           timeout: 10
   data:
     count: {{DATA_NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -123,21 +129,15 @@ pods:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: true
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
-          SERVICE_NAME: {{SERVICE_NAME}}
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
-        uris:
-          - "{{SCHEDULER_URI}}"
-          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
-          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
-          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -151,6 +151,12 @@ pods:
           timeout: 10
   ingest:
     count: {{INGEST_NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -175,21 +181,15 @@ pods:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
-          SERVICE_NAME: {{SERVICE_NAME}}
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
-        uris:
-          - "{{SCHEDULER_URI}}"
-          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
-          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
-          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -203,6 +203,12 @@ pods:
           timeout: 10
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
     container:
       rlimits:
         RLIMIT_NOFILE:
@@ -227,21 +233,15 @@ pods:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
-        cmd: "env && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/resolve-dns.sh $TASK_NAME.{{SERVICE_NAME}}.mesos && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
-          SERVICE_NAME: {{SERVICE_NAME}}
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
-        uris:
-          - "{{SCHEDULER_URI}}"
-          - "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz"
-          - "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip"
-          - "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip"
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -257,20 +257,21 @@ pods:
     container:
       image-name: nlsun/proxylite:0.0.2
     count: 1
+    uris:
+      - {{SCHEDULER_URI}}
+      - {{BOOTSTRAP_URI}}
     tasks:
       server:
         goal: RUNNING
-        cmd: "./elastic-scheduler/resolve-dns.sh kibana-0-server.{{SERVICE_NAME}}.mesos && /proxylite/run.sh"
+        cmd: "./bootstrap -resolve-hosts=kibana-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
         cpus: {{PROXYLITE_CPUS}}
         memory: {{PROXYLITE_MEM}}
         ports:
           PROXYLITE:
             port: {{PROXYLITE_PORT}}
-        uris:
-          - "{{SCHEDULER_URI}}"
         env:
           EXTERNAL_ROUTES: "/v1,/kibana"
-          INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{SERVICE_NAME}}.l4lb.thisdcos.directory:5601"
+          INTERNAL_ROUTES: "{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{FRAMEWORK_NAME}}.l4lb.thisdcos.directory:5601"
 
 plans:
   deploy:
