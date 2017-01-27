@@ -246,6 +246,10 @@ public class YAMLToInternalMappers {
         DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, principal);
 
         if (rawVolumes != null) {
+            if (rawSingleVolume != null) {
+                throw new IllegalArgumentException(String.format(
+                        "Both 'volume' and 'volumes' may not be specified at the same time: %s", id));
+            }
             // Note: volume names for multiple volumes are currently ignored
             for (RawVolume rawVolume : rawVolumes.values()) {
                 resourceSetBuilder.addVolume(
