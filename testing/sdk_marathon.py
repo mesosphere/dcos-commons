@@ -7,16 +7,9 @@ import shakedown
 
 def get_config(app_name):
     def fn():
-        # do not retry each individual query: version may change under us between the two requests
-        response = sdk_cmd.request('get', api_url('apps/{}/versions'.format(app_name)), retry=False)
-        versions = response.json()['versions']
-        if len(versions) == 0:
-            raise Exception('No versions found for app {}'.format(app_name))
-        # string sort of versions: put newest timestamp at end of list
-        versions.sort()
-        return sdk_cmd.request('get', api_url('apps/{}/versions/{}'.format(app_name, versions[-1])), retry=False)
+        return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False)
 
-    config = sdk_spin.time_wait_return(lambda: fn()).json()
+    config = sdk_spin.time_wait_return(lambda: fn()).json()['app']
     del config['uris']
     del config['version']
 
