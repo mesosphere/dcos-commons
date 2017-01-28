@@ -16,3 +16,5 @@ bootstrap.memory_lock: false
 node.master: {{MASTER_ENABLED}}
 node.data: {{DATA_ENABLED}}
 node.ingest: {{INGEST_ENABLED}}
+metrics.statsd.host: {{STATSD_UDP_HOST}}
+metrics.statsd.port: {{STATSD_UDP_PORT}}
