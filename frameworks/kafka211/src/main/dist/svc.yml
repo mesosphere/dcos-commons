@@ -1,0 +1,24 @@
+name: "kafka"
+pods:
+  kafka:
+    count: {{BROKER_COUNT}}
+    uris:
+      - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      broker:
+        cpus: {{BROKER_CPUS}}
+        memory: {{BROKER_MEM}}
+        ports:
+          broker-port:
+            port: 9092
+        volume:
+          path: broker-data
+          type: ROOT
+          size: {{BROKER_DISK}}
+        goal: RUNNING
+        cmd: "./bootstrap -resolve=false && exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
+        configs:
+          server-properties:
+            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+            dest: "kafka_2.11-0.10.0.0/config/server.properties"

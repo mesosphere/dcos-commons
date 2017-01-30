@@ -18,6 +18,9 @@ project(":frameworks/helloworld").name = "helloworld"
 include 'frameworks/kafka'
 project(":frameworks/kafka").name = "kafka"
 
+include 'frameworks/kafka211'
+project(":frameworks/kafka211").name = "kafka211"
+
 include 'frameworks/hdfs'
 project(":frameworks/hdfs").name = "hdfs"
 
