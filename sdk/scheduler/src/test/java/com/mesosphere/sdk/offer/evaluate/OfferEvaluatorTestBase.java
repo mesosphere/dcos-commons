@@ -60,16 +60,21 @@ public class OfferEvaluatorTestBase {
     }
 
     protected PodInstanceRequirement getPodInstanceRequirement(Resource resource) throws Exception {
-        return getPodInstanceRequirement(resource, false);
+        return getPodInstanceRequirement(resource, false, "single-task.yml");
+    }
+
+    protected PodInstanceRequirement getPodInstanceRequirement(Resource resource, String yamlFile) throws Exception {
+        return getPodInstanceRequirement(resource, false, yamlFile);
     }
 
     protected PodInstanceRequirement getPodInstanceRequirement(
             Resource resource,
             List<String> avoidAgents,
             List<String> collocateAgents,
-            boolean isVolume) throws Exception {
+            boolean isVolume,
+            String yamlFile) throws Exception {
         return getPodInstanceRequirement(
-                Arrays.asList(resource), avoidAgents, collocateAgents, isVolume, "single-task.yml");
+                Arrays.asList(resource), avoidAgents, collocateAgents, isVolume, yamlFile);
     }
 
     protected PodInstanceRequirement getPodInstanceRequirement(boolean isVolume, String yamlFile) throws Exception {
@@ -107,8 +112,11 @@ public class OfferEvaluatorTestBase {
                 podSpec.getTasks().stream().map(t -> t.getName()).collect(Collectors.toList()));
     }
 
-    protected PodInstanceRequirement getPodInstanceRequirement(Resource resource, boolean isVolume) throws Exception {
-        return getPodInstanceRequirement(resource, Collections.emptyList(), Collections.emptyList(), isVolume);
+    protected PodInstanceRequirement getPodInstanceRequirement(Resource resource,
+                                                               boolean isVolume,
+                                                               String yamlFile) throws Exception {
+        return getPodInstanceRequirement(resource, Collections.emptyList(),
+                Collections.emptyList(), isVolume, yamlFile);
     }
 
     protected static Offer getOffer(Resource resource) {
