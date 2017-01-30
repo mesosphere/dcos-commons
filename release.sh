@@ -8,7 +8,7 @@ cd $REPO_ROOT_DIR
 
 # Build and upload Java library to Maven repo:
 ./build.sh
-./gradlew publish
+./gradlew -p sdk/common publish
 
 # Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
 # This ensures that builds against different tags don't step on each other.
