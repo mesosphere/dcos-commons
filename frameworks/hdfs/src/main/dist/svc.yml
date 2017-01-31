@@ -94,7 +94,7 @@ pods:
           grace-period: 300
           delay: 0
           timeout: 60
-          max-consecutive-failures: 15
+          max-consecutive-failures: 20
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
