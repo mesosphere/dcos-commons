@@ -45,10 +45,14 @@ fi
 
 # Executor Bootstrap (Go):
 BOOTSTRAP_DIR=${TOOLS_DIR}/../sdk/bootstrap
-${BOOTSTRAP_DIR}/build.sh
-if [ $? -ne 0 ]; then
-    _notify_github failure "Bootstrap build failed"
-    exit 1
+if [ -d $BOOTSTRAP_DIR ] ; then
+	${BOOTSTRAP_DIR}/build.sh
+	if [ $? -ne 0 ]; then
+  	  _notify_github failure "Bootstrap build failed"
+  	  exit 1
+	fi
+else
+	echo "There is no bootstrap_directory : $BOOTSTRAP_DIR "
 fi
 
 # CLI (Go):
