@@ -13,6 +13,39 @@ ext {
     jacksonVer = "2.6.3"
 }
 
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    repositories {
+        maven {
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://downloads.mesosphere.io/maven-snapshot/"
+            } else {
+                url "s3://downloads.mesosphere.io/maven/"
+            }
+            credentials(AwsCredentials) {
+                accessKey System.env['AWS_ACCESS_KEY_ID']
+                secretKey System.env['AWS_SECRET_ACCESS_KEY']
+            }
+        }
+        publications {
+            mavenJava(MavenPublication) {
+                groupId project.group
+                artifactId 'common'
+                version project.version
+
+                from components.java
+
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+    }
+}
+
 dependencies {
     compile "com.googlecode.protobuf-java-format:protobuf-java-format:1.4"
     compile "commons-collections:commons-collections:${commonsCollectionsVer}"
