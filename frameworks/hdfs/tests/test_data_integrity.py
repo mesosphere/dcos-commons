@@ -8,6 +8,7 @@ import sdk_tasks as tasks
 from tests.config import (
     PACKAGE_NAME,
     check_healthy
+    DEFAULT_TASK_COUNT,
 )
 
 TEST_CONTENT_SMALL = "This is some test data"
@@ -19,7 +20,7 @@ HDFS_CMD_TIMEOUT_SEC = 5 * 60
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    install.install(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 def teardown_module(module):
