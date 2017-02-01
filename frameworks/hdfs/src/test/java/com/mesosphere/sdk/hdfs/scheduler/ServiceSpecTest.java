@@ -82,12 +82,12 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     }
 
     @Test
-    public void renderHdfsSiteXml() throws IOException {
+    public void testRenderHdfsSiteXml() throws IOException {
         renderTemplate(System.getProperty("user.dir") + "/src/main/dist/hdfs-site.xml");
     }
 
     @Test
-    public void renderCoreSiteXml() throws IOException {
+    public void testRenderCoreSiteXml() throws IOException {
         renderTemplate(System.getProperty("user.dir") + "/src/main/dist/core-site.xml");
     }
 
