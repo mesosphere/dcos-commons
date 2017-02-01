@@ -9,3 +9,5 @@ pods:
         ports:
           test-port-name:
             port: 555
+        env:
+          PORT_TEST_PORT_NAME: 555

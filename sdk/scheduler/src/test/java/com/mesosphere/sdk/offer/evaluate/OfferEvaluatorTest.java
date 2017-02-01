@@ -45,18 +45,20 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testUpdateToStaticPort() throws Exception {
+    public void testUpdateStaticToStaticPort() throws Exception {
         String resourceId = UUID.randomUUID().toString();
-        Resource updatedResource = ResourceTestUtils.getExpectedRanges("port", 666, 666, resourceId);
-        Resource offeredResource = ResourceTestUtils.getExpectedRanges("port", 555, 666, resourceId);
+        Resource updatedResource = ResourceTestUtils.getExpectedRanges("ports", 666, 666, resourceId);
+        Resource offeredReservedResource = ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId);
+        Resource offeredUnReservedResource = Resource.newBuilder(ResourceTestUtils.getDesiredRanges("ports", 666, 666))
+                .clearReservation().build();
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 getExistingPodInstanceRequirement(updatedResource, false, "static-port.yml"),
-                Arrays.asList(getOffer(offeredResource)));
+                Arrays.asList(getOffer(Arrays.asList(offeredReservedResource, offeredUnReservedResource))));
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(3, recommendations.size());
 
-        Operation launchOperation = recommendations.get(1).getOperation();
+        Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
@@ -66,6 +68,58 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(command.getEnvironment());
         Assert.assertEquals(envvars.toString(), 5, envvars.size());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
+    }
+
+    @Test
+    public void testUpdateDynamicToStaticPort() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource updatedResource = ResourceTestUtils.getExpectedRanges("ports", 666, 666, resourceId);
+        Resource offeredReservedResource = ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId);
+        Resource offeredUnReservedResource = Resource.newBuilder(ResourceTestUtils.getDesiredRanges("ports", 666, 666))
+                .clearReservation().build();
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                getExistingPodInstanceRequirement(updatedResource, false, "dynamic-port.yml"),
+                Arrays.asList(getOffer(Arrays.asList(offeredReservedResource, offeredUnReservedResource))));
+        // UNRESERVE, RESERVE, LAUNCH
+        Assert.assertEquals(3, recommendations.size());
+
+        Operation launchOperation = recommendations.get(2).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledPortResource = taskInfo.getResources(0);
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        CommandInfo command = CommonTaskUtils.unpackTaskInfo(taskInfo).getCommand();
+        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(command.getEnvironment());
+        Assert.assertEquals(envvars.toString(), 5, envvars.size());
+        Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME));
+    }
+
+    @Test
+    public void testUpdateStaticToDynamicPort() throws Exception {
+        String resourceId = UUID.randomUUID().toString();
+        Resource updatedResource = ResourceTestUtils.getExpectedRanges("ports", 0, 0, resourceId);
+        Resource offeredReservedResource = ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId);
+        Resource offeredUnReservedResource = Resource.newBuilder(ResourceTestUtils.getDesiredRanges("ports", 666, 666))
+                .clearReservation().build();
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                getExistingPodInstanceRequirement(updatedResource, false, "static-port.yml"),
+                Arrays.asList(getOffer(Arrays.asList(offeredReservedResource, offeredUnReservedResource))));
+        // LAUNCH
+        Assert.assertEquals(1, recommendations.size());
+
+        Operation launchOperation = recommendations.get(0).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
+        Resource fulfilledPortResource = taskInfo.getResources(0);
+        Label resourceIdLabel = fulfilledPortResource.getReservation().getLabels().getLabels(0);
+        Assert.assertEquals("resource_id", resourceIdLabel.getKey());
+
+        CommandInfo command = CommonTaskUtils.unpackTaskInfo(taskInfo).getCommand();
+        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(command.getEnvironment());
+        Assert.assertEquals(envvars.toString(), 5, envvars.size());
+        Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME));
     }
 
     @Test

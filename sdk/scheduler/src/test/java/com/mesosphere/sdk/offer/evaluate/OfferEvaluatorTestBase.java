@@ -42,7 +42,7 @@ public class OfferEvaluatorTestBase {
     protected OfferRequirementProvider offerRequirementProvider;
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
-     PersistentOperationRecorder operationRecorder;
+    PersistentOperationRecorder operationRecorder;
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -120,10 +120,15 @@ public class OfferEvaluatorTestBase {
     }
 
     protected static Offer getOffer(Resource resource) {
-        return OfferTestUtils.getOffer(Arrays.asList(
-                ResourceUtils.getUnreservedScalar("cpus", 1.0),
-                ResourceUtils.getUnreservedScalar("mem", 512),
-                resource));
+        return getOffer(Arrays.asList(resource));
+    }
+
+    protected static Offer getOffer(Collection<Resource> resource) {
+        List<Resource> resources = new ArrayList<>();
+        resources.add(ResourceUtils.getUnreservedScalar("cpus", 1.0));
+        resources.add(ResourceUtils.getUnreservedScalar("mem", 512));
+        resources.addAll(resource);
+        return OfferTestUtils.getOffer(resources);
     }
 
     protected static Label getFirstLabel(Resource resource) {

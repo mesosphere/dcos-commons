@@ -123,9 +123,17 @@ public class ResourceUtils {
     }
 
     public static Resource getDesiredResource(String role, String principal, String name, Value value) {
+        return getDesiredResource(role, principal, name, value, "");
+    }
+
+    public static Resource getDesiredResource(String role,
+                                              String principal,
+                                              String name,
+                                              Value value,
+                                              String resourceId) {
         return Resource.newBuilder(getUnreservedResource(name, value))
                 .setRole(role)
-                .setReservation(getDesiredReservationInfo(principal))
+                .setReservation(getDesiredReservationInfo(principal, resourceId))
                 .build();
     }
 

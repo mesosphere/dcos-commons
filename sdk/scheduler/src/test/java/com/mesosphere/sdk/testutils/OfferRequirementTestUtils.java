@@ -144,12 +144,22 @@ public class OfferRequirementTestUtils {
                 throw new IllegalArgumentException("Resource has unknown type");
         }
 
-        return new DefaultResourceSpec(
-                resource.getName(),
-                valueBuilder.build(),
-                resource.getRole(),
-                principal,
-                null);
+        if (Objects.equals("ports", resource.getName())) {
+            return new PortSpec(
+                    resource.getName(),
+                    valueBuilder.build(),
+                    resource.getRole(),
+                    principal,
+                    null,
+                    "TEST_PORT_NAME");
+        } else {
+            return new DefaultResourceSpec(
+                    resource.getName(),
+                    valueBuilder.build(),
+                    resource.getRole(),
+                    principal,
+                    null);
+        }
     }
 
     private static VolumeSpec volumeFromResource(Protos.Resource resource, String principal) {
