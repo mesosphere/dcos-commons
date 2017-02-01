@@ -282,7 +282,7 @@ curl -XPUT -u elastic:changeme master.elastic.l4lb.thisdcos.directory:9200/_clus
 
 # Statsd reporting
 
-For EE clusters, the Elastic framework automatically installs the statsd plugin on all elasticsearch nodes to report metrics to the DC/OS Metrics Collector. You access elasticsearch’s metrics as well as the default DC/OS metrics by querying each agent node individually:
+For EE clusters, the Elastic framework automatically installs the [statsd plugin](https://github.com/Automattic/elasticsearch-statsd-plugin) on all elasticsearch nodes to report metrics to the DC/OS Metrics Collector. You access elasticsearch’s metrics as well as the default DC/OS metrics by querying each agent node individually:
 
 1. Use the dcos CLI to get the auth token: `dcos config show core.dcos_acs_token`
 1. Ssh into an agent node
