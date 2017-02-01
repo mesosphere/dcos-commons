@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.kafka.scheduler;
+package com.mesosphere.dcos.kafka.scheduler;
 
 import com.mesosphere.sdk.specification.DefaultService;
 
@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Kafka service.
+ * Apache Kafka Service.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
