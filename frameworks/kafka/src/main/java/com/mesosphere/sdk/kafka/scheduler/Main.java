@@ -1,4 +1,4 @@
-package com.mesosphere.dcos.kafka.scheduler;
+package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.specification.DefaultService;
 
