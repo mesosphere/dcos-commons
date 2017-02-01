@@ -98,5 +98,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
         String renderedFileStr = CommonTaskUtils.applyEnvToMustache(fileStr, allEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));
+        Assert.assertTrue(CommonTaskUtils.isMustacheFullyRendered(renderedFileStr));
     }
 }

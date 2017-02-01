@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.api;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -23,6 +20,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,10 +79,11 @@ public class EndpointsResource {
     @GET
     public Response getEndpoints(@QueryParam("format") String format) {
         try {
-            JSONObject endpoints = new JSONObject();
+            List<String> endpoints = new ArrayList<>();
+
             // Custom values take precedence:
             for (Map.Entry<String, EndpointProducer> entry : customEndpoints.entrySet()) {
-                endpoints.put(entry.getKey(), entry.getValue().getEndpoint());
+                endpoints.add(entry.getKey());
             }
             // Add default values (when they don't collide with custom values):
             for (Map.Entry<String, JSONObject> endpointType :
@@ -92,11 +91,12 @@ public class EndpointsResource {
                             serviceName,
                             stateStore.fetchTasks(),
                             isNativeFormat(format)).entrySet()) {
-                if (!endpoints.has(endpointType.getKey())) {
-                    endpoints.put(endpointType.getKey(), endpointType.getValue());
+                if (!endpoints.contains(endpointType.getKey())) {
+                    endpoints.add(endpointType.getKey());
                 }
             }
-            return Response.ok(endpoints.toString(), MediaType.APPLICATION_JSON).build();
+
+            return Response.ok(new JSONArray(endpoints).toString(), MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
             LOGGER.error(String.format("Failed to fetch list of endpoints with format %s", format), ex);
             return Response.serverError().build();
