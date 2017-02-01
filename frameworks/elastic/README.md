@@ -279,12 +279,43 @@ curl -XPUT -u elastic:changeme master.elastic.l4lb.thisdcos.directory:9200/_clus
 }'
 ```
 
+# Statsd reporting
+
+For EE clusters, the Elastic framework automatically installs the statsd plugin on all elasticsearch nodes to report metrics to the DC/OS Metrics Collector. You access elasticsearch’s metrics as well as the default DC/OS metrics by querying each agent node individually:
+
+1. Use the dcos CLI to get the auth token: `dcos config show core.dcos_acs_token`
+1. Ssh into an agent node
+1. Index a few documents, send some queries
+1. Within a minute, you should be able to query the endpoint and get results:
+
+`curl -s -H "Authorization: token=your_auth_token" http://localhost:61001/system/v1/metrics/v0/containers  | jq`
+
+Pick a container ID
+
+`curl -s -H "Authorization: token=your_auth_token" http://localhost:61001/system/v1/metrics/v0/containers/{container-id}/app  | jq`
+
+The response will contain elasticsearch-specific metrics like this:
+```
+    {
+      "name": "elasticsearch.elastic.node.data-0-server.thread_pool.warmer.largest",
+      "value": 2,
+      "unit": "",
+      "timestamp": "2017-01-31T23:24:44Z"
+    },
+    {
+      "name": "elasticsearch.elastic.node.data-0-server.thread_pool.warmer.completed",
+      "value": 2221,
+      "unit": "",
+      "timestamp": "2017-01-31T23:24:44Z"
+    },
+```
+
 <a name="limitations"></a>
 # Limitations
 
 ## Managing Configurations Outside of the Service
 
-The Elasticsearch service's core responsibility is to deploy and maintain the deployment of an Elasticsearch cluster whose configuration has been specified. In order to do this, the service makes the assumption that it has ownership of node configuration. If an end-user makes modifications to individual nodes or the cluster through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. If a node crashes, it will be restarted with the configuration known to the scheduler, not with one modified out-of-band. If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.
+The Elasticsearch service's core responsibility is to deploy and maintain the deployment of an Elasticsearch cluster whose configuration has been specified. In order to do this, the service makes the assumption that it has ownership of node configuration. If an end-user makes modifications to individual nodes through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. If a node crashes, it will be restarted with the configuration known to the scheduler, not with one modified out-of-band. If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.
 
 ## Nodes
 
