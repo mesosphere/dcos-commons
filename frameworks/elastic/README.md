@@ -22,6 +22,7 @@ DC/OS Elasticsearch provides the following features:
 *   Multiple clusters for multiple tenancy with DC/OS
 *   High availability runtime configuration and software updates
 *   Storage volumes for enhanced data durability, known as Mesos Dynamic Reservations and Persistent Volumes
+*   Automatic reporting of Elasticsearch metrics to DC/OS statsd collector
 
 # Quick Start
 
