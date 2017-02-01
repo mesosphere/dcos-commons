@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Offer.Operation;
-
 /**
  * The OperationRecorder is an Interface required by the OfferAccepter.
  * This interface is intended to allow Framework authors an opportunity to record
@@ -10,5 +7,5 @@ import org.apache.mesos.Protos.Offer.Operation;
  * storage location.
  */
 public interface OperationRecorder {
-    void record(Operation operation, Offer offer) throws Exception;
+    void record(OfferRecommendation offerRecommendation) throws Exception;
 }

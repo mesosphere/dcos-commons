@@ -8,6 +8,7 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
+import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
@@ -19,7 +20,6 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("PMD")
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
@@ -52,9 +52,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource offeredUnReservedResource = Resource.newBuilder(ResourceTestUtils.getDesiredRanges("ports", 666, 666))
                 .clearReservation().build();
 
+        List<Resource> offeredResources = Arrays.asList(offeredReservedResource, offeredUnReservedResource);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 getExistingPodInstanceRequirement(updatedResource, false, "static-port.yml"),
-                Arrays.asList(getOffer(Arrays.asList(offeredReservedResource, offeredUnReservedResource))));
+                Arrays.asList(getOffer(offeredResources)));
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(3, recommendations.size());
 
@@ -256,6 +257,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(10001, taskPortResource.getRanges().getRange(0).getEnd());
     }
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testReserveTaskNamedVIPPort() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
@@ -286,6 +288,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + ":8080");
     }
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testReserveTaskDynamicVIPPort() throws Exception {
         Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
@@ -321,7 +324,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource desiredResource = ResourceTestUtils.getDesiredMountVolume(1000);
         Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
-        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(desiredResource, true,
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(
+                Arrays.asList(desiredResource),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                true,
                 "single-task.yml");
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                         podInstanceRequirement,
@@ -423,7 +430,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                getPodInstanceRequirement(desiredResource, true, "single-task.yml"),
+                getPodInstanceRequirement(Arrays.asList(desiredResource),
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        true, "single-task.yml"),
                 Arrays.asList(getOffer(wrongOfferedResource)));
         Assert.assertEquals(0, recommendations.size());
         Assert.assertEquals(0, recommendations.size());
@@ -435,7 +445,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource offeredResource = ResourceUtils.getUnreservedRootVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                getPodInstanceRequirement(desiredResource, true, "single-task.yml"),
+                getPodInstanceRequirement(Arrays.asList(desiredResource),
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        true,
+                        "single-task.yml"),
                 Arrays.asList(getOffer(offeredResource)));
         Assert.assertEquals(4, recommendations.size());
 
@@ -491,7 +505,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Resource offeredResource = ResourceUtils.getUnreservedRootVolume(1000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                        getPodInstanceRequirement(desiredResource, true, "single-task.yml"),
+                        getPodInstanceRequirement(
+                                Arrays.asList(desiredResource),
+                                Collections.emptyList(),
+                                Collections.emptyList(),
+                                true,
+                                "single-task.yml"),
                         Arrays.asList(getOffer(offeredResource)));
         Assert.assertEquals(0, recommendations.size());
     }
@@ -750,7 +769,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 getPodInstanceRequirement(
-                        desiredCpu, Arrays.asList(TestConstants.AGENT_ID.getValue()), Collections.emptyList(), false,
+                        Arrays.asList(desiredCpu),
+                        Arrays.asList(TestConstants.AGENT_ID.getValue()), Collections.emptyList(), false,
                         "single-task.yml"),
                 Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
 
@@ -758,7 +778,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         recommendations = evaluator.evaluate(
                 getPodInstanceRequirement(
-                        desiredCpu, Arrays.asList("some-random-agent"), Collections.emptyList(), false,
+                        Arrays.asList(desiredCpu), Arrays.asList("some-random-agent"), Collections.emptyList(), false,
                         "single-task.yml"),
                 Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
 
@@ -772,7 +792,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 getPodInstanceRequirement(
-                        desiredCpu, Collections.emptyList(), Arrays.asList("some-random-agent"), false,
+                        Arrays.asList(desiredCpu), Collections.emptyList(), Arrays.asList("some-random-agent"), false,
                         "single-task.yml"),
                 Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
 
@@ -780,7 +800,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         recommendations = evaluator.evaluate(
                 getPodInstanceRequirement(
-                        desiredCpu, Collections.emptyList(), Arrays.asList(TestConstants.AGENT_ID.getValue()), false,
+                        Arrays.asList(desiredCpu),
+                        Collections.emptyList(), Arrays.asList(TestConstants.AGENT_ID.getValue()), false,
                         "single-task.yml"),
                 Arrays.asList(OfferTestUtils.getOffer(offeredCpu)));
 
@@ -870,7 +891,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
-        recordOperations(recommendations, sufficientOffer);
+        recordOperations(recommendations);
 
         // Launch Task with RUNNING goal state, later.
         podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
@@ -936,7 +957,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         operation = recommendations.get(5).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH, operation.getType());
 
-        recordOperations(recommendations, sufficientOffer);
+        recordOperations(recommendations);
 
         // Attempt to launch task again as non-failed.
         podInstanceRequirement = PodInstanceRequirement.create(podInstance, Arrays.asList("node"));
@@ -1021,7 +1042,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     private PodInstanceRequirement getExistingPodInstanceRequirement(
             Resource resource, boolean isVolume, String yamlFile) throws Exception {
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(resource);
-        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(resource, isVolume,
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(
+                Arrays.asList(resource),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                isVolume,
                 yamlFile);
         TaskInfo existingTaskInfo = offerRequirement.getTaskRequirements().iterator().next()
                 .getTaskInfo()
@@ -1035,14 +1060,77 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         return podInstanceRequirement;
     }
 
-
     private PodInstanceRequirement getMultipleTaskPodInstanceRequirement() throws Exception {
         return getPodInstanceRequirement(false, "multiple-task.yml");
     }
 
-    private void recordOperations(List<OfferRecommendation> recommendations, Offer offer) throws Exception {
+    private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
+        OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore);
         for (OfferRecommendation recommendation : recommendations) {
-            operationRecorder.record(recommendation.getOperation(), offer);
+            operationRecorder.record(recommendation);
         }
+    }
+
+    private PodInstanceRequirement getPodInstanceRequirement(Resource resource) throws Exception {
+        return getPodInstanceRequirement(resource, false);
+    }
+
+    private PodInstanceRequirement getPodInstanceRequirement(
+            Resource resource,
+            List<String> avoidAgents,
+            List<String> collocateAgents,
+            boolean isVolume) throws Exception {
+        return getPodInstanceRequirement(
+                Arrays.asList(resource), avoidAgents, collocateAgents, isVolume, "single-task.yml");
+    }
+
+    private PodInstanceRequirement getPodInstanceRequirement(boolean isVolume, String yamlFile) throws Exception {
+        return getPodInstanceRequirement(
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), isVolume, yamlFile);
+    }
+
+    private PodInstanceRequirement getPodInstanceRequirement(
+            Collection<Resource> resources,
+            List<String> avoidAgents,
+            List<String> collocateAgents,
+            boolean isVolume,
+            String yamlFile) throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(yamlFile).getFile());
+        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
+        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        if (!resources.isEmpty()) {
+            podSpec = isVolume ?
+                    OfferRequirementTestUtils.withVolume(
+                            serviceSpec.getPods().get(0), resources.iterator().next(), serviceSpec.getPrincipal()) :
+                    OfferRequirementTestUtils.withResources(
+                            serviceSpec.getPods().get(0),
+                            resources,
+                            serviceSpec.getPrincipal(),
+                            avoidAgents,
+                            collocateAgents);
+        }
+
+        return PodInstanceRequirement.create(
+                new DefaultPodInstance(podSpec, 0),
+                podSpec.getTasks().stream().map(t -> t.getName()).collect(Collectors.toList()));
+    }
+
+    private PodInstanceRequirement getPodInstanceRequirement(Resource resource, boolean isVolume) throws Exception {
+        return getPodInstanceRequirement(resource, Collections.emptyList(), Collections.emptyList(), isVolume);
+    }
+
+    private static Offer getOffer(Resource resource) {
+        return getOffer(Arrays.asList(resource));
+    }
+
+    private static Offer getOffer(Collection<Resource> resource) {
+        List<Resource> resources = new ArrayList<>();
+        resources.add(ResourceUtils.getUnreservedScalar("cpus", 1.0));
+        resources.add(ResourceUtils.getUnreservedScalar("mem", 512));
+        resources.addAll(resource);
+        return OfferTestUtils.getOffer(resources);
     }
 }

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import org.apache.mesos.Protos;
 import java.util.*;
@@ -42,8 +43,8 @@ public class ReconciliationStep extends AbstractStep {
     }
 
     @Override
-    public void updateOfferStatus(Collection<Protos.Offer.Operation> operations) {
-        if (!operations.isEmpty()) {
+    public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
+        if (!recommendations.isEmpty()) {
             throw new UnsupportedOperationException(
                     "updateOfferStatus() not expected: getOfferRequirement() always returns null");
         }

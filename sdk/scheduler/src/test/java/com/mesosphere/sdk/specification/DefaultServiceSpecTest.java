@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -118,17 +119,42 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void invalidPodName() throws Exception {
+    public void invalidDuplicatePodName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
-                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
-                Assert.assertTrue(constraintViolations.size() > 0);
-            }
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage(), cause.getMessage().contains("Duplicate field 'meta-data'"));
+        }
+    }
+
+    @Test
+    public void invalidDuplicateCount() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-duplicate-count.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (JsonMappingException e) {
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage().contains("Duplicate field 'count'"));
+        }
+    }
+
+    @Test
+    public void invalidVolumeAndVolumes() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-volume-and-volumes.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("Both 'volume' and 'volumes'"));
         }
     }
 
@@ -167,6 +193,7 @@ public class DefaultServiceSpecTest {
             DefaultServiceSpec.newBuilder(defaultServiceSpec)
                     .pods(pods)
                     .build();
+            Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -179,12 +206,11 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-task-name.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
-                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
-                Assert.assertTrue(constraintViolations.size() > 0);
-            }
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage(), cause.getMessage().contains("Duplicate field 'meta-data-task'"));
         }
     }
 
@@ -213,6 +239,7 @@ public class DefaultServiceSpecTest {
             DefaultPodSpec.newBuilder(aPod)
                     .tasks(tasks)
                     .build();
+            Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -225,6 +252,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -232,17 +260,17 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void invalidResourceSetName() throws Exception {
+    public void invalidDuplicateResourceSetName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-resource-set-name.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
-                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
-                Assert.assertTrue(constraintViolations.size() > 0);
-            }
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage(),
+                    cause.getMessage().contains("Duplicate field 'data-store-resources'"));
         }
     }
 

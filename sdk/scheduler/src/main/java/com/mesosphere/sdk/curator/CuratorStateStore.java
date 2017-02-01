@@ -287,14 +287,13 @@ public class CuratorStateStore implements StateStore {
     public Collection<Protos.TaskInfo> fetchTasks() throws StateStoreException {
         Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
-            try {
-                byte[] bytes = curator.get(taskPathMapper.getTaskInfoPath(taskName));
-                taskInfos.add(Protos.TaskInfo.parseFrom(bytes));
-            } catch (KeeperException.NoNodeException e) {
-                // Throw even for NoNodeException: We should always have a TaskInfo for every entry
-                throw new StateStoreException(Reason.NOT_FOUND, e);
-            } catch (Exception e) {
-                throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            Optional<Protos.TaskInfo> taskInfoOptional = fetchTask(taskName);
+            if (taskInfoOptional.isPresent()) {
+                taskInfos.add(taskInfoOptional.get());
+            } else {
+                // We should always have a TaskInfo for every name entry we just got
+                throw new StateStoreException(Reason.NOT_FOUND,
+                        String.format("Expected task named %s to be present when retrieving all tasks", taskName));
             }
         }
         return taskInfos;
@@ -307,6 +306,9 @@ public class CuratorStateStore implements StateStore {
         try {
             byte[] bytes = curator.get(path);
             if (bytes.length > 0) {
+                // TODO(nick): This unpack operation is no longer needed, but it doesn't hurt anything to leave it in
+                // place to support reading older data. Remove this unpack call after services have had time to stop
+                // storing packed TaskInfos in zk (after June 2017 or so?).
                 return Optional.of(CommonTaskUtils.unpackTaskInfo(Protos.TaskInfo.parseFrom(bytes)));
             } else {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
@@ -316,7 +318,8 @@ public class CuratorStateStore implements StateStore {
             logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
             return Optional.empty();
         } catch (Exception e) {
-            throw new StateStoreException(Reason.STORAGE_ERROR, e);
+            throw new StateStoreException(Reason.STORAGE_ERROR,
+                    String.format("Failed to retrieve task named %s", taskName), e);
         }
     }
 

@@ -23,3 +23,6 @@ project(":frameworks/hdfs").name = "hdfs"
 
 include 'frameworks/template'
 project(":frameworks/template").name = "template"
+
+include 'frameworks/prototype'
+project(":frameworks/prototype").name = "prototype"
