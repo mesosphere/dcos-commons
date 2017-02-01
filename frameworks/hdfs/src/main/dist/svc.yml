@@ -29,6 +29,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
+            dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
   name:
     count: 2
     uris:
@@ -59,6 +62,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
+            dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
@@ -156,6 +162,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
+            dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
 
