@@ -1034,7 +1034,7 @@ The proxy allows one to expose more than one endpoint through adminrouter.
     pods:
       proxylite:
         container:
-          image-name: nlsun/proxylite:0.0.3
+          image-name: mesosphere/proxylite:1.0.0
         count: 1
         tasks:
           server:
@@ -1044,6 +1044,7 @@ The proxy allows one to expose more than one endpoint through adminrouter.
             memory: {{PROXYLITE_MEM}}
             ports:
               proxylite:
+                env-key: PORT_PROXYLITE
                 port: {{PROXYLITE_PORT}}
             env:
               ROOT_REDIRECT: "/example"
