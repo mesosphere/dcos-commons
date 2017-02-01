@@ -66,6 +66,7 @@
         <value>0.0.0.0</value>
     </property>
 
+
     <!-- name-1-node -->
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
@@ -137,7 +138,6 @@
         <name>dfs.ha.automatic-failover.enabled</name>
         <value>{{HA_AUTOMATIC_FAILURE}}</value>
     </property>
-
 
     <property>
         <name>dfs.image.compress</name>
@@ -246,7 +246,12 @@
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
             <value>HTTP/name-{{POD_INSTANCE_INDEX}}-node.hdfs.mesos@LOCAL</value>
         </property>
-        {{/NAMENODE}}
+        <property>
+            <name>dfs.ha.namenode.id</name>
+            <value>name-{{POD_INSTANCE_INDEX}}-node</value>
+        </property>
+
+    {{/NAMENODE}}
 
         {{#ZKFC}}
         <!-- NameNode Security Configuration -->
