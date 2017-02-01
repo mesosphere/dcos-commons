@@ -1,7 +1,8 @@
 name: {{FRAMEWORK_NAME}}
-principal: {{FRAMEWORK_PRINCIPLE}}
-zookeeper: {{MESOS_ZOOKEEPER_URI}}
-api-port: {{PORT_API}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPLE}}
+  zookeeper: {{MESOS_ZOOKEEPER_URI}}
+  api-port: {{PORT_API}}
 pods:
   kafka-pod:
     count: {{BROKER_COUNT}}
@@ -14,23 +15,22 @@ pods:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
-          broker-port:
+          kafka-broker-port:
             port: {{BROKER_PORT}}
         volume:
-          path: broker-data
-          type: {{BROKER_DISKTYPE}}
-          size: {{BROKER_DISKSIZE}}
+          path: {{BROKER_DATA_PATH}}
+          type: {{BROKER_DISK_TYPE}}
+          size: {{BROKER_DISK_SIZE}}
         goal: RUNNING
         cmd:  "env && ./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"
-        server-properties:
-          template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-          dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
-        env:
-          KAFKA_BROKER_PORT: {{PORT_BROKER_PORT}}
+        configs:
+          server-properties:
+            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+            dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
 plans:
   deploy:
     strategy: serial
     phases:
       Deployment:
-        strategy: {{PHASE_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: kafka-pod
