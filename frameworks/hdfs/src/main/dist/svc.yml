@@ -7,6 +7,7 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     tasks:
       node:
         goal: RUNNING
@@ -32,11 +33,14 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+        env:
+          JOURNALNODE: true
   name:
     count: 2
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
@@ -65,6 +69,9 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
@@ -76,6 +83,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
       bootstrap:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
@@ -87,11 +97,15 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
   zkfc:
     count: 2
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     resource-sets:
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
@@ -108,6 +122,9 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+          ZKFC: true
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
@@ -119,11 +136,15 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+          ZKFC: true
   data:
     count: {{DATA_COUNT}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     tasks:
       node:
         goal: RUNNING
@@ -155,6 +176,9 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          DATANODE: true
 
 plans:
   deploy:

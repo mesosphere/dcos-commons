@@ -24,6 +24,24 @@
           "description":"The name of the service spec yaml file.",
           "type":"string",
           "default":"svc.yml"
+        },
+        "secure_mode": {
+          "id": "http://hdfs/dcos/mesosphere.com/service/secure_mode",
+          "type": "string",
+          "description": "This enables Kerberos authentication.",
+          "default": ""
+        },
+        "keytabs_uri": {
+          "id": "http://hdfs/dcos/mesosphere.com/service/keytabs_uri",
+          "type": "string",
+          "description": "The URI from which Keytabs tar.gz can be downloaded. Only relevant when secure_mode is enabled.",
+          "default": ""
+        },
+        "task_jre_uri": {
+          "id": "http://hdfs/dcos/mesosphere.com/service/task_jre_uri",
+          "type": "string",
+          "description": "The URI from which the JRE for all tasks is downloaded",
+          "default": "https://infinity-artifacts.s3.amazonaws.com/jre-8u91-linux-x64.tar.gz"
         }
       }
     },

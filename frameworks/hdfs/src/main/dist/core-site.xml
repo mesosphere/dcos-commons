@@ -32,4 +32,19 @@
         <name>ha.zookeeper.parent-znode</name>
         <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
     </property>
+
+    {{#SECURE_MODE}}
+    <property> <!-- TODO(mgummelt): remove this.  possible security vulnerability -->
+        <name>hadoop.security.service.user.name.key.pattern</name>
+        <value>hdfs/*@LOCAL</value>
+    </property>
+    <property>
+        <name>hadoop.security.authentication</name>
+        <value>kerberos</value>
+    </property>
+    <property>
+        <name>hadoop.security.authorization</name>
+        <value>true</value>
+    </property>
+    {{/SECURE_MODE}}
 </configuration>
