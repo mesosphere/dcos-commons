@@ -7,7 +7,7 @@
       "kafka-tgz": "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.1.0.tgz",
       "kafka-scheduler-zip": "{{artifact-dir}}/kafka-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
-      }
+    }
   },
   "images": {
     "icon-small": "https://downloads.mesosphere.com/universe/assets/icon-service-kafka-small.png",
