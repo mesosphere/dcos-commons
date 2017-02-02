@@ -1,0 +1,46 @@
+{
+  "type":"object",
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS proxylite configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"proxylite"
+          },
+          "spec_file" : {
+            "description":"The name of the service spec yaml file.",
+            "type":"string",
+            "default":"svc.yml"
+          }
+        }
+      },
+      "proxylite":{
+        "description":"Proxylite configuration properties",
+        "type":"object",
+        "properties":{
+          "cpus":{
+            "description":"Hello pod CPU requirements",
+            "type":"number",
+            "default":0.1
+          },
+          "mem":{
+            "description":"Hello pod mem requirements (in MB)",
+            "type":"integer",
+            "default":256
+          },
+          "backends":{
+            "description":"backends",
+            "type":"string",
+            "default":"server bob google.com:80"
+          }
+        },
+        "required":[
+          "cpus",
+          "mem"
+        ]
+      }
+    }
+}
