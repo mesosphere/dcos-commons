@@ -212,7 +212,7 @@
         </property>
         <property>
             <name>dfs.web.authentication.kerberos.keytab</name>
-            <value>keytabs/{{TASK_NAME}}.hdfs.mesos.keytab</value>
+            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
         </property>
 
 
@@ -250,8 +250,7 @@
             <name>dfs.ha.namenode.id</name>
             <value>name-{{POD_INSTANCE_INDEX}}-node</value>
         </property>
-
-    {{/NAMENODE}}
+        {{/NAMENODE}}
 
         {{#ZKFC}}
         <!-- NameNode Security Configuration -->

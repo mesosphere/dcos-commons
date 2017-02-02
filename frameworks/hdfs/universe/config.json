@@ -27,9 +27,9 @@
         },
         "secure_mode": {
           "id": "http://hdfs/dcos/mesosphere.com/service/secure_mode",
-          "type": "string",
+          "type": "boolean",
           "description": "This enables Kerberos authentication.",
-          "default": ""
+          "default": false
         },
         "keytabs_uri": {
           "id": "http://hdfs/dcos/mesosphere.com/service/keytabs_uri",
@@ -236,6 +236,11 @@
           "type": "string",
           "description": "The image compression codec for the File System image.",
           "default": "org.apache.hadoop.io.compress.SnappyCodec"
+        },
+        "hadoop_root_logger": {
+          "type": "string",
+          "description": "",
+          "default": "INFO,console"
         }
       },
       "required": [

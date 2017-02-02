@@ -95,7 +95,7 @@ pods:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
