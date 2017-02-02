@@ -30,6 +30,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @Test
     public void testYaml() throws Exception {
-        super.testYaml("kafka_svc.yml");
+        super.testYaml("svc.yml");
     }
 }
