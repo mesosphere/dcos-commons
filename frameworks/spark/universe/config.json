@@ -1,0 +1,107 @@
+{
+  "type":"object",
+    "properties":{
+      "service":{
+        "type":"object",
+        "description": "DC/OS service configuration properties",
+        "properties":{
+          "name" : {
+            "description":"The name of the service instance",
+            "type":"string",
+            "default":"spark"
+          },
+          "principal": {
+            "description": "The service principal",
+            "type": "string",
+            "default": "spark-principal"
+          },
+          "spec_file" : {
+            "description":"The name of the service spec yaml file.",
+            "type":"string",
+            "default":"svc.yml"
+          },
+          "cmd_prefix" : {
+            "description":"A generic prefix to start the scheduler.",
+            "type":"string",
+            "default":"LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) PATH=$(ls -d $MESOS_SANDBOX/jre*/bin):$PATH"
+          }
+        }
+      },
+      "spark": {
+        "description":"Spark configuration",
+        "type":"object",
+        "properties":{
+          "worker":{
+            "description":"worker configuration properties",
+            "type":"object",
+            "properties":{
+              "cpus":{
+                "description":"Template pod CPU requirements",
+                "type":"number",
+                "default":2.0
+              },
+              "mem":{
+                "description":"Template pod mem requirements (in MB)",
+                "type":"integer",
+                "default":2048
+              },
+              "port":{
+                "description":"port for worker",
+                "type":"integer",
+                "default":7071
+              },
+              "webui_port":{
+                "description":"port for worker webui",
+                "type":"integer",
+                "default":4041
+              },
+              "count":{
+                "description":"Number of Template pods to run",
+                "type":"integer",
+                "default":2
+              }
+            },
+            "required":[
+              "cpus",
+              "mem",
+              "port",
+              "webui_port",
+              "count"
+            ]
+          },
+          "master":{
+            "description":"master configuration properties",
+            "type":"object",
+            "properties":{
+              "cpus":{
+                "description":"Template pod CPU requirements",
+                "type":"number",
+                "default":1.0
+              },
+              "mem":{
+                "description":"Template pod mem requirements (in MB)",
+                "type":"integer",
+                "default":1024
+              },
+              "port":{
+                "description": "master port",
+                "type": "integer",
+                "default": 7070
+              },
+              "webui_port":{
+                "description": "master webui port",
+                "type": "integer",
+                "default": 4040
+              }
+            },
+            "required":[
+              "cpus",
+              "mem",
+              "port",
+              "webui_port"
+            ]
+          }
+        }
+        }
+      }
+}
