@@ -29,3 +29,6 @@ project(":frameworks/template").name = "template"
 
 include 'frameworks/prototype'
 project(":frameworks/prototype").name = "prototype"
+
+include 'frameworks/proxylite'
+project(":frameworks/proxylite").name = "proxylite"
