@@ -2,6 +2,7 @@ import pytest
 
 import sdk_install as install
 import sdk_plan as plan
+import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME
@@ -34,10 +35,13 @@ def test_deploy():
 
 @pytest.mark.sanity
 def test_sidecar():
-    plan.start_sidecar_plan(PACKAGE_NAME)
+    plan.start_sidecar_plan(PACKAGE_NAME, {'PLAN_PARAMETER': 'sidecar'})
     sidecar_plan = plan.get_sidecar_plan(PACKAGE_NAME).json()
     print("sidecar_plan: " + str(sidecar_plan))
 
     assert(len(sidecar_plan['phases']) == 1)
     assert(sidecar_plan['phases'][0]['name'] == 'sidecar-deploy')
     assert(len(sidecar_plan['phases'][0]['steps']) == 2)
+
+    spin.time_wait_noisy(lambda: (
+        plan.get_sidecar_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))

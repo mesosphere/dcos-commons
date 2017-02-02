@@ -12,6 +12,7 @@ import org.mockito.MockitoAnnotations;
 
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -113,13 +114,13 @@ public class PlansResourceTest {
 
     @Test
     public void testStart() {
-        Response response = resource.startPlan(planName);
+        Response response = resource.startPlan(planName, Collections.emptyMap());
         assertTrue(response.getStatusInfo().equals(Response.Status.OK));
     }
 
     @Test
     public void testStartInvalid() {
-        Response response = resource.startPlan("bad-plan");
+        Response response = resource.startPlan("bad-plan", Collections.emptyMap());
         assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
     }
 

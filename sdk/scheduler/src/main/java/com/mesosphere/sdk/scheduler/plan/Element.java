@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos.TaskStatus;
 import com.mesosphere.sdk.scheduler.Observable;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -96,4 +97,9 @@ public interface Element extends Observable {
         return getStatus().equals(Status.COMPLETE);
     }
 
+    /**
+     * Provides the Element with a set of named string parameters that it can either use on start or provide to
+     * children, if it has any.
+     */
+    default void updateParameters(Map<String, String> parameters) { }
 }

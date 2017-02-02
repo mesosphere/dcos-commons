@@ -14,8 +14,10 @@ def get_sidecar_plan(service_name):
     return _get_plan(service_name, "sidecar")
 
 
-def start_sidecar_plan(service_name):
-    return dcos.http.post(shakedown.dcos_service_url(service_name) + "/v1/plans/sidecar/start")
+def start_sidecar_plan(service_name, parameters=None):
+    return dcos.http.post(
+        shakedown.dcos_service_url(service_name) + "/v1/plans/sidecar/start",
+        json=parameters)
 
 
 def _get_plan(service_name, plan):

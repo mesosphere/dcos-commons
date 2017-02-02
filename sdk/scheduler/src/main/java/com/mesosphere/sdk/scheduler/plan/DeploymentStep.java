@@ -20,6 +20,7 @@ public class DeploymentStep extends AbstractStep {
     private final List<String> errors;
     private final PodInstanceRequirement podInstanceRequirement;
 
+    private Map<String, String> parameters;
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
 
     /**
@@ -40,8 +41,8 @@ public class DeploymentStep extends AbstractStep {
      * This method may be triggered by external components via the {@link #updateOfferStatus(Collection)} method in
      * particular, so it is synchronized to avoid inconsistent expectations regarding what TaskIDs are relevant to it.
      *
-     * @param operations The Operations which were performed in response to the {@link PodInstanceRequirement} provided
-     *                   by {@link #start()}
+     * @param recommendations The {@link OfferRecommendation}s returned in response to the
+     *                        {@link PodInstanceRequirement} provided by {@link #start()}
      */
     private synchronized void setTaskIds(Collection<OfferRecommendation> recommendations) {
         tasks.clear();
@@ -60,8 +61,13 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
+    public void updateParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
+    @Override
     public Optional<PodInstanceRequirement> start() {
-        return Optional.of(podInstanceRequirement);
+        return Optional.of(podInstanceRequirement.withParameters(parameters));
     }
 
     @Override

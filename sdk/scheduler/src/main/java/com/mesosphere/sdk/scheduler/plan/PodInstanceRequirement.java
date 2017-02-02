@@ -3,6 +3,8 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.specification.PodInstance;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A PodInstanceRequirement encapsulates a {@link PodInstance} and the names of tasks that should be launched in it.
@@ -10,6 +12,7 @@ import java.util.Collection;
 public class PodInstanceRequirement {
     private final PodInstance podInstance;
     private final Collection<String> tasksToLaunch;
+    private final Map<String, String> environment;
     private final boolean isPermanentReplacement;
 
     /**
@@ -18,7 +21,18 @@ public class PodInstanceRequirement {
     public static PodInstanceRequirement create(
             PodInstance podInstance,
             Collection<String> tasksToLaunch) {
-        return new PodInstanceRequirement(podInstance, tasksToLaunch, false);
+        return new PodInstanceRequirement(podInstance, tasksToLaunch, null, false);
+    }
+
+    /**
+     * Creates a new instance with each task's environment extended by the provided envvar name-to-value map that is not
+     * a permanent replacement.
+     */
+    public static PodInstanceRequirement create(
+            PodInstance podInstance,
+            Collection<String> tasksToLaunch,
+            Map<String, String> environment) {
+        return new PodInstanceRequirement(podInstance, tasksToLaunch, environment, false);
     }
 
     /**
@@ -27,7 +41,14 @@ public class PodInstanceRequirement {
     public static PodInstanceRequirement createPermanentReplacement(
             PodInstance podInstance,
             Collection<String> tasksToLaunch) {
-        return new PodInstanceRequirement(podInstance, tasksToLaunch, true);
+        return new PodInstanceRequirement(podInstance, tasksToLaunch, null, true);
+    }
+
+    /**
+     * Returns this same instance, but with the supplied environment variable map applied to each task in this pod.
+     */
+    public PodInstanceRequirement withParameters(Map<String, String> parameters) {
+        return new PodInstanceRequirement(getPodInstance(), getTasksToLaunch(), parameters, isPermanentReplacement());
     }
 
     /**
@@ -36,9 +57,11 @@ public class PodInstanceRequirement {
     private PodInstanceRequirement(
             PodInstance podInstance,
             Collection<String> tasksToLaunch,
+            Map<String, String> environment,
             boolean isPermanentReplacement) {
         this.podInstance = podInstance;
         this.tasksToLaunch = tasksToLaunch;
+        this.environment = environment;
         this.isPermanentReplacement = isPermanentReplacement;
     }
 
@@ -55,6 +78,14 @@ public class PodInstanceRequirement {
      */
     public Collection<String> getTasksToLaunch() {
         return tasksToLaunch;
+    }
+
+    /**
+     * Returns the map of environment variable names to values that extend the existing environments of tasks in this
+     * pod.
+     */
+    public Map<String, String> getEnvironment() {
+        return environment == null ? Collections.emptyMap() : environment;
     }
 
     /**
