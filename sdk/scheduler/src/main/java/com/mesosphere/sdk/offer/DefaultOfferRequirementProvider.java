@@ -327,7 +327,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 }
             } else {
                 // Add newly added resource
-                updatedResources.add(ResourceUtils.getDesiredResource(resourceSpec));
+                updatedResources.add(ResourceUtils.getExpectedResource(resourceSpec));
             }
         }
 
@@ -340,7 +340,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Collection<Protos.Resource> resources = new ArrayList<>();
 
         for (ResourceSpec resourceSpec : resourceSet.getResources()) {
-            resources.add(ResourceUtils.getDesiredResource(resourceSpec));
+            resources.add(ResourceUtils.getExpectedResource(resourceSpec));
         }
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {

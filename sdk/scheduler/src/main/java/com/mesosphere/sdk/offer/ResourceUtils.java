@@ -29,8 +29,8 @@ public class ResourceUtils {
         return setResource(Resource.newBuilder().setRole("*"), name, value);
     }
 
-    public static Resource getDesiredResource(ResourceSpec resourceSpec) {
-        return getDesiredResource(
+    public static Resource getExpectedResource(ResourceSpec resourceSpec) {
+        return getExpectedResource(
                 resourceSpec.getRole(),
                 resourceSpec.getPrincipal(),
                 resourceSpec.getName(),
@@ -122,15 +122,15 @@ public class ResourceUtils {
         return resBuilder.build();
     }
 
-    public static Resource getDesiredResource(String role, String principal, String name, Value value) {
-        return getDesiredResource(role, principal, name, value, "");
+    public static Resource getExpectedResource(String role, String principal, String name, Value value) {
+        return getExpectedResource(role, principal, name, value, "");
     }
 
-    public static Resource getDesiredResource(String role,
-                                              String principal,
-                                              String name,
-                                              Value value,
-                                              String resourceId) {
+    public static Resource getExpectedResource(String role,
+                                               String principal,
+                                               String name,
+                                               Value value,
+                                               String resourceId) {
         return Resource.newBuilder(getUnreservedResource(name, value))
                 .setRole(role)
                 .setReservation(getDesiredReservationInfo(principal, resourceId))
@@ -170,7 +170,7 @@ public class ResourceUtils {
                 .setType(Value.Type.SCALAR)
                 .setScalar(Value.Scalar.newBuilder().setValue(value))
                 .build();
-        return getDesiredResource(role, principal, name, val);
+        return getExpectedResource(role, principal, name, val);
     }
 
     public static Resource getUnreservedRanges(String name, List<Range> ranges) {
@@ -185,7 +185,7 @@ public class ResourceUtils {
     }
 
     public static Resource getDesiredRanges(String role, String principal, String name, List<Range> ranges) {
-        return getDesiredResource(
+        return getExpectedResource(
                 role,
                 principal,
                 name,

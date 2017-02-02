@@ -58,6 +58,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(getOffer(offeredResources)));
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(3, recommendations.size());
+        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(2).getOperation().getType());
 
         Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
@@ -84,6 +87,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(getOffer(Arrays.asList(offeredReservedResource, offeredUnReservedResource))));
         // UNRESERVE, RESERVE, LAUNCH
         Assert.assertEquals(3, recommendations.size());
+        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(2).getOperation().getType());
 
         Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);
@@ -110,6 +116,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(getOffer(Arrays.asList(offeredReservedResource, offeredUnReservedResource))));
         // LAUNCH
         Assert.assertEquals(1, recommendations.size());
+        Assert.assertEquals(Operation.Type.LAUNCH, recommendations.get(0).getOperation().getType());
 
         Operation launchOperation = recommendations.get(0).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunch().getTaskInfos(0);

@@ -93,7 +93,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             // as well as any additional needed Mesos Operations.  In the case
             // where a requirement has changed for an Atomic resource, no Operations
             // can be performed because the resource is Atomic.
-            if (!expectedValueChanged(existingResource.getValue(), resourceRequirement.getValue())) {
+
+            // Does existing resource suffices the resource requirement ?
+            if (ValueUtils.equal(existingResource.getValue(), resourceRequirement.getValue())) {
                 logger.info("    Current reservation for resource '{}' matches required value: {}",
                         resourceRequirement.getName(),
                         TextFormat.shortDebugString(existingResource.getValue()),
@@ -110,7 +112,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             resourceRequirement.getName(),
                             TextFormat.shortDebugString(existingResource.getValue()),
                             TextFormat.shortDebugString(resourceRequirement.getValue()));
-                    Resource reserveResource = ResourceUtils.getDesiredResource(
+                    Resource reserveResource = ResourceUtils.getExpectedResource(
                             resourceRequirement.getRole(),
                             resourceRequirement.getPrincipal(),
                             resourceRequirement.getName(),
@@ -215,9 +217,5 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             UUID.randomUUID().toString()))
                     .build());
         }
-    }
-
-    private boolean expectedValueChanged(Value requestedResource, Value existingResource) {
-        return !ValueUtils.equal(requestedResource, existingResource);
     }
 }
