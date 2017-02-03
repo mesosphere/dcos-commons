@@ -21,83 +21,116 @@ def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
 @pytest.mark.sanity
-def test_kill_data_node():
-    tasks.kill_task_with_pattern('DataNode', 'data-0-node.hdfs.mesos')
-
-    check_running()
-
-
-@pytest.mark.sanity
-def test_kill_name_node():
-    tasks.kill_task_with_pattern('NameNode', 'name-0-node.hdfs.mesos')
-
-    time.sleep(1)  # give NameNode a chance to die
-    check_running()
-
-
-@pytest.mark.sanity
+@pytest.mark.recovery
 def test_kill_journal_node():
-    tasks.kill_task_with_pattern('JournalNode', 'journal-0-node.hdfs.mesos')
+    check_running()
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal-0')
+    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
 
+    tasks.kill_task_with_pattern('journalnode', 'journal-0-node.hdfs.mesos')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
     check_running()
 
 
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
 @pytest.mark.sanity
+@pytest.mark.recovery
+def test_kill_name_node():
+    check_running()
+    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name-0')
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+
+    tasks.kill_task_with_pattern('namenode', 'name-0-node.hdfs.mesos')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    check_running()
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_kill_data_node():
+    check_running()
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data-0')
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
+
+    tasks.kill_task_with_pattern('datanode', 'data-0-node.hdfs.mesos')
+    tasks.check_tasks_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
+    check_running()
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
 def test_kill_scheduler():
+    check_running()
     tasks.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
-
     check_running()
 
 
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
 @pytest.mark.sanity
-def test_kill_datanode_executor():
-    tasks.kill_task_with_pattern('hdfs.executor.Main', 'data-0-node.hdfs.mesos')
-
-    check_running()
-
-
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
-@pytest.mark.sanity
-def test_kill_journalnode_executor():
-    tasks.kill_task_with_pattern('hdfs.executor.Main', 'journal-0-node.hdfs.mesos')
-
-    check_running()
-
-
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
-@pytest.mark.sanity
-def test_kill_namenode_executor():
-    tasks.kill_task_with_pattern('hdfs.executor.Main', 'name-0-node.hdfs.mesos')
-
-    check_running()
-
-
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
-@pytest.mark.sanity
-def test_kill_all_datanodes():
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
-        tasks.kill_task_with_pattern('DataNode', host)
-
-    check_running()
-
-
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
-@pytest.mark.sanity
+@pytest.mark.recovery
 def test_kill_all_journalnodes():
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
-        tasks.kill_task_with_pattern('JournalNode', host)
+    check_running()
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
 
+    for host in shakedown.get_service_ips(PACKAGE_NAME):
+        tasks.kill_task_with_pattern('journalnode', host)
+
+    tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
     check_running()
 
 
-@pytest.mark.skip(reason="This test currently fails. Skipping for now.")
 @pytest.mark.sanity
+@pytest.mark.recovery
 def test_kill_all_namenodes():
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
-        tasks.kill_task_with_pattern('NameNode', host)
+    check_running()
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
 
+    for host in shakedown.get_service_ips(PACKAGE_NAME):
+        tasks.kill_task_with_pattern('namenode', host)
+
+    tasks.check_tasks_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
+    check_running()
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_kill_all_datanodes():
+    check_running()
+    journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
+    name_ids = tasks.get_task_ids(PACKAGE_NAME, 'name')
+    zkfc_ids = tasks.get_task_ids(PACKAGE_NAME, 'zkfc')
+    data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
+
+    for host in shakedown.get_service_ips(PACKAGE_NAME):
+        tasks.kill_task_with_pattern('datanode', host)
+
+    tasks.check_tasks_updated(PACKAGE_NAME, 'data', data_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'journal', journal_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'name', name_ids)
+    tasks.check_tasks_not_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
     check_running()
