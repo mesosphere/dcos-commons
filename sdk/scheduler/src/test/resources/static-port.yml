@@ -1,0 +1,13 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      test-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        ports:
+          test-port-name:
+            port: 555
+        env:
+          PORT_TEST_PORT_NAME: 555

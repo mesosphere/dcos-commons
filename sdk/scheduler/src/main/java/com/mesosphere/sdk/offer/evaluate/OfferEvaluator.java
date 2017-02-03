@@ -81,7 +81,7 @@ public class OfferEvaluator {
 
             if (failedOutcomeCount != 0) {
                 recommendations.clear();
-                logger.info("- %d: failed %d of %d evaluation stages.",
+                logger.info("- {}: failed {} of {} evaluation stages.",
                         i + 1, failedOutcomeCount, evaluationStages.size());
 
                 continue;
