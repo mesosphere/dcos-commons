@@ -1,12 +1,13 @@
 {
   "packagingVersion": "2.0",
-  "name": "kafka",
+  "name": "apache-kafka",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
-  "description": "An example implementation of a stateful service using the DC/OS SDK",
+  "description": "Apache Kafka framework running on DC/OS",
   "selected": false,
   "framework": true,
-  "tags": ["example", "reference", "hello-world"],
-  "postInstallNotes": "hello-world post install notes go here.",
-  "postUninstallNotes": "hello-world post uninstall notes go here."
+  "tags": ["message", "broker", "pubsub"],
+  "postInstallNotes": "DC/OS Apache Kafka Service is being installed.\n\n\tDocumentation: https://docs.mesosphere.com/current/usage/service-guides/kafka/\n\tIssues: https://dcosjira.atlassian.net/projects/KAFKA/issues",
+  "postUninstallNotes": "DC/OS Apache Kafka Service has been uninstalled.\nPlease follow the instructions at https://docs.mesosphere.com/current/usage/service-guides/kafka/uninstall to remove any persistent state if required."
 }
+
