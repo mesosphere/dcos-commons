@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.OfferRecommendationSlate;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -15,12 +14,12 @@ import org.junit.Test;
 public class NamedVIPEvaluationStageTest {
     @Test
     public void testDiscoveryInfoPopulated() throws Exception {
-        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0)
-                .toBuilder().clearRanges().build();
+        Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 0, 0);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         PortEvaluationStage portEvaluationStage = new NamedVIPEvaluationStage(
                 desiredPorts,
@@ -31,12 +30,10 @@ public class NamedVIPEvaluationStageTest {
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
                 80);
-        EvaluationOutcome outcome = portEvaluationStage.evaluate(
-                new MesosResourcePool(offer), offerRequirement, new OfferRecommendationSlate());
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
-        Protos.DiscoveryInfo discoveryInfo = offerRequirement.getTaskRequirement(TestConstants.TASK_NAME)
-                .getTaskInfo().getDiscovery();
+        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
         Assert.assertEquals(DiscoveryInfo.Visibility.CLUSTER, discoveryInfo.getVisibility());
 
         Protos.Port port = discoveryInfo.getPorts().getPorts(0);

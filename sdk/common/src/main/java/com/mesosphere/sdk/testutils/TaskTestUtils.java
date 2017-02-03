@@ -1,10 +1,12 @@
 package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 /**
@@ -25,6 +27,27 @@ public class TaskTestUtils {
                 .setContainer(TestConstants.CONTAINER_INFO);
         builder = CommonTaskUtils.setType(builder, TestConstants.TASK_TYPE);
         builder = CommonTaskUtils.setIndex(builder, index);
+        for (Protos.Resource r : resources) {
+            String resourceId = "";
+            String dynamicPortAssignment = null;
+            for (Protos.Label l : r.getReservation().getLabels().getLabelsList()) {
+                if (Objects.equals(l.getKey(), "resource_id")) {
+                   resourceId = l.getValue();
+                } else if (Objects.equals(l.getKey(), TestConstants.HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL)) {
+                    dynamicPortAssignment = l.getValue();
+                }
+            }
+
+            if (!resourceId.isEmpty() && Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
+                String portValue = dynamicPortAssignment == null ?
+                        Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
+                builder.getCommandBuilder()
+                        .getEnvironmentBuilder()
+                        .addVariablesBuilder()
+                        .setName(TestConstants.PORT_ENV_NAME)
+                        .setValue(portValue);
+            }
+        }
         return builder.addAllResources(resources).build();
     }
 

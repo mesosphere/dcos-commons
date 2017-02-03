@@ -20,18 +20,17 @@ public class ResourceEvaluationStageTest {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
-        OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
 
         ResourceEvaluationStage resourceEvaluationStage =
                 new ResourceEvaluationStage(desiredResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
-                resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+                resourceEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
         Assert.assertTrue(outcome.isPassing());
 
         Protos.Value remaining = mesosResourcePool.getUnreservedMergedPool().get("cpus");
         Assert.assertTrue(1.0 == remaining.getScalar().getValue());
 
-        OfferRecommendation recommendation = recommendationSlate.getRecommendations().get(0);
+        OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
 
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
@@ -51,18 +50,17 @@ public class ResourceEvaluationStageTest {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(expectedResource);
-        OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
 
         ResourceEvaluationStage resourceEvaluationStage =
                 new ResourceEvaluationStage(expectedResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
-                resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+                resourceEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(0, mesosResourcePool.getReservedPool().size());
-        Assert.assertEquals(1, recommendationSlate.getRecommendations().size());
+        Assert.assertEquals(1, outcome.getOfferRecommendations().size());
 
-        OfferRecommendation recommendation = recommendationSlate.getRecommendations().get(0);
+        OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
 
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
@@ -80,13 +78,12 @@ public class ResourceEvaluationStageTest {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
-        OfferRecommendationSlate recommendationSlate = new OfferRecommendationSlate();
 
         ResourceEvaluationStage resourceEvaluationStage = new ResourceEvaluationStage(
                 desiredResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
-                resourceEvaluationStage.evaluate(mesosResourcePool, offerRequirement, recommendationSlate);
+                resourceEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
         Assert.assertFalse(outcome.isPassing());
-        Assert.assertEquals(0, recommendationSlate.getRecommendations().size());
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
     }
 }

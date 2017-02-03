@@ -46,6 +46,7 @@ public class AndRule implements PlacementRule {
         return EvaluationOutcome.create(
                 passingCount == rules.size(),
                 this,
+                null,
                 children,
                 "%d of %d rules are passing:", passingCount, rules.size());
     }

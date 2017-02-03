@@ -28,7 +28,7 @@ public class NotRule implements PlacementRule {
     public EvaluationOutcome filter(Offer offer, OfferRequirement offerRequirement, Collection<TaskInfo> tasks) {
         EvaluationOutcome child = rule.filter(offer, offerRequirement, tasks);
         return EvaluationOutcome.create(
-                !child.isPassing(), this, Arrays.asList(child), "Returning opposite of child rule:");
+                !child.isPassing(), this, null, Arrays.asList(child), "Returning opposite of child rule:");
     }
 
     @JsonProperty("rule")

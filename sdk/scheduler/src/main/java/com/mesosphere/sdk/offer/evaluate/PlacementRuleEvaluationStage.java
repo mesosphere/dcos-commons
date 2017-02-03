@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.OfferRecommendationSlate;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import org.apache.mesos.Protos;
 
@@ -21,10 +20,8 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public EvaluationOutcome evaluate(
-            MesosResourcePool mesosResourcePool,
-            OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) {
+    public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+        OfferRequirement offerRequirement = podInfoBuilder.getOfferRequirement();
         if (!offerRequirement.getPlacementRuleOptional().isPresent()) {
             return pass(this, "No placement rule defined.");
         }

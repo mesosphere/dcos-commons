@@ -3,7 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.ResourceRequirement;
 import org.apache.mesos.Protos;
 
 import java.util.Optional;
@@ -28,7 +28,7 @@ public interface ResourceSpec {
     String getPrincipal();
 
     @JsonIgnore
-    OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName);
+    ResourceRequirement getResourceRequirement(Protos.Resource resource);
 
     default Optional<String> getEnvKey() {
         return Optional.of(getName());

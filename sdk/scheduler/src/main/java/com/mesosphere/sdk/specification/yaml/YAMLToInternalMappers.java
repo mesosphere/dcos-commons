@@ -274,9 +274,7 @@ public class YAMLToInternalMappers {
         }
 
         if (rawEndpoints != null) {
-            for (Map.Entry<String, RawPort> rawEndpoint : rawEndpoints.entrySet()) {
-                resourceSetBuilder.addPort(rawEndpoint.getKey(), rawEndpoint.getValue());
-            }
+            resourceSetBuilder.addPorts(rawEndpoints);
         }
 
         return resourceSetBuilder

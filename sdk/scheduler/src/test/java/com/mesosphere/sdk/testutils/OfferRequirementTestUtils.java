@@ -1,16 +1,22 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.NamedVIPRequirement;
+import com.mesosphere.sdk.offer.PortRequirement;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskRequirement;
+import com.mesosphere.sdk.offer.VolumeRequirement;
+import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.mesos.Protos;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * This class provides utility methods for tests concerned with OfferRequirements.
@@ -30,157 +36,115 @@ public class OfferRequirementTestUtils {
     }
 
     public static OfferRequirement getOfferRequirement(Protos.Resource resource) throws InvalidRequirementException {
-        return getOfferRequirement(Arrays.asList(resource));
-    }
-
-    public static OfferRequirement getOfferRequirement(
-            List<Protos.Resource> resources) throws InvalidRequirementException {
-        return OfferRequirement.create(TestConstants.TASK_TYPE, 0, Arrays.asList(TaskTestUtils.getTaskInfo(resources)));
+        return getOfferRequirement(Arrays.asList(resource), false);
     }
 
     public static OfferRequirement getOfferRequirement(
             Protos.Resource resource, PlacementRule placementRule) throws InvalidRequirementException {
-        return getOfferRequirement(Arrays.asList(resource), placementRule);
+        return getOfferRequirement(Arrays.asList(resource), placementRule, false);
     }
 
     public static OfferRequirement getOfferRequirement(
-            List<Protos.Resource> resources, PlacementRule placementRule) throws InvalidRequirementException {
-        return OfferRequirement.create(
+            List<Protos.Resource> resources, boolean multipleTasks) throws InvalidRequirementException {
+        return getOfferRequirement(resources, null, multipleTasks);
+    }
+
+    public static OfferRequirement getOfferRequirement(
+            List<Protos.Resource> resources,
+            PlacementRule placementRule,
+            boolean multipleTasks) throws InvalidRequirementException {
+        Collection<TaskRequirement> taskRequirements;
+        if (multipleTasks) {
+            taskRequirements = new ArrayList<>();
+            for (int i = 0; i < resources.size(); ++i) {
+                Protos.TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(resources.get(i)).toBuilder();
+                taskBuilder.setName(getIndexedName(taskBuilder.getName(), i));
+                taskBuilder.setTaskId(CommonTaskUtils.toTaskId(taskBuilder.getName()));
+                taskRequirements.add(new TaskRequirement(
+                        taskBuilder.build(), getResourceRequirements(Arrays.asList(resources.get(i)))));
+            }
+        } else {
+            taskRequirements = Arrays.asList(new TaskRequirement(
+                    TaskTestUtils.getTaskInfo(mergePorts(resources)), getResourceRequirements(resources)));
+        }
+
+        return new OfferRequirement(
                 TestConstants.TASK_TYPE,
                 0,
-                Arrays.asList(TaskTestUtils.getTaskInfo(resources)),
+                taskRequirements,
                 Optional.empty(),
-                Optional.of(placementRule));
+                Optional.ofNullable(placementRule));
+
     }
 
-    public static PodSpec withResource(PodSpec podSpec, Protos.Resource resource, String principal) {
-        return withResources(podSpec, Arrays.asList(resource), principal);
-    }
-
-    public static PodSpec withResource(
-            PodSpec podSpec,
-            Protos.Resource resource,
-            String principal,
-            List<String> avoidAgents,
-            List<String> collocateAgents) {
-        return withResources(podSpec, Arrays.asList(resource), principal, avoidAgents, collocateAgents);
-    }
-
-    public static PodSpec withVolume(PodSpec podSpec, Protos.Resource resource, String principal) {
-        return addResources(
-                podSpec,
-                Collections.emptyList(),
-                Arrays.asList(volumeFromResource(resource, principal)),
-                Collections.emptyList(),
-                Collections.emptyList());
-    }
-
-    public static PodSpec withResources(PodSpec podSpec, Collection<Protos.Resource> resources, String principal) {
-        return addResources(
-                podSpec,
-                resources.stream().map(r -> specFromResource(r, principal)).collect(Collectors.toList()),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                Collections.emptyList());
-    }
-
-    public static PodSpec withResources(
-            PodSpec podSpec,
-            Collection<Protos.Resource> resources,
-            String principal,
-            List<String> avoidAgents,
-            List<String> collocateAgents) {
-        return addResources(
-                podSpec,
-                resources.stream().map(r -> specFromResource(r, principal)).collect(Collectors.toList()),
-                Collections.emptyList(),
-                avoidAgents,
-                collocateAgents);
-    }
-
-    private static PodSpec addResources(
-            PodSpec podSpec,
-            Collection<ResourceSpec> resources,
-            Collection<VolumeSpec> volumes,
-            List<String> avoidAgents,
-            List<String> collocateAgents) {
-        Optional<PlacementRule> placement = PlacementUtils.getAgentPlacementRule(avoidAgents, collocateAgents);
-        DefaultPodSpec.Builder podBuilder = DefaultPodSpec.newBuilder(podSpec);
-        if (placement.isPresent()) {
-            podBuilder.placementRule(placement.get());
+    private static List<Protos.Resource> mergePorts(Collection<Protos.Resource> resources) {
+        Protos.Resource.Builder ports = null;
+        List<Protos.Resource> mergedResources = new ArrayList<>();
+        for (Protos.Resource r : resources) {
+            if (r.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
+                ports = ports == null ? r.toBuilder() : ports.mergeRanges(r.getRanges());
+            } else {
+                mergedResources.add(r);
+            }
         }
 
-        DefaultTaskSpec taskSpec = (DefaultTaskSpec) podSpec.getTasks().get(0);
-        DefaultTaskSpec.Builder taskBuilder = DefaultTaskSpec.newBuilder(taskSpec);
-        DefaultResourceSet resourceSet = (DefaultResourceSet) taskSpec.getResourceSet();
-        DefaultResourceSet.Builder resourceBuilder = DefaultResourceSet.newBuilder(resourceSet);
-
-        if (!resources.isEmpty()) {
-            resourceBuilder.resources(resources);
+        if (ports != null) {
+            mergedResources.add(ports.build());
         }
-        resourceBuilder.volumes(volumes);
-        resourceBuilder.id(resourceSet.getId());
-        taskBuilder.resourceSet(resourceBuilder.build());
-        podBuilder.tasks(Arrays.asList(taskBuilder.build()));
 
-        return podBuilder.build();
+        return mergedResources;
     }
 
-    private static ResourceSpec specFromResource(Protos.Resource resource, String principal) {
-        Protos.Value.Builder valueBuilder = Protos.Value.newBuilder();
-
-        valueBuilder.setType(resource.getType());
-        switch (resource.getType()) {
-            case SCALAR:
-                valueBuilder.setScalar(resource.getScalar());
-                break;
-            case RANGES:
-                valueBuilder.setRanges(resource.getRanges());
-                break;
-            case SET:
-                valueBuilder.setSet(resource.getSet());
-                break;
-            default:
-                throw new IllegalArgumentException("Resource has unknown type");
+    public static Collection<ResourceRequirement> getResourceRequirements(Collection<Protos.Resource> resources) {
+        Collection<ResourceRequirement> resourceRequirements = new ArrayList<>();
+        Collection<ResourceRequirement> portRequirements = new ArrayList<>();
+        int numPorts = 0;
+        int numVips = 0;
+        for (Protos.Resource resource : resources) {
+            switch (resource.getName()) {
+                case Constants.PORTS_RESOURCE_TYPE:
+                    int port = (int) resource.getRanges().getRange(0).getBegin();
+                    if (ResourceUtils.getLabel(resource, TestConstants.HAS_VIP_LABEL) == null) {
+                        portRequirements.add(new PortRequirement(
+                                resource, getIndexedName(TestConstants.PORT_NAME, numPorts), port));
+                    } else {
+                        resource = ResourceUtils.removeLabel(resource, TestConstants.HAS_VIP_LABEL);
+                        portRequirements.add(new NamedVIPRequirement(
+                                resource,
+                                getIndexedName(TestConstants.PORT_NAME, numPorts),
+                                port,
+                                TestConstants.VIP_PROTOCOL,
+                                TestConstants.VIP_VISIBILITY,
+                                getIndexedName(TestConstants.VIP_NAME, numVips),
+                                TestConstants.VIP_PORT + numVips));
+                        ++numVips;
+                    }
+                    ++numPorts;
+                    break;
+                case Constants.DISK_RESOURCE_TYPE:
+                    String containerPath = ResourceUtils.getLabel(resource, TestConstants.CONTAINER_PATH_LABEL);
+                    if (containerPath != null) {
+                        Protos.Resource.Builder builder = resource.toBuilder();
+                        builder.getDiskBuilder().getVolumeBuilder().setContainerPath(containerPath);
+                        resource = ResourceUtils.removeLabel(builder.build(), TestConstants.CONTAINER_PATH_LABEL);
+                    }
+                    resourceRequirements.add(new VolumeRequirement(resource));
+                    break;
+                default:
+                    resourceRequirements.add(new ResourceRequirement(resource));
+                    break;
+            }
         }
 
-        if (Objects.equals("ports", resource.getName())) {
-            return new PortSpec(
-                    resource.getName(),
-                    valueBuilder.build(),
-                    resource.getRole(),
-                    principal,
-                    null,
-                    "TEST_PORT_NAME");
-        } else {
-            return new DefaultResourceSpec(
-                    resource.getName(),
-                    valueBuilder.build(),
-                    resource.getRole(),
-                    principal,
-                    null);
+        if (!portRequirements.isEmpty()) {
+            resourceRequirements.add(new PortsRequirement(portRequirements));
         }
+
+        return resourceRequirements;
     }
 
-    private static VolumeSpec volumeFromResource(Protos.Resource resource, String principal) {
-        VolumeSpec.Type volumeType;
-
-        Protos.Resource.DiskInfo.Source.Type resourceType = resource.getDisk().getSource().getType();
-        if (resource.getDisk().hasSource() && resourceType.equals(Protos.Resource.DiskInfo.Source.Type.MOUNT)) {
-            volumeType = VolumeSpec.Type.MOUNT;
-        } else if (resource.getDisk().hasSource() && resourceType.equals(Protos.Resource.DiskInfo.Source.Type.PATH)) {
-            volumeType = VolumeSpec.Type.PATH;
-        } else {
-            volumeType = VolumeSpec.Type.ROOT;
-        }
-
-        return new DefaultVolumeSpec(
-                resource.getScalar().getValue(),
-                volumeType,
-                resource.getDisk().getVolume().getContainerPath(),
-                resource.getRole(),
-                principal,
-                null);
+    private static String getIndexedName(String baseName, int index) {
+        return index == 0 ? baseName : baseName + index;
     }
 
     public static final EnvironmentVariables getApiPortEnvironment() {

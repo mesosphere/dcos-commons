@@ -11,6 +11,7 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 public class TestConstants {
     public static final String SERVICE_NAME = "service-name";
     public static final String CONTAINER_PATH = "test-container-path";
+    public static final String CONTAINER_PATH_LABEL = "container-path";
     public static final String EXECUTOR_NAME = "test-executor-name";
     public static final String HOSTNAME = "test-hostname";
     public static final String MOUNT_ROOT = "test-mount-root";
@@ -29,10 +30,15 @@ public class TestConstants {
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
     public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);
     public static final Protos.TaskID TASK_ID = CommonTaskUtils.toTaskId(TASK_NAME);
-    public static final String PORT_ENV_NAME = "PORT_TEST_PORT_NAME";
-    public static final String VIP_KEY = "VIP_TEST";
+    public static final String PORT_NAME = "TEST_PORT_NAME";
+    public static final String PORT_ENV_NAME = "PORT_" + PORT_NAME;
     public static final String VIP_NAME = "testvip";
+    public static final int VIP_PORT = 1111;
+    public static final String VIP_PROTOCOL = "tcp";
+    public static final Protos.DiscoveryInfo.Visibility VIP_VISIBILITY = Protos.DiscoveryInfo.Visibility.EXTERNAL;
     public static final Integer PORT_API_VALUE = 8080;
+    public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
+    public static final String HAS_VIP_LABEL = "hasvip";
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()

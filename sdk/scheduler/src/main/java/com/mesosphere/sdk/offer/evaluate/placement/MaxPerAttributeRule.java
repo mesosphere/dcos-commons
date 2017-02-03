@@ -148,7 +148,8 @@ public class MaxPerAttributeRule implements PlacementRule {
         }
         // after scanning all the tasks for usage of attributes present in this offer, nothing
         // hit or exceeded the limit. offer accepted!
-        return EvaluationOutcome.pass(this,
+        return EvaluationOutcome.pass(
+                this,
                 "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
                 maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString());
     }
