@@ -4,7 +4,7 @@ scheduler:
   zookeeper: {{MESOS_ZOOKEEPER_URI}}
   api-port: {{PORT_API}}
 pods:
-  kafka-pod:
+  kafka:
     count: {{BROKER_COUNT}}
     placement: {{PLACEMENT_CONSTRAINTS}}
     uris:
@@ -22,7 +22,7 @@ pods:
           type: {{BROKER_DISK_TYPE}}
           size: {{BROKER_DISK_SIZE}}
         goal: RUNNING
-        cmd:  "env && ./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"
+        cmd:  "./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"
         configs:
           server-properties:
             template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
@@ -33,4 +33,4 @@ plans:
     phases:
       Deployment:
         strategy: {{DEPLOY_STRATEGY}}
-        pod: kafka-pod
+        pod: kafka
