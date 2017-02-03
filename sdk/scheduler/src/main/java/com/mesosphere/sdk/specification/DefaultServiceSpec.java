@@ -240,6 +240,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultResourceSpec.class,
                 DefaultVolumeSpec.class,
                 PortSpec.class,
+                PortsSpec.class,
                 NamedVIPSpec.class);
 
         private final ObjectMapper objectMapper;

@@ -78,7 +78,8 @@ public class OfferRequirementTest {
                 TestConstants.MOUNT_ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.PERSISTENCE_ID);
-        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(Arrays.asList(cpu, volume));
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(
+                Arrays.asList(cpu, volume), false);
         Assert.assertEquals(2, offerRequirement.getResourceIds().size());
         Assert.assertTrue(testResourceId, offerRequirement.getResourceIds().contains(testResourceId));
         Assert.assertTrue(TestConstants.PERSISTENCE_ID, offerRequirement.getResourceIds().contains(testResourceId));
@@ -92,7 +93,10 @@ public class OfferRequirementTest {
         TaskInfo taskInfo = TaskTestUtils.getTaskInfo(cpu);
         ExecutorInfo execInfo = TaskTestUtils.getExecutorInfo(cpu);
         OfferRequirement offerRequirement = OfferRequirement.create(
-                "taskType", 0, Arrays.asList(taskInfo), Optional.of(execInfo));
+                "taskType",
+                0,
+                Arrays.asList(new TaskRequirement(taskInfo)),
+                Optional.of(ExecutorRequirement.create(execInfo)));
         Resource executorResource = offerRequirement
                 .getExecutorRequirementOptional().get()
                 .getExecutorInfo()

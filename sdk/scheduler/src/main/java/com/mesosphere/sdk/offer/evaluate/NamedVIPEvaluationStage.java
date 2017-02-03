@@ -45,28 +45,19 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     }
 
     @Override
-    protected void setProtos(OfferRequirement offerRequirement, Protos.Resource resource) {
-        super.setProtos(offerRequirement, resource);
+    protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
+        super.setProtos(podInfoBuilder, resource);
 
         // If this is an existing TaskInfo or ExecutorInfo with the VIP already set, we don't have to do anything.
-        if (getTaskName().isPresent() &&
-                !isVIPSet(offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().getDiscovery())) {
+        if (getTaskName().isPresent() && !isVIPSet(podInfoBuilder.getTaskBuilder(getTaskName().get()).getDiscovery())) {
             // Set the VIP on the TaskInfo.
-            Protos.TaskInfo.Builder taskInfoBuilder = offerRequirement
-                    .getTaskRequirement(getTaskName().get()).getTaskInfo().toBuilder();
-
-            ResourceUtils.addVIP(taskInfoBuilder, vipName, vipPort, protocol, visibility, resource);
-            offerRequirement.updateTaskRequirement(getTaskName().get(), taskInfoBuilder.build());
-        } else if (offerRequirement.getExecutorRequirementOptional().isPresent() &&
-                !isVIPSet(offerRequirement.getExecutorRequirementOptional().get().getExecutorInfo().getDiscovery())) {
+            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
+            ResourceUtils.addVIP(taskBuilder, vipName, vipPort, protocol, visibility, resource);
+        } else if (podInfoBuilder.getExecutorBuilder().isPresent() &&
+                !isVIPSet(podInfoBuilder.getExecutorBuilder().get().getDiscovery())) {
             // Set the VIP on the ExecutorInfo.
-            Protos.ExecutorInfo.Builder executorInfoBuilder = offerRequirement.getExecutorRequirementOptional()
-                    .get()
-                    .getExecutorInfo()
-                    .toBuilder();
-
-            ResourceUtils.addVIP(executorInfoBuilder, vipName, vipPort, protocol, visibility, resource);
-            offerRequirement.updateExecutorRequirement(executorInfoBuilder.build());
+            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
+            ResourceUtils.addVIP(executorBuilder, vipName, vipPort, protocol, visibility, resource);
         }
     }
 

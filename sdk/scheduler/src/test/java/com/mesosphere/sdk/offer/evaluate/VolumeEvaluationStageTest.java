@@ -9,6 +9,9 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class VolumeEvaluationStageTest {
     @Test
     public void testCreateSucceeds() throws Exception {
@@ -18,17 +21,17 @@ public class VolumeEvaluationStageTest {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
-        OfferRecommendationSlate offerRecommendationSlate = new OfferRecommendationSlate();
 
         VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                 desiredResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
-                volumeEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+                volumeEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
         Assert.assertTrue(outcome.isPassing());
 
-        Assert.assertEquals(2, offerRecommendationSlate.getRecommendations().size());
+        List<OfferRecommendation> recommendations = new ArrayList<>(outcome.getOfferRecommendations());
+        Assert.assertEquals(2, outcome.getOfferRecommendations().size());
 
-        OfferRecommendation reserveRecommendation = offerRecommendationSlate.getRecommendations().get(0);
+        OfferRecommendation reserveRecommendation = recommendations.get(0);
         Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveRecommendation.getOperation().getType());
 
         Protos.Resource resource = reserveRecommendation.getOperation().getReserve().getResources(0);
@@ -38,7 +41,7 @@ public class VolumeEvaluationStageTest {
         Assert.assertEquals(reservationLabel.getKey(), "resource_id");
         Assert.assertNotEquals(reservationLabel.getValue(), "");
 
-        OfferRecommendation createRecommendation = offerRecommendationSlate.getRecommendations().get(1);
+        OfferRecommendation createRecommendation = recommendations.get(1);
         resource = createRecommendation.getOperation().getCreate().getVolumes(0);
         Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().getType());
         Assert.assertEquals("disk", resource.getName());
@@ -57,13 +60,12 @@ public class VolumeEvaluationStageTest {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer);
         OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredResource);
-        OfferRecommendationSlate offerRecommendationSlate = new OfferRecommendationSlate();
 
         VolumeEvaluationStage volumeEvaluationStage = new VolumeEvaluationStage(
                 desiredResource, TestConstants.TASK_NAME);
         EvaluationOutcome outcome =
-                volumeEvaluationStage.evaluate(mesosResourcePool, offerRequirement, offerRecommendationSlate);
+                volumeEvaluationStage.evaluate(mesosResourcePool, new PodInfoBuilder(offerRequirement));
         Assert.assertFalse(outcome.isPassing());
-        Assert.assertEquals(0, offerRecommendationSlate.getRecommendations().size());
+        Assert.assertEquals(0, outcome.getOfferRecommendations().size());
     }
 }

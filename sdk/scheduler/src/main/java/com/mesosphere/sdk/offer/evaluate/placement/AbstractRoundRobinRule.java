@@ -103,29 +103,32 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             if (!distinctValueCount.isPresent()) {
                 // we don't know how many distinct attribute values are out there, and this value has fewer instances
                 // than some other value in the system.
-                return EvaluationOutcome.pass(this,
+                return EvaluationOutcome.pass(
+                        this,
                         "Distinct value count is unspecified, and '%s' has %d instances while others have%d to %d",
                         offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
             } else if (valueCounts.size() >= distinctValueCount.get()) {
                 // no values are missing from our counts, and this value has fewer instances than some other value in
                 // the system.
-                return EvaluationOutcome.pass(this,
+                return EvaluationOutcome.pass(
+                        this,
                         "All distinct values are found, and '%s' has %d instances while others have %d to %d",
                         offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount);
             }
             // we know that there are other attribute values out there which have nothing on them at all.
             // only launch here if this value also has nothing on it.
             if (offerValueCount == 0) {
-                return EvaluationOutcome.pass(this, "Other values have zero usage, but so does value '%s'", offerValue);
+                return EvaluationOutcome.pass(
+                        this, "Other values have zero usage, but so does value '%s'", offerValue);
             } else {
-                return EvaluationOutcome.fail(this,
-                        "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount);
+                return EvaluationOutcome.fail(
+                        this, "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount);
 
             }
         } else {
             // this attribute value is full at the current level, but other (known) values are not full yet.
-            return EvaluationOutcome.fail(this,
-                    "Value '%s' is already full, and others are known to not be full", offerValue);
+            return EvaluationOutcome.fail(
+                    this, "Value '%s' is already full, and others are known to not be full", offerValue);
         }
     }
 }

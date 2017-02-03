@@ -88,14 +88,12 @@ public class DefaultServiceSpecTest {
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(2, portsResources.size());
+        Assert.assertEquals(1, portsResources.size());
 
         Protos.Value.Ranges ports = portsResources.get(0).getValue().getRanges();
-        Assert.assertEquals(1, ports.getRangeCount());
+        Assert.assertEquals(2, ports.getRangeCount());
         Assert.assertEquals(8080, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
-
-        ports = portsResources.get(1).getValue().getRanges();
-        Assert.assertEquals(8088, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
+        Assert.assertEquals(8088, ports.getRange(1).getBegin(), ports.getRange(1).getEnd());
     }
 
     @Test

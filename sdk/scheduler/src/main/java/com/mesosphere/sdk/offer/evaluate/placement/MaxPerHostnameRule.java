@@ -110,7 +110,9 @@ public class MaxPerHostnameRule implements PlacementRule {
         }
         // after scanning all the tasks for usage of attributes present in this offer, nothing
         // hit or exceeded the limit. offer accepted!
-        return EvaluationOutcome.pass(this, "%d/%d tasks matching filter '%s' are present on this host",
+        return EvaluationOutcome.pass(
+                this,
+                "%d/%d tasks matching filter '%s' are present on this host",
                 offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString());
     }
 

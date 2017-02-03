@@ -41,7 +41,7 @@ public class OrRule implements PlacementRule {
             children.add(child);
         }
         return EvaluationOutcome.create(
-                passingCount != 0, this, children, "%d of %d rules are passing:", passingCount, rules.size());
+                passingCount != 0, this, null, children, "%d of %d rules are passing:", passingCount, rules.size());
     }
 
     @JsonProperty("rules")

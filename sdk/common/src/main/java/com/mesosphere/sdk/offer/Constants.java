@@ -10,6 +10,7 @@ public class Constants {
     public static final String CONFIG_TEMPLATE_KEY_PREFIX = "config_template:";
     public static final String GOAL_STATE_KEY = "goal_state";
     public static final String POD_INSTANCE_INDEX_KEY = "POD_INSTANCE_INDEX";
+    public static final String PORT_NAME_LABEL_PREFIX = "port_";
     public static final String TARGET_CONFIGURATION_KEY = "target_configuration";
     public static final String FRAMEWORK_NAME_KEY = "FRAMEWORK_NAME";
     public static final String TASK_NAME_KEY = "TASK_NAME";
@@ -22,4 +23,5 @@ public class Constants {
 
     public static final String DEPLOY_PLAN_NAME = "deploy";
     public static final String PORTS_RESOURCE_TYPE = "ports";
+    public static final String DISK_RESOURCE_TYPE = "disk";
 }

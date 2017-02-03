@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.OfferRecommendationSlate;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.evaluate.placement.AgentRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -29,7 +28,7 @@ public class PlacementRuleEvaluationStageTest {
         PlacementRuleEvaluationStage placementRuleEvaluationStage = new PlacementRuleEvaluationStage(
                 Collections.emptyList());
         EvaluationOutcome outcome = placementRuleEvaluationStage.evaluate(
-                mesosResourcePool, offerRequirement, new OfferRecommendationSlate());
+                mesosResourcePool, new PodInfoBuilder(offerRequirement));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
@@ -50,7 +49,7 @@ public class PlacementRuleEvaluationStageTest {
         PlacementRuleEvaluationStage placementRuleEvaluationStage =
                 new PlacementRuleEvaluationStage(Collections.emptyList());
         EvaluationOutcome outcome = placementRuleEvaluationStage.evaluate(
-                mesosResourcePool, offerRequirement, new OfferRecommendationSlate());
+                mesosResourcePool, new PodInfoBuilder(offerRequirement));
 
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(1, mesosResourcePool.getUnreservedMergedPool().size());
