@@ -1,0 +1,12 @@
+{
+  "packagingVersion": "2.0",
+  "name": "hello-world2",
+  "version": "{{package-version}}",
+  "maintainer": "support@mesosphere.io",
+  "description": "An example implementation of a stateful service using the DC/OS SDK",
+  "selected": false,
+  "framework": true,
+  "tags": ["example", "reference", "hello-world2"],
+  "postInstallNotes": "hello-world2 post install notes go here.",
+  "postUninstallNotes": "hello-world2 post uninstall notes go here."
+}
