@@ -229,7 +229,7 @@ pods:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         readiness-check:
-          cmd: IP="$(ifconfig eth0 | grep "inet " | awk '{print $2}')" && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $IP | wc -l)" && [ $MATCH -gt 1 ]
+          cmd: MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $LIBPROCESS_IP | wc -l)" && [ $MATCH -gt 1 ]
           interval: 10
           delay: 120
           timeout: 60
