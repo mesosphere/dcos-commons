@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  */
 @Path("/v1")
 @Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
 public class PlansResource {
     static final Response PLAN_ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
             .entity("Element not found")
@@ -69,6 +68,7 @@ public class PlansResource {
      */
     @POST
     @Path("/plans/{planName}/start")
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response startPlan(@PathParam("planName") String planName, Map<String, String> parameters) {
         try {
             validate(parameters);
