@@ -1,4 +1,4 @@
-name: {{SERVICE_NAME}}
+name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
 pods:
@@ -65,8 +65,6 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
@@ -78,8 +76,6 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
       bootstrap:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
@@ -91,8 +87,6 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
   zkfc:
     count: 2
     uris:
@@ -161,8 +155,6 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-        env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
 
 plans:
   deploy:
