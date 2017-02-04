@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
-import com.google.common.collect.ImmutableMap;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -67,9 +69,11 @@ public class Main {
             return error;
         }
 
+        Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
+        env.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+
         String fileStr = new String(bytes, Charset.defaultCharset());
-        ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
-        return CommonTaskUtils.applyEnvToMustache(fileStr, allEnv);
+        return CommonTaskUtils.applyEnvToMustache(fileStr, env);
     }
 
     private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)

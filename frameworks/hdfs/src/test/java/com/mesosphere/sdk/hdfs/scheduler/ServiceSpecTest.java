@@ -3,6 +3,7 @@ package com.mesosphere.sdk.hdfs.scheduler;
 import com.google.common.collect.ImmutableMap;
 import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -13,6 +14,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServiceSpecTest extends BaseServiceSpecTest {
 
@@ -20,7 +23,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public static void beforeAll() {
         ENV_VARS.set("PORT_API", "8080");
         ENV_VARS.set("HDFS_VERSION", "hadoop-2.6.0-cdh5.9.1");
-        ENV_VARS.set("SERVICE_NAME", "hdfs");
+        ENV_VARS.set("FRAMEWORK_NAME", "hdfs");
         ENV_VARS.set("SERVICE_PRINCIPAL", "hdfs-principal");
         ENV_VARS.set("JOURNAL_CPUS", "1.0");
         ENV_VARS.set("JOURNAL_MEM", "256");
@@ -96,7 +99,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         byte[] bytes = Files.readAllBytes(path);
         String fileStr = new String(bytes, Charset.defaultCharset());
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
-        String renderedFileStr = CommonTaskUtils.applyEnvToMustache(fileStr, allEnv);
+        Map<String, String> updatedEnv = new HashMap<>(allEnv);
+        updatedEnv.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+
+        String renderedFileStr = CommonTaskUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));
         Assert.assertTrue(CommonTaskUtils.isMustacheFullyRendered(renderedFileStr));
     }
