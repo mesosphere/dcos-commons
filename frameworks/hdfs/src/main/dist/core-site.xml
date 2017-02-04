@@ -34,9 +34,9 @@
     </property>
 
     {{#SECURE_MODE}}
-    <property> <!-- TODO(mgummelt): remove this.  possible security vulnerability -->
+    <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
-        <value>hdfs/*@LOCAL</value>
+        <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>hadoop.security.authentication</name>

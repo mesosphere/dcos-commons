@@ -24,6 +24,11 @@ pods:
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
