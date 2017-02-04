@@ -17,8 +17,7 @@
   "env": {
     "HDFS_VERSION": "hadoop-2.6.0-cdh5.9.1",
     "FRAMEWORK_NAME": "{{service.name}}",
-    "JRE_VERSION": "jre1.8.0_91",
-    "SERVICE_NAME": "{{service.name}}",
+    "JRE_VERSION": "jre1.8.0_112",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "JOURNAL_CPUS": "{{journal_node.cpus}}",
     "JOURNAL_MEM": "{{journal_node.mem}}",
@@ -41,7 +40,6 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
-    "JAVA_URI":"{{service.task_jre_uri}}",
     {{#service.kerberos.enabled}}
     "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
     "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
@@ -93,7 +91,6 @@
     "{{service.kerberos.krb5_conf_uri}}",
     {{/service.kerberos.enabled}}
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
-
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

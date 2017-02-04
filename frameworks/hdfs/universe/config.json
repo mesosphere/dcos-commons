@@ -30,11 +30,6 @@
           "type":"string",
           "default":"svc.yml"
         },
-        "task_jre_uri": {
-          "type": "string",
-          "description": "The URI from which the JRE for all tasks is downloaded.",
-          "default": "https://infinity-artifacts.s3.amazonaws.com/jre-8u91-linux-x64.tar.gz"
-        },
         "kerberos": {
           "type": "object",
           "description": "Kerberos configuration properties.",

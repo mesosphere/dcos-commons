@@ -55,7 +55,7 @@
         <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value>
     </property>
     <property>
-        <name>dfs.namenode.rpc-bind-host.{{FRAMEWORK_NAME}}.name-0-node</name>
+        <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
     <property>
@@ -63,7 +63,7 @@
         <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
     <property>
-        <name>dfs.namenode.http-bind-host.{{FRAMEWORK_NAME}}.name-0-node</name>
+        <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
 
