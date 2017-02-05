@@ -7,7 +7,7 @@ import sdk_tasks as tasks
 
 from tests.config import (
     PACKAGE_NAME,
-    check_running
+    check_healthy
 )
 
 TEST_CONTENT_SMALL = "This is some test data"
@@ -41,7 +41,7 @@ def test_integrity_on_data_node_failure():
 
     shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME), HDFS_CMD_TIMEOUT_SEC)
 
-    check_running()
+    check_healthy()
 
 
 @pytest.mark.skip(reason="Failing test")
@@ -59,7 +59,7 @@ def test_integrity_on_name_node_failure():
 
     shakedown.wait_for(lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_2_NAME), HDFS_CMD_TIMEOUT_SEC)
 
-    check_running()
+    check_healthy()
 
 
 def write_some_data(data_node_host, file_name):

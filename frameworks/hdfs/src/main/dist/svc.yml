@@ -242,3 +242,13 @@ plans:
       dn-deploy:
         strategy: {{DATA_STRATEGY}}
         pod: data
+
+  replace-nn:
+    strategy: serial
+    phases:
+      nn-deploy:
+        strategy: serial
+        pod: name
+        steps:
+          - 0: [[bootstrap], [node]]
+          - 1: [[bootstrap], [node]]

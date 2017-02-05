@@ -44,6 +44,7 @@ public class Main {
             throws Exception {
         DefaultScheduler.Builder builder =
                 DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpec))
+                        .setRecoveryManagerFactory(new HdfsRecoveryPlanManagerFactory())
                 .setPlansFrom(rawServiceSpec);
         return builder
                 .setEndpointProducer("hdfs-site.xml", EndpointProducer.constant(getHdfsSiteXml()))
@@ -102,6 +103,11 @@ public class Main {
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
                 .pods(Arrays.asList(journal, name, zkfc, data))
+                .replacementFailurePolicy(
+                        ReplacementFailurePolicy.newBuilder()
+                                .permanentFailureTimoutMs(null)
+                                .minReplaceDelayMs(0)
+                                .build())
                 .build();
     }
 
