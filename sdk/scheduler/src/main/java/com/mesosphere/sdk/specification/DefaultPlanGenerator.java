@@ -70,7 +70,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
                                     stringListEntry -> stringListEntry.getKey(),
                                     stringListEntry -> stringListEntry.getValue()));
 
-            for (int i=0; i < podSpec.getCount(); i++) {
+            for (int i = 0; i < podSpec.getCount(); i++) {
                 List<List<String>> taskLists = validatedSteps.get(String.valueOf(i));
                 if (taskLists == null) {
                     taskLists = validatedSteps.get("default");
@@ -98,7 +98,10 @@ public class DefaultPlanGenerator implements PlanGenerator {
         return DefaultPhaseFactory.getPhase(phaseName, steps, StrategyFactory.generateForSteps(rawPhase.getStrategy()));
     }
 
-    private void validateSingletonStepMaps(String phaseName, List<WriteOnceLinkedHashMap<String, List<List<String>>>> steps) {
+    private void validateSingletonStepMaps(
+            String phaseName,
+            List<WriteOnceLinkedHashMap<String, List<List<String>>>> steps) {
+
         for (WriteOnceLinkedHashMap<String, List<List<String>>> stepsEntry : steps) {
             if (stepsEntry.size() != 1) {
                 throw new IllegalStateException(String.format(

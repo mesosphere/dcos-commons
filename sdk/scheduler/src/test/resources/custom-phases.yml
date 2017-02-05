@@ -58,3 +58,15 @@ plans:
         pod: hello
         steps:
           - default: [[once], [server]]
+      full-custom-deploy:
+        strategy: serial
+        pod: hello
+        steps:
+          - 0: [[once], [server]]
+          - 1: [[server], [once]]
+      partial-custom-deploy:
+        strategy: serial
+        pod: hello
+        steps:
+          - 1: [[once], [server]]
+          - default: [[server], [once]]
