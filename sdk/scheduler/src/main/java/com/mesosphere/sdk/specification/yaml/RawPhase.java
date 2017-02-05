@@ -12,13 +12,13 @@ public class RawPhase {
     private final String strategy;
     private final String pod;
     private final List<WriteOnceLinkedHashMap<Integer, List<String>>> steps;
-    private final List<String> tasks;
+    private final List<List<String>> tasks;
 
     private RawPhase(
             @JsonProperty("strategy") String strategy,
             @JsonProperty("steps") List<WriteOnceLinkedHashMap<Integer, List<String>>> steps,
             @JsonProperty("pod") String pod,
-            @JsonProperty("tasks") List<String> tasks) {
+            @JsonProperty("tasks") List<List<String>> tasks) {
         this.strategy = strategy;
         this.steps = steps;
         this.pod = pod;
@@ -37,7 +37,7 @@ public class RawPhase {
         return pod;
     }
 
-    public List<String> getTasks() {
+    public List<List<String>> getTasks() {
         return tasks;
     }
 }

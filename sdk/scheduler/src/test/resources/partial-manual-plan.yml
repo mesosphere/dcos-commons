@@ -46,8 +46,12 @@ plans:
       server-deploy:
         strategy: parallel
         pod: hello
-        tasks: [server]
+        tasks: [[server]]
       once-deploy:
         strategy: parallel
         pod: hello
-        tasks: [once]
+        tasks: [[once]]
+      interleave-deploy:
+        strategy: parallel
+        pod: hello
+        tasks: [[once], [server]]

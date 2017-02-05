@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -90,33 +91,59 @@ public class DefaultPlanGeneratorTest {
         for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
-            Assert.assertEquals(2, plan.getChildren().size());
-            Assert.assertEquals(2, plan.getChildren().get(0).getChildren().size());
-            Assert.assertEquals(2, plan.getChildren().get(1).getChildren().size());
+            Assert.assertEquals(3, plan.getChildren().size());
 
-            PodInstanceRequirement podInstanceRequirement =
-                    plan.getChildren().get(0).getChildren().get(0).start().get();
+            Phase serverPhase = plan.getChildren().get(0);
+            Assert.assertEquals(2, serverPhase.getChildren().size());
+
+            Phase oncePhase = plan.getChildren().get(1);
+            Assert.assertEquals(2, oncePhase.getChildren().size());
+
+            Phase interleavePhase = plan.getChildren().get(2);
+            Assert.assertEquals(4, interleavePhase.getChildren().size());
+
+            // Validate server steps
+            PodInstanceRequirement podInstanceRequirement = serverPhase.getChildren().get(0).start().get();
             List<String> tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
             Assert.assertEquals(1, tasksToLaunch.size());
             Assert.assertEquals("server", tasksToLaunch.get(0));
 
-            podInstanceRequirement =
-                    plan.getChildren().get(0).getChildren().get(1).start().get();
+            podInstanceRequirement = serverPhase.getChildren().get(1).start().get();
             tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
             Assert.assertEquals(1, tasksToLaunch.size());
             Assert.assertEquals("server", tasksToLaunch.get(0));
 
-            podInstanceRequirement =
-                    plan.getChildren().get(1).getChildren().get(0).start().get();
+            // Validate once steps
+            podInstanceRequirement = oncePhase.getChildren().get(0).start().get();
             tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
             Assert.assertEquals(1, tasksToLaunch.size());
             Assert.assertEquals("once", tasksToLaunch.get(0));
 
-            podInstanceRequirement =
-                    plan.getChildren().get(1).getChildren().get(1).start().get();
+            podInstanceRequirement = oncePhase.getChildren().get(1).start().get();
             tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
             Assert.assertEquals(1, tasksToLaunch.size());
             Assert.assertEquals("once", tasksToLaunch.get(0));
+
+            // Validate interleave steps
+            podInstanceRequirement = interleavePhase.getChildren().get(0).start().get();
+            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
+            Assert.assertEquals(1, tasksToLaunch.size());
+            Assert.assertEquals("once", tasksToLaunch.get(0));
+
+            podInstanceRequirement = interleavePhase.getChildren().get(1).start().get();
+            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
+            Assert.assertEquals(1, tasksToLaunch.size());
+            Assert.assertEquals("server", tasksToLaunch.get(0));
+
+            podInstanceRequirement = interleavePhase.getChildren().get(2).start().get();
+            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
+            Assert.assertEquals(1, tasksToLaunch.size());
+            Assert.assertEquals("once", tasksToLaunch.get(0));
+
+            podInstanceRequirement = interleavePhase.getChildren().get(3).start().get();
+            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
+            Assert.assertEquals(1, tasksToLaunch.size());
+            Assert.assertEquals("server", tasksToLaunch.get(0));
         }
     }
 }

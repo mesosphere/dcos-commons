@@ -53,17 +53,18 @@ public class DefaultPlanGenerator implements PlanGenerator {
         if (rawPhase.getSteps() == null || rawPhase.getSteps().isEmpty()) {
             // Generate steps from pod's tasks that are in RUNNING state.
             for (int i = 0; i < podSpec.getCount(); i++) {
-                List<String> taskNames = podSpec.getTasks().stream()
-                        .map(taskSpec -> taskSpec.getName())
-                        .collect(Collectors.toList());
-
                 // If the tasks to be launched have been explicitly indicated in the plan
                 // override the taskNames.
                 if (!CollectionUtils.isEmpty(rawPhase.getTasks())) {
-                    taskNames = rawPhase.getTasks();
+                    for (List<String> taskNames : rawPhase.getTasks()) {
+                        steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
+                    }
+                } else {
+                    List<String> taskNames = podSpec.getTasks().stream()
+                            .map(taskSpec -> taskSpec.getName())
+                            .collect(Collectors.toList());
+                    steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
                 }
-
-                steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
             }
         } else {
             for (Map<Integer, List<String>> rawStepMap : rawPhase.getSteps()) {
