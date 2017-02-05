@@ -80,17 +80,21 @@ public class DefaultPlanGeneratorTest {
                     serverPhase,
                     Arrays.asList(
                             Arrays.asList("server"),
+                            Arrays.asList("server"),
                             Arrays.asList("server")));
 
             validatePhase(
                     oncePhase,
                     Arrays.asList(
                             Arrays.asList("once"),
+                            Arrays.asList("once"),
                             Arrays.asList("once")));
 
             validatePhase(
                     interleavePhase,
                     Arrays.asList(
+                            Arrays.asList("once"),
+                            Arrays.asList("server"),
                             Arrays.asList("once"),
                             Arrays.asList("server"),
                             Arrays.asList("once"),
@@ -102,7 +106,8 @@ public class DefaultPlanGeneratorTest {
                             Arrays.asList("once"),
                             Arrays.asList("server"),
                             Arrays.asList("server"),
-                            Arrays.asList("once")));
+                            Arrays.asList("once"),
+                            Arrays.asList("server")));
 
             validatePhase(
                     partialCustomPhase,
@@ -110,7 +115,9 @@ public class DefaultPlanGeneratorTest {
                             Arrays.asList("server"),
                             Arrays.asList("once"),
                             Arrays.asList("once"),
-                            Arrays.asList("server")));
+                            Arrays.asList("server"),
+                            Arrays.asList("server"),
+                            Arrays.asList("once")));
         }
     }
 

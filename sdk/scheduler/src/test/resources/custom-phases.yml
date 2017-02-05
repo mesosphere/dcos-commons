@@ -1,7 +1,7 @@
 name: "hello-world"
 pods:
   hello:
-    count: 2
+    count: 3
     resource-sets:
       hello-resources:
         cpus: {{HELLO_CPUS}}
@@ -54,7 +54,7 @@ plans:
         steps:
           - default: [[once]]
       interleave-deploy:
-        strategy: parallel
+        strategy: serial
         pod: hello
         steps:
           - default: [[once], [server]]
@@ -64,6 +64,7 @@ plans:
         steps:
           - 0: [[once], [server]]
           - 1: [[server], [once]]
+          - 2: [[server]]
       partial-custom-deploy:
         strategy: serial
         pod: hello

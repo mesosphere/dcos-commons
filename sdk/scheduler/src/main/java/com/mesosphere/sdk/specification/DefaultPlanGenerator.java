@@ -70,25 +70,25 @@ public class DefaultPlanGenerator implements PlanGenerator {
                                     stringListEntry -> stringListEntry.getKey(),
                                     stringListEntry -> stringListEntry.getValue()));
 
-            for (int i = 0; i < podSpec.getCount(); i++) {
+            for (int i = 0; i < podSpec.getCount(); ++i) {
                 List<List<String>> taskLists = validatedSteps.get(String.valueOf(i));
                 if (taskLists == null) {
                     taskLists = validatedSteps.get("default");
 
                     if (taskLists == null) {
-                        // Fall back to default behavior
+                        // Fall back to default plan generation behavior
                         List<String> taskNames = podSpec.getTasks().stream()
                                 .map(taskSpec -> taskSpec.getName())
                                 .collect(Collectors.toList());
                         steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
                     } else {
-                        // Use wildcard defined behavior (e.g. * : [[foo, bar], [bazz]])
+                        // Use default defined behavior (e.g. default: [[foo, bar], [baz]])
                         for (List<String> taskNames : taskLists) {
                             steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
                         }
                     }
                 } else {
-                    // Add steps defined for the specific step (e.g. 2 : [[foo, bar], [baz]])
+                    // Add steps defined for the specific step (e.g. 2: [[foo, bar], [baz]])
                     for (List<String> taskNames : taskLists) {
                         steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
                     }
