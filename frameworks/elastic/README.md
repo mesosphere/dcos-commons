@@ -311,6 +311,9 @@ The response will contain elasticsearch-specific metrics like this:
     },
 ```
 
+Metric names are formed based on the [formats described here](https://github.com/Automattic/elasticsearch-statsd-plugin#stats-key-formats). Scroll up to [configuration](https://github.com/Automattic/elasticsearch-statsd-plugin#configuration) to see how PREFIX and NODE_NAME get determined. In the case of a master node failover, the counts start from 0 again.
+
+
 <a name="limitations"></a>
 # Limitations
 
