@@ -255,7 +255,7 @@ pods:
           timeout: 10
   proxylite:
     container:
-      image-name: nlsun/proxylite:0.0.2
+      image-name: mesosphere/proxylite:1.0.0
     count: 1
     uris:
       - {{SCHEDULER_URI}}
@@ -267,7 +267,8 @@ pods:
         cpus: {{PROXYLITE_CPUS}}
         memory: {{PROXYLITE_MEM}}
         ports:
-          PROXYLITE:
+          proxylite:
+            env-key: PORT_PROXYLITE
             port: {{PROXYLITE_PORT}}
         env:
           EXTERNAL_ROUTES: "/v1,/kibana"
