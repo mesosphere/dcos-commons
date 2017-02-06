@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.*;
@@ -77,7 +78,8 @@ public class DefaultOfferRequirementProviderTest {
     @Test
     public void testPlacementPassthru() throws InvalidRequirementException {
         List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(podInstance, tasksToLaunch));
         Assert.assertNotNull(offerRequirement);
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
@@ -89,7 +91,8 @@ public class DefaultOfferRequirementProviderTest {
                 .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
 
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance, tasksToLaunch);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(podInstance, tasksToLaunch));
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
         Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
@@ -141,7 +144,7 @@ public class DefaultOfferRequirementProviderTest {
         PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance));
+                PodInstanceRequirement.create(dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance)));
 
         Assert.assertNotNull(offerRequirement);
         Assert.assertEquals("server", offerRequirement.getType());
@@ -171,6 +174,33 @@ public class DefaultOfferRequirementProviderTest {
     }
 
     @Test
+    public void testEnvironmentVariablesAddedToNewOfferRequirement() throws Exception {
+        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("PARAM0", "value0");
+
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(
+                    dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance));
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstanceRequirement);
+
+        TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
+        TaskInfo taskInfo = taskRequirement.getTaskInfo();
+
+        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(envvars.toString(), 4, envvars.size());
+        Assert.assertEquals(null, envvars.get("PARAM0"));
+
+        offerRequirement = provider.getNewOfferRequirement(podInstanceRequirement.withParameters(parameters));
+
+        taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
+        taskInfo = taskRequirement.getTaskInfo();
+
+        envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(envvars.toString(), 5, envvars.size());
+        Assert.assertEquals("value0", envvars.get("PARAM0"));
+    }
+
+    @Test
     public void testExistingOfferRequirement() throws InvalidRequirementException {
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
@@ -182,7 +212,39 @@ public class DefaultOfferRequirementProviderTest {
         String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
         when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         OfferRequirement offerRequirement =
-                provider.getExistingOfferRequirement(podInstance, tasksToLaunch);
+                provider.getExistingOfferRequirement(PodInstanceRequirement.create(podInstance, tasksToLaunch));
         Assert.assertNotNull(offerRequirement);
+    }
+
+    @Test
+    public void testEnvironmentVariablesAddedToExistingOfferRequirement() throws Exception {
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+        Protos.Resource cpu = ResourceTestUtils.getExpectedCpu(CPU);
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(Arrays.asList(cpu));
+        String taskName = TaskSpec.getInstanceName(podInstance, podInstance.getPod().getTasks().get(0));
+        when(stateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("PARAM0", "value0");
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.create(podInstance, tasksToLaunch);
+        OfferRequirement offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement);
+
+        TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
+        taskInfo = taskRequirement.getTaskInfo();
+
+        Map<String, String> envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(null, envvars.get("PARAM0"));
+
+        offerRequirement = provider.getExistingOfferRequirement(podInstanceRequirement.withParameters(parameters));
+
+        taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
+        taskInfo = taskRequirement.getTaskInfo();
+
+        envvars = CommonTaskUtils.fromEnvironmentToMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals("value0", envvars.get("PARAM0"));
     }
 }

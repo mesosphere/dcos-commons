@@ -2,6 +2,8 @@ package com.mesosphere.sdk.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.api.types.PlanInfo;
+import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +19,11 @@ import java.util.stream.Collectors;
  */
 @Path("/v1")
 @Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
 public class PlansResource {
     static final Response PLAN_ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
             .entity("Element not found")
             .build();
+    private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final PlanCoordinator planCoordinator;
@@ -66,10 +68,18 @@ public class PlansResource {
      */
     @POST
     @Path("/plans/{planName}/start")
-    public Response startPlan(@PathParam("planName") String planName) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response startPlan(@PathParam("planName") String planName, Map<String, String> parameters) {
+        try {
+            validate(parameters);
+        } catch (ValidationException e) {
+            return invalidParameterResponse(e.getMessage());
+        }
+
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
             Plan plan = planManagerOptional.get().getPlan();
+            plan.updateParameters(parameters);
             if (plan.isComplete()) {
                 plan.restart();
             }
@@ -254,6 +264,27 @@ public class PlansResource {
         return planCoordinator.getPlanManagers().stream()
                 .filter(planManager -> planManager.getPlan().getName().equals(planName))
                 .findFirst();
+    }
+
+    private static Response invalidParameterResponse(String message) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Couldn't parse parameters: " + message)
+                .build();
+    }
+
+    private static void validate(Map<String, String> parameters) throws ValidationException {
+        for (Map.Entry<String, String> entry : parameters.entrySet()) {
+            if (!ENVVAR_MATCHER.matches(entry.getKey())) {
+                throw new ValidationException(
+                        String.format("%s is not a valid environment variable name", entry.getKey()));
+            }
+        }
+    }
+
+    static class ValidationException extends Exception {
+        public ValidationException(String message) {
+            super(message);
+        }
     }
 
     static class CommandResultInfo {

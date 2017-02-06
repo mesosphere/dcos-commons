@@ -144,13 +144,12 @@ public class OfferEvaluator {
             description = "existing";
             shouldGetNewRequirement = false;
         }
-        Collection<String> tasksToLaunch = podInstanceRequirement.getTasksToLaunch();
         logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
-                description, podInstance.getName(), tasksToLaunch);
+                description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch());
         if (shouldGetNewRequirement) {
-            return offerRequirementProvider.getNewOfferRequirement(podInstance, tasksToLaunch);
+            return offerRequirementProvider.getNewOfferRequirement(podInstanceRequirement);
         } else {
-            return offerRequirementProvider.getExistingOfferRequirement(podInstance, tasksToLaunch);
+            return offerRequirementProvider.getExistingOfferRequirement(podInstanceRequirement);
         }
     }
 }

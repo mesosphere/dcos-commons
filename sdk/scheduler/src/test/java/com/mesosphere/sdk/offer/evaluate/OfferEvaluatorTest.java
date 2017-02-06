@@ -881,7 +881,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Providing sufficient, but unreserved resources should result in no operations.
         Assert.assertEquals(0, recommendations.size());
 
-        List<String> resourceIds = offerRequirementProvider.getExistingOfferRequirement(podInstance, Arrays.asList("node"))
+        List<String> resourceIds = offerRequirementProvider.getExistingOfferRequirement(
+                PodInstanceRequirement.create(podInstance, Arrays.asList("node")))
                 .getTaskRequirements().stream()
                 .flatMap(taskRequirement -> taskRequirement.getResourceRequirements().stream())
                 .map(resourceRequirement -> resourceRequirement.getResourceId())

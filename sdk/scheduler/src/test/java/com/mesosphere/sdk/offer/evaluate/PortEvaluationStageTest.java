@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -129,8 +130,8 @@ public class PortEvaluationStageTest {
         StateStore stateStore = Mockito.mock(StateStore.class);
         DefaultOfferRequirementProvider provider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance,
-                TaskUtils.getTaskNames(podInstance));
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)));
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 10000, 10000);
@@ -179,8 +180,8 @@ public class PortEvaluationStageTest {
         StateStore stateStore = Mockito.mock(StateStore.class);
         DefaultOfferRequirementProvider provider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(podInstance,
-                TaskUtils.getTaskNames(podInstance));
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(podInstance, TaskUtils.getTaskNames(podInstance)));
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
 
         Protos.Resource desiredPorts = ResourceTestUtils.getDesiredRanges("ports", 10000, 10000);
@@ -188,8 +189,7 @@ public class PortEvaluationStageTest {
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
         String taskName = "pod-type-0-" + TestConstants.TASK_NAME;
-        PortEvaluationStage portEvaluationStage =
-                new PortEvaluationStage(desiredPorts, taskName, "test-port", 10000);
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(desiredPorts, taskName, "test-port", 10000);
         EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 

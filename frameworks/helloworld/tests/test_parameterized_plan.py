@@ -13,7 +13,7 @@ def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
-            "spec_file": "examples/sidecar.yml"
+            "spec_file": "examples/parameterized-plan.yml"
         }
     }
 
@@ -35,10 +35,13 @@ def test_deploy():
 
 @pytest.mark.sanity
 def test_sidecar():
-    plan.start_sidecar_plan(PACKAGE_NAME)
+    plan.start_sidecar_plan(PACKAGE_NAME, {'PLAN_PARAMETER': 'parameterized'})
     sidecar_plan = plan.get_sidecar_plan(PACKAGE_NAME).json()
     print("sidecar_plan: " + str(sidecar_plan))
 
     assert(len(sidecar_plan['phases']) == 1)
     assert(sidecar_plan['phases'][0]['name'] == 'sidecar-deploy')
     assert(len(sidecar_plan['phases'][0]['steps']) == 2)
+
+    spin.time_wait_noisy(lambda: (
+        plan.get_sidecar_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))

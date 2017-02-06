@@ -7,18 +7,25 @@ import shakedown
 
 
 def get_deployment_plan(service_name):
-    return _get_plan(service_name, "deploy")
+    return get_plan(service_name, "deploy")
 
 
 def get_sidecar_plan(service_name):
-    return _get_plan(service_name, "sidecar")
+    return get_plan(service_name, "sidecar")
 
 
-def start_sidecar_plan(service_name):
-    return dcos.http.post(shakedown.dcos_service_url(service_name) + "/v1/plans/sidecar/start")
+def start_sidecar_plan(service_name, parameters=None):
+    start_plan(service_name, "sidecar", parameters)
 
 
-def _get_plan(service_name, plan):
+def start_plan(service_name, plan, parameters=None):
+    return dcos.http.post(
+        shakedown.dcos_service_url(service_name) +
+            "/v1/plans/{}/start".format(plan),
+        json=parameters if parameters is not None else {})
+
+
+def get_plan(service_name, plan):
     def fn():
         response = dcos.http.get("{}/v1/plans/{}".format(
             shakedown.dcos_service_url(service_name), plan))

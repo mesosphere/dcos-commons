@@ -23,8 +23,8 @@ public interface Step extends Element, Interruptible {
      * applicable to the Step. This will continue to be called for as long as {@link Element#isPending()} returns
      * true.
      *
-     * @see {@link #updateOfferStatus(Collection<Offer.Operation>)} which returns the outcome of the
-     *      {@link OfferRequirement}
+     * @see {@link #updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
+     *      the {@link OfferRequirement}
      */
     Optional<PodInstanceRequirement> start();
 

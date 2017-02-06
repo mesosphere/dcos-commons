@@ -209,6 +209,31 @@ public class DefaultPlanManagerTest {
     }
 
     @Test
+    public void testUpdateParameters() {
+        when(mockStep.getId()).thenReturn(UUID.randomUUID());
+
+        DefaultPhase phase0 = new DefaultPhase(
+                "phase-0",
+                Arrays.asList(mockStep),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        DefaultPlan plan = new DefaultPlan(
+                "test-plan",
+                Arrays.asList(phase0),
+                new SerialStrategy<>(),
+                Collections.emptyList());
+
+        verify(mockStep, times(0)).update(any());
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("PARAM1", "value1");
+        plan.updateParameters(parameters);
+
+        verify(mockStep, times(1)).updateParameters(parameters);
+    }
+
+    @Test
     public void testAllDirtyAssets() {
         when(reconciler.isReconciled()).thenReturn(false);
         final TestStep step1 = new TestStep("test-step-1");
