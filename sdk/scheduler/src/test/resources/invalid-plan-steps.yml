@@ -77,10 +77,10 @@ plans:
         strategy: serial
         pod: hello
         steps:
-          - 0: [once, other]
-          - 0: [server]
+          - 0: [[once, other]]
+          - 0: [[server]]
       world-deploy:
         strategy: serial
         pod: world
         steps:
-          - 1: [server]
+          - 1: [[server]]

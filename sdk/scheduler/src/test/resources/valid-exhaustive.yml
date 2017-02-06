@@ -105,12 +105,12 @@ plans:
         strategy: serial
         pod: nn
         steps:
-          - 0: [format, routing]
-          - 0: [server]
-          - 1: [bootstrap]
-          - 1: [server]
+          - 0: [[format, routing]]
+          - 0: [[server]]
+          - 1: [[bootstrap]]
+          - 1: [[server]]
       dn-deploy:
         strategy: serial
         pod: dn
-        tasks:
-          [format, routing]
+        steps:
+          - default: [[format, routing]]
