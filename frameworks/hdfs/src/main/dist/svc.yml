@@ -167,17 +167,14 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - 0: [format]
-          - 0: [node]
-          - 1: [bootstrap]
-          - 1: [node]
+          - 0: [[format], [node]]
+          - 1: [[bootstrap], [node]]
       zkfc-deploy:
         strategy: serial
         pod: zkfc
         steps:
-          - 0: [format]
-          - 0: [node]
-          - 1: [node]
+          - 0: [[format], [node]]
+          - 1: [[node]]
       dn-deploy:
         strategy: {{DATA_STRATEGY}}
         pod: data

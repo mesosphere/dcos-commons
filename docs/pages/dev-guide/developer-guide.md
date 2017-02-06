@@ -121,24 +121,26 @@ In the simple example above, it is obvious *how* to deploy this service.  It con
 
 The example below defines a service with two types of pods, each of which deploys two instances.
     
-    name: "hello-world"
-    pods:
-        hello-pod:
-            count: 2
-            tasks:
-                hello-task:
-                goal: RUNNING
-                cmd: "echo hello && sleep 1000"
-                cpus: 0.1
-                memory: 512
-        world-pod:
-            count: 2**
-            tasks:
-                world-task:
-                goal: RUNNING
-                cmd: "**echo world** && sleep 1000"
-                cpus: 0.1
-                memory: 512
+```yaml
+name: "hello-world"
+pods:
+    hello-pod:
+        count: 2
+        tasks:
+            hello-task:
+            goal: RUNNING
+            cmd: "echo hello && sleep 1000"
+            cpus: 0.1
+            memory: 512
+    world-pod:
+        count: 2
+        tasks:
+            world-task:
+            goal: RUNNING
+            cmd: "echo world && sleep 1000"
+            cpus: 0.1
+            memory: 512
+```
 
 There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying. 
 
@@ -160,34 +162,36 @@ In this section we focus on using plans to define the initial deployment of a se
 
 As an example, let’s consider the scenario where we wish to deploy the hello-pods in parallel, wait for them to reach a `RUNNING` state and then deploy the world-pods serially.  We could amend our YAML file to look like the following:
 
-    name: "hello-world"
-    pods:
-        hello-pod:
-        count: 2
-        tasks:
-            hello-task:
-                goal: RUNNING
-                cmd: "echo hello && sleep 1000"
-                cpus: 0.1
-                memory: 512
-        world-pod:
-            count: 2
-            tasks:
-                hello-task:
-                    goal: RUNNING
-                    cmd: "echo world && sleep 1000"
-                    cpus: 0.1
-                    memory: 512
-    plans:
-        deploy:
-            strategy: serial
-            phases:
-                hello-phase:
-                    strategy: parallel
-                    pod: hello-pod
-                world-phase:
-                    strategy: serial
-                    pod: world-pod
+```yaml
+name: "hello-world"
+pods:
+  hello-pod:
+  count: 2
+  tasks:
+    hello-task:
+      goal: RUNNING
+      cmd: "echo hello && sleep 1000"
+      cpus: 0.1
+      memory: 512
+  world-pod:
+    count: 2
+    tasks:
+      hello-task:
+        goal: RUNNING
+        cmd: "echo world && sleep 1000"
+        cpus: 0.1
+        memory: 512
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: parallel
+        pod: hello-pod
+      world-phase:
+        strategy: serial
+        pod: world-pod
+```
 
 A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps.
 
@@ -197,16 +201,18 @@ A phase encapsulates a pod type and a step encapsulates an instance of a pod.  S
 
 The hello-phase of the example has two elements: a strategy and a pod.
 
-    plans:
-        deploy:
-            strategy: serial
-            phases:
-                hello-phase:
-                    strategy: parallel
-                    pod: hello-pod
-                world-phase:
-                    strategy: serial
-                    pod: world-pod
+```yaml
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: parallel
+        pod: hello-pod
+      world-phase:
+        strategy: serial
+        pod: world-pod
+```
 
 The pod parameter references the pod definition earlier in the `ServiceSpec`. The strategy declares how to deploy the instances of the pod. Here, they will be deployed in parallel. The world-phase section is identical, except that its elements will be deployed serially.
 
@@ -214,7 +220,71 @@ The strategy associated with the deployment plan as a whole is serial, so the ph
 
 ![image alt text](image_1.png)
 
-The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
+
+More powerful custom plans can also be written. Consider the case in which a pod requires an initialization step to be run before the main task of a pod is run. One could define the tasks for such a pod as follows:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 2
+    resource-sets:
+      hello-resources:
+        cpus: 1.0
+        memory: 256
+        volume:
+          path: hello-data
+          size: 5000
+          type: ROOT
+    tasks:
+      init:
+        goal: FINISHED
+        cmd: "./init"
+        resource-set: hello-resources
+      main:
+        goal: RUNNING
+        cmd: "./main"
+        resource-set: hello-resources
+```
+
+By default a the plan generated from such a service definition would only deploy the `main` task because when the `init` task should be run is undefined.  In order to run the init task and then the main task for each instance of the `hello` pod one could write a plan as follows:
+
+```yaml
+plans:
+  deploy:
+    strategy: serial
+    pod: hello
+    steps:
+      - default: [[init], [main]]
+```
+
+This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the `init` task and another representing the `main` task. The ServiceSpec indicates that two `hello` pods should be launched so the following tasks would be launched by steps serially:
+
+1. hello-0-init
+1. hello-0-main
+1. hello-1-init
+1. hello-1-main
+
+Consider the case where the init task should only occur once for the first pod, and all subsequent pods should just launch their `main` task. Such a plan could be written as follows:
+
+```yaml
+plans:
+  deploy:
+    strategy: serial
+    pod: hello
+    steps:
+      - 0: [[init], [main]]
+      - default: [[main]]
+```
+
+This plan would result in steps generating the following tasks:
+
+1. hello-0-init
+1. hello-0-main
+1. hello-1-main
+
+You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
 
 <a name="packaging"></a>
 ## Packaging
