@@ -770,7 +770,7 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and a failure blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py).
 
-You can run integration tests manually using the [test.sh](https://github.com/mesosphere/dcos-commons/blob/master/test.sh) script.  If you havea particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:
+You can run integration tests manually using the [test.sh](https://github.com/mesosphere/dcos-commons/blob/master/test.sh) script.  If you have a particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:
 
 ```python
 @pytest.mark.special
@@ -784,7 +784,7 @@ If the following command was entered in the shell:
 $ export TEST_TYPES="special"
 ```
 
-Then, only tests marked special would be executed.  A oneline example is as follows:
+Then, only tests marked special would be executed.  A one line example is as follows:
 
 ```bash
 $ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
@@ -1179,7 +1179,7 @@ The path is relative to the sandbox path if not preceded by a leading "/". The s
 The proxy allows one to expose more than one endpoint through adminrouter. It is only supported on DC/OS 1.9 clusters.
 
 ```yaml
-web-url: http://proxylite-0-server.{{SERVICE_NAME}}.mesos:{{PROXYLITE_PORT}}
+web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
 pods:
   proxylite:
     container:
@@ -1198,7 +1198,7 @@ pods:
         env:
           ROOT_REDIRECT: "/example"
           EXTERNAL_ROUTES: "/v1,/example"
-          INTERNAL_ROUTES: "{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1,example.com:80"
+          INTERNAL_ROUTES: "{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,example.com:80"
 ```
 
 
@@ -1206,22 +1206,29 @@ pods:
 
     * These have a 1:1 mapping (they are both comma separated lists). There is one internal route for every external route.
 
-    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{SERVICE_NAME}}/v1/plan`, you’ll get redirected to `{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
+    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
 
 * `ROOT_REDIRECT`
 
-    * This will set a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{SERVICE_NAME}}` to `<adminrouter>/service/{{SERVICE_NAME}}/example`
+    * This will set a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{FRAMEWORK_NAME}}` to `<adminrouter>/service/{{FRAMEWORK_NAME}}/example`
 
 1. Delete these 3 labels from your marathon json:
-    a. `DCOS_SERVICE_NAME`
-    b. `DCOS_SERVICE_PORT_INDEX`
-    c. `DCOS_SERVICE_SCHEME`
+    * `DCOS_FRAMEWORK_NAME`
+    * `DCOS_SERVICE_PORT_INDEX`
+    * `DCOS_SERVICE_SCHEME`
+    
 1. Things to watch out for:
-    a.  No trailing slashes.
-    b. The external route is *replaced* with the internal route.
-        i. It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
-        i. For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `{{SERVICE_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
-    c. When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before a task it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
+    *  No trailing slashes.
+    * The external route is *replaced* with the internal route.
+        - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
+        - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
+    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched. 
+    
+      You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:
+      
+      ```yaml
+      cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
+      ```
 
 ## `ServiceSpec` (Java)
 
@@ -1231,7 +1238,7 @@ All of the interfaces of the `ServiceSpec` have default implementations. For exa
 
 ```java
 DefaultServiceSpec.newBuilder()
-    .name(SERVICE_NAME)
+    .name(FRAMEWORK_NAME)
     .role(ROLE)
     .principal(PRINCIPAL)
     .apiPort(8080)
@@ -1335,7 +1342,7 @@ Fundamentally, the execution of a plan is the execution of steps in some order. 
 
 ### Example
 
-In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We ecommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.
+In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We recommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.
 
 You could generate three steps in the following way:
 
@@ -1376,10 +1383,10 @@ public class CustomService extends DefaultService {
     public CustomService(File yamlFile, Plan customPlan) throws Exception {
         RawServiceSpecification rawServiceSpecification =
                 YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlFile);
-        DefaultServiceSpec defaultServiceSpecserviceSpec =
+        DefaultServiceSpec defaultServiceSpec =
                 YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
 
-        serviceSpec = defaultServiceSpecserviceSpec;
+        serviceSpec = defaultServiceSpec;
         init();
         plans = generatePlansFromRawSpec(rawServiceSpecification);
         plans.add(customPlan);
