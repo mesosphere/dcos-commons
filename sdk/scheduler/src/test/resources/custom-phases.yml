@@ -43,31 +43,36 @@ plans:
   deploy:
     strategy: serial
     phases:
-      server-deploy:
+      server:
         strategy: parallel
         pod: hello
         steps:
           - default: [[server]]
-      once-deploy:
+      once:
         strategy: parallel
         pod: hello
         steps:
           - default: [[once]]
-      interleave-deploy:
+      interleave:
         strategy: serial
         pod: hello
         steps:
           - default: [[once], [server]]
-      full-custom-deploy:
+      full-custom:
         strategy: serial
         pod: hello
         steps:
           - 0: [[once], [server]]
           - 1: [[server], [once]]
           - 2: [[server]]
-      partial-custom-deploy:
+      partial-custom:
         strategy: serial
         pod: hello
         steps:
           - 1: [[once], [server]]
           - default: [[server], [once]]
+      omit-step:
+        strategy: serial
+        pod: hello
+        steps:
+          - 1: [[once], [server]]
