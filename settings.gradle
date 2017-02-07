@@ -15,6 +15,9 @@ project(":sdk/testing").name = "testing"
 include 'frameworks/helloworld'
 project(":frameworks/helloworld").name = "helloworld"
 
+include 'frameworks/elastic'
+project(':frameworks/elastic').name = 'elastic'
+
 include 'frameworks/kafka'
 project(":frameworks/kafka").name = "kafka"
 
