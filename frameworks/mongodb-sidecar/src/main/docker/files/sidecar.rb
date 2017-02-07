@@ -1,15 +1,9 @@
 #!/usr/bin/env ruby
 require 'rubygems'
-require 'bundler/setup'
-require 'httparty'
-require 'cabin'
-require 'json'
-require 'sinatra/base'
-require 'em/pure_ruby'
-require 'zk'
+require 'bundler'
 require 'singleton'
-require 'jsonpath'
-require 'json'
+
+Bundler.require
 
 require_relative 'sidecar/mesos'
 require_relative 'sidecar/mongo'
@@ -20,6 +14,7 @@ require_relative 'sidecar/web'
 @mesos_url               = ENV['MESOS_URL'] || 'http://master.mezos/mesos'
 @zookeeper_url           = ENV['ZK_URL'] || 'zk-1.zk:2181'
 @mongo_binary            = ENV['MONGO_BINARY'] || '/usr/local/bin/mongo'
+@delay                   = ENV['SIDECAR_DELAY'] || 10
 
 @logger                  = Cabin::Channel.new
 @logger.level            = ENV['LOG_LEVEL'] || :info
@@ -42,7 +37,7 @@ mesos = Mesos.instance
 mesos.setup(@mesos_url, @framework_name, zk, @logger)
 @logger.info("Mesos inited", {mesos_info: mesos.version.to_s})
 
-mongo = Mongo.instance
+mongo = MyMongo.instance
 mongo.setup(@mongo_binary, zk, @logger)
 @logger.info("Mongo inited", {mongo_info: mongo.inspect})
 
@@ -57,7 +52,7 @@ main_thread = Thread.new do
       else
         mongo.init_replicaset(mesos.find_unused_servers)
       end
-      sleep(10)
+      sleep(@delay)
     rescue SystemExit, Interrupt
       exit
     rescue Exception => e

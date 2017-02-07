@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    bson (4.2.1)
     cabin (0.8.1)
     daemons (1.2.3)
     eventmachine (1.0.8)
@@ -8,6 +9,8 @@ GEM
       multi_xml (>= 0.5.2)
     jsonpath (0.5.8)
       multi_json
+    mongo (2.4.1)
+      bson (>= 4.2.1, < 5.0.0)
     multi_json (1.12.1)
     multi_xml (0.6.0)
     rack (1.6.5)
@@ -33,6 +36,7 @@ DEPENDENCIES
   cabin
   httparty
   jsonpath
+  mongo
   sinatra
   thin
   zk

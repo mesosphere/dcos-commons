@@ -10,6 +10,11 @@ class MyZK
     @zk.inspect
   end
 
+  # zk proxy
+  def zk
+    @zk
+  end
+
   # query zookeeper for replicaset state
   def replicaset_ititiated?
     path = "#{@zk_prefix}/initiated"

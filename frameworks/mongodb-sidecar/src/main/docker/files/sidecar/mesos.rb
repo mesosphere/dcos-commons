@@ -18,17 +18,8 @@ class Mesos
     mesos_state = HTTParty.get("#{@mesos_url}/state")
 
     begin
-      query = "$..frameworks[?(@.name == '#{@framework_name}')]..tasks[?(@.name =~ /server/)]..ip_address"
-      mesos_hosts = JsonPath.on(mesos_state.to_json, query).map{|ip| "#{ip}:27017"}
-
-      # fwk = mesos_state['frameworks'].select {|f| f['name'] == @framework_name}[0]
-      # unless fwk
-      #   @logger.error("No framework found", {framework_name: @framework_name})
-      #   raise "No framework found"
-      # end
-      # hosts = fwk['tasks']
-      #         .select{|t| t['name'] =~ /server/}
-      #         .map{|t| "#{t['statuses'][0]['container_status']['network_infos'][0]['ip_addresses'][0]['ip_address']}:27017"}
+      query = "$..frameworks[?(@.name == '#{@framework_name}')]..tasks[?(@.name =~ /server/)].name"
+      mesos_hosts = JsonPath.on(mesos_state.to_json, query).map{|name| "#{name}.#{@framework_name}.mesos:27017"}
 
       result = mesos_hosts - @zk.available_servers
       if result.empty?

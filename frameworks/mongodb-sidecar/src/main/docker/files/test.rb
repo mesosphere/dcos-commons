@@ -1,14 +1,9 @@
 #!/usr/bin/env ruby
 require 'rubygems'
-require 'bundler/setup'
-require 'httparty'
-require 'cabin'
-require 'json'
-require 'jsonpath'
-require 'sinatra/base'
-require 'em/pure_ruby'
-require 'zk'
+require 'bundler'
 require 'singleton'
+
+Bundler.require
 
 require_relative 'sidecar/mesos'
 require_relative 'sidecar/mongo'
@@ -33,29 +28,14 @@ require_relative 'sidecar/web'
 
 
 # initializing instances
-zk = MyZK.instance
-zk.setup(@zookeeper_url, @framework_name)
+@zk = MyZK.instance
+@zk.setup(@zookeeper_url, @framework_name)
 
-@logger.info("ZK inited", {zk_info: zk.inspect})
+@logger.info("ZK inited", {zk_info: @zk.inspect})
 
-mesos = Mesos.instance
-mesos.setup(@mesos_url, @framework_name, zk, @logger)
+@mesos = Mesos.instance
+@mesos.setup(@mesos_url, @framework_name, @zk, @logger)
 
-mongo = Mongo.instance
-mongo.setup(@mongo_binary, zk, @logger)
-@logger.info("Mongo inited", {mongo_info: mongo.inspect})
-
-zk.clean!
-
-puts "Server: #{mongo.server_url}"
-unused = mesos.find_unused_servers
-puts "Unused: #{unused}"
-
-
-begin
-  # mongo.init_replicaset(unused)
-  # sleep 5
-  # puts mongo.rs_status
-rescue Exception => e
-  puts e.backtrace
-end
+@mongo = MyMongo.instance
+@mongo.setup(@mongo_binary, @zk, @logger)
+@logger.info("Mongo inited", {mongo_info: @mongo.inspect})
