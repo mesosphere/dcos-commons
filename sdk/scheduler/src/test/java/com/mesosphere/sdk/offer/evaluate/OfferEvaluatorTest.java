@@ -17,7 +17,6 @@ import org.apache.mesos.Protos.Offer.Operation;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import org.junit.*;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.util.*;
