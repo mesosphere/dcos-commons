@@ -186,6 +186,11 @@
             "type":"boolean",
             "default":true
           },
+          "kafka_advertise_host_ip":{
+            "description":"Automatically configure advertised.host.name with the tasks' IP address",
+            "type":"boolean",
+            "default":true
+          },
           "auto_leader_rebalance_enable":{
             "title":"auto.leader.rebalance.enable",
             "description":"Enables auto leader balancing. A background thread checks and triggers leader balance if required at regular intervals",
