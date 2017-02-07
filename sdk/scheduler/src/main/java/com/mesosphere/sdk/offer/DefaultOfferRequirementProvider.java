@@ -526,11 +526,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                                     .setName(containerSpec.getImageName().get())));
         }
 
+        if (!containerSpec.getNetworks().isEmpty()) {
+            containerInfo.addAllNetworkInfos(
+                    containerSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+        }
+
         if (!containerSpec.getRLimits().isEmpty()) {
             containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
         }
 
         return containerInfo.build();
+    }
+
+    private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
+        return Protos.NetworkInfo.newBuilder().setName(networkSpec.getName()).build();
     }
 
     private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
