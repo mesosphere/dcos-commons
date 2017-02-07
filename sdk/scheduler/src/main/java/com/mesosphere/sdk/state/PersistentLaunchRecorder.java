@@ -1,15 +1,18 @@
 package com.mesosphere.sdk.state;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.OperationRecorder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Records the result of launched tasks to persistent storage.
@@ -17,9 +20,11 @@ import java.util.Arrays;
 public class PersistentLaunchRecorder implements OperationRecorder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
+    private final ServiceSpec serviceSpec;
 
-    public PersistentLaunchRecorder(StateStore stateStore) {
+    public PersistentLaunchRecorder(StateStore stateStore, ServiceSpec serviceSpec) {
         this.stateStore = stateStore;
+        this.serviceSpec = serviceSpec;
     }
 
     @Override
@@ -48,9 +53,52 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                 taskStatus != null ? " with STAGING status" : "",
                 TextFormat.shortDebugString(taskInfo));
 
+        updateResources(taskInfo);
         stateStore.storeTasks(Arrays.asList(taskInfo));
         if (taskStatus != null) {
             stateStore.storeStatus(taskStatus);
+        }
+    }
+
+    public void updateResources(Protos.TaskInfo taskInfo) throws TaskException {
+        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        if (podSpecOptional.isPresent()) {
+            // Find the TaskSpec for the TaskInfo
+            int index = CommonTaskUtils.getIndex(taskInfo);
+            PodInstance podInstance = new DefaultPodInstance(podSpecOptional.get(), index);
+            Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(podInstance, taskInfo.getName());
+            if (taskSpecOptional.isPresent()) {
+                ResourceSet resourceSet = taskSpecOptional.get().getResourceSet();
+
+                List<String> taskNamesToUpdate = podInstance.getPod().getTasks().stream()
+                        .filter(taskSpec -> !taskSpec.getName().equals(taskSpecOptional.get().getName()))
+                        .filter(taskSpec -> taskSpec.getResourceSet().equals(resourceSet))
+                        .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                        .collect(Collectors.toList());
+
+                logger.info("Updating resources for tasks: {}", taskNamesToUpdate);
+                List<Protos.TaskInfo> taskInfosToUpdate = taskNamesToUpdate.stream()
+                        .map(taskName -> stateStore.fetchTask(taskName))
+                        .filter(taskInfoOptional -> taskInfoOptional.isPresent())
+                        .map(taskInfoOptional -> taskInfoOptional.get())
+                        .collect(Collectors.toList());
+
+                List<String> taskIds = taskInfosToUpdate.stream()
+                        .map(taskInfo1 -> taskInfo1.getTaskId().getValue())
+                        .collect(Collectors.toList());
+                logger.info("Found corresponding TaskInfos: {}", taskIds);
+
+                List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
+                for (Protos.TaskInfo taskInfoToUpdate : taskInfosToUpdate) {
+                    updatedTaskInfos.add(
+                            Protos.TaskInfo.newBuilder(taskInfoToUpdate)
+                                    .clearResources()
+                                    .addAllResources(taskInfo.getResourcesList())
+                                    .build());
+                }
+
+                stateStore.storeTasks(updatedTaskInfos);
+            }
         }
     }
 }
