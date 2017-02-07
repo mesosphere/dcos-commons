@@ -271,6 +271,7 @@ pods:
             env-key: PORT_PROXYLITE
             port: {{PROXYLITE_PORT}}
         env:
+          ROOT_REDIRECT: "/"
           EXTERNAL_ROUTES: "/v1,/kibana"
           INTERNAL_ROUTES: "{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{FRAMEWORK_NAME}}.l4lb.thisdcos.directory:5601"
 
