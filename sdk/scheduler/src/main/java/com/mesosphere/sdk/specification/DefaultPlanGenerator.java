@@ -75,13 +75,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
                 if (taskLists == null) {
                     taskLists = validatedSteps.get("default");
 
-                    if (taskLists == null) {
-                        // Fall back to default plan generation behavior
-                        List<String> taskNames = podSpec.getTasks().stream()
-                                .map(taskSpec -> taskSpec.getName())
-                                .collect(Collectors.toList());
-                        steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
-                    } else {
+                    if (taskLists != null) {
                         // Use default defined behavior (e.g. default: [[foo, bar], [baz]])
                         for (List<String> taskNames : taskLists) {
                             steps.add(from(new DefaultPodInstance(podSpec, i), taskNames));
