@@ -74,22 +74,6 @@ curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/node
  
 # Access Kibana
 
-1. To access your Kibana service running in DC/OS 1.9, you must manually patch the Lua code in Admin Router to account for a bug. If you are running a multi-master DC/OS install, you will need to edit the Lua file on each master. When the bug is fixed in DC/OS 1.9.x and you are running a version of Admin Router with the bugfix, you will not have to do this.
-
-  ```bash
-  dcos node ssh --master-proxy --leader
-  sudo vi /opt/mesosphere/packages/adminrouter--**/nginx/conf/master/service.lua
-  ```
-  For DC/OS Enterprise Edition, delete line 36: 
-  ```
-  parsed_webui_url.host = host
-  ```
-  For open source DC/OS, delete [this block](https://github.com/dcos/adminrouter/pull/30/files)
-
-  Then, restart Admin Router.
-  ```bash
-  sudo systemctl restart dcos-adminrouter
-  ```
 1. Make sure Kibana is fully up and running. Depending on your Kibana node’s resources, it can take ~10 minutes to launch. Look in the stdout log for to verify the launch is complete. This line takes the longest: 
 
   ```
@@ -101,7 +85,7 @@ curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/node
   ```
 1. Then, go to this URL: 
   ```
-  http://$DCOS_URL/service/{{cluster-name}}/login
+  http://$DCOS_URL/service/{{cluster-name}}/kibana/login
   ```
   And log in with `elastic`/`changeme`
 
