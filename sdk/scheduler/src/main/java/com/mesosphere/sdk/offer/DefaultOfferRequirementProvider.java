@@ -27,7 +27,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static final String LIBMESOS_URI = "LIBMESOS_URI";
     private static final String JAVA_URI = "JAVA_URI";
 
-    private static final String DEFAULT_JAVA_URI = "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
+    private static final String DEFAULT_JAVA_URI =
+            "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
 
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
