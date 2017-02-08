@@ -65,6 +65,11 @@ pods:
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -82,6 +87,11 @@ pods:
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -96,6 +106,11 @@ pods:
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -121,6 +136,11 @@ pods:
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -135,6 +155,11 @@ pods:
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -172,6 +197,11 @@ pods:
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
