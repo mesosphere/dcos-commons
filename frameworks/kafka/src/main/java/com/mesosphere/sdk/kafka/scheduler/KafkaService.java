@@ -1,12 +1,14 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.kafka.api.BrokerController;
 import com.mesosphere.sdk.kafka.api.InterruptProceed;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.state.StateStore;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
@@ -58,7 +60,8 @@ public class KafkaService extends  DefaultService {
 
     public void registerAndRun(DefaultScheduler.Builder schedulerBuilder){
 
-        DefaultScheduler defaultScheduler = schedulerBuilder.build();
+        StateStore stateStore = schedulerBuilder.getStateStore();
+        DefaultScheduler scheduler = schedulerBuilder.build();
 
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
 
@@ -70,14 +73,17 @@ public class KafkaService extends  DefaultService {
         Collection<Object> jsonResources = new ArrayList<>();
 
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        new SchedulerDriverFactory().create(defaultScheduler,
+        new SchedulerDriverFactory().create(scheduler,
                     frameworkInfo,
                     String.format("zk://%s/mesos", zookeeperConnection)).run();
 
 
-        jsonResources.add(new InterruptProceed(defaultScheduler.getPlanManager()));
+        jsonResources.add(new InterruptProceed(scheduler.getPlanManager()));
 
-        startApiServer(defaultScheduler,  serviceSpec.getApiPort(), jsonResources);
+        jsonResources.add(new BrokerController(stateStore, scheduler.getTaskKiller(),
+                System.getenv("KAFKA_ZOOKEEPER_URI")));
+
+        startApiServer(scheduler,  serviceSpec.getApiPort(), jsonResources);
 
     }
 }
