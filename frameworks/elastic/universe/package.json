@@ -5,7 +5,7 @@
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
   "description": "Elasticsearch 5, Kibana 5, and X-Pack",
-  "selected": false,
+  "selected": true,
   "framework": true,
   "tags": [
     "kibana",
