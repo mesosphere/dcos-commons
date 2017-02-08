@@ -4,6 +4,7 @@
   "mem": 2048,
   "instances": 1,
   "cmd": "{{service.cmd_prefix}} && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/{{service.spec_file}}",
+  "user": "{{service.user}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -14,8 +15,9 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   "env": {
-    "HDFS_VERSION": "hadoop-2.6.0-cdh5.9.1",
     "FRAMEWORK_NAME": "{{service.name}}",
+    "HDFS_VERSION": "hadoop-2.6.0-cdh5.9.1",
+    "JRE_VERSION": "jre1.8.0_112",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "JOURNAL_CPUS": "{{journal_node.cpus}}",
     "JOURNAL_MEM": "{{journal_node.mem}}",
@@ -38,6 +40,14 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+    {{#service.kerberos.enabled}}
+    "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
+    "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
+    "TASKCFG_ALL_SECURE_MODE": "{{service.kerberos.enabled}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{service.kerberos.primary}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
+    "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
+    {{/service.kerberos.enabled}}
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
     "TASKCFG_ALL_NAME_NODE_HTTP_PORT":"{{hdfs.name_node_http_port}}",
     "TASKCFG_ALL_JOURNAL_NODE_RPC_PORT":"{{hdfs.journal_node_rpc_port}}",
@@ -70,11 +80,16 @@
     "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_GROUPS": "*",
     "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS": "*",
     "TASKCFG_ALL_SERVICE_ZK_ROOT": "dcos-service-{{service.name}}",
+    "TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}",
+    "TASKCFG_ALL_TASK_USER": "{{service.user}}",
     "CONFIG_TEMPLATE_PATH": "hdfs-scheduler"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
+    {{#service.kerberos.enabled}}
+    "{{service.kerberos.krb5_conf_uri}}",
+    {{/service.kerberos.enabled}}
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   ],
   "upgradeStrategy":{

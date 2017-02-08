@@ -32,4 +32,19 @@
         <name>ha.zookeeper.parent-znode</name>
         <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
     </property>
+
+    {{#SECURE_MODE}}
+    <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
+        <name>hadoop.security.service.user.name.key.pattern</name>
+        <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.authentication</name>
+        <value>kerberos</value>
+    </property>
+    <property>
+        <name>hadoop.security.authorization</name>
+        <value>true</value>
+    </property>
+    {{/SECURE_MODE}}
 </configuration>
