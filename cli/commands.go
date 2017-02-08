@@ -311,7 +311,7 @@ func HandlePlanSection(app *kingpin.Application) {
 
 	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.RunStart)
 	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
-	start.Arg("params", "Comma-separated list of VAR=value pairs").Required().StringVar(&cmd.Parameters)
+	start.Arg("params", "Comma-separated list of VAR=value pairs").StringVar(&cmd.Parameters)
 
 	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
