@@ -2,6 +2,7 @@
 require 'rubygems'
 require 'bundler'
 require 'singleton'
+require 'em/pure_ruby'
 
 Bundler.require
 

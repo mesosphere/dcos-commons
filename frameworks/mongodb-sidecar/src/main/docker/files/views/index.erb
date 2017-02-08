@@ -28,11 +28,12 @@ $( function() {
 </pre>
 <div id="tabs">
   <ul>
-    <li><a href="#servers">RS Servers</a></li>
-    <li><a href="#master-tab">Master status</a></li>
-    <li><a href="#rs-tab">RS status</a></li>
+    <li><a href="#admin">Admin</a></li>
+    <li><a href="#master-status-tab">Master status</a></li>
+    <li><a href="#rs-config-tab">RS status</a></li>
+    <li><a href="#rs-status-tab">RS config</a></li>
   </ul>
-  <div id="servers">
+  <div id="admin">
   <table border=1 style="border-style: solid; border-width: 1px">
     <tr>
       <th>name</th>
@@ -66,12 +67,19 @@ $( function() {
   <% end %>
 
   </table>
+  <p>
+    <a href="/reset_priority">Reset priorities</a> this will reset priorities to 1 for all servers.
+  </p>
+  </div>
 
+
+  <div id="master-status-tab">
+    <pre><code class="json"><%= @mongo.master_status %></code></pre>
   </div>
-  <div id="master-tab">
-    <pre><code class="json"><%= @master_status %></code></pre>
+  <div id="rs-status-tab">
+    <pre><code class="json"><%= JSON.pretty_generate(@mongo.rs_status) %></code></pre>
   </div>
-  <div id="rs-tab">
-    <pre><code class="json"><%#= JSON.pretty_generate(JSON.parse(@rs_status)) %></code></pre>
+  <div id="rs-config-tab">
+    <pre><code class="json"><%= JSON.pretty_generate(@mongo.rs_config) %></code></pre>
   </div>
 </div>

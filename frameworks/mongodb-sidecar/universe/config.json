@@ -83,6 +83,11 @@
         "description":"MongoDB sidecar configuration properties",
         "type":"object",
         "properties":{
+          "port":{
+            "description":"MongoDB sidecar port",
+            "type":"number",
+            "default":4567
+          },
           "cpus":{
             "description":"MongoDB sidecar node cpu requirements",
             "type":"number",
@@ -125,6 +130,7 @@
           }
         },
         "required":[
+          "port",
           "cpus",
           "mem",
           "imageName",

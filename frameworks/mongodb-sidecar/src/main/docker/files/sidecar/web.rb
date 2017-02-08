@@ -7,9 +7,9 @@ class SinatraServer < Sinatra::Application
     if @zk_rs_members.empty?
       erb :initializing
     else
-      @master_status = settings.mongo.master_status
-      @rs_status = settings.mongo.rs_status
-      @server_url = settings.mongo.server_url
+      # @master_status = settings.mongo.master_status
+      # @rs_status = settings.mongo.rs_status
+      # @server_url = settings.mongo.server_url
       @mongo = settings.mongo
       erb :index
     end
@@ -25,6 +25,7 @@ class SinatraServer < Sinatra::Application
 
   # https://docs.mongodb.com/manual/tutorial/force-member-to-be-primary/
   get '/forcemaster/:host' do |host|
+    settings.logger.warn("Forcing host to be primary", {host: host})
     settings.mongo.forcemaster(host)
     redirect '/'
   end
@@ -32,6 +33,12 @@ class SinatraServer < Sinatra::Application
   get '/remove/:host' do |host|
     settings.logger.warn("Deleting agent from ReplicaSet:", {host: host})
     settings.mongo.remove(host)
+    redirect '/'
+  end
+
+  get '/reset_priority' do
+    settings.logger.warn("Enforcing priority: 1 for all servers:", {priority: 1})
+    settings.mongo.reset_priority
     redirect '/'
   end
 

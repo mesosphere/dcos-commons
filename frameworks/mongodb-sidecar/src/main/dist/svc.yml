@@ -1,4 +1,5 @@
 name: "{{SERVICE_NAME}}"
+web-url: "http://sidecar-0-companion.{{SERVICE_NAME}}.mesos:{{SIDECAR_PORT}}"
 scheduler:
   principal: "{{SERVICE_NAME}}-principal"
   api-port: {{PORT_API}}
@@ -35,29 +36,12 @@ pods:
            max-consecutive-failures: 5
            delay: 5
            timeout: 5
-  proxylite:
-    container:
-      image-name: nlsun/proxylite:0.0.3
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "/proxylite/run.sh"
-        cpus: 0.5
-        memory: 512
-        ports:
-          proxylite:
-            port: 4568
-        env:
-          EXTERNAL_ROUTES: "/"
-          INTERNAL_ROUTES: "sidecar-0-server.mongodb-sidecar.mesos:4567"
-
   sidecar:
     count: {{SIDECAR_COUNT}}
     container:
       image-name: {{SIDECAR_IMAGE}}
     tasks:
-      server:
+      companion:
         cpus: {{SIDECAR_CPUS}}
         memory: {{SIDECAR_MEM}}
         goal: RUNNING
@@ -77,7 +61,7 @@ pods:
 
 plans:
   deploy:
-    strategy: serial
+    strategy: parallel
     phases:
       mongodb-deploy:
         strategy: parallel
@@ -85,9 +69,3 @@ plans:
       sidecar-deploy:
         strategy: serial
         pod: sidecar
-  temp:
-    strategy: serial
-    phases:
-      proxylite-deploy:
-        strategy: serial
-        pod: proxylite

@@ -4,5 +4,7 @@ set -x
 
 env
 
+cd /app
+
 echo "Starting sidecar application"
-/app/init.rb
+/app/sidecar.rb

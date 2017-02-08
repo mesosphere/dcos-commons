@@ -47,6 +47,12 @@ class MyMongo
     rs_reconfig(config)
   end
 
+  def reset_priority
+    config = rs_config
+    config[:members].each {|s| s[:priority] = 1}
+    rs_reconfig(config)
+  end
+
   def member_priority(server)
     rs_config[:members].select{|m| m[:host] == server}[0][:priority]
   end
