@@ -31,34 +31,34 @@
         "description":"Spark configuration",
         "type":"object",
         "properties":{
-          "worker":{
-            "description":"worker configuration properties",
+          "master":{
+            "description":"Spark master configuration properties",
             "type":"object",
             "properties":{
               "cpus":{
-                "description":"Template pod CPU requirements",
+                "description":"Master pod CPU requirements",
                 "type":"number",
-                "default":2.0
+                "default":1.0
               },
               "mem":{
-                "description":"Template pod mem requirements (in MB)",
+                "description":"Master pod mem requirements (in MB)",
                 "type":"integer",
-                "default":2048
+                "default":1024
               },
               "port":{
-                "description":"port for worker",
-                "type":"integer",
-                "default":7071
+                "description": "Master data port",
+                "type": "integer",
+                "default": 7070
               },
               "webui_port":{
-                "description":"port for worker webui",
-                "type":"integer",
-                "default":4041
+                "description": "Master webui port",
+                "type": "integer",
+                "default": 4040
               },
-              "count":{
-                "description":"Number of Template pods to run",
-                "type":"integer",
-                "default":2
+              "opts": {
+                "description": "Master Java system properties",
+                "type": "string",
+                "default": ""
               }
             },
             "required":[
@@ -66,39 +66,56 @@
               "mem",
               "port",
               "webui_port",
-              "count"
+              "opts"
             ]
           },
-          "master":{
-            "description":"master configuration properties",
+          "worker":{
+            "description":"Worker configuration properties",
             "type":"object",
             "properties":{
               "cpus":{
-                "description":"Template pod CPU requirements",
+                "description":"Worker pod CPU requirements",
                 "type":"number",
-                "default":1.0
+                "default":2.0
               },
               "mem":{
-                "description":"Template pod mem requirements (in MB)",
+                "description":"Worker pod mem requirements (in MB)",
                 "type":"integer",
-                "default":1024
+                "default":2048
+              },
+              "disk":{
+                "description":"Worker pod disk requirements for scratch (in MB)",
+                "type":"integer",
+                "default":2048
               },
               "port":{
-                "description": "master port",
-                "type": "integer",
-                "default": 7070
+                "description":"Worker data port",
+                "type":"integer",
+                "default":7071
               },
               "webui_port":{
-                "description": "master webui port",
-                "type": "integer",
-                "default": 4040
+                "description":"Worker webui port",
+                "type":"integer",
+                "default":4041
+              },
+              "count":{
+                "description":"Number of worker pods to run",
+                "type":"integer",
+                "default":2
+              },
+              "opts": {
+                "description": "Worker Java system properties",
+                "type": "string",
+                "default": ""
               }
             },
             "required":[
               "cpus",
               "mem",
               "port",
-              "webui_port"
+              "webui_port",
+              "count",
+              "opts"
             ]
           }
         }

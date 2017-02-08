@@ -37,9 +37,13 @@ pods:
     tasks:
       worker:
         goal: RUNNING
-        cmd: "./bootstrap && $MESOS_SANDBOX/{{SPARK_VERSION}}/sbin/start-slave.sh master-0-server.{{FRAMEWORK_NAME}}.mesos:{{SPARK_MASTER_PORT}}"
+        cmd: "./bootstrap && mkdir $MESOS_SANDBOX/work && $MESOS_SANDBOX/{{SPARK_VERSION}}/sbin/start-slave.sh master-0-server.{{FRAMEWORK_NAME}}.mesos:{{SPARK_MASTER_PORT}}"
         cpus: {{WORKER_CPUS}}
         memory: {{WORKER_MEM}}
+        volume:
+          path: scratch
+          type: ROOT
+          size: {{WORKER_DISK}}
         ports:
           data:
             port: {{SPARK_WORKER_PORT}}
