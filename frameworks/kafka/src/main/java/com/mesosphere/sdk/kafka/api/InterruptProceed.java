@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /* This is for experimentation. We can use plans/.../ */
+
+/**
+ * InterruptProceed
+ */
 @Path("/v1")
 @Produces("application/json")
 public class InterruptProceed {
@@ -31,7 +35,7 @@ public class InterruptProceed {
                     .collect(Collectors.toList());
             phases.forEach(p -> p.getStrategy().proceed());
             LOGGER.info("received to process interrupt request");
-            return Response.ok(new JSONObject().put("Result","Received cmd: continue").toString(),
+            return Response.ok(new JSONObject().put("Result", "Received cmd: continue").toString(),
                     MediaType.APPLICATION_JSON)
                     .build();
         } catch (Exception e) {
@@ -49,7 +53,7 @@ public class InterruptProceed {
                     .collect(Collectors.toList());
             phases.forEach(p -> p.getStrategy().interrupt());
             LOGGER.info("received to process continue request");
-            return Response.ok(new JSONObject().put("Result","Received cmd: interrupt").toString(),
+            return Response.ok(new JSONObject().put("Result", "Received cmd: interrupt").toString(),
                     MediaType.APPLICATION_JSON)
                     .build();
         } catch (Exception e) {
