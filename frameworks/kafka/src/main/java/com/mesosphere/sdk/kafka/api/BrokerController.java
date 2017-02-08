@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.kafka.api;
 
-import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
@@ -30,15 +28,13 @@ public class BrokerController {
     private final CuratorFramework kafkaZkClient;
     private final Log log = LogFactory.getLog(BrokerController.class);
 
-    private final StateStore stateStore;
+    private final DefaultScheduler scheduler;
     private final String kafkaZkUri;
-    private final TaskKiller taskKiller;
     private final String brokerIdPath;
 
-    public BrokerController(StateStore stateStore, TaskKiller taskKiller, String kafkaZkUri) {
-        this.stateStore = stateStore;
+    public BrokerController(DefaultScheduler scheduler, String kafkaZkUri) {
         this.kafkaZkUri = kafkaZkUri;
-        this.taskKiller = taskKiller;
+        this.scheduler = scheduler;
 
         this.kafkaZkClient = CuratorFrameworkFactory.newClient(
                 kafkaZkUri,
@@ -85,31 +81,18 @@ public class BrokerController {
             @PathParam("id") String id,
             @QueryParam("replace") String replace) {
 
-        Optional<Protos.TaskInfo> taskInfoOptional;
-        try {
-            taskInfoOptional = stateStore.fetchTask("kafka-" + id + "-broker");
-        } catch (StateStoreException e) {
-            log.warn(String.format(
-                    "Failed to get TaskInfo for broker " + id + ". This is expected when the service is "
-                            + "starting for the first time."), e);
-            taskInfoOptional = Optional.empty();
-        }
+        Optional<Protos.TaskInfo> taskInfoOptional = scheduler.getTaskInfo("kafka-" + id + "-broker");
         if (!taskInfoOptional.isPresent()) {
             log.error(String.format(
                     "Broker" + id + "doesn't exist in FrameworkState, returning null entry in response"));
             return Response.ok(new JSONArray(Arrays.asList((String) null)).toString(),
                     MediaType.APPLICATION_JSON).build();
         }
-        try {
-            if (Boolean.parseBoolean(replace)) {
-                taskKiller.killTask(taskInfoOptional.get().getTaskId(), false);
-            } else {
-                taskKiller.killTask(taskInfoOptional.get().getTaskId(), true);
-            }
-            return Response.ok(new JSONArray((Arrays.asList(taskInfoOptional.get().getTaskId().getValue()))).toString(),
-                    MediaType.APPLICATION_JSON).build();
-        } catch (Exception e) {
-            log.error("Failed to kill brokers", e);
+        if (scheduler.taskRestart(taskInfoOptional.get(), Boolean.parseBoolean(replace))) {
+            return Response.ok(
+                    new JSONArray((Arrays.asList(taskInfoOptional.get().getTaskId().getValue()))).toString()).build();
+        } else {
+            log.error("Failed to kill broker " + id);
             return Response.serverError().build();
         }
     }

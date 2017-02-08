@@ -8,7 +8,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
-import com.mesosphere.sdk.state.StateStore;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
@@ -60,7 +59,6 @@ public class KafkaService extends  DefaultService {
 
     public void registerAndRun(DefaultScheduler.Builder schedulerBuilder){
 
-        StateStore stateStore = schedulerBuilder.getStateStore();
         DefaultScheduler scheduler = schedulerBuilder.build();
 
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
@@ -80,7 +78,7 @@ public class KafkaService extends  DefaultService {
 
         jsonResources.add(new InterruptProceed(scheduler.getPlanManager()));
 
-        jsonResources.add(new BrokerController(stateStore, scheduler.getTaskKiller(),
+        jsonResources.add(new BrokerController(scheduler,
                 System.getenv("KAFKA_ZOOKEEPER_URI")));
 
         startApiServer(scheduler,  serviceSpec.getApiPort(), jsonResources);

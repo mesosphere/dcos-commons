@@ -3,7 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -39,9 +39,6 @@ import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.state.PersistentLaunchRecorder;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -524,15 +521,32 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
 
-    public PlanManager getPlanManager(){
+    public PlanManager getPlanManager() {
         return deploymentPlanManager;
     }
 
-    /* TODO(taskKiller): do not expose taskKiller */
-    public TaskKiller getTaskKiller(){
-        return taskKiller;
+    public Optional<Protos.TaskInfo> getTaskInfo(String taskName) {
+        Optional<Protos.TaskInfo> taskInfoOptional;
+        try {
+            taskInfoOptional = stateStore.fetchTask(taskName);
+        } catch (StateStoreException e) {
+            LOGGER.warn(String.format(
+                    "Failed to get TaskInfo for " + taskName + ". This is expected when the service is "
+                            + "starting for the first time."), e);
+            return Optional.empty();
+        }
+        return taskInfoOptional;
     }
 
+    public boolean taskRestart(Protos.TaskInfo taskInfo, boolean destructive) {
+        try {
+            taskKiller.killTask(taskInfo.getTaskId(), destructive);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Failed to kill task", e);
+            return false;
+        }
+    }
 
     @VisibleForTesting
     void awaitTermination() throws InterruptedException {
