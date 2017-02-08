@@ -523,6 +523,13 @@ public class DefaultScheduler implements Scheduler, Observer {
         return resources;
     }
 
+    public PlanManager getPlanManager(){
+        return deploymentPlanManager;
+    }
+
+    /* TODO(taskKiller): do not expose taskKiller */
+    public TaskKiller getTaskKiller(){ return taskKiller; }
+
     @VisibleForTesting
     void awaitTermination() throws InterruptedException {
         executor.shutdown();
