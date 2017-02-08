@@ -39,17 +39,17 @@
           "cpus":{
             "description":"MongoDB server node cpu requirements",
             "type":"number",
-            "default":0.1
+            "default":0.25
           },
           "mem":{
             "description":"MongoDB server node mem requirements",
             "type":"integer",
-            "default":256
+            "default":1024
           },
           "disk":{
             "description":"MongoDB server node disk requirements (local persistent volumes)",
             "type":"integer",
-            "default":256
+            "default":4096
           },
           "count":{
             "description":"Number of MongoDB server nodes to run",
@@ -69,7 +69,7 @@
           "version":{
             "description":"MongoDB server version",
             "type":"string",
-            "default":"3.4.1"
+            "default":"3.2.12"
           }
         },
         "required":[
@@ -101,12 +101,12 @@
           "imageName":{
             "description":"Docker image for sidecar app",
             "type":"string",
-            "default":"shirkevich/mongodb-sidecar:0.0.16"
+            "default":"comptel/mongodb-sidecar:0.0.22"
           },
           "cmd":{
             "description":"Docker cmd to run inside sidecar",
             "type":"string",
-            "default":"/app/sidecar.rb"
+            "default":"/app/run.sh"
           },
           "zk_url":{
             "description":"zk url",

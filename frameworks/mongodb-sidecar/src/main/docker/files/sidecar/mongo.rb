@@ -69,7 +69,10 @@ class MyMongo
     if server_status[:state] == 1
       return 0
     elsif server_status[:state] == 2
-      return status[:optimes][:lastCommittedOpTime][:ts].seconds - server_status[:optime][:ts].seconds
+      master_status = status[:members].select{|m| m[:state] == 1}[0]
+      # breaks 3.2.x 
+      # return status[:optimes][:lastCommittedOpTime][:ts].seconds - server_status[:optime][:ts].seconds
+      return master_status[:optime][:ts].seconds - server_status[:optime][:ts].seconds
     end
   end
 
