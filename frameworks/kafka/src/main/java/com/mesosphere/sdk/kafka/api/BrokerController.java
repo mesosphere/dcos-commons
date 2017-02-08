@@ -19,6 +19,9 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ *  Broker Controller
+ */
 @Path("/v1/brokers")
 @Produces("application/json")
 public class BrokerController {
@@ -87,13 +90,13 @@ public class BrokerController {
             taskInfoOptional = stateStore.fetchTask("kafka-" + id + "-broker");
         } catch (StateStoreException e) {
             log.warn(String.format(
-                    "Failed to get TaskInfo for broker %d. This is expected when the service is "
-                            + "starting for the first time.", id), e);
+                    "Failed to get TaskInfo for broker " + id + ". This is expected when the service is "
+                            + "starting for the first time."), e);
             taskInfoOptional = Optional.empty();
         }
         if (!taskInfoOptional.isPresent()) {
             log.error(String.format(
-                    "Broker %d doesn't exist in FrameworkState, returning null entry in response", id));
+                    "Broker" + id + "doesn't exist in FrameworkState, returning null entry in response"));
             return Response.ok(new JSONArray(Arrays.asList((String) null)).toString(),
                     MediaType.APPLICATION_JSON).build();
         }

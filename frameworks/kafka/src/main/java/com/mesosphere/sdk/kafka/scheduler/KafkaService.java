@@ -24,10 +24,10 @@ import java.util.*;
  * Kafka Service.
  */
 public class KafkaService extends  DefaultService {
-    protected static final int failoverTimeoutSec = 2 * 7 * 24 * 60 * 60;
-    protected static final int lockAttempts = 3;
-    protected static final String userString = "root";
-    protected static final String lockPath = "lock";
+    protected static final int FAILOVER_TIMEOUT_SEC = 2 * 7 * 24 * 60 * 60;
+    protected static final int LOCK_ATTEMPTS = 3;
+    protected static final String USER = "root";
+    protected static final String LOCK_PATH = "lock";
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
 
@@ -48,7 +48,7 @@ public class KafkaService extends  DefaultService {
         curatorClient.start();
 
         InterProcessMutex curatorMutex = super.lock(curatorClient, schedulerBuilder.getServiceSpec().getName(),
-                lockPath, lockAttempts);
+                LOCK_PATH, LOCK_ATTEMPTS);
         try {
             registerAndRun(schedulerBuilder);
         } finally {
@@ -68,7 +68,7 @@ public class KafkaService extends  DefaultService {
         String zookeeperConnection = serviceSpec.getZookeeperConnection();
 
         Protos.FrameworkInfo frameworkInfo =
-                super.getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore(), userString, failoverTimeoutSec);
+                super.getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore(), USER, FAILOVER_TIMEOUT_SEC);
 
         Collection<Object> jsonResources = new ArrayList<>();
 
