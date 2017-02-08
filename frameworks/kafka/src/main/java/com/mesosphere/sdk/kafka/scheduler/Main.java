@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
-import com.mesosphere.sdk.specification.DefaultService;
-
 import java.io.File;
 
 import org.slf4j.Logger;

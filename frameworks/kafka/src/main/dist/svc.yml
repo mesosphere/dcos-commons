@@ -1,26 +1,36 @@
 name: {{FRAMEWORK_NAME}}
-principal: {{FRAMEWORK_PRINCIPLE}}
-zookeeper: master.mesos:2181
-api-port: {{PORT1}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPLE}}
+  zookeeper: {{MESOS_ZOOKEEPER_URI}}
+  api-port: {{PORT_API}}
 pods:
   kafka:
     count: {{BROKER_COUNT}}
+    placement: {{PLACEMENT_CONSTRAINTS}}
+    uris:
+      - {{KAFKA_URI}}
+      - {{BOOTSTRAP_URI}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
-          broker-port:
-            port: 9092
+          kafka-broker-port:
+            port: {{BROKER_PORT}}
         volume:
-          path: broker-data
-          type: ROOT
-          size: {{BROKER_DISK}}
+          path: {{BROKER_DATA_PATH}}
+          type: {{BROKER_DISK_TYPE}}
+          size: {{BROKER_DISK_SIZE}}
         goal: RUNNING
-        cmd: "env && exec $MESOS_SANDBOX/{{KAFKA_VER_NAME}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VER_NAME}}/config/server.properties"
-        uris:
-          - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
-          - {{KAFKA_URI}}
-        configurations:
-          - template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-            dest: "{{KAFKA_VER_NAME}}/config/server.properties"
+        cmd: "./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"
+        configs:
+          server-properties:
+            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+            dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      Deployment:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: kafka
