@@ -15,8 +15,14 @@ pods:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
-          kafka-broker-port:
+          broker:
             port: {{BROKER_PORT}}
+            env-key: KAFKA_BROKER_PORT
+          {{#BROKER_JMX_PORT}}
+          jmx:
+            port: {{JMX_PORT}}
+            env-key: JMX_PORT
+          {{/BROKER_JMX_PORT}}
         volume:
           path: {{BROKER_DATA_PATH}}
           type: {{BROKER_DISK_TYPE}}

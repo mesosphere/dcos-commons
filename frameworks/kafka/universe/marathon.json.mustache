@@ -44,7 +44,7 @@
     "MESOS_ZOOKEEPER_URI": " master.mesos:2181",
     {{#brokers.jmx.enable}}
      "TASKCFG_ALL_KAKFA_JMX_OPTS": "-Dcom.sun.management.jmxremote={{brokers.jmx.remote}} -Dcom.sun.management.jmxremote.registry.ssl={{brokers.jmx.remote_registry_ssl}} -Dcom.sun.management.jmxremote.ssl={{brokers.jmx.remote_ssl}} -Dcom.sun.management.jmxremote.ssl.need.client.auth={{brokers.jmx.remote_ssl_need_client_auth}} -Dcom.sun.management.jmxremote.authenticate={{brokers.jmx.remote_authenticate}} {{brokers.additional_kafka_jmx_opts}}"
-     "TASKCFG_ALL_JMX_PORT": "{{brokers.jmx.remote_port}}",
+     "BROKER_JMX_PORT": "{{brokers.jmx.remote_port}}",
      {{/brokers.jmx.enable}}
 
 
