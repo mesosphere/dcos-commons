@@ -2,6 +2,9 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
+import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
@@ -63,20 +66,6 @@ public class DefaultScheduler implements Scheduler, Observer {
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
 
     /**
-     * Default time to wait between destructive task recoveries (avoid quickly making things worse).
-     *
-     * Default: 10 minutes
-     */
-    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS = 10 * 60 * 1000;
-
-    /**
-     * Default time to wait before declaring a task as permanently failed.
-     *
-     * Default: 20 minutes
-     */
-    protected static final Integer PERMANENT_FAILURE_DELAY_MS = 20 * 60 * 1000;
-
-    /**
      * Time to wait for the executor thread to terminate. Only used by unit tests.
      *
      * Default: 10 seconds
@@ -114,6 +103,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * such as destroying a failed task.
      */
     protected final int destructiveRecoveryDelayMs;
+    private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -148,6 +138,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
+        private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
@@ -269,6 +260,15 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Sets the provided {@link PlanManager} to be the plan manager used for recovery.
+         * @param recoveryManagerFactory the factory whcih generates the custom recovery plan manager
+         */
+        public Builder setRecoveryManagerFactory(RecoveryPlanManagerFactory recoveryManagerFactory) {
+            this.recoveryPlanManagerFactory = recoveryManagerFactory;
+            return this;
+        }
+
+        /**
          * Allow setting the capabilities of the DC/OS cluster.  Generally this should not be used except in test
          * environments as it may return incorrect information regarding the capabilities of the DC/OS cluster.
          * @param capabilities the capabilities used to validate the ServiceSpec
@@ -347,7 +347,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     configStore,
                     new DefaultOfferRequirementProvider(stateStore, serviceSpec.getName(), configUpdateResult.targetId),
                     endpointProducers,
-                    restartHookOptional);
+                    restartHookOptional,
+                    Optional.ofNullable(recoveryPlanManagerFactory));
         }
     }
 
@@ -485,7 +486,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RestartHook> restartHookOptional) {
+            Optional<RestartHook> restartHookOptional,
+            Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
@@ -493,6 +495,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
+        this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
@@ -503,8 +506,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     ? 0 : replacementFailurePolicy.getMinReplaceDelayMins();
         } else {
             // default values if policy section is unset:
-            this.permanentFailureTimeoutMs = Optional.of(PERMANENT_FAILURE_DELAY_MS);
-            this.destructiveRecoveryDelayMs = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
+            this.permanentFailureTimeoutMs = Optional.of(ReplacementFailurePolicy.PERMANENT_FAILURE_DELAY_MS);
+            this.destructiveRecoveryDelayMs = ReplacementFailurePolicy.DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
         }
     }
 
@@ -592,13 +595,27 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected void initializeRecoveryPlanManager() {
         LOGGER.info("Initializing recovery plan...");
-        recoveryPlanManager = new DefaultRecoveryPlanManager(
-                stateStore,
-                configStore,
-                new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs)),
+        LaunchConstrainer launchConstrainer = new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs));
+        FailureMonitor failureMonitor =
                 permanentFailureTimeoutMs.isPresent()
                         ? new TimedFailureMonitor(Duration.ofMillis(permanentFailureTimeoutMs.get()))
-                        : new NeverFailureMonitor());
+                        : new NeverFailureMonitor();
+        if (recoveryPlanManagerFactoryOptional.isPresent()) {
+            LOGGER.info("Using custom recovery plan manager.");
+            this.recoveryPlanManager = recoveryPlanManagerFactoryOptional.get().create(
+                    stateStore,
+                    configStore,
+                    launchConstrainer,
+                    failureMonitor,
+                    plans);
+        } else {
+            LOGGER.info("Using default recovery plan manager.");
+            this.recoveryPlanManager = new DefaultRecoveryPlanManager(
+                    stateStore,
+                    configStore,
+                    launchConstrainer,
+                    failureMonitor);
+        }
     }
 
     protected void initializePlanCoordinator() {
