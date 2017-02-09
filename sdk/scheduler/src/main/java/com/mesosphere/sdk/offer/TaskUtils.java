@@ -374,4 +374,14 @@ public class TaskUtils {
     public static String getStepName(PodInstance podInstance, Collection<String> tasksToLaunch) {
         return podInstance.getName() + ":" + tasksToLaunch;
     }
+
+    /**
+     * Returns TaskInfos will all reservations and persistence IDs removed from their Resources.
+     */
+    public static Collection<TaskInfo> clearReservations(Collection<TaskInfo> taskInfos) {
+        return taskInfos.stream()
+                .map(taskInfo -> ResourceUtils.clearResourceIds(taskInfo))
+                .map(taskInfo -> ResourceUtils.clearPersistence(taskInfo))
+                .collect(Collectors.toList());
+    }
 }
