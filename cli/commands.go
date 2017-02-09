@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -28,6 +29,25 @@ func GetArguments() []string {
 		return make([]string, 0)
 	}
 	return os.Args[2:]
+}
+
+func GetPlanParameterPayload(parameters string) (string, error) {
+	envPairs := make(map[string]string)
+	for _, pair := range strings.Split(parameters, ",") {
+		elements := strings.Split(pair, "=")
+		if len(elements) != 2 {
+			return "", errors.New(fmt.Sprintf(
+				"Must have one variable name and one variable value per definition"))
+		}
+		envPairs[elements[0]] = elements[1]
+	}
+
+	jsonVal, err := json.Marshal(envPairs)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonVal), nil
 }
 
 func NewApp(version string, author string, longDescription string) (*kingpin.Application, error) {
@@ -198,13 +218,30 @@ func HandleEndpointsSection(app *kingpin.Application) {
 // Plan section
 
 type PlanHandler struct {
-	PhaseId string
-	StepId  string
+	PlanName   string
+	Parameters string
+	PhaseId    string
+	StepId     string
+}
+
+func GetPlanName(cmd *PlanHandler) string {
+	plan := "deploy"
+	if len(cmd.PlanName) > 0 {
+		plan = cmd.PlanName
+	}
+	return plan
+}
+
+func (cmd *PlanHandler) RunList(c *kingpin.ParseContext) error {
+	response := HTTPGet("/v1/plans")
+	PrintJSON(response)
+	return nil
 }
 
 func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
+	response := HTTPQuery(CreateHTTPRequest("GET", fmt.Sprintf("v1/plans/%s", GetPlanName(cmd))))
+
 	// custom behavior: ignore 503 error
-	response := HTTPQuery(CreateHTTPRequest("GET", "v1/plan"))
 	if response.StatusCode != 503 {
 		CheckHTTPResponse(response)
 	}
@@ -212,12 +249,44 @@ func (cmd *PlanHandler) RunShow(c *kingpin.ParseContext) error {
 	return nil
 }
 
-func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPPost("v1/plan/continue"))
+func (cmd *PlanHandler) RunStart(c *kingpin.ParseContext) error {
+	payload := "{}"
+	if len(cmd.Parameters) > 0 {
+		parameterPayload, err := GetPlanParameterPayload(cmd.Parameters)
+		if err != nil {
+			return err
+		}
+		payload = parameterPayload
+	}
+	response := HTTPPostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
+	PrintJSON(response)
 	return nil
 }
+
+func (cmd *PlanHandler) RunStop(c *kingpin.ParseContext) error {
+	response := HTTPPost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
+	PrintJSON(response)
+	return nil
+}
+
+func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
+	response := HTTPPost(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)))
+	PrintJSON(response)
+	return nil
+}
+
 func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPPost("v1/plan/interrupt"))
+	response := HTTPPost(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)))
+	PrintJSON(response)
+	return nil
+}
+
+func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
+	query := url.Values{}
+	query.Set("phase", cmd.PhaseId)
+	query.Set("step", cmd.StepId)
+	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/restart", GetPlanName(cmd)), query.Encode())
+	PrintJSON(response)
 	return nil
 }
 
@@ -225,14 +294,8 @@ func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("phase", cmd.PhaseId)
 	query.Set("step", cmd.StepId)
-	PrintJSON(HTTPPostQuery("v1/plan/forceComplete", query.Encode()))
-	return nil
-}
-func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
-	query := url.Values{}
-	query.Set("phase", cmd.PhaseId)
-	query.Set("step", cmd.StepId)
-	PrintJSON(HTTPPostQuery("v1/plan/restart", query.Encode()))
+	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", GetPlanName(cmd)), query.Encode())
+	PrintJSON(response)
 	return nil
 }
 
@@ -241,18 +304,33 @@ func HandlePlanSection(app *kingpin.Application) {
 	cmd := &PlanHandler{}
 	plan := app.Command("plan", "Query service plans")
 
-	plan.Command("show", "Display the full plan").Action(cmd.RunShow)
+	plan.Command("list", "Show all plans for this service").Action(cmd.RunList)
 
-	plan.Command("continue", "Continue a currently Waiting operation").Action(cmd.RunContinue)
-	plan.Command("interrupt", "Interrupt the current InProgress operation").Action(cmd.RunInterrupt)
+	show := plan.Command("show", "Display the deploy plan or the plan with the provided name").Action(cmd.RunShow)
+	show.Arg("plan", "Name of the plan to show").StringVar(&cmd.PlanName)
 
-	force := plan.Command("force", "Force the current operation to complete").Action(cmd.RunForce)
-	force.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
-	force.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
+	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.RunStart)
+	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
+	start.Arg("params", "Comma-separated list of VAR=value pairs").StringVar(&cmd.Parameters)
 
-	restart := plan.Command("restart", "Restart the current operation").Action(cmd.RunRestart)
+	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
+	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
+
+	continueCmd := plan.Command("continue", "Continue the deploy plan or the plan with the provided name").Action(cmd.RunContinue)
+	continueCmd.Arg("plan", "Name of the plan to continue").StringVar(&cmd.PlanName)
+
+	interrupt := plan.Command("interrupt", "Interrupt the deploy plan or the plan with the provided name").Action(cmd.RunInterrupt)
+	interrupt.Arg("plan", "Name of the plan to interrupt").StringVar(&cmd.PlanName)
+
+	restart := plan.Command("restart", "Restart the plan with the provided name").Action(cmd.RunRestart)
+	restart.Arg("plan", "Name of the plan to restart").Required().StringVar(&cmd.PlanName)
 	restart.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
 	restart.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
+
+	force := plan.Command("force", "Force complete the plan with the provided name").Action(cmd.RunForce)
+	force.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
+	force.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
+	force.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
 }
 
 // Pods section
