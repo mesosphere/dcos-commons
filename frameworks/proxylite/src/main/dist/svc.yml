@@ -18,7 +18,7 @@ pods:
   proxylite:
     container:
       # The image here is built and pushed
-      image-name: mesosphere/proxylite:1.0.0
+      image-name: mesosphere/proxylite:1.0.1
     count: 1
     tasks:
       server:

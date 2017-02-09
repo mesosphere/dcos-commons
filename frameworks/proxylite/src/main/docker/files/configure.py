@@ -30,6 +30,8 @@ backend {name}
     http-request add-header X-Forwarded-Proto https if {{ ssl_fc }}
     http-request set-header Host {hostname}
     reqirep  "^([^ :]*)\ {incomingpath}/?(.*)" "\\1\ {outgoingpath}/\\2"
+    acl hdr_location res.hdr(Location) -m found
+    rspirep "^Location: (https?://{hostname}(:[0-9]+)?)?{outgoingpath}(/.*)" "Location: {incomingpath}\\3" if hdr_location
     server x{name}x {fullhost}
 
 """
