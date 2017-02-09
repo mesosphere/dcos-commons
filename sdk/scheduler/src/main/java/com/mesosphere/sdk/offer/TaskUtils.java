@@ -33,16 +33,16 @@ public class TaskUtils {
      * Returns the {@link TaskSpec} in the provided {@link com.mesosphere.sdk.specification.DefaultServiceSpec}
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
-    private static PodSpec getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
+    public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
         String podType = getType(taskInfo);
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
             if (podSpec.getType().equals(podType)) {
-                return podSpec;
+                return Optional.of(podSpec);
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -339,12 +339,13 @@ public class TaskUtils {
                     configId, taskInfo.getName()), e);
         }
 
-        PodSpec podSpec = TaskUtils.getPodSpec(serviceSpec, taskInfo);
-        if (podSpec == null) {
+        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        if (!podSpecOptional.isPresent()) {
             throw new TaskException(String.format(
                     "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
+        } else {
+            return podSpecOptional.get();
         }
-        return podSpec;
     }
 
     /**

@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
@@ -15,12 +16,15 @@ import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import org.junit.*;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
+
+    @Mock ServiceSpec serviceSpec;
 
     @Test
     public void testReserveTaskStaticPort() throws Exception {
@@ -970,7 +974,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
-        OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore);
+        OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
         for (OfferRecommendation recommendation : recommendations) {
             operationRecorder.record(recommendation);
         }
