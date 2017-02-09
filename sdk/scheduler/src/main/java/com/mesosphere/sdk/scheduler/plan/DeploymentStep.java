@@ -18,10 +18,10 @@ import java.util.*;
 public class DeploymentStep extends AbstractStep {
 
     private final List<String> errors;
-    private final PodInstanceRequirement podInstanceRequirement;
-
     private Map<String, String> parameters;
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
+
+    protected final PodInstanceRequirement podInstanceRequirement;
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required

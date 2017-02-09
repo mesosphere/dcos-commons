@@ -7,6 +7,7 @@ pods:
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     tasks:
       node:
         goal: RUNNING
@@ -23,6 +24,11 @@ pods:
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -32,11 +38,14 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+        env:
+          JOURNALNODE: true
   name:
     count: 2
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
@@ -55,7 +64,17 @@ pods:
         goal: RUNNING
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
+        readiness-check:
+          cmd: ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
+          interval: 5
+          delay: 0
+          timeout: 60
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -65,33 +84,53 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
       bootstrap:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
   zkfc:
     count: 2
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     resource-sets:
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
@@ -102,28 +141,45 @@ pods:
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+          ZKFC: true
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+        env:
+          SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+          ZKFC: true
   data:
     count: {{DATA_COUNT}}
     uris:
       - {{HDFS_URI}}
       - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     tasks:
       node:
         goal: RUNNING
@@ -146,6 +202,11 @@ pods:
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
             template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
@@ -155,6 +216,9 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+        env:
+          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          DATANODE: true
 
 plans:
   deploy:
@@ -178,3 +242,13 @@ plans:
       dn-deploy:
         strategy: {{DATA_STRATEGY}}
         pod: data
+
+  replace-nn:
+    strategy: serial
+    phases:
+      nn-deploy:
+        strategy: serial
+        pod: name
+        steps:
+          - 0: [[bootstrap], [node]]
+          - 1: [[bootstrap], [node]]

@@ -12,7 +12,7 @@ import sdk_tasks as tasks
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
-    check_running
+    check_healthy
 )
 
 HDFS_POD_TYPES = {"journal", "name", "data"}
@@ -23,9 +23,13 @@ def setup_module(module):
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
 @pytest.mark.sanity
 def test_bump_journal_cpus():
-    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    check_healthy()
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
     print('journal ids: ' + str(journal_ids))
 
@@ -37,12 +41,12 @@ def test_bump_journal_cpus():
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
-    check_running()
+    check_healthy()
 
 
 @pytest.mark.sanity
 def test_bump_data_nodes():
-    check_running()
+    check_healthy()
 
     data_ids = tasks.get_task_ids(PACKAGE_NAME, 'data')
     print('data ids: ' + str(data_ids))
@@ -52,13 +56,13 @@ def test_bump_data_nodes():
     config['env']['DATA_COUNT'] = str(node_count)
     cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
 
-    check_running(DEFAULT_TASK_COUNT + 1)
+    check_healthy(DEFAULT_TASK_COUNT + 1)
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'data', data_ids)
 
 
 @pytest.mark.sanity
 def test_modify_app_config():
-    check_running()
+    check_healthy()
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
 
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
@@ -83,12 +87,12 @@ def test_modify_app_config():
     tasks.check_tasks_updated(PACKAGE_NAME, 'zkfc', zkfc_ids)
     tasks.check_tasks_updated(PACKAGE_NAME, 'data', journal_ids)
 
-    check_running()
+    check_healthy()
 
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
-    check_running()
+    check_healthy()
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
 
     journal_ids = tasks.get_task_ids(PACKAGE_NAME, 'journal')
@@ -120,7 +124,7 @@ def test_modify_app_config_rollback():
 
     # Wait for the journal nodes to return to their old configuration
     tasks.check_tasks_updated(PACKAGE_NAME, 'journal', journal_ids)
-    check_running()
+    check_healthy()
 
     config = marathon.get_config(PACKAGE_NAME)
     assert int(config['env'][app_config_field]) == expiry_ms

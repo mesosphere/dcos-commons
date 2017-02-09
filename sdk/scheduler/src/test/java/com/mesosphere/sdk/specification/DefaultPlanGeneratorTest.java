@@ -68,13 +68,14 @@ public class DefaultPlanGeneratorTest {
         for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
-            Assert.assertEquals(5, plan.getChildren().size());
+            Assert.assertEquals(6, plan.getChildren().size());
 
             Phase serverPhase = plan.getChildren().get(0);
             Phase oncePhase = plan.getChildren().get(1);
             Phase interleavePhase = plan.getChildren().get(2);
             Phase fullCustomPhase = plan.getChildren().get(3);
             Phase partialCustomPhase = plan.getChildren().get(4);
+            Phase omitStepPhase = plan.getChildren().get(5);
 
             validatePhase(
                     serverPhase,
@@ -118,6 +119,14 @@ public class DefaultPlanGeneratorTest {
                             Arrays.asList("server"),
                             Arrays.asList("server"),
                             Arrays.asList("once")));
+
+            validatePhase(
+                    omitStepPhase,
+                    Arrays.asList(
+                            Arrays.asList("once"),
+                            Arrays.asList("server")));
+            Assert.assertEquals("hello-1:[once]", omitStepPhase.getChildren().get(0).getName());
+            Assert.assertEquals("hello-1:[server]", omitStepPhase.getChildren().get(1).getName());
         }
     }
 

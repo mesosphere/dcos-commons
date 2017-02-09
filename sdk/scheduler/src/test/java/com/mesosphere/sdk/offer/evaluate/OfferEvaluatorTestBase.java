@@ -7,15 +7,15 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.MockitoAnnotations;
 
-import java.util.*;
+import java.util.UUID;
 
 /**
  * A BaseTest for use in writing offer evaluation tests.
@@ -39,6 +39,7 @@ public class OfferEvaluatorTestBase {
     @Before
     public void beforeEach() throws Exception {
         CuratorTestUtils.clear(testZk);
+        MockitoAnnotations.initMocks(this);
         stateStore = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
         offerRequirementProvider =
                 new DefaultOfferRequirementProvider(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID());

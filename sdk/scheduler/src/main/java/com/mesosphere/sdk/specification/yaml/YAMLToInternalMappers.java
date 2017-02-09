@@ -156,7 +156,14 @@ public class YAMLToInternalMappers {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), rlimits));
+
+            List<NetworkSpec> networks = new ArrayList<>();
+            for (Map.Entry<String, RawNetwork> entry : rawPod.getContainer().getNetworks().entrySet()) {
+                // When features other than network name are added, we'll want to use the RawNetwork entry value here.
+                networks.add(new DefaultNetworkSpec(entry.getKey()));
+            }
+
+            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), networks, rlimits));
         }
 
         return builder.build();

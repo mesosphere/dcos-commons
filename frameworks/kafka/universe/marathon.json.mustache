@@ -42,13 +42,10 @@
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.1.0",
     "MESOS_ZOOKEEPER_URI": " master.mesos:2181",
-    "JMX_ENABLE": "{{brokers.jmx.enable}}",
-    "JMX_REMOTE_ENABLE": "{{brokers.jmx.remote}}",
-    "JMX_REMOTE_PORT": "{{brokers.jmx.remote_port}}",
-    "JMX_REMOTE_REGISTRY_SSL": "{{brokers.jmx.remote_registry_ssl}}",
-    "JMX_REMOTE_SSL": "{{brokers.jmx.remote_ssl}}",
-    "JMX_REMOTE_AUTH": "{{brokers.jmx.remote_authenticate}}",
-    "JMX_REMOTE_SSL_NEED_CLIENT_AUTH": "{{brokers.jmx.remote_ssl_need_client_auth}}",
+    {{#brokers.jmx.enable}}
+     "TASKCFG_ALL_KAKFA_JMX_OPTS": "-Dcom.sun.management.jmxremote={{brokers.jmx.remote}} -Dcom.sun.management.jmxremote.registry.ssl={{brokers.jmx.remote_registry_ssl}} -Dcom.sun.management.jmxremote.ssl={{brokers.jmx.remote_ssl}} -Dcom.sun.management.jmxremote.ssl.need.client.auth={{brokers.jmx.remote_ssl_need_client_auth}} -Dcom.sun.management.jmxremote.authenticate={{brokers.jmx.remote_authenticate}} {{brokers.additional_kafka_jmx_opts}}"
+     "BROKER_JMX_PORT": "{{brokers.jmx.remote_port}}",
+     {{/brokers.jmx.enable}}
 
 
     "TASKCFG_ALL_BROKER_DISK_PATH" : "{{brokers.disk_path}}",
@@ -74,7 +71,6 @@
     "TASKCFG_ALL_KAFKA_LOG_CLEANER_DELETE_RETENTION_MS": "{{kafka.log_cleaner_delete_retention_ms}}",
     "TASKCFG_ALL_KAFKA_LOG_PREALLOCATE": "{{kafka.log_preallocate}}",
     "TASKCFG_ALL_KAFKA_REPLICA_SOCKET_RECEIVE_BUFFER_BYTES": "{{kafka.replica_socket_receive_buffer_bytes}}",
-    "TASKCFG_ALL_KAFKA_OFFSET_METADATA_MAX_BYTES": "{{kafka.offset_metadata_max_bytes}}",
     "TASKCFG_ALL_KAFKA_OFFSET_METADATA_MAX_BYTES": "{{kafka.offset_metadata_max_bytes}}",
     "TASKCFG_ALL_KAFKA_MESSAGE_MAX_BYTES": "{{kafka.message_max_bytes}}",
     "TASKCFG_ALL_KAFKA_LOG_ROLL_JITTER_HOURS": "{{kafka.log_roll_jitter_hours}}",

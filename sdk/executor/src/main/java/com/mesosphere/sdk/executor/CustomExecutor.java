@@ -130,6 +130,7 @@ public class CustomExecutor implements Executor {
         try {
             HealthCheckMonitor healthCheckMonitor =
                     new HealthCheckMonitor(
+                            check,
                             HealthCheckHandler.create(
                                     executorDriver,
                                     taskInfo,
