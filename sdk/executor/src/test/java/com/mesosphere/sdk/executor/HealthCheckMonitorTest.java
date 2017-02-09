@@ -63,7 +63,10 @@ public class HealthCheckMonitorTest {
                 new HealthCheckStats("test"));
         when(mockProcessRunner.run(any(), anyDouble())).thenReturn(1); // return failure
 
-        HealthCheckMonitor healthCheckMonitor = new HealthCheckMonitor(healthCheckHandler, mockLaunchedTask);
+        HealthCheckMonitor healthCheckMonitor = new HealthCheckMonitor(
+                healthCheck,
+                healthCheckHandler,
+                mockLaunchedTask);
 
         Future<Optional<HealthCheckStats>> futureStats = executorService.submit(healthCheckMonitor);
         Optional<HealthCheckStats> optionalStats;
