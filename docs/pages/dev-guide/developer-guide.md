@@ -798,7 +798,7 @@ The most basic set of features present in the YAML representation of the `Servic
 
 ### Containers
 
-Each pod runs inside a single container. The `ServiceSpec` specifies the Docker image to run for that container and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
+Each pod runs inside a single container. The `ServiceSpec` specifies the Docker image to run for that container, the virtual network memberships, and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, and the hard limit to 2048:
 
 ```yaml
 name: "hello-world"
@@ -807,6 +807,8 @@ pods:
     count: 1
     container:
       image-name: ubuntu
+      networks:
+        dcos: {}
       rlimits:
         RLIMIT_NOFILE:
           soft: 1024
@@ -818,6 +820,8 @@ pods:
         cpus: 1.0
         memory: 256
 ```
+
+Currently an empty YAML dictionary is passed as the body for each network definition under `networks`, since we only support joining virtual networks by name, but in the future it will be possible to specify port mappings and other information in a network definition.
 
 **Note:** Your framework must be run as the root user in order to raise rlimits beyond the default for a process. For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 

@@ -1,0 +1,31 @@
+name: "hello-world"
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    container:
+      networks:
+        dcos: {}
+    resource-sets:
+      hello-resource:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+    tasks:
+      network-test:
+        goal: FINISHED
+        cmd: "ip addr show eth0 | grep -Eo 'inet 9\\.[0-9\\.]+' >> output"
+        resource-set: hello-resource
+      server:
+        goal: RUNNING
+        cmd: "echo world >> output && sleep $SLEEP_DURATION"
+        resource-set: hello-resource
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      all-deploy:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[network-test], [server]]
