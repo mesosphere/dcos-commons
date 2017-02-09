@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.executor;
 
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +15,13 @@ public class HealthCheckMonitor implements Callable<Optional<HealthCheckStats>> 
     private final HealthCheckHandler healthCheckHandler;
     private final LaunchedTask launchedTask;
     private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Protos.HealthCheck healthCheck;
 
     public HealthCheckMonitor(
+            Protos.HealthCheck healthCheck,
             HealthCheckHandler healthCheckHandler,
             LaunchedTask launchedTask) {
+        this.healthCheck = healthCheck;
         this.healthCheckHandler = healthCheckHandler;
         this.launchedTask = launchedTask;
     }
@@ -30,18 +34,19 @@ public class HealthCheckMonitor implements Callable<Optional<HealthCheckStats>> 
         try {
             healthCheck.get();
         } catch (Throwable t) {
-            logger.error("Waiting for failed health check failed with exception: ", t);
 
             if (t.getCause() instanceof HealthCheckHandler.HealthCheckRuntimeException) {
                 HealthCheckHandler.HealthCheckRuntimeException healthCheckRuntimeException =
                         (HealthCheckHandler.HealthCheckRuntimeException) t.getCause();
                 healthCheckStats = Optional.of(healthCheckRuntimeException.getHealthCheckStats());
             } else {
-                logger.error("Health check exited without statistics");
+                logger.error("Waiting for health check failed with exception: ", t);
             }
         }
 
-        launchedTask.getExecutorTask().stop(launchedTask.getFuture());
+        if (this.healthCheck.getConsecutiveFailures() > 0) {
+            launchedTask.getExecutorTask().stop(launchedTask.getFuture());
+        }
         return healthCheckStats;
     }
 }

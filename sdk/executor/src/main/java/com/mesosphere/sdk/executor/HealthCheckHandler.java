@@ -208,6 +208,7 @@ public class HealthCheckHandler {
                         "Readiness check passed",
                         labels,
                         null);
+                throw new HealthCheckRuntimeException("Readiness check passed.", healthCheckStats);
             }
         }
     }

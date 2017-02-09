@@ -555,7 +555,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore)));
+        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider), stateStore, taskKiller);

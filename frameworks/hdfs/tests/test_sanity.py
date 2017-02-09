@@ -23,6 +23,10 @@ def setup_module(module):
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
 @pytest.mark.sanity
 def test_bump_journal_cpus():
     tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
