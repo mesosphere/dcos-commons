@@ -31,6 +31,10 @@ def setup_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
 @pytest.mark.skip(reason="Waiting for released version from which to upgrade")
 @pytest.mark.upgrade
 @pytest.mark.sanity
