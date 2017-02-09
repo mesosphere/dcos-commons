@@ -64,6 +64,11 @@ pods:
         goal: RUNNING
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
+        readiness-check:
+          cmd: ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
+          interval: 5
+          delay: 0
+          timeout: 60
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:
