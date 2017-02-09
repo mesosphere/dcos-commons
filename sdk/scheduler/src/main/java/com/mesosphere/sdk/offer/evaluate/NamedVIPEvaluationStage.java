@@ -20,13 +20,13 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     public NamedVIPEvaluationStage(
             Protos.Resource resource,
             String taskName,
-            String portName,
+            String envName,
             Integer port,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             String vipName,
             Integer vipPort) {
-        super(resource, taskName, portName, port);
+        super(resource, taskName, envName, port);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;

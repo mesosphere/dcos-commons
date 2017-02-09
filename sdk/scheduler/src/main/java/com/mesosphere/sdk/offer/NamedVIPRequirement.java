@@ -50,7 +50,7 @@ public class NamedVIPRequirement extends PortRequirement {
         return new NamedVIPEvaluationStage(
                 getResource(),
                 taskName,
-                getPortName(),
+                getEnvName(),
                 getPort(),
                 getProtocol(),
                 getVisibility(),
