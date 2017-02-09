@@ -1,12 +1,10 @@
 package com.mesosphere.sdk.kafka.api;
 
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.mesos.Protos;
 import org.apache.zookeeper.KeeperException;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,8 +12,6 @@ import org.json.JSONObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Optional;
 
 /**
  *  Broker Controller
@@ -28,13 +24,11 @@ public class BrokerController {
     private final CuratorFramework kafkaZkClient;
     private final Log log = LogFactory.getLog(BrokerController.class);
 
-    private final DefaultScheduler scheduler;
     private final String kafkaZkUri;
     private final String brokerIdPath;
 
-    public BrokerController(DefaultScheduler scheduler, String kafkaZkUri) {
+    public BrokerController(String kafkaZkUri) {
         this.kafkaZkUri = kafkaZkUri;
-        this.scheduler = scheduler;
 
         this.kafkaZkClient = CuratorFrameworkFactory.newClient(
                 kafkaZkUri,
@@ -71,28 +65,6 @@ public class BrokerController {
                     "UTF-8")), MediaType.WILDCARD_TYPE.APPLICATION_JSON).build();
         } catch (Exception ex) {
             log.error("Failed to fetch broker id: " + id, ex);
-            return Response.serverError().build();
-        }
-    }
-
-    @PUT
-    @Path("/{id}")
-    public Response killBrokers(
-            @PathParam("id") String id,
-            @QueryParam("replace") String replace) {
-
-        Optional<Protos.TaskInfo> taskInfoOptional = scheduler.getTaskInfo("kafka-" + id + "-broker");
-        if (!taskInfoOptional.isPresent()) {
-            log.error(String.format(
-                    "Broker" + id + "doesn't exist in FrameworkState, returning null entry in response"));
-            return Response.ok(new JSONArray(Arrays.asList((String) null)).toString(),
-                    MediaType.APPLICATION_JSON).build();
-        }
-        if (scheduler.taskRestart(taskInfoOptional.get(), Boolean.parseBoolean(replace))) {
-            return Response.ok(
-                    new JSONArray((Arrays.asList(taskInfoOptional.get().getTaskId().getValue()))).toString()).build();
-        } else {
-            log.error("Failed to kill broker " + id);
             return Response.serverError().build();
         }
     }

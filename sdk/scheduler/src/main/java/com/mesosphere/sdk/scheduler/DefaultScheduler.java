@@ -520,34 +520,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         return resources;
     }
 
-
-    public PlanManager getPlanManager() {
-        return deploymentPlanManager;
-    }
-
-    public Optional<Protos.TaskInfo> getTaskInfo(String taskName) {
-        Optional<Protos.TaskInfo> taskInfoOptional;
-        try {
-            taskInfoOptional = stateStore.fetchTask(taskName);
-        } catch (StateStoreException e) {
-            LOGGER.warn(String.format(
-                    "Failed to get TaskInfo for " + taskName + ". This is expected when the service is "
-                            + "starting for the first time."), e);
-            return Optional.empty();
-        }
-        return taskInfoOptional;
-    }
-
-    public boolean taskRestart(Protos.TaskInfo taskInfo, boolean destructive) {
-        try {
-            taskKiller.killTask(taskInfo.getTaskId(), destructive);
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("Failed to kill task", e);
-            return false;
-        }
-    }
-
     @VisibleForTesting
     void awaitTermination() throws InterruptedException {
         executor.shutdown();

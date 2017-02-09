@@ -2,7 +2,6 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.kafka.api.BrokerController;
-import com.mesosphere.sdk.kafka.api.InterruptProceed;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.curator.CuratorUtils;
@@ -75,11 +74,7 @@ public class KafkaService extends  DefaultService {
                     frameworkInfo,
                     String.format("zk://%s/mesos", zookeeperConnection)).run();
 
-
-        jsonResources.add(new InterruptProceed(scheduler.getPlanManager()));
-
-        jsonResources.add(new BrokerController(scheduler,
-                System.getenv("KAFKA_ZOOKEEPER_URI")));
+        jsonResources.add(new BrokerController(System.getenv("KAFKA_ZOOKEEPER_URI")));
 
         startApiServer(scheduler,  serviceSpec.getApiPort(), jsonResources);
 
