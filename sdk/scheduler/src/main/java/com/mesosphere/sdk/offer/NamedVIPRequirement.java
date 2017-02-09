@@ -16,13 +16,13 @@ public class NamedVIPRequirement extends PortRequirement {
 
     public NamedVIPRequirement(
             Protos.Resource resource,
-            String portName,
+            String envKey,
             int port,
             String protocol,
             Protos.DiscoveryInfo.Visibility visibility,
             String vipName,
             int vipPort) {
-        super(resource, portName, port);
+        super(resource, envKey, port);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -50,7 +50,7 @@ public class NamedVIPRequirement extends PortRequirement {
         return new NamedVIPEvaluationStage(
                 getResource(),
                 taskName,
-                getEnvName(),
+                getEnvKey(),
                 getPort(),
                 getProtocol(),
                 getVisibility(),

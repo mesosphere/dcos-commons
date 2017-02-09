@@ -8,17 +8,17 @@ import org.apache.mesos.Protos;
  * A {@link PortRequirement} encapsulates a needed {@link MesosResource} representing a port.
  */
 public class PortRequirement extends ResourceRequirement {
-    private final String envName;
+    private final String envKey;
     private final int port;
 
-    public PortRequirement(Protos.Resource resource, String envName, int port) {
+    public PortRequirement(Protos.Resource resource, String envKey, int port) {
         super(resource);
-        this.envName = envName;
+        this.envKey = envKey;
         this.port = port;
     }
 
-    public String getEnvName() {
-        return envName;
+    public String getEnvKey() {
+        return envKey;
     }
 
     public int getPort() {
@@ -27,6 +27,6 @@ public class PortRequirement extends ResourceRequirement {
 
     @Override
     public OfferEvaluationStage getEvaluationStage(String taskName) {
-        return new PortEvaluationStage(getResource(), taskName, getEnvName(), getPort());
+        return new PortEvaluationStage(getResource(), taskName, getEnvKey(), getPort());
     }
 }

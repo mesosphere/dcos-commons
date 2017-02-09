@@ -51,7 +51,7 @@ public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
     /**
      *  if env key is not present: "PORT_" is added to the beginning of port name.
      */
-    private String getEnvName() {
+    protected String generateEnvKey() {
 
         Optional<String> envName = getEnvKey();
         if (envName.isPresent()) {
@@ -66,7 +66,7 @@ public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
                 resource == null ?
                         ResourceUtils.getDesiredResource(this) :
                         ResourceUtils.withValue(resource, getValue()),
-                getEnvName(),
+                generateEnvKey(),
                 (int) getValue().getRanges().getRange(0).getBegin());
     }
 
