@@ -83,8 +83,8 @@ public class StateStoreUtils {
             }
 
             if (TaskUtils.needsRecovery(taskSpec.get(), status)) {
-                LOGGER.info("Task: {} needs recovery with status: {}.",
-                        taskSpec.get(), TextFormat.shortDebugString(status));
+                LOGGER.info("Task: '{}' needs recovery with status: {}.",
+                        taskSpec.get().getName(), TextFormat.shortDebugString(status));
                 results.add(info);
             }
         }
