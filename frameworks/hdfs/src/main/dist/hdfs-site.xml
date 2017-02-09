@@ -21,7 +21,7 @@
     </property>
     <property>
         <name>dfs.namenode.name.dir</name>
-        <value>file:{{MESOS_SANDBOX}}/name-data</value>
+        <value>{{MESOS_SANDBOX}}/name-data</value>
     </property>
     <property>
         <name>dfs.namenode.safemode.threshold-pct</name>
@@ -70,16 +70,16 @@
 
     <!-- name-1-node -->
     <property>
-        <name>dfs.namenode.http-address.hdfs.name-1-node</name>
-        <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
-    </property>
-    <property>
         <name>dfs.namenode.rpc-address.hdfs.name-1-node</name>
         <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-address.hdfs.name-1-node</name>
+        <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
@@ -115,7 +115,7 @@
     </property>
     <property>
         <name>dfs.datanode.data.dir</name>
-        <value>file:{{MESOS_SANDBOX}}/data-data</value>
+        <value>{{MESOS_SANDBOX}}/data-data</value>
     </property>
     <property>
         <name>dfs.datanode.balance.bandwidthPerSec</name>
