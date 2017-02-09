@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -51,15 +51,13 @@ public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
     /**
      *  if env key is not present: "PORT_" is added to the beginning of port name.
      */
-    @JsonProperty("env-name")
-    @JsonIgnore
-    public String getEnvName() {
+    private String getEnvName() {
 
         Optional<String> envName = getEnvKey();
         if (envName.isPresent()) {
             return envName.get();
         }
-        return "PORT_" + getPortName();
+        return Constants.PORT_NAME_LABEL_PREFIX + getPortName();
     }
 
     @Override

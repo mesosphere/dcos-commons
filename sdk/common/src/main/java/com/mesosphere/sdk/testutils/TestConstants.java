@@ -30,8 +30,7 @@ public class TestConstants {
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
     public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);
     public static final Protos.TaskID TASK_ID = CommonTaskUtils.toTaskId(TASK_NAME);
-    public static final String PORT_NAME = "TEST_PORT_NAME";
-    public static final String PORT_ENV_NAME = "PORT_" + PORT_NAME;
+    public static final String PORT_ENV_NAME = "TEST_PORT_NAME";
     public static final String VIP_NAME = "testvip";
     public static final int VIP_PORT = 1111;
     public static final String VIP_PROTOCOL = "tcp";

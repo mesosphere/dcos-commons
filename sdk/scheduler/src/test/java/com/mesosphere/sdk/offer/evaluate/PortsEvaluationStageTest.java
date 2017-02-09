@@ -56,10 +56,10 @@ public class PortsEvaluationStageTest {
 
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
         Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(0);
-        Assert.assertEquals(variable.getName(), "PORT_TEST_PORT0");
+        Assert.assertEquals(variable.getName(), "TEST_PORT0");
         Assert.assertEquals(variable.getValue(), "10000");
         variable = taskBuilder.getCommand().getEnvironment().getVariables(1);
-        Assert.assertEquals(variable.getName(), "PORT_TEST_PORT1");
+        Assert.assertEquals(variable.getName(), "TEST_PORT1");
         Assert.assertEquals(variable.getValue(), "11000");
     }
 }

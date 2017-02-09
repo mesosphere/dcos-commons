@@ -182,10 +182,11 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     }
 
     /**
-     * Returns a environment variable-style rendering of the provided {@code portName}. Invalid characters are replaced with underscores.
+     * Returns a environment variable-style rendering of the provided {@code envName}.
+     * Invalid characters are replaced with underscores.
      */
-    private static String getPortEnvironmentVariable(String portName) {
-        return String.format(TaskUtils.toEnvName(portName));
+    private static String getPortEnvironmentVariable(String envName) {
+        return String.format(TaskUtils.toEnvName(envName));
     }
 
     private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, int port) {
