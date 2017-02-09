@@ -22,13 +22,13 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
 public class PortEvaluationStage extends ResourceEvaluationStage implements OfferEvaluationStage {
     private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
 
-    private final String envName;
+    private final String envKey;
     private final int port;
     private String resourceId;
 
-    public PortEvaluationStage(Protos.Resource resource, String taskName, String envName, int port) {
+    public PortEvaluationStage(Protos.Resource resource, String taskName, String envKey, int port) {
         super(resource, taskName);
-        this.envName = envName;
+        this.envKey = envKey;
         this.port = port;
     }
 
@@ -42,7 +42,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         Protos.CommandInfo commandInfo = getTaskName().isPresent() ?
                 podInfoBuilder.getTaskBuilder(getTaskName().get()).getCommand() :
                 podInfoBuilder.getExecutorBuilder().get().getCommand();
-        String taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable(envName));
+        String taskPort = CommandUtils.getEnvVar(commandInfo, getPortEnvironmentVariable(envKey));
         int assignedPort = port;
 
         if (assignedPort == 0 && taskPort != null) {
@@ -87,14 +87,14 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
 
             taskBuilder.setCommand(
                     CommandUtils.addEnvVar(
-                            taskBuilder.getCommand(), getPortEnvironmentVariable(envName), Long.toString(port)));
+                            taskBuilder.getCommand(), getPortEnvironmentVariable(envKey), Long.toString(port)));
 
             // Add port to the health check (if defined)
             if (taskBuilder.hasHealthCheck()) {
                 taskBuilder.getHealthCheckBuilder().setCommand(
                         CommandUtils.addEnvVar(
                                 taskBuilder.getHealthCheckBuilder().getCommand(),
-                                getPortEnvironmentVariable(envName),
+                                getPortEnvironmentVariable(envKey),
                                 Long.toString(port)));
             } else {
                 LOGGER.info("Health check is not defined for task: {}", taskName);
@@ -107,7 +107,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                     Protos.HealthCheck readinessCheckToMutate = readinessCheck.get();
                     Protos.CommandInfo readinessCommandWithPort = CommandUtils.addEnvVar(
                             readinessCheckToMutate.getCommand(),
-                            getPortEnvironmentVariable(envName),
+                            getPortEnvironmentVariable(envKey),
                             Long.toString(port));
                     Protos.HealthCheck readinessCheckWithPort = Protos.HealthCheck.newBuilder(readinessCheckToMutate)
                             .setCommand(readinessCommandWithPort).build();
@@ -124,7 +124,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
             executorBuilder.setCommand(
                     CommandUtils.addEnvVar(
                             executorBuilder.getCommand(),
-                            getPortEnvironmentVariable(envName),
+                            getPortEnvironmentVariable(envKey),
                             Long.toString(port)));
 
             resourceBuilder = ResourceUtils.getResourceBuilder(executorBuilder, resource);
@@ -182,11 +182,11 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
     }
 
     /**
-     * Returns a environment variable-style rendering of the provided {@code envName}.
+     * Returns a environment variable-style rendering of the provided {@code envKey}.
      * Invalid characters are replaced with underscores.
      */
-    private static String getPortEnvironmentVariable(String envName) {
-        return String.format(TaskUtils.toEnvName(envName));
+    private static String getPortEnvironmentVariable(String envKey) {
+        return String.format(TaskUtils.toEnvName(envKey));
     }
 
     private static ResourceRequirement getPortRequirement(ResourceRequirement resourceRequirement, int port) {

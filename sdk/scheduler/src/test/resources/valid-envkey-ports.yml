@@ -1,4 +1,4 @@
-name: "data-store"
+name: "envkey-ports"
 pods:
   meta-data:
     count: 2
@@ -7,10 +7,10 @@ pods:
         goal: RUNNING
         cmd: "some command"
         ports:
-          http:
+          name1:
             port: 8080
-            env-key: some-key
-          no-key:
+            env-key: key1
+          name2:
             port: 8088
-          key-key:
+          name3:
              port: 8089
