@@ -8,6 +8,7 @@ pods:
         cmd: "./task-cmd"
         cpus: 0.1
         memory: 512
+        dns-name: meta-data
         health-check:
           cmd: "./health-check"
           interval: 5

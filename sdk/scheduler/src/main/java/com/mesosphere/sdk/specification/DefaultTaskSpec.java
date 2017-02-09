@@ -38,6 +38,8 @@ public class DefaultTaskSpec implements TaskSpec {
     @NotNull
     private final ResourceSet resourceSet;
 
+    private final String dnsName;
+
     @Valid
     private final Collection<ConfigFileSpec> configFiles;
 
@@ -49,7 +51,8 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
-            @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
+            @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
+            @JsonProperty("dns-name") String dnsName) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
@@ -57,6 +60,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.healthCheckSpec = healthCheckSpec;
         this.readinessCheckSpec = readinessCheckSpec;
         this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
+        this.dnsName = dnsName;
     }
 
     private DefaultTaskSpec(Builder builder) {
@@ -67,7 +71,8 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.commandSpec,
                 builder.healthCheckSpec,
                 builder.readinessCheckSpec,
-                builder.configFiles);
+                builder.configFiles,
+                builder.dnsName);
     }
 
     public static Builder newBuilder() {
@@ -121,6 +126,11 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
+    public Optional<String> getDnsName() {
+        return Optional.ofNullable(dnsName);
+    }
+
+    @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
@@ -150,6 +160,7 @@ public class DefaultTaskSpec implements TaskSpec {
         private HealthCheckSpec healthCheckSpec;
         private ReadinessCheckSpec readinessCheckSpec;
         private Collection<ConfigFileSpec> configFiles;
+        private String dnsName;
 
         private Builder() {
         }
@@ -227,6 +238,18 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder configFiles(Collection<ConfigFileSpec> configFiles) {
             this.configFiles = configFiles;
+            return this;
+        }
+
+        /**
+         * Sets the {@code dnsName} and returns a reference to this Builder so that methods can be chained together.
+         *
+         * @param dnsName the prefix for this task's Mesos-DNS record, making it reachable at
+         *                {dnsName}.{service.name}.mesos
+         * @return a reference to this Builder
+         */
+        public Builder dnsName(String dnsName) {
+            this.dnsName = dnsName;
             return this;
         }
 

@@ -28,6 +28,7 @@ public class TestConstants {
     public static final String HEALTH_CHECK_CMD = "./health-check";
     public static final String RESOURCE_ID = "test-resource-id";
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
+    public static final String DNS_NAME = "dns-name";
     public static final Protos.ExecutorID EXECUTOR_ID = ExecutorUtils.toExecutorId(EXECUTOR_NAME);
     public static final Protos.TaskID TASK_ID = CommonTaskUtils.toTaskId(TASK_NAME);
     public static final String PORT_ENV_NAME = "TEST_PORT_NAME";

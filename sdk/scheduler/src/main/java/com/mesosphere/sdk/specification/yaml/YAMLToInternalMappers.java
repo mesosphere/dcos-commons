@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -82,6 +83,23 @@ public class YAMLToInternalMappers {
                     role,
                     principal));
         }
+
+        Map<String, Long> dnsNameCounts = pods.stream()
+                .flatMap(p -> p.getTasks()
+                        .stream()
+                        .map(t -> t.getDnsName())
+                        .filter(t -> t.isPresent())
+                        .map(t -> t.get()).distinct())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        List<String> dnsNameDuplicates = dnsNameCounts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(e -> e.getKey())
+                .collect(Collectors.toList());
+        if (!dnsNameDuplicates.isEmpty()) {
+            throw new IllegalArgumentException(String.format(
+                    "Tasks in different pods cannot share DNS names: %s", dnsNameDuplicates));
+        }
+
         builder.pods(pods);
 
         return builder.build();
@@ -213,6 +231,7 @@ public class YAMLToInternalMappers {
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
+                .dnsName(rawTask.getDnsName())
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)

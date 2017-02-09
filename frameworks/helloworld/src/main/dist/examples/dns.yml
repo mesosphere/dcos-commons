@@ -1,0 +1,39 @@
+name: "hello-world"
+pods:
+  hello:
+    count: 2
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+        volume:
+          path: "hello-container-path"
+          type: ROOT
+          size: 1024
+    tasks:
+      once:
+        goal: FINISHED
+        cmd: "echo 'I run only once' >> hello-container-path/output"
+        resource-set: hello-resources
+        dns-name: hello
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: hello-resources
+        dns-name: hello
+        env:
+          SLEEP_DURATION: 1000
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      once-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[once]]
+      server-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[server]]

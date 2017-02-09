@@ -262,6 +262,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
         }
 
+        if (taskSpec.getDnsName().isPresent()) {
+            taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDnsName().get()));
+        }
+
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
@@ -350,6 +354,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static String getConfigTemplateDownloadPath(ConfigFileSpec config) {
         // Name is unique.
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
+    }
+
+    private static Protos.DiscoveryInfo getDiscoveryInfo(String dnsName) {
+        return Protos.DiscoveryInfo.newBuilder()
+                .setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER)
+                .setName(dnsName)
+                .build();
     }
 
     private static Protos.Environment getTaskEnvironment(
