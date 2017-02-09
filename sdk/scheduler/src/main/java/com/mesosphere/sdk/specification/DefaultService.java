@@ -88,8 +88,12 @@ public class DefaultService implements Service {
     private static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName) {
         return lock(curatorClient, serviceName, LOCK_PATH, LOCK_ATTEMPTS);
     }
-    protected static InterProcessMutex lock(CuratorFramework curatorClient, String serviceName,
-                                            String lockPathString, int lockAttempts) {
+
+    protected static InterProcessMutex lock(
+            CuratorFramework curatorClient,
+            String serviceName,
+            String lockPathString,
+            int lockAttempts) {
         String rootPath = CuratorUtils.toServiceRootPath(serviceName);
         String lockPath = CuratorUtils.join(rootPath, lockPathString);
         InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
@@ -144,8 +148,10 @@ public class DefaultService implements Service {
         startApiServer(defaultScheduler, apiPort, Collections.EMPTY_LIST);
     }
 
-    protected static void startApiServer(DefaultScheduler defaultScheduler, int apiPort,
-                                        Collection<Object> additionalResources) {
+    protected static void startApiServer(
+            DefaultScheduler defaultScheduler,
+            int apiPort,
+            Collection<Object> additionalResources) {
         Collection<Object> resourceList = new ArrayQueue<>();
         new Thread(new Runnable() {
             @Override
@@ -174,7 +180,9 @@ public class DefaultService implements Service {
     }
 
     private static void registerAndRunFramework(
-            Scheduler sched, Protos.FrameworkInfo frameworkInfo, String zookeeperHost) {
+            Scheduler sched,
+            Protos.FrameworkInfo frameworkInfo,
+            String zookeeperHost) {
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         new SchedulerDriverFactory().create(sched, frameworkInfo, String.format("zk://%s/mesos", zookeeperHost)).run();
     }
@@ -182,8 +190,12 @@ public class DefaultService implements Service {
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         return getFrameworkInfo(serviceSpec, stateStore, USER, TWO_WEEK_SEC);
     }
-    protected Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore,
-                                                    String userString, int failoverTimeoutSec) {
+
+    protected Protos.FrameworkInfo getFrameworkInfo(
+            ServiceSpec serviceSpec,
+            StateStore stateStore,
+            String userString,
+            int failoverTimeoutSec) {
         final String serviceName = serviceSpec.getName();
 
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()

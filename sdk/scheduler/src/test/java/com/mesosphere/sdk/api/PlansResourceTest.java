@@ -95,7 +95,7 @@ public class PlansResourceTest {
                 planName,
                 UUID.randomUUID().toString(),
                 UUID.randomUUID().toString());
-        assertEquals(PlansResource.PLAN_ELEMENT_NOT_FOUND_RESPONSE, response);
+        assertEquals(PlansResource.ELEMENT_NOT_FOUND_RESPONSE, response);
     }
 
     @Test
