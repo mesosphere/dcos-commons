@@ -29,14 +29,14 @@ If you are using Enterprise DC/OS, the security mode of your installation may al
 The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.
 
 ```bash
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/plan
+$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/plans/deploy
 ```
 ## Pause Installation
 
 The installation will pause after completing installation of the current node and wait for user input.
 
 ```bash
-$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/plan/interrupt
+$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resume Installation
@@ -44,380 +44,678 @@ $ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/
 The REST API request below will resume installation at the next pending node.
 
 ```bash
-$ curl -X PUT <dcos_surl>/service/hdfs/v1/plan/continue
+$ curl -X PUT <dcos_surl>/service/hdfs/v1/plans/deploy/continue
 ```
 
 # Connection API
 
 ```bash
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/connect/hdfs-site.xml
+$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/endpoints/hdfs-site.xml
+```
+
+```bash
+$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
 ```
 
 You will see a response similar to the following:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration>
-<property>
-<name>dfs.nameservice.id</name>
-<value>hdfs</value>
-</property>
-<property>
-<name>dfs.nameservices</name>
-<value>hdfs</value>
-</property>
-<property>
-<name>dfs.ha.namenodes.hdfs</name>
-<value>namenode-0,namenode-1</value>
-</property>
-<property>
-<name>dfs.namenode.http-address.hdfs.namenode-0</name>
-<value>namenode-0.hdfs.mesos:9002</value>
-</property>
-<property>
-<name>dfs.namenode.rpc-bind-host.hdfs.namenode-1</name>
-<value>0.0.0.0</value>
-</property>
-<property>
-<name>dfs.namenode.http-address.hdfs.namenode-1</name>
-<value>namenode-1.hdfs.mesos:9002</value>
-</property>
-<property>
-<name>dfs.namenode.rpc-address.hdfs.namenode-0</name>
-<value>namenode-0.hdfs.mesos:9001</value>
-</property>
-<property>
-<name>dfs.namenode.rpc-bind-host.hdfs.namenode-0</name>
-<value>0.0.0.0</value>
-</property>
-<property>
-<name>dfs.namenode.http-bind-host.hdfs.namenode-1</name>
-<value>0.0.0.0</value>
-</property>
-<property>
-<name>dfs.namenode.http-bind-host.hdfs.namenode-0</name>
-<value>0.0.0.0</value>
-</property>
-<property>
-<name>dfs.namenode.rpc-address.hdfs.namenode-1</name>
-<value>namenode-1.hdfs.mesos:9001</value>
-</property>
-<property>
-<name>dfs.ha.automatic-failover.enabled</name>
-<value>true</value>
-</property>
-<property>
-<name>dfs.client.failover.proxy.provider.hdfs</name>
-<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
-</property>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>dfs.nameservice.id</name>
+        <value>hdfs</value>
+    </property>
+    <property>
+        <name>dfs.nameservices</name>
+        <value>hdfs</value>
+    </property>
+    <property>
+        <name>dfs.ha.namenodes.hdfs</name>
+        <value>name-0-node,name-1-node</value>
+    </property>
+
+    <!-- namenode -->
+    <property>
+        <name>dfs.namenode.shared.edits.dir</name>
+        <value>qjournal://journal-0-node.hdfs.mesos:8485;journal-1-node.hdfs.mesos:8485;journal-2-node.hdfs.mesos:8485/hdfs</value>
+    </property>
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/name-data</value>
+    </property>
+    <property>
+        <name>dfs.namenode.safemode.threshold-pct</name>
+        <value>0.9</value>
+    </property>
+    <property>
+        <name>dfs.namenode.heartbeat.recheck-interval</name>
+        <value>60000</value>
+    </property>
+    <property>
+        <name>dfs.namenode.handler.count</name>
+        <value>20</value>
+    </property>
+    <property>
+        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
+        <value>0.95</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
+        <value>4</value>
+    </property>
+    <property>
+        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+        <value>false</value>
+    </property>
+
+
+    <!-- name-0-node -->
+    <property>
+        <name>dfs.namenode.rpc-address.hdfs.name-0-node</name>
+        <value>name-0-node.hdfs.mesos:9001</value>
+    </property>
+    <property>
+        <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
+        <value>0.0.0.0</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-address.hdfs.name-0-node</name>
+        <value>name-0-node.hdfs.mesos:9002</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
+        <value>0.0.0.0</value>
+    </property>
+
+
+    <!-- name-1-node -->
+    <property>
+        <name>dfs.namenode.rpc-address.hdfs.name-1-node</name>
+        <value>name-1-node.hdfs.mesos:9001</value>
+    </property>
+    <property>
+        <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
+        <value>0.0.0.0</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-address.hdfs.name-1-node</name>
+        <value>name-1-node.hdfs.mesos:9002</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
+        <value>0.0.0.0</value>
+    </property>
+
+    <!-- journalnode -->
+    <property>
+        <name>dfs.journalnode.rpc-address</name>
+        <value>0.0.0.0:8485</value>
+    </property>
+    <property>
+        <name>dfs.journalnode.http-address</name>
+        <value>0.0.0.0:8480</value>
+    </property>
+    <property>
+        <name>dfs.journalnode.edits.dir</name>
+        <value>/journal-data</value>
+    </property>
+
+    <!-- datanode -->
+    <property>
+        <name>dfs.datanode.address</name>
+        <value>0.0.0.0:9003</value>
+    </property>
+    <property>
+        <name>dfs.datanode.http.address</name>
+        <value>0.0.0.0:9004</value>
+    </property>
+    <property>
+        <name>dfs.datanode.ipc.address</name>
+        <value>0.0.0.0:9005</value>
+    </property>
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/data-data</value>
+    </property>
+    <property>
+        <name>dfs.datanode.balance.bandwidthPerSec</name>
+        <value>41943040</value>
+    </property>
+    <property>
+        <name>dfs.datanode.handler.count</name>
+        <value>10</value>
+    </property>
+
+    <!-- HA -->
+    <property>
+        <name>ha.zookeeper.quorum</name>
+        <value>master.mesos:2181</value>
+    </property>
+    <property>
+        <name>dfs.ha.fencing.methods</name>
+        <value>shell(/bin/true)</value>
+    </property>
+    <property>
+        <name>dfs.ha.automatic-failover.enabled</name>
+        <value>true</value>
+    </property>
+
+
+    <property>
+        <name>dfs.image.compress</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>dfs.image.compression.codec</name>
+        <value>org.apache.hadoop.io.compress.SnappyCodec</value>
+    </property>
+    <property>
+        <name>dfs.client.read.shortcircuit</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>dfs.client.read.shortcircuit.streams.cache.size</name>
+        <value>1000</value>
+    </property>
+    <property>
+        <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name>
+        <value>1000</value>
+    </property>
+    <property>
+        <name>dfs.client.failover.proxy.provider.hdfs</name>
+        <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+    </property>
+    <property>
+        <name>dfs.domain.socket.path</name>
+        <value>/var/lib/hadoop-hdfs/dn_socket</value>
+    </property>
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>false</value>
+    </property>
+
 </configuration>
 ```
-The contents of the response represent a valid hdfs-site.xml that can be used by clients to connect to the service.
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration>
+    <property>
+        <name>fs.default.name</name>
+        <value>hdfs://hdfs</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.hue.hosts</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.hue.groups</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.root.hosts</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.root.groups</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.httpfs.groups</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.httpfs.hosts</name>
+        <value>*</value>
+    </property>
+    <property>
+        <name>ha.zookeeper.parent-znode</name>
+        <value>/dcos-service-hdfs/hadoop-ha</value>
+    </property>
+
+</configuration>
+```
+The contents of the responses represent valid hdfs-site.xml and core-site.xml that can be used by clients to connect to the service.
 
 # Nodes API
 
-The nodes API provides endpoints for retrieving information about nodes, restarting them, and replacing them.
+The pods API provides endpoints for retrieving information about nodes, restarting them, and replacing them.
 
 ## List Nodes
 
-A list of available node ids can be retrieved by sending a GET request to `/v1/state/tasks`:
+A list of available node ids can be retrieved by sending a GET request to `/v1/pods`:
 
 CLI Example
 ```
-$ dcos hdfs state tasks
+$ dcos hdfs pods list 
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/state/tasks
-
+$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods
 [
-	"journalnode-0",
-	"journalnode-1",
-	"namenode-0",
-	"datanode-2",
-	"journalnode-2",
-	"namenode-1",
-	"datanode-1",
-	"datanode-0"
+    "data-0",
+    "data-1",
+    "data-2",
+    "journal-0",
+    "journal-1",
+    "journal-2",
+    "name-0",
+    "name-1",
+    "zkfc-0",
+    "zkfc-1"
 ]
 ```
 
 ## Node Info
 
-You can retrieve node information by sending a GET request to `/v1/state/tasks/info/<node-id>`:
+You can retrieve node information by sending a GET request to `/v1/pods/<node-id>/info`:
 
 ```
-$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/state/tasks/info/<node-#>
+$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/<node-id>/info
 ```
 
 CLI Example
 ```
-$ dcos hdfs state task journalnode-0
+$ dcos hdfs pods info journalnode-0
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/state/tasks/info/journalnode-0
-
-{
-    "executor": {
-        "command": {
-            "environment": {
-                "variables": [
-                    ... long list ...
-                ]
-            },
-            "uris": [
-                {
-                    "cache": false,
-                    "executable": false,
-                    "extract": true,
-                    "value": "hadoop-2.6.0-cdh5.7.1-dcos.tar.gz"
-                },
-                {
-                    "cache": false,
-                    "executable": false,
-                    "extract": true,
-                    "value": "jre-8u91-linux-x64.tar.gz"
-                },
-                {
-                    "cache": false,
-                    "executable": false,
-                    "extract": true,
-                    "value": "executor.zip"
-                }
-            ],
-            "value": "./executor/bin/hdfs-executor executor/conf/executor.yml"
-        },
-        "executor_id": {
-            "value": "hdfs-executor-journalnode-0__9a485636-cd8e-4ace-aac7-63c86cdf7b09"
-        },
-        "framework_id": {
-            "value": "f9ea7ec2-311b-420d-b05a-e00c6928b62f-0001"
-        },
-        "name": "hdfs-executor-journalnode-0",
-        "resources": [
-            {
-                "name": "cpus",
-                "reservation": {
-                    "labels": {
-                        "labels": [
-                            {
-                                "key": "resource_id",
-                                "value": "ad52380f-5050-4df7-a560-44a61fbdda11"
-                            }
-                        ]
-                    },
-                    "principal": "hdfs-principal"
-                },
-                "role": "hdfs-role",
-                "scalar": {
-                    "value": 0.5
-                },
-                "type": "SCALAR"
-            },
-            {
-                "name": "mem",
-                "reservation": {
-                    "labels": {
-                        "labels": [
-                            {
-                                "key": "resource_id",
-                                "value": "37921092-28f4-4656-82ba-d3f1b9bc9319"
-                            }
-                        ]
-                    },
-                    "principal": "hdfs-principal"
-                },
-                "role": "hdfs-role",
-                "scalar": {
-                    "value": 1024.0
-                },
-                "type": "SCALAR"
-            },
-            {
-                "name": "disk",
-                "reservation": {
-                    "labels": {
-                        "labels": [
-                            {
-                                "key": "resource_id",
-                                "value": "29d9c38b-2a16-4ca4-99f6-2c86e043e949"
-                            }
-                        ]
-                    },
-                    "principal": "hdfs-principal"
-                },
-                "role": "hdfs-role",
-                "scalar": {
-                    "value": 1024.0
-                },
-                "type": "SCALAR"
-            }
-        ]
-    },
-    "labels": {
-        "labels": [
-            {
-                "key": "hdfs_zkfc_formatted",
-                "value": "true"
-            },
-            {
-                "key": "hdfs_node_initialized",
-                "value": "true"
-            },
-            {
-                "key": "hdfs_task_type",
-                "value": "JOURNAL_NODE"
-            },
-            {
-                "key": "hdfs_fs_formatted",
-                "value": "true"
-            },
-            {
-                "key": "hdfs_heap_mb",
-                "value": "2048"
-            },
-            {
-                "key": "hdfs_upgrade",
-                "value": "false"
-            },
-            {
-                "key": "hdfs_standby",
-                "value": "false"
-            },
-            {
-                "key": "hdfs_task_ports",
-                "value": "8480,8485"
-            },
-            {
-                "key": "hdfs_rollback",
-                "value": "false"
-            },
-            {
-                "key": "hdfs_disk_type",
-                "value": "ROOT"
-            },
-            {
-                "key": "hdfs_task_hostname",
-                "value": "10.0.1.3"
-            },
-            {
-                "key": "hdfs_firstlaunch",
-                "value": "false"
-            },
-            {
-                "key": "hdfs_task_state",
-                "value": "TASK_RUNNING"
-            }
-        ]
-    },
-    "name": "journalnode-0",
-    "resources": [
-        {
-            "name": "cpus",
-            "reservation": {
-                "labels": {
-                    "labels": [
-                        {
-                            "key": "resource_id",
-                            "value": "f921af86-2780-47c5-a8ef-ab09ba2d3a54"
-                        }
-                    ]
-                },
-                "principal": "hdfs-principal"
-            },
-            "role": "hdfs-role",
-            "scalar": {
-                "value": 0.5
-            },
-            "type": "SCALAR"
-        },
-        {
-            "name": "mem",
-            "reservation": {
-                "labels": {
-                    "labels": [
-                        {
-                            "key": "resource_id",
-                            "value": "b9257f7d-3ae0-4f44-a6fa-2baf745cdc18"
-                        }
-                    ]
-                },
-                "principal": "hdfs-principal"
-            },
-            "role": "hdfs-role",
-            "scalar": {
-                "value": 2048.0
-            },
-            "type": "SCALAR"
-        },
-        {
-            "disk": {
-                "persistence": {
-                    "id": "f64da742-962e-4b22-bde3-eab4d2802d1e",
-                    "principal": "hdfs-principal"
-                },
-                "volume": {
-                    "container_path": "volume",
-                    "mode": "RW"
-                }
-            },
-            "name": "disk",
-            "reservation": {
-                "labels": {
-                    "labels": [
-                        {
-                            "key": "resource_id",
-                            "value": "8ef21eab-d491-4857-9ddb-76fde0b2412b"
-                        }
-                    ]
-                },
-                "principal": "hdfs-principal"
-            },
-            "role": "hdfs-role",
-            "scalar": {
-                "value": 10240.0
-            },
-            "type": "SCALAR"
-        },
-        {
-            "name": "ports",
-            "ranges": {
-                "range": [
-                    {
-                        "begin": 8480,
-                        "end": 8480
-                    },
-                    {
-                        "begin": 8485,
-                        "end": 8485
-                    }
-                ]
-            },
-            "reservation": {
-                "labels": {
-                    "labels": [
-                        {
-                            "key": "resource_id",
-                            "value": "b4943d73-81f2-46b8-8d95-c39bb319b9bd"
-                        }
-                    ]
-                },
-                "principal": "hdfs-principal"
-            },
-            "role": "hdfs-role",
-            "type": "RANGES"
-        }
-    ],
-    "slave_id": {
-        "value": "f9ea7ec2-311b-420d-b05a-e00c6928b62f-S3"
-    },
-    "task_id": {
-        "value": "journalnode-0__03bff4cf-b5ab-4484-96fc-df36e1ad985b"
-    }
-}
+$ curl  -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/journalnode-0/info
+[{
+	info: {
+		name: "journal-0-node",
+		taskId: {
+			value: "journal-0-node__b31a70f4-73c5-4065-990c-76c0c704b8e4"
+		},
+		slaveId: {
+			value: "0060634a-aa2b-4fcc-afa6-5569716b533a-S5"
+		},
+		resources: [{
+			name: "cpus",
+			type: "SCALAR",
+			scalar: {
+				value: 0.3
+			},
+			ranges: null,
+			set: null,
+			role: "hdfs-role",
+			reservation: {
+				principal: "hdfs-principal",
+				labels: {
+					labels: [{
+						key: "resource_id",
+						value: "4208f1ea-586f-4157-81fd-dfa0877e7472"
+					}]
+				}
+			},
+			disk: null,
+			revocable: null,
+			shared: null
+		}, {
+			name: "mem",
+			type: "SCALAR",
+			scalar: {
+				value: 512
+			},
+			ranges: null,
+			set: null,
+			role: "hdfs-role",
+			reservation: {
+				principal: "hdfs-principal",
+				labels: {
+					labels: [{
+						key: "resource_id",
+						value: "a0be3c2c-3c7c-47ad-baa9-be81fb5d5f2e"
+					}]
+				}
+			},
+			disk: null,
+			revocable: null,
+			shared: null
+		}, {
+			name: "ports",
+			type: "RANGES",
+			scalar: null,
+			ranges: {
+				range: [{
+					begin: 8480,
+					end: 8480
+				}, {
+					begin: 8485,
+					end: 8485
+				}]
+			},
+			set: null,
+			role: "hdfs-role",
+			reservation: {
+				principal: "hdfs-principal",
+				labels: {
+					labels: [{
+						key: "resource_id",
+						value: "d50b3deb-97c7-4960-89e5-ac4e508e4564"
+					}]
+				}
+			},
+			disk: null,
+			revocable: null,
+			shared: null
+		}, {
+			name: "disk",
+			type: "SCALAR",
+			scalar: {
+				value: 5000
+			},
+			ranges: null,
+			set: null,
+			role: "hdfs-role",
+			reservation: {
+				principal: "hdfs-principal",
+				labels: {
+					labels: [{
+						key: "resource_id",
+						value: "3e624468-11fb-4fcf-9e67-ddb883b1718e"
+					}]
+				}
+			},
+			disk: {
+				persistence: {
+					id: "6bf7fcf1-ccdf-41a3-87ba-459162da1f03",
+					principal: "hdfs-principal"
+				},
+				volume: {
+					mode: "RW",
+					containerPath: "journal-data",
+					hostPath: null,
+					image: null,
+					source: null
+				},
+				source: null
+			},
+			revocable: null,
+			shared: null
+		}],
+		executor: {
+			type: null,
+			executorId: {
+				value: "journal__e42893b5-9d96-4dfb-8e85-8360d483a122"
+			},
+			frameworkId: null,
+			command: {
+				uris: [{
+					value: "https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/executor.zip",
+					executable: null,
+					extract: null,
+					cache: null,
+					outputFile: null
+				}, {
+					value: "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-2.tar.gz",
+					executable: null,
+					extract: null,
+					cache: null,
+					outputFile: null
+				}, {
+					value: "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz",
+					executable: null,
+					extract: null,
+					cache: null,
+					outputFile: null
+				}, {
+					value: "https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
+					executable: null,
+					extract: null,
+					cache: null,
+					outputFile: null
+				}, {
+					value: "https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/bootstrap.zip",
+					executable: null,
+					extract: null,
+					cache: null,
+					outputFile: null
+				}, {
+					value: "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/artifacts/template/25f791d8-4d42-458f-84fb-9d82842ffb3e/journal/node/core-site",
+					executable: null,
+					extract: false,
+					cache: null,
+					outputFile: "config-templates/core-site"
+				}, {
+					value: "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/artifacts/template/25f791d8-4d42-458f-84fb-9d82842ffb3e/journal/node/hdfs-site",
+					executable: null,
+					extract: false,
+					cache: null,
+					outputFile: "config-templates/hdfs-site"
+				}, {
+					value: "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/artifacts/template/25f791d8-4d42-458f-84fb-9d82842ffb3e/journal/node/hadoop-metrics2",
+					executable: null,
+					extract: false,
+					cache: null,
+					outputFile: "config-templates/hadoop-metrics2"
+				}],
+				environment: null,
+				shell: null,
+				value: "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./executor/bin/executor",
+				arguments: [],
+				user: null
+			},
+			container: null,
+			resources: [],
+			name: "journal",
+			source: null,
+			data: null,
+			discovery: null,
+			shutdownGracePeriod: null,
+			labels: null
+		},
+		command: {
+			uris: [],
+			environment: {
+				variables: [{
+					name: "PERMISSIONS_ENABLED",
+					value: "false"
+				}, {
+					name: "DATA_NODE_BALANCE_BANDWIDTH_PER_SEC",
+					value: "41943040"
+				}, {
+					name: "NAME_NODE_HANDLER_COUNT",
+					value: "20"
+				}, {
+					name: "CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE",
+					value: "1000"
+				}, {
+					name: "HADOOP_ROOT_LOGGER",
+					value: "INFO,console"
+				}, {
+					name: "HA_FENCING_METHODS",
+					value: "shell(/bin/true)"
+				}, {
+					name: "SERVICE_ZK_ROOT",
+					value: "dcos-service-hdfs"
+				}, {
+					name: "HADOOP_PROXYUSER_HUE_GROUPS",
+					value: "*"
+				}, {
+					name: "NAME_NODE_HEARTBEAT_RECHECK_INTERVAL",
+					value: "60000"
+				}, {
+					name: "HADOOP_PROXYUSER_HUE_HOSTS",
+					value: "*"
+				}, {
+					name: "CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS",
+					value: "1000"
+				}, {
+					name: "JOURNAL_NODE_RPC_PORT",
+					value: "8485"
+				}, {
+					name: "CLIENT_FAILOVER_PROXY_PROVIDER_HDFS",
+					value: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+				}, {
+					name: "DATA_NODE_HANDLER_COUNT",
+					value: "10"
+				}, {
+					name: "HA_AUTOMATIC_FAILURE",
+					value: "true"
+				}, {
+					name: "JOURNALNODE",
+					value: "true"
+				}, {
+					name: "NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION",
+					value: "4"
+				}, {
+					name: "HADOOP_PROXYUSER_HTTPFS_HOSTS",
+					value: "*"
+				}, {
+					name: "POD_INSTANCE_INDEX",
+					value: "0"
+				}, {
+					name: "DATA_NODE_IPC_PORT",
+					value: "9005"
+				}, {
+					name: "JOURNAL_NODE_HTTP_PORT",
+					value: "8480"
+				}, {
+					name: "NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK",
+					value: "false"
+				}, {
+					name: "TASK_USER",
+					value: "root"
+				}, {
+					name: "journal-0-node",
+					value: "true"
+				}, {
+					name: "HADOOP_PROXYUSER_ROOT_GROUPS",
+					value: "*"
+				}, {
+					name: "TASK_NAME",
+					value: "journal-0-node"
+				}, {
+					name: "HADOOP_PROXYUSER_ROOT_HOSTS",
+					value: "*"
+				}, {
+					name: "IMAGE_COMPRESS",
+					value: "true"
+				}, {
+					name: "CLIENT_READ_SHORTCIRCUIT",
+					value: "true"
+				}, {
+					name: "FRAMEWORK_NAME",
+					value: "hdfs"
+				}, {
+					name: "IMAGE_COMPRESSION_CODEC",
+					value: "org.apache.hadoop.io.compress.SnappyCodec"
+				}, {
+					name: "NAME_NODE_SAFEMODE_THRESHOLD_PCT",
+					value: "0.9"
+				}, {
+					name: "NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION",
+					value: "0.95"
+				}, {
+					name: "HADOOP_PROXYUSER_HTTPFS_GROUPS",
+					value: "*"
+				}, {
+					name: "CLIENT_READ_SHORTCIRCUIT_PATH",
+					value: "/var/lib/hadoop-hdfs/dn_socket"
+				}, {
+					name: "DATA_NODE_HTTP_PORT",
+					value: "9004"
+				}, {
+					name: "DATA_NODE_RPC_PORT",
+					value: "9003"
+				}, {
+					name: "NAME_NODE_HTTP_PORT",
+					value: "9002"
+				}, {
+					name: "NAME_NODE_RPC_PORT",
+					value: "9001"
+				}, {
+					name: "CONFIG_TEMPLATE_CORE_SITE",
+					value: "config-templates/core-site,hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml"
+				}, {
+					name: "CONFIG_TEMPLATE_HDFS_SITE",
+					value: "config-templates/hdfs-site,hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml"
+				}, {
+					name: "CONFIG_TEMPLATE_HADOOP_METRICS2",
+					value: "config-templates/hadoop-metrics2,hadoop-2.6.0-cdh5.9.1/etc/hadoop/hadoop-metrics2.properties"
+				}, {
+					name: "PORT_JOURNAL_RPC",
+					value: "8485"
+				}, {
+					name: "PORT_JOURNAL_HTTP",
+					value: "8480"
+				}]
+			},
+			shell: null,
+			value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs journalnode",
+			arguments: [],
+			user: null
+		},
+		container: null,
+		healthCheck: null,
+		killPolicy: null,
+		data: null,
+		labels: {
+			labels: [{
+				key: "goal_state",
+				value: "RUNNING"
+			}, {
+				key: "offer_attributes",
+				value: ""
+			}, {
+				key: "task_type",
+				value: "journal"
+			}, {
+				key: "index",
+				value: "0"
+			}, {
+				key: "offer_hostname",
+				value: "10.0.1.23"
+			}, {
+				key: "target_configuration",
+				value: "4bdb3f97-96b0-4e78-8d47-f39edc33f6e3"
+			}]
+		},
+		discovery: null
+	},
+	status: {
+		taskId: {
+			value: "journal-0-node__b31a70f4-73c5-4065-990c-76c0c704b8e4"
+		},
+		state: "TASK_RUNNING",
+		message: "Reconciliation: Latest task state",
+		source: "SOURCE_MASTER",
+		reason: "REASON_RECONCILIATION",
+		data: null,
+		slaveId: {
+			value: "0060634a-aa2b-4fcc-afa6-5569716b533a-S5"
+		},
+		executorId: null,
+		timestamp: 1486694618.923135,
+		uuid: null,
+		healthy: null,
+		labels: null,
+		containerStatus: {
+			containerId: {
+				value: "a4c8433f-2648-4ba7-a8b8-5fe5df20e8af",
+				parent: null
+			},
+			networkInfos: [{
+				ipAddresses: [{
+					protocol: null,
+					ipAddress: "10.0.1.23"
+				}],
+				name: null,
+				groups: [],
+				labels: null,
+				portMappings: []
+			}],
+			cgroupInfo: null,
+			executorPid: 5594
+		},
+		unreachableTime: null
+	}
+}]
 ```
 
 ## Replace a Node
@@ -426,12 +724,12 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-$ dcos hdfs node replace <node-id>
+$ dcos hdfs pods replace <node-id>
 ```
 
 HTTP Example
 ```
-$ curl  -X PUT -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/nodes/replace?node=<node-id>
+$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -442,12 +740,12 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-$ dcos hdfs node restart <node-id>
+$ dcos hdfs pods restart <node-id>
 ```
 
 HTTP Example
 ```bash
-$ curl  -X PUT -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/nodes/restart?node=<node-id>
+$ curl -X POST -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/pods/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.
@@ -469,89 +767,1254 @@ HTTP Example
 ```
 $ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/configurations/target
 {
-    "core": {
-        "default_name": "hdfs://hdfs",
-        "http_fs_groups": "*",
-        "http_fs_hosts": "*",
-        "hue_groups": "*",
-        "hue_hosts": "*",
-        "root_groups": "*",
-        "root_hosts": "*"
-    },
-    "curator": "master.mesos:2181",
-    "dataNode": {
-        "cpus": 0.5,
-        "disk_mb": 10240,
-        "disk_type": "ROOT",
-        "heap_mb": 2048,
-        "memory_mb": 4096
-    },
-    "dataNodesCount": 3,
-    "executor": {
-        "command": "./executor/bin/hdfs-executor executor/conf/executor.yml",
-        "cpus": 0.5,
-        "disk_mb": 1024,
-        "executor_url": "executor.zip",
-        "hdfs_home": "./hadoop-2.6.0-cdh5.7.1",
-        "hdfs_url": "hadoop-2.6.0-cdh5.7.1-dcos.tar.gz",
-        "hdfs_version": "2.5.0",
-        "heap_mb": 768,
-        "java_home": "./jre1.8.0_91",
-        "jre_url": "jre-8u91-linux-x64.tar.gz",
-        "memory_mb": 1024
-    },
-    "hdfs": {
-        "client_read_short_circuit": true,
-        "client_read_short_circuit_cache_expiry_ms": 1000,
-        "client_read_short_circuit_streams": 1000,
-        "compress_image": true,
-        "data_node_address": "0.0.0.0",
-        "data_node_bandwidth_per_second": 41943040,
-        "data_node_handler_count": 10,
-        "data_node_http_port": 9004,
-        "data_node_ipc_port": 9005,
-        "data_node_rpc_port": 9003,
-        "domain_socket_directory": "",
-        "image_compression_codec": "org.apache.hadoop.io.compress.SnappyCodec",
-        "journal_node_address": "0.0.0.0",
-        "journal_node_http_port": 8480,
-        "journal_node_rpc_port": 8485,
-        "journal_nodes": 3,
-        "name_node_bind_host": "0.0.0.0",
-        "name_node_handler_count": 20,
-        "name_node_heartbeat_recheck_interval": 60000,
-        "name_node_http_port": 9002,
-        "name_node_invalidate_work_percentage": 0.95,
-        "name_node_replication_work_multiplier": 4,
-        "name_node_rpc_port": 9001,
-        "name_node_threshold_percentage": 0.9,
-        "permissions_enabled": false,
-        "service_name": "hdfs",
-        "volume_directory": "volume",
-        "zookeeper_quorum": "master.mesos:2181"
-    },
-    "journalNode": {
-        "cpus": 0.5,
-        "disk_mb": 10240,
-        "disk_type": "ROOT",
-        "heap_mb": 2048,
-        "memory_mb": 2048
-    },
-    "nameNode": {
-        "cpus": 0.5,
-        "disk_mb": 10240,
-        "disk_type": "ROOT",
-        "heap_mb": 2048,
-        "memory_mb": 4096
-    },
-    "service": {
-        "checkpoint": true,
-        "name": "hdfs",
-        "principal": "hdfs-principal",
-        "role": "hdfs-role",
-        "secret": "",
-        "user": "nobody"
-    }
+	name: "hdfs",
+	role: "hdfs-role",
+	principal: "hdfs-principal",
+	api - port: 10002,
+	web - url: null,
+	zookeeper: "master.mesos:2181",
+	pod - specs: [{
+		type: "journal",
+		user: null,
+		count: 3,
+		container: null,
+		uris: [
+			"https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
+			"https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/bootstrap.zip"
+		],
+		task - specs: [{
+			name: "node",
+			goal: "RUNNING",
+			resource - set: {
+				id: "node-resource-set",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "PortsSpec",
+					name: "ports",
+					value: {
+						type: "RANGES",
+						scalar: null,
+						ranges: {
+							range: [{
+								begin: 8485,
+								end: 8485
+							}, {
+								begin: 8480,
+								end: 8480
+							}]
+						},
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					port - specs: [{
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 8485,
+									end: 8485
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "journal-rpc",
+						envKey: null
+					}, {
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 8480,
+									end: 8480
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "journal-http",
+						envKey: null
+					}],
+					envKey: null
+				}],
+				volume - specifications: [{
+					@type: "DefaultVolumeSpec",
+					type: "ROOT",
+					container - path: "journal-data",
+					name: "disk",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 5000
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: "DISK_SIZE"
+				}],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs journalnode",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNALNODE: "true",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: null,
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hadoop-metrics2",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hadoop-metrics2.properties",
+				template - content: "# Autogenerated by the Mesos Framework, DO NOT EDIT *.sink.statsd.class=org.apache.hadoop.metrics2.sink.StatsDSink journalnode.sink.statsd.period=10 journalnode.sink.statsd.server.host={{STATSD_UDP_HOST}} journalnode.sink.statsd.server.port={{STATSD_UDP_PORT}} journalnode.sink.statsd.skip.hostname=false"
+			}]
+		}],
+		placement - rule: {
+			@type: "AndRule",
+			rules: [{
+				@type: "TaskTypeRule",
+				type: "journal",
+				converter: {
+					@type: "TaskTypeLabelConverter"
+				},
+				behavior: "AVOID"
+			}, {
+				@type: "TaskTypeRule",
+				type: "name",
+				converter: {
+					@type: "TaskTypeLabelConverter"
+				},
+				behavior: "AVOID"
+			}]
+		}
+	}, {
+		type: "name",
+		user: null,
+		count: 2,
+		container: null,
+		uris: [
+			"https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
+			"https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/bootstrap.zip"
+		],
+		task - specs: [{
+			name: "node",
+			goal: "RUNNING",
+			resource - set: {
+				id: "name-resources",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "PortsSpec",
+					name: "ports",
+					value: {
+						type: "RANGES",
+						scalar: null,
+						ranges: {
+							range: [{
+								begin: 9001,
+								end: 9001
+							}, {
+								begin: 9002,
+								end: 9002
+							}]
+						},
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					port - specs: [{
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9001,
+									end: 9001
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "name-rpc",
+						envKey: null
+					}, {
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9002,
+									end: 9002
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "name-http",
+						envKey: null
+					}],
+					envKey: null
+				}],
+				volume - specifications: [{
+					@type: "DefaultVolumeSpec",
+					type: "ROOT",
+					container - path: "name-data",
+					name: "disk",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 5000
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: "DISK_SIZE"
+				}],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs namenode",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					FRAMEWORK_NAME: "",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAMENODE: "true",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: {
+				command: "./hadoop-2.6.0-cdh5.9.1/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node",
+				delay: 0,
+				interval: 5,
+				timeout: 60
+			},
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hadoop-metrics2",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hadoop-metrics2.properties",
+				template - content: "# Autogenerated by the Mesos Framework, DO NOT EDIT *.sink.statsd.class=org.apache.hadoop.metrics2.sink.StatsDSink namenode.sink.statsd.period=10 namenode.sink.statsd.server.host={{STATSD_UDP_HOST}} namenode.sink.statsd.server.port={{STATSD_UDP_PORT}} namenode.sink.statsd.skip.hostname=false"
+			}]
+		}, {
+			name: "format",
+			goal: "FINISHED",
+			resource - set: {
+				id: "name-resources",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "PortsSpec",
+					name: "ports",
+					value: {
+						type: "RANGES",
+						scalar: null,
+						ranges: {
+							range: [{
+								begin: 9001,
+								end: 9001
+							}, {
+								begin: 9002,
+								end: 9002
+							}]
+						},
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					port - specs: [{
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9001,
+									end: 9001
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "name-rpc",
+						envKey: null
+					}, {
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9002,
+									end: 9002
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "name-http",
+						envKey: null
+					}],
+					envKey: null
+				}],
+				volume - specifications: [{
+					@type: "DefaultVolumeSpec",
+					type: "ROOT",
+					container - path: "name-data",
+					name: "disk",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 5000
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: "DISK_SIZE"
+				}],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs namenode -format",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					FRAMEWORK_NAME: "",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAMENODE: "true",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: null,
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}]
+		}, {
+			name: "bootstrap",
+			goal: "FINISHED",
+			resource - set: {
+				id: "name-resources",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "PortsSpec",
+					name: "ports",
+					value: {
+						type: "RANGES",
+						scalar: null,
+						ranges: {
+							range: [{
+								begin: 9001,
+								end: 9001
+							}, {
+								begin: 9002,
+								end: 9002
+							}]
+						},
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					port - specs: [{
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9001,
+									end: 9001
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "name-rpc",
+						envKey: null
+					}, {
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9002,
+									end: 9002
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "name-http",
+						envKey: null
+					}],
+					envKey: null
+				}],
+				volume - specifications: [{
+					@type: "DefaultVolumeSpec",
+					type: "ROOT",
+					container - path: "name-data",
+					name: "disk",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 5000
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: "DISK_SIZE"
+				}],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs namenode -bootstrapStandby",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					FRAMEWORK_NAME: "",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAMENODE: "true",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: null,
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-bootstrap-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}]
+		}],
+		placement - rule: {
+			@type: "AndRule",
+			rules: [{
+				@type: "TaskTypeRule",
+				type: "name",
+				converter: {
+					@type: "TaskTypeLabelConverter"
+				},
+				behavior: "AVOID"
+			}, {
+				@type: "TaskTypeRule",
+				type: "journal",
+				converter: {
+					@type: "TaskTypeLabelConverter"
+				},
+				behavior: "AVOID"
+			}]
+		}
+	}, {
+		type: "zkfc",
+		user: null,
+		count: 2,
+		container: null,
+		uris: [
+			"https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
+			"https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/bootstrap.zip"
+		],
+		task - specs: [{
+			name: "node",
+			goal: "RUNNING",
+			resource - set: {
+				id: "zkfc-resources",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}],
+				volume - specifications: [],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs zkfc",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root",
+					ZKFC: "true"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: null,
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}]
+		}, {
+			name: "format",
+			goal: "FINISHED",
+			resource - set: {
+				id: "zkfc-resources",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}],
+				volume - specifications: [],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs zkfc -formatZK",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root",
+					ZKFC: "true"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: null,
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}]
+		}],
+		placement - rule: {
+			@type: "AndRule",
+			rules: [{
+				@type: "TaskTypeRule",
+				type: "zkfc",
+				converter: {
+					@type: "TaskTypeLabelConverter"
+				},
+				behavior: "AVOID"
+			}, {
+				@type: "TaskTypeRule",
+				type: "name",
+				converter: {
+					@type: "TaskTypeLabelConverter"
+				},
+				behavior: "COLOCATE"
+			}]
+		}
+	}, {
+		type: "data",
+		user: null,
+		count: 3,
+		container: null,
+		uris: [
+			"https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
+			"https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/bootstrap.zip"
+		],
+		task - specs: [{
+			name: "node",
+			goal: "RUNNING",
+			resource - set: {
+				id: "node-resource-set",
+				resource - specifications: [{
+					@type: "DefaultResourceSpec",
+					name: "cpus",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 0.3
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "DefaultResourceSpec",
+					name: "mem",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 512
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: null
+				}, {
+					@type: "PortsSpec",
+					name: "ports",
+					value: {
+						type: "RANGES",
+						scalar: null,
+						ranges: {
+							range: [{
+								begin: 9003,
+								end: 9003
+							}, {
+								begin: 9004,
+								end: 9004
+							}, {
+								begin: 9005,
+								end: 9005
+							}]
+						},
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					port - specs: [{
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9003,
+									end: 9003
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "data-rpc",
+						envKey: null
+					}, {
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9004,
+									end: 9004
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "data-http",
+						envKey: null
+					}, {
+						@type: "PortSpec",
+						name: "ports",
+						value: {
+							type: "RANGES",
+							scalar: null,
+							ranges: {
+								range: [{
+									begin: 9005,
+									end: 9005
+								}]
+							},
+							set: null,
+							text: null
+						},
+						role: "hdfs-role",
+						principal: "hdfs-principal",
+						port - name: "data-ipc",
+						envKey: null
+					}],
+					envKey: null
+				}],
+				volume - specifications: [{
+					@type: "DefaultVolumeSpec",
+					type: "ROOT",
+					container - path: "data-data",
+					name: "disk",
+					value: {
+						type: "SCALAR",
+						scalar: {
+							value: 5000
+						},
+						ranges: null,
+						set: null,
+						text: null
+					},
+					role: "hdfs-role",
+					principal: "hdfs-principal",
+					envKey: "DISK_SIZE"
+				}],
+				role: "hdfs-role",
+				principal: "hdfs-principal"
+			},
+			command - spec: {
+				value: "./bootstrap && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs datanode ",
+				environment: {
+					CLIENT_FAILOVER_PROXY_PROVIDER_HDFS: "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+					CLIENT_READ_SHORTCIRCUIT: "true",
+					CLIENT_READ_SHORTCIRCUIT_PATH: "/var/lib/hadoop-hdfs/dn_socket",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE: "1000",
+					CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS: "1000",
+					DATANODE: "true",
+					DATA_NODE_BALANCE_BANDWIDTH_PER_SEC: "41943040",
+					DATA_NODE_HANDLER_COUNT: "10",
+					DATA_NODE_HTTP_PORT: "9004",
+					DATA_NODE_IPC_PORT: "9005",
+					DATA_NODE_RPC_PORT: "9003",
+					FRAMEWORK_NAME: "",
+					HADOOP_PROXYUSER_HTTPFS_GROUPS: "*",
+					HADOOP_PROXYUSER_HTTPFS_HOSTS: "*",
+					HADOOP_PROXYUSER_HUE_GROUPS: "*",
+					HADOOP_PROXYUSER_HUE_HOSTS: "*",
+					HADOOP_PROXYUSER_ROOT_GROUPS: "*",
+					HADOOP_PROXYUSER_ROOT_HOSTS: "*",
+					HADOOP_ROOT_LOGGER: "INFO,console",
+					HA_AUTOMATIC_FAILURE: "true",
+					HA_FENCING_METHODS: "shell(/bin/true)",
+					IMAGE_COMPRESS: "true",
+					IMAGE_COMPRESSION_CODEC: "org.apache.hadoop.io.compress.SnappyCodec",
+					JOURNAL_NODE_HTTP_PORT: "8480",
+					JOURNAL_NODE_RPC_PORT: "8485",
+					NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK: "false",
+					NAME_NODE_HANDLER_COUNT: "20",
+					NAME_NODE_HEARTBEAT_RECHECK_INTERVAL: "60000",
+					NAME_NODE_HTTP_PORT: "9002",
+					NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION: "0.95",
+					NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION: "4",
+					NAME_NODE_RPC_PORT: "9001",
+					NAME_NODE_SAFEMODE_THRESHOLD_PCT: "0.9",
+					PERMISSIONS_ENABLED: "false",
+					SERVICE_ZK_ROOT: "dcos-service-hdfs",
+					TASK_USER: "root"
+				}
+			},
+			health - check - spec: null,
+			readiness - check - spec: null,
+			config - files: [{
+				name: "core-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?><configuration> <property> <name>fs.default.name</name> <value>hdfs://hdfs</value> </property> <property> <name>hadoop.proxyuser.hue.hosts</name> <value>{{HADOOP_PROXYUSER_HUE_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.hue.groups</name> <value>{{HADOOP_PROXYUSER_HUE_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.root.hosts</name> <value>{{HADOOP_PROXYUSER_ROOT_HOSTS}}</value> </property> <property> <name>hadoop.proxyuser.root.groups</name> <value>{{HADOOP_PROXYUSER_ROOT_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.groups</name> <value>{{HADOOP_PROXYUSER_HTTPFS_GROUPS}}</value> </property> <property> <name>hadoop.proxyuser.httpfs.hosts</name> <value>{{HADOOP_PROXYUSER_HTTPFS_HOSTS}}</value> </property> <property> <name>ha.zookeeper.parent-znode</name> <value>/{{SERVICE_ZK_ROOT}}/hadoop-ha</value> </property> {{#SECURE_MODE}} <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. --> <name>hadoop.security.service.user.name.key.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>hadoop.security.authentication</name> <value>kerberos</value> </property> <property> <name>hadoop.security.authorization</name> <value>true</value> </property> {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hdfs-site",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml",
+				template - content: "<?xml version="
+				1.0 " encoding="
+				UTF - 8 " standalone="
+				no "?> <?xml-stylesheet type="
+				text / xsl " href="
+				configuration.xsl "?> <configuration> <property> <name>dfs.nameservice.id</name> <value>hdfs</value> </property> <property> <name>dfs.nameservices</name> <value>hdfs</value> </property> <property> <name>dfs.ha.namenodes.hdfs</name> <value>name-0-node,name-1-node</value> </property> <!-- namenode --> <property> <name>dfs.namenode.shared.edits.dir</name> <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value> </property> <property> <name>dfs.namenode.name.dir</name> <value>{{MESOS_SANDBOX}}/name-data</value> </property> <property> <name>dfs.namenode.safemode.threshold-pct</name> <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value> </property> <property> <name>dfs.namenode.heartbeat.recheck-interval</name> <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value> </property> <property> <name>dfs.namenode.handler.count</name> <value>{{NAME_NODE_HANDLER_COUNT}}</value> </property> <property> <name>dfs.namenode.invalidate.work.pct.per.iteration</name> <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.replication.work.multiplier.per.iteration</name> <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value> </property> <property> <name>dfs.namenode.datanode.registration.ip-hostname-check</name> <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value> </property> <!-- name-0-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-0-node</name> <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name> <value>0.0.0.0</value> </property> <!-- name-1-node --> <property> <name>dfs.namenode.rpc-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <property> <name>dfs.namenode.http-address.hdfs.name-1-node</name> <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name> <value>0.0.0.0</value> </property> <!-- journalnode --> <property> <name>dfs.journalnode.rpc-address</name> <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.journalnode.http-address</name> <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.journalnode.edits.dir</name> <value>{{MESOS_SANDBOX}}/journal-data</value> </property> <!-- datanode --> <property> <name>dfs.datanode.address</name> <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value> </property> <property> <name>dfs.datanode.http.address</name> <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value> </property> <property> <name>dfs.datanode.ipc.address</name> <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value> </property> <property> <name>dfs.datanode.data.dir</name> <value>{{MESOS_SANDBOX}}/data-data</value> </property> <property> <name>dfs.datanode.balance.bandwidthPerSec</name> <value>41943040</value> </property> <property> <name>dfs.datanode.handler.count</name> <value>{{DATA_NODE_HANDLER_COUNT}}</value> </property> <!-- HA --> <property> <name>ha.zookeeper.quorum</name> <value>master.mesos:2181</value> </property> <property> <name>dfs.ha.fencing.methods</name> <value>{{HA_FENCING_METHODS}}</value> </property> <property> <name>dfs.ha.automatic-failover.enabled</name> <value>{{HA_AUTOMATIC_FAILURE}}</value> </property> {{#NAMENODE}} <property> <name>dfs.ha.namenode.id</name> <value>name-{{POD_INSTANCE_INDEX}}-node</value> </property> {{/NAMENODE}} <property> <name>dfs.image.compress</name> <value>{{IMAGE_COMPRESS}}</value> </property> <property> <name>dfs.image.compression.codec</name> <value>{{IMAGE_COMPRESSION_CODEC}}</value> </property> <property> <name>dfs.client.read.shortcircuit</name> <value>{{CLIENT_READ_SHORTCIRCUIT}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value> </property> <property> <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name> <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value> </property> <property> <name>dfs.client.failover.proxy.provider.hdfs</name> <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value> </property> <property> <name>dfs.domain.socket.path</name> <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value> </property> <property> <name>dfs.permissions.enabled</name> <value>{{PERMISSIONS_ENABLED}}</value> </property> {{#SECURE_MODE}} <property> <name>ignore.secure.ports.for.testing</name> <value>true</value> </property> <!-- Security Configuration --> <property> <name>hadoop.security.auth_to_local</name> <value> RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/ RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/ </value> </property> <property> <name>dfs.block.access.token.enable</name> <value>true</value> </property> <property> <name>dfs.namenode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.principal.pattern</name> <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.cluster.administrators</name> <value>core,root,hdfs,nobody</value> </property> <property> <name>dfs.web.authentication.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.web.authentication.kerberos.keytab</name> <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> {{#DATANODE}} <!-- DataNode Security Configuration --> <property> <name>dfs.datanode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.datanode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.datanode.data.dir.perm</name> <value>700</value> </property> {{/DATANODE}} {{#NAMENODE}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/NAMENODE}} {{#ZKFC}} <!-- NameNode Security Configuration --> <property> <name>dfs.namenode.keytab.file</name> <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.namenode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.namenode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/ZKFC}} {{#JOURNALNODE}} <!-- JournalNode Security Configuration --> <property> <name>dfs.journalnode.keytab.file</name> <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value> </property> <property> <name>dfs.journalnode.kerberos.principal</name> <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> <property> <name>dfs.journalnode.kerberos.internal.spnego.principal</name> <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value> </property> {{/JOURNALNODE}} {{/SECURE_MODE}} </configuration> "
+			}, {
+				name: "hadoop-metrics2",
+				relative - path: "hadoop-2.6.0-cdh5.9.1/etc/hadoop/hadoop-metrics2.properties",
+				template - content: "# Autogenerated by the Mesos Framework, DO NOT EDIT *.sink.statsd.class=org.apache.hadoop.metrics2.sink.StatsDSink datanode.sink.statsd.period=10 datanode.sink.statsd.server.host={{STATSD_UDP_HOST}} datanode.sink.statsd.server.port={{STATSD_UDP_PORT}} datanode.sink.statsd.skip.hostname=false"
+			}]
+		}],
+		placement - rule: {
+			@type: "TaskTypeRule",
+			type: "data",
+			converter: {
+				@type: "TaskTypeLabelConverter"
+			},
+			behavior: "AVOID"
+		}
+	}],
+	replacement - failure - policy: {
+		permanentFailureTimoutMins: null,
+		minReplaceDelayMins: 0
+	}
 }
 ```
 
@@ -589,28 +2052,3 @@ $ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/v1/configur
 }
 ```
 
-# Service Health API
-
-The service health endpoint provides health checks for the services.
-
-HTTP Example
-```
-$ curl -H "Authorization:token=<auth_token>" <dcos_url>/service/hdfs/admin/healthcheck
-{
-	"data_nodes": {
-		"healthy": true,
-		"message": "No failed Data Nodes."
-	},
-	"deadlocks": {
-		"healthy": true
-	},
-	"journal_nodes": {
-		"healthy": true,
-		"message": "No failed Journal Nodes."
-	},
-	"name_nodes": {
-		"healthy": true,
-		"message": "No failed Name Nodes."
-	}
-}
-```
