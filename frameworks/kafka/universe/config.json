@@ -147,7 +147,7 @@
                 "description": "JMX argument string (i.e. \"-Dcom.sun.management.jmxremote.access.file=somefile\") to be appended to KAFKA_JMX_OPTS environment variable",
                 "type": "string",
                 "default": ""
-
+              }
             }
           },
           "statsd": {

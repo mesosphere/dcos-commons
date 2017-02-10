@@ -78,7 +78,7 @@ public class NamedVIPSpec extends PortSpec implements ResourceSpec {
                 ResourceUtils.withValue(resource, getValue());
         return new NamedVIPRequirement(
                 portResource,
-                getPortName(),
+                generateEnvKey(),
                 (int) getValue().getRanges().getRange(0).getBegin(),
                 getProtocol(),
                 getVisibility(),
