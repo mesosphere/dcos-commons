@@ -6,7 +6,7 @@ This is MongoDB PoC replica set sidecar for DC/OS. All mongo replica set init/ad
 *Warning! Experimental quality software.*
 
 ## Sidecar
-We use sidecar application along with default java dcos scheduler to simplify framework operations agains mongo.
+We use sidecar application along with default java dcos scheduler to simplify framework operations against mongo.
 Mongo binary is used for initialization of RS and [ruby](http://api.mongodb.com/ruby/current/) mongo driver to manage RS state and query for current status. RS members are stored in ZK at /dcos/frameworks/#{framework_name}/rs_members path.
 
 ## UI
@@ -30,6 +30,7 @@ Defaults settings can be changed in [config.json](/frameworks/mongodb-sidecar/un
 
 ## dcos-commons part:
 To build mognodb sidecar
+
 1. clone repo, checkout mongodb-sidecar branch
 2. navigate to frameworks/mongodb-sidecar folder
 3. AWS_PROFILE=profile S3_BUCKET=your-fancy-bucket TEMPLATE_PACKAGE_VERSION=x.y.z S3_DIR_PATH=frameworks ./build.sh aws
