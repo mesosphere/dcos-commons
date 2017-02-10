@@ -46,19 +46,19 @@ pods:
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
       repair:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p {{TASKCFG_ALL_JMX_PORT}}
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
         resource-set: sidecar-resources
       cleanup:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p {{TASKCFG_ALL_JMX_PORT}}
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
         resource-set: sidecar-resources
       snapshot:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p {{TASKCFG_ALL_JMX_PORT}}
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p {{TASKCFG_ALL_JMX_PORT}} -t $CASSANDRA_SNAPSHOT_NAME -- $CASSANDRA_KEYSPACES
         resource-set: sidecar-resources
       upgradesstables:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool upgradesstables -a -p {{TASKCFG_ALL_JMX_PORT}}
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool upgradesstables -a -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -89,7 +89,7 @@ plans:
     strategy: serial
     phases:
       snapshot-deploy:
-        strategy: serial
+        strategy: parallel
         pod: node
         steps:
           - default: [[snapshot]]
