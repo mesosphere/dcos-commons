@@ -1,6 +1,17 @@
 set -x
 MODE=
 
+if [ "$#" -ge 2 ]; then
+    # Set some cluster configs if they are passed in.
+    echo At least 2 arguments, must be dcos_url and acs_token
+    DCOS_URL=$1
+    ACS_TOKEN=$2
+
+    dcos config set core.dcos_url $DCOS_URL
+    dcos config set core.dcos_acs_token $ACS_TOKEN
+    dcos config set core.ssl_verify false
+fi
+
 while [ ! $# -eq 0 ]
 do
     case "$1" in
