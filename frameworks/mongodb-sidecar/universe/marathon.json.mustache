@@ -8,13 +8,13 @@
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
     "DCOS_MIGRATION_API_PATH": "/v1/plan",
-    "MARATHON_SINGLE_INSTANCE_APP":"true",
-    "DCOS_SERVICE_NAME": "{{service.name}}",
-    "DCOS_SERVICE_PORT_INDEX": "0",
-    "DCOS_SERVICE_SCHEME": "http"
+    "MARATHON_SINGLE_INSTANCE_APP": "true"
   },
   "env": {
-    "SERVICE_NAME": "{{service.name}}",
+    "FRAMEWORK_NAME": "{{service.name}}",
+    "MESOS_API_VERSION": "V1",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "MONGODB_PORT": "{{mongodb.port}}",
     "MONGODB_REST_PORT": "{{mongodb.restPort}}",
     "MONGODB_COUNT": "{{mongodb.count}}",
@@ -38,9 +38,7 @@
     "SIDECAR_ZK_URL": "{{sidecar.zk_url}}",
     "SIDECAR_MESOS_URL": "{{sidecar.mesos_url}}",
     "SIDECAR_LOG_LEVEL": "{{sidecar.log_level}}",
-    "CONFIG_TEMPLATE_PATH": "scheduler",
-    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
-    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+    "CONFIG_TEMPLATE_PATH": "scheduler"
   },
   "fetch": [
     {"uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true},

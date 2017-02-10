@@ -101,7 +101,7 @@
           "imageName":{
             "description":"Docker image for sidecar app",
             "type":"string",
-            "default":"comptel/mongodb-sidecar:0.0.22"
+            "default":"comptel/mongodb-sidecar:0.0.23"
           },
           "cmd":{
             "description":"Docker cmd to run inside sidecar",
