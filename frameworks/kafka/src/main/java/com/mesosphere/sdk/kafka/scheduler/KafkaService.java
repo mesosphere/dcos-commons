@@ -30,8 +30,6 @@ public class KafkaService extends  DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
 
     public KafkaService(File pathToYamlSpecification) throws Exception {
-
-        //TODO(Mehmet):  call DefaultService(DefaultScheduler.Builder schedulerBuilder) and override register
         super();
 
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
@@ -53,30 +51,25 @@ public class KafkaService extends  DefaultService {
             super.unlock(curatorMutex);
             curatorClient.close();
         }
-
     }
 
     public void registerAndRun(DefaultScheduler.Builder schedulerBuilder){
-
+        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
         DefaultScheduler scheduler = schedulerBuilder.build();
 
-        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
-
         String zookeeperConnection = serviceSpec.getZookeeperConnection();
+        Collection<Object> jsonResources = new ArrayList<>();
+
+        //TODO: do error handling if env var does not exist
+        jsonResources.add(new BrokerController(System.getenv("TASKCFG_ALL_KAFKA_ZOOKEEPER_URI")));
+        startApiServer(scheduler,  serviceSpec.getApiPort(), jsonResources);
 
         Protos.FrameworkInfo frameworkInfo =
                 super.getFrameworkInfo(serviceSpec, schedulerBuilder.getStateStore(), USER, FAILOVER_TIMEOUT_SEC);
-
-        Collection<Object> jsonResources = new ArrayList<>();
 
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         new SchedulerDriverFactory().create(scheduler,
                     frameworkInfo,
                     String.format("zk://%s/mesos", zookeeperConnection)).run();
-
-        jsonResources.add(new BrokerController(System.getenv("KAFKA_ZOOKEEPER_URI")));
-
-        startApiServer(scheduler,  serviceSpec.getApiPort(), jsonResources);
-
     }
 }
