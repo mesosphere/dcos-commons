@@ -55,7 +55,7 @@ def expected_nodes_success_predicate():
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    print('Waiting for {} healthy nodes, got {}'.format(node_count, DEFAULT_NODE_COUNT))
+    print('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
     return node_count == DEFAULT_NODE_COUNT
 
 
