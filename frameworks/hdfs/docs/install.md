@@ -38,7 +38,7 @@ Sample JSON options file named `sample-hdfs.json`:
 ```json
 {
     "data_node": {
-        "count": 10,
+        "count": 10
     }
 }
 ```
@@ -83,83 +83,84 @@ When the DC/OS HDFS service is initially installed, it generates an installation
 
 ```json
 {
-	"phases": [{
-		"id": "fd33f9cb-88ba-4db6-9b8b-749bb1f63308",
-		"name": "Reconciliation",
-		"blocks": [{
-			"id": "878859fc-5985-4fc9-8517-0b184485e705",
-			"status": "Complete",
-			"name": "Reconciliation",
-			"message": "Reconciliation complete",
-			"has_decision_point": false
+	phases: [{
+		id: "0c64b701-6b8b-440e-93e1-6c43b05abfc2",
+		name: "jn-deploy",
+		steps: [{
+			id: "ba608f90-32c6-42e0-93c7-a6b51fc2e52b",
+			status: "COMPLETE",
+			name: "journal-0:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-0:[node] [ba608f90-32c6-42e0-93c7-a6b51fc2e52b]' has status: 'COMPLETE'."
+		}, {
+			id: "f29c13d8-a477-4e2b-84ac-046cd8a7d283",
+			status: "COMPLETE",
+			name: "journal-1:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-1:[node] [f29c13d8-a477-4e2b-84ac-046cd8a7d283]' has status: 'COMPLETE'."
+		}, {
+			id: "75da5719-9296-4872-887a-cc1ab157191b",
+			status: "COMPLETE",
+			name: "journal-2:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-2:[node] [75da5719-9296-4872-887a-cc1ab157191b]' has status: 'COMPLETE'."
 		}],
-		"status": "Complete"
+		status: "COMPLETE"
 	}, {
-		"id": "15aa294a-6698-45ef-9695-95f1e8fcc47b",
-		"name": "Quorum Journal",
-		"blocks": [{
-			"id": "23c46589-994e-495c-993a-f192a9d26f52",
-			"status": "Complete",
-			"name": "journalnode-0",
-			"message": "journalnode-0 in target state.",
-			"has_decision_point": false
+		id: "967aadc8-ef25-402e-b81a-9fcab0e57463",
+		name: "nn-deploy",
+		steps: [{
+			id: "33d02aa7-0927-428b-82d7-cec93cfde090",
+			status: "COMPLETE",
+			name: "name-0:[format]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[format] [33d02aa7-0927-428b-82d7-cec93cfde090]' has status: 'COMPLETE'."
 		}, {
-			"id": "c234f3aa-5845-4dba-8036-f191b87dbe6d",
-			"status": "Complete",
-			"name": "journalnode-1",
-			"message": "journalnode-1 in target state.",
-			"has_decision_point": false
+			id: "62f048f4-7b6c-4ea0-8509-82b328d40e61",
+			status: "STARTING",
+			name: "name-0:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[node] [62f048f4-7b6c-4ea0-8509-82b328d40e61]' has status: 'STARTING'."
 		}, {
-			"id": "87b9d739-a48d-473c-ad83-1dec8b5a7661",
-			"status": "Complete",
-			"name": "journalnode-2",
-			"message": "journalnode-2 in target state.",
-			"has_decision_point": false
+			id: "e7b8aa27-39b2-4aba-9d87-3b47c752878f",
+			status: "PENDING",
+			name: "name-1:[bootstrap]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[bootstrap] [e7b8aa27-39b2-4aba-9d87-3b47c752878f]' has status: 'PENDING'."
+		}, {
+			id: "cd633e0d-6aac-45a9-b764-296676fc228d",
+			status: "PENDING",
+			name: "name-1:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[node] [cd633e0d-6aac-45a9-b764-296676fc228d]' has status: 'PENDING'."
 		}],
-		"status": "Complete"
+		status: "IN_PROGRESS"
 	}, {
-		"id": "21169e1a-3488-4738-9e6e-feabcb04df1f",
-		"name": "Name Service",
-		"blocks": [{
-			"id": "4525fd99-6ebc-4e8d-90de-0a10d55a36ac",
-			"status": "Complete",
-			"name": "namenode-0",
-			"message": "namenode-0 in target state.",
-			"has_decision_point": false
+		id: "248fa719-dc57-4ef9-9c48-5e6e1218b6c2",
+		name: "zkfc-deploy",
+		steps: [{
+			id: "812ae290-e6a4-4128-b486-7288e855bfe6",
+			status: "PENDING",
+			name: "zkfc-0:[format]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[format] [812ae290-e6a4-4128-b486-7288e855bfe6]' has status: 'PENDING'."
 		}, {
-			"id": "12801661-b15c-4bb5-8d28-16cd00270610",
-			"status": "Complete",
-			"name": "namenode-1",
-			"message": "namenode-1 in target state.",
-			"has_decision_point": false
+			id: "8a401585-a5af-4540-94f0-dada95093329",
+			status: "PENDING",
+			name: "zkfc-0:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[node] [8a401585-a5af-4540-94f0-dada95093329]' has status: 'PENDING'."
+		}, {
+			id: "7eabc15d-7feb-4546-8699-0fadac1f303b",
+			status: "PENDING",
+			name: "zkfc-1:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-1:[node] [7eabc15d-7feb-4546-8699-0fadac1f303b]' has status: 'PENDING'."
 		}],
-		"status": "Complete"
+		status: "PENDING"
 	}, {
-		"id": "790e4b9e-7b1d-4bb6-871d-fa185eec8789",
-		"name": "Distributed Storage",
-		"blocks": [{
-			"id": "487aaaa8-a351-45b6-9471-17ff7f07f62c",
-			"status": "Complete",
-			"name": "datanode-0",
-			"message": "datanode-0 in target state.",
-			"has_decision_point": false
-		}, {
-			"id": "d52ff01f-2bda-47b7-9551-89828d7d717d",
-			"status": "Complete",
-			"name": "datanode-1",
-			"message": "datanode-1 in target state.",
-			"has_decision_point": false
-		}, {
-			"id": "930f89bd-aa1e-4d9f-b8f6-74e765a989b3",
-			"status": "Complete",
-			"name": "datanode-2",
-			"message": "datanode-2 in target state.",
-			"has_decision_point": false
+		id: "ddb20a39-830b-417b-a901-5b9027e459f7",
+		name: "dn-deploy",
+		steps: [{
+			id: "018deb17-8853-4d3b-820c-6b2caa55743f",
+			status: "PENDING",
+			name: "data-0:[node]",
+			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'data-0:[node] [018deb17-8853-4d3b-820c-6b2caa55743f]' has status: 'PENDING'."
 		}],
-		"status": "Complete"
+		status: "PENDING"
 	}],
-	"errors": [],
-	"status": "Complete"
+	errors: [],
+	status: "IN_PROGRESS"
 }
 ```
 
@@ -167,35 +168,35 @@ When the DC/OS HDFS service is initially installed, it generates an installation
 The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
 ```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plan
+curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
 ```
 
 ## Plan Errors
 The plan will display any errors that prevent installation in the errors list. The presence of any error indicates that the installation cannot progress. See the Troubleshooting section for information on resolving errors.
 
-## Reconciliation Phase
-The first phase of the installation plan is the reconciliation phase. This phase ensures that the DC/OS HDFS service maintains the correct status for the nodes that it has deployed. Reconciliation is a normal operation of the DC/OS HDFS Service and occurs each time the service starts. See [the Mesos documentation](http://mesos.apache.org/documentation/latest/reconciliation) for more information.
-
 ## Quorum Journal
-The second phase of the installation is the Quorum Journal phase. This phase will deploy the requested number of journal nodes to provide a Quorum Journal for the HA name service. Each block in the phase represents an individual journal node. By default, there are three journal nodes, but you can increase this to five to provide higher availability guarantees for the Quorum Journal.
+The first phase of the installation is the Quorum Journal phase. This phase will deploy three journal nodes to provide a Quorum Journal for the HA name service. Each step in the phase represents an individual journal node.
 
 ## Name Service
-The third phase of the installation is deployment of the HA name service. This phase deploys two name nodes in HA configuration with ZooKeeper failure detection. Each block represents an individual name node, and there are always exactly two.
+The second phase of the installation is deployment of the HA name service. This phase deploys two name nodes.  Needed format and bootstrap operations occur as necessary.
+
+## ZKFC
+The third phase of the installation is deployment of the ZKFC nodes. This phase deploys two ZKFC nodes to enable ZooKeeper failure detection. Each step represents an individual ZKFC node, and there are always exactly two.
 
 ## Distributed Storage
-The final phase of the installation is deployment of the distributed storage service. This phase deploys the data nodes that are configured to act as storage for the cluster. The number of journal nodes is fixed at installation time, but the number of data nodes can be reconfigured post installation.
+The final phase of the installation is deployment of the distributed storage service. This phase deploys the data nodes that are configured to act as storage for the cluster. The number of data nodes can be reconfigured post installation.
 
 ## Pausing Installation
 To pause installation, issue a REST API request as shown below. The installation will pause after completing installation of the current node and wait for user input.
 
 
 ```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plan/interrupt
+curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resuming Installation
 If the installation has been paused, the REST API request below will resume installation at the next pending node.
 
 ```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plan/continue
+curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
