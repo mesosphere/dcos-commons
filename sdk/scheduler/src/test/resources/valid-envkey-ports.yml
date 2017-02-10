@@ -1,0 +1,16 @@
+name: "envkey-ports"
+pods:
+  meta-data:
+    count: 2
+    tasks:
+      some-task:
+        goal: RUNNING
+        cmd: "some command"
+        ports:
+          name1:
+            port: 8080
+            env-key: key1
+          name2:
+            port: 8088
+          name3:
+             port: 8089
