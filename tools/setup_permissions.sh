@@ -4,8 +4,20 @@ SERVICE_ACCOUNT_NAME=service-acct
 SECRET_NAME=secret
 LINUX_USER=$1
 ROLE=$2
-DCOS_URL=$(dcos config show core.dcos_url)
-ACS_TOKEN=$(dcos config show core.dcos_acs_token)
+if [ -n "$CLUSTER_URL" ]
+then
+    # CI
+    DCOS_URL=$CLUSTER_URL
+else
+    DCOS_URL=$(dcos config show core.dcos_url)
+fi
+if [ -n "$CLUSTER_AUTH_TOKEN" ]
+then
+    # CI
+    ACS_TOKEN=$CLUSTER_AUTH_TOKEN
+else
+    ACS_TOKEN=$(dcos config show core.dcos_acs_token)
+fi
 
 echo Setting up permissions for user=$LINUX_USER role=$ROLE
 
