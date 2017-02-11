@@ -7,8 +7,8 @@ import sdk_tasks as tasks
 
 from tests.config import (
     PACKAGE_NAME,
-    check_healthy
-    DEFAULT_TASK_COUNT,
+    check_healthy,
+    DEFAULT_TASK_COUNT
 )
 
 TEST_CONTENT_SMALL = "This is some test data"
