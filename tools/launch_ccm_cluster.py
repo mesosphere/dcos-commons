@@ -332,7 +332,7 @@ class StartConfig(object):
             self,
             name_prefix = 'test-cluster-',
             description = '',
-            duration_mins = 120,
+            duration_mins = 240,
             ccm_channel = 'testing/master',
             cf_template = 'ee.single-master.cloudformation.json',
             start_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS,
