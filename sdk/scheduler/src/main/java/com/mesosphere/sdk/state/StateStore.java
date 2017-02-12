@@ -16,7 +16,7 @@ import java.util.*;
  * TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation and when Tasks
  * change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
  */
-public interface StateStore {
+public interface StateStore extends StateStoreReadOnly {
 
 
     // Write Framework ID
@@ -38,17 +38,6 @@ public interface StateStore {
      */
     void clearFrameworkId() throws StateStoreException;
 
-
-    // Read Framework ID
-
-
-    /**
-     * Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.
-     *
-     * @return The previously stored FrameworkID, or an empty Optional indicating the FrameworkID has not been set.
-     * @throws StateStoreException when fetching the FrameworkID fails
-     */
-    Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException;
 
 
     // Write Tasks
@@ -86,63 +75,7 @@ public interface StateStore {
     void clearTask(String taskName) throws StateStoreException;
 
 
-    // Read Tasks
-
-
-    /**
-     * Fetches all the Task names listed in the underlying storage. Note that these should always have a TaskInfo, but
-     * may lack TaskStatus.
-     *
-     * @return All the Task names stored so far, or an empty list if none are found
-     * @throws StateStoreException when fetching the data fails
-     */
-    Collection<String> fetchTaskNames() throws StateStoreException;
-
-
-    /**
-     * Fetches and returns all {@link TaskInfo}s from the underlying storage, or an empty list if none are found. This
-     * list should be a superset of the list returned by {@link #fetchStatuses()}.
-     *
-     * @return All TaskInfos
-     * @throws StateStoreException if fetching the TaskInfo information otherwise fails
-     */
-    Collection<TaskInfo> fetchTasks() throws StateStoreException;
-
-
-    /**
-     * Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.
-     *
-     * @param taskName The name of the Task
-     * @return The corresponding TaskInfo object
-     * @throws StateStoreException if no data was found for the requested name, or if fetching the TaskInfo otherwise
-     *                             fails
-     */
-    Optional<TaskInfo> fetchTask(String taskName) throws StateStoreException;
-
-
-    /**
-     * Fetches all {@link TaskStatus}es from the underlying storage, or an empty list if none are found. Note that this
-     * list may have fewer entries than {@link #fetchTasks()} if some tasks are lacking statuses.
-     *
-     * @return The TaskStatus objects associated with all tasks
-     * @throws StateStoreException if fetching the TaskStatus information fails
-     */
-    Collection<TaskStatus> fetchStatuses() throws StateStoreException;
-
-
-    /**
-     * Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.
-     * A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
-     *
-     * @param taskName The name of the Task which should have its status retrieved
-     * @return The TaskStatus associated with a particular Task
-     * @throws StateStoreException if no data was found for the requested name, or if fetching the TaskStatus
-     *                             information otherwise fails
-     */
-    Optional<TaskStatus> fetchStatus(String taskName) throws StateStoreException;
-
-
-    // Read/Write Properties
+    // Write Properties
 
 
     /**
@@ -157,35 +90,12 @@ public interface StateStore {
     void storeProperty(String key, byte[] value) throws StateStoreException;
 
     /**
-     * Fetches the value byte array, stored against the Property {@code key}, or throws an error if no matching {@code
-     * key} is found.
-     *
-     * @param key must be a non-blank String without any forward slashes ('/')
-     * @throws StateStoreException if no data was found for the requested key, or if fetching the data otherwise fails
-     * @see StateStoreUtils#validateKey(String)
-     */
-    byte[] fetchProperty(String key) throws StateStoreException;
-
-    /**
-     * Fetches the list of Property keys, or an empty list if none are found.
-     *
-     * @throws StateStoreException if fetching the list otherwise fails
-     */
-    Collection<String> fetchPropertyKeys() throws StateStoreException;
-
-    /**
      * Clears a given property from the StateStore, or does nothing if no such property exists.
      *
      * @param key must be a non-blank String without any forward slashes ('/')
      * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
-
-    /**
-     * @return true if the offers are suppressed.
-     * @throws StateStoreException
-     */
-    boolean isSuppressed() throws StateStoreException;
 
     /**
      * Sets the suppression state of the framework.
