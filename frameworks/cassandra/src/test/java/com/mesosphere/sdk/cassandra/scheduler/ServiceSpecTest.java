@@ -34,13 +34,13 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("CASSANDRA_HEAP_GC", "CMS");
         ENV_VARS.set("CASSANDRA_DISK_MB", "5000");
         ENV_VARS.set("CASSANDRA_DISK_TYPE", "ROOT");
-        URL resource = DefaultService.class.getClassLoader().getResource("cassandra_service.yml");
+        URL resource = DefaultService.class.getClassLoader().getResource("svc.yml");
         ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
 
     }
 
     @Test
     public void testYaml() throws Exception {
-        super.testYaml("cassandra_service.yml");
+        super.testYaml("svc.yml");
     }
 }
