@@ -81,6 +81,7 @@ def test_commercial_api_available(default_populated_index):
 
 
 @pytest.mark.recovery
+@pytest.mark.sanity
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
     shakedown.kill_process_on_host("data-0-server.{}.mesos".format(PACKAGE_NAME), "data__.*Elasticsearch")
@@ -96,6 +97,7 @@ def test_master_reelection():
 
 
 @pytest.mark.recovery
+@pytest.mark.sanity
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = marathon.get_config(PACKAGE_NAME)
@@ -110,6 +112,7 @@ def test_plugin_install_and_uninstall(default_populated_index):
 
 
 @pytest.mark.recovery
+@pytest.mark.sanity
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     shakedown.kill_process_on_host(get_marathon_host(), "scheduler.Main")
@@ -119,6 +122,7 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 
 
 @pytest.mark.recovery
+@pytest.mark.sanity
 def test_bump_node_counts():
     config = marathon.get_config(PACKAGE_NAME)
     data_nodes = int(config['env']['DATA_NODE_COUNT'])
