@@ -287,7 +287,7 @@ class CCMLauncher(object):
                 stdout = sys.stdout
                 sys.stdout = sys.stderr
                 script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
-                subprocess.check_call(['bash', script_path] + args)
+                subprocess.check_call(['bash', script_path] + args, stdout=sys.stdout)
                 sys.stdout = stdout
 
             run_script('create_service_account.sh', [dcos_url, auth_token, '--strict'])
