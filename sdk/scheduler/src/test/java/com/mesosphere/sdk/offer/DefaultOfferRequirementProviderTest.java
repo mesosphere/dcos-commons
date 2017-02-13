@@ -105,7 +105,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(taskInfo.hasCommand());
 
         Assert.assertEquals(taskInfo.getDiscovery().getVisibility(), Protos.DiscoveryInfo.Visibility.CLUSTER);
-        Assert.assertEquals(taskInfo.getDiscovery().getName(), "meta-data");
+        Assert.assertEquals(taskInfo.getDiscovery().getName(), "meta-data-0");
 
         // Task command: what to run and envvars
         CommandInfo taskCommand = taskInfo.getCommand();

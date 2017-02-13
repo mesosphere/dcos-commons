@@ -31,12 +31,12 @@ public class TestPodFactory {
                 DISK);
     }
 
-    public static TaskSpec getTaskSpec(String name, String resourceSetId, String dnsName) {
+    public static TaskSpec getTaskSpec(String name, String resourceSetId, String dnsPrefix) {
         return getTaskSpec(
                 name,
                 CMD.getValue(),
                 resourceSetId,
-                dnsName,
+                dnsPrefix,
                 CPU,
                 MEM,
                 DISK);
@@ -56,11 +56,11 @@ public class TestPodFactory {
             String name,
             String cmd,
             String resourceSetId,
-            String dnsName,
+            String dnsPrefix,
             double cpu,
             double mem,
             double disk) {
-        return getTaskSpec(name, cmd, dnsName, getResourceSet(resourceSetId, cpu, mem, disk));
+        return getTaskSpec(name, cmd, dnsPrefix, getResourceSet(resourceSetId, cpu, mem, disk));
     }
 
     public static TaskSpec getTaskSpec(
@@ -73,9 +73,9 @@ public class TestPodFactory {
     public static TaskSpec getTaskSpec(
             String name,
             String cmd,
-            String dnsName,
+            String dnsPrefix,
             ResourceSet resourceSet) {
-        return getTaskSpec(name, cmd, dnsName, resourceSet, Collections.emptyList());
+        return getTaskSpec(name, cmd, dnsPrefix, resourceSet, Collections.emptyList());
     }
 
     public static TaskSpec getTaskSpec(
@@ -89,7 +89,7 @@ public class TestPodFactory {
     public static TaskSpec getTaskSpec(
             String name,
             String cmd,
-            String dnsName,
+            String dnsPrefix,
             ResourceSet resourceSet,
             Collection<ConfigFileSpec> configs) {
         return DefaultTaskSpec.newBuilder()
@@ -101,7 +101,7 @@ public class TestPodFactory {
                         .environment(Collections.emptyMap())
                         .build())
                 .configFiles(configs)
-                .dnsName(dnsName)
+                .discoverySpec(new DefaultDiscoverySpec(dnsPrefix, null))
                 .build();
     }
 

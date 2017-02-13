@@ -74,17 +74,19 @@ public class DefaultStepFactory implements StepFactory {
                     tasksToLaunch, podInstance.getName(), resourceSetIds));
         }
 
-        List<String> dnsNames = taskSpecsToLaunch.stream()
-                .map(taskSpec -> taskSpec.getDnsName())
-                .filter(dnsName -> dnsName.isPresent())
-                .map(dnsName -> dnsName.get())
+        List<String> dnsPrefixes = taskSpecsToLaunch.stream()
+                .map(taskSpec -> taskSpec.getDiscovery())
+                .filter(discovery -> discovery.isPresent())
+                .map(discovery -> discovery.get().getPrefix())
+                .filter(prefix -> prefix.isPresent())
+                .map(prefix -> prefix.get())
                 .collect(Collectors.toList());
 
-        if (hasDuplicates(dnsNames)) {
+        if (hasDuplicates(dnsPrefixes)) {
             throw new Step.InvalidStepException(String.format(
                     "Attempted to simultaneously launch tasks: %s in pod: %s using the same DNS name: %s. " +
                             "These tasks should either be run in separate steps or use different DNS names",
-                    tasksToLaunch, podInstance.getName(), dnsNames));
+                    tasksToLaunch, podInstance.getName(), dnsPrefixes));
         }
     }
 

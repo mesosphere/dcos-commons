@@ -8,7 +8,8 @@ pods:
         cmd: "./task-cmd"
         cpus: 0.1
         memory: 512
-        dns-name: meta-data
+        discovery:
+          prefix: meta-data
   other-pod:
     count: 1
     tasks:
@@ -17,4 +18,5 @@ pods:
         cmd: "./task-cmd"
         cpus: 0.1
         memory: 512
-        dns-name: meta-data
+        discovery:
+          prefix: meta-data

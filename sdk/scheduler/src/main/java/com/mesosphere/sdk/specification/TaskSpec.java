@@ -32,8 +32,8 @@ public interface TaskSpec {
     @JsonProperty("config-files")
     Collection<ConfigFileSpec> getConfigFiles();
 
-    @JsonProperty("dns-name")
-    Optional<String> getDnsName();
+    @JsonProperty("discovery-spec")
+    Optional<DiscoverySpec> getDiscovery();
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return podInstance.getName() + "-" + taskSpec.getName();

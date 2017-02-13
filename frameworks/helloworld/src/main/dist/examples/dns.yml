@@ -15,12 +15,14 @@ pods:
         goal: FINISHED
         cmd: "echo 'I run only once' >> hello-container-path/output"
         resource-set: hello-resources
-        dns-name: hello
+        discovery:
+          prefix: hello
       server:
         goal: RUNNING
         cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
-        dns-name: hello
+        discovery:
+          prefix: hello
         env:
           SLEEP_DURATION: 1000
 plans:
