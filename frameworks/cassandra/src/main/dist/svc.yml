@@ -1,0 +1,108 @@
+name: {{FRAMEWORK_NAME}}
+pods:
+  node:
+    count: {{NODES}}
+    uris:
+      - {{SCHEDULER_URI}}
+      - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
+      - {{BOOTSTRAP_URI}}
+    user: {{SERVICE_USER}}
+    resource-sets:
+      server-resources:
+        cpus: {{CASSANDRA_CPUS}}
+        memory: {{CASSANDRA_MEMORY_MB}}
+        ports:
+          jmx:
+            port: {{TASKCFG_ALL_JMX_PORT}}
+          storage:
+            port: {{TASKCFG_ALL_CASSANDRA_STORAGE_PORT}}
+          ssl:
+            port: {{TASKCFG_ALL_CASSANDRA_SSL_STORAGE_PORT}}
+          native:
+            port: {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+            vip:
+              prefix: node
+              port: 9042
+          rpc:
+            port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
+        volume:
+          path: container-path
+          type: {{CASSANDRA_DISK_TYPE}}
+          size: {{CASSANDRA_DISK_MB}}
+      sidecar-resources:
+        cpus: 1
+        memory: 1024
+    tasks:
+      server:
+        goal: RUNNING
+        resource-set: server-resources
+        cmd: ./bootstrap && exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra -f
+        configs:
+          cassandra:
+            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+          jvm:
+            template: {{CONFIG_TEMPLATE_PATH}}/jvm_{{CASSANDRA_HEAP_GC}}.options
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
+        readiness-check:
+          cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $LIBPROCESS_IP"
+          interval: 5
+          delay: 0
+          timeout: 60
+      repair:
+        goal: FINISHED
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
+        resource-set: sidecar-resources
+      cleanup:
+        goal: FINISHED
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
+        resource-set: sidecar-resources
+      snapshot:
+        goal: FINISHED
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p {{TASKCFG_ALL_JMX_PORT}} -t $CASSANDRA_SNAPSHOT_NAME -- $CASSANDRA_KEYSPACES
+        resource-set: sidecar-resources
+      upgradesstables:
+        goal: FINISHED
+        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool upgradesstables -a -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
+        resource-set: sidecar-resources
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[server]]
+  repair:
+    strategy: serial
+    phases:
+      repair-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[repair]]
+  cleanup:
+    strategy: serial
+    phases:
+      cleanup-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[cleanup]]
+  snapshot:
+    strategy: serial
+    phases:
+      snapshot-deploy:
+        strategy: parallel
+        pod: node
+        steps:
+          - default: [[snapshot]]
+  upgradesstables:
+    strategy: serial
+    phases:
+      upgradesstables-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - default: [[upgradesstables]]

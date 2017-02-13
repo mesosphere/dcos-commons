@@ -1,0 +1,100 @@
+cluster_name: {{CASSANDRA_CLUSTER_NAME}}
+rpc_address: {{LIBPROCESS_IP}}
+listen_address: "{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos"
+hints_directory: {{MESOS_SANDBOX}}/container-path/hints
+data_file_directories:
+  - {{MESOS_SANDBOX}}/container-path/data
+commitlog_directory: {{MESOS_SANDBOX}}/container-path/commitlog
+saved_caches_directory: {{MESOS_SANDBOX}}/container-path/saved_caches
+seed_provider:
+    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+      parameters:
+          - seeds: "node-0-server.{{FRAMEWORK_NAME}}.mesos,node-1-server.{{FRAMEWORK_NAME}}.mesos"
+num_tokens: {{CASSANDRA_NUM_TOKENS}}
+hinted_handoff_enabled: {{CASSANDRA_HINTED_HANDOFF_ENABLED}}
+max_hint_window_in_ms: {{CASSANDRA_MAX_HINT_WINDOW_IN_MS}}
+hinted_handoff_throttle_in_kb: {{CASSANDRA_HINTED_HANDOFF_THROTTLE_IN_KB}}
+max_hints_delivery_threads: {{CASSANDRA_MAX_HINTS_DELIVERY_THREADS}}
+hints_flush_period_in_ms: {{CASSANDRA_HINTS_FLUSH_PERIOD_IN_MS}}
+max_hints_file_size_in_mb: {{CASSANDRA_MAX_HINTS_FILE_SIZE_IN_MB}}
+batchlog_replay_throttle_in_kb: {{CASSANDRA_BATCHLOG_REPLAY_THROTTLE_IN_KB}}
+authenticator: {{CASSANDRA_AUTHENTICATOR}}
+authorizer: {{CASSANDRA_AUTHORIZER}}
+partitioner: {{CASSANDRA_PARTITIONER}}
+key_cache_save_period: {{CASSANDRA_KEY_CACHE_SAVE_PERIOD}}
+row_cache_size_in_mb: {{CASSANDRA_ROW_CACHE_SIZE_IN_MB}}
+row_cache_save_period: {{CASSANDRA_ROW_CACHE_SAVE_PERIOD}}
+commitlog_sync_period_in_ms: {{CASSANDRA_COMMITLOG_SYNC_PERIOD_IN_MS}}
+commitlog_segment_size_in_mb: {{CASSANDRA_COMMITLOG_SEGMENT_SIZE_IN_MB}}
+commitlog_total_space_in_mb: {{CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB
+concurrent_reads: {{CASSANDRA_CONCURRENT_READS}}
+concurrent_writes: {{CASSANDRA_CONCURRENT_WRITES}}
+concurrent_counter_writes: {{CASSANDRA_CONCURRENT_COUNTER_WRITES}}
+concurrent_materialized_view_writes: {{CASSANDRA_MATERIALIZED_VIEW_WRITES}}
+memtable_allocation_type: {{CASSANDRA_MEMTABLE_ALLOCATION_TYPE}}
+index_summary_resize_interval_in_minutes: {{CASSANDRA_INDEX_SUMMARY_RESIZE_INTERVAL_IN_MINUTES}}
+storage_port: {{CASSANDRA_STORAGE_PORT}}
+ssl_storage_port: {{CASSANDRA_SSL_STORAGE_PORT}}
+start_native_transport: {{CASSANDRA_START_NATIVE_TRANSPORT}}
+native_transport_port: {{CASSANDRA_NATIVE_TRANSPORT_PORT}}
+start_rpc: {{CASSANDRA_START_RPC}}
+rpc_port: {{CASSANDRA_RPC_PORT}}
+rpc_keepalive: {{CASSANDRA_RPC_KEEPALIVE}}
+thrift_framed_transport_size_in_mb: {{CASSANDRA_THRIFT_FRAMED_TRANSPORT_SIZE_IN_MB}}
+tombstone_warn_threshold: {{CASSANDRA_TOMBSTONE_WARN_THRESHOLD}}
+tombstone_failure_threshold: {{CASSANDRA_TOMBSTONE_FAILURE_THRESHOLD}}
+column_index_size_in_kb: {{CASSANDRA_COLUMN_INDEX_SIZE_IN_KB}}
+batch_size_warn_threshold_in_kb: {{CASSANDRA_BATCH_SIZE_WARN_THRESHOLD_IN_KB}}
+batch_size_fail_threshold_in_kb: {{CASSANDRA_BATCH_SIZE_FAIL_THRESHOLD_IN_KB}}
+compaction_throughput_mb_per_sec: {{CASSANDRA_COMPACTION_THROUGHPUT_MB_PER_SEC}}
+sstable_preemptive_open_interval_in_mb: {{CASSANDRA_SSTABLE_PREEMPTIVE_OPEN_INTERVAL_IN_MB}}
+read_request_timeout_in_ms: {{CASSANDRA_READ_REQUEST_TIMEOUT_IN_MS}}
+range_request_timeout_in_ms: {{CASSANDRA_RANGE_REQUEST_TIMEOUT_IN_MS}}
+write_request_timeout_in_ms: {{CASSANDRA_WRITE_REQUEST_TIMEOUT_IN_MS}}
+counter_write_request_timeout_in_ms: {{CASSANDRA_COUNTER_WRITE_REQUEST_TIMEOUT_IN_MS}}
+internode_compression: {{CASSANDRA_INTERNODE_COMPRESSION}}
+cas_contention_timeout_in_ms: {{CASSANDRA_CAS_CONTENTION_TIMEOUT_IN_MS}}
+truncate_request_timeout_in_ms: {{CASSANDRA_TRUNCATE_REQUEST_TIMEOUT_IN_MS}}
+request_timeout_in_ms: {{CASSANDRA_REQUEST_TIMEOUT_IN_MS}}
+dynamic_snitch_update_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_UPDATE_INTERVAL_IN_MS}}
+dynamic_snitch_reset_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_RESET_INTERVAL_IN_MS}}
+dynamic_snitch_badness_threshold: {{CASSANDRA_DYNAMIC_SNITCH_BADNESS_THRESHOLD}}
+unlogged_batch_across_partitions_warn_threshold: 10
+compaction_large_partition_warning_threshold_mb: 100
+request_scheduler: org.apache.cassandra.scheduler.NoScheduler
+server_encryption_options:
+    internode_encryption: none
+    keystore: conf/.keystore
+    keystore_password: cassandra
+    truststore: conf/.truststore
+    truststore_password: cassandra
+client_encryption_options:
+    enabled: false
+    optional: false
+    keystore: conf/.keystore
+    keystore_password: cassandra
+inter_dc_tcp_nodelay: false
+tracetype_query_ttl: 86400
+tracetype_repair_ttl: 604800
+gc_warn_threshold_in_ms: 1000
+enable_user_defined_functions: false
+enable_scripted_user_defined_functions: false
+windows_timer_interval: 1
+role_manager: CassandraRoleManager
+roles_validity_in_ms: 2000
+permissions_validity_in_ms: 2000
+disk_failure_policy: stop
+commit_failure_policy: stop
+key_cache_size_in_mb:
+counter_cache_size_in_mb:
+counter_cache_save_period: 7200
+commitlog_sync: periodic
+index_summary_capacity_in_mb:
+trickle_fsync: false
+trickle_fsync_interval_in_kb: 10240
+rpc_server_type: sync
+incremental_backups: false
+snapshot_before_compaction: false
+auto_snapshot: true
+cross_node_timeout: false
+endpoint_snitch: SimpleSnitch
