@@ -44,6 +44,11 @@ pods:
           jvm:
             template: {{CONFIG_TEMPLATE_PATH}}/jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
+        readiness-check:
+          cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $LIBPROCESS_IP"
+          interval: 5
+          delay: 0
+          timeout: 60
       repair:
         goal: FINISHED
         cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p {{TASKCFG_ALL_JMX_PORT}} -- $CASSANDRA_KEYSPACE_TABLES
