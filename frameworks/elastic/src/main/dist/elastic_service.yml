@@ -41,8 +41,13 @@ pods:
         health-check:
           cmd: "curl -I -s -f localhost:$PORT_HTTP/login"
           interval: 5
-          grace-period: 600
+          grace-period: 900
           max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f localhost:$PORT_HTTP/login"
+          interval: 5
           delay: 0
           timeout: 10
   master:
@@ -97,6 +102,11 @@ pods:
           max-consecutive-failures: 1
           delay: 0
           timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
+          delay: 0
+          timeout: 10
   data:
     count: {{DATA_NODE_COUNT}}
     uris:
@@ -147,6 +157,11 @@ pods:
           grace-period: 180
           interval: 1
           max-consecutive-failures: 1
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
           delay: 0
           timeout: 10
   ingest:
@@ -201,6 +216,11 @@ pods:
           max-consecutive-failures: 1
           delay: 0
           timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
+          delay: 0
+          timeout: 10
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
     uris:
@@ -251,6 +271,11 @@ pods:
           grace-period: 180
           interval: 1
           max-consecutive-failures: 1
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
           delay: 0
           timeout: 10
   proxylite:
