@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
-import com.mesosphere.sdk.offer.evaluate.ResourceEvaluationStage;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -84,8 +84,8 @@ public class DefaultResourceSpec implements ResourceSpec {
     }
 
     @Override
-    public OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName) {
-        return new ResourceEvaluationStage(resource, taskName);
+    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
+        return new ResourceRequirement(resource == null ? ResourceUtils.getDesiredResource(this) : resource);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,23 +65,45 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorConfigStore(ConfigurationFactory<T> factory, String frameworkName, String connectionString) {
-        this(factory, frameworkName, connectionString, CuratorUtils.getDefaultRetry());
+        this(factory, frameworkName, connectionString, CuratorUtils.getDefaultRetry(), "", "");
     }
 
-    /**
-     * Creates a new {@link ConfigStore} which uses Curator with a custom {@link RetryPolicy}.
-     *
-     * @param frameworkName The name of the framework
-     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
-     * @param retryPolicy The custom {@link RetryPolicy}
-     */
     public CuratorConfigStore(
             ConfigurationFactory<T> factory,
             String frameworkName,
             String connectionString,
             RetryPolicy retryPolicy) {
+        this(factory, frameworkName, connectionString, retryPolicy, "", "");
+    }
+
+    public CuratorConfigStore(
+            ConfigurationFactory<T> factory,
+            String frameworkName,
+            String connectionString,
+            String username,
+            String password) {
+        this(factory, frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);
+    }
+
+    /**
+     * Creates a new {@link ConfigStore} which uses Curator with a custom {@link RetryPolicy}.
+     *
+     * @param factory
+     * @param frameworkName The name of the framework
+     * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
+     * @param retryPolicy The custom {@link RetryPolicy}
+     * @param username
+     * @param password
+     */
+    public CuratorConfigStore(
+            ConfigurationFactory<T> factory,
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy,
+            String username,
+            String password) {
         this.factory = factory;
-        this.curator = new CuratorPersister(connectionString, retryPolicy);
+        this.curator = new CuratorPersister(connectionString, retryPolicy, username, password);
 
         // Check version up-front:
         int currentVersion = new CuratorSchemaVersionStore(curator, frameworkName).fetch();
@@ -101,12 +124,12 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     public UUID store(T config) throws ConfigStoreException {
         UUID id = UUID.randomUUID();
         String path = getConfigPath(id);
+        byte[] data = config.getBytes();
         try {
-            curator.set(path, config.getBytes());
+            curator.set(path, data);
         } catch (Exception e) {
-            throw new ConfigStoreException(String.format(
-                    "Failed to serialize or store configuration to path '%s': %s",
-                    path, config), e);
+            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
+                    "Failed to store configuration to path '%s': %s", path, config), e);
         }
 
         return id;
@@ -115,13 +138,17 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
     @Override
     public T fetch(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
+        byte[] data;
         try {
-            return factory.parse(curator.get(path));
+            data = curator.get(path);
+        } catch (KeeperException.NoNodeException e) {
+            throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
+                    "Configuration '%s' was not found at path '%s'", id, path), e);
         } catch (Exception e) {
-            throw new ConfigStoreException(String.format(
-                    "Failed to retrieve or deserialize configuration '%s' from path '%s'",
-                    id, path), e);
+            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
+                    "Failed to retrieve configuration '%s' from path '%s'", id, path), e);
         }
+        return factory.parse(data);
     }
 
     @Override
@@ -136,7 +163,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
                     id, path);
             return;
         } catch (Exception e) {
-            throw new ConfigStoreException(String.format(
+            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to delete configuration '%s' at path '%s'", id, path), e);
         }
     }
@@ -155,8 +182,10 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
             logger.warn("Configuration list at path '{}' does not exist: returning empty list",
                     configurationsPath);
             return new ArrayList<>();
+        } catch (IllegalArgumentException e) {
+            throw new ConfigStoreException(Reason.SERIALIZATION_ERROR, String.format("Invalid UUID value"), e);
         } catch (Exception e) {
-            throw new ConfigStoreException(String.format(
+            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to retrieve list of configurations from '%s'", configurationsPath), e);
         }
     }
@@ -166,7 +195,7 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
         try {
             curator.set(targetPath, CuratorUtils.serialize(id));
         } catch (Exception e) {
-            throw new ConfigStoreException(String.format(
+            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to assign current target configuration to '%s' at path '%s'",
                     id, targetPath), e);
         }
@@ -174,12 +203,23 @@ public class CuratorConfigStore<T extends Configuration> implements ConfigStore<
 
     @Override
     public UUID getTargetConfig() throws ConfigStoreException {
+        String uuidStr;
         try {
-            return UUID.fromString(CuratorUtils.deserialize(curator.get(targetPath)));
+            uuidStr = CuratorUtils.deserialize(curator.get(targetPath));
+        } catch (KeeperException.NoNodeException e) {
+            throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
+                    "Current target configuration couldn't be found at path '%s'",
+                    targetPath), e);
         } catch (Exception e) {
-            throw new ConfigStoreException(String.format(
+            throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to retrieve current target configuration from path '%s'",
                     targetPath), e);
+        }
+        try {
+            return UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            throw new ConfigStoreException(Reason.SERIALIZATION_ERROR, String.format(
+                    "Failed to parse '%s' as a UUID", uuidStr));
         }
     }
 

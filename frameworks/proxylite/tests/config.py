@@ -1,0 +1,2 @@
+PACKAGE_NAME = 'proxylite'
+DEFAULT_TASK_COUNT = 1

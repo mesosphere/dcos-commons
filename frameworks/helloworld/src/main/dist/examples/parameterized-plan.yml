@@ -1,0 +1,52 @@
+name: "hello-world"
+pods:
+  hello:
+    count: 2
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+        volume:
+          path: "hello-container-path"
+          type: ROOT
+          size: 1024
+      sidecar-resources:
+        cpus: 1
+        memory: 256
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: hello-resources
+        env:
+          SLEEP_DURATION: 1000
+      once:
+        goal: FINISHED
+        cmd: "echo 'I run only once' >> hello-container-path/output"
+        resource-set: sidecar-resources
+      sidecar:
+        goal: FINISHED
+        cmd: "echo $PLAN_PARAMETER >> hello-container-path/output && grep parameterized < hello-container-path/output"
+        resource-set: sidecar-resources
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      server-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[server]]
+      once-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[once]]
+  sidecar:
+    strategy: serial
+    phases:
+      sidecar-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[sidecar]]

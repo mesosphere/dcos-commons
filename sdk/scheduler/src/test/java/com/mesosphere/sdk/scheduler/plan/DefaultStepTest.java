@@ -1,12 +1,14 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRequirement;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -54,15 +56,14 @@ public class DefaultStepTest {
         String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
         Protos.TaskID taskID = CommonTaskUtils.toTaskId(taskName);
 
-        Protos.Offer.Operation operation = Protos.Offer.Operation.newBuilder()
-                .setType(Protos.Offer.Operation.Type.LAUNCH)
-                .setLaunch(Protos.Offer.Operation.Launch.newBuilder()
-                        .addTaskInfos(Protos.TaskInfo.newBuilder()
-                                .setTaskId(taskID)
-                                .setName(taskName)
-                                .setSlaveId(TestConstants.AGENT_ID)))
-                .build();
-        step.updateOfferStatus(Arrays.asList(operation));
+        LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
+                OfferTestUtils.getEmptyOfferBuilder().build(),
+                Protos.TaskInfo.newBuilder()
+                    .setTaskId(taskID)
+                    .setName(taskName)
+                    .setSlaveId(TestConstants.AGENT_ID)
+                    .build());
+        step.updateOfferStatus(Arrays.asList(launchRec));
 
         Assert.assertTrue(step.isStarting());
 

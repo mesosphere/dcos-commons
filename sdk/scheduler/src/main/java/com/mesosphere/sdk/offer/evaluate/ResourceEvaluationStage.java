@@ -8,10 +8,12 @@ import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.*;
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class evaluates an offer against a given {@link OfferRequirement}, ensuring that it contains a sufficient amount
@@ -28,6 +30,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
      * Instantiate this class to check incoming offers for sufficient presence of the supplied {@link Resource}. The
      * supplied task name indicates which task in the {@link OfferRequirement} to update with any subsequent metadata.
      * If it is null, this stage will modify the {@link org.apache.mesos.Protos.ExecutorInfo} instead.
+     *
      * @param resource the resource to evaluate incoming offers against
      * @param taskName the name of the task to modify with resource metadata
      */
@@ -40,6 +43,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
      * Instantiate this class to check incoming offers for sufficient presence of the supplied {@link Resource}. The
      * {@link org.apache.mesos.Protos.ExecutorInfo} on the {@link OfferRequirement} will be modified with any subsequent
      * metadata.
+     *
      * @param resource the resource to evaluate incoming offers against
      */
     public ResourceEvaluationStage(Resource resource) {
@@ -59,57 +63,64 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public EvaluationOutcome evaluate(
-            MesosResourcePool mesosResourcePool,
-            OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) {
-        ResourceRequirement resourceRequirement = getResourceRequirement();
-        Optional<MesosResource> mesosResourceOptional = mesosResourcePool.consume(resourceRequirement);
-        if (!mesosResourceOptional.isPresent()) {
-            return fail(this, "Failed to satisfy required resource '%s': %s",
-                    resourceRequirement.getName(),
-                    TextFormat.shortDebugString(resourceRequirement.getResource()));
-        }
+    public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+        final ResourceRequirement resourceRequirement = getResourceRequirement();
+        final String resourceId = resourceRequirement.getResourceId();
 
-        final MesosResource mesosResource = mesosResourceOptional.get();
-        Resource fulfilledResource = getFulfilledResource(mesosResource);
+        Resource fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
+        OfferRecommendation offerRecommendation = null;
         if (resourceRequirement.expectsResource()) {
             logger.info("Expects Resource");
 
-            // Compute any needed resource pool consumption / release operations
-            // as well as any additional needed Mesos Operations.  In the case
-            // where a requirement has changed for an Atomic resource, no Operations
-            // can be performed because the resource is Atomic.
-            if (!expectedValueChanged(mesosResource)) {
+            Optional<MesosResource> existingResourceOptional = mesosResourcePool.getReservedResourceById(resourceId);
+            if (!existingResourceOptional.isPresent()) {
+                return fail(this, "Expected existing resource is not present in the offer '%s': %s",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+            }
+
+            Optional<MesosResource> consumedResourceOptional = mesosResourcePool.consume(resourceRequirement);
+            if (!consumedResourceOptional.isPresent()) {
+                return fail(this, "Failed to satisfy required resource '%s': %s",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+            }
+
+            MesosResource existingResource = existingResourceOptional.get();
+
+            // Compute any needed resource pool consumption/release operations as well as any additional needed Mesos
+            // Operations. In the case where a requirement has changed for an atomic resource, no Operations can be
+            // performed because the resource is atomic.
+
+            // Does existing resource satisfy the resource requirement?
+            if (ValueUtils.equal(existingResource.getValue(), resourceRequirement.getValue())) {
                 logger.info("    Current reservation for resource '{}' matches required value: {}",
                         resourceRequirement.getName(),
-                        TextFormat.shortDebugString(mesosResource.getValue()),
+                        TextFormat.shortDebugString(existingResource.getValue()),
                         TextFormat.shortDebugString(resourceRequirement.getValue()));
-            } else if (mesosResource.isAtomic()) {
+            } else if (resourceRequirement.isAtomic()) {
                 logger.info("    Resource '{}' is atomic and cannot be resized from current {} to required {}",
                         resourceRequirement.getName(),
-                        TextFormat.shortDebugString(mesosResource.getValue()),
+                        TextFormat.shortDebugString(existingResource.getValue()),
                         TextFormat.shortDebugString(resourceRequirement.getValue()));
             } else {
-                Value reserveValue = ValueUtils.subtract(resourceRequirement.getValue(), mesosResource.getValue());
-
+                Value reserveValue = ValueUtils.subtract(resourceRequirement.getValue(), existingResource.getValue());
                 if (ValueUtils.compare(reserveValue, ValueUtils.getZero(reserveValue.getType())) > 0) {
                     logger.info("    Reservation for resource '{}' needs increasing from current {} to required {}",
                             resourceRequirement.getName(),
-                            TextFormat.shortDebugString(mesosResource.getValue()),
+                            TextFormat.shortDebugString(existingResource.getValue()),
                             TextFormat.shortDebugString(resourceRequirement.getValue()));
-                    Resource reserveResource = ResourceUtils.getDesiredResource(
+                    Resource reserveResource = ResourceUtils.getExpectedResource(
                             resourceRequirement.getRole(),
                             resourceRequirement.getPrincipal(),
                             resourceRequirement.getName(),
                             reserveValue);
 
                     if (mesosResourcePool.consume(new ResourceRequirement(reserveResource)).isPresent()) {
-                        reserveResource = ResourceUtils.setResourceId(
-                                reserveResource, resourceRequirement.getResourceId());
-                        offerRecommendationSlate.addReserveRecommendation(
-                                new ReserveOfferRecommendation(mesosResourcePool.getOffer(), reserveResource));
-                        fulfilledResource = getFulfilledResource(new MesosResource(resourceRequirement.getResource()));
+                        reserveResource = ResourceUtils.setResourceId(reserveResource, resourceId);
+                        offerRecommendation = new ReserveOfferRecommendation(
+                                mesosResourcePool.getOffer(), reserveResource);
+                        fulfilledResource = getFulfilledResource(resourceRequirement.getResource());
                     } else {
                         return fail(this, "Insufficient resources to increase reservation of resource '%s'.",
                                 resourceRequirement.getName());
@@ -118,28 +129,30 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             }
         } else if (resourceRequirement.reservesResource()) {
             logger.info("    Resource '{}' requires a RESERVE operation", resourceRequirement.getName());
-            offerRecommendationSlate.addReserveRecommendation(
-                    new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource));
+            Optional<MesosResource> consumedResourceOptional = mesosResourcePool.consume(resourceRequirement);
+            if (!consumedResourceOptional.isPresent()) {
+                return fail(this, "Failed to satisfy required resource '%s': %s",
+                        resourceRequirement.getName(),
+                        TextFormat.shortDebugString(resourceRequirement.getResource()));
+            }
+            offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), fulfilledResource);
         }
 
         logger.info("  Generated '{}' resource for task: [{}]",
                 resourceRequirement.getName(), TextFormat.shortDebugString(fulfilledResource));
 
-        EvaluationOutcome failure = validateRequirements(offerRequirement);
+        EvaluationOutcome failure = validateRequirements(podInfoBuilder.getOfferRequirement());
         if (failure != null) {
             return failure;
         }
 
-        try {
-            setProtos(offerRequirement, fulfilledResource);
-        } catch (TaskException e) {
-            logger.error("Failed to set protos on OfferRequirement.", e);
-            return fail(this, "Failed to satisfy required resource '%s': %s",
-                    resourceRequirement.getName(),
-                    TextFormat.shortDebugString(resourceRequirement.getResource()));
-        }
+        setProtos(podInfoBuilder, fulfilledResource);
 
-        return pass(this, "Offer contains sufficient '%s'", resourceRequirement.getName());
+        return pass(
+                this,
+                offerRecommendation == null ? null : Arrays.asList(offerRecommendation),
+                "Offer contains sufficient '%s'",
+                resourceRequirement.getName());
     }
 
     protected EvaluationOutcome validateRequirements(OfferRequirement offerRequirement) {
@@ -155,35 +168,27 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return null;
     }
 
-    protected void setProtos(OfferRequirement offerRequirement, Resource resource) throws TaskException {
-        if (getTaskName().isPresent()) {
-            offerRequirement.updateTaskRequirement(
-                    getTaskName().get(),
-                    ResourceUtils.setResource(
-                            offerRequirement.getTaskRequirement(getTaskName().get()).getTaskInfo().toBuilder(),
-                            resource).build());
-        } else {
-            Protos.ExecutorInfo executorInfo = offerRequirement.getExecutorRequirementOptional()
-                    .get().getExecutorInfo();
-            offerRequirement.updateExecutorRequirement(
-                    ResourceUtils.setResource(executorInfo.toBuilder(), resource).build());
-        }
-    }
-
-    protected Resource getFulfilledResource(MesosResource mesosResource) {
-        ResourceRequirement resourceRequirement = getResourceRequirement();
-        Resource.Builder builder = Resource.newBuilder(mesosResource.getResource());
-        builder.setRole(resourceRequirement.getResource().getRole());
-
-        Optional<Resource.ReservationInfo> resInfo = getFulfilledReservationInfo();
-        if (resInfo.isPresent()) {
-            builder.setReservation(resInfo.get());
+    protected Resource getFulfilledResource(Resource resource) {
+        Resource.Builder builder = resource.toBuilder().setRole(getResourceRequirement().getRole());
+        Optional<Resource.ReservationInfo> reservationInfo = getFulfilledReservationInfo();
+        if (reservationInfo.isPresent()) {
+            builder.setReservation(reservationInfo.get());
         }
 
         return builder.build();
     }
 
-    private Optional<Resource.ReservationInfo> getFulfilledReservationInfo() {
+    protected void setProtos(PodInfoBuilder podInfoBuilder, Resource resource) {
+        if (getTaskName().isPresent()) {
+            Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
+            taskBuilder.addResources(resource);
+        } else {
+            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
+            executorBuilder.addResources(resource);
+        }
+    }
+
+    protected Optional<Resource.ReservationInfo> getFulfilledReservationInfo() {
         ResourceRequirement resourceRequirement = getResourceRequirement();
 
         if (!resourceRequirement.reservesResource()) {
@@ -196,9 +201,5 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
                             UUID.randomUUID().toString()))
                     .build());
         }
-    }
-
-    private boolean expectedValueChanged(MesosResource mesosResource) {
-        return !ValueUtils.equal(getResourceRequirement().getValue(), mesosResource.getValue());
     }
 }

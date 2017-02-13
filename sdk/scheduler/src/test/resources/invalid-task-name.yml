@@ -6,7 +6,7 @@ pods:
     resource-sets:
       meta-data-resources:
         cpus: 0.1
-        mem: 512
+        memory: 512
     tasks:
       meta-data-task:
         goal: RUNNING

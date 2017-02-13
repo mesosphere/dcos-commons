@@ -1,0 +1,11 @@
+{
+  "service": {
+    "name": "another-cluster"
+  },
+  "master_nodes": {
+    "transport_port": 9301
+  },
+  "elasticsearch": {
+    "plugins": "analysis-icu,analysis-kuromoji"
+  }
+}

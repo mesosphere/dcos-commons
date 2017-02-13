@@ -69,6 +69,13 @@ public class MesosResourcePool {
     }
 
     /**
+     * Returns the reserved resource, if present.
+     */
+    public Optional<MesosResource> getReservedResourceById(String resourceId) {
+        return Optional.ofNullable(reservedPool.get(resourceId));
+    }
+
+    /**
      * Consumes and returns a {@link MesosResource} which meets the provided
      * {@link ResourceRequirement}, or does nothing and returns an empty {@link Optional} if no
      * available resources meet the requirement.

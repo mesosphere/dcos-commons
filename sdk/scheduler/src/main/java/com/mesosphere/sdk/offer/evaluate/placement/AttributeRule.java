@@ -99,7 +99,8 @@ public class AttributeRule implements PlacementRule {
         for (Attribute attributeProto : offer.getAttributesList()) {
             String attributeString = AttributeStringUtils.toString(attributeProto);
             if (matcher.matches(attributeString)) {
-                return EvaluationOutcome.pass(this, "Match found for attribute pattern: '%s'", matcher.toString());
+                return EvaluationOutcome.pass(
+                        this, "Match found for attribute pattern: '%s'", matcher.toString());
             }
         }
         return EvaluationOutcome.fail(this, "None of %d attributes matched pattern: '%s'",

@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.evaluate.LaunchEvaluationStage;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -15,22 +17,26 @@ import java.util.stream.Collectors;
 public class TaskRequirement {
     private TaskInfo taskInfo;
     private Protos.TaskID taskId;
+    private Collection<ResourceRequirement> resourceRequirements;
 
     public TaskRequirement(TaskInfo unverifiedTaskInfo) throws InvalidRequirementException {
-        validateTaskInfo(unverifiedTaskInfo);
-        // TaskID is always overwritten with a new UUID, even if already present:
-        taskId = CommonTaskUtils.toTaskId(unverifiedTaskInfo.getName());
-        init(unverifiedTaskInfo);
+        this(
+                unverifiedTaskInfo,
+                unverifiedTaskInfo.getResourcesList().stream()
+                        .map(r -> new ResourceRequirement(r))
+                        .collect(Collectors.toList()));
     }
 
-    private void init(TaskInfo taskInfo) {
+    public TaskRequirement(
+            TaskInfo taskInfo,
+            Collection<ResourceRequirement> resourceRequirements) throws InvalidRequirementException {
+        validateTaskInfo(taskInfo);
+        // TaskID is always overwritten with a new UUID, even if already present:
+        taskId = CommonTaskUtils.toTaskId(taskInfo.getName());
         this.taskInfo = TaskInfo.newBuilder(taskInfo)
                 .setTaskId(taskId)
                 .build();
-    }
-
-    public void update(TaskInfo taskInfo) {
-        init(taskInfo);
+        this.resourceRequirements = resourceRequirements;
     }
 
     public TaskInfo getTaskInfo() {
@@ -38,9 +44,7 @@ public class TaskRequirement {
     }
 
     public Collection<ResourceRequirement> getResourceRequirements() {
-        return taskInfo.getResourcesList().stream()
-                .map(r -> new ResourceRequirement(r))
-                .collect(Collectors.toList());
+        return resourceRequirements;
     }
 
     public Collection<String> getResourceIds() {
@@ -101,6 +105,10 @@ public class TaskRequirement {
         } catch (TaskException e) {
             throw new InvalidRequirementException(e);
         }
+    }
+
+    public OfferEvaluationStage getEvaluationStage() {
+        return new LaunchEvaluationStage(taskInfo.getName());
     }
 
     @Override

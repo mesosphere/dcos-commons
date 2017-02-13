@@ -1,5 +1,5 @@
 ---
-layout: gh-basic
+layout: tutorials-basic
 title: Data Store Tutorial
 ---
 

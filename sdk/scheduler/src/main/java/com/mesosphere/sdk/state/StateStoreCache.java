@@ -1,5 +1,16 @@
 package com.mesosphere.sdk.state;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import org.apache.mesos.Protos.FrameworkID;
+import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -8,24 +19,14 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * Thread-safe caching layer for an underlying {@link StateStore}.
- *
+ * <p>
  * Writes are automatically forwarded to the underlying instance, while reads prioritize the local
  * instance. In order to maintain consistency, there should only be one StateStoreCache object per
  * process. In practice this works because there should only be one scheduler task/process
  * accessing the state data at any given time.
- *
+ * <p>
  * Implementation note: All write operations always invoke the underlying storage before updating
  * the local cache. This avoids creating an inconsistent cache state if writing to the underlying
  * persistent store fails.
@@ -63,7 +64,7 @@ public class StateStoreCache implements StateStore {
                 // Disallow subsequent calls to getInstance() with different instances of StateStore.
                 throw new IllegalStateException(String.format(
                         "StateStoreCache may only be used against a single instance of StateStore. " +
-                        "got[%s] expected[%s]", store, instance.store));
+                                "got[%s] expected[%s]", store, instance.store));
             }
             return instance;
         } finally {
@@ -96,9 +97,9 @@ public class StateStoreCache implements StateStore {
             // Get the name from the corresponding TaskInfo for this task ID:
             TaskInfo task = idToTask.get(status.getTaskId());
             if (task == null) {
-                throw new StateStoreException(String.format(
+                throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                         "The following TaskInfo is not present: %s. TaskInfo must be present in " +
-                        "order to store a TaskStatus. All Tasks: %s", status.getTaskId(), idToTask));
+                                "order to store a TaskStatus. All Tasks: %s", status.getTaskId(), idToTask));
             }
             nameToStatus.put(task.getName(), status);
         }
@@ -166,9 +167,9 @@ public class StateStoreCache implements StateStore {
                 }
             }
             if (taskName == null) {
-                throw new StateStoreException(String.format(
+                throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                         "The following TaskInfo is not present in the StateStore: %s. " +
-                        "TaskInfo must be present in order to store a TaskStatus.", status.getTaskId()));
+                                "TaskInfo must be present in order to store a TaskStatus.", status.getTaskId()));
             }
             nameToStatus.put(taskName, status);
         } finally {
@@ -259,7 +260,7 @@ public class StateStoreCache implements StateStore {
         try {
             byte[] val = properties.get(key);
             if (val == null) { // emulate StateStore contract
-                throw new StateStoreException(String.format(
+                throw new StateStoreException(Reason.NOT_FOUND, String.format(
                         "Property key does not exist: %s (known keys are: %s)",
                         key, properties.keySet()));
             }

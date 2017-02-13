@@ -1,0 +1,24 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
+        health-check:
+          cmd: "./health-check"
+          interval: 5
+          grace-period: 30
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
+        configs:
+          config-one:
+            template: config-one.conf.mustache
+            dest: conf/config-one.conf
+          config-two:
+            template: config-two.xml.mustache
+            dest: ../other/conf/config-two.xml

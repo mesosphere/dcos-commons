@@ -1,0 +1,37 @@
+name: "proxylite"
+web-url: http://proxylite-0-server.proxylite.mesos:4040
+pods:
+  web:
+    container:
+      image-name: ubuntu:14.04
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $PORT_HTTPD && python3 -m http.server $PORT_HTTPD"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        ports:
+          httpd:
+            env-key: PORT_HTTPD
+            port: 4041
+  proxylite:
+    container:
+      # The image here is built and pushed
+      image-name: mesosphere/proxylite:1.0.1
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "/proxylite/run.sh"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        ports:
+          proxylite:
+            env-key: PORT_PROXYLITE
+            port: 4040
+        env:
+          ROOT_REDIRECT: "/example"
+          EXTERNAL_ROUTES: "/v1,/httpd,/google,/example"
+          INTERNAL_ROUTES: "proxylite.marathon.mesos:{{PORT0}}/v1,web-0-server.proxylite.mesos:4041,google.com:80,example.com:80"
+

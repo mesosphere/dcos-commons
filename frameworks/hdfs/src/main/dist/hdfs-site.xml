@@ -13,38 +13,80 @@
         <name>dfs.ha.namenodes.hdfs</name>
         <value>name-0-node,name-1-node</value>
     </property>
+
+    <!-- namenode -->
     <property>
-        <name>dfs.namenode.http-address.hdfs.name-0-node</name>
-        <value>name-0-node.hdfs.mesos:{{NAME_NODE_HTTP_PORT}}</value>
+        <name>dfs.namenode.shared.edits.dir</name>
+        <value>qjournal://journal-0-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_NAME}}.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value>
     </property>
     <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>{{MESOS_SANDBOX}}/name-data</value>
+    </property>
+    <property>
+        <name>dfs.namenode.safemode.threshold-pct</name>
+        <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.heartbeat.recheck-interval</name>
+        <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.handler.count</name>
+        <value>{{NAME_NODE_HANDLER_COUNT}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
+        <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
+        <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+        <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value>
+    </property>
+
+
+    <!-- name-0-node -->
+    <property>
         <name>dfs.namenode.rpc-address.hdfs.name-0-node</name>
-        <value>name-0-node.hdfs.mesos:{{NAME_NODE_RPC_PORT}}</value>
+        <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
     <property>
+        <name>dfs.namenode.http-address.hdfs.name-0-node</name>
+        <value>name-0-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
+    </property>
+    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
-    <property>
-        <name>dfs.namenode.http-address.hdfs.name-1-node</name>
-        <value>name-1-node.hdfs.mesos:{{NAME_NODE_HTTP_PORT}}</value>
-    </property>
+
+
+    <!-- name-1-node -->
     <property>
         <name>dfs.namenode.rpc-address.hdfs.name-1-node</name>
-        <value>name-1-node.hdfs.mesos:{{NAME_NODE_RPC_PORT}}</value>
+        <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_RPC_PORT}}</value>
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
     </property>
     <property>
+        <name>dfs.namenode.http-address.hdfs.name-1-node</name>
+        <value>name-1-node.{{FRAMEWORK_NAME}}.mesos:{{NAME_NODE_HTTP_PORT}}</value>
+    </property>
+    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
     </property>
+
+    <!-- journalnode -->
     <property>
         <name>dfs.journalnode.rpc-address</name>
         <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value>
@@ -54,9 +96,11 @@
         <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value>
     </property>
     <property>
-        <name>dfs.namenode.shared.edits.dir</name>
-        <value>qjournal://journal-0-node.hdfs.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.hdfs.mesos:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.hdfs.mesos:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value>
+        <name>dfs.journalnode.edits.dir</name>
+        <value>{{MESOS_SANDBOX}}/journal-data</value>
     </property>
+
+    <!-- datanode -->
     <property>
         <name>dfs.datanode.address</name>
         <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value>
@@ -70,41 +114,39 @@
         <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value>
     </property>
     <property>
-        <name>ha.zookeeper.quorum</name>
-        <value>master.mesos:2181</value>
-    </property>
-    <property>
-        <name>dfs.namenode.name.dir</name>
-        <value>file:{{MESOS_SANDBOX}}/name-data</value>
-    </property>
-    <property>
-        <name>dfs.journalnode.edits.dir</name>
-        <value>{{MESOS_SANDBOX}}/journal-data</value>
-    </property>
-    <property>
         <name>dfs.datanode.data.dir</name>
-        <value>file:{{MESOS_SANDBOX}}/data-data</value>
+        <value>{{MESOS_SANDBOX}}/data-data</value>
     </property>
     <property>
         <name>dfs.datanode.balance.bandwidthPerSec</name>
         <value>41943040</value>
     </property>
     <property>
-        <name>dfs.namenode.safemode.threshold-pct</name>
-        <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.heartbeat.recheck-interval</name>
-        <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value>
-    </property>
-    <property>
         <name>dfs.datanode.handler.count</name>
         <value>{{DATA_NODE_HANDLER_COUNT}}</value>
     </property>
+
+    <!-- HA -->
     <property>
-        <name>dfs.namenode.handler.count</name>
-        <value>{{NAME_NODE_HANDLER_COUNT}}</value>
+        <name>ha.zookeeper.quorum</name>
+        <value>master.mesos:2181</value>
     </property>
+    <property>
+        <name>dfs.ha.fencing.methods</name>
+        <value>{{HA_FENCING_METHODS}}</value>
+    </property>
+    <property>
+        <name>dfs.ha.automatic-failover.enabled</name>
+        <value>{{HA_AUTOMATIC_FAILURE}}</value>
+    </property>
+
+    {{#NAMENODE}}
+    <property>
+        <name>dfs.ha.namenode.id</name>
+        <value>name-{{POD_INSTANCE_INDEX}}-node</value>
+    </property>
+    {{/NAMENODE}}
+
     <property>
         <name>dfs.image.compress</name>
         <value>{{IMAGE_COMPRESS}}</value>
@@ -114,20 +156,8 @@
         <value>{{IMAGE_COMPRESSION_CODEC}}</value>
     </property>
     <property>
-        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
-        <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
-        <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value>
-    </property>
-    <property>
         <name>dfs.client.read.shortcircuit</name>
         <value>{{CLIENT_READ_SHORTCIRCUIT}}</value>
-    </property>
-    <property>
-        <name>dfs.domain.socket.path</name>
-        <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value>
     </property>
     <property>
         <name>dfs.client.read.shortcircuit.streams.cache.size</name>
@@ -138,24 +168,16 @@
         <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value>
     </property>
     <property>
-        <name>dfs.permissions.enabled</name>
-        <value>{{PERMISSIONS_ENABLED}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
-        <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value>
-    </property>
-    <property>
-        <name>dfs.ha.fencing.methods</name>
-        <value>{{HA_FENCING_METHODS}}</value>
-    </property>
-    <property>
-        <name>dfs.ha.automatic-failover.enabled</name>
-        <value>{{HA_AUTOMATIC_FAILURE}}</value>
-    </property>
-    <property>
         <name>dfs.client.failover.proxy.provider.hdfs</name>
         <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value>
+    </property>
+    <property>
+        <name>dfs.domain.socket.path</name>
+        <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value>
+    </property>
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
 
     {{#SECURE_MODE}}
@@ -173,28 +195,20 @@
             </value>
         </property>
         <property>
-            <name>hadoop.security.authentication</name>
-            <value>kerberos</value>
-        </property>
-        <property>
-            <name>hadoop.security.authorization</name>
-            <value>true</value>
-        </property>
-        <property>
             <name>dfs.block.access.token.enable</name>
             <value>true</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal.pattern</name>
-            <value>hdfs/*@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.datanode.kerberos.principal.pattern</name>
-            <value>hdfs/*@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.principal.pattern</name>
-            <value>hdfs/*@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.cluster.administrators</name>
@@ -202,75 +216,76 @@
         </property>
         <property>
             <name>dfs.web.authentication.kerberos.principal</name>
-            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.web.authentication.kerberos.keytab</name>
-            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+            <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value>
         </property>
 
-        {{#datanode}}
+
+        {{#DATANODE}}
         <!-- DataNode Security Configuration -->
         <property>
             <name>dfs.datanode.keytab.file</name>
-            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+            <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
         </property>
         <property>
             <name>dfs.datanode.kerberos.principal</name>
-            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.datanode.data.dir.perm</name>
             <value>700</value>
         </property>
-        {{/datanode}}
+        {{/DATANODE}}
 
-        {{#namenode}}
+        {{#NAMENODE}}
         <!-- NameNode Security Configuration -->
         <property>
             <name>dfs.namenode.keytab.file</name>
-            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+            <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal</name>
-            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-            <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
-        {{/namenode}}
+        {{/NAMENODE}}
 
-        {{#zkfc}}
+        {{#ZKFC}}
         <!-- NameNode Security Configuration -->
         <property>
             <name>dfs.namenode.keytab.file</name>
-            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+            <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal</name>
-            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-            <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
-        {{/zkfc}}
+        {{/ZKFC}}
 
-        {{#journalnode}}
+        {{#JOURNALNODE}}
         <!-- JournalNode Security Configuration -->
         <property>
             <name>dfs.journalnode.keytab.file</name>
-            <value>keytabs/hdfs.{{TASK_NAME}}.hdfs.mesos.keytab</value>
+            <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.principal</name>
-            <value>hdfs/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.internal.spnego.principal</name>
-            <value>HTTP/{{TASK_NAME}}.hdfs.mesos@LOCAL</value>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
         </property>
-        {{/journalnode}}
+        {{/JOURNALNODE}}
     {{/SECURE_MODE}}
 </configuration>

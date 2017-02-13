@@ -4,11 +4,11 @@ import com.mesosphere.sdk.offer.TaskException;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
+
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.concurrent.*;
 
 /**
- * An {@code Executor} implementation that supports execution of long-running tasks and supporting short-lived tasks.
+ * An {@link Executor} implementation that supports execution of long-running tasks and supporting short-lived tasks.
  */
 public class CustomExecutor implements Executor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomExecutor.class);
@@ -24,11 +24,10 @@ public class CustomExecutor implements Executor {
     private static final ScheduledExecutorService scheduledExecutorService =
             Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
 
-    private Map<Protos.TaskID, LaunchedTask> launchedTasks = new HashMap<>();
-    private ExecutorService executorService;
-    private ExecutorTaskFactory executorTaskFactory;
-    private Protos.ExecutorInfo executorInfo;
-    private Protos.FrameworkInfo frameworkInfo;
+    private final Map<Protos.TaskID, LaunchedTask> launchedTasks = new HashMap<>();
+    private final ExecutorService executorService;
+    private final ExecutorTaskFactory executorTaskFactory;
+
     private volatile Protos.SlaveInfo slaveInfo;
 
     public CustomExecutor(
@@ -44,15 +43,13 @@ public class CustomExecutor implements Executor {
             Protos.ExecutorInfo executorInfo,
             Protos.FrameworkInfo frameworkInfo,
             Protos.SlaveInfo slaveInfo) {
-        LOGGER.info("Registered executor: {}", executorInfo.getExecutorId());
+        LOGGER.info("Registered executor: {}", TextFormat.shortDebugString(executorInfo));
         this.slaveInfo = slaveInfo;
-        this.executorInfo = executorInfo;
-        this.frameworkInfo = frameworkInfo;
     }
 
     @Override
     public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-        LOGGER.info("Re-registered on slave: {}", slaveInfo.getId());
+        LOGGER.info("Re-registered on slave: {}", slaveInfo.getId().getValue());
         this.slaveInfo = slaveInfo;
     }
 
@@ -63,12 +60,12 @@ public class CustomExecutor implements Executor {
 
     @Override
     public void launchTask(final ExecutorDriver driver, final Protos.TaskInfo task) {
-        LOGGER.info("Launching task: {}", task);
+        LOGGER.info("Launching task: {}", TextFormat.shortDebugString(task));
 
         try {
             Protos.TaskInfo unpackedTaskInfo = CommonTaskUtils.unpackTaskInfo(task);
-            LOGGER.info("Unpacked task: {}", unpackedTaskInfo);
-            LOGGER.info("Unpacked command: {}", unpackedTaskInfo.getCommand());
+            LOGGER.info("Unpacked task: {}", TextFormat.shortDebugString(unpackedTaskInfo));
+            LOGGER.info("Unpacked command: {}", TextFormat.shortDebugString(unpackedTaskInfo.getCommand()));
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(unpackedTaskInfo, driver);
 
             Future<?> future = executorService.submit(taskToExecute);
@@ -77,7 +74,7 @@ public class CustomExecutor implements Executor {
             scheduleHealthCheck(driver, unpackedTaskInfo, launchedTask);
             scheduleReadinessCheck(driver, unpackedTaskInfo, launchedTask);
         } catch (Throwable t) {
-            LOGGER.error("Error launching task = {}. Reason: {}", task, t);
+            LOGGER.error(String.format("Error launching task: %s", TextFormat.shortDebugString(task)), t);
 
             CommonTaskUtils.sendStatus(
                     driver,
@@ -96,7 +93,7 @@ public class CustomExecutor implements Executor {
             LaunchedTask launchedTask) {
 
         if (!taskInfo.hasHealthCheck()) {
-            LOGGER.info("No health check for task: " + taskInfo.getName());
+            LOGGER.info("No health check for task: {}", taskInfo.getName());
             return;
         }
 
@@ -117,7 +114,7 @@ public class CustomExecutor implements Executor {
         }
 
         if (!readinessCheckOptional.isPresent()){
-            LOGGER.info("No readiness check for task: " + taskInfo.getName());
+            LOGGER.info("No readiness check for task: {}", taskInfo.getName());
             return;
         }
 
@@ -133,6 +130,7 @@ public class CustomExecutor implements Executor {
         try {
             HealthCheckMonitor healthCheckMonitor =
                     new HealthCheckMonitor(
+                            check,
                             HealthCheckHandler.create(
                                     executorDriver,
                                     taskInfo,
@@ -150,7 +148,7 @@ public class CustomExecutor implements Executor {
                     try {
                         Optional<HealthCheckStats> optionalHealthCheckStats = futureOptionalHealthCheckStats.get();
                         if (optionalHealthCheckStats.isPresent()) {
-                            LOGGER.error("Check exited with statistics: " + optionalHealthCheckStats.get());
+                            LOGGER.error("Check exited with statistics: {}", optionalHealthCheckStats.get());
                         }
                     } catch (InterruptedException | ExecutionException e) {
                         LOGGER.error("Failed to get check stats with exception: ", e);
@@ -168,20 +166,20 @@ public class CustomExecutor implements Executor {
         // TODO(mohit): Implement SIGKILL shutdown. Currently only perform SIGTERM.
         try {
             if (!launchedTasks.containsKey(taskId)) {
-                LOGGER.info("Unknown TaskId = {}. Cannot destroy something that is unknown.", taskId);
+                LOGGER.error("Unable to kill unknown TaskID: {}", taskId.getValue());
                 return;
             }
-            LOGGER.info("Stopping task as part of killTask: {}", taskId);
+            LOGGER.info("Stopping task as part of killTask: {}", taskId.getValue());
             final LaunchedTask launchedTask = launchedTasks.get(taskId);
             launchedTask.stop();
         } catch (Throwable t) {
-            LOGGER.error("Error killing task {}. Reason: {}", taskId, t);
+            LOGGER.error(String.format("Error killing task %s", taskId.getValue()), t);
         }
     }
 
     @Override
     public void frameworkMessage(ExecutorDriver driver, byte[] data) {
-        LOGGER.error("Received framework message. But, this is not implemented.");
+        LOGGER.error("Received unsupported framework message (%d bytes).", data.length);
     }
 
     @Override
@@ -192,61 +190,20 @@ public class CustomExecutor implements Executor {
         for (Map.Entry<Protos.TaskID, LaunchedTask> entry : launchedTasks.entrySet()) {
             final Protos.TaskID taskId = entry.getKey();
             try {
-                LOGGER.info("Stopping task as part of executor shutdown: {}", taskId);
+                LOGGER.info("Stopping task as part of executor shutdown: {}", taskId.getValue());
                 killTask(driver, taskId);
             } catch (Throwable t) {
-                LOGGER.error("Error killing task {}. Reason: {}", taskId, t);
+                LOGGER.error(String.format("Error stopping task %s", taskId.getValue()), t);
             }
         }
     }
 
     @Override
     public void error(ExecutorDriver driver, String message) {
-        LOGGER.error("Error {}", message);
+        LOGGER.error("Received error: {}", message);
     }
 
-    public Optional<Protos.SlaveInfo> getSlaveInfo() {
+    Optional<Protos.SlaveInfo> getSlaveInfo() {
         return Optional.ofNullable(slaveInfo);
-    }
-
-    public void setSlaveInfo(Protos.SlaveInfo slaveInfo) {
-        this.slaveInfo = slaveInfo;
-    }
-
-    public Optional<Protos.FrameworkInfo> getFrameworkInfo() {
-        return Optional.ofNullable(frameworkInfo);
-    }
-
-    public void setFrameworkInfo(Protos.FrameworkInfo frameworkInfo) {
-        this.frameworkInfo = frameworkInfo;
-    }
-
-    public Optional<Protos.ExecutorInfo> getExecutorInfo() {
-        return Optional.ofNullable(executorInfo);
-    }
-
-    public void setExecutorInfo(Protos.ExecutorInfo executorInfo) {
-        this.executorInfo = executorInfo;
-    }
-
-    public Optional<ExecutorTaskFactory> getExecutorTaskFactory() {
-        return Optional.ofNullable(executorTaskFactory);
-    }
-
-    public void setExecutorTaskFactory(ExecutorTaskFactory executorTaskFactory) {
-        this.executorTaskFactory = executorTaskFactory;
-    }
-
-    public Optional<ExecutorService> getExecutorService() {
-        return Optional.ofNullable(executorService);
-    }
-
-    public void setExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
-    }
-
-    @SuppressFBWarnings("DM_EXIT")
-    private void hardExit(ExecutorErrorCode errorCode) {
-        System.exit(errorCode.ordinal());
     }
 }

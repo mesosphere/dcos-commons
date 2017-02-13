@@ -111,7 +111,7 @@ class CITester(object):
             raise
 
 
-    def run_shakedown(self, test_dirs, requirements_txt, pytest_types='sanity'):
+    def run_shakedown(self, test_dirs, requirements_txt='', pytest_types='sanity'):
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
@@ -120,6 +120,20 @@ class CITester(object):
         else:
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
             jenkins_args = ''
+        if requirements_txt:
+            logger.info('Using provided requirements.txt: {}'.format(requirements_txt))
+        else:
+            # generate default requirements:
+            logger.info('No requirements.txt provided, using default requirements')
+            requirements_txt = os.path.join(self._sandbox_path, 'requirements.txt')
+            requirements_file = open(requirements_txt, 'w')
+            requirements_file.write('''
+requests==2.10.0
+
+-e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
+''')
+            requirements_file.flush()
+            requirements_file.close()
         # to ensure the 'source' call works, just create a shell script and execute it directly:
         script_path = os.path.join(self._sandbox_path, 'run_shakedown.sh')
         script_file = open(script_path, 'w')
@@ -135,7 +149,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args}-vv -x -s -m "{pytest_types}" {test_dirs}
+py.test {jenkins_args}-vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
@@ -205,7 +219,7 @@ SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types
 
 def print_help(argv):
     logger.info('Syntax: TEST_TYPES="sanity or recovery" CLUSTER_URL="yourcluster.com" {} <"shakedown"|"dcos-tests"> <path/to/tests/> </path/to/requirements.txt | /path/to/dcos-tests>'.format(argv[0]))
-    logger.info('  Example (shakedown): $ {} shakedown /path/to/your/tests/ /path/to/requirements.txt'.format(argv[0]))
+    logger.info('  Example (shakedown): $ {} shakedown /path/to/your/tests/ [/path/to/your/requirements.txt]'.format(argv[0]))
     logger.info('  Example (dcos-tests, deprecated): $ {} dcos-tests /path/to/your/tests/ /path/to/dcos-tests/'.format(argv[0]))
 
 
@@ -214,7 +228,7 @@ def _rand_str(size):
 
 
 def main(argv):
-    if len(argv) < 4:
+    if len(argv) < 3:
         print_help(argv)
         return 1
     test_type = argv[1]
@@ -247,7 +261,12 @@ def main(argv):
     try:
         tester.setup_cli(stub_universes)
         if test_type == 'shakedown':
-            requirements_txt = argv[3]
+            if len(argv) >= 4:
+                # use provided requirements.txt
+                requirements_txt = argv[3]
+            else:
+                # use default requirements
+                requirements_txt = ''
             tester.run_shakedown(test_dirs, requirements_txt, pytest_types)
         elif test_type == 'dcos-tests':
             dcos_tests_dir = argv[3]

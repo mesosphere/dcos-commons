@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 public class HealthCheckHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckHandler.class);
 
-    private final ExecutorDriver executorDriver;
     private final Protos.HealthCheck healthCheck;
     private final ScheduledExecutorService scheduledExecutorService;
     private final HealthCheckRunner healthCheckRunner;
@@ -59,7 +58,6 @@ public class HealthCheckHandler {
             HealthCheckStats healthCheckStats)
             throws HealthCheckValidationException {
         validate(healthCheck);
-        this.executorDriver = executorDriver;
         this.healthCheck = healthCheck;
         this.scheduledExecutorService = scheduledExecutorService;
         this.healthCheckRunner = new HealthCheckRunner(
@@ -210,6 +208,7 @@ public class HealthCheckHandler {
                         "Readiness check passed",
                         labels,
                         null);
+                throw new HealthCheckRuntimeException("Readiness check passed.", healthCheckStats);
             }
         }
     }

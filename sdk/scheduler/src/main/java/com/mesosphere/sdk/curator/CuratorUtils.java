@@ -2,7 +2,12 @@ package com.mesosphere.sdk.curator;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.ACL;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +29,11 @@ public class CuratorUtils {
 
     private static final int DEFAULT_CURATOR_POLL_DELAY_MS = 1000;
     private static final int DEFAULT_CURATOR_MAX_RETRIES = 3;
+    /**
+     * Default Session and Timeout used by Curator Framework.
+     */
+    public static final int DEFAULT_SESSION_TIMEOUT_MS = 60 * 1000;
+    public static final int DEFAULT_CONNECTION_TIMEOUT_MS = 15 * 1000;
 
     public static RetryPolicy getDefaultRetry() {
         return new ExponentialBackoffRetry(
@@ -95,5 +105,45 @@ public class CuratorUtils {
 
     static String deserialize(byte[] data) {
         return new String(data, CHARSET);
+    }
+
+    /**
+     * Creates a curator framework client with username and password
+     * for zookeeper authorization.
+     * @param connectionString
+     * @param retryPolicy
+     * @param username
+     * @param password
+     * @return Curator Framework.
+     */
+    public static CuratorFramework getClientWithAcl(String connectionString,
+                                                    RetryPolicy retryPolicy,
+                                                    String username,
+                                                    String password) {
+        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
+                .connectString(connectionString)
+                .retryPolicy(retryPolicy)
+                .connectionTimeoutMs(DEFAULT_CONNECTION_TIMEOUT_MS)
+                .sessionTimeoutMs(DEFAULT_SESSION_TIMEOUT_MS);
+
+        List<ACL> acls = new ArrayList<ACL>();
+        acls.addAll(ZooDefs.Ids.CREATOR_ALL_ACL);
+        acls.addAll(ZooDefs.Ids.READ_ACL_UNSAFE);
+
+        String authenticationString = username + ":" + password;
+        builder.authorization("digest", authenticationString.getBytes(StandardCharsets.UTF_8))
+                .aclProvider(new ACLProvider() {
+                    @Override
+                    public List<ACL> getDefaultAcl() {
+                        return acls;
+                    }
+
+                    @Override
+                    public List<ACL> getAclForPath(String path) {
+                        return acls;
+                    }
+                });
+
+        return builder.build();
     }
 }

@@ -10,10 +10,7 @@ import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 import javax.validation.constraints.NotNull;
-import java.net.URI;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 
 /**
@@ -23,23 +20,17 @@ public class DefaultCommandSpec implements CommandSpec {
     @NotNull
     private String value;
     private Map<String, String> environment;
-    private String user;
-    private Collection<URI> uris;
 
     @JsonCreator
     public DefaultCommandSpec(
             @JsonProperty("value") String value,
-            @JsonProperty("environment") Map<String, String> environment,
-            @JsonProperty("user") String user,
-            @JsonProperty("uris") Collection<URI> uris) {
+            @JsonProperty("environment") Map<String, String> environment) {
         this.value = value;
         this.environment = environment;
-        this.user = user;
-        this.uris = uris;
     }
 
     private DefaultCommandSpec(Builder builder) {
-        this(builder.value, builder.getEnvironment(), builder.user, builder.uris);
+        this(builder.value, builder.getEnvironment());
     }
 
     /**
@@ -64,8 +55,6 @@ public class DefaultCommandSpec implements CommandSpec {
         Builder builder = newBuilder(ConfigNamespace.emptyInstance());
         builder.value = copy.getValue();
         builder.environment = copy.getEnvironment();
-        builder.user = copy.getUser().orElse(null);
-        builder.uris = copy.getUris();
         return builder;
     }
 
@@ -80,16 +69,6 @@ public class DefaultCommandSpec implements CommandSpec {
     @Override
     public Map<String, String> getEnvironment() {
         return environment;
-    }
-
-    @Override
-    public Optional<String> getUser() {
-        return Optional.ofNullable(user);
-    }
-
-    @Override
-    public Collection<URI> getUris() {
-        return uris;
     }
 
     @Override
@@ -110,8 +89,6 @@ public class DefaultCommandSpec implements CommandSpec {
 
         private String value;
         private Map<String, String> environment;
-        private String user;
-        private Collection<URI> uris;
 
         /**
          * Creates a new {@link Builder} with the provided {@link ConfigNamespace} containing override envvars.
@@ -155,28 +132,6 @@ public class DefaultCommandSpec implements CommandSpec {
          */
         public Builder environment(Map<String, String> environment) {
             this.environment = environment;
-            return this;
-        }
-
-        /**
-         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param user the {@code user} to set
-         * @return a reference to this Builder
-         */
-        public Builder user(String user) {
-            this.user = user;
-            return this;
-        }
-
-        /**
-         * Sets the {@code uris} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param uris the {@code uris} to set
-         * @return a reference to this Builder
-         */
-        public Builder uris(Collection<URI> uris) {
-            this.uris = uris;
             return this;
         }
 

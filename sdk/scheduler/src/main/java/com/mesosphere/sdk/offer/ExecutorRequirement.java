@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.evaluate.ExecutorEvaluationStage;
+import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorInfo;
 import com.mesosphere.sdk.executor.ExecutorTaskException;
 import com.mesosphere.sdk.executor.ExecutorUtils;
@@ -120,6 +123,15 @@ public class ExecutorRequirement {
                         + "ExecutorUtils.toExecutorId(): %s", executorInfo));
             }
         }
+    }
+
+    public OfferEvaluationStage getEvaluationStage() {
+        Protos.ExecutorID executorID = null;
+        if (getExecutorInfo().hasExecutorId() && !getExecutorInfo().getExecutorId().getValue().isEmpty()) {
+            executorID = getExecutorInfo().getExecutorId();
+        }
+
+        return new ExecutorEvaluationStage(executorID);
     }
 
     @Override

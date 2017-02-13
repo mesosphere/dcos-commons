@@ -1,102 +1,136 @@
-name: {{SERVICE_NAME}}
+name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
 pods:
   journal:
     count: 3
+    uris:
+      - {{HDFS_URI}}
+      - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs journalnode"
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
           journal-rpc:
-            port: {{JOURNAL_NODE_RPC_PORT}}
+            port: {{TASKCFG_ALL_JOURNAL_NODE_RPC_PORT}}
           journal-http:
-            port: {{JOURNAL_NODE_HTTP_PORT}}
+            port: {{TASKCFG_ALL_JOURNAL_NODE_HTTP_PORT}}
         volume:
-          path: "journal-data"
+          path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
+            dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
+          JOURNALNODE: true
   name:
     count: 2
+    uris:
+      - {{HDFS_URI}}
+      - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
         ports:
           name-rpc:
-            port: {{NAME_NODE_RPC_PORT}}
+            port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
           name-http:
-            port: {{NAME_NODE_HTTP_PORT}}
+            port: {{TASKCFG_ALL_NAME_NODE_HTTP_PORT}}
         volume:
-          path: "name-data"
+          path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode"
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
+        readiness-check:
+          cmd: ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
+          interval: 5
+          delay: 0
+          timeout: 60
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
+            dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
       format:
         goal: FINISHED
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -format"
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
       bootstrap:
         goal: FINISHED
-        cmd: "env && ./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs namenode -bootstrapStandby"
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-bootstrap-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
+          NAMENODE: true
   zkfc:
     count: 2
+    uris:
+      - {{HDFS_URI}}
+      - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     resource-sets:
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
@@ -104,69 +138,87 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc"
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+          ZKFC: true
       format:
         goal: FINISHED
-        cmd: "./resolve-dns.sh && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs zkfc -formatZK"
+        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
         env:
-          FRAMEWORK_NAME: {{SERVICE_NAME}}
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
+          ZKFC: true
   data:
     count: {{DATA_COUNT}}
+    uris:
+      - {{HDFS_URI}}
+      - {{BOOTSTRAP_URI}}
+      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     tasks:
       node:
         goal: RUNNING
-        cmd: "./resolve-dns.sh && mkdir -p /var/lib/hadoop-hdfs && chown root /var/lib/hadoop-hdfs && ./hadoop-2.6.0-cdh5.7.1/bin/hdfs datanode"
+        cmd: >
+               ./bootstrap &&
+               mkdir -p /var/lib/hadoop-hdfs &&
+               chown root /var/lib/hadoop-hdfs &&
+               ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
           data-rpc:
-            port: {{DATA_NODE_RPC_PORT}}
+            port: {{TASKCFG_ALL_DATA_NODE_RPC_PORT}}
           data-http:
-            port: {{DATA_NODE_HTTP_PORT}}
+            port: {{TASKCFG_ALL_DATA_NODE_HTTP_PORT}}
           data-ipc:
-            port: {{DATA_NODE_IPC_PORT}}
+            port: {{TASKCFG_ALL_DATA_NODE_IPC_PORT}}
         volume:
-          path: "data-data"
+          path: data-data
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
-        uris:
-          - https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.7.1-dcos.tar.gz
-          - https://downloads.mesosphere.com/dcos-commons/artifacts/resolve.zip
         configs:
+          {{#KRB5_CONF_URI}}
+          krb5-conf:
+            template: {{MESOS_SANDBOX}}/krb5.conf
+            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+          {{/KRB5_CONF_URI}}
           core-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/core-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/core-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: "{{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml"
-            dest: hadoop-2.6.0-cdh5.7.1/etc/hadoop/hdfs-site.xml
+            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
+            dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
+          DATANODE: true
 
 plans:
   deploy:
@@ -179,17 +231,24 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - 0: [format]
-          - 0: [node]
-          - 1: [bootstrap]
-          - 1: [node]
+          - 0: [[format], [node]]
+          - 1: [[bootstrap], [node]]
       zkfc-deploy:
         strategy: serial
         pod: zkfc
         steps:
-          - 0: [format]
-          - 0: [node]
-          - 1: [node]
+          - 0: [[format], [node]]
+          - 1: [[node]]
       dn-deploy:
         strategy: {{DATA_STRATEGY}}
         pod: data
+
+  replace-nn:
+    strategy: serial
+    phases:
+      nn-deploy:
+        strategy: serial
+        pod: name
+        steps:
+          - 0: [[bootstrap], [node]]
+          - 1: [[bootstrap], [node]]

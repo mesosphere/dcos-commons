@@ -15,6 +15,9 @@ project(":sdk/testing").name = "testing"
 include 'frameworks/helloworld'
 project(":frameworks/helloworld").name = "helloworld"
 
+include 'frameworks/elastic'
+project(':frameworks/elastic').name = 'elastic'
+
 include 'frameworks/kafka'
 project(":frameworks/kafka").name = "kafka"
 
@@ -23,3 +26,9 @@ project(":frameworks/hdfs").name = "hdfs"
 
 include 'frameworks/template'
 project(":frameworks/template").name = "template"
+
+include 'frameworks/prototype'
+project(":frameworks/prototype").name = "prototype"
+
+include 'frameworks/proxylite'
+project(":frameworks/proxylite").name = "proxylite"

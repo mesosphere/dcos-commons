@@ -7,9 +7,20 @@
 # Exit immediately on errors -- the helper scripts all emit github statuses internally
 set -e
 
+function proxylite_preflight {
+    bash frameworks/proxylite/scripts/ci.sh pre-test
+}
+
 function run_framework_tests {
     framework=$1
     FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/$framework
+
+    if [ "$framework" = "proxylite" ]; then
+        if ! proxylite_preflight; then
+            sleep 5
+            proxylite_preflight
+        fi
+    fi
 
     # Build/upload framework scheduler artifact if one is not directly provided:
     if [ -z "${!STUB_UNIVERSE_URL}" ]; then
@@ -25,15 +36,12 @@ function run_framework_tests {
         export STUB_UNIVERSE_URL=$(cat $UNIVERSE_URL_PATH)
         rm -f $UNIVERSE_URL_PATH
         echo "Built/uploaded stub universe: $STUB_UNIVERSE_URL"
-    else 
+    else
         echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
 
     # Run shakedown tests in framework scheduler directory:
-    ${REPO_ROOT_DIR}/tools/run_tests.py \
-                    shakedown \
-                    ${FRAMEWORK_DIR}/integration/tests/ \
-                    ${FRAMEWORK_DIR}/integration/requirements.txt
+    ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
 }
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

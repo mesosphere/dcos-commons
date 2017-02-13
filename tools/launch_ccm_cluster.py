@@ -272,6 +272,12 @@ class CCMLauncher(object):
             enable_mount_volumes.main(stack_id)
             sys.stdout = stdout
 
+        # we fetch the token once up-front because on Open clusters it must be reused.
+        # given that, we may as well use the same flow across both Open and EE.
+        logger.info('Fetching auth token')
+        dcos_url = 'https://' + dns_address
+        auth_token = dcos_login.DCOSLogin(dcos_url).get_acs_token()
+
         if config.permissions:
             logger.info('Setting up permissions for cluster {} (stack id {})'.format(cluster_id, stack_id))
 
@@ -284,18 +290,12 @@ class CCMLauncher(object):
                 subprocess.check_call(['bash', script_path] + args)
                 sys.stdout = stdout
 
-            run_script('create_service_account.sh', ['--strict'])
+            run_script('create_service_account.sh', [dcos_url, auth_token, '--strict'])
             # Examples of what individual tests should run. See respective projects' "test.sh":
             #run_script('setup_permissions.sh', 'nobody cassandra-role'.split())
             #run_script('setup_permissions.sh', 'nobody hdfs-role'.split())
             #run_script('setup_permissions.sh', 'nobody kafka-role'.split())
             #run_script('setup_permissions.sh', 'nobody spark-role'.split())
-
-        # we fetch the token once up-front because on Open clusters it must be reused.
-        # given that, we may as well use the same flow across both Open and EE.
-        logger.info('Fetching auth token')
-        dcos_url = 'https://' + dns_address
-        auth_token = dcos_login.DCOSLogin(dcos_url).get_acs_token()
 
         return {
             'id': cluster_id,
@@ -332,7 +332,7 @@ class StartConfig(object):
             self,
             name_prefix = 'test-cluster-',
             description = '',
-            duration_mins = 120,
+            duration_mins = 240,
             ccm_channel = 'testing/master',
             cf_template = 'ee.single-master.cloudformation.json',
             start_timeout_mins = CCMLauncher.DEFAULT_TIMEOUT_MINS,

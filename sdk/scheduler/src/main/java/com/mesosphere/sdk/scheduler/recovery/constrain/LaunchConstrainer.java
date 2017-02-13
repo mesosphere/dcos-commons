@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import org.apache.mesos.Protos.Offer.Operation;
+
+import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 
 /**
@@ -16,17 +18,17 @@ public interface LaunchConstrainer {
      * We take a {@link Operation} so that frameworks can specify additional metadata, in order to smooth the launch
      * rate.
      *
-     * @param launchOperation The Launch Operation which occurred.
-     * @param recoveryType The type of the recovery which has been executed.
+     * @param recommendation The OfferRecommendation containing the Launch Operation which occurred
+     * @param recoveryType The type of the recovery which has been executed
      */
-    void launchHappened(Operation launchOperation, RecoveryType recoveryType);
+    void launchHappened(LaunchOfferRecommendation recommendation, RecoveryType recoveryType);
 
     /**
      * Determines whether the given {@link RecoveryType}
      * can be launchHappened right now.
      *
-     * @param recoveryType The {@link RecoveryType} to be examined.
-     * @return True if the offer is safe to launch immediately, false if it should wait
+     * @param recoveryType The {@link RecoveryType} to be examined
+     * @return {@code true} if the offer is safe to launch immediately, false if it should wait
      */
     boolean canLaunch(RecoveryType recoveryType);
 }

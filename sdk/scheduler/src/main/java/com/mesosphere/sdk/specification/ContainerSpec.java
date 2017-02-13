@@ -15,6 +15,9 @@ public interface ContainerSpec {
     @JsonProperty("image-name")
     Optional<String> getImageName();
 
+    @JsonProperty("networks")
+    Collection<NetworkSpec> getNetworks();
+
     @JsonProperty("rlimits")
     Collection<RLimit> getRLimits();
 }

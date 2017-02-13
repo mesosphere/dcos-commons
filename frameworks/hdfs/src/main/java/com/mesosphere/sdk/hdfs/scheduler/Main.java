@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.api.types.EndpointProducer;
+import com.mesosphere.sdk.config.DefaultTaskConfigRouter;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -11,7 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -34,14 +44,37 @@ public class Main {
             throws Exception {
         DefaultScheduler.Builder builder =
                 DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(rawServiceSpec))
+                        .setRecoveryManagerFactory(new HdfsRecoveryPlanManagerFactory())
                 .setPlansFrom(rawServiceSpec);
-        // TODO(nick): The endpointproducers should produce valid HDFS xml files. They can get the info they need from
-        // scheduler envvars and/or the ServiceSpec. If they need current task state, they could be passed the
-        // StateStore from builder.getStateStore() when they're constructed, which they could then access to get current
-        // task state when EndpointProducer.getEndpoint() is called.
         return builder
-                .setEndpointProducer("hdfs-site.xml", EndpointProducer.constant("TODO: hdfs-site.xml content"))
-                .setEndpointProducer("core-site.xml", EndpointProducer.constant("TODO: core-site.xml content"));
+                .setEndpointProducer("hdfs-site.xml", EndpointProducer.constant(getHdfsSiteXml()))
+                .setEndpointProducer("core-site.xml", EndpointProducer.constant(getCoreSiteXml()));
+    }
+
+    private static String getHdfsSiteXml() {
+        return renderTemplate(System.getProperty("user.dir") + "/hdfs-scheduler/hdfs-site.xml");
+    }
+
+    private static String getCoreSiteXml() {
+        return renderTemplate(System.getProperty("user.dir") + "/hdfs-scheduler/core-site.xml");
+    }
+
+    private static String renderTemplate(String pathStr) {
+        Path path = Paths.get(pathStr);
+        byte[] bytes;
+        try {
+            bytes = Files.readAllBytes(path);
+        } catch (IOException e) {
+            String error = String.format("Failed to render %s", pathStr);
+            LOGGER.error(error, e);
+            return error;
+        }
+
+        Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
+        env.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+
+        String fileStr = new String(bytes, Charset.defaultCharset());
+        return CommonTaskUtils.applyEnvToMustache(fileStr, env);
     }
 
     private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)
@@ -70,6 +103,11 @@ public class Main {
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
                 .pods(Arrays.asList(journal, name, zkfc, data))
+                .replacementFailurePolicy(
+                        ReplacementFailurePolicy.newBuilder()
+                                .permanentFailureTimoutMs(null)
+                                .minReplaceDelayMs(0)
+                                .build())
                 .build();
     }
 

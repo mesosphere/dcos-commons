@@ -9,6 +9,8 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
@@ -81,8 +83,8 @@ public class StateStoreUtils {
             }
 
             if (TaskUtils.needsRecovery(taskSpec.get(), status)) {
-                LOGGER.info("Task: {} needs recovery with status: {}.",
-                        taskSpec.get(), TextFormat.shortDebugString(status));
+                LOGGER.info("Task: '{}' needs recovery with status: {}.",
+                        taskSpec.get().getName(), TextFormat.shortDebugString(status));
                 results.add(info);
             }
         }
@@ -122,10 +124,10 @@ public class StateStoreUtils {
      */
     public static void validateKey(String key) throws StateStoreException {
         if (StringUtils.isBlank(key)) {
-            throw new StateStoreException("Key cannot be blank or null");
+            throw new StateStoreException(Reason.LOGIC_ERROR, "Key cannot be blank or null");
         }
         if (key.contains("/")) {
-            throw new StateStoreException("Key cannot contain '/'");
+            throw new StateStoreException(Reason.LOGIC_ERROR, "Key cannot contain '/'");
         }
     }
 
@@ -137,10 +139,10 @@ public class StateStoreUtils {
      */
     public static void validateValue(byte[] value) throws StateStoreException {
         if (value == null) {
-            throw new StateStoreException("Property value must not be null.");
+            throw new StateStoreException(Reason.LOGIC_ERROR, "Property value must not be null.");
         }
         if (value.length > MAX_VALUE_LENGTH_BYTES) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Property value length %d exceeds limit of %d bytes.",
                     value.length, MAX_VALUE_LENGTH_BYTES));
         }

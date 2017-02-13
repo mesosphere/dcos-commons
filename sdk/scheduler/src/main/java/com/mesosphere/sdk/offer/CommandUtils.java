@@ -3,19 +3,11 @@ package com.mesosphere.sdk.offer;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.specification.CommandSpec;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * This class provides utility methods for the construction of {@link org.apache.mesos.Protos.CommandInfo} protobufs
  * from {@link CommandSpec}s.
  */
 public class CommandUtils {
-    public static List<Protos.CommandInfo.URI> getUris(CommandSpec commandSpec) {
-        return commandSpec.getUris().stream()
-                .map(uri -> Protos.CommandInfo.URI.newBuilder().setValue(uri.toString()).build())
-                .collect(Collectors.toList());
-    }
 
     public static Protos.CommandInfo addEnvVar(
             Protos.CommandInfo command,

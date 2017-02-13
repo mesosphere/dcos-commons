@@ -27,7 +27,7 @@ broker.id={{POD_INSTANCE_INDEX}}
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
-#listeners=PLAINTEXT://:9092
+listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
 
 # Hostname and port the broker will advertise to producers and consumers. If not set, 
 # it uses the value for "listeners" if configured.  Otherwise, it will use the value
@@ -35,34 +35,34 @@ broker.id={{POD_INSTANCE_INDEX}}
 #advertised.listeners=PLAINTEXT://your.host.name:9092
 
 # The number of threads handling network requests
-num.network.threads=3
+num.network.threads={{KAFKA_NUM_NETWORK_THREADS}}
 
 # The number of threads doing disk I/O
-num.io.threads=8
+num.io.threads={{KAFKA_NUM_IO_THREADS}}
 
 # The send buffer (SO_SNDBUF) used by the socket server
-socket.send.buffer.bytes=102400
+socket.send.buffer.bytes={{KAFKA_SOCKET_SEND_BUFFER_BYTES}}
 
 # The receive buffer (SO_RCVBUF) used by the socket server
-socket.receive.buffer.bytes=102400
+socket.receive.buffer.bytes={{KAFKA_SOCKET_RECEIVE_BUFFER_BYTES}}
 
 # The maximum size of a request that the socket server will accept (protection against OOM)
-socket.request.max.bytes=104857600
+socket.request.max.bytes={{KAFKA_SOCKET_REQUEST_MAX_BYTES}}
 
 
 ############################# Log Basics #############################
 
 # A comma seperated list of directories under which to store log files
-log.dirs={{MESOS_SANDBOX}}/broker-data/kafka-logs
+log.dirs={{BROKER_DISK_PATH}}/broker-{{POD_INSTANCE_INDEX}}
 
 # The default number of log partitions per topic. More partitions allow greater
 # parallelism for consumption, but this will also result in more files across
 # the brokers.
-num.partitions=1
+num.partitions={{KAFKA_NUM_PARTITIONS}}
 
 # The number of threads per data directory to be used for log recovery at startup and flushing at shutdown.
 # This value is recommended to be increased for installations with data dirs located in RAID array.
-num.recovery.threads.per.data.dir=1
+num.recovery.threads.per.data.dir={{KAFKA_NUM_RECOVERY_THREADS_PER_DATA_DIR}}
 
 ############################# Log Flush Policy #############################
 
@@ -76,7 +76,7 @@ num.recovery.threads.per.data.dir=1
 # every N messages (or both). This can be done globally and overridden on a per-topic basis.
 
 # The number of messages to accept before forcing a flush of data to disk
-#log.flush.interval.messages=10000
+log.flush.interval.messages={{KAFKA_LOG_FLUSH_INTERVAL_MESSAGES}}
 
 # The maximum amount of time a message can sit in a log before we force a flush
 #log.flush.interval.ms=1000
@@ -89,18 +89,18 @@ num.recovery.threads.per.data.dir=1
 # from the end of the log.
 
 # The minimum age of a log file to be eligible for deletion
-log.retention.hours=168
+log.retention.hours={{KAFKA_LOG_RETENTION_HOURS}}
 
 # A size-based retention policy for logs. Segments are pruned from the log as long as the remaining
 # segments don't drop below log.retention.bytes.
-#log.retention.bytes=1073741824
+log.retention.bytes={{KAFKA_LOG_RETENTION_BYTES}}
 
 # The maximum size of a log segment file. When this size is reached a new log segment will be created.
-log.segment.bytes=1073741824
+log.segment.bytes={{KAFKA_LOG_SEGMENT_BYTES}}
 
 # The interval at which log segments are checked to see if they can be deleted according
 # to the retention policies
-log.retention.check.interval.ms=300000
+log.retention.check.interval.ms={{KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS}}
 
 ############################# Zookeeper #############################
 
@@ -109,9 +109,127 @@ log.retention.check.interval.ms=300000
 # server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002".
 # You can also append an optional chroot string to the urls to specify the
 # root directory for all kafka znodes.
-zookeeper.connect=master.mesos:2181/kafka
+zookeeper.connect={{KAFKA_ZOOKEEPER_URI}}
 
 # Timeout in ms for connecting to zookeeper
 zookeeper.connection.timeout.ms=6000
 
 
+########################### Addition Parameters ########################
+
+external.kafka.statsd.port={{BROKER_STATSD_PORT}}
+external.kafka.statsd.host={{BROKER_STATSD_HOSTS}}
+external.kafka.statsd.reporter.enabled=true
+external.kafka.statsd.tag.enabled=true
+external.kafka.statsd.metrics.exclude_regex=
+
+{{#KAFKA_ADVERTISE_HOST}}
+advertised.host.name={{LIBPROCESS_IP}}
+{{/KAFKA_ADVERTISE_HOST}}
+
+port={{KAFKA_BROKER_PORT}}
+
+auto.create.topics.enable={{KAFKA_AUTO_CREATE_TOPICS_ENABLE}}
+auto.leader.rebalance.enable={{KAFKA_AUTO_LEADER_REBALANCE_ENABLE}}
+
+background.threads={{KAFKA_BACKGROUND_THREADS}}
+
+compression.type={{KAFKA_COMPRESSION_TYPE}}
+
+connections.max.idle.ms={{KAFKA_CONNECTIONS_MAX_IDLE_MS}}
+
+controlled.shutdown.enable={{KAFKA_CONTROLLED_SHUTDOWN_ENABLE}}
+controlled.shutdown.max.retries={{KAFKA_CONTROLLED_SHUTDOWN_MAX_RETRIES}}
+controlled.shutdown.retry.backoff.ms={{KAFKA_CONTROLLED_SHUTDOWN_RETRY_BACKOFF_MS}}
+controller.socket.timeout.ms={{KAFKA_CONTROLLER_SOCKET_TIMEOUT_MS}}
+
+default.replication.factor={{KAFKA_DEFAULT_REPLICATION_FACTOR}}
+
+delete.topic.enable={{KAFKA_DELETE_TOPIC_ENABLE}}
+
+fetch.purgatory.purge.interval.requests={{KAFKA_FETCH_PURGATORY_PURGE_INTERVAL_REQUESTS}}
+
+group.max.session.timeout.ms={{KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS}}
+group.min.session.timeout.ms={{KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS}}
+
+inter.broker.protocol.version={{KAFKA_INTER_BROKER_PROTOCOL_VERSION}}
+
+leader.imbalance.check.interval.seconds={{KAFKA_LEADER_IMBALANCE_CHECK_INTERVAL_SECONDS}}
+leader.imbalance.per.broker.percentage={{KAFKA_LEADER_IMBALANCE_PER_BROKER_PERCENTAGE}}
+
+log.cleaner.backoff.ms={{KAFKA_LOG_CLEANER_BACKOFF_MS}}
+log.cleaner.dedupe.buffer.size={{KAFKA_LOG_CLEANER_DEDUPE_BUFFER_SIZE}}
+log.cleaner.delete.retention.ms={{KAFKA_LOG_CLEANER_DELETE_RETENTION_MS}}
+log.cleaner.enable={{KAFKA_LOG_CLEANER_ENABLE}}
+log.cleaner.io.buffer.load.factor={{KAFKA_LOG_CLEANER_IO_BUFFER_LOAD_FACTOR}}
+log.cleaner.io.buffer.size={{KAFKA_LOG_CLEANER_IO_BUFFER_SIZE}}
+log.cleaner.io.max.bytes.per.second={{KAFKA_LOG_CLEANER_IO_MAX_BYTES_PER_SECOND}}
+log.cleaner.min.cleanable.ratio={{KAFKA_LOG_CLEANER_MIN_CLEANABLE_RATIO}}
+log.cleaner.threads={{KAFKA_LOG_CLEANER_THREADS}}
+log.cleanup.policy={{KAFKA_LOG_CLEANUP_POLICY}}
+
+log.flush.offset.checkpoint.interval.ms={{KAFKA_LOG_FLUSH_OFFSET_CHECKPOINT_INTERVAL_MS}}
+log.flush.scheduler.interval.ms={{KAFKA_LOG_FLUSH_SCHEDULER_INTERVAL_MS}}
+
+log.index.interval.bytes={{KAFKA_LOG_INDEX_INTERVAL_BYTES}}
+log.index.size.max.bytes={{KAFKA_LOG_INDEX_SIZE_MAX_BYTES}}
+
+log.message.format.version={{KAFKA_LOG_MESSAGE_FORMAT_VERSION}}
+
+log.preallocate={{KAFKA_LOG_PREALLOCATE}}
+
+log.roll.hours={{KAFKA_LOG_ROLL_HOURS}}
+log.roll.jitter.hours={{KAFKA_LOG_ROLL_JITTER_HOURS}}
+
+log.segment.delete.delay.ms={{KAFKA_LOG_SEGMENT_DELETE_DELAY_MS}}
+
+max.connections.per.ip.overrides={{KAFKA_MAX_CONNECTIONS_PER_IP_OVERRIDES}}
+max.connections.per.ip={{KAFKA_MAX_CONNECTIONS_PER_IP}}
+
+message.max.bytes={{KAFKA_MESSAGE_MAX_BYTES}}
+
+metrics.num.samples={{KAFKA_METRICS_NUM_SAMPLES}}
+metrics.sample.window.ms={{KAFKA_METRICS_SAMPLE_WINDOW_MS}}
+
+min.insync.replicas={{KAFKA_MIN_INSYNC_REPLICAS}}
+
+num.replica.fetchers={{KAFKA_NUM_REPLICA_FETCHERS}}
+
+offset.metadata.max.bytes={{KAFKA_OFFSET_METADATA_MAX_BYTES}}
+offsets.commit.required.acks={{KAFKA_OFFSETS_COMMIT_REQUIRED_ACKS}}
+offsets.commit.timeout.ms={{KAFKA_OFFSETS_COMMIT_TIMEOUT_MS}}
+offsets.load.buffer.size={{KAFKA_OFFSETS_LOAD_BUFFER_SIZE}}
+offsets.retention.check.interval.ms={{KAFKA_OFFSETS_RETENTION_CHECK_INTERVAL_MS}}
+offsets.retention.minutes={{KAFKA_OFFSETS_RETENTION_MINUTES}}
+offsets.topic.compression.codec={{KAFKA_OFFSETS_TOPIC_COMPRESSION_CODEC}}
+offsets.topic.num.partitions={{KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS}}
+offsets.topic.replication.factor={{KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}}
+offsets.topic.segment.bytes={{KAFKA_OFFSETS_TOPIC_SEGMENT_BYTES}}
+
+producer.purgatory.purge.interval.requests={{KAFKA_PRODUCER_PURGATORY_PURGE_INTERVAL_REQUESTS}}
+
+queued.max.requests={{KAFKA_QUEUED_MAX_REQUESTS}}
+quota.consumer.default={{KAFKA_QUOTA_CONSUMER_DEFAULT}}
+quota.producer.default={{KAFKA_QUOTA_PRODUCER_DEFAULT}}
+quota.window.num={{KAFKA_QUOTA_WINDOW_NUM}}
+quota.window.size.seconds={{KAFKA_QUOTA_WINDOW_SIZE_SECONDS}}
+
+replica.fetch.backoff.ms={{KAFKA_REPLICA_FETCH_BACKOFF_MS}}
+replica.fetch.max.bytes={{KAFKA_REPLICA_FETCH_MAX_BYTES}}
+replica.fetch.min.bytes={{KAFKA_REPLICA_FETCH_MIN_BYTES}}
+replica.fetch.wait.max.ms={{KAFKA_REPLICA_FETCH_WAIT_MAX_MS}}
+replica.high.watermark.checkpoint.interval.ms={{KAFKA_REPLICA_HIGH_WATERMARK_CHECKPOINT_INTERVAL_MS}}
+replica.lag.time.max.ms={{KAFKA_REPLICA_LAG_TIME_MAX_MS}}
+replica.socket.receive.buffer.bytes={{KAFKA_REPLICA_SOCKET_RECEIVE_BUFFER_BYTES}}
+replica.socket.timeout.ms={{KAFKA_REPLICA_SOCKET_TIMEOUT_MS}}
+
+request.timeout.ms={{KAFKA_REQUEST_TIMEOUT_MS}}
+
+reserved.broker.max.id={{KAFKA_RESERVED_BROKER_MAX_ID}}
+
+unclean.leader.election.enable={{KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE}}
+
+zookeeper.session.timeout.ms={{KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS}}
+zookeeper.sync.time.ms={{KAFKA_ZOOKEEPER_SYNC_TIME_MS}}
+
+########################################################################

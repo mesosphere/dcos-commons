@@ -86,7 +86,8 @@ public class OfferAccepterTest {
         private List<Operation> destroys = new ArrayList<>();
         private List<Operation> launches = new ArrayList<>();
 
-        public void record(Operation operation, Offer offer) throws Exception {
+        public void record(OfferRecommendation offerRecommendation) throws Exception {
+            Operation operation = offerRecommendation.getOperation();
             switch (operation.getType()) {
                 case UNRESERVE:
                     unreserves.add(operation);

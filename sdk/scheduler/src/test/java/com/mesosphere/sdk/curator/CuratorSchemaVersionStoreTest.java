@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.curator;
 
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.curator.test.TestingServer;
 import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.test.TestingServer;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,8 +28,10 @@ public class CuratorSchemaVersionStoreTest {
 
     private static TestingServer testZk;
     private CuratorPersister curator;
+    private CuratorPersister curatorWithAcl;
     @Mock CuratorPersister mockCurator;
     private SchemaVersionStore store;
+    private SchemaVersionStore storeWithAcl;
     private SchemaVersionStore store2;
     private SchemaVersionStore storeWithMock;
 
@@ -44,7 +46,13 @@ public class CuratorSchemaVersionStoreTest {
         CuratorTestUtils.clear(testZk);
         curator = new CuratorPersister(
                 testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+        curatorWithAcl = new CuratorPersister(
+                testZk.getConnectString(),
+                new ExponentialBackoffRetry(1000, 3),
+                CuratorTestUtils.USERNAME,
+                CuratorTestUtils.PASSWORD);
         store = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
+        storeWithAcl = new CuratorSchemaVersionStore(curatorWithAcl, ROOT_ZK_PATH);
         store2 = new CuratorSchemaVersionStore(curator, ROOT_ZK_PATH);
         storeWithMock = new CuratorSchemaVersionStore(mockCurator, ROOT_ZK_PATH);
     }
@@ -83,6 +91,78 @@ public class CuratorSchemaVersionStoreTest {
     }
 
     @Test
+    public void testStoreWOAclAndFetchWithAcl() throws Exception {
+        assertFalse(directWithAclHasVersion());
+        final int val = 10;
+        final int valUpdate = 15;
+
+        // Store value with world:anyone then read with digest username:password.
+        store.store(val);
+        assertEquals(val, store.fetch());
+        assertEquals(val, storeWithAcl.fetch());
+        assertEquals(val, getDirectVersion());
+        assertEquals(val, getWithAclDirectVersion());
+
+        // Update the world:anyone value and should be readable with or without Auth
+        store.store(valUpdate);
+        assertEquals(valUpdate, store.fetch());
+        assertEquals(valUpdate, storeWithAcl.fetch());
+        assertEquals(valUpdate, getDirectVersion());
+        assertEquals(valUpdate, getWithAclDirectVersion());
+
+        storeWithAcl.store(valUpdate);
+        assertEquals(valUpdate, store.fetch());
+        assertEquals(valUpdate, storeWithAcl.fetch());
+        assertEquals(valUpdate, getDirectVersion());
+        assertEquals(valUpdate, getWithAclDirectVersion());
+    }
+
+    @Test
+    public void testStoreWithAclAndFetchWOAcl() throws Exception {
+        assertFalse(directWithAclHasVersion());
+        final int val = 10;
+        final int valUpdate = 15;
+
+        // Store value with ACL.
+        storeWithAcl.store(val);
+
+        // Readable with appropriate Auth and ACL.
+        assertEquals(val, storeWithAcl.fetch());
+        assertEquals(val, getWithAclDirectVersion());
+
+        // Readable with world:anyone permission.
+        assertEquals(val, store.fetch());
+        assertEquals(val, getDirectVersion());
+
+        // Not writeable with world:anyone permission.
+        try
+        {
+            storeDirectVersion(Integer.toString(valUpdate));
+            fail("Should have failed with auth exception");
+        }
+        catch ( KeeperException.NoAuthException e )
+        {
+            // expected
+        }
+
+        // Not writeable with incorrect Auth
+        try
+        {
+            CuratorPersister curatorAclSomeone = new CuratorPersister(
+                    testZk.getConnectString(), new ExponentialBackoffRetry(1000, 3), "someone", "else");
+
+            curatorAclSomeone.set(NODE_PATH, "someoneelse".getBytes(CHARSET));
+            fail("Should have failed with auth exception");
+        }
+        catch ( KeeperException.NoAuthException e )
+        {
+            // expected
+        }
+
+        curatorWithAcl.delete(NODE_PATH);
+    }
+
+    @Test
     public void testStoreFetchStoreFetch_acrossInstances() throws Exception {
         assertFalse(directHasVersion());
         final int val = 5;
@@ -118,7 +198,7 @@ public class CuratorSchemaVersionStoreTest {
     public void testStoreOtherFailure() throws Exception {
         final int val = 3;
         doThrow(Exception.class)
-            .when(mockCurator).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
+                .when(mockCurator).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
         storeWithMock.store(3);
     }
 
@@ -131,13 +211,32 @@ public class CuratorSchemaVersionStoreTest {
         }
     }
 
+    private boolean directWithAclHasVersion() throws Exception {
+        try {
+            curatorWithAcl.get(NODE_PATH);
+            return true;
+        } catch (KeeperException.NoNodeException e) {
+            return false;
+        }
+    }
+
     private int getDirectVersion() throws Exception {
         byte[] bytes = curator.get(NODE_PATH);
         String str = new String(bytes, CHARSET);
         return Integer.parseInt(str);
     }
 
+    private int getWithAclDirectVersion() throws Exception {
+        byte[] bytes = curatorWithAcl.get(NODE_PATH);
+        String str = new String(bytes, CHARSET);
+        return Integer.parseInt(str);
+    }
+
     private void storeDirectVersion(String data) throws Exception {
         curator.set(NODE_PATH, data.getBytes(CHARSET));
+    }
+
+    private void storeWithAclDirectVersion(String data) throws Exception {
+        curatorWithAcl.set(NODE_PATH, data.getBytes(CHARSET));
     }
 }

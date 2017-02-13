@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -18,6 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -49,9 +51,9 @@ public class DefaultPlanGeneratorTest {
     }
 
     @Test
-    public void testFullManualPlan() throws Exception {
+    public void testCustomPhases() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("full-manual-plan.yml").getFile());
+        File file = new File(classLoader.getResource("custom-phases.yml").getFile());
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
 
@@ -66,57 +68,77 @@ public class DefaultPlanGeneratorTest {
         for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);
-            Assert.assertEquals(2, plan.getChildren().size());
-            Assert.assertEquals(2, plan.getChildren().get(0).getChildren().size());
-            Assert.assertEquals(1, plan.getChildren().get(1).getChildren().size());
+            Assert.assertEquals(6, plan.getChildren().size());
+
+            Phase serverPhase = plan.getChildren().get(0);
+            Phase oncePhase = plan.getChildren().get(1);
+            Phase interleavePhase = plan.getChildren().get(2);
+            Phase fullCustomPhase = plan.getChildren().get(3);
+            Phase partialCustomPhase = plan.getChildren().get(4);
+            Phase omitStepPhase = plan.getChildren().get(5);
+
+            validatePhase(
+                    serverPhase,
+                    Arrays.asList(
+                            Arrays.asList("server"),
+                            Arrays.asList("server"),
+                            Arrays.asList("server")));
+
+            validatePhase(
+                    oncePhase,
+                    Arrays.asList(
+                            Arrays.asList("once"),
+                            Arrays.asList("once"),
+                            Arrays.asList("once")));
+
+            validatePhase(
+                    interleavePhase,
+                    Arrays.asList(
+                            Arrays.asList("once"),
+                            Arrays.asList("server"),
+                            Arrays.asList("once"),
+                            Arrays.asList("server"),
+                            Arrays.asList("once"),
+                            Arrays.asList("server")));
+
+            validatePhase(
+                    fullCustomPhase,
+                    Arrays.asList(
+                            Arrays.asList("once"),
+                            Arrays.asList("server"),
+                            Arrays.asList("server"),
+                            Arrays.asList("once"),
+                            Arrays.asList("server")));
+
+            validatePhase(
+                    partialCustomPhase,
+                    Arrays.asList(
+                            Arrays.asList("server"),
+                            Arrays.asList("once"),
+                            Arrays.asList("once"),
+                            Arrays.asList("server"),
+                            Arrays.asList("server"),
+                            Arrays.asList("once")));
+
+            validatePhase(
+                    omitStepPhase,
+                    Arrays.asList(
+                            Arrays.asList("once"),
+                            Arrays.asList("server")));
+            Assert.assertEquals("hello-1:[once]", omitStepPhase.getChildren().get(0).getName());
+            Assert.assertEquals("hello-1:[server]", omitStepPhase.getChildren().get(1).getName());
         }
     }
 
-    @Test
-    public void testPartialManualPlan() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("partial-manual-plan.yml").getFile());
-        RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(file);
-        DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
-
-        stateStore = DefaultScheduler.createStateStore(
-                serviceSpec,
-                testingServer.getConnectString());
-        configStore = DefaultScheduler.createConfigStore(serviceSpec, testingServer.getConnectString());
-
-        Assert.assertNotNull(serviceSpec);
-
-        DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore);
-        for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
-            Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
-            Assert.assertNotNull(plan);
-            Assert.assertEquals(2, plan.getChildren().size());
-            Assert.assertEquals(2, plan.getChildren().get(0).getChildren().size());
-            Assert.assertEquals(2, plan.getChildren().get(1).getChildren().size());
-
-            PodInstanceRequirement podInstanceRequirement =
-                    plan.getChildren().get(0).getChildren().get(0).start().get();
+    private void validatePhase(Phase phase, List<List<String>> stepTasks) {
+        Assert.assertEquals(phase.getChildren().size(), stepTasks.size());
+        for (int i = 0; i < stepTasks.size(); i++) {
+            PodInstanceRequirement podInstanceRequirement = phase.getChildren().get(i).start().get();
             List<String> tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
-            Assert.assertEquals(1, tasksToLaunch.size());
-            Assert.assertEquals("server", tasksToLaunch.get(0));
 
-            podInstanceRequirement =
-                    plan.getChildren().get(0).getChildren().get(1).start().get();
-            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
-            Assert.assertEquals(1, tasksToLaunch.size());
-            Assert.assertEquals("server", tasksToLaunch.get(0));
-
-            podInstanceRequirement =
-                    plan.getChildren().get(1).getChildren().get(0).start().get();
-            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
-            Assert.assertEquals(1, tasksToLaunch.size());
-            Assert.assertEquals("once", tasksToLaunch.get(0));
-
-            podInstanceRequirement =
-                    plan.getChildren().get(1).getChildren().get(1).start().get();
-            tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
-            Assert.assertEquals(1, tasksToLaunch.size());
-            Assert.assertEquals("once", tasksToLaunch.get(0));
+            for (int j = 0; j < tasksToLaunch.size(); j++) {
+                Assert.assertEquals(tasksToLaunch.get(j), stepTasks.get(i).get(j));
+            }
         }
     }
 }

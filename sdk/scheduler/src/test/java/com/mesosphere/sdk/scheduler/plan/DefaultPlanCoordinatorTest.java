@@ -116,14 +116,12 @@ public class DefaultPlanCoordinatorTest {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
-        stateStore = new CuratorStateStore(
-                serviceSpecification.getName(),
-                testingServer.getConnectString());
+        stateStore = new CuratorStateStore(serviceSpecification.getName(), testingServer.getConnectString());
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
         taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
-        provider = new DefaultOfferRequirementProvider(stateStore, UUID.randomUUID());
+        provider = new DefaultOfferRequirementProvider(stateStore, serviceSpecification.getName(), UUID.randomUUID());
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter, new OfferEvaluator(stateStore, provider), stateStore, taskKiller);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()

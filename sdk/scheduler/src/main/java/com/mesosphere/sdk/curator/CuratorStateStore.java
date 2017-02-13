@@ -6,6 +6,8 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
 import org.apache.zookeeper.KeeperException;
@@ -76,7 +78,22 @@ public class CuratorStateStore implements StateStore {
      * @param connectionString The host/port of the ZK server, eg "master.mesos:2181"
      */
     public CuratorStateStore(String frameworkName, String connectionString) {
-        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry());
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), "", "");
+    }
+
+    public CuratorStateStore(
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy) {
+        this(frameworkName, connectionString, retryPolicy, "", "");
+    }
+
+    public CuratorStateStore(
+            String frameworkName,
+            String connectionString,
+            String username,
+            String password) {
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);
     }
 
     /**
@@ -87,8 +104,12 @@ public class CuratorStateStore implements StateStore {
      * @param retryPolicy      The custom {@link RetryPolicy}
      */
     public CuratorStateStore(
-            String frameworkName, String connectionString, RetryPolicy retryPolicy) {
-        this.curator = new CuratorPersister(connectionString, retryPolicy);
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy,
+            String username,
+            String password) {
+        this.curator = new CuratorPersister(connectionString, retryPolicy, username, password);
 
         // Check version up-front:
         int currentVersion = new CuratorSchemaVersionStore(curator, frameworkName).fetch();
@@ -114,7 +135,7 @@ public class CuratorStateStore implements StateStore {
             logger.debug("Storing FrameworkID in '{}'", fwkIdPath);
             curator.set(fwkIdPath, fwkId.toByteArray());
         } catch (Exception e) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to store FrameworkID in '%s'", fwkIdPath), e);
         }
     }
@@ -129,7 +150,7 @@ public class CuratorStateStore implements StateStore {
             logger.warn("Cleared unset FrameworkID, continuing silently", e);
             return;
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -141,14 +162,14 @@ public class CuratorStateStore implements StateStore {
             if (bytes.length > 0) {
                 return Optional.of(Protos.FrameworkID.parseFrom(bytes));
             } else {
-                throw new StateStoreException(String.format(
-                        "Failed to retrieve FrameworkID in '%s'", fwkIdPath));
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
+                        "Empty FrameworkID in '%s'", fwkIdPath));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No FrameworkId found at: " + fwkIdPath);
+            logger.warn("No FrameworkId found at: {}", fwkIdPath);
             return Optional.empty();
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -165,7 +186,7 @@ public class CuratorStateStore implements StateStore {
         try {
             curator.setMany(taskBytesMap);
         } catch (Exception e) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
                     "Failed to store %d TaskInfos", tasks.size()), e);
         }
     }
@@ -176,7 +197,7 @@ public class CuratorStateStore implements StateStore {
         try {
             taskName = CommonTaskUtils.toTaskName(status.getTaskId());
         } catch (TaskException e) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
         }
 
@@ -187,18 +208,18 @@ public class CuratorStateStore implements StateStore {
         try {
             optionalTaskInfo = fetchTask(taskName);
         } catch (Exception e) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s.", taskName), e);
         }
 
         if (!optionalTaskInfo.isPresent()) {
-            throw new StateStoreException(
+            throw new StateStoreException(Reason.LOGIC_ERROR,
                     String.format("The following TaskInfo is not present in the StateStore: %s. " +
                             "TaskInfo must be present in order to store a TaskStatus.", taskName));
         }
 
         if (!optionalTaskInfo.get().getTaskId().getValue().equals(status.getTaskId().getValue())) {
-            throw new StateStoreException(String.format(
+            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Task ID '%s' of updated status doesn't match Task ID '%s' of current TaskInfo."
                             + " Task IDs must exactly match before status may be updated."
                             + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
@@ -211,7 +232,7 @@ public class CuratorStateStore implements StateStore {
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
                 && CommonTaskUtils.isTerminal(currentStatusOptional.get())) {
-            throw new StateStoreException(
+            throw new StateStoreException(Reason.LOGIC_ERROR,
                     String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
                             currentStatusOptional.get().getState(), taskName));
         }
@@ -222,7 +243,7 @@ public class CuratorStateStore implements StateStore {
         try {
             curator.set(path, status.toByteArray());
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -237,7 +258,7 @@ public class CuratorStateStore implements StateStore {
             logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
             return;
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -258,7 +279,7 @@ public class CuratorStateStore implements StateStore {
             // expected to commonly occur when the Framework is being run for the first time.
             return Collections.emptyList();
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -266,12 +287,13 @@ public class CuratorStateStore implements StateStore {
     public Collection<Protos.TaskInfo> fetchTasks() throws StateStoreException {
         Collection<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
-            try {
-                byte[] bytes = curator.get(taskPathMapper.getTaskInfoPath(taskName));
-                taskInfos.add(Protos.TaskInfo.parseFrom(bytes));
-            } catch (Exception e) {
-                // Throw even for NoNodeException: We should always have a TaskInfo for every entry
-                throw new StateStoreException(e);
+            Optional<Protos.TaskInfo> taskInfoOptional = fetchTask(taskName);
+            if (taskInfoOptional.isPresent()) {
+                taskInfos.add(taskInfoOptional.get());
+            } else {
+                // We should always have a TaskInfo for every name entry we just got
+                throw new StateStoreException(Reason.NOT_FOUND,
+                        String.format("Expected task named %s to be present when retrieving all tasks", taskName));
             }
         }
         return taskInfos;
@@ -284,16 +306,20 @@ public class CuratorStateStore implements StateStore {
         try {
             byte[] bytes = curator.get(path);
             if (bytes.length > 0) {
+                // TODO(nick): This unpack operation is no longer needed, but it doesn't hurt anything to leave it in
+                // place to support reading older data. Remove this unpack call after services have had time to stop
+                // storing packed TaskInfos in zk (after June 2017 or so?).
                 return Optional.of(CommonTaskUtils.unpackTaskInfo(Protos.TaskInfo.parseFrom(bytes)));
             } else {
-                throw new StateStoreException(String.format(
-                        "Failed to retrieve TaskInfo for TaskName: %s", taskName));
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
+                        "Empty TaskInfo for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
             return Optional.empty();
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR,
+                    String.format("Failed to retrieve task named %s", taskName), e);
         }
     }
 
@@ -309,7 +335,7 @@ public class CuratorStateStore implements StateStore {
                 // the only contents are a TaskInfo.
                 continue;
             } catch (Exception e) {
-                throw new StateStoreException(e);
+                throw new StateStoreException(Reason.STORAGE_ERROR, e);
             }
         }
         return taskStatuses;
@@ -324,14 +350,14 @@ public class CuratorStateStore implements StateStore {
             if (bytes.length > 0) {
                 return Optional.of(Protos.TaskStatus.parseFrom(bytes));
             } else {
-                throw new StateStoreException(String.format(
-                        "Failed to retrieve TaskStatus for TaskName: %s", taskName));
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
+                        "Empty TaskStatus for TaskName: %s", taskName));
             }
         } catch (KeeperException.NoNodeException e) {
-            logger.warn("No TaskInfo found for the requested name: " + taskName + " at: " + path);
+            logger.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
             return Optional.empty();
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -344,7 +370,7 @@ public class CuratorStateStore implements StateStore {
             logger.debug("Storing property key: {} into path: {}", key, path);
             curator.set(path, value);
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -355,8 +381,10 @@ public class CuratorStateStore implements StateStore {
             final String path = CuratorUtils.join(this.propertiesPath, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
             return curator.get(path);
+        } catch (KeeperException.NoNodeException e) {
+            throw new StateStoreException(Reason.NOT_FOUND, e);
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -369,7 +397,7 @@ public class CuratorStateStore implements StateStore {
             // expected to commonly occur when the Framework is being run for the first time.
             return Collections.emptyList();
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -385,7 +413,7 @@ public class CuratorStateStore implements StateStore {
             logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
             return;
         } catch (Exception e) {
-            throw new StateStoreException(e);
+            throw new StateStoreException(Reason.STORAGE_ERROR, e);
         }
     }
 
@@ -428,8 +456,8 @@ public class CuratorStateStore implements StateStore {
         try {
             suppressed = serializer.deserialize(bytes, Boolean.class);
         } catch (IOException e){
-            logger.error("Error converting property " + SUPPRESSED_KEY + " to boolean.", e);
-            throw new StateStoreException(e);
+            logger.error(String.format("Error converting property %s to boolean.", SUPPRESSED_KEY), e);
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
         }
 
         return suppressed;
@@ -442,8 +470,8 @@ public class CuratorStateStore implements StateStore {
         try {
             bytes = serializer.serialize(isSuppressed);
         } catch (IOException e) {
-            logger.error("Error serializing property " + SUPPRESSED_KEY + ": " + isSuppressed + ".", e);
-            throw new StateStoreException(e);
+            logger.error(String.format("Error serializing property %s: %s", SUPPRESSED_KEY, isSuppressed), e);
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
         }
 
         storeProperty(SUPPRESSED_KEY, bytes);

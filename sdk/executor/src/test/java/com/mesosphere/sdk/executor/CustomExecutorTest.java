@@ -16,6 +16,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CustomExecutorTest {
+    private static final String TASK_TYPE = "TASK_TYPE";
+    private static final String TEST = "TEST";
+
     @Rule
     public final ExpectedSystemExit exit = ExpectedSystemExit.none();
 
@@ -38,7 +41,7 @@ public class CustomExecutorTest {
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName("TEST")
+                .setName(TEST)
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setExecutor(executorInfo)
@@ -48,7 +51,7 @@ public class CustomExecutorTest {
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
                                 .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
                         .build()
                         .toByteString())
                 .build();
@@ -65,7 +68,7 @@ public class CustomExecutorTest {
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName("TEST")
+                .setName(TEST)
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setExecutor(executorInfo)
@@ -75,7 +78,7 @@ public class CustomExecutorTest {
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
                                 .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
                         .build()
                         .toByteString())
                 .build();
@@ -120,7 +123,7 @@ public class CustomExecutorTest {
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName("TEST")
+                .setName(TEST)
                 .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
                 .setExecutor(executorInfo)
@@ -130,7 +133,7 @@ public class CustomExecutorTest {
                         .setEnvironment(Protos.Environment
                                 .newBuilder()
                                 .addVariables(
-                                        TaskTestUtils.createEnvironmentVariable(DcosTaskConstants.TASK_TYPE, "TEST")))
+                                        TaskTestUtils.createEnvironmentVariable(TASK_TYPE, TEST)))
                         .build()
                         .toByteString())
                 .build();

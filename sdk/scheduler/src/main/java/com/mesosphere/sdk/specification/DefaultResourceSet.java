@@ -17,9 +17,11 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -205,38 +207,52 @@ public class DefaultResourceSet implements ResourceSet {
             return this;
         }
 
-        public Builder addPort(String name, RawPort rawPort) {
-            Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
-                    .setType(Protos.Value.Type.RANGES);
-            portValueBuilder.getRangesBuilder().addRangeBuilder()
-                    .setBegin(rawPort.getPort())
-                    .setEnd(rawPort.getPort());
+        public Builder addPorts(Map<String, RawPort> ports) {
+            Collection<PortSpec> portSpecs = new ArrayList<>();
+            Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
+            String envKey = null;
+            for (Map.Entry<String, RawPort> portEntry : ports.entrySet()) {
+                String name = portEntry.getKey();
+                RawPort rawPort = portEntry.getValue();
+                Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
+                        .setType(Protos.Value.Type.RANGES);
+                portValueBuilder.getRangesBuilder().addRangeBuilder()
+                        .setBegin(rawPort.getPort())
+                        .setEnd(rawPort.getPort());
+                portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
+                if (envKey == null) {
+                    envKey = rawPort.getEnvKey();
+                }
 
-            if (rawPort.getVip() != null) {
-                final RawVip rawVip = rawPort.getVip();
-                final String protocol =
-                        StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
-                final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
-                resources.add(new NamedVIPSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
-                        portValueBuilder.build(),
-                        role,
-                        principal,
-                        rawPort.getEnvKey(),
-                        name,
-                        protocol,
-                        toVisibility(rawVip.isAdvertised()),
-                        vipName,
-                        rawVip.getPort()));
-            } else {
-                resources.add(new PortSpec(
-                        Constants.PORTS_RESOURCE_TYPE,
-                        portValueBuilder.build(),
-                        role,
-                        principal,
-                        rawPort.getEnvKey(),
-                        name));
+                if (rawPort.getVip() != null) {
+                    final RawVip rawVip = rawPort.getVip();
+                    final String protocol =
+                            StringUtils.isEmpty(rawVip.getProtocol()) ? DEFAULT_VIP_PROTOCOL : rawVip.getProtocol();
+                    final String vipName = StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix();
+                    portSpecs.add(new NamedVIPSpec(
+                            Constants.PORTS_RESOURCE_TYPE,
+                            portValueBuilder.build(),
+                            role,
+                            principal,
+                            rawPort.getEnvKey(),
+                            name,
+                            protocol,
+                            toVisibility(rawVip.isAdvertised()),
+                            vipName,
+                            rawVip.getPort()));
+                } else {
+                    portSpecs.add(new PortSpec(
+                            Constants.PORTS_RESOURCE_TYPE,
+                            portValueBuilder.build(),
+                            role,
+                            principal,
+                            rawPort.getEnvKey(),
+                            name));
+                }
             }
+            resources.add(new PortsSpec(
+                    Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs));
+
             return this;
         }
 

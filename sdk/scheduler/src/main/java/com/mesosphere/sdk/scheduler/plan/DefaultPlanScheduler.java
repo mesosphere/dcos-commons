@@ -124,7 +124,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
             // to Pending to ensure it will be reattempted on the next Offer cycle.
             step.updateOfferStatus(Collections.emptyList());
         } else {
-            step.updateOfferStatus(getOperations(recommendations));
+            step.updateOfferStatus(getNonTransientRecommendations(recommendations));
         }
 
         return acceptedOffers;
@@ -155,12 +155,6 @@ public class DefaultPlanScheduler implements PlanScheduler {
                 taskKiller.killTask(taskInfo.getTaskId(), false);
             }
         }
-    }
-
-    private static Collection<Offer.Operation> getOperations(Collection<OfferRecommendation> recommendations) {
-        return getNonTransientRecommendations(recommendations).stream()
-                .map(OfferRecommendation::getOperation)
-                .collect(Collectors.toList());
     }
 
     /**

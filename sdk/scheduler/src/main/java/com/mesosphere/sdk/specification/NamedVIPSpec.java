@@ -2,8 +2,9 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.evaluate.NamedVIPEvaluationStage;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
+import com.mesosphere.sdk.offer.NamedVIPRequirement;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -17,10 +18,7 @@ import javax.validation.constraints.Size;
 /**
  * This class represents a port mapped to a DC/OS named VIP.
  */
-public class NamedVIPSpec extends DefaultResourceSpec implements ResourceSpec {
-    @NotNull
-    @Size(min = 1)
-    private final String portName;
+public class NamedVIPSpec extends PortSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String protocol;
@@ -44,19 +42,13 @@ public class NamedVIPSpec extends DefaultResourceSpec implements ResourceSpec {
             @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
             @JsonProperty("vip-name") String vipName,
             @JsonProperty("vip-port") Integer vipPort) {
-        super(name, value, role, principal, envKey);
-        this.portName = portName;
+        super(name, value, role, principal, envKey, portName);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
         this.vipPort = vipPort;
 
         ValidationUtils.validate(this);
-    }
-
-    @JsonProperty("port-name")
-    public String getPortName() {
-        return portName;
     }
 
     @JsonProperty("protocol")
@@ -80,11 +72,13 @@ public class NamedVIPSpec extends DefaultResourceSpec implements ResourceSpec {
     }
 
     @Override
-    public OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName) {
-        return new NamedVIPEvaluationStage(
-                resource,
-                taskName,
-                getPortName(),
+    public ResourceRequirement getResourceRequirement(Protos.Resource resource) {
+        Protos.Resource portResource = resource == null ?
+                ResourceUtils.getDesiredResource(this) :
+                ResourceUtils.withValue(resource, getValue());
+        return new NamedVIPRequirement(
+                portResource,
+                generateEnvKey(),
                 (int) getValue().getRanges().getRange(0).getBegin(),
                 getProtocol(),
                 getVisibility(),

@@ -3,9 +3,10 @@ package com.mesosphere.sdk.config;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
+import com.mesosphere.sdk.offer.TaskUtils;
 
 /**
  * Default implementation of a {@link TaskConfigRouter} which interprets the system environment,
@@ -17,7 +18,6 @@ public class DefaultTaskConfigRouter implements TaskConfigRouter {
 
     private static final String TASKCFG_ENV_FORMAT = "TASKCFG_%s_";
     private static final String ALL_TASKS_PREFIX = String.format(TASKCFG_ENV_FORMAT, "ALL");
-    private static final Pattern ENVVAR_INVALID_CHARS = Pattern.compile("[^a-zA-Z0-9]");
 
     private final Map<String, String> config;
 
@@ -54,11 +54,13 @@ public class DefaultTaskConfigRouter implements TaskConfigRouter {
     private static Set<String> getPrefixesForTaskType(String taskType) {
         Set<String> set = new HashSet<>();
         // convert eg "index-mgr" or "index.mgr" to "TASKCFG_INDEX_MGR_":
-        String taskTypePrefix = String.format(
-                TASKCFG_ENV_FORMAT,
-                ENVVAR_INVALID_CHARS.matcher(taskType.toUpperCase()).replaceAll("_"));
-        set.add(taskTypePrefix); // TASKCFG_<TASK_TYPE>_* for items matching this type
-        set.add(ALL_TASKS_PREFIX); // TASKCFG_ALL_* for items matching all types
+
+        // 1. TASKCFG_<TASK_TYPE>_* for items matching this type:
+        set.add(String.format(TASKCFG_ENV_FORMAT, TaskUtils.toEnvName(taskType)));
+
+        // 2. TASKCFG_ALL_* for items matching all types:
+        set.add(ALL_TASKS_PREFIX);
+
         return set;
     }
 }

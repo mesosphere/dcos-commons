@@ -1,6 +1,11 @@
 package com.mesosphere.sdk.specification;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.PortRequirement;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -25,10 +30,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.Optional;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
@@ -76,6 +81,31 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validPortResourceEnvKey() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+
+        List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+                .getResources()
+                .stream()
+                .filter(r -> r.getName().equals("ports"))
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(1, portsResources.size());
+
+       PortsRequirement portsRequirement = (PortsRequirement) portsResources.get(0).getResourceRequirement(null);
+       List<ResourceRequirement> portReqList = (List<ResourceRequirement>) portsRequirement.getPortRequirements();
+
+       Assert.assertEquals(3, portReqList.size());
+
+       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getEnvKey());
+       Assert.assertEquals(Constants.PORT_NAME_LABEL_PREFIX + "name2", ((PortRequirement) portReqList.get(1)).getEnvKey());
+       Assert.assertEquals(Constants.PORT_NAME_LABEL_PREFIX  + "name3", ((PortRequirement) portReqList.get(2)).getEnvKey());
+
+    }
+
+    @Test
     public void validPortResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());
@@ -87,14 +117,12 @@ public class DefaultServiceSpecTest {
                 .filter(r -> r.getName().equals("ports"))
                 .collect(Collectors.toList());
 
-        Assert.assertEquals(2, portsResources.size());
+        Assert.assertEquals(1, portsResources.size());
 
         Protos.Value.Ranges ports = portsResources.get(0).getValue().getRanges();
-        Assert.assertEquals(1, ports.getRangeCount());
+        Assert.assertEquals(2, ports.getRangeCount());
         Assert.assertEquals(8080, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
-
-        ports = portsResources.get(1).getValue().getRanges();
-        Assert.assertEquals(8088, ports.getRange(0).getBegin(), ports.getRange(0).getEnd());
+        Assert.assertEquals(8088, ports.getRange(1).getBegin(), ports.getRange(1).getEnd());
     }
 
     @Test
@@ -118,17 +146,42 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void invalidPodName() throws Exception {
+    public void invalidDuplicatePodName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
-                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
-                Assert.assertTrue(constraintViolations.size() > 0);
-            }
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage(), cause.getMessage().contains("Duplicate field 'meta-data'"));
+        }
+    }
+
+    @Test
+    public void invalidDuplicateCount() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-duplicate-count.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (JsonMappingException e) {
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage().contains("Duplicate field 'count'"));
+        }
+    }
+
+    @Test
+    public void invalidVolumeAndVolumes() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-volume-and-volumes.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("Both 'volume' and 'volumes'"));
         }
     }
 
@@ -167,6 +220,7 @@ public class DefaultServiceSpecTest {
             DefaultServiceSpec.newBuilder(defaultServiceSpec)
                     .pods(pods)
                     .build();
+            Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -179,12 +233,11 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-task-name.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
-                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
-                Assert.assertTrue(constraintViolations.size() > 0);
-            }
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage(), cause.getMessage().contains("Duplicate field 'meta-data-task'"));
         }
     }
 
@@ -213,6 +266,7 @@ public class DefaultServiceSpecTest {
             DefaultPodSpec.newBuilder(aPod)
                     .tasks(tasks)
                     .build();
+            Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -225,6 +279,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
             Assert.assertTrue(constraintViolations.size() > 0);
@@ -232,17 +287,17 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void invalidResourceSetName() throws Exception {
+    public void invalidDuplicateResourceSetName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-resource-set-name.yml").getFile());
         try {
             generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
-            if (e.getCause() instanceof ConstraintViolationException) {
-                ConstraintViolationException cause = (ConstraintViolationException) e.getCause();
-                Set<ConstraintViolation<?>> constraintViolations = cause.getConstraintViolations();
-                Assert.assertTrue(constraintViolations.size() > 0);
-            }
+            Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
+            JsonParseException cause = (JsonParseException) e.getCause();
+            Assert.assertTrue(cause.getMessage(),
+                    cause.getMessage().contains("Duplicate field 'data-store-resources'"));
         }
     }
 

@@ -6,6 +6,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,21 +29,18 @@ public class ReservationEvaluationStage implements OfferEvaluationStage {
     }
 
     @Override
-    public EvaluationOutcome evaluate(
-            MesosResourcePool mesosResourcePool,
-            OfferRequirement offerRequirement,
-            OfferRecommendationSlate offerRecommendationSlate) {
+    public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         Map<String, MesosResource> reservedResources = mesosResourcePool.getReservedPool();
+        Collection<OfferRecommendation> recommendations = new ArrayList<>();
         for (Map.Entry<String, MesosResource> entry : reservedResources.entrySet()) {
             if (resourceIds.contains(entry.getKey())) {
                 logger.info("    Remaining reservation for resource {} unclaimed, generating UNRESERVE operation",
                         TextFormat.shortDebugString(entry.getValue().getResource()));
                 Protos.Resource unreserveResource = ResourceUtils.setResourceId(
                         entry.getValue().getResource(), entry.getKey());
-                offerRecommendationSlate.addUnreserveRecommendation(
-                        new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), unreserveResource));
+                recommendations.add(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), unreserveResource));
             }
         }
-        return pass(this, "Added reservation information to offer requirement");
+        return pass(this, recommendations, "Added reservation information to offer requirement");
     }
 }

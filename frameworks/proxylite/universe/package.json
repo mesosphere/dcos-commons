@@ -1,0 +1,12 @@
+{
+  "packagingVersion": "2.0",
+  "name": "proxylite",
+  "version": "{{package-version}}",
+  "maintainer": "support@mesosphere.io",
+  "description": "An proxylite implementation of a service using the DC/OS SDK",
+  "selected": false,
+  "framework": true,
+  "tags": ["proxylite"],
+  "postInstallNotes": "DC/OS proxylite is being installed!\n\n\tDocumentation: https://github.com/mesosphere/dcos-commons/tree/master/frameworks/proxylite\n\tIssues: https://docs.mesosphere.com/support/",
+  "postUninstallNotes": "DC/OS proxylite has been uninstalled."
+}

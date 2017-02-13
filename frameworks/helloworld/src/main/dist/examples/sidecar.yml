@@ -35,15 +35,18 @@ plans:
       server-deploy:
         strategy: parallel
         pod: hello
-        tasks: [server]
+        steps:
+          - default: [[server]]
       once-deploy:
         strategy: parallel
         pod: hello
-        tasks: [once]
+        steps:
+          - default: [[once]]
   sidecar:
     strategy: serial
     phases:
       sidecar-deploy:
         strategy: parallel
         pod: hello
-        tasks: [sidecar]
+        steps:
+          - default: [[sidecar]]

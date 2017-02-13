@@ -1,18 +1,16 @@
 package com.mesosphere.sdk.state;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
+import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.testutils.CuratorTestUtils;
+import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-import com.mesosphere.sdk.curator.CuratorStateStore;
-import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -21,15 +19,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link StateStoreCache}
@@ -145,7 +138,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreFrameworkIdFailureThenSuccess() {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeFrameworkId(FRAMEWORK_ID);
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeFrameworkId(FRAMEWORK_ID);
         try {
             mockedCache.storeFrameworkId(FRAMEWORK_ID);
             fail("expected exception");
@@ -201,7 +194,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStorePropertyFailureThenSuccess() {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeProperty(PROP_KEY2, PROP_VAL2);
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeProperty(PROP_KEY2, PROP_VAL2);
         try {
             mockedCache.storeProperty(PROP_KEY2, PROP_VAL2);
             fail("expected exception");
@@ -276,7 +269,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreTaskInfoFailureThenSuccess() {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeTasks(Arrays.asList(TASK2));
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeTasks(Arrays.asList(TASK2));
         try {
             mockedCache.storeTasks(Arrays.asList(TASK2));
             fail("expected exception");
@@ -378,7 +371,7 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreTaskStatusFailureThenSuccess() throws Exception {
-        doThrow(new StateStoreException("hello")).when(mockStore).storeStatus(STATUS2);
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeStatus(STATUS2);
         try {
             mockedCache.storeStatus(STATUS2);
             fail("expected exception");

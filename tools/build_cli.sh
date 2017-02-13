@@ -34,11 +34,6 @@ print_file_and_shasum() {
 
 # go (static binaries containing the CLI itself)
 
-if [ -z "$GOPATH" ]; then
-    echo "GOPATH must be defined. https://golang.org/doc/install#testing"
-    exit 1
-fi
-
 GO_VERSION=$(go version | awk '{print $3}')
 UPX_BINARY="" # only enabled for go1.7+
 case "$GO_VERSION" in

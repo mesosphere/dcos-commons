@@ -16,6 +16,20 @@ public class ReplacementFailurePolicy {
     @Min(0)
     private Integer minReplaceDelayMins;
 
+    /**
+     * Default time to wait between destructive task recoveries (avoid quickly making things worse).
+     *
+     * Default: 10 minutes
+     */
+    public static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS = 10 * 60 * 1000;
+
+    /**
+     * Default time to wait before declaring a task as permanently failed.
+     *
+     * Default: 20 minutes
+     */
+    public static final Integer PERMANENT_FAILURE_DELAY_MS = 20 * 60 * 1000;
+
     public ReplacementFailurePolicy(
             @JsonProperty("permanent-failure-timeout-mins") Integer permanentFailureTimoutMins,
             @JsonProperty("min-replace-delay-mins") Integer minReplaceDelayMins) {
@@ -73,6 +87,8 @@ public class ReplacementFailurePolicy {
         private Integer minReplaceDelayMs;
 
         private Builder() {
+            this.permanentFailureTimoutMs = PERMANENT_FAILURE_DELAY_MS;
+            this.minReplaceDelayMs = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
         }
 
         /**

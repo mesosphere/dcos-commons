@@ -31,9 +31,9 @@ import java.util.stream.Collectors;
  * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
-    private static final String RECOVERY_ELEMENT_NAME = "recovery";
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final ConfigStore<ServiceSpec> configStore;
+    protected static final String RECOVERY_ELEMENT_NAME = "recovery";
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final ConfigStore<ServiceSpec> configStore;
 
     protected volatile Plan plan;
 
@@ -61,7 +61,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
     }
 
-    private void setPlan(Plan plan) {
+    protected void setPlan(Plan plan) {
         synchronized (planLock) {
             this.plan = plan;
             this.plan.subscribe(this);
@@ -101,7 +101,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
     }
 
-    private void updatePlan(Collection<String> dirtyAssets) {
+    protected void updatePlan(Collection<String> dirtyAssets) {
         logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
 
         synchronized (planLock) {
@@ -205,7 +205,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                         podInstance,
                         tasksToLaunch,
                         RecoveryType.PERMANENT,
-                        launchConstrainer));
+                        launchConstrainer,
+                        stateStore));
             } else if (failedTasks.stream().noneMatch(isPodPermanentlyFailed)) {
                 logger.info("Recovering transiently failed pod: '{}'", podInstance.getName());
                 recoverySteps.add(new DefaultRecoveryStep(
@@ -214,7 +215,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                         podInstance,
                         tasksToLaunch,
                         RecoveryType.TRANSIENT,
-                        launchConstrainer));
+                        launchConstrainer,
+                        stateStore));
             }
         }
 

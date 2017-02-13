@@ -2,8 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage;
-import com.mesosphere.sdk.offer.evaluate.VolumeEvaluationStage;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.VolumeRequirement;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -78,7 +78,22 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     }
 
     @Override
-    public OfferEvaluationStage getEvaluationStage(Protos.Resource resource, String taskName) {
-        return new VolumeEvaluationStage(resource, taskName);
+    public VolumeRequirement getResourceRequirement(Protos.Resource resource) {
+        if (resource != null) {
+            return new VolumeRequirement(resource);
+        }
+
+        switch (getType()) {
+            case ROOT:
+                return new VolumeRequirement(
+                        ResourceUtils.getDesiredRootVolume(
+                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
+            case MOUNT:
+                return new VolumeRequirement(
+                        ResourceUtils.getDesiredMountVolume(
+                                getRole(), getPrincipal(), getValue().getScalar().getValue(), getContainerPath()));
+            default:
+                throw new IllegalArgumentException("FIX: can't handle");
+        }
     }
 }

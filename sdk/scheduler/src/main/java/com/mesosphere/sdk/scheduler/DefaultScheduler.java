@@ -2,8 +2,11 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
+import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -39,9 +42,6 @@ import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.state.PersistentOperationRecorder;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -60,20 +61,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected static final String UNINSTALL_INCOMPLETE_ERROR_MESSAGE = "Framework has been removed";
     protected static final String UNINSTALL_INSTRUCTIONS_URI =
             "https://docs.mesosphere.com/latest/usage/managing-services/uninstall/";
-
-    /**
-     * Default time to wait between destructive task recoveries (avoid quickly making things worse).
-     *
-     * Default: 10 minutes
-     */
-    protected static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS = 10 * 60 * 1000;
-
-    /**
-     * Default time to wait before declaring a task as permanently failed.
-     *
-     * Default: 20 minutes
-     */
-    protected static final Integer PERMANENT_FAILURE_DELAY_MS = 20 * 60 * 1000;
 
     /**
      * Time to wait for the executor thread to terminate. Only used by unit tests.
@@ -93,7 +80,12 @@ public class DefaultScheduler implements Scheduler, Observer {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     protected final ExecutorService executor = Executors.newFixedThreadPool(1);
+
     protected final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
+    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
+    // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
+    protected final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
+
     protected final ServiceSpec serviceSpec;
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
@@ -108,6 +100,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * such as destroying a failed task.
      */
     protected final int destructiveRecoveryDelayMs;
+    private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -142,6 +135,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         private final Map<String, RawPlan> yamlPlans = new HashMap<>();
         private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
         private Capabilities capabilities;
+        private RecoveryPlanManagerFactory recoveryPlanManagerFactory;
 
         private Builder(ServiceSpec serviceSpec) {
             this.serviceSpec = serviceSpec;
@@ -263,6 +257,15 @@ public class DefaultScheduler implements Scheduler, Observer {
         }
 
         /**
+         * Sets the provided {@link PlanManager} to be the plan manager used for recovery.
+         * @param recoveryManagerFactory the factory whcih generates the custom recovery plan manager
+         */
+        public Builder setRecoveryManagerFactory(RecoveryPlanManagerFactory recoveryManagerFactory) {
+            this.recoveryPlanManagerFactory = recoveryManagerFactory;
+            return this;
+        }
+
+        /**
          * Allow setting the capabilities of the DC/OS cluster.  Generally this should not be used except in test
          * environments as it may return incorrect information regarding the capabilities of the DC/OS cluster.
          * @param capabilities the capabilities used to validate the ServiceSpec
@@ -339,9 +342,10 @@ public class DefaultScheduler implements Scheduler, Observer {
                     plans,
                     stateStore,
                     configStore,
-                    createOfferRequirementProvider(stateStore, configUpdateResult.targetId),
+                    new DefaultOfferRequirementProvider(stateStore, serviceSpec.getName(), configUpdateResult.targetId),
                     endpointProducers,
-                    restartHookOptional);
+                    restartHookOptional,
+                    Optional.ofNullable(recoveryPlanManagerFactory));
         }
     }
 
@@ -382,9 +386,7 @@ public class DefaultScheduler implements Scheduler, Observer {
      * Creates and returns a new default {@link ConfigStore} suitable for passing to
      * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
-     * signified by a call to
-     * {@link DefaultScheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} (SchedulerDriver,
-     * org.apache.mesos.Protos.FrameworkID, org.apache.mesos.Protos.MasterInfo)}.
+     * signified by a call to {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
      *
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      * @param customDeserializationSubtypes custom subtypes to register for deserialization of
@@ -472,14 +474,6 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
-     * Creates a new instance which relies on the provided {@link StateStore} for storing known tasks, and which expects
-     * tasks tagged with the provided {@code targetConfigurationId}.
-     */
-    public static OfferRequirementProvider createOfferRequirementProvider(StateStore stateStore, UUID targetConfigId) {
-        return new DefaultOfferRequirementProvider(stateStore, targetConfigId);
-    }
-
-    /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
     protected DefaultScheduler(
@@ -489,7 +483,8 @@ public class DefaultScheduler implements Scheduler, Observer {
             ConfigStore<ServiceSpec> configStore,
             OfferRequirementProvider offerRequirementProvider,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RestartHook> restartHookOptional) {
+            Optional<RestartHook> restartHookOptional,
+            Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional) {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.stateStore = stateStore;
@@ -497,6 +492,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.offerRequirementProvider = offerRequirementProvider;
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
+        this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
         ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
         if (replacementFailurePolicy != null) {
             // interpret unset/null as disabled:
@@ -507,8 +503,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     ? 0 : replacementFailurePolicy.getMinReplaceDelayMins();
         } else {
             // default values if policy section is unset:
-            this.permanentFailureTimeoutMs = Optional.of(PERMANENT_FAILURE_DELAY_MS);
-            this.destructiveRecoveryDelayMs = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
+            this.permanentFailureTimeoutMs = Optional.of(ReplacementFailurePolicy.PERMANENT_FAILURE_DELAY_MS);
+            this.destructiveRecoveryDelayMs = ReplacementFailurePolicy.DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
         }
     }
 
@@ -559,7 +555,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         taskFailureListener = new DefaultTaskFailureListener(stateStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         reconciler = new DefaultReconciler(stateStore);
-        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentOperationRecorder(stateStore)));
+        offerAccepter = new OfferAccepter(Arrays.asList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(stateStore, offerRequirementProvider), stateStore, taskKiller);
@@ -596,13 +592,27 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected void initializeRecoveryPlanManager() {
         LOGGER.info("Initializing recovery plan...");
-        recoveryPlanManager = new DefaultRecoveryPlanManager(
-                stateStore,
-                configStore,
-                new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs)),
+        LaunchConstrainer launchConstrainer = new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs));
+        FailureMonitor failureMonitor =
                 permanentFailureTimeoutMs.isPresent()
                         ? new TimedFailureMonitor(Duration.ofMillis(permanentFailureTimeoutMs.get()))
-                        : new NeverFailureMonitor());
+                        : new NeverFailureMonitor();
+        if (recoveryPlanManagerFactoryOptional.isPresent()) {
+            LOGGER.info("Using custom recovery plan manager.");
+            this.recoveryPlanManager = recoveryPlanManagerFactoryOptional.get().create(
+                    stateStore,
+                    configStore,
+                    launchConstrainer,
+                    failureMonitor,
+                    plans);
+        } else {
+            LOGGER.info("Using default recovery plan manager.");
+            this.recoveryPlanManager = new DefaultRecoveryPlanManager(
+                    stateStore,
+                    configStore,
+                    launchConstrainer,
+                    failureMonitor);
+        }
     }
 
     protected void initializePlanCoordinator() {
@@ -616,6 +626,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void initializeResources() throws InterruptedException {
         LOGGER.info("Initializing resources...");
         Collection<Object> resources = new ArrayList<>();
+        resources.add(new ArtifactResource(configStore));
         resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
@@ -656,6 +667,13 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
+        if (isAlreadyRegistered.getAndSet(true)) {
+            // This may occur as the result of a master election.
+            LOGGER.info("Already registered, calling reregistered()");
+            reregistered(driver, masterInfo);
+            return;
+        }
+
         LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
         try {
             initialize(driver);
@@ -680,8 +698,7 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        LOGGER.error("Re-registration implies we were unregistered.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.RE_REGISTRATION);
+        LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
         reconciler.start();
         reconciler.reconcile(driver);
         suppressOrRevive();

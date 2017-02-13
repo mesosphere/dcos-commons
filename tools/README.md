@@ -383,7 +383,7 @@ Shakedown tests:
 ```
 $ TEST_TYPES="sanity or recovery" \
 CLUSTER_URL=http://your-dcos-cluster.com \
-  ./run_tests.py shakedown /path/to/your/shakedown/tests/ /path/to/shakedown/requirements.txt
+  ./run_tests.py shakedown /path/to/your/tests/ /path/to/your/tests/requirements.txt
 ```
 
 dcos-tests (Mesosphere-internal, deprecated in favor of Shakedown):
@@ -539,3 +539,16 @@ $ TEMPLATE_SOME_CUSTOM_STRING="this text replaces any instances of {{some-custom
 #### Environment variables
 
 As described above, any `TEMPLATE_<SOME_PARAM>` values will automatically be inserted into template slots named `{{some-param}}`. No other environment variables are needed.
+
+#### Enable Mount Volumes Script
+```bash
+$ virtualenv -p `which python3` py3env
+$ source py3env/bin/activate
+$ pip3 install fabric3
+$ pip3 install boto3
+$ export AWS_SECRET_ACCESS_KEY=SeCrEt_KeY
+$ export AWS_ACCESS_KEY_ID=AcCeSs_Id
+$ export STACK_ID=arn:aws:cloudformation:us-west-1:273854.....
+$ ./tools/enable_mount_volumes.py
+```
+```
