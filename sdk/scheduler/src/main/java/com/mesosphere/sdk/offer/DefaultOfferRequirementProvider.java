@@ -135,9 +135,22 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     private static Collection<ResourceRequirement> getResourceRequirements(
             TaskSpec taskSpec, Collection<Protos.Resource> resources) {
         ResourceSet resourceSet = taskSpec.getResourceSet();
+
         Map<String, Protos.Resource> resourceMap = resources == null ?
                 Collections.emptyMap() :
-                resources.stream().collect(Collectors.toMap(r -> r.getName(), Function.identity()));
+                resources.stream()
+                        .filter(resource -> !resource.hasDisk())
+                        .collect(Collectors.toMap(r -> r.getName(), Function.identity()));
+
+        Map<String, Protos.Resource> volumeMap = resources == null ?
+                Collections.emptyMap() :
+                resources.stream()
+                        .filter(resource -> resource.hasDisk())
+                        .filter(resource -> resource.getDisk().hasVolume())
+                        .collect(Collectors.toMap(
+                                r -> r.getDisk().getVolume().getContainerPath(),
+                                Function.identity()));
+
         List<ResourceRequirement> resourceRequirements = new ArrayList<>();
 
         for (ResourceSpec r : resourceSet.getResources()) {
@@ -145,7 +158,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         }
 
         for (VolumeSpec v : resourceSet.getVolumes()) {
-            resourceRequirements.add(v.getResourceRequirement(resourceMap.get(v.getName())));
+            resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
         }
 
         return resourceRequirements;
