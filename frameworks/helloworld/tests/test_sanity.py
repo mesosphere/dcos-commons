@@ -57,6 +57,21 @@ def test_bump_hello_cpus():
 
 
 @pytest.mark.sanity
+def test_bump_world_cpus():
+    check_running()
+    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
+    print('world ids: ' + str(world_ids))
+
+    config = marathon.get_config(PACKAGE_NAME)
+    cpus = float(config['env']['WORLD_CPUS'])
+    config['env']['WORLD_CPUS'] = str(cpus + 0.1)
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+
+    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
+    check_running()
+
+
+@pytest.mark.sanity
 def test_bump_hello_nodes():
     check_running()
 
