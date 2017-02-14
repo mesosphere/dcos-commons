@@ -272,5 +272,5 @@ func main() {
 		log.Printf("Template handling disabled via -template=false: Skipping any config templates")
 	}
 
-	log.Printf("Bootstrap successful.")
+	log.Printf("SDK bootstrap successful.")
 }
