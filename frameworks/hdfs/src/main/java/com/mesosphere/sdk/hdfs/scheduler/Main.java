@@ -103,11 +103,6 @@ public class Main {
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
                 .pods(Arrays.asList(journal, name, zkfc, data))
-                .replacementFailurePolicy(
-                        ReplacementFailurePolicy.newBuilder()
-                                .permanentFailureTimoutMs(null)
-                                .minReplaceDelayMs(0)
-                                .build())
                 .build();
     }
 

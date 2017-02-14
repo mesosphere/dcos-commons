@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.Configuration;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Defines a {@link Service}.
@@ -31,5 +32,5 @@ public interface ServiceSpec extends Configuration {
     String getZookeeperConnection();
 
     @JsonProperty("replacement-failure-policy")
-    ReplacementFailurePolicy getReplacementFailurePolicy();
+    Optional<ReplacementFailurePolicy> getReplacementFailurePolicy();
 }
