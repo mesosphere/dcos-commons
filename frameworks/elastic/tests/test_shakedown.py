@@ -5,7 +5,6 @@ import sdk_install as install
 import sdk_tasks as tasks
 import sdk_marathon as marathon
 
-
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
 DEFAULT_SETTINGS_MAPPINGS = {
@@ -134,3 +133,8 @@ def test_bump_node_counts():
     marathon_update(config)
 
     tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT + 3)
+
+
+@pytest.mark.sanity
+def test_kibana_proxylite_adminrouter_integration():
+    check_kibana_proxylite_adminrouter_integration();
