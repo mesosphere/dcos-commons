@@ -1,4 +1,5 @@
 import pytest
+import shakedown
 
 import sdk_install as install
 import sdk_plan as plan
@@ -12,7 +13,7 @@ SERVICE_NAME="hdfs2"
 
 
 def setup_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, SERVICE_NAME)
     options = {
         "service": {
             "name": "hdfs2"
@@ -22,7 +23,7 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, SERVICE_NAME)
 
 
 @pytest.mark.sanity

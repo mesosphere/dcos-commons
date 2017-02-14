@@ -1,4 +1,5 @@
 import pytest
+import shakedown
 
 import sdk_install as install
 
@@ -9,7 +10,7 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 

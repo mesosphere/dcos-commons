@@ -1,8 +1,8 @@
 import pytest
+import shakedown
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME
@@ -10,7 +10,7 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/sidecar.yml"

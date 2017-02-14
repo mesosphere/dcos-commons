@@ -7,7 +7,6 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_spin as spin
 import sdk_tasks as tasks
 
 from tests.config import (
@@ -19,7 +18,7 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
@@ -175,7 +174,7 @@ def test_lock():
     def fn():
         timestamp = marathon_client.get_app(app_id).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
-    spin.time_wait_noisy(lambda: fn())
+    shakedown.wait_for(lambda: fn())
 
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)

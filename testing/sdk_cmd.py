@@ -1,7 +1,6 @@
 '''Utilities relating to running commands and HTTP requests'''
 
 import dcos.http
-import sdk_spin
 import shakedown
 
 
@@ -13,16 +12,11 @@ def request(method, url, retry=True, **kwargs):
         response.raise_for_status()
         return response
     if retry:
-        return sdk_spin.time_wait_return(lambda: fn())
+        return shakedown.wait_for(lambda: fn())
     else:
         return fn()
 
 
 def run_cli(cmd):
-    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd)
-    if ret != 0:
-        err = 'Got error code {} when running command "dcos {}":\nstdout: "{}"\nstderr: "{}"'.format(
-            ret, cmd, stdout, stderr)
-        print(err)
-        raise Exception(err)
+    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd, raise_on_error=True)
     return stdout

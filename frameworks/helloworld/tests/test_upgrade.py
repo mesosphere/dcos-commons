@@ -5,7 +5,6 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME,
@@ -14,11 +13,11 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -74,7 +73,7 @@ def add_repo(repo_name, repo_url, prev_version):
 
 
 def new_default_version_available(prev_version):
-    spin.time_wait_noisy(lambda: get_pkg_version() != prev_version)
+    shakedown.wait_for(lambda: get_pkg_version() != prev_version)
 
 
 def remove_repo(repo_name, prev_version):

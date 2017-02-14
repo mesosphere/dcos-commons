@@ -28,11 +28,11 @@ TEST_FILE_NAME = "upgrade_test"
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
 
 
 def teardown_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.skip(reason="Waiting for released version from which to upgrade")

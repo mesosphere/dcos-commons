@@ -1,8 +1,8 @@
 import pytest
+import shakedown
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME
@@ -10,7 +10,7 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/parameterized-plan.yml"
@@ -43,5 +43,5 @@ def test_sidecar():
     assert(sidecar_plan['phases'][0]['name'] == 'sidecar-deploy')
     assert(len(sidecar_plan['phases'][0]['steps']) == 2)
 
-    spin.time_wait_noisy(lambda: (
+    shakedown.wait_for(lambda: (
         plan.get_sidecar_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))

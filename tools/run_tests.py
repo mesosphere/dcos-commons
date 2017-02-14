@@ -130,7 +130,7 @@ class CITester(object):
             requirements_file.write('''
 requests==2.10.0
 
--e git+https://github.com/dcos/shakedown.git@master#egg=shakedown
+-e git+https://github.com/dcos/shakedown.git@nick/upstream#egg=shakedown
 ''')
             requirements_file.flush()
             requirements_file.close()

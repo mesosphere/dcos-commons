@@ -1,8 +1,8 @@
 import pytest
+import shakedown
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME
@@ -10,7 +10,7 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
     options = {
         "service": {
             "spec_file": "examples/cni.yml"
@@ -34,8 +34,8 @@ def test_deploy():
 @pytest.mark.sanity
 def test_joins_overlay_network():
     """Verify that the container joined the dcos subnet at 9.0.0.0/24.
-    
+
     The logic for this is in the task itself, which will check the container IP address
     and fail if incorrect, thus preventing the plan from reaching the COMPLETE state."""
-    spin.time_wait_noisy(lambda: (
+    shakedown.wait_for(lambda: (
         plan.get_deployment_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))

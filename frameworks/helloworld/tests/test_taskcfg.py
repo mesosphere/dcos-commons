@@ -5,7 +5,6 @@ import shakedown
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME,
@@ -15,7 +14,7 @@ from tests.config import (
 
 
 def setup_module(module):
-    install.uninstall(PACKAGE_NAME)
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
     options = install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
     # don't wait for install to complete successfully:
     shakedown.install_package(PACKAGE_NAME, options_json=options)
@@ -43,7 +42,7 @@ def test_deploy():
         return False
 
     try:
-        spin.time_wait_noisy(lambda: fn(), timeout_seconds=wait_time)
+        shakedown.wait_for(lambda: fn(), timeout_seconds=wait_time)
     except shakedown.TimeoutExpired:
         print('Timeout reached as expected')
 
