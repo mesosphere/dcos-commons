@@ -70,6 +70,11 @@
             "description":"MongoDB server version",
             "type":"string",
             "default":"3.2.12"
+          },
+          "keyFileUrl":{
+            "description":"MongoDB key file for members authentication",
+            "type":"string",
+            "default":"https://gist.githubusercontent.com/shirkevich/5ba248723f1f58a5e9149bb84f3f5546/raw/b0acdae14fb9218061dd0bcecdf4781abe7efaa7/keyfile.txt"
           }
         },
         "required":[
@@ -127,6 +132,26 @@
             "description":"How long to sleep between work cycles",
             "type":"number",
             "default":10
+          },
+          "secretary_url":{
+            "description":"Secretary URL for storing admin password and key file",
+            "type":"string",
+            "default":""
+          },
+          "secretary_master_public_key":{
+            "description":"Secretary master_public_key",
+            "type":"string",
+            "default":""
+          },
+          "secretary_deploy_private_key":{
+            "description":"Secretary deploy_private_key",
+            "type":"string",
+            "default":""
+          },
+          "secretary_deploy_public_key":{
+            "description":"Secretary deplou_public_key",
+            "type":"string",
+            "default":""
           }
         },
         "required":[

@@ -1,34 +1,27 @@
 name: "{{FRAMEWORK_NAME}}"
 web-url: "http://sidecar-0-companion.{{FRAMEWORK_NAME}}.mesos:{{SIDECAR_PORT}}"
-scheduler:
-  principal: "{{SERVICE_NAME}}-principal"
-  api-port: {{PORT_API}}
 pods:
   mongodb:
     count: {{MONGODB_COUNT}}
     uris:
       - "https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-{{MONGODB_VERSION}}.tgz"
+      - "{{MONGODB_KEY_FILE_URL}}"
     resource-sets:
       mongodb-resources:
         cpus: {{MONGODB_CPUS}}
         memory: {{MONGODB_MEM}}
         ports:
-          mongodb-port:
+          mongodb:
             port: {{MONGODB_PORT}}
-            vip:
-              prefix: "{{FRAMEWORK_NAME}}"
-              port: {{MONGODB_PORT}}
-          "{{FRAMEWORK_NAME}}-rest":
-            port: {{MONGODB_REST_PORT}}
         volume:
-          path: "mongodb-replicaset"
+          path: mongodb-replicaset
           type: ROOT
           size: {{MONGODB_DISK}}
     tasks:
       server:
         resource-set: mongodb-resources
         goal: RUNNING
-        cmd: "env && exec $MESOS_SANDBOX/mongodb-linux-x86_64-{{MONGODB_VERSION}}/bin/mongod --rest --bind_ip $LIBPROCESS_IP --port {{MONGODB_PORT}} --dbpath $MESOS_SANDBOX/mongodb-replicaset --replSet {{MONGODB_REPLSET}}"
+        cmd: "env && chmod 600 $MESOS_SANDBOX/keyfile.txt && exec $MESOS_SANDBOX/mongodb-linux-x86_64-{{MONGODB_VERSION}}/bin/mongod --keyFile $MESOS_SANDBOX/keyfile.txt --auth --bind_ip $LIBPROCESS_IP --port {{MONGODB_PORT}} --dbpath $MESOS_SANDBOX/mongodb-replicaset --replSet {{MONGODB_REPLSET}}"
         health-check:
            cmd: "curl --fail ${LIBPROCESS_IP}:{{MONGODB_PORT}} > /dev/null"
            interval: 30
@@ -58,6 +51,7 @@ pods:
           MESOS_URL: {{SIDECAR_MESOS_URL}}
           LOG_LEVEL: {{SIDECAR_LOG_LEVEL}}
           MONGO_BINARY: "/mnt/mesos/sandbox/mongodb-linux-x86_64-{{MONGODB_VERSION}}/bin/mongo"
+          TEST_PASSWORD: {{TEST_PASSWORD}}
 
 plans:
   deploy:

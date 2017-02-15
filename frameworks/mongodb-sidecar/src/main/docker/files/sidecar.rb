@@ -15,7 +15,7 @@ require_relative 'sidecar/web'
 @mesos_url               = ENV['MESOS_URL'] || 'http://master.mezos/mesos'
 @zookeeper_url           = ENV['ZK_URL'] || 'zk-1.zk:2181'
 @mongo_binary            = ENV['MONGO_BINARY'] || '/usr/local/bin/mongo'
-@delay                   = ENV['SIDECAR_DELAY'] || 10
+@delay                   = ENV['DELAY'] || 10
 
 @logger                  = Cabin::Channel.new
 @logger.level            = ENV['LOG_LEVEL'] || :info

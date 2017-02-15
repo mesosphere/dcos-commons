@@ -3,16 +3,19 @@
   "cpus": 0.4,
   "mem": 768,
   "instances": 1,
-  "cmd": "{{service.cmd_prefix}} && env && ./mongodb-sidecar-scheduler/bin/mongodb-sidecar ./mongodb-sidecar-scheduler/{{service.spec_file}}",
+  "cmd": "{{service.cmd_prefix}} && env && chmod a+x ./secretary-Linux-x86_64 && SECRETS=$(./secretary-Linux-x86_64 decrypt -e) && eval \"$SECRETS\" && echo $SECRETS && ./mongodb-sidecar-scheduler/bin/mongodb-sidecar ./mongodb-sidecar-scheduler/{{service.spec_file}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
     "DCOS_MIGRATION_API_PATH": "/v1/plan",
-    "MARATHON_SINGLE_INSTANCE_APP": "true"
+    "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "DCOS_SERVICE_NAME": "{{service.name}}",
+    "DCOS_SERVICE_PORT_INDEX": "0",
+    "DCOS_SERVICE_SCHEME": "http"
   },
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
-    "MESOS_API_VERSION": "V1",
+    "MESOS_API_VERSION": "V0",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "MONGODB_PORT": "{{mongodb.port}}",
@@ -26,6 +29,7 @@
     "MONGODB_CONSTRAINT": "{{mongodb.constraint}}",
     {{/mongodb.constraint}}
     "MONGODB_VERSION": "{{mongodb.version}}",
+    "MONGODB_KEY_FILE_URL": "{{mongodb.keyFileUrl}}",
     "SIDECAR_COUNT": "1",
     "SIDECAR_PORT": "{{sidecar.port}}",
     "SIDECAR_CPUS": "{{sidecar.cpus}}",
@@ -38,12 +42,23 @@
     "SIDECAR_ZK_URL": "{{sidecar.zk_url}}",
     "SIDECAR_MESOS_URL": "{{sidecar.mesos_url}}",
     "SIDECAR_LOG_LEVEL": "{{sidecar.log_level}}",
+    {{#sidecar.secretary_url}}
+    "SECRETARY_URL": "{{sidecar.secretary_url}}",
+    "MASTER_PUBLIC_KEY": "{{&sidecar.master_public_key}}",
+    "DEPLOY_PRIVATE_KEY": "{{&sidecar.deploy_private_key}}",
+    "DEPLOY_PUBLIC_KEY": "{{&sidecar.deploy_public_key}}",
+    {{/sidecar.secretary_url}}
+    "TEST_PASSWORD": "ENC[KMS,RP+BAwEBCmttc1BheWxvYWQB/4IAAQMBEEVuY3J5cHRlZERhdGFLZXkBCgABBU5vbmNlAf+EAAEHTWVzc2FnZQEKAAAAGf+DAQEBCVsyNF11aW50OAH/hAABBgEwAAD/7v+CAf+nAQEBAHg6jctvU2pKUUwZHOOVLajmlLmyLk5fYYKLMpeZEP/cDAAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDNLSY06erxx+nB7LmwIBEIA7GCwJqR7xmqDOqpPq37+lJM+M3Z196FzHITdJLSuS/jpYoxGvIRpbWRFPOfeiVwIMCAGOrdqS+H0gv5kBGP/BMUv/y//4S1H/sf/V/9X/6iJy/4tb/+P/h3P/lgz///+MXxcBGNDcMc1Y36ASDb9Mib+Hmy/IGyWS8kb7dQA=]",
+    "TEST_SECRET1": "ENC[KMS,RP+BAwEBCmttc1BheWxvYWQB/4IAAQMBEEVuY3J5cHRlZERhdGFLZXkBCgABBU5vbmNlAf+EAAEHTWVzc2FnZQEKAAAAGf+DAQEBCVsyNF11aW50OAH/hAABBgEwAAD/7/+CAf+nAQEBAHg6jctvU2pKUUwZHOOVLajmlLmyLk5fYYKLMpeZEP/cDAAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDBtmCxH6Ux1vJaBBSQIBEIA7h7JMICUyg106msrWzAn34hixhIpFVBV+EzljVGCMsqh6crT39CFCB6Jc22ug+xlmBU00BjgUlP2NMeUBGA//sif/+/+VA3L/1P/I//oh/54j//r/jP+c/8z/o/+vHBFL/5P/8gEXQy5+NNIhOgGawh2ymw2HFtmBqn+L8YMA]",
+    "TEST_SECRET2": "ENC[KMS,RP+BAwEBCmttc1BheWxvYWQB/4IAAQMBEEVuY3J5cHRlZERhdGFLZXkBCgABBU5vbmNlAf+EAAEHTWVzc2FnZQEKAAAAGf+DAQEBCVsyNF11aW50OAH/hAABBgEwAAD/6/+CAf+nAQEBAHg6jctvU2pKUUwZHOOVLajmlLmyLk5fYYKLMpeZEP/cDAAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDNcUQLcdy2+hqe9lywIBEIA76lJf8HBrHOEJfFydwrpc7qXoFRejpmX94vSSglJCu0p4KVgtX5t0qajFIGIJX16OyvmSGvAt+pSNXW4BGP+dX1p6/5xPTP+H/9IU/6v/2WAm/6z/nSH/sP/BTAg1//1EARdbo2O4JXxqcigNj9Hq58D+2LhBXoT8+AA=]",
+
     "CONFIG_TEMPLATE_PATH": "scheduler"
   },
   "fetch": [
     {"uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true},
     {"uri": "{{resource.assets.uris.scheduler-zip}}", "cache": true},
-    {"uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true}
+    {"uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true},
+    {"uri": "https://github.com/meltwater/secretary/releases/download/0.9.1/secretary-Linux-x86_64", "cache": true}
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,
@@ -54,7 +69,7 @@
       "port": 0,
       "protocol": "tcp",
       "name": "api",
-      "labels": {}
+      "labels": { "VIP_0": "/api.{{service.name}}:80" }
     }
   ],
   "healthChecks": [
