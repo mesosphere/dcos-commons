@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
@@ -63,6 +64,9 @@ public class DefaultService implements Service {
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
+
+        // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
+        DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
 
         CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
