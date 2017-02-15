@@ -1,30 +1,30 @@
 name: "hello-world"
 pods:
   hello:
-    count: 2
+    count: 1
     resource-sets:
       hello-resources:
         cpus: {{HELLO_CPUS}}
         memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 1024
     tasks:
       once:
         goal: FINISHED
-        cmd: "echo 'I run only once' >> hello-container-path/output"
+        #cmd: "dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
+        cmd: "dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' >> output && ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2 >> output"
         resource-set: hello-resources
         discovery:
           prefix: hello
       server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         discovery:
           prefix: hello
         env:
           SLEEP_DURATION: 1000
+          # Sleep for more than 60 seconds, before running dig,
+          # so that the TTL for the first task's DNS entry expires.
+          DNS_WAIT_DURATION: 75
 plans:
   deploy:
     strategy: serial

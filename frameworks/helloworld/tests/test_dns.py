@@ -19,14 +19,17 @@ def setup_module(module):
         }
     }
 
-    # this yml has 2 hello's + 0 world's:
     install.install(PACKAGE_NAME, 2, additional_options=options)
 
 
 @pytest.mark.sanity
-def test_discovery_is_set():
+def test_task_dns_prefix_points_to_all_tasks():
     pod_info = dcos.http.get(
         shakedown.dcos_service_url(PACKAGE_NAME) +
         "/v1/pods/{}/info".format("hello-0")).json()
 
+    # Assert that DiscoveryInfo is correctly set on tasks.
     assert(all(p["info"]["discovery"]["name"] == "hello" for p in pod_info))
+    # Assert that the hello-0.hello-world.mesos DNS entry points to the right IP.
+    spin.time_wait_noisy(lambda: (
+        plan.get_deployment_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))
