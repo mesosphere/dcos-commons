@@ -7,7 +7,7 @@ All DC/OS HDFS documentation is in the `frameworks/hdfs/docs` folder of this rep
 ## Table of Contents
 
 - [Overview](docs/index.md)
-- [Quick Start](docs/quick-star.md)
+- [Quick Start](docs/quick-start.md)
 - [Install and Customize](docs/install.md)
 - [Uninstall](docs/uninstall.md)
 - [Configure](docs/configure.md)

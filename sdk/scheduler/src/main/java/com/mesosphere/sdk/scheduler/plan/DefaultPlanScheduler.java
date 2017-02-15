@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
@@ -133,26 +134,43 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private void killTasks(PodInstanceRequirement podInstanceRequirement) {
         Map<String, TaskInfo> taskInfoMap = new HashMap<>();
         stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
-
-        List<String> taskNames = TaskUtils.getTaskNames(
-                podInstanceRequirement.getPodInstance(),
+        logger.info("Killing tasks for pod instance requirement: {}:{}",
+                podInstanceRequirement.getPodInstance().getName(),
                 podInstanceRequirement.getTasksToLaunch());
 
-        taskNames = taskNames.stream()
-                .filter(taskName -> taskInfoMap.containsKey(taskName))
+        List<TaskSpec> taskSpecsToLaunch = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
                 .collect(Collectors.toList());
+        logger.info("TaskSpecs to launch: {}",
+                taskSpecsToLaunch.stream().map(taskSpec -> taskSpec.getName()).collect(Collectors.toList()));
 
-        for (String taskName : taskNames) {
+        List<String> resourceSetsToConsume = taskSpecsToLaunch.stream()
+                .map(taskSpec -> taskSpec.getResourceSet())
+                .map(resourceSet -> resourceSet.getId())
+                .collect(Collectors.toList());
+        logger.info("Resource sets to consume: {}",
+                podInstanceRequirement.getPodInstance().getName(),
+                resourceSetsToConsume);
+
+        List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+                .collect(Collectors.toList());
+        logger.info("Tasks to kill: {}", tasksToKill);
+
+        for (String taskName : tasksToKill) {
             TaskInfo taskInfo = taskInfoMap.get(taskName);
-            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskInfo != null) {
+                Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
 
-            Protos.TaskState state = Protos.TaskState.TASK_RUNNING;
-            if (taskStatusOptional.isPresent()) {
-                state = taskStatusOptional.get().getState();
-            }
+                Protos.TaskState state = Protos.TaskState.TASK_RUNNING;
+                if (taskStatusOptional.isPresent()) {
+                    state = taskStatusOptional.get().getState();
+                }
 
-            if (!CommonTaskUtils.isTerminal(state)) {
-                taskKiller.killTask(taskInfo.getTaskId(), false);
+                if (!CommonTaskUtils.isTerminal(state)) {
+                    taskKiller.killTask(taskInfo.getTaskId(), false);
+                }
             }
         }
     }

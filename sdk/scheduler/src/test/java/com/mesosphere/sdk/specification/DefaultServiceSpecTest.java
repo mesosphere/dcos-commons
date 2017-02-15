@@ -2,6 +2,10 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.PortRequirement;
+import com.mesosphere.sdk.offer.ResourceRequirement;
+import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -26,10 +30,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.Optional;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
@@ -74,6 +78,31 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
+    }
+
+    @Test
+    public void validPortResourceEnvKey() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+
+        List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+                .getResources()
+                .stream()
+                .filter(r -> r.getName().equals("ports"))
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(1, portsResources.size());
+
+       PortsRequirement portsRequirement = (PortsRequirement) portsResources.get(0).getResourceRequirement(null);
+       List<ResourceRequirement> portReqList = (List<ResourceRequirement>) portsRequirement.getPortRequirements();
+
+       Assert.assertEquals(3, portReqList.size());
+
+       Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getEnvKey());
+       Assert.assertEquals(Constants.PORT_NAME_LABEL_PREFIX + "name2", ((PortRequirement) portReqList.get(1)).getEnvKey());
+       Assert.assertEquals(Constants.PORT_NAME_LABEL_PREFIX  + "name3", ((PortRequirement) portReqList.get(2)).getEnvKey());
+
     }
 
     @Test

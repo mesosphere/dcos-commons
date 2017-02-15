@@ -6,7 +6,8 @@ import shakedown
 
 PACKAGE_NAME = 'elastic'
 DEFAULT_TASK_COUNT = 9
-WAIT_TIME_IN_SECONDS = 360
+WAIT_TIME_IN_SECONDS = 6 * 60
+KIBANA_WAIT_TIME_IN_SECONDS = 15 * 60
 DEFAULT_NODE_COUNT = 7
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
@@ -50,12 +51,29 @@ def check_elasticsearch_index_health(index_name, color):
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
 
 
+def kibana_health_success_predicate():
+    result = get_kibana_status()
+    return result and "kbn-name: kibana" in result
+
+
+def check_kibana_proxylite_adminrouter_integration():
+    return shakedown.wait_for(lambda: kibana_health_success_predicate(),
+                              timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS)
+
+def get_kibana_status():
+    token = shakedown.authenticate('bootstrapuser','deleteme')
+    curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/kibana/login".format(
+        token, shakedown.dcos_service_url(PACKAGE_NAME))
+    exit_status, output = shakedown.run_command_on_master(curl_cmd)
+    return output
+
+
 def expected_nodes_success_predicate():
     result = get_elasticsearch_cluster_health()
     if result is None:
         return False
     node_count = result["number_of_nodes"]
-    print('Waiting for {} healthy nodes, got {}'.format(node_count, DEFAULT_NODE_COUNT))
+    print('Waiting for {} healthy nodes, got {}'.format(DEFAULT_NODE_COUNT, node_count))
     return node_count == DEFAULT_NODE_COUNT
 
 
@@ -170,7 +188,8 @@ def marathon_api_url(basename):
 
 
 def curl_api(method):
-    return "curl -X{} -s -u elastic:changeme 'http://master.{}.l4lb.thisdcos.directory:9200".format(method, PACKAGE_NAME)
+    return "curl -X{} -s -u elastic:changeme 'http://master.{}.l4lb.thisdcos.directory:9200".format(method,
+                                                                                                    PACKAGE_NAME)
 
 
 def get_marathon_host():
