@@ -55,8 +55,8 @@ Each task in the cluster performs one and only one of the following roles: maste
 
 The default placement strategy distributes all instances of the same node task type to different agents. So no two master nodes would run on the same agent, but a data node might get placed onto an agent that is also running a master node.
 
-![agent](https://s3.amazonaws.com/loren-elastic-assets/Default+Specialized+by+Agent+-+Page+1.png "Private Nodes Grouped by Agent")
-![vip](https://s3.amazonaws.com/loren-elastic-assets/Default+Specialized+-+Page+1.png "Private Nodes Grouped by Named VIP")
+![agent](private-nodes-by-agent.png "Private Nodes Grouped by Agent")
+![vip](private-node-by-vip.png "Private Nodes Grouped by Named VIP")
 
 No matter how big or small the cluster is, there will always be exactly 3 master-only nodes with `minimum_master_nodes = 2`.
 
