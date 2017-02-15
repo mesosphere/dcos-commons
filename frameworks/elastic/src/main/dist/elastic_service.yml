@@ -255,7 +255,7 @@ pods:
           timeout: 10
   proxylite:
     container:
-      image-name: mesosphere/proxylite:1.0.0
+      image-name: mesosphere/proxylite:1.0.1
     count: 1
     uris:
       - {{SCHEDULER_URI}}

@@ -87,14 +87,6 @@ pods:
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
-        # If HDFS reports that a name node is not healthy 7.5 minutes after being started, we restart the name node
-        health-check:
-          cmd: EXCEPTION_COUNT=$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report |& grep "Exception. $TASK_NAME" | wc -l) && [ $EXCEPTION_COUNT -eq 0 ]
-          interval: 10
-          grace-period: 300
-          delay: 0
-          timeout: 60
-          max-consecutive-failures: 20
       format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
