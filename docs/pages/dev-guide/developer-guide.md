@@ -990,7 +990,7 @@ pods:
           SLEEP_DURATION: 1000
       sidecar:
         goal: FINISHED
-        cmd: "echo sidecar >> output"
+        cmd: "echo $PLAN_PARAMETER >> output"
         resource-set: sidecar-resources
 plans:
   sidecar-example:
@@ -1002,7 +1002,17 @@ plans:
         tasks: [sidecar]
 ```
 
-To initiate this plan, execute an HTTP POST request against the endpoint `/v1/plans/sidecar-example/start`. Its progress can be monitored like any other plan: by issuing GET requests against the `/v1/plans/side-car-example` endpoint.
+Note that the command definition for the sidecar task includes an environment variable, `PLAN_PARAMETER`, that is not defined elsewhere in the service definition. This parameter can be supplied by the user at the time that the plan is initiated. To initiate this plan, execute an HTTP POST request against the endpoint `/v1/plans/sidecar-example/start`, with a JSON body consisting of environment variable name/value pairs as in the following:
+
+```json
+{
+  "PLAN_PARAMETER": "sidecar"
+}
+```
+
+Note that when no parameters are specified, the POST request's body should consist of an empty JSON object (`{}`). Default values can be modeled using standard Bash syntax; in the above case, a desired default value for `PLAN_PARAMETER` of `sidecar` could be specified by changing the task's command string to `echo ${PLAN_PARAMETER:-sidecar} >> output`.
+
+Sidecar plan progress can be monitored like any other plan: by issuing GET requests against the `/v1/plans/sidecar-example` endpoint.
 
 Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
 
