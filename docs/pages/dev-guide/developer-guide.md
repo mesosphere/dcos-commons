@@ -1002,7 +1002,7 @@ plans:
         tasks: [sidecar]
 ```
 
-Note that the command definition for the sidecar task includes an environment variable, `PLAN_PARAMETER`, that is not defined elsewhere in the service definition. This parameter can be supplied by the user at the time that the plan is initiated. To initiate this plan, execute an HTTP POST request against the endpoint `/v1/plans/sidecar-example/start`, with a JSON body consisting of environment variable name/value pairs as in the following:
+Note that the command definition for the sidecar task includes an environment variable, `PLAN_PARAMETER`, that is not defined elsewhere in the service definition. This parameter can be supplied by the user at the time that the plan is initiated, with that parameter being propagated to the environment of every task launched by the plan. To initiate the plan, execute an HTTP POST request against the endpoint `/v1/plans/sidecar-example/start`, with the header `Content-Type: application/json` set and with a JSON body consisting of environment variable name/value pairs as in the following:
 
 ```json
 {
