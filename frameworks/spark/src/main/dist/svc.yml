@@ -1,7 +1,26 @@
 name: {{FRAMEWORK_NAME}}
+web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
 pods:
+  proxylite:
+    container:
+      image-name: mesosphere/proxylite:1.0.0
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "/proxylite/run.sh"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        ports:
+          proxylite:
+            env-key: PORT_PROXYLITE
+            port: {{PROXYLITE_PORT}}
+        env:
+          ROOT_REDIRECT: "/"
+          EXTERNAL_ROUTES: "/v1,/master"
+          INTERNAL_ROUTES: "{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,master-0-server.{{FRAMEWORK_NAME}}.mesos:{{SPARK_MASTER_WEBUI_PORT}}"
   master:
     count: 1
     uris:

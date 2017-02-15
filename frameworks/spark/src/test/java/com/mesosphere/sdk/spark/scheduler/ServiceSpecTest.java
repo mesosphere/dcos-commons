@@ -27,6 +27,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("SPARK_WORKER_WEBUI_PORT", "4041");
         ENV_VARS.set("SPARK_MASTER_OPTS", "");
         ENV_VARS.set("SPARK_WORKER_OPTS", "");
+        ENV_VARS.set("PROXYLITE_CPUS", "1.0");
+        ENV_VARS.set("PROXYLITE_MEM", "256");
+        ENV_VARS.set("PROXYLITE_PORT", "4040");
     }
 
     @Test

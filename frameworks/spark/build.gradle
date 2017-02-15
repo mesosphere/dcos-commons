@@ -31,7 +31,7 @@ distZip.finalizedBy copyExecutor
 
 distributions {
     main {
-        baseName = 'spark-scheduler'
+        baseName = 'spark-standalone-scheduler'
         version = ''
     }
 }

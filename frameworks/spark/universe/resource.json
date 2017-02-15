@@ -1,11 +1,11 @@
 {
   "assets": {
     "uris": {
-      "jre-tar-gz": "https://downloads.mesosphere.com/dcos-commons/artifacts/jre-8u121-linux-x64.tar.gz",
+      "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-8u121-linux-x64.tar.gz",
       "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-2.tar.gz",
       "spark-tar-gz": "https://s3-us-west-2.amazonaws.com/mbrowning-dev/spark-2.1.0-bin-hadoop2.7.tgz",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "scheduler-zip": "{{artifact-dir}}/spark-scheduler.zip",
+      "scheduler-zip": "{{artifact-dir}}/spark-standalone-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },

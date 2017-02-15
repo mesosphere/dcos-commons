@@ -3,15 +3,12 @@
   "cpus": 1.0,
   "mem": 1230,
   "instances": 1,
-  "cmd": "{{service.cmd_prefix}} && ./spark-scheduler/bin/spark ./spark-scheduler/{{service.spec_file}}",
+  "cmd": "{{service.cmd_prefix}} && ./spark-standalone-scheduler/bin/spark ./spark-standalone-scheduler/{{service.spec_file}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
     "DCOS_MIGRATION_API_PATH": "/v1/plan",
-    "MARATHON_SINGLE_INSTANCE_APP":"true",
-    "DCOS_SERVICE_NAME": "{{service.name}}",
-    "DCOS_SERVICE_PORT_INDEX": "0",
-    "DCOS_SERVICE_SCHEME": "http"
+    "MARATHON_SINGLE_INSTANCE_APP":"true"
   },
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
@@ -28,11 +25,14 @@
     "WORKER_CPUS": "{{spark.worker.cpus}}",
     "WORKER_MEM": "{{spark.worker.mem}}",
     "WORKER_DISK": "{{spark.worker.disk}}",
+    "PROXYLITE_CPUS": "{{service.proxylite.cpus}}",
+    "PROXYLITE_MEM": "{{service.proxylite.mem}}",
+    "PROXYLITE_PORT": "{{service.proxylite.port}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "SPARK_URI": "{{resource.assets.uris.spark-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
-    "CONFIG_TEMPLATE_PATH": "spark-scheduler"
+    "CONFIG_TEMPLATE_PATH": "spark-standalone-scheduler"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
