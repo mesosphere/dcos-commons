@@ -15,7 +15,7 @@ def setup_module(module):
     install.uninstall(PACKAGE_NAME)
     options = {
         "service": {
-            "spec_file": "examples/dns.yml"
+            "spec_file": "examples/discovery.yml"
         }
     }
 
