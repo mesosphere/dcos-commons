@@ -13,6 +13,13 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
+  {{#service.secret_name}}
+  "secrets": {
+    "serviceCredential": {
+      "source": "{{service.secret_name}}"
+    }
+  },
+  {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
@@ -37,7 +44,12 @@
     "BROKER_DISK_PATH": "{{brokers.disk_path}}",
     "BROKER_HEAP": "{{brokers.heap}}",
     "BROKER_PORT": "{{brokers.port}}",
-    
+
+    {{#service.secret_name}}
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
+    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    {{/service.secret_name}}
 
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.1.0",
@@ -139,19 +151,7 @@
     "TASKCFG_ALL_KAFKA_OFFSETS_TOPIC_SEGMENT_BYTES": "{{kafka.offsets_topic_segment_bytes}}",
     "TASKCFG_ALL_KAFKA_LOG_CLEANER_IO_MAX_BYTES_PER_SECOND": "{{kafka.log_cleaner_io_max_bytes_per_second}}",
     "TASKCFG_ALL_KAFKA_COMPRESSION_TYPE": "{{kafka.compression_type}}"
-    {{#service.secret_name}}
-    ,"DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "file:///opt/mesosphere/etc/mesos-scheduler-modules/dcos_authenticatee_module.json",
-    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee"
-    {{/service.secret_name}}
   },
-  {{#service.secret_name}}
-  "secrets": {
-    "serviceCredential": {
-      "source": "{{service.secret_name}}"
-    }
-  },
- {{/service.secret_name}}
   "uris": [
     "{{resource.assets.uris.executor-zip}}",
     "{{resource.assets.uris.bootstrap-zip}}",

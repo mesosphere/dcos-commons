@@ -41,7 +41,7 @@
             "default": "root"
           },
           "principal": {
-            "description": "The principal for the Cassandra service instance.",
+            "description": "The principal for the service instance.",
             "type": "string",
             "default": ""
           }

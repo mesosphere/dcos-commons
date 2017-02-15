@@ -148,11 +148,11 @@ public class DefaultService implements Service {
                 serviceSpec.getZookeeperConnection());
     }
 
-    private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
+    private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
         startApiServer(defaultScheduler, apiPort, Collections.EMPTY_LIST);
     }
 
-    protected static void startApiServer(
+    protected void startApiServer(
             DefaultScheduler defaultScheduler,
             int apiPort,
             Collection<Object> additionalResources) {

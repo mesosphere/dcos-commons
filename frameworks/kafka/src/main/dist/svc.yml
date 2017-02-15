@@ -1,6 +1,6 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{FRAMEWORK_PRINCIPLE}}
+  principal: {{FRAMEWORK_PRINCIPAL}}
   zookeeper: {{MESOS_ZOOKEEPER_URI}}
   api-port: {{PORT_API}}
 pods:
