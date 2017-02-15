@@ -9,11 +9,12 @@ pods:
     tasks:
       once:
         goal: FINISHED
-        #cmd: "dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
-        cmd: "dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' >> output && ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2 >> output"
+        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
         resource-set: hello-resources
         discovery:
           prefix: hello
+        env:
+          DNS_WAIT_DURATION: 75
       server:
         goal: RUNNING
         cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION"
