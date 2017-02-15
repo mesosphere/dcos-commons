@@ -46,6 +46,8 @@ public class DefaultService implements Service {
 
     private DefaultScheduler.Builder schedulerBuilder;
 
+    private ServiceSpec serviceSpec;
+
     public DefaultService(String yamlSpecification) throws Exception {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
     }
@@ -65,6 +67,7 @@ public class DefaultService implements Service {
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
+        this.serviceSpec = schedulerBuilder.getServiceSpec();
 
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
@@ -150,6 +153,10 @@ public class DefaultService implements Service {
 
     private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
         startApiServer(defaultScheduler, apiPort, Collections.EMPTY_LIST);
+    }
+
+    protected ServiceSpec getServiceSpec() {
+        return this.serviceSpec;
     }
 
     protected void startApiServer(

@@ -3,6 +3,7 @@ package com.mesosphere.sdk.kafka.scheduler;
 import com.mesosphere.sdk.kafka.api.BrokerController;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +26,15 @@ public class KafkaService extends DefaultService {
     protected void startApiServer(DefaultScheduler defaultScheduler,
                                   int apiPort,
                                   Collection<Object> additionalResources) {
+        final ServiceSpec serviceSpec = super.getServiceSpec();
         final Collection<Object> apiResources = new ArrayList<>();
-        apiResources.add(new BrokerController(System.getenv("TASKCFG_ALL_KAFKA_ZOOKEEPER_URI")));
+        final String zkUri = String.format("%s/dcos-service-%s",
+                serviceSpec.getZookeeperConnection(), serviceSpec.getName());
+        apiResources.add(new BrokerController(zkUri));
         if (CollectionUtils.isNotEmpty(additionalResources)) {
             apiResources.addAll(additionalResources);
         }
         LOGGER.info("Starting API server with resources: {}", apiResources);
-        super.startApiServer(defaultScheduler, apiPort, additionalResources);
+        super.startApiServer(defaultScheduler, apiPort, apiResources);
     }
 }

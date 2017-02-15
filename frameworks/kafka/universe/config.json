@@ -179,12 +179,6 @@
         "type":"object",
         "additionalProperties":false,
         "properties":{
-          "kafka_zookeeper_uri":{
-            "title":"The address of the Zookeeper cluster used by Kafka.",
-            "description":"This should be the address of the Zookeeper cluster Kafka will use.",
-            "type":"string",
-            "default":"master.mesos:2181/dcos-apache-kafka-zk-connect"
-          },
           "auto_create_topics_enable":{
             "title":"auto.create.topics.enable",
             "description":"Enables auto creation of topic on the server",
