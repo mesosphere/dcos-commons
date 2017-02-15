@@ -71,7 +71,7 @@ public class Main {
         }
 
         Map<String, String> env = new HashMap<>(new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv());
-        env.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+        env.put(Constants.FRAMEWORK_NAME_TASKENV, System.getenv(Constants.FRAMEWORK_NAME_TASKENV));
 
         String fileStr = new String(bytes, Charset.defaultCharset());
         return CommonTaskUtils.applyEnvToMustache(fileStr, env);

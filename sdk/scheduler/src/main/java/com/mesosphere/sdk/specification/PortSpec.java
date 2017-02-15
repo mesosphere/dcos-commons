@@ -56,7 +56,7 @@ public class PortSpec extends DefaultResourceSpec implements ResourceSpec {
         if (envKey.isPresent()) {
             return envKey.get();
         }
-        return Constants.PORT_NAME_LABEL_PREFIX + getPortName();
+        return Constants.PORT_NAME_TASKENV_PREFIX + getPortName();
     }
 
     @Override
