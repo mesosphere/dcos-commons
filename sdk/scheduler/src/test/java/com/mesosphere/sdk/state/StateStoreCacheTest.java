@@ -77,7 +77,7 @@ public class StateStoreCacheTest {
         cache = new TestStateStoreCache(store);
 
         MockitoAnnotations.initMocks(this);
-        when(mockStore.fetchFrameworkId()).thenReturn(Optional.empty());
+        when(mockStore.fetchFrameworkId()).thenReturn(Optional.of(FRAMEWORK_ID));
         when(mockStore.fetchTasks()).thenReturn(Arrays.asList(TASK));
         when(mockStore.fetchStatuses()).thenReturn(Arrays.asList(STATUS));
         when(mockStore.fetchPropertyKeys()).thenReturn(Arrays.asList(PROP_KEY));
@@ -138,6 +138,10 @@ public class StateStoreCacheTest {
 
     @Test
     public void testStoreFrameworkIdFailureThenSuccess() {
+        assertEquals(FRAMEWORK_ID, mockedCache.fetchFrameworkId().get());
+        mockedCache.clearFrameworkId();
+        assertFalse(mockedCache.fetchFrameworkId().isPresent());
+
         doThrow(new StateStoreException(Reason.UNKNOWN, "hello")).when(mockStore).storeFrameworkId(FRAMEWORK_ID);
         try {
             mockedCache.storeFrameworkId(FRAMEWORK_ID);
@@ -399,6 +403,56 @@ public class StateStoreCacheTest {
         mockedCache.storeStatus(STATUS2);
         assertEquals(STATUS2, mockedCache.fetchStatus(TASK_NAME2).get());
         assertEquals(2, mockedCache.fetchStatuses().size());
+    }
+
+    @Test
+    public void testRefreshSuccess() throws Exception {
+        store.storeFrameworkId(FRAMEWORK_ID);
+        store.storeTasks(Arrays.asList(TASK, TASK2));
+        store.storeStatus(STATUS);
+        store.storeStatus(STATUS2);
+        store.storeProperty(PROP_KEY, PROP_VAL);
+        store.storeProperty(PROP_KEY2, PROP_VAL2);
+
+        assertFalse(cache.fetchFrameworkId().isPresent());
+        assertTrue(cache.fetchTasks().isEmpty());
+        assertTrue(cache.fetchStatuses().isEmpty());
+        assertTrue(cache.fetchPropertyKeys().isEmpty());
+
+        cache.refresh();
+
+        assertEquals(FRAMEWORK_ID, cache.fetchFrameworkId().get());
+        assertEquals(2, cache.fetchTasks().size());
+        assertEquals(2, cache.fetchStatuses().size());
+        assertEquals(2, cache.fetchPropertyKeys().size());
+    }
+
+    @Test
+    public void testRefreshFailureLeavesCurrentData() throws Exception {
+        assertEquals(Optional.of(FRAMEWORK_ID), mockedCache.fetchFrameworkId());
+        assertEquals(TASK, mockedCache.fetchTasks().iterator().next());
+        assertEquals(STATUS, mockedCache.fetchStatuses().iterator().next());
+        assertEquals(PROP_KEY, mockedCache.fetchPropertyKeys().iterator().next());
+
+        when(mockStore.fetchTasks()).thenReturn(Collections.emptyList());
+        when(mockStore.fetchStatuses()).thenReturn(Collections.emptyList());
+        when(mockStore.fetchPropertyKeys()).thenReturn(Arrays.asList(PROP_KEY));
+        when(mockStore.fetchProperty(PROP_KEY)).thenThrow(new StateStoreException(Reason.UNKNOWN, "hello"));
+
+        try {
+            mockedCache.refresh();
+            fail("expected exception");
+        } catch (StateStoreException e) {
+            assertEquals("hello (reason: UNKNOWN)", e.getMessage());
+        }
+
+        // cache content is all left as-is following the failed refresh.
+        // data is not cleared as it was in the underlying storage:
+        assertEquals(Optional.of(FRAMEWORK_ID), mockedCache.fetchFrameworkId());
+        assertEquals(TASK, mockedCache.fetchTasks().iterator().next());
+        assertEquals(STATUS, mockedCache.fetchStatuses().iterator().next());
+        assertEquals(PROP_KEY, mockedCache.fetchPropertyKeys().iterator().next());
+
     }
 
     private static class TestStateStoreCache extends StateStoreCache {

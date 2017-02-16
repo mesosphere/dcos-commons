@@ -4,6 +4,7 @@ import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
@@ -21,10 +22,12 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 public class StateResourceTest {
     @Mock private StateStore mockStateStore;
+    @Mock private StateStoreCache mockStateStoreCache;
 
     private StateResource resource;
 
@@ -112,6 +115,25 @@ public class StateResourceTest {
     public void testGetPropertyFails() {
         when(mockStateStore.fetchProperty("foo")).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
         Response response = resource.getProperty("foo");
+        assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testRefreshCache() {
+        Response response = new StateResource(mockStateStoreCache).refreshCache();
+        assertEquals(204, response.getStatus());
+    }
+
+    @Test
+    public void testRefreshCacheNotCached() {
+        Response response = resource.refreshCache();
+        assertEquals(409, response.getStatus());
+    }
+
+    @Test
+    public void testRefreshCacheFailure() {
+        doThrow(new StateStoreException(Reason.UNKNOWN, "hi")).when(mockStateStoreCache).refresh();
+        Response response = new StateResource(mockStateStoreCache).refreshCache();
         assertEquals(500, response.getStatus());
     }
 }

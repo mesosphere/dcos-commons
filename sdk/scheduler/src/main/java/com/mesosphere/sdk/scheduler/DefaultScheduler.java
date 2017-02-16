@@ -369,7 +369,12 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
     public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
-        return StateStoreCache.getInstance(new CuratorStateStore(serviceSpec.getName(), zkConnectionString));
+        StateStore stateStore = new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
+        if (System.getenv(Constants.DISABLE_STATE_CACHE_SCHEDENV) != null) {
+            return stateStore;
+        } else {
+            return StateStoreCache.getInstance(stateStore);
+        }
     }
 
     /**
@@ -777,7 +782,7 @@ public class DefaultScheduler implements Scheduler, Observer {
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
 
-                    if (stateStore.isSuppressed()
+                    if (StateStoreUtils.isSuppressed(stateStore)
                             && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
                         revive();
                     }
@@ -841,13 +846,13 @@ public class DefaultScheduler implements Scheduler, Observer {
 
     private void suppressOrRevive() {
         if (planCoordinator.hasOperations()) {
-            if (stateStore.isSuppressed()) {
+            if (StateStoreUtils.isSuppressed(stateStore)) {
                 revive();
             } else {
                 LOGGER.info("Already revived.");
             }
         } else {
-            if (stateStore.isSuppressed()) {
+            if (StateStoreUtils.isSuppressed(stateStore)) {
                 LOGGER.info("Already suppressed.");
             } else {
                 suppress();
@@ -858,13 +863,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     private void suppress() {
         LOGGER.info("Suppressing offers.");
         driver.suppressOffers();
-        stateStore.setSuppressed(true);
+        StateStoreUtils.setSuppressed(stateStore, true);
     }
 
     private void revive() {
         LOGGER.info("Reviving offers.");
         driver.reviveOffers();
-        stateStore.setSuppressed(false);
+        StateStoreUtils.setSuppressed(stateStore, false);
     }
 
     @Override

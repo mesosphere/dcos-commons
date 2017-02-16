@@ -3,6 +3,7 @@ package com.mesosphere.sdk.api;
 import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
@@ -20,7 +22,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * A read-only API for accessing task and frameworkId state from persistent storage.
+ * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
+ * being used.
  */
 @Path("/v1/state")
 public class StateResource {
@@ -111,6 +114,34 @@ public class StateResource {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
             logger.error(String.format("Failed to fetch requested property '%s'", key), ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Refreshes the state store cache to reflect current data on ZK. Should only be needed if ZK was edited behind the
+     * scheduler's back, or if there's a bug in the cache handling.
+     */
+    @Path("/refresh")
+    @PUT
+    public Response refreshCache() {
+        if (!(stateStore instanceof StateStoreCache)) {
+            logger.warn("State store is not cached: Refresh is not applicable");
+            return Response.status(Response.Status.CONFLICT).build();
+        }
+        try {
+            logger.info("Refreshing state store cache...");
+            logger.info("Before:\n- tasks: {}\n- properties: {}",
+                    stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
+
+            ((StateStoreCache) stateStore).refresh();
+
+            logger.info("After:\n- tasks: {}\n- properties: {}",
+                    stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
+
+            return Response.noContent().build();
+        } catch (StateStoreException ex) {
+            logger.error("Failed to refresh state cache", ex);
             return Response.serverError().build();
         }
     }

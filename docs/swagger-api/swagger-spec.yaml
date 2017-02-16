@@ -439,3 +439,17 @@ paths:
           description: "Requested property wasn't found."
         500:
           description: "Failed to fetch requested property."
+  /state/refresh:
+    put:
+      tags:
+      - "state"
+      summary: "Refreshes the state cache. Should only be needed for debugging or if zk was manually edited while the scheduler is running."
+      produces:
+      - "application/json"
+      responses:
+        202:
+          description: "The scheduler state cache has been cleared and updated with current zk content."
+        409:
+          description: "The scheduler isn't using a state cache so there's nothing to do."
+        500:
+          description: "Failed to retrieve state data from zk."

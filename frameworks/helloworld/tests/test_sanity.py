@@ -146,6 +146,65 @@ def test_pods_info():
 
 
 @pytest.mark.sanity
+def test_state_properties_get():
+    # 'suppressed' could be missing if the scheduler recently started, loop for a bit just in case:
+    def check_for_nonempty_properties():
+        stdout = cmd.run_cli('hello-world state properties')
+        return len(json.loads(stdout)) > 0
+    spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30.)
+
+    stdout = cmd.run_cli('hello-world state properties')
+    jsonobj = json.loads(stdout)
+    assert len(jsonobj) == 1
+    assert jsonobj[0] == "suppressed"
+
+    stdout = cmd.run_cli('hello-world state property suppressed')
+    assert stdout == "true\n"
+
+
+@pytest.mark.sanity
+def test_state_refresh_disable_cache():
+    '''Disables caching via a scheduler envvar'''
+    check_running()
+    task_ids = tasks.get_task_ids(PACKAGE_NAME, '')
+
+    # caching enabled by default:
+    stdout = cmd.run_cli('hello-world state refresh_cache')
+    assert stdout == "\n"
+
+    config = marathon.get_config(PACKAGE_NAME)
+    cpus = float(config['env']['HELLO_CPUS'])
+    config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+
+    tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
+    check_running()
+
+    # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
+    def check_cache_refresh_fails_409conflict():
+        try:
+            cmd.run_cli('hello-world state refresh_cache')
+        except Exception as e:
+            if "failed: 409 Conflict" in e.args[0]:
+                return True
+        return False
+    spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=60.)
+
+    config = marathon.get_config(PACKAGE_NAME)
+    cpus = float(config['env']['HELLO_CPUS'])
+    del config['env']['DISABLE_STATE_CACHE']
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+
+    tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
+    check_running()
+
+    # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
+    def check_cache_refresh():
+        return cmd.run_cli('hello-world state refresh_cache')
+    stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=60.)
+    assert stdout == "\n"
+
+@pytest.mark.sanity
 def test_lock():
     '''This test verifies that a second scheduler fails to startup when
     an existing scheduler is running.  Without locking, the scheduler

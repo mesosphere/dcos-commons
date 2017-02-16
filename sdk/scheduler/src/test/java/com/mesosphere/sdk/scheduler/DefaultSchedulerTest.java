@@ -24,6 +24,7 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.testutils.CuratorTestUtils;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -546,7 +547,9 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = install();
         statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
 
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stateStore).isSuppressed(), equalTo(false));
+        Awaitility.await()
+            .atMost(1, TimeUnit.SECONDS)
+            .untilCall(to(stateStore).fetchProperty("suppressed"), equalTo(false));
     }
 
     private int countOperationType(
@@ -699,7 +702,7 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
-        Assert.assertTrue(stateStore.isSuppressed());
+        Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
 
         return taskIds;
     }
