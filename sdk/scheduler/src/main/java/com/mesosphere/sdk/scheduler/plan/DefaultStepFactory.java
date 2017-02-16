@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -107,10 +108,11 @@ public class DefaultStepFactory implements StepFactory {
             }
         }
 
-        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {}.",
-                taskInfo.getName(), isOnTarget, hasReachedGoal);
+        boolean hasPermanentlyFailed = FailureUtils.isLabeledAsFailed(taskInfo);
+        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {} or has permanently failed: {}.",
+                taskInfo.getName(), isOnTarget, hasReachedGoal, hasPermanentlyFailed);
 
-        if (isOnTarget && hasReachedGoal) {
+        if ((isOnTarget && hasReachedGoal) || hasPermanentlyFailed) {
             return Status.COMPLETE;
         } else {
             return Status.PENDING;
