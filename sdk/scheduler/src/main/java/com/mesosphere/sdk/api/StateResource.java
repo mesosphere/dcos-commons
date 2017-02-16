@@ -16,6 +16,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
@@ -26,6 +27,7 @@ import java.util.Optional;
  * being used.
  */
 @Path("/v1/state")
+@Produces(MediaType.APPLICATION_JSON)
 public class StateResource {
 
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
@@ -67,7 +69,7 @@ public class StateResource {
             Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
             if (frameworkIDOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
-                return Response.ok(idArray.toString(), MediaType.APPLICATION_JSON).build();
+                return Response.ok(idArray.toString()).build();
             } else {
                 logger.warn("No framework ID exists");
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -84,7 +86,7 @@ public class StateResource {
     public Response getPropertyKeys() {
         try {
             JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
-            return Response.ok(keyArray.toString(), MediaType.APPLICATION_JSON).build();
+            return Response.ok(keyArray.toString()).build();
         } catch (StateStoreException ex) {
             logger.error("Failed to fetch list of property keys", ex);
             return Response.serverError().build();
@@ -102,11 +104,10 @@ public class StateResource {
             if (propertyDeserializer == null) {
                 logger.warn("Cannot deserialize requested Property '{}': " +
                         "No deserializer was provided to StateResource constructor", key);
-                return Response.noContent().build(); // 204 NO_CONTENT
+                return Response.status(Response.Status.CONFLICT).build();
             } else {
                 logger.info("Attempting to fetch property '{}'", key);
-                return Response.ok(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)),
-                        MediaType.APPLICATION_JSON).build();
+                return Response.ok(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key))).build();
             }
         } catch (StateStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
@@ -139,7 +140,9 @@ public class StateResource {
             logger.info("After:\n- tasks: {}\n- properties: {}",
                     stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
 
-            return Response.noContent().build();
+            return Response.status(Response.Status.OK)
+                    .entity(new CommandResultInfo("refresh"))
+                    .build();
         } catch (StateStoreException ex) {
             logger.error("Failed to refresh state cache", ex);
             return Response.serverError().build();

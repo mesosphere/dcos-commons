@@ -162,7 +162,7 @@ def test_state_properties_get():
     assert stdout == "true\n"
 
 
-@pytest.mark.sanity
+@pytest.mark.speedy
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
     check_running()
@@ -170,7 +170,7 @@ def test_state_refresh_disable_cache():
 
     # caching enabled by default:
     stdout = cmd.run_cli('hello-world state refresh_cache')
-    assert stdout == "\n"
+    assert "Received cmd: refresh" in stdout
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
@@ -188,7 +188,7 @@ def test_state_refresh_disable_cache():
             if "failed: 409 Conflict" in e.args[0]:
                 return True
         return False
-    spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=60.)
+    spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
@@ -201,8 +201,8 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
         return cmd.run_cli('hello-world state refresh_cache')
-    stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=60.)
-    assert stdout == "\n"
+    stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=120.)
+    assert "Received cmd: refresh" in stdout
 
 @pytest.mark.sanity
 def test_lock():

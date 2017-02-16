@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -121,7 +122,11 @@ public class StateResourceTest {
     @Test
     public void testRefreshCache() {
         Response response = new StateResource(mockStateStoreCache).refreshCache();
-        assertEquals(204, response.getStatus());
+        assertEquals(200, response.getStatus());
+        assertTrue(response.getEntity() instanceof CommandResultInfo);
+
+        CommandResultInfo commandResultInfo = (CommandResultInfo) response.getEntity();
+        assertTrue(commandResultInfo.getMessage().contains("refresh"));
     }
 
     @Test

@@ -386,7 +386,7 @@ func (cmd *StateHandler) RunProperty(c *kingpin.ParseContext) error {
 	return nil
 }
 func (cmd *StateHandler) RunRefreshCache(c *kingpin.ParseContext) error {
-	PrintText(HTTPPut("v1/state/refresh")) // no response content expected, but print just in case
+	PrintJSON(HTTPPut("v1/state/refresh"))
 	return nil
 }
 

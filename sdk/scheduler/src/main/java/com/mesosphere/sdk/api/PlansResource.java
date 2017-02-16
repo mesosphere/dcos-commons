@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
@@ -86,7 +85,7 @@ public class PlansResource {
 
             plan.proceed();
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: start"))
+                    .entity(new CommandResultInfo("start"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -106,7 +105,7 @@ public class PlansResource {
             plan.interrupt();
             plan.restart();
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: stop"))
+                    .entity(new CommandResultInfo("stop"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -120,7 +119,7 @@ public class PlansResource {
         if (planManagerOptional.isPresent()) {
             planManagerOptional.get().getPlan().proceed();
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: continue"))
+                    .entity(new CommandResultInfo("continue"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -139,7 +138,7 @@ public class PlansResource {
                     .collect(Collectors.toList());
             phases.forEach(p -> p.getStrategy().interrupt());
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: continue"))
+                    .entity(new CommandResultInfo("continue"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -153,7 +152,7 @@ public class PlansResource {
         if (planManagerOptional.isPresent()) {
             planManagerOptional.get().getPlan().interrupt();
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: interrupt"))
+                    .entity(new CommandResultInfo("interrupt"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -172,7 +171,7 @@ public class PlansResource {
                     .collect(Collectors.toList());
             phases.forEach(p -> p.getStrategy().interrupt());
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: interrupt"))
+                    .entity(new CommandResultInfo("interrupt"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -191,7 +190,7 @@ public class PlansResource {
             if (step.isPresent()) {
                 step.get().forceComplete();
                 return Response.status(Response.Status.OK)
-                        .entity(new CommandResultInfo("Received cmd: forceComplete"))
+                        .entity(new CommandResultInfo("forceComplete"))
                         .build();
             } else {
                 return ELEMENT_NOT_FOUND_RESPONSE;
@@ -223,7 +222,7 @@ public class PlansResource {
             }
 
             return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: restart"))
+                    .entity(new CommandResultInfo("restart"))
                     .build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
@@ -319,22 +318,9 @@ public class PlansResource {
         }
     }
 
-    static class ValidationException extends Exception {
+    private static class ValidationException extends Exception {
         public ValidationException(String message) {
             super(message);
-        }
-    }
-
-    static class CommandResultInfo {
-        private final String msg;
-
-        CommandResultInfo(String msg) {
-            this.msg = msg;
-        }
-
-        @JsonProperty("message")
-        public String getMessage() {
-            return msg;
         }
     }
 }
