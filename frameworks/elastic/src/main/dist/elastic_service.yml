@@ -1,5 +1,8 @@
 name: {{FRAMEWORK_NAME}}
 web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   kibana:
     count: {{KIBANA_COUNT}}
