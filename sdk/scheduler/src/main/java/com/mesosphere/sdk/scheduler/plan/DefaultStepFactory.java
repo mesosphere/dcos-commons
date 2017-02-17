@@ -68,12 +68,31 @@ public class DefaultStepFactory implements StepFactory {
                 .map(taskSpec -> taskSpec.getResourceSet().getId())
                 .collect(Collectors.toList());
 
-        if (new HashSet<>(resourceSetIds).size() < resourceSetIds.size()) {
+        if (hasDuplicates(resourceSetIds)) {
             throw new Step.InvalidStepException(String.format(
                     "Attempted to simultaneously launch tasks: %s in pod: %s using the same resource set id: %s. " +
                     "These tasks should either be run in separate steps or use different resource set ids",
                     tasksToLaunch, podInstance.getName(), resourceSetIds));
         }
+
+        List<String> dnsPrefixes = taskSpecsToLaunch.stream()
+                .map(taskSpec -> taskSpec.getDiscovery())
+                .filter(discovery -> discovery.isPresent())
+                .map(discovery -> discovery.get().getPrefix())
+                .filter(prefix -> prefix.isPresent())
+                .map(prefix -> prefix.get())
+                .collect(Collectors.toList());
+
+        if (hasDuplicates(dnsPrefixes)) {
+            throw new Step.InvalidStepException(String.format(
+                    "Attempted to simultaneously launch tasks: %s in pod: %s using the same DNS name: %s. " +
+                            "These tasks should either be run in separate steps or use different DNS names",
+                    tasksToLaunch, podInstance.getName(), dnsPrefixes));
+        }
+    }
+
+    private <T> boolean hasDuplicates(Collection<T> collection) {
+        return new HashSet<T>(collection).size() < collection.size();
     }
 
     private Status getStatus(PodInstance podInstance, List<Protos.TaskInfo> taskInfos)

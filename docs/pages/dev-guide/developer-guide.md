@@ -711,7 +711,39 @@ pods:
           size: 50
 ```
 
-would generate a single task named "hello-0-server".  The framework’s name is “hello-world”.  The Mesos-DNS address for this task would be “hello-0-server.hello-world.mesos”.
+would generate a single task named "hello-0-server".  The framework’s name is "hello-world".  The Mesos-DNS address for this task would be "hello-0-server.hello-world.mesos". Tasks may also specify their own prefixes for the first component of their mesos-dns names using the `discovery` section in each task definition. In the following example, two tasks within the same pod share a prefix:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    resource-sets:
+      pod-resources:
+        cpus: 0.2
+        memory: 256
+        volume:
+          path: "hello-container-path"
+          type: ROOT
+          size: 50
+    tasks:
+      init:
+        goal: FINISHED
+        resource-set: pod-resources
+        cmd: "echo init >> hello-container-path/output && sleep 1000"
+        discovery:
+          prefix: hello
+      server:
+        goal: RUNNING
+        resource-set: pod-resources
+        cmd: "echo hello >> hello-container-path/output && sleep 1000"
+        discovery:
+          prefix: hello
+```
+
+In this case, while running, both the `init` and `server` tasks would be addressable at "hello-0.hello-world.mesos", with the "-0" being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.
+
+**Important:** As with resource sets, only a single process at point in time may use a given prefix, meaning that `init` may not run at the same time as `server`. A complete service definition would have a deploy plan that ensures this.
 
 ## [VIP](https://github.com/dcos/minuteman)
 
@@ -870,7 +902,7 @@ pods:
           size: 50
 ```
 
-An equivalent way  to define the same task is as follows:
+An equivalent way to define the same task is as follows:
 
 ```yaml
 name: "hello-world"
