@@ -30,6 +30,7 @@ See [marathon.json.mustache](universe/marathon.json.mustache) for more informati
       "port": 0,
       "protocol": "tcp",
       "name": "api",
+      "labels": { "VIP_0": "/api.{{service.name}}:80" }
     }
 [...]
 ```

@@ -384,7 +384,7 @@ helloworld has a [marathon.json.mustache template](https://github.com/mesosphere
             "port": 0,
             "protocol": "tcp",
             "name": "api",
-            "labels": {}
+            "labels": { "VIP_0": "/api.{{service.name}}:80" }
         }
     ]
 }
