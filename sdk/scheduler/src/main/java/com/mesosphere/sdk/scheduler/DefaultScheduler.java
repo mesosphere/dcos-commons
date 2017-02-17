@@ -23,7 +23,6 @@ import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
 import com.mesosphere.sdk.curator.CuratorConfigStore;
 import com.mesosphere.sdk.curator.CuratorStateStore;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
@@ -538,7 +537,6 @@ public class DefaultScheduler implements Scheduler, Observer {
         initializeRecoveryPlanManager();
         initializePlanCoordinator();
         initializeResources();
-        DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }

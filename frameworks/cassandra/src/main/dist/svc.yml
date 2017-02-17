@@ -1,4 +1,7 @@
 name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   node:
     count: {{NODES}}

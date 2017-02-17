@@ -1,4 +1,7 @@
 name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   template:
     count: {{TEMPLATE_COUNT}}
