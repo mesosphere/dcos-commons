@@ -13,7 +13,7 @@ function proxylite_preflight {
 
 function run_framework_tests {
     framework=$1
-    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/$framework
+    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
 
     if [ "$framework" = "proxylite" ]; then
         if ! proxylite_preflight; then
@@ -26,7 +26,7 @@ function run_framework_tests {
     if [ -z "${!STUB_UNIVERSE_URL}" ]; then
         STUB_UNIVERSE_URL=$(echo "${framework}_STUB_UNIVERSE_URL" | awk '{print toupper($0)}')
         # Build/upload framework scheduler:
-        UNIVERSE_URL_PATH=${REPO_ROOT_DIR}/frameworks/$framework/${framework}-universe-url
+        UNIVERSE_URL_PATH=$FRAMEWORK_DIR/${framework}-universe-url
         UNIVERSE_URL_PATH=$UNIVERSE_URL_PATH ${FRAMEWORK_DIR}/build.sh aws
 
         if [ ! -f "$UNIVERSE_URL_PATH" ]; then
@@ -40,8 +40,8 @@ function run_framework_tests {
         echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
 
-    # Run shakedown tests in framework scheduler directory:
-    ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
+    # Run shakedown tests in framework directory:
+    TEST_GITHUB_LABEL="test:${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
 }
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -61,14 +61,11 @@ else
 fi
 
 # A specific framework can be specified to run its tests
-# Otherwise all tests are ran
+# Otherwise all tests are run
 if [ -n "$1" ]; then
     run_framework_tests $1
 else
     for framework in $(ls $REPO_ROOT_DIR/frameworks); do
-        if [ "$framework" = "kafka" ]; then # no tests exists for Kafka as of writing this
-            continue
-        fi
         run_framework_tests $framework
     done
 fi
