@@ -1002,12 +1002,17 @@ plans:
         tasks: [sidecar]
 ```
 
-The command definition for the sidecar task includes an environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.
+The command definition for the sidecar task includes environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.
 
 To initiate the plan, execute an HTTP POST request against the `/v1/plans/sidecar-example/start` endpoint with the header `Content-Type: application/json` set and a JSON body consisting of environment variable name/value pairs. For example:
 
 ```bash
 $ curl -X POST -H "Authorization: token=$DCOS_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' $DCOS_URL/service/$FRAMEWORK_NAME/v1/plans/sidecar-example/start
+```
+
+Or, using the DC/OS CLI interface:
+```bash
+$ dcos $FRAMEWORK_NAME plan start sidecar-example PLAN_PARAMETER1=sidecar,PLAN_PARAMETER2=plan
 ```
 
 When no parameters are specified, the body of the POST request must be an empty JSON object (`{}`). Supply default values with standard Bash syntax. In the above case, you can declare the default value of `PLAN_PARAMETER1` to be `sidecar` by changing the task's command string to `echo ${PLAN_PARAMETER1:-sidecar} >> output`.
