@@ -65,12 +65,23 @@ fi
 if [ -n "$1" ]; then
     run_framework_tests $1
 else
+    FAILURE_COUNT=0
     for framework in $(ls $REPO_ROOT_DIR/frameworks); do
-        if [ "$framework" = "kafka" ]; then # no tests exists for Kafka as of writing this
-            continue
-        fi
-        run_framework_tests $framework
+        # Run in subshells
+        (run_framework_tests $framework) &
     done
+
+    # Wait for subshells to complete
+    for job in `jobs -p`
+    do
+    echo $job
+        wait $job || let "FAILURE_COUNT+=1"
+    done
+
+    echo Framework test suite failures: $FAILURE_COUNT
+    if [ "$FAILURE_COUNT" -gt "0" ]; then
+        exit $FAILURE_COUNT
+    fi
 fi
 
 # Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
