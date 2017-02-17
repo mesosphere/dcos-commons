@@ -39,6 +39,9 @@ public class DefaultTaskSpec implements TaskSpec {
     private final ResourceSet resourceSet;
 
     @Valid
+    private final DiscoverySpec discoverySpec;
+
+    @Valid
     private final Collection<ConfigFileSpec> configFiles;
 
     @JsonCreator
@@ -49,7 +52,8 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("command-spec") CommandSpec commandSpec,
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
-            @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles) {
+            @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
+            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
@@ -57,6 +61,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.healthCheckSpec = healthCheckSpec;
         this.readinessCheckSpec = readinessCheckSpec;
         this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
+        this.discoverySpec = discoverySpec;
     }
 
     private DefaultTaskSpec(Builder builder) {
@@ -67,7 +72,8 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.commandSpec,
                 builder.healthCheckSpec,
                 builder.readinessCheckSpec,
-                builder.configFiles);
+                builder.configFiles,
+                builder.discoverySpec);
     }
 
     public static Builder newBuilder() {
@@ -121,6 +127,11 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
+    public Optional<DiscoverySpec> getDiscovery() {
+        return Optional.ofNullable(discoverySpec);
+    }
+
+    @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
@@ -150,6 +161,7 @@ public class DefaultTaskSpec implements TaskSpec {
         private HealthCheckSpec healthCheckSpec;
         private ReadinessCheckSpec readinessCheckSpec;
         private Collection<ConfigFileSpec> configFiles;
+        private DiscoverySpec discoverySpec;
 
         private Builder() {
         }
@@ -227,6 +239,18 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder configFiles(Collection<ConfigFileSpec> configFiles) {
             this.configFiles = configFiles;
+            return this;
+        }
+
+        /**
+         * Sets the {@code discoverySpec} and returns a reference to this Builder so that methods can be chained
+         * together.
+         *
+         * @param discoverySpec The {@link DiscoverySpec} to set
+         * @return a reference to this Builder
+         */
+        public Builder discoverySpec(DiscoverySpec discoverySpec) {
+            this.discoverySpec = discoverySpec;
             return this;
         }
 

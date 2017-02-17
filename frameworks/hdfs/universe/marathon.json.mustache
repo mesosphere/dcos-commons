@@ -4,7 +4,6 @@
   "mem": 2048,
   "instances": 1,
   "cmd": "{{service.cmd_prefix}} && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/{{service.spec_file}}",
-  "user": "{{service.user}}",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -14,6 +13,13 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
+  {{#service.secret_name}}
+  "secrets": {
+    "serviceCredential": {
+      "source": "{{service.secret_name}}"
+    }
+  },
+  {{/service.secret_name}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
     "HDFS_VERSION": "hadoop-2.6.0-cdh5.9.1",
@@ -40,6 +46,13 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+
+    {{#service.secret_name}}
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
+    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    {{/service.secret_name}}
+
     {{#service.kerberos.enabled}}
     "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
     "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
@@ -48,6 +61,7 @@
     "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
     "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
     {{/service.kerberos.enabled}}
+
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
     "TASKCFG_ALL_NAME_NODE_HTTP_PORT":"{{hdfs.name_node_http_port}}",
     "TASKCFG_ALL_JOURNAL_NODE_RPC_PORT":"{{hdfs.journal_node_rpc_port}}",

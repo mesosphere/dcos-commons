@@ -283,12 +283,9 @@ class CCMLauncher(object):
 
             def run_script(scriptname, args = []):
                 logger.info('Command: {} {}'.format(scriptname, ' '.join(args)))
-                # force total redirect to stderr:
-                stdout = sys.stdout
-                sys.stdout = sys.stderr
                 script_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), scriptname)
-                subprocess.check_call(['bash', script_path] + args)
-                sys.stdout = stdout
+                # redirect stdout to stderr:
+                subprocess.check_call(['bash', script_path] + args, stdout=sys.stderr)
 
             run_script('create_service_account.sh', [dcos_url, auth_token, '--strict'])
             # Examples of what individual tests should run. See respective projects' "test.sh":
