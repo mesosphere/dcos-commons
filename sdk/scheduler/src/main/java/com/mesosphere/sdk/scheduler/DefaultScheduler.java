@@ -570,9 +570,10 @@ public class DefaultScheduler implements Scheduler, Observer {
         Plan deployPlan;
         if (!deploy.isPresent()) {
             LOGGER.info("No deploy plan provided. Generating one");
-             deployPlan = new DefaultPlanFactory(
-                     new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore)))
-                     .getPlan(serviceSpec);
+            deployPlan =
+                    new DefaultPlanFactory(
+                            new DefaultPhaseFactory(
+                                    new DefaultStepFactory(configStore, stateStore))).getPlan(serviceSpec);
         } else {
             deployPlan = deploy.get();
         }
