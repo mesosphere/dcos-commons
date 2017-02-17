@@ -33,7 +33,7 @@ Every DC/OS service must provide a package definition in the format expected by 
 
 Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. Zookeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. Zookeeper provides persistent storage for this information.
 
-Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store. 
+Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
 They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
 
@@ -76,13 +76,13 @@ pods:
 
     * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
 
-* **Pods**: A pod can be defined most simply as a set of tasks. 
+* **Pods**: A pod can be defined most simply as a set of tasks.
 
 * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
 * **count**: The number of instances of the pod.
 
-* **tasks**: The list of tasks in the pod.	
+* **tasks**: The list of tasks in the pod.
 
 * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
@@ -96,7 +96,7 @@ pods:
 
 ### Summary
 
-A set of pods defines *what* your service is. Pods are composed of task definitions. 
+A set of pods defines *what* your service is. Pods are composed of task definitions.
 
 In the example, we have only defined types of pods and tasks. When the service is deployed and instantiated into instances of these types, we get a Mesos task like the following:
 
@@ -114,7 +114,7 @@ In the example, we have only defined types of pods and tasks. When the service i
 </table>
 
 
-Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.  
+Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.
 
 <a name="plans"></a>
 ## Plans
@@ -122,7 +122,7 @@ Since a single pod instance was requested via the *count* element, only a single
 In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
 
 The example below defines a service with two types of pods, each of which deploys two instances.
-    
+
 ```yaml
 name: "hello-world"
 pods:
@@ -144,7 +144,7 @@ pods:
             memory: 512
 ```
 
-There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying. 
+There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying.
 
 By default, the SDK will deploy all instances of pods serially.  In the example above, the default deployment order would be:
 
@@ -158,7 +158,7 @@ By default, the SDK will deploy all instances of pods serially.  In the example 
 
 Each pod’s task must reach its goal of `RUNNING` before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.
 
-However, this default deployment strategy does not provide the flexibility you need to write rich services. The SDK therefore also allows you to define *plans* that orchestrate task deployment. 
+However, this default deployment strategy does not provide the flexibility you need to write rich services. The SDK therefore also allows you to define *plans* that orchestrate task deployment.
 
 In this section we focus on using plans to define the initial deployment of a service. However, you can also use plans to orchestrate configuration updates, software upgrades, and recovery from complex, service-specific failure scenarios.
 
@@ -325,7 +325,7 @@ The build.sh script takes an optional argument of aws or local:
 $ export S3_BUCKET=my_universe_s3_bucket
 ```
 
-* `./build.sh local`: The package definition and build artifacts are served by a local HTTP server. 
+* `./build.sh local`: The package definition and build artifacts are served by a local HTTP server.
 
 Executing the final command, `dcos package install --yes hello-world` deploys the service to a DC/OS cluster.
 
@@ -356,6 +356,7 @@ The following events occur to select a target configuration and move a service f
 These steps are discussed in more detail below.
 
 <a name="define-target-config"></a>
+
 ## Defining a Target Configuration
 
 We previously described how a DC/OS service’s scheduler is a Marathon application.  Marathon applications define a particular declarative application definition, and DC/OS services constructed with the SDK define another, the `ServiceSpec`s and plans.
@@ -442,7 +443,7 @@ The [resource.json](https://github.com/mesosphere/dcos-commons/blob/master/frame
 }
 ```
 
-The marathons.json.mustache template pulls values from the config.json and resource.json files and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can [override the initial config.json values](https://docs.mesosphere.com/latest/usage/managing-services/config/) [when installing via the command line](https://docs.mesosphere.com/1.7/usage/managing-services/config/).
+The `marathon.json.mustache` template pulls values from `config.json` and `resource.json` and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can [override the initial config.json values when installing via the command line](https://docs.mesosphere.com/latest/usage/managing-services/config/).
 
 **Important:** The environment variable field of the Marathon application definition defines values specific to the helloworld service.
 
@@ -464,7 +465,7 @@ pods:
 ...
 ```
 
-The port definition in marathon.json.mustache makes the PORT0 environment variables available to the scheduler. The HELLO_COUNT and HELLO_CPUS environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered marathon.json.mustache template.
+The port definition in `marathon.json.mustache` makes the `PORT0` environment variables available to the scheduler. The `HELLO_COUNT` and `HELLO_CPUS` environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered `marathon.json.mustache` template.
 
 <a name="rendered-spec"></a>
 The final rendered `ServiceSpec` is:
@@ -747,7 +748,7 @@ In this case, while running, both the `init` and `server` tasks would be address
 
 ## [VIP](https://github.com/dcos/minuteman)
 
-You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks. 
+You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks.
 
 ```yaml
 name: "hello-world"
@@ -784,7 +785,7 @@ server-lb.hello-world.l4lb.thisdcos.directory:80
 
 # Testing
 
-The SDK provides assistance for writing both unit and integration tests. 
+The SDK provides assistance for writing both unit and integration tests.
 
 ## Unit tests
 
@@ -822,7 +823,7 @@ Then, only tests marked special would be executed.  A one line example is as fol
 $ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
 ```
 
-# Advanced  DC/OS Service Definition
+# Advanced DC/OS Service Definition
 
 ## `ServiceSpec` (YAML)
 
@@ -1099,9 +1100,40 @@ pods:
             dest: etc/config.xml
 ```
 
-The template is rendered by the environment variables available in the task’s context and copied to the specified dest location. Any number of configuration files may be specified.
+The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables within the task, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#bootstrap) for more information. at the beginning of the task.
+
+For example, say you had a container with the following environment variables:
+
+```bash
+PORT_FOO=1984
+FRAMEWORK_NAME=mysvc
+```
+
+And a `config.xml.mustache` template like this:
+
+```xml
+<config>
+  <port>{{PORT_FOO}}</port>
+  <service>{{FRAMEWORK_NAME}}</service>
+  <!-- ... -->
+</config>
+```
+
+When the `bootstrap` helper is run, it would automatically create a populated version of that file in `etc/config.xml`:
+
+```xml
+<config>
+  <port>1984</port>
+  <game>mysvc</game>
+  <!-- ... -->
+<config>
+```
+
+To be clear, the config templating provided by the `bootstrap` tool may be applied to _any text format_, not just XML as in this example. This makes it a powerful tool for handling any config files your service may need. Read more about setting this up in the [Bootstrap Tool](#bootstrap) section.
 
 ### Task Environment
+
+While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.
 
 You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
@@ -1136,6 +1168,76 @@ To inject environment variables into the contexts of all instances of a particul
 For example:
 
     TASKCFG_HELLO_BAZ: BAZ → BAZ: BAZ
+
+<a name="bootstrap"></a>
+### Task Bootstrap
+
+The `cmd` in each task defines what's run for the lifetime of that task. A common problem when defining tasks is providing some sort of initial configuration, waiting for hosts to resolve, and other up-front work.
+
+The `bootstrap` utility executable is available for running at the start of your tasks to perform these common task operations, including:
+
+- Logging `env` (useful for debugging)
+- Rendering any `configs` provided in the task definition and writing the result to the configured `dest`s.
+- Waiting for the task's own hostname to be resolvable, or optionally wait for other custom hostnames to be resolvable, before exiting
+
+These operations may be enabled, disabled, and customized via `bootstrap`s commandline arguments in your `cmd`. See the [source code](https://github.com/mesosphere/dcos-commons/blob/master/sdk/bootstrap/main.go) for more details on what specific options are available.
+
+Including `bootstrap` in your tasks is a manual but straightforward operation. First, you should to add it to the package definition (`resources.json` and `marathon.json.mustache`), then include it in the service definition (`svc.yml`):
+
+`resources.json`:
+
+```json
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-VERSION-linux-x64.tar.gz",
+      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-VERSION.tar.gz",
+      ...
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip", # include bootstrap.zip in package resources
+      ...
+    }
+  }
+}
+```
+
+`marathon.json.mustache`:
+
+```json
+{
+  "id": "{{service.name}}",
+  "cpus": 1.0,
+  "mem": 2048,
+  ...
+  "env": {
+    ...
+    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}", # add url to scheduler env
+    ...
+  }
+}
+```
+
+`svc.yml`:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    uris:
+      - {{BOOTSTRAP_URI}} # fetch/unpack bootstrap.zip into this pod
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "./bootstrap && echo hello && sleep 1000" # run 'bootstrap' before 'hello'
+        cpus: 0.1
+        memory: 256
+        configs:
+          config.xml:
+            template: "config.xml.mustache"
+            dest: etc/config.xml
+```
+
+Now the `bootstrap` executable will automatically be run at the start of `hello` tasks. By default it will first print the `env`, then will handle rendering the `config.xml.mustache` template to `etc/config.xml`, then wait for the hello task's hostname to be locally resolvable.
 
 ### Health Checks
 
@@ -1252,16 +1354,16 @@ pods:
     * `DCOS_FRAMEWORK_NAME`
     * `DCOS_SERVICE_PORT_INDEX`
     * `DCOS_SERVICE_SCHEME`
-    
+
 1. Things to watch out for:
     *  No trailing slashes.
     * The external route is *replaced* with the internal route.
         - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
         - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
-    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched. 
-    
+    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
+
       You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:
-      
+
       ```yaml
       cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
       ```
@@ -1326,11 +1428,11 @@ Understanding plan execution can help you take advantage of the full capabilitie
 
 ![image alt text](image_3.png)
 
-There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan. 
+There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.
 
-**Plan managers** determine what steps in a plan should be executed. 
+**Plan managers** determine what steps in a plan should be executed.
 
-A **plan coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution. 
+A **plan coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.
 
 The **plan scheduler** attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.
 
@@ -1426,7 +1528,7 @@ public class CustomService extends DefaultService {
         init();
         plans = generatePlansFromRawSpec(rawServiceSpecification);
         plans.add(customPlan);
-        
+
         register(serviceSpec, plans);
     }
 }
