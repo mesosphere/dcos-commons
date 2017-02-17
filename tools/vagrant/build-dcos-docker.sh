@@ -33,7 +33,7 @@ ARTIFACT_GOLANG=go1.7.3.linux-amd64.tar.gz
 ARTIFACT_UPX=upx-3.91-amd64_linux.tar.bz2
 ARTIFACT_PIP=get-pip.py
 ARTIFACT_DCOSCLI=dcos
-ARTIFACT_JDK=jdk-8u112-linux-x64.tar.gz
+ARTIFACT_JDK=jdk-8u121-linux-x64.tar.gz
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SCRIPT_DIR
