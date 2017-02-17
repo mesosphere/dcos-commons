@@ -2,7 +2,7 @@
   "assets": {
     "uris": {
       "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-8u121-linux-x64.tar.gz",
-      "libmesos-bundle-tar-gz": "http://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-2.tar.gz",
+      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-3.tar.gz",
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"

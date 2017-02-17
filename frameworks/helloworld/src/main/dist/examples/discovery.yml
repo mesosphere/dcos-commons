@@ -1,0 +1,42 @@
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+    tasks:
+      once:
+        goal: FINISHED
+        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
+        resource-set: hello-resources
+        discovery:
+          prefix: hello
+        env:
+          DNS_WAIT_DURATION: 75
+      server:
+        goal: RUNNING
+        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION"
+        resource-set: hello-resources
+        discovery:
+          prefix: hello
+        env:
+          SLEEP_DURATION: 1000
+          # Sleep for more than 60 seconds, before running dig,
+          # so that the TTL for the first task's DNS entry expires.
+          DNS_WAIT_DURATION: 75
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      once-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[once]]
+      server-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[server]]

@@ -25,6 +25,18 @@ public class TestPodFactory {
                 name,
                 CMD.getValue(),
                 resourceSetId,
+                null,
+                CPU,
+                MEM,
+                DISK);
+    }
+
+    public static TaskSpec getTaskSpec(String name, String resourceSetId, String dnsPrefix) {
+        return getTaskSpec(
+                name,
+                CMD.getValue(),
+                resourceSetId,
+                dnsPrefix,
                 CPU,
                 MEM,
                 DISK);
@@ -37,19 +49,47 @@ public class TestPodFactory {
             double cpu,
             double mem,
             double disk) {
-        return getTaskSpec(name, cmd, getResourceSet(resourceSetId, cpu, mem, disk));
+        return getTaskSpec(name, cmd, null, getResourceSet(resourceSetId, cpu, mem, disk));
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            String resourceSetId,
+            String dnsPrefix,
+            double cpu,
+            double mem,
+            double disk) {
+        return getTaskSpec(name, cmd, dnsPrefix, getResourceSet(resourceSetId, cpu, mem, disk));
     }
 
     public static TaskSpec getTaskSpec(
             String name,
             String cmd,
             ResourceSet resourceSet) {
-        return getTaskSpec(name, cmd, resourceSet, Collections.emptyList());
+        return getTaskSpec(name, cmd, null, resourceSet, Collections.emptyList());
     }
 
     public static TaskSpec getTaskSpec(
             String name,
             String cmd,
+            String dnsPrefix,
+            ResourceSet resourceSet) {
+        return getTaskSpec(name, cmd, dnsPrefix, resourceSet, Collections.emptyList());
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            ResourceSet resourceSet,
+            Collection<ConfigFileSpec> configs) {
+        return getTaskSpec(name, cmd, null, resourceSet, configs);
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            String dnsPrefix,
             ResourceSet resourceSet,
             Collection<ConfigFileSpec> configs) {
         return DefaultTaskSpec.newBuilder()
@@ -61,6 +101,7 @@ public class TestPodFactory {
                         .environment(Collections.emptyMap())
                         .build())
                 .configFiles(configs)
+                .discoverySpec(new DefaultDiscoverySpec(dnsPrefix, null))
                 .build();
     }
 
@@ -82,7 +123,7 @@ public class TestPodFactory {
             double cpu,
             double mem,
             double disk) {
-        return getPodSpec(type, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, cpu, mem, disk)));
+        return getPodSpec(type, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
     }
 
     public static PodSpec getPodSpec(String type, int count, List<TaskSpec> taskSpecs) {
