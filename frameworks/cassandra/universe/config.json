@@ -10,10 +10,30 @@
           "type": "string",
           "default": "cassandra"
         },
+        "cmd_prefix" : {
+          "description":"A generic prefix to start the scheduler.",
+          "type":"string",
+          "default":"export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH"
+        },
+        "secret_name": {
+          "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "type":"string",
+          "default":""
+        },
+        "principal": {
+          "description": "The principal for the service instance.",
+          "type": "string",
+          "default": ""
+        },
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
           "type": "string",
           "default": "core"
+        },
+        "mesos_api_version" : {
+          "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
+          "type":"string",
+          "default":"V0"
         }
       },
       "required": [

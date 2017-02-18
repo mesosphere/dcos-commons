@@ -160,6 +160,18 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void invalidDuplicateDnsName() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-dns.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("Tasks in different pods cannot share DNS names"));
+        }
+    }
+
+    @Test
     public void invalidDuplicateCount() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-duplicate-count.yml").getFile());

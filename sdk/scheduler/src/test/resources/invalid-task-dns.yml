@@ -1,0 +1,22 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
+        discovery:
+          prefix: meta-data
+  other-pod:
+    count: 1
+    tasks:
+      other-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
+        discovery:
+          prefix: meta-data
