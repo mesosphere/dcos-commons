@@ -27,32 +27,6 @@ import static com.mesosphere.sdk.offer.Constants.*;
 public class CommonTaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonTaskUtils.class);
 
-    /**
-     * Label key against which Offer attributes are stored (in a string representation).
-     */
-    private static final String OFFER_ATTRIBUTES_KEY = "offer_attributes";
-
-    /**
-     * Label key against which the offer agent's hostname is stored.
-     */
-    private static final String OFFER_HOSTNAME_KEY = "offer_hostname";
-
-    /**
-     * Label key against which the readiness check (if present) is stored.
-     */
-    private static final String READINESS_CHECK_KEY = "readiness_check";
-
-    /**
-     * Label key used to find the result of a readiness check in a TaskStatus label.
-     */
-    public static final String READINESS_CHECK_PASSED_KEY = "readiness_check_passed";
-
-    /**
-     * Label key against which the Task Type is stored.
-     */
-    protected static final String TYPE_KEY = "task_type";
-    protected static final String INDEX_KEY = "index";
-
     private CommonTaskUtils() {
         // do not instantiate
     }
@@ -153,7 +127,7 @@ public class CommonTaskUtils {
     public static TaskInfo.Builder setTransient(TaskInfo.Builder taskInfo) {
         return taskInfo
                 .setLabels(withLabelSet(taskInfo.getLabels(),
-                        TRANSIENT_FLAG_KEY,
+                        TRANSIENT_FLAG_LABEL,
                         "true"));
     }
 
@@ -162,7 +136,7 @@ public class CommonTaskUtils {
      * identifying it as a transient task.
      */
     public static TaskInfo.Builder clearTransient(TaskInfo.Builder builder) {
-        return builder.setLabels(withLabelRemoved(builder.getLabels(), TRANSIENT_FLAG_KEY));
+        return builder.setLabels(withLabelRemoved(builder.getLabels(), TRANSIENT_FLAG_LABEL));
     }
 
     /**
@@ -170,7 +144,7 @@ public class CommonTaskUtils {
      * existing stored task type is overwritten.
      */
     public static TaskInfo.Builder setType(TaskInfo.Builder taskBuilder, String taskType) {
-        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TYPE_KEY, taskType));
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TASK_TYPE_LABEL, taskType));
     }
 
     /**
@@ -179,10 +153,10 @@ public class CommonTaskUtils {
      * @throws TaskException if the type could not be found.
      */
     public static String getType(TaskInfo taskInfo) throws TaskException {
-        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TYPE_KEY);
+        Optional<String> taskType = findLabelValue(taskInfo.getLabels(), TASK_TYPE_LABEL);
         if (!taskType.isPresent()) {
             LOGGER.error("TaskInfo: {} does not contain a label indicating type.", taskInfo);
-            throw new TaskException("TaskInfo does not contain label with key: " + TYPE_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + TASK_TYPE_LABEL);
         }
         return taskType.get();
     }
@@ -191,7 +165,7 @@ public class CommonTaskUtils {
      * Assigns the pod instance index to the provided task.
      */
     public static TaskInfo.Builder setIndex(TaskInfo.Builder taskBuilder, int index) {
-        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), INDEX_KEY, String.valueOf(index)));
+        return taskBuilder.setLabels(withLabelSet(taskBuilder.getLabels(), TASK_INDEX_LABEL, String.valueOf(index)));
     }
 
     /**
@@ -201,9 +175,9 @@ public class CommonTaskUtils {
      * @throws NumberFormatException if parsing the index as an integer failed
      */
     public static int getIndex(TaskInfo taskInfo) throws TaskException {
-        Optional<String> index = findLabelValue(taskInfo.getLabels(), INDEX_KEY);
+        Optional<String> index = findLabelValue(taskInfo.getLabels(), TASK_INDEX_LABEL);
         if (!index.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + INDEX_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + TASK_INDEX_LABEL);
         }
         return Integer.parseInt(index.get());
     }
@@ -215,7 +189,7 @@ public class CommonTaskUtils {
     public static TaskInfo.Builder setOfferAttributes(TaskInfo.Builder taskBuilder, Offer launchOffer) {
         return taskBuilder
                 .setLabels(withLabelSet(taskBuilder.getLabels(),
-                        OFFER_ATTRIBUTES_KEY,
+                        OFFER_ATTRIBUTES_LABEL,
                         AttributeStringUtils.toString(launchOffer.getAttributesList())));
     }
 
@@ -224,7 +198,7 @@ public class CommonTaskUtils {
      * embedded in the provided {@link TaskInfo}.
      */
     public static List<String> getOfferAttributeStrings(TaskInfo taskInfo) {
-        Optional<String> joinedAttributes = findLabelValue(taskInfo.getLabels(), OFFER_ATTRIBUTES_KEY);
+        Optional<String> joinedAttributes = findLabelValue(taskInfo.getLabels(), OFFER_ATTRIBUTES_LABEL);
         if (!joinedAttributes.isPresent()) {
             return new ArrayList<>();
         }
@@ -237,7 +211,7 @@ public class CommonTaskUtils {
      */
     public static TaskInfo.Builder setHostname(TaskInfo.Builder taskBuilder, Offer launchOffer) {
         return taskBuilder.setLabels(
-                withLabelSet(taskBuilder.getLabels(), OFFER_HOSTNAME_KEY, launchOffer.getHostname()));
+                withLabelSet(taskBuilder.getLabels(), OFFER_HOSTNAME_LABEL, launchOffer.getHostname()));
     }
 
     /**
@@ -245,9 +219,9 @@ public class CommonTaskUtils {
      * embedded in the provided {@link TaskInfo}.
      */
     public static String getHostname(TaskInfo taskInfo) throws TaskException {
-        Optional<String> hostname = findLabelValue(taskInfo.getLabels(), OFFER_HOSTNAME_KEY);
+        Optional<String> hostname = findLabelValue(taskInfo.getLabels(), OFFER_HOSTNAME_LABEL);
         if (!hostname.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + OFFER_HOSTNAME_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + OFFER_HOSTNAME_LABEL);
         }
         return hostname.get();
     }
@@ -262,7 +236,7 @@ public class CommonTaskUtils {
             TaskInfo.Builder taskInfoBuilder, UUID targetConfigurationId) {
         return taskInfoBuilder
                 .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
-                        TARGET_CONFIGURATION_KEY,
+                        TARGET_CONFIGURATION_LABEL,
                         targetConfigurationId.toString()));
     }
 
@@ -276,9 +250,9 @@ public class CommonTaskUtils {
      *                       an indicated target configuration
      */
     public static UUID getTargetConfiguration(TaskInfo taskInfo) throws TaskException {
-        Optional<String> value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_KEY);
+        Optional<String> value = findLabelValue(taskInfo.getLabels(), TARGET_CONFIGURATION_LABEL);
         if (!value.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + TARGET_CONFIGURATION_LABEL);
         }
         return UUID.fromString(value.get());
     }
@@ -291,7 +265,7 @@ public class CommonTaskUtils {
         byte[] encodedBytes = Base64.encodeBase64(readinessCheck.toByteArray());
         String readinessCheckStr = new String(encodedBytes, StandardCharsets.UTF_8);
         return taskBuilder.setLabels(
-                withLabelSet(taskBuilder.getLabels(), READINESS_CHECK_KEY, readinessCheckStr));
+                withLabelSet(taskBuilder.getLabels(), READINESS_CHECK_LABEL, readinessCheckStr));
     }
 
     /**
@@ -299,7 +273,7 @@ public class CommonTaskUtils {
      * embedded in the provided {@link TaskInfo}.
      */
     public static Optional<HealthCheck> getReadinessCheck(TaskInfo taskInfo) throws TaskException {
-        Optional<String> readinessCheckStrOptional = findLabelValue(taskInfo.getLabels(), READINESS_CHECK_KEY);
+        Optional<String> readinessCheckStrOptional = findLabelValue(taskInfo.getLabels(), READINESS_CHECK_LABEL);
         if (!readinessCheckStrOptional.isPresent()) {
             return Optional.empty();
         }
@@ -333,7 +307,8 @@ public class CommonTaskUtils {
         }
 
         if (healthCheckOptional.isPresent()) {
-            Optional<String> readinessCheckResult = findLabelValue(taskStatus.getLabels(), READINESS_CHECK_PASSED_KEY);
+            Optional<String> readinessCheckResult =
+                    findLabelValue(taskStatus.getLabels(), READINESS_CHECK_PASSED_LABEL);
             if (readinessCheckResult.isPresent()) {
                 return readinessCheckResult.get().equals("true");
             } else {
@@ -458,7 +433,7 @@ public class CommonTaskUtils {
             return taskInfo;
         } else {
             ExecutorInfo.Builder executorInfoBuilder = ExecutorInfo.newBuilder()
-                    .setExecutorId(ExecutorID.newBuilder().setValue(COMMAND_DATA_PACKAGE_EXECUTOR));
+                    .setExecutorId(ExecutorID.newBuilder().setValue(COMMAND_DATA_PACKAGE_EXECUTORID));
 
             if (taskInfo.hasCommand()) {
                 executorInfoBuilder.setCommand(taskInfo.getCommand());
@@ -596,9 +571,9 @@ public class CommonTaskUtils {
 
         Optional<String> goalStateOptional = CommonTaskUtils.findLabelValue(
                 taskInfo.getLabels(),
-                GOAL_STATE_KEY);
+                GOAL_STATE_LABEL);
         if (!goalStateOptional.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + GOAL_STATE_KEY);
+            throw new TaskException("TaskInfo does not contain label with key: " + GOAL_STATE_LABEL);
         }
 
         String goalStateString = goalStateOptional.get();
@@ -617,7 +592,7 @@ public class CommonTaskUtils {
         if (taskInfo.hasLabels()) {
             Labels labels = taskInfo.getLabels();
             for (Label label : labels.getLabelsList()) {
-                if (label.getKey().equals(TRANSIENT_FLAG_KEY)) {
+                if (label.getKey().equals(TRANSIENT_FLAG_LABEL)) {
                     return label.getValue();
                 }
             }
