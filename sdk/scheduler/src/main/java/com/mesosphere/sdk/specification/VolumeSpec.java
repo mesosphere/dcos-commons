@@ -23,4 +23,12 @@ public interface VolumeSpec extends ResourceSpec {
 
     @JsonProperty("container-path")
     String getContainerPath();
+
+    /* ignore container-path */
+    static boolean compare(VolumeSpec a, VolumeSpec b){
+        if (a.getType().equals(b.getType())) {
+            return ResourceSpec.compare(a, b);
+        }
+        return false;
+    }
 }

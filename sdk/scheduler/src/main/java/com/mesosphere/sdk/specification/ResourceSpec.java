@@ -33,4 +33,11 @@ public interface ResourceSpec {
     default Optional<String> getEnvKey() {
         return Optional.of(getName());
     }
+
+    static boolean compare( ResourceSpec a, ResourceSpec b){
+        return (a.getName().equals(b.getName()) &&
+                a.getValue().equals(b.getValue()) &&
+                a.getRole().equals(b.getRole()) &&
+                a.getPrincipal().equals(b.getPrincipal()));
+    }
 }
