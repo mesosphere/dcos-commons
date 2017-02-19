@@ -7,6 +7,7 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,6 +203,22 @@ public class TaskUtils {
         return CollectionUtils.isEqualCollection(
                 first.getResourceSet().getVolumes(),
                 second.getResourceSet().getVolumes());
+    }
+
+    /**
+     * Utility method for comparing two volumes but ignoring container-path
+     * {@link TaskSpec}s.
+     *
+     * @return whether all fields in volume lists are equal, except container-path
+     */
+    public static boolean volumesMajorEqual(TaskSpec first, TaskSpec second) {
+         Optional<VolumeSpec> optionalVolSpec1 =  first.getResourceSet().getVolumes().stream().findFirst();
+         Optional<VolumeSpec> optionalVolSpec2 =  second.getResourceSet().getVolumes().stream().findFirst();
+
+          if (optionalVolSpec1.isPresent() && optionalVolSpec2.isPresent()) {
+              return VolumeSpec.compare(optionalVolSpec1.get(), optionalVolSpec2.get());
+          }
+          return false;
     }
 
     /**

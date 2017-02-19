@@ -27,12 +27,12 @@ public class TaskVolumesCannotChange implements ConfigValidator<ServiceSpec> {
                 continue;
             }
 
-            if (!TaskUtils.volumesEqual(oldEntry.getValue(), newTask)) {
+            if (!TaskUtils.volumesMajorEqual(oldEntry.getValue(), newTask)) {
                 errors.add(ConfigValidationError.transitionError(
                         String.format("TaskVolumes[taskname:%s]", newTask.getName()),
                         oldEntry.getValue().getResourceSet().getVolumes().toString(),
                         newTask.getResourceSet().getVolumes().toString(),
-                        "Volumes must be equal."));
+                        "Volume fields except container-path must be equal."));
             }
         }
 

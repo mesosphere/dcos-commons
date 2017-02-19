@@ -44,6 +44,11 @@
             "description":"Deployment phase strategy. See documentation. [canary-serial, canary-parallel, serial]",
             "type":"string",
             "default":"serial"
+          },
+          "config_upgrade":{
+            "description":"Uses a custom Kafka Upgrade validation. Only required if upgrading from an old version, i.e.  dcos-kafka-service version 1.1.18",
+            "type":"boolean",
+            "default": false
           }
         },
         "required":[

@@ -1,0 +1,5 @@
+{
+  "kafka": {
+    "config_upgrade": true
+  }
+}
