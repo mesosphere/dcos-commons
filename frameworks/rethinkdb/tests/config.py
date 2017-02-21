@@ -1,0 +1,2 @@
+PACKAGE_NAME = 'rethinkdb'
+DEFAULT_TASK_COUNT = 1
