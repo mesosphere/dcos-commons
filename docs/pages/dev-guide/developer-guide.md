@@ -2,6 +2,7 @@
 layout: dev-basic
 title: SDK Developer Guide
 ---
+<!-- {{=<% %>=}} disable mustache templating in this file: retain templated examples as-is -->
 
 This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.
 
