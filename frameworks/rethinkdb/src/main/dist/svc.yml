@@ -1,5 +1,5 @@
 name: {{FRAMEWORK_NAME}}
-web-url: http://rethinkdb-0-server.rethinkdb.mesos:1025
+web-url: http://rethinkdb-0-server.rethinkdb.mesos:4040
 pods:
   rethinkdb:
     count: {{RETHINKDB_COUNT}}
@@ -10,17 +10,17 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        #cmd: >
-        #  cp rethinkdb.repo /etc/yum.repos.d/ &&
-        #  yum -y install rethinkdb >> rethinkdb-container-path/output &&
-        #  rethinkdb --bind all --http-port 1025 >> rethinkdb-container-path/output
+        cmd: >
+          cp rethinkdb.repo /etc/yum.repos.d/ &&
+          yum -y install rethinkdb >> rethinkdb-container-path/output &&
+          rethinkdb --bind all --http-port 4041 >> rethinkdb-container-path/output
         #cmd: "echo holy crap! $PORT_HTTPD >> rethinkdb-container-path/output && sleep $SLEEP_DURATION"
-        cmd: "echo $PORT_HTTPD && python -m SimpleHTTPServer $PORT_HTTPD"
+        #cmd: "echo $PORT_HTTPD && python -m SimpleHTTPServer $PORT_HTTPD"
         cpus: {{RETHINKDB_CPUS}}
         ports:
           httpd:
             env-key: PORT_HTTPD
-            port: 1026
+            port: 4041
         memory: {{RETHINKDB_MEM}}
         volume:
           path: "rethinkdb-container-path"
@@ -40,8 +40,8 @@ pods:
         ports:
           proxylite:
             env-key: PORT_PROXYLITE
-            port: 1025
+            port: 4040
         env:
           ROOT_REDIRECT: "/example"
           EXTERNAL_ROUTES: "/v1,/httpd,/google,/example"
-          INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:1026,google.com:80,example.com:80"
+          INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041,google.com:80,example.com:80"
