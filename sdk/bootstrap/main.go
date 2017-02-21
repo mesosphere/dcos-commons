@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
@@ -10,7 +11,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -40,6 +43,9 @@ type args struct {
 	templateEnabled bool
 	// Max supported bytes or 0 for no limit
 	templateMaxBytes int64
+
+	// Install certs from .ssl into JRE/lib/security/cacerts
+	installCerts bool
 }
 
 func parseArgs() args {
@@ -64,6 +70,9 @@ func parseArgs() args {
 			"env vars.", configTemplatePrefix))
 	flag.Int64Var(&args.templateMaxBytes, "template-max-bytes", 1024 * 1024,
 		"Largest template file that may be processed, or zero for no limit.")
+	flag.BoolVar(&args.installCerts, "install-certs", true,
+		"Whether to install certs from .ssl to the JRE.")
+
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
@@ -251,6 +260,49 @@ func renderTemplates(templateMaxBytes int64) {
 	}
 }
 
+func installCerts() {
+	mesosSandbox := os.Getenv("MESOS_SANDBOX")
+	sslDir := filepath.Join(mesosSandbox, ".ssl");
+
+	sslDirExists, err := _pathExists(sslDir)
+	if !sslDirExists || err != nil {
+		log.Printf("No $MESOS_SANDBOX/.ssl directory found. Will not install certificates")
+		return
+	}
+
+	javaHome := os.Getenv("JAVA_HOME")
+	if len(javaHome) == 0 {
+		log.Fatalf("No JAVA_HOME provided. Will not install certs.")
+		return
+	}
+	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
+	//keytoolPath := path.filepath.Join(javaHome, "bin", "keytool")
+	cacertsPath := filepath.Join(javaHome, "lib", "security", "cacerts")
+
+	cmd := exec.Command("keytool", "-importcert", "-noprompt", "-alias", "dcoscert", "-keystore", cacertsPath,
+		"-file", certPath, "-storepass", "changeit")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		log.Print("Failed to install the cert")
+		log.Print(err)
+		return
+	}
+	log.Printf("Successfully installed the cert.")
+}
+
+func _pathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
+}
+
 // main
 
 func main() {
@@ -270,6 +322,10 @@ func main() {
 		renderTemplates(args.templateMaxBytes)
 	} else {
 		log.Printf("Template handling disabled via -template=false: Skipping any config templates")
+	}
+
+	if (args.installCerts) {
+		installCerts()
 	}
 
 	log.Printf("Bootstrap successful.")

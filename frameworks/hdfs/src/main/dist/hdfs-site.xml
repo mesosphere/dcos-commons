@@ -13,7 +13,10 @@
         <name>dfs.ha.namenodes.hdfs</name>
         <value>name-0-node,name-1-node</value>
     </property>
-
+    <property>
+        <name>dfs.http.policy</name>
+        <value>HTTP_AND_HTTPS</value>
+    </property>
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
