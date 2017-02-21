@@ -328,5 +328,5 @@ func main() {
 		installCerts()
 	}
 
-	log.Printf("Bootstrap successful.")
+	log.Printf("SDK Bootstrap successful.")
 }
