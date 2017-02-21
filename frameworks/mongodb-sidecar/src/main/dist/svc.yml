@@ -18,6 +18,18 @@ pods:
           type: ROOT
           size: {{MONGODB_DISK}}
     tasks:
+      init:
+        resource-set: mongodb-resources
+        goal: FINISHED
+        cmd: "env && chmod a+x $MESOS_SANDBOX/create_mongo_user.sh && $MESOS_SANDBOX/create_mongo_user.sh"
+        configs:
+          mongo-init:
+            template: "{{CONFIG_TEMPLATE_PATH}}/create_mongo_user.sh"
+            dest: create_mongo_user.sh
+        env:
+          MONGODB_PASSWORD: {{MONGODB_PASSWORD}}
+          MONGODB_VERSION: {{MONGODB_VERSION}}
+          MONGODB_PORT: {{MONGODB_PORT}}
       server:
         resource-set: mongodb-resources
         goal: RUNNING
@@ -50,16 +62,22 @@ pods:
           ZK_URL: {{SIDECAR_ZK_URL}}
           MESOS_URL: {{SIDECAR_MESOS_URL}}
           LOG_LEVEL: {{SIDECAR_LOG_LEVEL}}
+          MONGODB_PASSWORD: {{MONGODB_PASSWORD}}
+          MONGODB_REPLSET: {{MONGODB_REPLSET}}
           MONGO_BINARY: "/mnt/mesos/sandbox/mongodb-linux-x86_64-{{MONGODB_VERSION}}/bin/mongo"
-          TEST_PASSWORD: {{TEST_PASSWORD}}
 
 plans:
   deploy:
-    strategy: parallel
+    strategy: serial
     phases:
-      mongodb-deploy:
+      mongodb-init:
+        strategy: parallel
+        pod: mongodb
+        tasks: [init]
+      mongodb-server:
         strategy: serial
         pod: mongodb
+        tasks: [server]
       sidecar-deploy:
         strategy: serial
         pod: sidecar

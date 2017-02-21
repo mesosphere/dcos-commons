@@ -8,8 +8,8 @@
     }
   },
   "images": {
-    "icon-small": "https://raw.githubusercontent.com/konpa/devicon/master/icons/mongodb/mongodb-original.svg",
-    "icon-medium": "https://raw.githubusercontent.com/konpa/devicon/master/icons/mongodb/mongodb-original.svg",
-    "icon-large": "https://raw.githubusercontent.com/konpa/devicon/master/icons/mongodb/mongodb-original.svg"
+    "icon-small": "https://s3.amazonaws.com/downloads.mesosphere.io/universe/assets/icon-service-mongodb-large.jpg",
+    "icon-medium": "https://s3.amazonaws.com/downloads.mesosphere.io/universe/assets/icon-service-mongodb-large.jpg",
+    "icon-large": "https://s3.amazonaws.com/downloads.mesosphere.io/universe/assets/icon-service-mongodb-large.jpg"
   }
 }

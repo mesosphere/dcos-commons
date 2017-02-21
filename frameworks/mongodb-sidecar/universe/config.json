@@ -93,6 +93,11 @@
             "type":"number",
             "default":4567
           },
+          "count":{
+            "description":"Set count to 0 for local sidecar development",
+            "type":"integer",
+            "default":1
+          },
           "cpus":{
             "description":"MongoDB sidecar node cpu requirements",
             "type":"number",
@@ -138,18 +143,23 @@
             "type":"string",
             "default":""
           },
-          "secretary_master_public_key":{
+          "master_public_key":{
             "description":"Secretary master_public_key",
             "type":"string",
             "default":""
           },
-          "secretary_deploy_private_key":{
+          "deploy_private_key":{
             "description":"Secretary deploy_private_key",
             "type":"string",
             "default":""
           },
-          "secretary_deploy_public_key":{
+          "deploy_public_key":{
             "description":"Secretary deplou_public_key",
+            "type":"string",
+            "default":""
+          },
+          "mongodb_password":{
+            "description":"MongoDB password",
             "type":"string",
             "default":""
           }

@@ -15,7 +15,9 @@ require_relative 'sidecar/web'
 @mesos_url               = ENV['MESOS_URL'] || 'http://master.mezos/mesos'
 @zookeeper_url           = ENV['ZK_URL'] || 'zk-1.zk:2181'
 @mongo_binary            = ENV['MONGO_BINARY'] || '/usr/local/bin/mongo'
-@delay                   = ENV['DELAY'] || 10
+@mongo_password          = ENV['MONGODB_PASSWORD']
+@mongo_rs_name           = ENV['MONGODB_REPLSET']
+@delay                   = ENV['DELAY'].to_i || 10
 
 @logger                  = Cabin::Channel.new
 @logger.level            = ENV['LOG_LEVEL'] || :info
@@ -39,7 +41,7 @@ mesos.setup(@mesos_url, @framework_name, zk, @logger)
 @logger.info("Mesos inited", {mesos_info: mesos.version.to_s})
 
 mongo = MyMongo.instance
-mongo.setup(@mongo_binary, zk, @logger)
+mongo.setup(@mongo_binary, zk, @logger, @mongo_password, @mongo_rs_name)
 @logger.info("Mongo inited", {mongo_info: mongo.inspect})
 
 

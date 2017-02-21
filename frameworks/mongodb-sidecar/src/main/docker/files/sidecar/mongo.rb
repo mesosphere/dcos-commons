@@ -1,10 +1,11 @@
 class MyMongo
   include Singleton
 
-  def setup(mongo_binary, zk, logger, rs_name = 'rs')
+  def setup(mongo_binary, zk, logger, mongo_password, rs_name = 'rs')
     @mongo_binary = mongo_binary
     @zk = zk
     @logger = logger
+    @mongo_password = mongo_password
     @rs_name = rs_name
   end
 
@@ -14,7 +15,7 @@ class MyMongo
   end
 
   def driver
-    @mongo ||= Mongo::Client.new(server_url)
+    @mongo ||= Mongo::Client.new(server_url, {user: 'admin', password: @mongo_password})
   end
 
   def discovered_servers
@@ -70,7 +71,7 @@ class MyMongo
       return 0
     elsif server_status[:state] == 2
       master_status = status[:members].select{|m| m[:state] == 1}[0]
-      # breaks 3.2.x 
+      # breaks 3.2.x
       # return status[:optimes][:lastCommittedOpTime][:ts].seconds - server_status[:optime][:ts].seconds
       return master_status[:optime][:ts].seconds - server_status[:optime][:ts].seconds
     end
@@ -123,20 +124,19 @@ class MyMongo
     if server
       "mongodb://#{server}/admin"
     else
-      "mongodb://#{@zk.available_servers.join(',')}/?replicaSet=#{@rs_name}"
+      "mongodb://#{@zk.available_servers.join(',')}/admin?replicaSet=#{@rs_name}"
     end
   end
 
   def db_eval(host_url, expression)
-    `#{@mongo_binary} #{host_url} --quiet --eval "JSON.stringify(#{expression})"`.split(/\n+/).last
+    `#{@mongo_binary} #{host_url} -u admin -p #{@mongo_password} --quiet --eval 'JSON.stringify(#{expression})'`.split(/\n+/).last
   end
 
   def rs_initiate(host)
-    # one liner here as dunno how to pass multiline to mongo --eval
     config = %{var cfg = {_id:"#{@rs_name}", "members":[{_id:0, "host":"#{host}"}]}; printjson(rs.initiate(cfg));}
 
-    @logger.warn("CONFIG", config: config)
-    reply = JSON.parse `#{@mongo_binary} #{server_url(host)} --quiet --eval '#{config}'`
+    @logger.info("RS init config:", config: config)
+    reply = JSON.parse `#{@mongo_binary} #{server_url(host)} -u admin -p #{@mongo_password} --quiet --eval '#{config}'`
     if reply["ok"] == 1
       @logger.info("Replica set initilized on host", host: host)
       @zk.set_initiated
@@ -147,12 +147,13 @@ class MyMongo
   end
 
   def rs_add(host)
-    db_eval(server_url, "rs.add('#{host}')")
+    reply = db_eval(server_url, %{rs.add("#{host}")})
+    @logger.warn("RS added", reply: reply)
     @zk.persist_member(host)
   end
 
   def rs_remove(host)
-    db_eval(server_url, "rs.remove('#{host}')")
+    db_eval(server_url, %{rs.remove("#{host}")})
     @zk.remove_member(host)
   end
 end
