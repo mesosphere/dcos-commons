@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. The script builds the Hello World framework, packages and uploads it, then runs its
+# dcos-commons. The script builds each framework, packages and uploads it, then runs its
 # integration tests against a newly-launched cluster.
 
 # Exit immediately on errors -- the helper scripts all emit github statuses internally
@@ -61,11 +61,11 @@ else
 fi
 
 # A specific framework can be specified to run its tests
-# Otherwise all tests are run
+# Otherwise all tests are run in random framework order
 if [ -n "$1" ]; then
     run_framework_tests $1
 else
-    for framework in $(ls $REPO_ROOT_DIR/frameworks); do
+    for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
         run_framework_tests $framework
     done
 fi
