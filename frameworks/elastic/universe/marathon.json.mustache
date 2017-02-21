@@ -3,7 +3,7 @@
   "cpus": 0.5,
   "mem": 2048,
   "instances": 1,
-  "cmd": "{{service.cmd_prefix}} && env && ./elastic-scheduler/bin/elastic ./elastic-scheduler/elastic_service.yml",
+  "cmd": "{{service.cmd_prefix}} && env && ./elastic-scheduler/bin/elastic ./elastic-scheduler/svc.yml",
   "labels": {
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "DCOS_MIGRATION_API_VERSION": "v1",
@@ -18,7 +18,7 @@
   },
   {{/service.secret_name}}
   "env": {
-    "ELASTIC_VERSION": "5.1.2",
+    "ELASTIC_VERSION": "5.2.1",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
