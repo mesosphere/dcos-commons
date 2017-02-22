@@ -1,1 +1,2 @@
-Template README
+### RethinkDB on Mesosphere DC/OS
+
