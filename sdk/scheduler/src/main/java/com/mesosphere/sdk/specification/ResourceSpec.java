@@ -34,7 +34,7 @@ public interface ResourceSpec {
         return Optional.of(getName());
     }
 
-    static boolean compare( ResourceSpec a, ResourceSpec b){
+    static boolean compare(ResourceSpec a, ResourceSpec b){
         return (a.getName().equals(b.getName()) &&
                 a.getValue().equals(b.getValue()) &&
                 a.getRole().equals(b.getRole()) &&

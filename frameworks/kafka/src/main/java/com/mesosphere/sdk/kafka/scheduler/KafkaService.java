@@ -11,6 +11,7 @@ import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import com.mesosphere.sdk.kafka.upgrade.old.KafkaSchedulerConfiguration;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.*;
@@ -22,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Kafka Service.
@@ -84,7 +87,7 @@ public class KafkaService extends DefaultService {
                     .id("broker-resource-set")
                     .addVolume(kafkaSchedulerConfiguration.getBrokerConfiguration().getDiskType(),
                             kafkaSchedulerConfiguration.getBrokerConfiguration().getDisk(),
-                            "kafka-volume-random")
+                            "kafka-broker-data")
                     .cpus(kafkaSchedulerConfiguration.getBrokerConfiguration().getCpus())
                     .memory(kafkaSchedulerConfiguration.getBrokerConfiguration().getMem())
                     // TODO(port) .addPorts(portMap)
@@ -118,14 +121,20 @@ public class KafkaService extends DefaultService {
                     serviceSpec.getZookeeperConnection());
 
             final UUID newTargetUUID = newConfigStore.store(newServiceSpec);
-            newConfigStore.setTargetConfig(newTargetUUID);
 
             List<Protos.TaskInfo> taskInfoList = new ArrayList<>();
-            List<Protos.TaskStatus> taskStatusList = new ArrayList<>();
+            Map<String, Protos.TaskStatus> taskStatusMap = new HashMap<>();
 
-            List<String> tastNames2delete = new ArrayList<>();
+            LOGGER.info("CHECKING TASKS NOW !!!!!!!");
+            List<String> taskNames2delete = new ArrayList<>();
+
             for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
                 final UUID taskConfigId;
+
+                LOGGER.info(">>>>>>>>>>>>>>>        \n\n");
+                LOGGER.info("OLD TASKINFO");
+                LOGGER.info(taskInfo.toString());
+
                 try {
                     taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
                 } catch (TaskException e) {
@@ -141,38 +150,117 @@ public class KafkaService extends DefaultService {
                     throw new ConfigStoreException(StorageError.Reason.UNKNOWN,
                             "Make sure all tasks reached target before the Upgrade");
                 }
-                int i = 0;
-                String oldName = taskInfo.getName();
+
+                String oldName = taskInfo.getName(); //broker-2
                 Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(oldName);
-                String newName = "kafka-" + i + "-broker";
-                i++; //TODO(v2) fix this later
-                taskInfoList.add(CommonTaskUtils.setTargetConfiguration(taskInfo.toBuilder().setName(newName),
-                        newTargetUUID).build());
-                taskStatusList.add(taskStatusOptional.get());
-                tastNames2delete.add(oldName);
+
+                Pattern pattern = Pattern.compile("(.*)-(\\d+)");
+                Matcher matcher = pattern.matcher(oldName);
+                matcher.find();
+                int brokerID = Integer.parseInt(matcher.group(2));
+                String newName = "kafka-" + brokerID + "-broker"; //kafka-2-broker
+
+                Protos.TaskInfo.Builder taskInfoBuilder = taskInfo.toBuilder();
+                taskInfoBuilder.setName(newName);
+                taskInfoBuilder = CommonTaskUtils.setIndex(taskInfoBuilder, brokerID);
+                taskInfoBuilder = CommonTaskUtils.setType(taskInfoBuilder, "kafka");
+                taskInfoBuilder = TaskUtils.setGoalState(taskInfoBuilder, newTaskSpec);
+                taskInfoBuilder = CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, newTargetUUID);
+
+                List<Protos.Resource> resourcesList = new ArrayList<>();
+                for (Protos.Resource resource : taskInfo.getResourcesList()) {
+
+                    if (!resource.hasDisk()){
+                        resourcesList.add(resource);
+                        continue;
+                    }
+                    LOGGER.info("OLD VALUE");
+                    LOGGER.info(resource.toString());
+
+                    //volume.toBuilder() was complaining that mode is not set, so setting everything manually
+                    Protos.Resource.DiskInfo diskInfo = resource.getDisk();
+                    Protos.Volume volume = diskInfo.getVolume();
+                    Protos.Volume.Builder volumeBuilder = volume.toBuilder();
+                    Protos.Volume newVolume = volumeBuilder.setSource(volume.getSource())
+                                                    .setContainerPath("kafka-broker-data")
+                                                    .setMode(volume.getMode())
+                                                    .build();
+
+                    Protos.Resource.DiskInfo.Builder newDiskInfoBuilder = diskInfo.toBuilder();
+                    Protos.Resource.DiskInfo newDiskInfo = newDiskInfoBuilder.setVolume(newVolume)
+                                                    .setPersistence(diskInfo.getPersistence())
+                                                    .build();
+
+
+
+                    Protos.Resource.Builder resourceBuilder = resource.toBuilder();
+                    Protos.Resource newResource = resourceBuilder.setDisk(newDiskInfo)
+                                                    .setName(resource.getName())
+                                                    .setReservation(resource.getReservation())
+                                                    .setRole(resource.getRole())
+                                                    .setScalar(resource.getScalar())
+                                                    .build();
+
+                    LOGGER.info("NEW VALUE");
+                    LOGGER.info(newResource.toString());
+
+                    resourcesList.add(newResource);
+                }
+                taskInfoBuilder.clearResources();
+                taskInfoBuilder.addAllResources(resourcesList);
+
+                Protos.TaskInfo newTaskInfo = taskInfoBuilder.build();
+
+                LOGGER.info("NEW TASKINFO");
+                LOGGER.info(newTaskInfo.toString());
+
+                taskInfoList.add(newTaskInfo);
+
+                taskStatusMap.put(newName, taskStatusOptional.get());
+                taskNames2delete.add(oldName);
             }
+            LOGGER.info("old tasks: " + stateStore.fetchTasks());
+            LOGGER.info("new tasks: " + taskInfoList.toString());
+            LOGGER.info("new status map:" + taskStatusMap.toString());
+            LOGGER.info("to delete:" + taskNames2delete.toString());
+
+
             stateStore.storeTasks(taskInfoList);
 
-            for (String oldName : tastNames2delete) {
+
+            //stateStore’s storeStatus is getting task name from task id’s prefix.
+            // Not searching tasks to see who has the same task id
+
+            for (Map.Entry<String, Protos.TaskStatus> entry: taskStatusMap.entrySet()) {
+                stateStore.storeStatus(entry.getKey(), entry.getValue());
+            }
+
+            /* I dont wanna delete but cleanup looks for a matching serviceSpec then breaks since it cant read old one*/
+            for (String oldName : taskNames2delete) {
                 stateStore.clearTask(oldName);
             }
-            for (Protos.TaskStatus status : taskStatusList) {
-                stateStore.storeStatus(status);
-            }
+
+            newConfigStore.setTargetConfig(newTargetUUID);
+
 
             LOGGER.info("\n=====================================================\n"
                     + "         UPGRADE completed !!!\n"
                     + "=====================================================\n");
 
         } catch (RuntimeException e) {
+            LOGGER.error("runtime error in upgrade: ", e.getMessage(), e);
+            while (true) {
+                Thread.sleep(100);
+            }
+        } catch (Exception e) {
             LOGGER.error(e.getMessage());
-            LOGGER.error("error in upgrade: ", e.getStackTrace());
+            LOGGER.error("error in upgrade: ", e.getMessage(), e);
+            while (true) {
+                Thread.sleep(100);
+            }
+        }
 
-        }
-        while (true) {
-                Thread.sleep(100000);
-        }
-        //initService(schedulerBuilder);
+        initService(schedulerBuilder);
     }
 
     @Override

@@ -78,6 +78,19 @@ public interface StateStore {
 
 
     /**
+     * Stores the TaskStatus of a particular Task. The {@link TaskInfo} for this exact task MUST have already been
+     * written via {@link #storeTasks(Collection)} beforehand.
+     *
+     * @param name The name of the task, which has same TaskId with the status
+     * @param status The status to be stored
+     * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
+     *                             TaskInfo wasn't stored first
+     */
+    void storeStatus(String name, TaskStatus status) throws StateStoreException;
+
+
+
+    /**
      * Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.
      *
      * @param taskName The name of the task to be cleared

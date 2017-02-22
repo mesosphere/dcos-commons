@@ -9,8 +9,6 @@ pods:
     uris:
       - {{KAFKA_URI}}
       - {{BOOTSTRAP_URI}}
-      - {{EXECUTOR_URI}}
-      - {{LIBMESOS_URI}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}

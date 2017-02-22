@@ -3,7 +3,6 @@ package com.mesosphere.sdk.curator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -193,14 +192,35 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        String taskName;
+        Optional<String> optionalTaskName = Optional.empty();
+
+        //TODO(MB): keep the comment below: original approach for getting taskName
+        /*
         try {
-            taskName = CommonTaskUtils.toTaskName(status.getTaskId());
+            optionalTaskName = Optional.of(CommonTaskUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
             throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
         }
+        */
 
+        /* Get the first Task that matches TaskId */
+        for (Protos.TaskInfo taskInfo : fetchTasks()) {
+            if (taskInfo.getTaskId().equals(status.getTaskId())) {
+                optionalTaskName = Optional.of(taskInfo.getName());
+                break;
+            }
+        }
+        if (!optionalTaskName.isPresent()) {
+            throw new StateStoreException(Reason.NOT_FOUND, String.format(
+                    "Failed to find a task with matching TaskStatus.task_id: %s", status));
+        }
+
+        storeStatus(optionalTaskName.get(), status);
+    }
+
+    @Override
+    public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
         // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
         // occasionally get these for stale tasks that have since been changed (with new UUIDs).
