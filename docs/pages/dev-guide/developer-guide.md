@@ -1010,7 +1010,7 @@ To initiate the plan, execute an HTTP POST request against the `/v1/plans/sideca
 $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' http://<dcos_url>/service/hello-world/v1/plans/sidecar-example/start
 ```
 
-Or, using the DC/OS CLI interface:
+You can also use the DC/OS CLI:
 ```bash
 $ dcos $FRAMEWORK_NAME plan start sidecar-example PLAN_PARAMETER1=sidecar,PLAN_PARAMETER2=plan
 ```
@@ -1019,7 +1019,7 @@ When no parameters are specified, the body of the POST request must be an empty 
 
 Monitor sidecar plan progress like any other plan: by issuing GET requests against the `/v1/plans/sidecar-example` endpoint.
 
-Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
+Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod, including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
 
 ### URIs
 
