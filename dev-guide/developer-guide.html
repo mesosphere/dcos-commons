@@ -79,19 +79,19 @@
 
 <p>This simple YAML definition of a DC/OS service that prints “hello world” to stdout in a container sandbox every 1000 seconds.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-scheduler:
-  principal: "hello-world-principal"
-  api-port: 
-pods:
-  hello-world-pod:
-    count: 1
-    tasks:
-      hello-world-task:
-        goal: RUNNING
-        cmd: "echo hello world &amp;&amp; sleep 1000"
-        cpus: 0.1
-        memory: 512
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">scheduler</span><span class="pi">:</span>
+  <span class="s">principal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world-principal"</span>
+  <span class="s">api-port</span><span class="pi">:</span> 
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello-world-pod</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">hello-world-task</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">world</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">512</span>
 </code></pre>
 </div>
 
@@ -168,24 +168,24 @@ pods:
 
 <p>The example below defines a service with two types of pods, each of which deploys two instances.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-    hello-pod:
-        count: 2
-        tasks:
-            hello-task:
-            goal: RUNNING
-            cmd: "echo hello &amp;&amp; sleep 1000"
-            cpus: 0.1
-            memory: 512
-    world-pod:
-        count: 2**
-        tasks:
-            world-task:
-            goal: RUNNING
-            cmd: "**echo world** &amp;&amp; sleep 1000"
-            cpus: 0.1
-            memory: 512
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+    <span class="s">hello-pod</span><span class="pi">:</span>
+        <span class="s">count</span><span class="pi">:</span> <span class="s">2</span>
+        <span class="s">tasks</span><span class="pi">:</span>
+            <span class="s">hello-task</span><span class="pi">:</span>
+            <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+            <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+            <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+            <span class="s">memory</span><span class="pi">:</span> <span class="s">512</span>
+    <span class="s">world-pod</span><span class="pi">:</span>
+        <span class="s">count</span><span class="pi">:</span> <span class="s">2</span>
+        <span class="s">tasks</span><span class="pi">:</span>
+            <span class="s">world-task</span><span class="pi">:</span>
+            <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+            <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">world</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+            <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+            <span class="s">memory</span><span class="pi">:</span> <span class="s">512</span>
 </code></pre>
 </div>
 
@@ -216,34 +216,34 @@ pods:
 
 <p>As an example, let’s consider the scenario where we wish to deploy the hello-pods in parallel, wait for them to reach a <code class="highlighter-rouge">RUNNING</code> state and then deploy the world-pods serially.  We could amend our YAML file to look like the following:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-    hello-pod:
-    count: 2
-    tasks:
-        hello-task:
-            goal: RUNNING
-            cmd: "echo hello &amp;&amp; sleep 1000"
-            cpus: 0.1
-            memory: 512
-    world-pod:
-        count: 2
-        tasks:
-            hello-task:
-                goal: RUNNING
-                cmd: "echo world &amp;&amp; sleep 1000"
-                cpus: 0.1
-                memory: 512
-plans:
-    deploy:
-        strategy: serial
-        phases:
-            hello-phase:
-                strategy: parallel
-                pod: hello-pod
-            world-phase:
-                strategy: serial
-                pod: world-pod
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello-pod</span><span class="pi">:</span>
+  <span class="s">count</span><span class="pi">:</span> <span class="s">2</span>
+  <span class="s">tasks</span><span class="pi">:</span>
+    <span class="s">hello-task</span><span class="pi">:</span>
+      <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+      <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+      <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+      <span class="s">memory</span><span class="pi">:</span> <span class="s">512</span>
+  <span class="s">world-pod</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">2</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">hello-task</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">world</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">512</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">parallel</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello-pod</span>
+      <span class="s">world-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">world-pod</span>
 </code></pre>
 </div>
 
@@ -255,16 +255,16 @@ plans:
 
 <p>The hello-phase of the example has two elements: a strategy and a pod.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>plans:
-    deploy:
-        strategy: serial
-        phases:
-            hello-phase:
-                strategy: parallel
-                pod: hello-pod
-            world-phase:
-                strategy: serial
-                pod: world-pod
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">parallel</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello-pod</span>
+      <span class="s">world-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">world-pod</span>
 </code></pre>
 </div>
 
@@ -274,7 +274,75 @@ plans:
 
 <p><img src="image_1.png" alt="image alt text" /></p>
 
-<p>The dependency of the <code class="highlighter-rouge">world-pod</code> phase on the <code class="highlighter-rouge">hello-pod</code> phase serializes those two phases as described at the top level strategy element. Since both <code class="highlighter-rouge">hello</code> steps depend on a the<code class="highlighter-rouge"> hello-pod</code> phase, and not each other, they are executed in parallel. The second <code class="highlighter-rouge">world-pod</code> instance depends on the first, so they are launched serially. You can learn more about the full capabilities of plans <a href="#plan-execution">here</a> and <a href="#custom-plans-java">here</a>.</p>
+<p>The dependency of the <code class="highlighter-rouge">world-pod</code> phase on the <code class="highlighter-rouge">hello-pod</code> phase serializes those two phases as described at the top level strategy element. Since both <code class="highlighter-rouge">hello</code> steps depend on a the<code class="highlighter-rouge"> hello-pod</code> phase, and not each other, they are executed in parallel. The second <code class="highlighter-rouge">world-pod</code> instance depends on the first, so they are launched serially.</p>
+
+<p>More powerful custom plans can also be written. Consider the case in which a pod requires an initialization step to be run before the main task of a pod is run. One could define the tasks for such a pod as follows:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">2</span>
+    <span class="s">resource-sets</span><span class="pi">:</span>
+      <span class="s">hello-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s">hello-data</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">5000</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">init</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">FINISHED</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./init"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
+      <span class="s">main</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./main"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
+</code></pre>
+</div>
+
+<p>By default a the plan generated from such a service definition would only deploy the <code class="highlighter-rouge">main</code> task because when the <code class="highlighter-rouge">init</code> task should be run is undefined.  In order to run the init task and then the main task for each instance of the <code class="highlighter-rouge">hello</code> pod one could write a plan as follows:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+    <span class="s">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">init</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]]</span>
+</code></pre>
+</div>
+
+<p>This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the <code class="highlighter-rouge">init</code> task and another representing the <code class="highlighter-rouge">main</code> task. The ServiceSpec indicates that two <code class="highlighter-rouge">hello</code> pods should be launched so the following tasks would be launched by steps serially:</p>
+
+<ol>
+  <li>hello-0-init</li>
+  <li>hello-0-main</li>
+  <li>hello-1-init</li>
+  <li>hello-1-main</li>
+</ol>
+
+<p>Consider the case where the init task should only occur once for the first pod, and all subsequent pods should just launch their <code class="highlighter-rouge">main</code> task. Such a plan could be written as follows:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+    <span class="s">steps</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">0</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">init</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]]</span>
+      <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">main</span><span class="pi">]]</span>
+</code></pre>
+</div>
+
+<p>This plan would result in steps generating the following tasks:</p>
+
+<ol>
+  <li>hello-0-init</li>
+  <li>hello-0-main</li>
+  <li>hello-1-main</li>
+</ol>
+
+<p>You can learn more about the full capabilities of plans <a href="#plan-execution">here</a> and <a href="#custom-plans-java">here</a>.</p>
 
 <p><a name="packaging"></a></p>
 <h2 id="packaging">Packaging</h2>
@@ -302,29 +370,28 @@ plans:
 
 <p>The SDK provides utilities for building a package definition and deploying it to a DC/OS cluster for development purposes.  An example build.sh script constructs a package and provides instructions for the deployment.  The helloworld framework’s build.sh script provides the following output:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>    $ ./build.sh aws
-    &lt;snip&gt;
-    Install your package using the following commands:
-    dcos package repo remove hello-world-aws
-    dcos package repo add --index=0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
-    dcos package install --yes hello-world
-    $
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./build.sh aws
+&lt;snip&gt;
+Install your package using the following commands:
+dcos package repo remove hello-world-aws
+dcos package repo add --index<span class="o">=</span>0 hello-world-aws https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20161212-160559-ATLFk70vPlo45X4a/stub-universe-hello-world.zip
+dcos package install --yes hello-world
+<span class="err">$</span>
 </code></pre>
 </div>
 
 <p>The build.sh script takes an optional argument of aws or local:</p>
 
 <ul>
-  <li>
-    <p><code class="highlighter-rouge">./build.sh aws</code>: The package definition and build artifacts are uploaded to an S3 bucket in AWS. If you would like to override the S3 bucket location where the packages are uploaded, please add S3_BUCKET environment variable with the bucket name. For example:</p>
+  <li><code class="highlighter-rouge">./build.sh aws</code>: The package definition and build artifacts are uploaded to an S3 bucket in AWS. If you would like to override the S3 bucket location where the packages are uploaded, please add S3_BUCKET environment variable with the bucket name. For example:</li>
+</ul>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>  export S3_BUCKET=my_universe_s3_bucket
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">S3_BUCKET</span><span class="o">=</span>my_universe_s3_bucket
 </code></pre>
-    </div>
-  </li>
-  <li>
-    <p><code class="highlighter-rouge">./build.sh local</code>: The package definition and build artifacts are served by a local HTTP server.</p>
-  </li>
+</div>
+
+<ul>
+  <li><code class="highlighter-rouge">./build.sh local</code>: The package definition and build artifacts are served by a local HTTP server.</li>
 </ul>
 
 <p>Executing the final command, <code class="highlighter-rouge">dcos package install --yes hello-world</code> deploys the service to a DC/OS cluster.</p>
@@ -390,7 +457,7 @@ ii. Determine scenario (install, update or no change)
             </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
             </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp"</span><span class="p">,</span><span class="w">
             </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api"</span><span class="p">,</span><span class="w">
-            </span><span class="nt">"labels"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+            </span><span class="nt">"labels"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"VIP_0"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/api.:80"</span><span class="w"> </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -459,15 +526,15 @@ ii. Determine scenario (install, update or no change)
 
 <p>Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>...
-pods:
-    hello:
-        count: 
-        tasks:
-            server:
-...
-                cpus: 
-...
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="nn">...</span>
+<span class="s">pods</span><span class="pi">:</span>
+    <span class="s">hello</span><span class="pi">:</span>
+        <span class="s">count</span><span class="pi">:</span> 
+        <span class="s">tasks</span><span class="pi">:</span>
+            <span class="s">server</span><span class="pi">:</span>
+<span class="nn">...</span>
+                <span class="s">cpus</span><span class="pi">:</span> 
+<span class="nn">...</span>
 </code></pre>
 </div>
 
@@ -476,20 +543,20 @@ pods:
 <p><a name="rendered-spec"></a>
 The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        cpus: 0.1
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
 </code></pre>
 </div>
 
@@ -565,20 +632,20 @@ pods:
 
 <p>This will result in restarting the scheduler and re-rendering the <code class="highlighter-rouge">ServiceSpec</code> template. The new template is shown below. Note that the value of <code class="highlighter-rouge">cpus</code> has changed to 0.2.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        cpus: 0.2
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.2</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
 </code></pre>
 </div>
 
@@ -665,7 +732,7 @@ pods:
 
 <p>You can view the deployment plan via a REST endpoint your scheduler provides. The plans shown in the examples above were accessed by:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -k -H "Authorization: token=$AUTH_TOKEN" http://&lt;dcos_url&gt;/service/**hello-world**/v1/plans/deploy
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy
 </code></pre>
 </div>
 
@@ -673,7 +740,7 @@ pods:
 
 <p>You can   interrupt the execution of a plan by issuing a POST request to the appropriate endpoint:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/interrupt
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/interrupt
 </code></pre>
 </div>
 
@@ -683,7 +750,7 @@ pods:
 
 <p>Continue plan execution by issuing a POST request to the continue endpoint:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/continue
 </code></pre>
 </div>
 
@@ -701,47 +768,79 @@ pods:
 
 <p>So a service defined as follows:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        cpus: 0.2
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.2</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
 </code></pre>
 </div>
 
-<p>would generate a single task named “hello-0-server”.  The framework’s name is “hello-world”.  The Mesos-DNS address for this task would be “hello-0-server.hello-world.mesos”.</p>
+<p>would generate a single task named “hello-0-server”.  The framework’s name is “hello-world”.  The Mesos-DNS address for this task would be “hello-0-server.hello-world.mesos”. Tasks may also specify their own prefixes for the first component of their mesos-dns names using the <code class="highlighter-rouge">discovery</code> section in each task definition. In the following example, two tasks within the same pod share a prefix:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">resource-sets</span><span class="pi">:</span>
+      <span class="s">pod-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.2</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">init</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">FINISHED</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">pod-resources</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">init</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">discovery</span><span class="pi">:</span>
+          <span class="s">prefix</span><span class="pi">:</span> <span class="s">hello</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">pod-resources</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">discovery</span><span class="pi">:</span>
+          <span class="s">prefix</span><span class="pi">:</span> <span class="s">hello</span>
+</code></pre>
+</div>
+
+<p>In this case, while running, both the <code class="highlighter-rouge">init</code> and <code class="highlighter-rouge">server</code> tasks would be addressable at “hello-0.hello-world.mesos”, with the “-0” being added automatically to indicate which pod instance to route to. Tasks belonging to different pods may not share the same prefix, and YAML validation will fail if this is found to be the case.</p>
+
+<p><strong>Important:</strong> As with resource sets, only a single process at point in time may use a given prefix, meaning that <code class="highlighter-rouge">init</code> may not run at the same time as <code class="highlighter-rouge">server</code>. A complete service definition would have a deploy plan that ensures this.</p>
 
 <h2 id="vip"><a href="https://github.com/dcos/minuteman">VIP</a></h2>
 
 <p>You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        cpus: 0.2
-        memory: 256
-        ports:
-            http:
-                protocol: tcp
-                port: 8080
-                vip:
-                    prefix: server-lb
-                    port: 80
-                    advertise: true
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.2</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">ports</span><span class="pi">:</span>
+            <span class="s">http</span><span class="pi">:</span>
+                <span class="s">protocol</span><span class="pi">:</span> <span class="s">tcp</span>
+                <span class="s">port</span><span class="pi">:</span> <span class="s">8080</span>
+                <span class="s">vip</span><span class="pi">:</span>
+                    <span class="s">prefix</span><span class="pi">:</span> <span class="s">server-lb</span>
+                    <span class="s">port</span><span class="pi">:</span> <span class="s">80</span>
+                    <span class="s">advertise</span><span class="pi">:</span> <span class="s">true</span>
 </code></pre>
 </div>
 
@@ -782,24 +881,23 @@ pods:
 
 <p>Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called <a href="https://github.com/dcos/shakedown">shakedown</a>. Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and a failure blocks merges. The hello-world framework provides <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/integration/tests/test_sanity.py">some example integration tests</a>.</p>
 
-<p>You can run integration tests manually using the <a href="https://github.com/mesosphere/dcos-commons/blob/master/test.sh">test.sh</a> script.  If you havea particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:</p>
+<p>You can run integration tests manually using the <a href="https://github.com/mesosphere/dcos-commons/blob/master/test.sh">test.sh</a> script.  If you have a particular DC/OS cluster on which to run tests, we recommend overriding the CLUSTER_URL environment variable. If you need to run a subset of the integration test suite during test or framework development, we recommend setting the TEST_TYPES environment variable appropriately.  For example, you could mark a test as follows:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>@pytest.mark.**special**
-def test_upgrade_downgrade():
-
-    ...
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nd">@pytest.mark.special</span>
+<span class="k">def</span> <span class="nf">test_upgrade_downgrade</span><span class="p">():</span>
+    <span class="o">...</span>
 </code></pre>
 </div>
 
 <p>If the following command was entered in the shell:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ export TEST_TYPES="special”
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">TEST_TYPES</span><span class="o">=</span><span class="s2">"special"</span>
 </code></pre>
 </div>
 
-<p>Then, only tests marked special would be executed.  A oneline example is as follows:</p>
+<p>Then, only tests marked special would be executed.  A one line example is as follows:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ CLUSTER_URL=http://my-dcos-cluster/ TEST_TYPES=special ./test.sh
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">CLUSTER_URL</span><span class="o">=</span>http://my-dcos-cluster/ <span class="nv">TEST_TYPES</span><span class="o">=</span>special ./test.sh
 </code></pre>
 </div>
 
@@ -811,26 +909,30 @@ def test_upgrade_downgrade():
 
 <h3 id="containers">Containers</h3>
 
-<p>Each pod runs inside a single container. The <code class="highlighter-rouge">ServiceSpec</code> specifies the Docker image to run for that container and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the “hello” pod is set to 1024, and the hard limit to 2048:</p>
+<p>Each pod runs inside a single container. The <code class="highlighter-rouge">ServiceSpec</code> specifies the Docker image to run for that container, the virtual network memberships, and the POSIX resource limits for every task that runs inside that container. In the example below, the soft limit for number of open file descriptors for any task in the “hello” pod is set to 1024, and the hard limit to 2048:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-    hello:
-        count: 1
-        container:
-            image-name: ubuntu
-            rlimits:
-                RLIMIT_NOFILE:
-                    soft: 1024
-                    hard: 2048
-        tasks:
-            server:
-                goal: RUNNING
-                cmd: "echo hello"
-                cpus: 1.0
-                memory: 256
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">container</span><span class="pi">:</span>
+      <span class="s">image-name</span><span class="pi">:</span> <span class="s">ubuntu</span>
+      <span class="s">networks</span><span class="pi">:</span>
+        <span class="s">dcos</span><span class="pi">:</span> <span class="pi">{}</span>
+      <span class="s">rlimits</span><span class="pi">:</span>
+        <span class="s">RLIMIT_NOFILE</span><span class="pi">:</span>
+          <span class="s">soft</span><span class="pi">:</span> <span class="s">1024</span>
+          <span class="s">hard</span><span class="pi">:</span> <span class="s">2048</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
 </code></pre>
 </div>
+
+<p>Currently an empty YAML dictionary is passed as the body for each network definition under <code class="highlighter-rouge">networks</code>, since we only support joining virtual networks by name, but in the future it will be possible to specify port mappings and other information in a network definition.</p>
 
 <p><strong>Note:</strong> Your framework must be run as the root user in order to raise rlimits beyond the default for a process. For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md">the Mesos documentation on rlimits</a>.</p>
 
@@ -840,17 +942,17 @@ pods:
 
 <p>We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 3
-    placement: 
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">3</span>
+    <span class="s">placement</span><span class="pi">:</span> 
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
 </code></pre>
 </div>
 
@@ -861,72 +963,72 @@ pods:
 
 <p>A Mesos task is always a process that consumes some resources. In the example below, the server task is a command that prints “hello” to a file while consuming 1.0 CPUs, 256 MB of memory, and 50 MB of disk space for its volume.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
 </code></pre>
 </div>
 
-<p>An equivalent way  to define the same task is as follows:</p>
+<p>An equivalent way to define the same task is as follows:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        resource-set: hello-resources
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">resource-sets</span><span class="pi">:</span>
+      <span class="s">hello-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources/</span>
 </code></pre>
 </div>
 
 <p>In this case, the resources are declared separately from the server task in a resource set named <code class="highlighter-rouge">hello-resources</code>. They are referenced by a <code class="highlighter-rouge">resource-set</code> element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.</p>
 
-<p><strong>Important:</strong> At any given point in time, only a single process may be consuming a given set of resources. <strong>Resources may never be shared simultaneously by multiple tasks</strong>.</p>
+<p><strong>Important:</strong> At any given point in time, only a single process may be consuming a given set of resources. <strong>Resources may never be shared simultaneously by multiple tasks</strong>.  Any attempt to launch a task consuming an already consumed resource-set will result in the killing of the task which is currently running and the launch of the new task.</p>
 
 <p>This alternative formulation of tasks is useful when several tasks should be sequenced in the same container and have a cumulative effect on data in a volume. For example, if you want to initialize something before running the long running server task, you could write the following:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      initialize:
-        goal: FINISHED
-        cmd: "echo initialize &gt;&gt; hello-container-path/output"
-        resource-set: hello-resources
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        resource-set: hello-resources
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">resource-sets</span><span class="pi">:</span>
+      <span class="s">hello-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">initialize</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">FINISHED</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">initialize</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
 </code></pre>
 </div>
 
@@ -939,36 +1041,35 @@ hello
 
 <p>Provide an ordering by specifying a custom deployment plan. The final YAML file would be:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 50
-    tasks:
-      initialize:
-        goal: FINISHED
-        cmd: "echo initialize &gt;&gt; hello-container-path/output"
-        resource-set: hello-resources
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
-        resource-set: hello-resources
-plans:
-  deploy:
-    phases:
-      hello-deploy:
-        strategy: serial
-        pod: hello
-        steps:
-          - 0: [initialize]
-          - 0: [server]
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">resource-sets</span><span class="pi">:</span>
+      <span class="s">hello-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">50</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">initialize</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">FINISHED</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">initialize</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-deploy</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">initialize</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">server</span><span class="pi">]]</span>
 </code></pre>
 </div>
 
@@ -978,36 +1079,36 @@ plans:
 
 <p>You can include arbitrary additional plans beyond the deploy plan.  These may be executed at runtime to performance, for example, maintenance operations like backup.  Below we have an example describing how to declare a sidecar plan.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    resource-sets:
-      hello-resources:
-        cpus: 1
-        memory: 256
-      sidecar-resources:
-        cpus: 0.1
-        memory: 256
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; output &amp;&amp; sleep $SLEEP_DURATION"
-        resource-set: hello-resources
-        env:
-          SLEEP_DURATION: 1000
-      sidecar:
-        goal: FINISHED
-        cmd: "echo sidecar &gt;&gt; output"
-        resource-set: sidecar-resources
-plans:
-  sidecar-example:
-    strategy: serial
-    phases:
-      sidecar-deploy:
-        strategy: parallel
-        pod: hello
-        tasks: [sidecar]
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">resource-sets</span><span class="pi">:</span>
+      <span class="s">hello-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+      <span class="s">sidecar-resources</span><span class="pi">:</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">$SLEEP_DURATION"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
+        <span class="s">env</span><span class="pi">:</span>
+          <span class="s">SLEEP_DURATION</span><span class="pi">:</span> <span class="s">1000</span>
+      <span class="s">sidecar</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">FINISHED</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">sidecar</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">output"</span>
+        <span class="s">resource-set</span><span class="pi">:</span> <span class="s">sidecar-resources</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">sidecar-example</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">sidecar-deploy</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">parallel</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+        <span class="s">tasks</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">sidecar</span><span class="pi">]</span>
 </code></pre>
 </div>
 
@@ -1019,37 +1120,37 @@ plans:
 
 <p>You can include an arbitrary list of URIs to download before launching a task or before launching a pod. The Mesos fetcher automatically extracts and caches the URIs. To attach URIs to the context of a task, modify the YAML as below:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
-        uris:
-          - https://foo.bar.com/package.tar.gz
-          - https://foo.bar.com/bundle.tar.gz
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">uris</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">https://foo.bar.com/package.tar.gz</span>
+          <span class="pi">-</span> <span class="s">https://foo.bar.com/bundle.tar.gz</span>
 </code></pre>
 </div>
 
 <p>To add URIs to a pod, modify the YAML as below:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    uris:
-      - https://foo.bar.com/package.tar.gz
-      - https://foo.bar.com/bundle.tar.gz
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello"
-        cpus: 1.0
-        memory: 256
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">uris</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">https://foo.bar.com/package.tar.gz</span>
+      <span class="pi">-</span> <span class="s">https://foo.bar.com/bundle.tar.gz</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
 </code></pre>
 </div>
 
@@ -1059,20 +1160,20 @@ pods:
 
 <p>It is common for a service to require configuration files to be present in the context of a task.  The SDK provides a method for defining and placing task-specific configuration files. A configuration file is template that can be dynamically rendered by environment variables. Add a configuration file to a task in the following way:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &amp;&amp; sleep 1000"
-        cpus: 0.1
-        memory: 256
-                configs:
-          config.xml:
-            template: "config.xml.mustache"
-            dest: etc/config.xml
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+                <span class="s">configs</span><span class="pi">:</span>
+          <span class="s">config.xml</span><span class="pi">:</span>
+            <span class="s">template</span><span class="pi">:</span> <span class="s2">"</span><span class="s">config.xml.mustache"</span>
+            <span class="s">dest</span><span class="pi">:</span> <span class="s">etc/config.xml</span>
 </code></pre>
 </div>
 
@@ -1082,19 +1183,19 @@ pods:
 
 <p>You can define the environment of a task in a few different ways. In the YML <code class="highlighter-rouge">ServiceSpec</code>, it can be defined in the following way.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &amp;&amp; sleep 1000"
-        cpus: 0.1
-        memory: 256
-        env:
-          FOO: bar
-          BAZ: 
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">env</span><span class="pi">:</span>
+          <span class="s">FOO</span><span class="pi">:</span> <span class="s">bar</span>
+          <span class="s">BAZ</span><span class="pi">:</span> 
 </code></pre>
 </div>
 
@@ -1126,23 +1227,23 @@ pods:
 
 <p>Every task may have a single health check defined for it by adding a <code class="highlighter-rouge">health-check</code> parameter to  the <code class="highlighter-rouge">ServiceSpec</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &amp;&amp; sleep 1000"
-        cpus: 0.1
-        memory: 256
-      health-check:
-        cmd: "./check-up"
-        interval: 5
-        grace-period: 30
-        max-consecutive-failures: 3
-        delay: 0
-        timeout: 10
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+      <span class="s">health-check</span><span class="pi">:</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./check-up"</span>
+        <span class="s">interval</span><span class="pi">:</span> <span class="s">5</span>
+        <span class="s">grace-period</span><span class="pi">:</span> <span class="s">30</span>
+        <span class="s">max-consecutive-failures</span><span class="pi">:</span> <span class="s">3</span>
+        <span class="s">delay</span><span class="pi">:</span> <span class="s">0</span>
+        <span class="s">timeout</span><span class="pi">:</span> <span class="s">10</span>
 </code></pre>
 </div>
 
@@ -1152,21 +1253,21 @@ pods:
 
 <p>Every task may have a single readiness check defined for it by adding a <code class="highlighter-rouge">readiness-check</code> parameter to  the <code class="highlighter-rouge">ServiceSpec</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &amp;&amp; sleep 1000"
-        cpus: 0.1
-        memory: 256
-      readiness-check:
-        cmd: "./readiness-check"
-        interval: 5
-        delay: 0
-        timeout: 10
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+      <span class="s">readiness-check</span><span class="pi">:</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./readiness-check"</span>
+        <span class="s">interval</span><span class="pi">:</span> <span class="s">5</span>
+        <span class="s">delay</span><span class="pi">:</span> <span class="s">0</span>
+        <span class="s">timeout</span><span class="pi">:</span> <span class="s">10</span>
 </code></pre>
 </div>
 
@@ -1176,20 +1277,20 @@ pods:
 
 <p>Persistent volumes allow data to be stored on disks and survive.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>name: "hello-world"
-pods:
-  hello:
-    count: 3
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep $SLEEP_DURATION"
-        cpus: 1.0
-        memory: 256
-        volume:
-          path: "hello-container-path"
-          type: ROOT
-          size: 5000
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">3</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">$SLEEP_DURATION"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">volume</span><span class="pi">:</span>
+          <span class="s">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-container-path"</span>
+          <span class="s">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+          <span class="s">size</span><span class="pi">:</span> <span class="s">5000</span>
 </code></pre>
 </div>
 
@@ -1197,27 +1298,28 @@ pods:
 
 <h3 id="proxy">Proxy</h3>
 
-<p>The proxy allows one to expose more than one endpoint through adminrouter.</p>
+<p>The proxy allows one to expose more than one endpoint through adminrouter. It is only supported on DC/OS 1.9 clusters.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>web-url: http://proxylite-0-server..mesos:
-pods:
-  proxylite:
-    container:
-      image-name: nlsun/proxylite:0.0.3
-    count: 1
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "/proxylite/run.sh"
-        cpus: 
-        memory: 
-        ports:
-          proxylite:
-            port: 
-        env:
-          ROOT_REDIRECT: "/example"
-          EXTERNAL_ROUTES: "/v1,/example"
-          INTERNAL_ROUTES: ".marathon.mesos:/v1,example.com:80"
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">web-url</span><span class="pi">:</span> <span class="s">http://proxylite-0-server..mesos</span><span class="pi">:</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">proxylite</span><span class="pi">:</span>
+    <span class="s">container</span><span class="pi">:</span>
+      <span class="s">image-name</span><span class="pi">:</span> <span class="s">mesosphere/proxylite:1.0.1</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/proxylite/run.sh"</span>
+        <span class="s">cpus</span><span class="pi">:</span> 
+        <span class="s">memory</span><span class="pi">:</span> 
+        <span class="s">ports</span><span class="pi">:</span>
+          <span class="s">proxylite</span><span class="pi">:</span>
+            <span class="s">env-key</span><span class="pi">:</span> <span class="s">PORT_PROXYLITE</span>
+            <span class="s">port</span><span class="pi">:</span> 
+        <span class="s">env</span><span class="pi">:</span>
+          <span class="s">ROOT_REDIRECT</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/example"</span>
+          <span class="s">EXTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/v1,/example"</span>
+          <span class="s">INTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">.marathon.mesos:/v1,example.com:80"</span>
 </code></pre>
 </div>
 
@@ -1245,16 +1347,32 @@ pods:
 
 <ol>
   <li>Delete these 3 labels from your marathon json:
- a. <code class="highlighter-rouge">DCOS_SERVICE_NAME</code>
- b. <code class="highlighter-rouge">DCOS_SERVICE_PORT_INDEX</code>
- c. <code class="highlighter-rouge">DCOS_SERVICE_SCHEME</code></li>
-  <li>If you have an “old” cluster (ask Gabriel about what is old), apply some patches to adminrouter. (Ask gabriel for those too).</li>
+    <ul>
+      <li><code class="highlighter-rouge">DCOS_FRAMEWORK_NAME</code></li>
+      <li><code class="highlighter-rouge">DCOS_SERVICE_PORT_INDEX</code></li>
+      <li><code class="highlighter-rouge">DCOS_SERVICE_SCHEME</code></li>
+    </ul>
+  </li>
   <li>Things to watch out for:
- a.  No trailing slashes.
- b. The external route is <em>replaced</em> with the internal route.
-     i. It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is <em>not the case</em>.
-     i. For example, in the above declaration, “/v1” is replaced with “/v1”, so nothing changes. However one might use <code class="highlighter-rouge">.marathon.mesos:</code> as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
- c. When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before a task it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.</li>
+    <ul>
+      <li>No trailing slashes.</li>
+      <li>The external route is <em>replaced</em> with the internal route.
+        <ul>
+          <li>It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is <em>not the case</em>.</li>
+          <li>For example, in the above declaration, “/v1” is replaced with “/v1”, so nothing changes. However one might use <code class="highlighter-rouge">.marathon.mesos:</code> as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.</li>
+        </ul>
+      </li>
+      <li>
+        <p>When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.</p>
+
+        <p>You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:</p>
+
+        <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./bootstrap</span><span class="nv"> </span><span class="s">-resolve-hosts=ui-0-server..mesos</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">/proxylite/run.sh"</span>
+</code></pre>
+        </div>
+      </li>
+    </ul>
+  </li>
 </ol>
 
 <h2 id="servicespec-java"><code class="highlighter-rouge">ServiceSpec</code> (Java)</h2>
@@ -1263,14 +1381,14 @@ pods:
 
 <p>All of the interfaces of the <code class="highlighter-rouge">ServiceSpec</code> have default implementations. For example, the <code class="highlighter-rouge">ServiceSpec</code> interface is implemented by the <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultServiceSpec.java"><code class="highlighter-rouge">DefaultServiceSpec</code></a>. The default interface implementations also provide convenient fluent style construction. For example a <code class="highlighter-rouge">DefaultServiceSpec</code> can be constructed in the following way:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>DefaultServiceSpec.newBuilder()
-    .name(SERVICE_NAME)
-    .role(ROLE)
-    .principal(PRINCIPAL)
-    .apiPort(8080)
-    .zookeeperConnection("foo.bar.com")
-    .pods(Arrays.asList(pods))
-    .build();
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">DefaultServiceSpec</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">()</span>
+    <span class="o">.</span><span class="na">name</span><span class="o">(</span><span class="n">FRAMEWORK_NAME</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">role</span><span class="o">(</span><span class="n">ROLE</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">principal</span><span class="o">(</span><span class="n">PRINCIPAL</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">apiPort</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">zookeeperConnection</span><span class="o">(</span><span class="s">"foo.bar.com"</span><span class="o">)</span>
+    <span class="o">.</span><span class="na">pods</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">pods</span><span class="o">))</span>
+    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 </code></pre>
 </div>
 
@@ -1285,20 +1403,20 @@ pods:
 
 <p>One common placement constraint is to avoid placing pods of the same type together in order to avoid correlated failures. If, for example, you want to deploy all pods of type “hello” on different Mesos agents, extend the PodSpec as follows:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
-        .placementRule(TaskTypeRule.avoid("hello"))
-        .build();
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">PodSpec</span> <span class="n">helloPodSpec</span> <span class="o">=</span> <span class="n">DefaultPodSpec</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">(</span><span class="n">helloPodSpec</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">placementRule</span><span class="o">(</span><span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">avoid</span><span class="o">(</span><span class="s">"hello"</span><span class="o">))</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 </code></pre>
 </div>
 
 <p>This is equivalent to specifying a “hostname:UNIQUE” Marathon constraint in your YAML specification. Let’s look at a more complicated placement rule and how multiple rules may be composed. If, for example, pods of type “hello” should avoid both pods of the same type and colocate with those of “world” type, this could be expressed as:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>PodSpec helloPodSpec = DefaultPodSpec.newBuilder(helloPodSpec)
-        .placementRule(
-                new AndRule(
-                        TaskTypeRule.avoid("hello"),
-                        TaskTypeRule.colocateWith("world")))
-        .build();
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">PodSpec</span> <span class="n">helloPodSpec</span> <span class="o">=</span> <span class="n">DefaultPodSpec</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">(</span><span class="n">helloPodSpec</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">placementRule</span><span class="o">(</span>
+                <span class="k">new</span> <span class="nf">AndRule</span><span class="o">(</span>
+                        <span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">avoid</span><span class="o">(</span><span class="s">"hello"</span><span class="o">),</span>
+                        <span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">colocateWith</span><span class="o">(</span><span class="s">"world"</span><span class="o">)))</span>
+        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
 </code></pre>
 </div>
 
@@ -1367,35 +1485,35 @@ pods:
 
 <h3 id="example">Example</h3>
 
-<p>In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We ecommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.</p>
+<p>In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We recommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.</p>
 
 <p>You could generate three steps in the following way:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>StepFactory stepFactory = new DefaultStepFactory(configStore, stateStore);
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">StepFactory</span> <span class="n">stepFactory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultStepFactory</span><span class="o">(</span><span class="n">configStore</span><span class="o">,</span> <span class="n">stateStore</span><span class="o">);</span>
 
-List&lt;Step&gt; steps = new ArrayList&lt;&gt;();
-steps.add(stepFactory.getStep(podInstance0, tasksToLaunch0));
-steps.add(stepFactory.getStep(podInstance1, tasksToLaunch1));
-steps.add(stepFactory.getStep(podInstance2, tasksToLaunch2));
+<span class="n">List</span><span class="o">&lt;</span><span class="n">Step</span><span class="o">&gt;</span> <span class="n">steps</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+<span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance0</span><span class="o">,</span> <span class="n">tasksToLaunch0</span><span class="o">));</span>
+<span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance1</span><span class="o">,</span> <span class="n">tasksToLaunch1</span><span class="o">));</span>
+<span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance2</span><span class="o">,</span> <span class="n">tasksToLaunch2</span><span class="o">));</span>
 </code></pre>
 </div>
 
 <p>Then steps can be grouped in a phase with an accompanying strategy.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Phase phase = new DefaultPhase(
-        “phase-name”,
-        steps,
-        new SerialStrategy&lt;&gt;(),
-        Collections.emptyList()); // No errors
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">Phase</span> <span class="n">phase</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultPhase</span><span class="o">(</span>
+        <span class="err">“</span><span class="n">phase</span><span class="o">-</span><span class="n">name</span><span class="err">”</span><span class="o">,</span>
+        <span class="n">steps</span><span class="o">,</span>
+        <span class="k">new</span> <span class="n">SerialStrategy</span><span class="o">&lt;&gt;(),</span>
+        <span class="n">Collections</span><span class="o">.</span><span class="na">emptyList</span><span class="o">());</span> <span class="c1">// No errors</span>
 </code></pre>
 </div>
 
 <p>The phase defined above will execute its steps in a serial order. The phase can be added to a plan.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>Plan customPlan = new DefaultPlan(
-        “plan-name”,
-        Arrays.asList(phase),
-        new ParallelStrategy&lt;&gt;());
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">Plan</span> <span class="n">customPlan</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultPlan</span><span class="o">(</span>
+        <span class="err">“</span><span class="n">plan</span><span class="o">-</span><span class="n">name</span><span class="err">”</span><span class="o">,</span>
+        <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">phase</span><span class="o">),</span>
+        <span class="k">new</span> <span class="n">ParallelStrategy</span><span class="o">&lt;&gt;());</span>
 </code></pre>
 </div>
 
@@ -1403,21 +1521,21 @@ steps.add(stepFactory.getStep(podInstance2, tasksToLaunch2));
 
 <p>The easiest way to do this is to extend the DefaultService provided by the SDK.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>public class CustomService extends DefaultService {
-    public CustomService(File yamlFile, Plan customPlan) throws Exception {
-        RawServiceSpecification rawServiceSpecification =
-                YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlFile);
-        DefaultServiceSpec defaultServiceSpecserviceSpec =
-                YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpecification);
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CustomService</span> <span class="kd">extends</span> <span class="n">DefaultService</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">CustomService</span><span class="o">(</span><span class="n">File</span> <span class="n">yamlFile</span><span class="o">,</span> <span class="n">Plan</span> <span class="n">customPlan</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">RawServiceSpecification</span> <span class="n">rawServiceSpecification</span> <span class="o">=</span>
+                <span class="n">YAMLServiceSpecFactory</span><span class="o">.</span><span class="na">generateRawSpecFromYAML</span><span class="o">(</span><span class="n">yamlFile</span><span class="o">);</span>
+        <span class="n">DefaultServiceSpec</span> <span class="n">defaultServiceSpec</span> <span class="o">=</span>
+                <span class="n">YAMLServiceSpecFactory</span><span class="o">.</span><span class="na">generateServiceSpec</span><span class="o">(</span><span class="n">rawServiceSpecification</span><span class="o">);</span>
 
-        serviceSpec = defaultServiceSpecserviceSpec;
-        init();
-        plans = generatePlansFromRawSpec(rawServiceSpecification);
-        plans.add(customPlan);
+        <span class="n">serviceSpec</span> <span class="o">=</span> <span class="n">defaultServiceSpec</span><span class="o">;</span>
+        <span class="n">init</span><span class="o">();</span>
+        <span class="n">plans</span> <span class="o">=</span> <span class="n">generatePlansFromRawSpec</span><span class="o">(</span><span class="n">rawServiceSpecification</span><span class="o">);</span>
+        <span class="n">plans</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">customPlan</span><span class="o">);</span>
         
-        register(serviceSpec, plans);
-    }
-}
+        <span class="n">register</span><span class="o">(</span><span class="n">serviceSpec</span><span class="o">,</span> <span class="n">plans</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
