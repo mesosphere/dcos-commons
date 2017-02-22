@@ -21,7 +21,7 @@ public class ConfigUpgrade {
     public static boolean checkUpdate(){
         if (System.getenv("CONFIG_UPGRADE") != null) {
             LOGGER.info("++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-                     + "        Kafka Configuration Update Mode !"
+                     + "        Kafka Configuration Update is starting "
                      + "++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
             return true;
         }
