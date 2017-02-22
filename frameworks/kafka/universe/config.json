@@ -6,9 +6,9 @@
         "description": "DC/OS service configuration properties",
         "properties":{
           "name" : {
-            "description":"Apache Kafka",
+            "description":"Apache Kafka (apache-kafka)",
             "type":"string",
-            "default":"apache-kafka"
+            "default":"kafka"
           },
           "mesos_api_version" : {
             "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
@@ -28,7 +28,7 @@
           "principal": {
             "description": "The principal for the Kafka service instance.",
             "type": "string",
-            "default": "apache-kafka-principal"
+            "default": "kafka-principal"
           },
           "secret_name": {
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",

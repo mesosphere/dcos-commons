@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification;
 
+import com.fasterxml.jackson.jaxrs.json.annotation.JSONP;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -52,6 +53,10 @@ public class DefaultService implements Service {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
     }
 
+    public DefaultService() throws Exception {
+        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File("svc.yml")));
+    }
+
     public DefaultService(File pathToYamlSpecification) throws Exception {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification));
     }
@@ -66,6 +71,10 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
+        initService(schedulerBuilder);
+    }
+
+    protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
 
@@ -83,9 +92,6 @@ public class DefaultService implements Service {
             unlock(curatorMutex);
             curatorClient.close();
         }
-    }
-
-    public DefaultService(){
     }
 
     /**
