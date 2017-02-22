@@ -1007,7 +1007,7 @@ The command definition for the sidecar task includes environment variables, `PLA
 To initiate the plan, execute an HTTP POST request against the `/v1/plans/sidecar-example/start` endpoint with the header `Content-Type: application/json` set and a JSON body consisting of environment variable name/value pairs. For example:
 
 ```bash
-$ curl -X POST -H "Authorization: token=$DCOS_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' $DCOS_URL/service/$FRAMEWORK_NAME/v1/plans/sidecar-example/start
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' http://<dcos_url>/service/hello-world/v1/plans/sidecar-example/start
 ```
 
 Or, using the DC/OS CLI interface:
