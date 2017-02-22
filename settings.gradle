@@ -35,3 +35,6 @@ project(":frameworks/proxylite").name = "proxylite"
 
 include 'frameworks/rethinkdb'
 project(":frameworks/rethinkdb").name = "rethinkdb"
+
+include 'examples/rethinkdb'
+project(":examples/rethinkdb").name = "rethinkdb"

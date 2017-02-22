@@ -1,0 +1,83 @@
+name: {{FRAMEWORK_NAME}}
+web-url: http://rethinkdb-0-server.rethinkdb.mesos:4040
+pods:
+  rethinkdb:
+    count: {{RETHINKDB_COUNT}}
+    #placement: {{PLACEMENT_CONSTRAINTS}}
+    container:
+      image-name: centos
+    uris:
+      - "https://download.rethinkdb.com/centos/6/x86_64/rethinkdb.repo"
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: >
+          cp rethinkdb.repo /etc/yum.repos.d/ &&
+          yum -y install rethinkdb >> rethinkdb-container-path/pulldeps &&
+          rethinkdb --bind all --http-port 4041 --cluster-port 4001 --driver-port 4021 >> rethinkdb-container-path/rethinkoutput
+        cpus: {{RETHINKDB_CPUS}}
+        ports:
+          intercluster:
+            env-key: INTER_CLUSTER
+            port: 4001
+          driverport:
+            env-key: DRIVER_PORT
+            port: 4021
+            vip:
+              prefix: server-lb
+              port: 80
+          httpd:
+            env-key: PORT_HTTPD
+            port: 4041
+        memory: {{RETHINKDB_MEM}}
+        volume:
+          path: "rethinkdb-container-path"
+          type: ROOT
+          size: {{RETHINKDB_DISK}}
+  rethinkdbnode:
+    ## TODO left off here, this doesn't work because of the port thing.
+    count: 1
+    #placement: {{PLACEMENT_CONSTRAINTS}}
+    container:
+      image-name: centos
+    uris:
+      - "https://download.rethinkdb.com/centos/6/x86_64/rethinkdb.repo"
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: >
+          cp rethinkdb.repo /etc/yum.repos.d/ &&
+          yum -y install rethinkdb >> rethinkdb-container-path/output &&
+          rethinkdb --port-offset 1 --join rethinkdb-0-server.rethinkdb.mesos:4001
+        cpus: {{RETHINKDB_CPUS}}
+        #ports:
+        #  httpd:
+        #    env-key: PORT_HTTPD
+        #    port: 4041
+        memory: {{RETHINKDB_MEM}}
+        volume:
+          path: "rethinkdb-container-path"
+          type: ROOT
+          size: {{RETHINKDB_DISK}}
+  proxylite:
+    container:
+      image-name: mesosphere/proxylite:1.0.1
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "/proxylite/run.sh"
+        cpus: 1
+        memory: 256
+        ports:
+          proxylite:
+            env-key: PORT_PROXYLITE
+            port: 4040
+        env:
+          ROOT_REDIRECT: "/httpd"
+          #EXTERNAL_ROUTES: "/v1,/httpd,/note"
+          #INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041,rethinkdb-0-server.rethinkdb.mesos:4011"
+          EXTERNAL_ROUTES: "/v1,/httpd"
+          INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041"
+
+## TODO do plan, remove hard-coded varaibles, use config file
