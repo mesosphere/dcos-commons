@@ -1,5 +1,5 @@
 {
-  "kafka": {
+  "service": {
     "config_upgrade": true
   }
 }

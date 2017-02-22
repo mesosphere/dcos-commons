@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.jaxrs.json.annotation.JSONP;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -54,7 +53,7 @@ public class DefaultService implements Service {
     }
 
     public DefaultService() throws Exception {
-        this(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File("svc.yml")));
+        //this(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File("svc.yml")));
     }
 
     public DefaultService(File pathToYamlSpecification) throws Exception {
