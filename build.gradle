@@ -79,7 +79,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = "1.2.0-SNAPSHOT"
+    mesosVer = "1.2.0-rc1"
 }
 
 subprojects {
