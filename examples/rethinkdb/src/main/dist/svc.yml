@@ -36,7 +36,7 @@ pods:
           size: {{RETHINKDB_DISK}}
   rethinkdbnode:
     ## TODO left off here, this doesn't work because of the port thing.
-    count: 1
+    count: 2
     #placement: {{PLACEMENT_CONSTRAINTS}}
     container:
       image-name: centos
@@ -48,7 +48,7 @@ pods:
         cmd: >
           cp rethinkdb.repo /etc/yum.repos.d/ &&
           yum -y install rethinkdb >> rethinkdb-container-path/output &&
-          rethinkdb --port-offset 1 --join rethinkdb-0-server.rethinkdb.mesos:4001
+          rethinkdb --port-offset $POD_INSTANCE_INDEX --join rethinkdb-0-server.rethinkdb.mesos:4001
         cpus: {{RETHINKDB_CPUS}}
         #ports:
         #  httpd:
@@ -75,8 +75,6 @@ pods:
             port: 4040
         env:
           ROOT_REDIRECT: "/httpd"
-          #EXTERNAL_ROUTES: "/v1,/httpd,/note"
-          #INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041,rethinkdb-0-server.rethinkdb.mesos:4011"
           EXTERNAL_ROUTES: "/v1,/httpd"
           INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041"
 
