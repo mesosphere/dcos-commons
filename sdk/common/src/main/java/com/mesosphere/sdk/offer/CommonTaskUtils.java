@@ -578,7 +578,7 @@ public class CommonTaskUtils {
 
         String goalStateString = goalStateOptional.get();
         if (!goalNames.contains(goalStateString)) {
-            throw new TaskException("Unexpecte goal state encountered: " + goalStateString);
+            throw new TaskException("Unexpected goal state encountered: " + goalStateString);
         }
 
         return GoalState.valueOf(goalStateString);

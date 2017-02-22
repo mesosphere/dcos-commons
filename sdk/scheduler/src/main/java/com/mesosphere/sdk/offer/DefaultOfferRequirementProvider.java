@@ -136,6 +136,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         .filter(resource -> !resource.hasDisk())
                         .collect(Collectors.toMap(r -> r.getName(), Function.identity()));
 
+        // TODO(MB): Make able to change container-path
         Map<String, Protos.Resource> volumeMap = resources == null ?
                 Collections.emptyMap() :
                 resources.stream()
@@ -151,6 +152,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             resourceRequirements.add(r.getResourceRequirement(resourceMap.get(r.getName())));
         }
 
+        // TODO(MB): Make able to change container-path
         for (VolumeSpec v : resourceSet.getVolumes()) {
             resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
         }
@@ -284,6 +286,8 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             UUID targetConfigurationId) throws InvalidRequirementException {
         List<Protos.Resource> diskResources = new ArrayList<>();
         List<Protos.Resource> otherResources = new ArrayList<>();
+
+        // TODO(MB): Make able to change container-path
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
                 // Disk resources may not be changed:

@@ -75,7 +75,7 @@
             "properties":{
               "size": {
                 "type":"integer",
-                "description":"The amound of JVM heap, in MB, allocated to the Kafka broker process.",
+                "description":"The amount of JVM heap, in MB, allocated to the Kafka broker process.",
                 "default": 2048
               }
             },
@@ -97,7 +97,7 @@
           "disk_path": {
             "type": "string",
             "description": "Relative path of consistent disk",
-            "default": "kafka_broker-data"
+            "default": "kafka-broker-data"
           },
           "count":{
             "description":"Number of brokers to run",
