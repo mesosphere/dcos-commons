@@ -100,7 +100,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         String fileStr = new String(bytes, Charset.defaultCharset());
         ImmutableMap<String, String> allEnv = new DefaultTaskConfigRouter().getConfig("ALL").getAllEnv();
         Map<String, String> updatedEnv = new HashMap<>(allEnv);
-        updatedEnv.put(Constants.FRAMEWORK_NAME_KEY, System.getenv(Constants.FRAMEWORK_NAME_KEY));
+        updatedEnv.put(Constants.FRAMEWORK_NAME_TASKENV, System.getenv(Constants.FRAMEWORK_NAME_TASKENV));
 
         String renderedFileStr = CommonTaskUtils.applyEnvToMustache(fileStr, updatedEnv);
         Assert.assertEquals(-1, renderedFileStr.indexOf("<value></value>"));

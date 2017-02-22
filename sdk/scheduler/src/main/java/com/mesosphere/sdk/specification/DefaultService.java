@@ -152,7 +152,7 @@ public class DefaultService implements Service {
     }
 
     private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        startApiServer(defaultScheduler, apiPort, Collections.EMPTY_LIST);
+        startApiServer(defaultScheduler, apiPort, Collections.emptyList());
     }
 
     protected ServiceSpec getServiceSpec() {

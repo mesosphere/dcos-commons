@@ -24,12 +24,6 @@ import static com.mesosphere.sdk.offer.Constants.*;
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
-    private static final String EXECUTOR_URI = "EXECUTOR_URI";
-    private static final String LIBMESOS_URI = "LIBMESOS_URI";
-    private static final String JAVA_URI = "JAVA_URI";
-
-    private static final String DEFAULT_JAVA_URI =
-            "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
 
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
@@ -380,11 +374,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Default envvars for use by executors/developers:
 
         // Inject Pod Instance Index
-        environment.put(POD_INSTANCE_INDEX_KEY, String.valueOf(podInstance.getIndex()));
+        environment.put(POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name
-        environment.put(FRAMEWORK_NAME_KEY, serviceName);
+        environment.put(FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject TASK_NAME as KEY:VALUE
-        environment.put(TASK_NAME_KEY, TaskSpec.getInstanceName(podInstance, taskSpec));
+        environment.put(TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
@@ -618,23 +612,23 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // URIs:
 
         // Required in scheduler env.
-        String executorUri = System.getenv(EXECUTOR_URI);
+        String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
         if (executorUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI);
+            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
         }
         executorCommandBuilder.addUrisBuilder().setValue(executorUri);
 
         // Required in scheduler env.
-        String libmesosUri = System.getenv(LIBMESOS_URI);
+        String libmesosUri = System.getenv(LIBMESOS_URI_SCHEDENV);
         if (libmesosUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI);
+            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI_SCHEDENV);
         }
         executorCommandBuilder.addUrisBuilder().setValue(libmesosUri);
 
         // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
-        String javaUri = System.getenv(JAVA_URI);
+        String javaUri = System.getenv(JAVA_URI_SCHEDENV);
         if (javaUri == null) {
-            javaUri = DEFAULT_JAVA_URI;
+            javaUri = JAVA_URI_DEFAULT;
         }
         executorCommandBuilder.addUrisBuilder().setValue(javaUri);
 

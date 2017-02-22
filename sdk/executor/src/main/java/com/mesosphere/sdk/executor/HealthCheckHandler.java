@@ -2,6 +2,8 @@ package com.mesosphere.sdk.executor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
+import com.mesosphere.sdk.offer.Constants;
+
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -197,7 +199,7 @@ public class HealthCheckHandler {
                 Protos.Labels labels = Protos.Labels.newBuilder().build();
                 labels = CommonTaskUtils.withLabelSet(
                         labels,
-                        CommonTaskUtils.READINESS_CHECK_PASSED_KEY,
+                        Constants.READINESS_CHECK_PASSED_LABEL,
                         "true").build();
                 CommonTaskUtils.sendStatus(
                         executorDriver,

@@ -2,6 +2,7 @@
 layout: dev-basic
 title: SDK Developer Guide
 ---
+<!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.
 
@@ -1367,6 +1368,10 @@ pods:
       ```yaml
       cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
       ```
+
+### Proxy Fallback
+
+Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).
 
 ## `ServiceSpec` (Java)
 
