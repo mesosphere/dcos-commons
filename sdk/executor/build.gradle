@@ -59,7 +59,6 @@ publishing {
 distributions {
     main {
         baseName = 'executor'
-        version = ''
     }
 }
 
