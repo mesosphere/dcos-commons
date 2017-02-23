@@ -1228,7 +1228,9 @@ The path is relative to the sandbox path if not preceded by a leading "/". The s
 
 ### Proxy
 
-The proxy allows one to expose more than one endpoint through adminrouter. It is only supported on DC/OS 1.9 clusters.
+The proxy allows one to expose more than one endpoint through adminrouter. It is only supported on DC/OS 1.9 clusters. An example of this can be found in the proxylite framework in this repo. The proxylite framework itself implements this properly.
+
+**READ THROUGH ALL THE INSTRUCTIONS**
 
 ```yaml
 web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
@@ -1254,20 +1256,20 @@ pods:
 ```
 
 
-* `EXTERNAL_ROUTES` and `INTERNAL_ROUTES`
+1. Delete these 3 labels from your marathon json:
+    * `DCOS_FRAMEWORK_NAME`
+    * `DCOS_SERVICE_PORT_INDEX`
+    * `DCOS_SERVICE_SCHEME`
+
+1. `EXTERNAL_ROUTES` and `INTERNAL_ROUTES`
 
     * These have a 1:1 mapping (they are both comma separated lists). There is one internal route for every external route.
 
     * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
 
-* `ROOT_REDIRECT`
+1. `ROOT_REDIRECT`
 
     * This will set a redirect from `/` (a.k.a. the root path) to a path of your choosing. For example, `/example` redirects `<adminrouter>/service/{{FRAMEWORK_NAME}}` to `<adminrouter>/service/{{FRAMEWORK_NAME}}/example`
-
-1. Delete these 3 labels from your marathon json:
-    * `DCOS_FRAMEWORK_NAME`
-    * `DCOS_SERVICE_PORT_INDEX`
-    * `DCOS_SERVICE_SCHEME`
 
 1. Things to watch out for:
     *  No trailing slashes.
