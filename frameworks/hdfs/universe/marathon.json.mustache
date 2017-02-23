@@ -53,6 +53,11 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
+    {{#service.tls_enabled}}
+    "TLS_ENABLED": "{{service.tls_enabled}}",
+    "TASKCFG_ALL_TLS_ENABLED": "{{service.tls_enabled}}",
+    {{/service.tls_enabled}}
+
     {{#service.kerberos.enabled}}
     "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
     "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
