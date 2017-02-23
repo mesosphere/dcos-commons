@@ -32,9 +32,6 @@ allprojects {
     targetCompatibility = '1.8'
 
     repositories {
-        maven {
-            url 'https://repository.apache.org/content/repositories/snapshots'
-        }
         mavenLocal()
         mavenCentral()
     }
