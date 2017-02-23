@@ -15,6 +15,9 @@ import zipfile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
+jre_url = 'https://downloads.mesosphere.com/java/jre-8u121-linux-x64.tar.gz'
+jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz'
+libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-3.tar.gz'
 
 class UniversePackageBuilder(object):
 
@@ -113,7 +116,10 @@ class UniversePackageBuilder(object):
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
         template_mapping = {
             'package-version': self._pkg_version,
-            'artifact-dir': self._upload_dir_url}
+            'artifact-dir': self._upload_dir_url,
+            'jre-url': jre_url,
+            'jre-jce-unlimited-url': jre_jce_unlimited_url,
+            'libmesos-bundle-url': libmesos_bundle_url}
 
         # look for any 'sha256:filename' template params, and get shas for those.
         # this avoids calculating shas unless they're requested by the template.
