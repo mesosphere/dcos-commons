@@ -16,6 +16,11 @@ def setup_module(module):
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
+@pytest.mark.smoke
+def test_install():
+    pass # Setup makes sure install has completed
+
+
 @pytest.mark.sanity
 def test_example():
     cmd.request('get', '{}/example'.format(shakedown.dcos_service_url('proxylite')))

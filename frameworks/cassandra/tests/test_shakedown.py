@@ -19,6 +19,7 @@ def teardown_module(module):
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 def test_service_health():
     check_dcos_service_health()
 
