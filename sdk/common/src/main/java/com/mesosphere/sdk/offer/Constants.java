@@ -25,17 +25,17 @@ public class Constants {
     public static final String READINESS_CHECK_PASSED_LABEL = "readiness_check_passed";
     /** Label against which the Task/Pod Type is stored. */
     public static final String TASK_TYPE_LABEL = "task_type";
-    /** Label against which the Task/Pod index (starting at 0) is stored */
+    /** Label against which the Task/Pod index (starting at 0) is stored. */
     public static final String TASK_INDEX_LABEL = "index";
 
     // Environment variables to be set inside launched tasks themselves
     // These are accessible to the tasks themselves via the container environment.
 
-    /** Provides the Task/Pod index of the instance, starting at 0 */
+    /** Provides the Task/Pod index of the instance, starting at 0. */
     public static final String POD_INSTANCE_INDEX_TASKENV = "POD_INSTANCE_INDEX";
-    /** Prefix used for port environment variables which advertise reserved ports by their name */
+    /** Prefix used for port environment variables which advertise reserved ports by their name. */
     public static final String PORT_NAME_TASKENV_PREFIX = "PORT_";
-    /** Provides the configured name of the framework/service */
+    /** Provides the configured name of the framework/service. */
     public static final String FRAMEWORK_NAME_TASKENV = "FRAMEWORK_NAME";
     /** Provides the name of the pod/task within the service. */
     public static final String TASK_NAME_TASKENV = "TASK_NAME";

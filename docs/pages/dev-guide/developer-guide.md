@@ -2,6 +2,7 @@
 layout: dev-basic
 title: SDK Developer Guide
 ---
+<!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.
 
@@ -33,7 +34,7 @@ Every DC/OS service must provide a package definition in the format expected by 
 
 Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. Zookeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. Zookeeper provides persistent storage for this information.
 
-Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store. 
+Although all SDK services written today store metadata in Zookeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
 They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
 
@@ -76,13 +77,13 @@ pods:
 
     * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration section](#define-target-config). This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
 
-* **Pods**: A pod can be defined most simply as a set of tasks. 
+* **Pods**: A pod can be defined most simply as a set of tasks.
 
 * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
 * **count**: The number of instances of the pod.
 
-* **tasks**: The list of tasks in the pod.	
+* **tasks**: The list of tasks in the pod.
 
 * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
@@ -96,7 +97,7 @@ pods:
 
 ### Summary
 
-A set of pods defines *what* your service is. Pods are composed of task definitions. 
+A set of pods defines *what* your service is. Pods are composed of task definitions.
 
 In the example, we have only defined types of pods and tasks. When the service is deployed and instantiated into instances of these types, we get a Mesos task like the following:
 
@@ -114,7 +115,7 @@ In the example, we have only defined types of pods and tasks. When the service i
 </table>
 
 
-Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.  
+Since a single pod instance was requested via the *count* element, only a single task was launched. Its index (0) was injected into the task name and ID. If we had defined a count higher than one, more tasks with incremental indices would have been launched.
 
 <a name="plans"></a>
 ## Plans
@@ -122,7 +123,7 @@ Since a single pod instance was requested via the *count* element, only a single
 In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks.
 
 The example below defines a service with two types of pods, each of which deploys two instances.
-    
+
 ```yaml
 name: "hello-world"
 pods:
@@ -144,7 +145,7 @@ pods:
             memory: 512
 ```
 
-There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying. 
+There are a number of possible deployment strategies: In parallel or serially, and with or without one pod type waiting for the other’s successful deployment before deploying.
 
 By default, the SDK will deploy all instances of pods serially.  In the example above, the default deployment order would be:
 
@@ -158,7 +159,7 @@ By default, the SDK will deploy all instances of pods serially.  In the example 
 
 Each pod’s task must reach its goal of `RUNNING` before the next pod is launched. This is the simplest and safest possible approach as a default deployment strategy.
 
-However, this default deployment strategy does not provide the flexibility you need to write rich services. The SDK therefore also allows you to define *plans* that orchestrate task deployment. 
+However, this default deployment strategy does not provide the flexibility you need to write rich services. The SDK therefore also allows you to define *plans* that orchestrate task deployment.
 
 In this section we focus on using plans to define the initial deployment of a service. However, you can also use plans to orchestrate configuration updates, software upgrades, and recovery from complex, service-specific failure scenarios.
 
@@ -325,7 +326,7 @@ The build.sh script takes an optional argument of aws or local:
 $ export S3_BUCKET=my_universe_s3_bucket
 ```
 
-* `./build.sh local`: The package definition and build artifacts are served by a local HTTP server. 
+* `./build.sh local`: The package definition and build artifacts are served by a local HTTP server.
 
 Executing the final command, `dcos package install --yes hello-world` deploys the service to a DC/OS cluster.
 
@@ -747,7 +748,7 @@ In this case, while running, both the `init` and `server` tasks would be address
 
 ## [VIP](https://github.com/dcos/minuteman)
 
-You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks. 
+You can also perform service discovery by defining named virtual IP addresses. VIPs load balance, so every task associated with the same prefix and external port pair will be part of a load-balanced set of tasks.
 
 ```yaml
 name: "hello-world"
@@ -784,7 +785,7 @@ server-lb.hello-world.l4lb.thisdcos.directory:80
 
 # Testing
 
-The SDK provides assistance for writing both unit and integration tests. 
+The SDK provides assistance for writing both unit and integration tests.
 
 ## Unit tests
 
@@ -1022,7 +1023,7 @@ pods:
           SLEEP_DURATION: 1000
       sidecar:
         goal: FINISHED
-        cmd: "echo sidecar >> output"
+        cmd: "echo $PLAN_PARAMETER1 $PLAN_PARAMETER2 >> output"
         resource-set: sidecar-resources
 plans:
   sidecar-example:
@@ -1034,9 +1035,24 @@ plans:
         tasks: [sidecar]
 ```
 
-To initiate this plan, execute an HTTP POST request against the endpoint `/v1/plans/sidecar-example/start`. Its progress can be monitored like any other plan: by issuing GET requests against the `/v1/plans/side-car-example` endpoint.
+The command definition for the sidecar task includes environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.
 
-Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
+To initiate the plan, execute an HTTP POST request against the `/v1/plans/sidecar-example/start` endpoint with the header `Content-Type: application/json` set and a JSON body consisting of environment variable name/value pairs. For example:
+
+```bash
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" -H "Content-Type: application/json" --data '{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}' http://<dcos_url>/service/hello-world/v1/plans/sidecar-example/start
+```
+
+You can also use the DC/OS CLI:
+```bash
+$ dcos $FRAMEWORK_NAME plan start sidecar-example PLAN_PARAMETER1=sidecar,PLAN_PARAMETER2=plan
+```
+
+When no parameters are specified, the body of the POST request must be an empty JSON object (`{}`). Supply default values with standard Bash syntax. In the above case, you can declare the default value of `PLAN_PARAMETER1` to be `sidecar` by changing the task's command string to `echo ${PLAN_PARAMETER1:-sidecar} >> output`.
+
+Monitor sidecar plan progress like any other plan: by issuing GET requests against the `/v1/plans/sidecar-example` endpoint.
+
+Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod, including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.
 
 ### URIs
 
@@ -1252,19 +1268,23 @@ pods:
     * `DCOS_FRAMEWORK_NAME`
     * `DCOS_SERVICE_PORT_INDEX`
     * `DCOS_SERVICE_SCHEME`
-    
+
 1. Things to watch out for:
     *  No trailing slashes.
     * The external route is *replaced* with the internal route.
         - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
         - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
-    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched. 
-    
+    * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
+
       You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:
-      
+
       ```yaml
       cmd: "./bootstrap -resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
       ```
+
+### Proxy Fallback
+
+Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).
 
 ## `ServiceSpec` (Java)
 
@@ -1326,11 +1346,11 @@ Understanding plan execution can help you take advantage of the full capabilitie
 
 ![image alt text](image_3.png)
 
-There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan. 
+There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.
 
-**Plan managers** determine what steps in a plan should be executed. 
+**Plan managers** determine what steps in a plan should be executed.
 
-A **plan coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution. 
+A **plan coordinator** passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.
 
 The **plan scheduler** attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.
 
@@ -1426,7 +1446,7 @@ public class CustomService extends DefaultService {
         init();
         plans = generatePlansFromRawSpec(rawServiceSpecification);
         plans.add(customPlan);
-        
+
         register(serviceSpec, plans);
     }
 }
