@@ -20,6 +20,10 @@ def setup_module(module):
     install.install(PACKAGE_NAME, 1, additional_options=options)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
 @pytest.mark.sanity
 def test_deploy():
     """Verify that the current deploy plan matches the expected plan from the spec."""
