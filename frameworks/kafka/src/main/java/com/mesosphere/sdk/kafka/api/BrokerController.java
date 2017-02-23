@@ -14,7 +14,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- *  Broker Controller
+ *  Broker Controller.
  */
 @Path("/v1/brokers")
 @Produces("application/json")

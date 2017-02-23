@@ -214,6 +214,11 @@
       "type": "object",
       "description": "HDFS File System configuration options",
       "properties": {
+        "administrators": {
+          "type": "string",
+          "description": "Administrators for the HDFS cluster",
+          "default": "core,centos,azureuser"
+        },
         "name_node_rpc_port": {
           "type": "integer",
           "description": "The RPC port for HDFS Name Nodes.",
