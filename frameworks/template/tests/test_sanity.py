@@ -1,6 +1,7 @@
 import pytest
 
 import sdk_install as install
+import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME,
@@ -10,7 +11,12 @@ from tests.config import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
+    utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+
+
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
