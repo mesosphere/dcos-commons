@@ -2,10 +2,10 @@
 
 ## Table of Contents
 
-- [Overview](index.md)
-- [Quick Start](quick-start.md)
-- [Install and Customize](install.md)
-- [Uninstall](uninstall.md)
-- [Configure](configure.md)
-- [Statsd Reporting](statsd.md)
-- [Limitations](limitations.md)
+- [Overview](docs/index.md)
+- [Quick Start](docs/quick-start.md)
+- [Install and Customize](docs/install.md)
+- [Uninstall](docs/uninstall.md)
+- [Configure](docs/configure.md)
+- [Statsd Reporting](docs/statsd.md)
+- [Limitations](docs/limitations.md)
