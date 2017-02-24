@@ -44,6 +44,8 @@ function run_framework_tests {
     TEST_GITHUB_LABEL="${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
 }
 
+echo "Beginning integration tests at "`date`
+
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
 
@@ -66,6 +68,7 @@ if [ -n "$1" ]; then
     run_framework_tests $1
 else
     for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
+        echo "Starting shakedown tests for $framework at "`date`
         run_framework_tests $framework
     done
 fi

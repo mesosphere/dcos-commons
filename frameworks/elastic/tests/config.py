@@ -21,11 +21,6 @@ REQUEST_HEADERS = {
 }
 
 
-def gc_frameworks():
-    for host in shakedown.get_private_agents():
-        shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
-
-
 def as_json(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
