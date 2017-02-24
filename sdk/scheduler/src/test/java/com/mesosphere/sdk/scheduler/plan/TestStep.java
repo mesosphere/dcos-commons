@@ -27,6 +27,11 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
+    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+        return Optional.empty();
+    }
+
+    @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         if (recommendations.isEmpty()) {
             setStatus(Status.PREPARED);
