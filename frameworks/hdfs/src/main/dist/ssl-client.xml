@@ -11,6 +11,6 @@
     </property>
     <property>
         <name>ssl.client.truststore.location</name>
-        <value>{{MESOS_SANDBOX}}/jre1.8.0_121/lib/security/cacerts</value>
+        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
     </property>
 </configuration>

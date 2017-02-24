@@ -15,7 +15,7 @@
     </property>
     <property>
         <name>ssl.server.keystore.location</name>
-        <value>{{MESOS_SANDBOX}}/jre1.8.0_112/lib/security/cacerts</value>
+        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
     </property>
     <property>
         <name>ssl.server.truststore.type</name>
@@ -23,7 +23,7 @@
     </property>
     <property>
         <name>ssl.server.truststore.location</name>
-        <value>{{MESOS_SANDBOX}}/jre1.8.0_112/lib/security/cacerts</value>
+        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
     </property>
     <property>
         <name>ssl.server.truststore.password</name>

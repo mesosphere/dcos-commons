@@ -260,47 +260,76 @@ func renderTemplates(templateMaxBytes int64) {
 	}
 }
 
-func installCerts() {
+func installDCOSCertIntoJRE() {
 	mesosSandbox := os.Getenv("MESOS_SANDBOX")
-	sslDir := filepath.Join(mesosSandbox, ".ssl");
+	sslDir := filepath.Join(mesosSandbox, ".ssl")
 
-	sslDirExists, err := _pathExists(sslDir)
+	// Check if .ssl directory is present
+	sslDirExists, err := _isDir(sslDir)
 	if !sslDirExists || err != nil {
-		log.Printf("No $MESOS_SANDBOX/.ssl directory found. Will not install certificates")
+		log.Println("No $MESOS_SANDBOX/.ssl directory found. Cannot install certificate.")
+		log.Fatal(err)
+		return
+	}
+
+	// Check if .ssl/ca.crt certificate is present
+	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
+	certExists, err := _isFile(certPath)
+	if !certExists || err != nil {
+		log.Println("No $MESOS_SANDBOX/.ssl/ca.crt file found. Cannot install certificate.")
+		log.Fatal(err)
 		return
 	}
 
 	javaHome := os.Getenv("JAVA_HOME")
 	if len(javaHome) == 0 {
-		log.Fatalf("No JAVA_HOME provided. Will not install certs.")
+		log.Fatalf("No JAVA_HOME provided. Cannot install certs.")
 		return
 	}
-	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
-	//keytoolPath := path.filepath.Join(javaHome, "bin", "keytool")
-	cacertsPath := filepath.Join(javaHome, "lib", "security", "cacerts")
 
-	cmd := exec.Command("keytool", "-importcert", "-noprompt", "-alias", "dcoscert", "-keystore", cacertsPath,
+	cacertsPath := filepath.Join(javaHome, "lib", "security", "cacerts")
+	keytoolPath := filepath.Join(javaHome, "bin", "keytool")
+	cmd := exec.Command(keytoolPath, "-importcert", "-noprompt", "-alias", "dcoscert", "-keystore", cacertsPath,
 		"-file", certPath, "-storepass", "changeit")
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err = cmd.Run()
 	if err != nil {
-		log.Print("Failed to install the cert")
-		log.Print(err)
+		log.Println("Failed to install the certificate.")
+		log.Fatal(err)
 		return
 	}
-	log.Printf("Successfully installed the cert.")
+	log.Println("Successfully installed the certificate.")
 }
 
-func _pathExists(path string) (bool, error) {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true, nil
+func _isDir(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
 	}
 	if os.IsNotExist(err) {
 		return false, nil
 	}
-	return true, err
+	mode := fi.Mode()
+	if mode.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+func _isFile(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	mode := fi.Mode()
+	if mode.IsRegular() {
+		return true, nil
+	}
+	return false, nil
 }
 
 // main
@@ -325,7 +354,7 @@ func main() {
 	}
 
 	if (args.installCerts) {
-		installCerts()
+		installDCOSCertIntoJRE()
 	}
 
 	log.Printf("SDK Bootstrap successful.")
