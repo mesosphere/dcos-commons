@@ -1,2 +1,2 @@
-PACKAGE_NAME = 'spark'
-DEFAULT_TASK_COUNT = 1
+PACKAGE_NAME = 'spark-standalone'
+DEFAULT_TASK_COUNT = 3
