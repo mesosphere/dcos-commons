@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Example file -->
 <configuration>
     <property>
         <name>ssl.client.truststore.password</name>
