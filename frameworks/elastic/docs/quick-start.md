@@ -38,7 +38,7 @@ enterprise: 'no'
   curl -s -u elastic:changeme 'coordinator.elastic.l4lb.thisdcos.directory:9200/_cat/indices?v'
   ```
 
-1. Store and retrieve coordinator.
+1. Store and retrieve data.
 
   ```bash
   curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
@@ -57,7 +57,7 @@ enterprise: 'no'
   ```
 
 
-**Note:** If you did not install coordinator nodes, you should direct all queries to your data nodes instead:
+**Note:** If you did not install any coordinator nodes, you should direct all queries to your data nodes instead:
 
 ```bash
 curl -s -u elastic:changeme 'data.elastic.l4lb.thisdcos.directory:9200/_cat/nodes?v'

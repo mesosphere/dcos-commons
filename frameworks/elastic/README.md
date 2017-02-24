@@ -1,4 +1,4 @@
-# DC/OS Elasticsearch Service Documentation
+# DC/OS Elastic Service Documentation
 
 ## Table of Contents
 

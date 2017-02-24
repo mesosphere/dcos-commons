@@ -2,7 +2,7 @@
 post_title: Statsd Reporting
 menu_order: 40
 feature_maturity: experimental
-enterprise: 'no'
+enterprise: 'yes'
 ---
 
 For EE clusters, the Elastic framework automatically installs the [statsd plugin](https://github.com/Automattic/elasticsearch-statsd-plugin) on all Elasticsearch nodes to report metrics to the DC/OS Metrics Collector. You access Elasticsearch’s metrics as well as the default DC/OS metrics by querying each agent node individually:
@@ -34,4 +34,4 @@ The response will contain elasticsearch-specific metrics like this:
     },
 ```
 
-Metric names are formed based on the [formats described here](https://github.com/Automattic/elasticsearch-statsd-plugin#stats-key-formats). Scroll up to [configuration](https://github.com/Automattic/elasticsearch-statsd-plugin#configuration) to see how PREFIX and NODE_NAME get determined. In the case of a master node failover, the counts start from 0 again.
+Metric names are formed based on the [formats described here](https://github.com/Automattic/elasticsearch-statsd-plugin#stats-key-formats). Scroll up to [configuration](https://github.com/Automattic/elasticsearch-statsd-plugin#configuration) to see how PREFIX and NODE_NAME get determined. In the case of an Elasticsearch master node failover, the counts start from 0 again.
