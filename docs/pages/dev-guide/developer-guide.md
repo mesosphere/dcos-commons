@@ -666,7 +666,7 @@ $ curl -k -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-
 
 #### Interrupt
 
-You can   interrupt the execution of a plan by issuing a POST request to the appropriate endpoint:
+You can interrupt the execution of a plan by issuing a `POST` request to the appropriate endpoint:
 
 ```bash
 $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt
@@ -674,12 +674,26 @@ $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/servic
 
 Interrupting a plan stops any steps that were not being processed from being processed in the future. Any steps that were actively being processed at the time of an interrupt call will continue.
 
+The interrupt may also be issued against a specific phase within the plan:
+
+```bash
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/interrupt?phase=data-nodes
+```
+
+Interrupting a phase of a plan only stops the steps within that phase, without affecting other phases.
+
 #### Continue
 
-Continue plan execution by issuing a POST request to the continue endpoint:
+Continue plan execution by issuing a `POST` request to the continue endpoint:
 
 ```bash
 $ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue
+```
+
+Continue may also be issued on a per-phase basis:
+
+```bash
+$ curl -k -X POST -H "Authorization: token=$AUTH_TOKEN" http://<dcos_url>/service/hello-world/v1/plans/deploy/continue?phase=data-nodes
 ```
 
 # Service Discovery
