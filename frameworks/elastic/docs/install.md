@@ -17,7 +17,7 @@ This command creates a new Elasticsearch cluster with the default name `elastic`
 
 # Custom Installation
 
-You can customize the Elasticsearch cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:
+You can customize the Elastic cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:
 
 ```json
 {
@@ -40,9 +40,9 @@ The command below creates a cluster using a `custom.json` file:
 dcos package install --app --options=custom.json elastic
 ```
 
-# Multiple Elasticsearch Cluster Installation
+# Multiple Elastic Cluster Installation
 
-Installing multiple Elasticsearch clusters is identical to installing Elasticsearch clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` is specified for each installation.
+Installing multiple Elastic clusters is identical to installing Elastic clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` is specified for each installation.
 
 Sample JSON options file named `custom_name.json`:
 
@@ -58,4 +58,4 @@ The command below creates a cluster using `custom_name.json`:
 dcos package install --app --options=custom_name.json elastic
 ```
 
-See the Configuring section for a list of fields that can be customized via an options JSON file when the Elasticsearch cluster is created.
+See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.
