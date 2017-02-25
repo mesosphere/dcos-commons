@@ -1,6 +1,6 @@
 ---
 post_title: Troubleshooting
-menu_order: 70
+menu_order: 46
 feature_maturity: experimental
 enterprise: 'no'
 ---
