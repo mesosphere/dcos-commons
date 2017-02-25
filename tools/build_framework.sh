@@ -37,7 +37,7 @@ _notify_github() {
 _notify_github pending "Build running"
 
 # Service (Java):
-${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
+${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip 
 if [ $? -ne 0 ]; then
   _notify_github failure "Gradle build failed"
   exit 1

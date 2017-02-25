@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.dcos;
 
+//import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,11 @@ public class Capabilities {
 
     public boolean supportsRLimits() throws IOException {
         // Container rlimits are supported by DC/OS 1.9 upwards.
+        return hasOrExceedsVersion(1, 9);
+    }
+
+    public boolean supportsGpuResource() throws IOException {
+        // GPU_RESOURCE is supported by DC/OS 1.9 upwards
         return hasOrExceedsVersion(1, 9);
     }
 

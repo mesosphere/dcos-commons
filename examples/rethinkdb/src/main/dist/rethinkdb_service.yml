@@ -2,7 +2,8 @@ name: {{FRAMEWORK_NAME}}
 web-url: http://rethinkdb-0-server.rethinkdb.mesos:4040
 pods:
   rethinkdb:
-    count: {{RETHINKDB_COUNT}}
+    # we run this as the hub of the service, it hosts the web UI and all of the others bind to it, so we only need 1
+    count: 1
     #placement: {{PLACEMENT_CONSTRAINTS}}
     container:
       image-name: centos
@@ -13,8 +14,8 @@ pods:
         goal: RUNNING
         cmd: >
           cp rethinkdb.repo /etc/yum.repos.d/ &&
-          yum -y install rethinkdb >> rethinkdb-container-path/pulldeps &&
-          rethinkdb --bind all --http-port 4041 --cluster-port 4001 --driver-port 4021 >> rethinkdb-container-path/rethinkoutput
+          yum -y install rethinkdb &&
+          rethinkdb --bind all --http-port 4041 --cluster-port 4001 --driver-port 4021 -d rethinkdb_hub -c {{RETHINKDB_CPUS}}
         cpus: {{RETHINKDB_CPUS}}
         ports:
           intercluster:
@@ -35,9 +36,7 @@ pods:
           type: ROOT
           size: {{RETHINKDB_DISK}}
   rethinkdbnode:
-    ## TODO left off here, this doesn't work because of the port thing.
-    count: 2
-    #placement: {{PLACEMENT_CONSTRAINTS}}
+    count: {{RETHINKDB_COUNT}}
     container:
       image-name: centos
     uris:
@@ -47,13 +46,9 @@ pods:
         goal: RUNNING
         cmd: >
           cp rethinkdb.repo /etc/yum.repos.d/ &&
-          yum -y install rethinkdb >> rethinkdb-container-path/output &&
-          rethinkdb --port-offset $POD_INSTANCE_INDEX --join rethinkdb-0-server.rethinkdb.mesos:4001
+          yum -y install rethinkdb &&
+          rethinkdb --port-offset $POD_INSTANCE_INDEX --join rethinkdb-0-server.rethinkdb.mesos:4001 -d rethinkdb_$POD_INSTANCE_INDEX -c {{RETHINKDB_CPUS}}
         cpus: {{RETHINKDB_CPUS}}
-        #ports:
-        #  httpd:
-        #    env-key: PORT_HTTPD
-        #    port: 4041
         memory: {{RETHINKDB_MEM}}
         volume:
           path: "rethinkdb-container-path"
@@ -78,4 +73,17 @@ pods:
           EXTERNAL_ROUTES: "/v1,/httpd"
           INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041"
 
-## TODO do plan, remove hard-coded varaibles, use config file
+plans:
+  deploy:
+    strategy: serial
+    # it is recommended that you name the phases with the suffix -phase
+    phases:
+      hub-phase:
+        strategy: serial
+        pod: rethinkdb
+      proxylite-phase:
+        strategy: serial
+        pod: proxylite
+      rethinkdbnode-phase:
+        strategy: parallel
+        pod: rethinkdbnode

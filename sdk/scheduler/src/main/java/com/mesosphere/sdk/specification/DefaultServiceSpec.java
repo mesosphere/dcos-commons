@@ -54,6 +54,9 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Valid
     private ReplacementFailurePolicy replacementFailurePolicy;
 
+    @Valid
+    private Boolean gpuResource;
+
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
@@ -63,7 +66,8 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
-            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
+            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
+            @JsonProperty("gpu-resource") Boolean gpuFlag) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -74,6 +78,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
+        this.gpuResource = gpuFlag;
         ValidationUtils.validate(this);
     }
 
@@ -86,7 +91,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.webUrl,
                 builder.zookeeperConnection,
                 builder.pods,
-                builder.replacementFailurePolicy);
+                builder.replacementFailurePolicy,
+                builder.gpuResource);
     }
 
     public static Builder newBuilder() {
@@ -103,6 +109,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.webUrl = copy.webUrl;
         builder.pods = copy.pods;
         builder.replacementFailurePolicy = copy.replacementFailurePolicy;
+        builder.gpuResource = copy.gpuResource;
         return builder;
     }
 
@@ -145,6 +152,9 @@ public class DefaultServiceSpec implements ServiceSpec {
     public ReplacementFailurePolicy getReplacementFailurePolicy() {
         return replacementFailurePolicy;
     }
+
+    @Override
+    public Boolean getGpuResource() { return gpuResource; }
 
     @Override
     public boolean equals(Object o) {
@@ -286,6 +296,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
+        private Boolean gpuResource;
 
         private Builder() {
         }
@@ -390,6 +401,16 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
             this.replacementFailurePolicy = replacementFailurePolicy;
+            return this;
+        }
+
+        /**
+         * Sets the policy as to whether to opt int to using GPU_RESOURCES offered by Mesos
+         * @param optInToGpuResources opt in, boolean
+         * @return a reference to this Builder
+         */
+        public Builder gpuResourcePolicy(Boolean optInToGpuResources) {
+            this.gpuResource = optInToGpuResources;
             return this;
         }
 
