@@ -32,7 +32,7 @@ backend {name}
     reqirep  "^([^ :]*)\ {incomingpath}/?(.*)" "\\1\ {outgoingpath}/\\2"
     acl hdr_location res.hdr(Location) -m found
     rspirep "^Location: (https?://{hostname}(:[0-9]+)?)?{outgoingpath}(/.*)" "Location: {incomingpath}\\3" if hdr_location
-    server x{name}x {fullhost}
+    server x{name}x {fullhost} {ssl}
 
 """
 
@@ -71,6 +71,7 @@ class Config(object):
         self.rootredirect = None
 
         self.externalpath = {}
+        self.internalprot = {}
         self.internalpath = {}
         self.internalport = {}
         self.internalhost = {}
@@ -78,6 +79,8 @@ class Config(object):
         self.keys = []
 
 class ConfigMaker(object):
+    VALID_PROTOCOLS = ["http", "https"]
+
     def __init__(self, proxyport, externalroutes, internalroutes, rootredirect):
         self.valid = False
         self.c = Config()
@@ -107,29 +110,37 @@ class ConfigMaker(object):
 
         for i, inr in list(enumerate(internalroutes.split(","))):
             k = keys[i]
-            hostname, port, path = self.parse_inr(inr)
+            protocol, hostname, port, path = self.parse_inr(inr)
+            self.c.internalprot[k] = protocol
             self.c.internalhost[k] = hostname
             self.c.internalport[k] = port
             self.c.internalpath[k] = path
         return True
 
     def parse_inr(self, inr):
-        portsplit = inr.split(":", 1)
+        protsplit = inr.split("://")
+        if len(protsplit) != 2:
+            crash("{} missing protocol".format(inr))
+        protocol, inr_rest = protsplit
+        if protocol not in self.VALID_PROTOCOLS:
+            crash("{} not in {}".format(protocol, self.VALID_PROTOCOLS))
+
+        portsplit = inr_rest.split(":", 1)
         if len(portsplit) == 1:
             # No :
-            routesplit = inr.split("/", 1)
+            routesplit = inr_rest.split("/", 1)
             if len(routesplit) == 2:
                 # No : yes /
-                return (routesplit[0], "", "/{}".format(routesplit[1]))
+                return (protocol, routesplit[0], "", "/{}".format(routesplit[1]))
             # No : No /
-            return (routesplit[0], "", "")
+            return (protocol, routesplit[0], "", "")
         # Yes :
         routesplit = portsplit[1].split("/")
         if len(routesplit) == 1:
             # Yes : No /
-            return (portsplit[0], portsplit[1], "")
+            return (protocol, portsplit[0], portsplit[1], "")
         # Yes : Yes /
-        return (portsplit[0], routesplit[0], "/{}".format(routesplit[1]))
+        return (protocol, portsplit[0], routesplit[0], "/{}".format(routesplit[1]))
 
     def mk_keys(self, internalroutes):
         keys = []
@@ -159,11 +170,17 @@ class ConfigMaker(object):
         cfg_backend_str = ""
         for k in self.c.keys:
             fullhost = "{}:{}".format(self.c.internalhost[k], self.c.internalport[k])
+            ssl = None
+            if self.c.internalprot[k] == "https":
+                ssl = "ssl verify none"
+            if self.c.internalprot[k] == "http":
+                ssl = ""
             cfg_backend_str += cfg_backend_fmtstr.format(name=k,
                     hostname=self.c.internalhost[k],
                     incomingpath=self.c.externalpath[k],
                     outgoingpath=self.c.internalpath[k],
-                    fullhost=fullhost)
+                    fullhost=fullhost,
+                    ssl=ssl)
 
         return "\n{}\n{}".format(cfg_frontend_str, cfg_backend_str)
 
