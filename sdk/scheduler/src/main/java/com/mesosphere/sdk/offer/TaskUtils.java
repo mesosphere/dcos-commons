@@ -205,16 +205,18 @@ public class TaskUtils {
     }
 
     /**
-     * Utility method for comparing two volumes but ignoring container-path
+     * Utility method for comparing two TaskSpecs for checking whether they have same VolumeSpec. VolumeSpec keeps
+     * disk resource and container-path is not part of DiskInfo. It can change, so only compare required fields.
      * {@link TaskSpec}s.
      *
-     * @return whether all fields in volume lists are equal, except container-path
+     * @return whether all fields in disk lists are equal, except container-path
      */
     public static boolean volumesMajorEqual(TaskSpec first, TaskSpec second) {
-         Optional<VolumeSpec> optionalVolSpec1 =  first.getResourceSet().getVolumes().stream().findFirst();
-         Optional<VolumeSpec> optionalVolSpec2 =  second.getResourceSet().getVolumes().stream().findFirst();
+        /*  This method is called only from TaskVolumeCannotChange:validate()*/
+        Optional<VolumeSpec> optionalVolSpec1 =  first.getResourceSet().getVolumes().stream().findFirst();
+        Optional<VolumeSpec> optionalVolSpec2 =  second.getResourceSet().getVolumes().stream().findFirst();
 
-          if (optionalVolSpec1.isPresent() && optionalVolSpec2.isPresent()) {
+        if (optionalVolSpec1.isPresent() && optionalVolSpec2.isPresent()) {
               return VolumeSpec.compare(optionalVolSpec1.get(), optionalVolSpec2.get());
           }
           return false;

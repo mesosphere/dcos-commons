@@ -27,12 +27,19 @@ public class TaskVolumesCannotChange implements ConfigValidator<ServiceSpec> {
                 continue;
             }
 
+            //TODO(MB): keep following comment code below for future volume comparison
+            /* Dropping volume comparison till we figure out a better way to compare DiskInfos for persistent volumes.
+               This is the only check preventing users from accidentally giving an empty container-path,
+               and deleting previously reserved disk.
+             */
+            //if (!TaskUtils.volumesMajorEqual(oldEntry.getValue(), newTask)) {
             if (!TaskUtils.volumesMajorEqual(oldEntry.getValue(), newTask)) {
                 errors.add(ConfigValidationError.transitionError(
                         String.format("TaskVolumes[taskname:%s]", newTask.getName()),
                         oldEntry.getValue().getResourceSet().getVolumes().toString(),
                         newTask.getResourceSet().getVolumes().toString(),
-                        "Volume fields except container-path must be equal."));
+            //          "Volume parameters (except container-path) must be equal."));
+                        "Volumes must be equal."));
             }
         }
 

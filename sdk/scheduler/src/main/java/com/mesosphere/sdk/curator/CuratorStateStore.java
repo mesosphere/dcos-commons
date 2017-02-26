@@ -194,7 +194,13 @@ public class CuratorStateStore implements StateStore {
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
         Optional<String> optionalTaskName = Optional.empty();
 
-        //TODO(MB): keep the comment below: original approach for getting taskName
+        //TODO(MB): keep the commented code below: original approach for getting TaskName
+        /* We used to get TaskName from TaskID's prefix, instead of comparing TaskIDs.
+           TaskID is our unique identifier, can not change, but we can modify TaskName
+
+           Getting TaskName from prefix may be more efficient, however it prevents us from changing TaskName.
+           For further investigation, keep the commented code below:
+         */
         /*
         try {
             optionalTaskName = Optional.of(CommonTaskUtils.toTaskName(status.getTaskId()));
@@ -204,7 +210,7 @@ public class CuratorStateStore implements StateStore {
         }
         */
 
-        /* Get the first Task that matches TaskId */
+        /* Get the first Task that matches TaskID */
         for (Protos.TaskInfo taskInfo : fetchTasks()) {
             if (taskInfo.getTaskId().equals(status.getTaskId())) {
                 optionalTaskName = Optional.of(taskInfo.getName());
@@ -246,6 +252,7 @@ public class CuratorStateStore implements StateStore {
                     status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
                     status, optionalTaskInfo));
         }
+        /*  All checks till here are redundant if we get TaskName via looking at matching TaskIDs */
 
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
