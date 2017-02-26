@@ -78,19 +78,6 @@ class Config(object):
         self.keys = []
 
 class ConfigMaker(object):
-    """
-    What we need:
-    port proxylite binds to (4040)
-    what path to expose (/google_fake)
-    what path to proxy to (/fake)
-    the hostname we proxy to (google.com)
-    the port to proxy to (80)
-
-    proposed input:
-    PROXY_PORT=4040
-    EXTERNAL_ROUTES=/v1,/google,/example
-    INTERNAL_ROUTES=web-0-server.proxylite.mesos:4041/myapp,google.com:80/mygoog,example.com:80/myapp
-    """
     def __init__(self, proxyport, externalroutes, internalroutes, rootredirect):
         self.valid = False
         self.c = Config()
