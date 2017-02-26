@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
+import com.google.protobuf.Descriptors;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;

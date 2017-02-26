@@ -53,7 +53,7 @@ public class DefaultService implements Service {
     }
 
     public DefaultService() throws Exception {
-        //this(YAMLServiceSpecFactory.generateRawSpecFromYAML(new File("svc.yml")));
+        //No initialization needed
     }
 
     public DefaultService(File pathToYamlSpecification) throws Exception {

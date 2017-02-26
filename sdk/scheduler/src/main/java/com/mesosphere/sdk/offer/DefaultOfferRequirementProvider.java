@@ -136,7 +136,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                         .filter(resource -> !resource.hasDisk())
                         .collect(Collectors.toMap(r -> r.getName(), Function.identity()));
 
-        // TODO(MB): Make able to change container-path
+        // TODO(MB): Enable modifying container-path
         Map<String, Protos.Resource> volumeMap = resources == null ?
                 Collections.emptyMap() :
                 resources.stream()
@@ -152,7 +152,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             resourceRequirements.add(r.getResourceRequirement(resourceMap.get(r.getName())));
         }
 
-        // TODO(MB): Make able to change container-path
+        // TODO(MB): Enable modifying container-path
+        /* DiskInfo keeps reservation and persistence information. In Mesos, Volume is where disk will be mounted.
+           In our case, Volume is kind of equivalent to container-path. You can use the same disk resource with a
+           different volume (with a different container-path in our case).
+         */
         for (VolumeSpec v : resourceSet.getVolumes()) {
             resourceRequirements.add(v.getResourceRequirement(volumeMap.get(v.getContainerPath())));
         }
@@ -287,7 +291,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         List<Protos.Resource> diskResources = new ArrayList<>();
         List<Protos.Resource> otherResources = new ArrayList<>();
 
-        // TODO(MB): Make able to change container-path
+        // TODO(MB): Enable modifying container-path
+        /* Current implementation takes DiskInfo and Volume (Mesos definitions) as a whole and assumes they can not
+           change. We need to modify here if we want to properly enable changing container-path (where disk is mounted).
+         */
         for (Protos.Resource resource : taskInfo.getResourcesList()) {
             if (resource.hasDisk()) {
                 // Disk resources may not be changed:
