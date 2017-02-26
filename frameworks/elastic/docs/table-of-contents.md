@@ -1,11 +1,18 @@
-# DC/OS Elasticsearch Service Documentation
+# DC/OS Elastic Service Documentation
 
 ## Table of Contents
 
-- [Overview](index.md)
-- [Quick Start](quick-start.md)
-- [Install and Customize](install.md)
-- [Uninstall](uninstall.md)
-- [Configure](configure.md)
-- [Statsd Reporting](statsd.md)
-- [Limitations](limitations.md)
+- [Overview](docs/index.md)
+- [Quick Start](docs/quick-start.md)
+- [Install and Customize](docs/install.md)
+- [Upgrade](docs/upgrade.md)
+- [Uninstall](docs/uninstall.md)
+- [Configure](docs/configure.md)
+- [Connecting Clients](docs/connecting.md)
+- [Backup and Restore](docs/backup_restore.md)
+- [Managing](docs/managing.md)
+- [API Reference](docs/api_reference.md)
+- [Statsd Reporting](docs/statsd.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Version Policy](docs/version_policy.md)
+- [Limitations](docs/limitations.md)

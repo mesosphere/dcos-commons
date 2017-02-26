@@ -5,19 +5,19 @@ feature_maturity: experimental
 enterprise: 'no'
 ---
 
-To uninstall a cluster, replace `name` with the name of the Elasticsearch instance to be uninstalled.
+To uninstall a cluster, replace `name` with the name of the Elastic instance to be uninstalled.
 
 ```bash
 dcos package uninstall --app-id=<name> elastic
 ```
 
-Then, use the [framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner) to remove your Elasticsearch instance from Zookeeper and destroy all data associated with it. The script requires several arguments. The default values to be used are:
+Then, use the [framework cleaner script](https://docs.mesosphere.com/1.8/usage/managing-services/uninstall/#framework-cleaner) to remove your Elastic instance from Zookeeper and destroy all data associated with it. The script requires several arguments. The default values to be used are:
 
 - `framework_role` is `<service-name>-role`.
 - `framework_principal` is `<service-name>-principal`.
 - `zk_path` is `dcos-service-<service-name>`.
 
-These values may vary if you customized them during installation. For instance, if you changed the Elasticsearch cluster name to `customers`, then instead of 
+These values may vary if you customized them during installation. For instance, if you changed the Elastic service name to `customers`, then instead of 
 
 - `framework_role` is `elastic-role`.
 - `framework_principal` is `elastic-principal`.

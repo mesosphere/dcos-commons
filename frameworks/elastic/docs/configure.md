@@ -10,10 +10,10 @@ enterprise: 'no'
 You can customize your cluster in-place when it is up and running. These are the general steps to follow:
 
 1.  View your DC/OS dashboard at `http://$DCOS_URI/#/services/overview`
-1.  In the list of `Applications`, click the name of the Elasticsearch service to be updated.
-1.  Within the Elasticsearch instance details view, click the `Configuration` tab, then click `Edit`.
+1.  In the list of `Applications`, click the name of the Elastic service to be updated.
+1.  Within the Elastic instance details view, click the `Configuration` tab, then click `Edit`.
 1.  In the dialog that appears, expand the `Environment Variables` section and update any field(s) to their desired value(s). For example, to increase the number of data nodes, edit the value for `DATA_NODE_COUNT`. Do not edit the value for `FRAMEWORK_NAME`, `MASTER_NODE_TRANSPORT_PORT`, or any of the disk type/size fields.
-1.  Click `Change and deploy configuration` to apply any changes and cleanly reload the Elasticsearch service scheduler. The Elasticsearch cluster itself will persist across the change.
+1.  Click `Change and deploy configuration` to apply any changes and cleanly reload the Elastic service scheduler. The Elastic cluster itself will persist across the change.
 
 # Configuration guidelines
 
@@ -26,9 +26,9 @@ You can customize your cluster in-place when it is up and running. These are the
 - Master transport port: You can pick whichever port works for your DC/OS cluster. The default is 9300. If you want multiple master nodes from different clusters on the same host, specify different master HTTP and transport ports for each cluster. If you want to ensure a particular distribution of nodes of one task type (e.g., master nodes spread across 3 racks, data nodes on one class of machines), specify this via the Marathon placement constraint.
 - Serial vs Parallel deployment. By default, the Elastic framework tells Mesos to install and update everything in parallel. You can change this to serial in order to have each node installed one at a time.
 
-It can be confusing to understand which parts of the Elasticsearch cluster can be modified through the Mesosphere DC/OS framework at runtime, what gets specified initially and is immutable, and what gets modified directly through the Elasticsearch cluster update settings API. The most important settings are the immutable ones, so let’s start with those.
+It can be confusing to understand which parts of the Elastic cluster can be modified through the Mesosphere DC/OS framework at runtime, what gets specified initially and is immutable, and what gets modified directly through the Elasticsearch cluster update settings API. The most important settings are the immutable ones, so let’s start with those.
 
-## Immutable settings (at cluster creation time via Elasticsearch package UI or JSON options file via CLI)
+## Immutable settings (at cluster creation time via Elastic package UI or JSON options file via CLI)
 
 - Service name (aka cluster name). Can be hyphenated, but not underscored.
 - Master transport port.
@@ -43,11 +43,11 @@ It can be confusing to understand which parts of the Elasticsearch cluster can b
 - Node counts (up, not down)
 - Deployment/Upgrade strategy (serial/parallel). Note that serial deployment does not yet wait for the cluster to reach green before proceeding to the next node. This is a known limitation.
 
-Any other modifiable settings are covered by the various Elasticsearch APIs (cluster settings, index settings, templates, aliases, scripts). It’s possible that some of the more common cluster settings will get exposed in future versions of the Elasticsearch DC/OS framework.
+Any other modifiable settings are covered by the various Elasticsearch APIs (cluster settings, index settings, templates, aliases, scripts). It’s possible that some of the more common cluster settings will get exposed in future versions of the Elastic DC/OS framework.
 
 # Viewing Plans via the CLI
 
-You can view the deploy plan for the Elasticsearch framework via the service URL: `http://$DCOS_URL/service/dcos-{{cluster-name}}/v1/plans`
+You can view the deploy plan for the Elastic framework via the service URL: `http://$DCOS_URL/service/dcos-{{cluster-name}}/v1/plans`
 
 # Topology
 
