@@ -1,7 +1,7 @@
 import pytest
 
 import sdk_install as install
-import sdk_plan as plan
+import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME,
@@ -13,6 +13,7 @@ SERVICE_NAME="hdfs2"
 
 def setup_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    utils.gc_frameworks()
     options = {
         "service": {
             "name": "hdfs2"

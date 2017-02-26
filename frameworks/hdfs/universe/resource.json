@@ -1,8 +1,8 @@
 {
   "assets": {
     "uris": {
-      "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz",
-      "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-3.tar.gz",
+      "jre-tar-gz": "{{jre-jce-unlimited-url}}",
+      "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "hdfs-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/hdfs-scheduler.zip",

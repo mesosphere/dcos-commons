@@ -2,7 +2,6 @@ import pytest
 
 import sdk_install as install
 import sdk_plan as plan
-import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME
@@ -19,6 +18,10 @@ def setup_module(module):
 
     # this yml has 2 hello's + 0 world's:
     install.install(PACKAGE_NAME, 2, additional_options=options)
+
+
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

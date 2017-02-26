@@ -1124,7 +1124,7 @@ pods:
         cmd: "echo hello && sleep 1000"
         cpus: 0.1
         memory: 256
-                configs:
+        configs:
           config.xml:
             template: "config.xml.mustache"
             dest: etc/config.xml
