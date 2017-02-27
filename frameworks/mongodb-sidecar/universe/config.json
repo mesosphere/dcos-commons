@@ -174,5 +174,31 @@
           "mesos_url"
         ]
       }
+    },
+    "backup":{
+      "type":"object",
+      "description": "Backup credentials",
+      "properties":{
+        "azure_storage_account_name": {
+          "description":"Azure storage account name",
+          "type":"string",
+          "default":""
+        },
+        "azure_storage_access_key" : {
+          "description":"Azure storage access key",
+          "type":"string",
+          "default":""
+        },
+        "azure_storage_container_name": {
+          "description":"Azure container name for backups",
+          "type":"string",
+          "default":""
+        },
+        "public_key": {
+          "description":"Public key used for encryption",
+          "type":"string",
+          "default":""
+        }
+      }
     }
 }

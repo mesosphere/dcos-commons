@@ -1,8 +1,8 @@
 class MyMongo
   include Singleton
 
-  def setup(mongo_binary, zk, logger, mongo_password, rs_name = 'rs')
-    @mongo_binary = mongo_binary
+  def setup(mongo_path, zk, logger, mongo_password, rs_name = 'rs')
+    @mongo_path = mongo_path
     @zk = zk
     @logger = logger
     @mongo_password = mongo_password
@@ -120,23 +120,25 @@ class MyMongo
 
   # private
 
-  def server_url(server = nil)
+  def server_url(server: nil, db: 'admin', format: 'mongo')
     if server
-      "mongodb://#{server}/admin"
+      "mongodb://#{server}/#{db}"
+    elsif format == 'mongo'
+      "mongodb://#{@zk.available_servers.join(',')}/#{db}?replicaSet=#{@rs_name}"
     else
-      "mongodb://#{@zk.available_servers.join(',')}/admin?replicaSet=#{@rs_name}"
+      "#{@rs_name}/#{@zk.available_servers.join(',')}"
     end
   end
 
   def db_eval(host_url, expression)
-    `#{@mongo_binary} #{host_url} -u admin -p #{@mongo_password} --quiet --eval 'JSON.stringify(#{expression})'`.split(/\n+/).last
+    `#{@mongo_path}/mongo #{host_url} -u admin -p #{@mongo_password} --quiet --eval 'JSON.stringify(#{expression})'`.split(/\n+/).last
   end
 
   def rs_initiate(host)
     config = %{var cfg = {_id:"#{@rs_name}", "members":[{_id:0, "host":"#{host}"}]}; printjson(rs.initiate(cfg));}
 
     @logger.info("RS init config:", config: config)
-    reply = JSON.parse `#{@mongo_binary} #{server_url(host)} -u admin -p #{@mongo_password} --quiet --eval '#{config}'`
+    reply = JSON.parse `#{@mongo_path}/mongo #{server_url(server: host)} -u admin -p #{@mongo_password} --quiet --eval '#{config}'`
     if reply["ok"] == 1
       @logger.info("Replica set initilized on host", host: host)
       @zk.set_initiated
@@ -155,5 +157,27 @@ class MyMongo
   def rs_remove(host)
     db_eval(server_url, %{rs.remove("#{host}")})
     @zk.remove_member(host)
+  end
+
+  def add_user(db, name, password)
+    # begin
+    #   driver.command({createUser: "#{name}", pwd: "#{password}", roles: [{role: "readWrite", db: "#{db}"}]})
+    # rescue Exception => e
+    #   e
+    # end
+
+    db_eval(server_url, %{db.getSiblingDB("#{db}").createUser({user: "#{name}", pwd: "#{password}", roles: [{role: "readWrite", db: "#{db}"}]})})
+  end
+
+  def backup
+    time_now = Time.now.strftime("%Y%m%d%H%M%S")
+    filename = "dump-#{time_now}"
+    secondary = driver.cluster.servers.select{|s| s.secondary?}.sample
+    `#{@mongo_path}/mongodump -h #{secondary.address.to_s} -u admin -p #{@mongo_password} --oplog -o #{filename}`
+    filename
+  end
+
+  def restore(name)
+    `#{@mongo_path}/mongorestore -h #{server_url(format: 'cmd')} -u admin -p #{@mongo_password} --drop --oplogReplay #{name}`
   end
 end

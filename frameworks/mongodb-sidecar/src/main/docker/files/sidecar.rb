@@ -6,17 +6,22 @@ require 'em/pure_ruby'
 
 Bundler.require
 
+require_relative 'sidecar/azure'
 require_relative 'sidecar/mesos'
 require_relative 'sidecar/mongo'
-require_relative 'sidecar/zk'
 require_relative 'sidecar/web'
+require_relative 'sidecar/zk'
 
-@framework_name          = ENV['APP_NAME'] || 'mongodb-sidecar'
-@mesos_url               = ENV['MESOS_URL'] || 'http://master.mezos/mesos'
-@zookeeper_url           = ENV['ZK_URL'] || 'zk-1.zk:2181'
-@mongo_binary            = ENV['MONGO_BINARY'] || '/usr/local/bin/mongo'
-@mongo_password          = ENV['MONGODB_PASSWORD']
-@mongo_rs_name           = ENV['MONGODB_REPLSET']
+@framework_name               = ENV['APP_NAME'] || 'mongodb-sidecar'
+@mesos_url                    = ENV['MESOS_URL'] || 'http://master.mezos/mesos'
+@zookeeper_url                = ENV['ZK_URL'] || 'zk-1.zk:2181'
+@mongo_path                   = ENV['MONGO_PATH'] || '/usr/local/bin'
+@mongo_password               = ENV['MONGODB_PASSWORD']
+@mongo_rs_name                = ENV['MONGODB_REPLSET']
+@azure_storage_account_name   = ENV['AZURE_STORAGE_ACCOUNT_NAME']
+@azure_storage_access_key     = ENV['AZURE_STORAGE_ACCESS_KEY']
+@azure_storage_container_name = ENV['AZURE_STORAGE_CONTAINER_NAME']
+
 @delay                   = ENV['DELAY'].to_i || 10
 
 @logger                  = Cabin::Channel.new
@@ -27,7 +32,7 @@ require_relative 'sidecar/web'
   zk_url: @zookeeper_url,
   mesos_url: @mesos_url,
   framework_name: @framework_name,
-  mongo_binary: @mongo_binary
+  mongo_path: @mongo_path
 })
 
 
@@ -41,9 +46,15 @@ mesos.setup(@mesos_url, @framework_name, zk, @logger)
 @logger.info("Mesos inited", {mesos_info: mesos.version.to_s})
 
 mongo = MyMongo.instance
-mongo.setup(@mongo_binary, zk, @logger, @mongo_password, @mongo_rs_name)
+mongo.setup(@mongo_path, zk, @logger, @mongo_password, @mongo_rs_name)
 @logger.info("Mongo inited", {mongo_info: mongo.inspect})
 
+if @azure_storage_account_name && @azure_storage_access_key && @azure_storage_container_name
+  azure = MyAzure.instance
+  azure.setup(@azure_storage_account_name, @azure_storage_access_key, @azure_storage_container_name, @logger)
+else
+  azure = nil
+end
 
 Thread::abort_on_exception = true
 main_thread = Thread.new do
@@ -68,6 +79,7 @@ end
 
 SinatraServer.set :logger, @logger
 SinatraServer.set :mongo, mongo
+SinatraServer.set :azure, azure
 SinatraServer.run!
 
 # It should never gets past here

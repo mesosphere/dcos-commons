@@ -42,5 +42,45 @@ class SinatraServer < Sinatra::Application
     redirect '/'
   end
 
+  get '/backup/azure' do
+    #dump
+    filename = settings.mongo.backup
 
+    #archive
+    `tar cvjf #{filename}.tar.bz2 #{filename}`
+
+    #encrypt
+    #generate random key & encrypt it with public key
+    `openssl rand -base64 128 -out #{filename}.key.bin`
+    `openssl rsautl -encrypt -inkey public.pem -pubin -in #{filename}.key.bin -out #{filename}.key.bin.enc`
+
+    #encrypt archive with random key
+    `openssl enc -aes-256-cbc -salt -in #{filename}.tar.bz2 -out #{filename}.tar.bz2.enc -pass file:./#{filename}.key.bin`
+
+    #upload
+    uploaded = []
+    uploaded << settings.azure.upload("#{filename}.tar.bz2.enc")
+    uploaded << settings.azure.upload("#{filename}.key.bin.enc")
+
+    settings.logger.info("Backup successful", files: uploaded)
+    #clean
+    `rm -rf #{filename}*`
+    redirect '/'
+  end
+
+  get '/backup/azure/restore/:name' do |name|
+    settings.azure.download("#{name}.key.bin.enc")
+    settings.azure.download("#{name}.tar.bz2.enc")
+
+    #decrypt random key with private key
+    `openssl rsautl -decrypt -inkey private.pem -in #{name}.key.bin.enc -out #{name}.key.bin`
+    #decrypt archive with random key
+    `openssl enc -d -aes-256-cbc -in #{name}.tar.bz2.enc -out #{name}.tar.bz2 -pass file:./#{name}.key.bin`
+
+    #unzip
+    `tar xvf #{name}.tar.bz2`
+
+    settings.mongo.restore(name)
+    redirect '/'
+  end
 end

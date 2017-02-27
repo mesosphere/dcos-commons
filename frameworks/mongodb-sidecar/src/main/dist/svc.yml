@@ -21,11 +21,11 @@ pods:
       init:
         resource-set: mongodb-resources
         goal: FINISHED
-        cmd: "env && chmod a+x $MESOS_SANDBOX/create_mongo_user.sh && $MESOS_SANDBOX/create_mongo_user.sh"
+        cmd: "env && chmod a+x $MESOS_SANDBOX/config-templates/mongo-init && $MESOS_SANDBOX/config-templates/mongo-init"
         configs:
           mongo-init:
             template: "{{CONFIG_TEMPLATE_PATH}}/create_mongo_user.sh"
-            dest: create_mongo_user.sh
+            dest: "create_mongo_user.sh"
         env:
           MONGODB_PASSWORD: {{MONGODB_PASSWORD}}
           MONGODB_VERSION: {{MONGODB_VERSION}}
@@ -73,11 +73,13 @@ plans:
       mongodb-init:
         strategy: parallel
         pod: mongodb
-        tasks: [init]
+        steps:
+          - default: [[init]]
       mongodb-server:
         strategy: serial
         pod: mongodb
-        tasks: [server]
+        steps:
+          - default: [[server]]
       sidecar-deploy:
         strategy: serial
         pod: sidecar
