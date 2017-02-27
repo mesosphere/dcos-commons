@@ -1,12 +1,8 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ServiceSpecTest extends BaseServiceSpecTest {
     @BeforeClass
@@ -35,18 +31,5 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     @Test
     public void testYaml() throws Exception {
         super.testYaml("svc.yml");
-    }
-
-    @Test
-    public  void testBrokerNameChange() throws  Exception {
-        String oldName = "broker-2";
-        Pattern pattern = Pattern.compile("(.*)(\\d+)");
-        Matcher matcher = pattern.matcher(oldName);
-        Assert.assertTrue(matcher.find());
-        Assert.assertEquals("broker-", matcher.group(1));
-        String intString = matcher.group(2);
-        int brokerID = Integer.parseInt(intString);
-        String newName = "kafka-" + brokerID + "-broker"; //kafka-2-broker
-        Assert.assertTrue(newName.equals("kafka-2-broker"));
     }
 }

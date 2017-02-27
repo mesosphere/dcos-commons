@@ -45,9 +45,12 @@
     "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
 
-    {{#config_upgrade}}
-    "CONFIG_UPGRADE": "set"
-    {{/config_upgrade}}
+    {{#config_upgrade.enable}}
+    "CONFIG_UPGRADE_ENABLE": "set"
+        {{#config_upgrade.cleanup}}
+        "CONFIG_UPGRADE_CLEANUP": "set"
+        {{/config_upgrade.cleanup}}
+    {{/config_upgrade.enable}}
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
