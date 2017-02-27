@@ -46,9 +46,20 @@
             "default":"serial"
           },
           "config_upgrade":{
-            "description":"Triggers a custom Kafka Configuration Upgrader . Only required if upgrading from an old version, i.e.  dcos-kafka-service version 1.1.18 or 1.1.19",
-            "type":"boolean",
-            "default": false
+            "description":"Kafka Configuration Upgrade parameters",
+            "type":"object",
+            "properties":{
+              "enable":{
+                "description": "Triggers a custom Kafka Configuration Upgrade . Only required if upgrading from an old version, i.e.  dcos-kafka-service version 1.1.18 or 1.1.19",
+                "type": "boolean",
+                "default": false
+                },
+              "cleanup":{
+                "description": "Clean up old TaskInfo and old TaskStatus after Upgrade.",
+                "type": "boolean",
+                "default": false
+              }
+            }
           }
         },
         "required":[

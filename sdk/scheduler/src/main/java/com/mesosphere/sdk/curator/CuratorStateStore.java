@@ -210,7 +210,9 @@ public class CuratorStateStore implements StateStore {
         }
         */
 
-        /* Get the first Task that matches TaskID */
+        /* Get the first Task that matches TaskID
+           Here we rely on ZK ordering: assuming that last entered will be retrieved first
+           */
         for (Protos.TaskInfo taskInfo : fetchTasks()) {
             if (taskInfo.getTaskId().equals(status.getTaskId())) {
                 optionalTaskName = Optional.of(taskInfo.getName());
