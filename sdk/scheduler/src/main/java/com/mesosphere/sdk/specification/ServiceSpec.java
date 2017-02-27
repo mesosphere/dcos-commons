@@ -34,5 +34,5 @@ public interface ServiceSpec extends Configuration {
     ReplacementFailurePolicy getReplacementFailurePolicy();
 
     @JsonProperty("gpu-resource")
-    Boolean getGpuResource();
+    Boolean getGpuPolicy();
 }

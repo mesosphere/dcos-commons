@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.Null;
 import java.io.File;
 import java.util.Collections;
 
@@ -42,7 +43,12 @@ public class BaseServiceSpecTest {
     }
 
     protected void deserializeServiceSpec(String fileName) throws Exception {
-        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+        File file;
+        try {
+            file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+        } catch (NullPointerException e) {
+            throw new Exception("File is null");
+        }
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertEquals(8080, serviceSpec.getApiPort());

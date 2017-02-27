@@ -36,7 +36,6 @@ public class YAMLToInternalMappers {
     static DefaultServiceSpec from(
             RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-
         String role = null;
         String principal = null;
         Integer apiPort = null;
@@ -68,7 +67,7 @@ public class YAMLToInternalMappers {
                 .apiPort(apiPort)
                 .zookeeperConnection(zookeeper)
                 .webUrl(rawSvcSpec.getWebUrl())
-                .gpuResourcePolicy(rawSvcSpec.getGpuResource());
+                .gpuResourcePolicy((rawSvcSpec.getGpuPolicy() == null ? false : rawSvcSpec.getGpuPolicy()));
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();

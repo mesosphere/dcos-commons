@@ -22,7 +22,7 @@ public class CapabilityValidator {
     public void validate(ServiceSpec serviceSpec) throws CapabilityValidationException {
         // GPU_RESOURCE is a framework level option, so we check for compatibility here
         try {
-            if (serviceSpec.getGpuResource() && !capabilities.supportsGpuResource()) {
+            if (serviceSpec.getGpuPolicy() && !capabilities.supportsGpuResource()) {
                 throw new CapabilityValidationException(
                         "This cluster's DC/OS version does not support setting GPU_RESOURCE");
             }

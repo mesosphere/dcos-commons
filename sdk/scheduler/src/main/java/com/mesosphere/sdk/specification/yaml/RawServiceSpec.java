@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import java.util.LinkedHashMap;
 
@@ -15,7 +14,7 @@ public class RawServiceSpec {
     private final RawScheduler scheduler;
     private final WriteOnceLinkedHashMap<String, RawPod> pods;
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
-    private final Boolean gpuResource;
+    private final Boolean gpuPolicy;
 
     private RawServiceSpec(
             @JsonProperty("name") String name,
@@ -23,13 +22,13 @@ public class RawServiceSpec {
             @JsonProperty("scheduler") RawScheduler scheduler,
             @JsonProperty("pods") WriteOnceLinkedHashMap<String, RawPod> pods,
             @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans,
-            @JsonProperty("gpu-resource") Boolean gpuFlag) {
+            @JsonProperty("gpu-optin") Boolean gpuFlag) {
         this.name = name;
         this.webUrl = webUrl;
         this.scheduler = scheduler;
         this.pods = pods;
         this.plans = plans;
-        this.gpuResource = gpuFlag;
+        this.gpuPolicy = gpuFlag;
     }
 
     public String getName() {
@@ -52,7 +51,7 @@ public class RawServiceSpec {
         return plans;
     }
 
-    public Boolean getGpuResource() { return gpuResource; }
+    public Boolean getGpuPolicy() { return gpuPolicy; }
 }
 
 
