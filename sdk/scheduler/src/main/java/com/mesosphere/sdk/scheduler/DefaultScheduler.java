@@ -360,7 +360,8 @@ public class DefaultScheduler implements Scheduler, Observer {
      * @param zkConnectionString the zookeeper connection string to be passed to curator (host:port)
      */
     public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
-        return StateStoreCache.getInstance(new CuratorStateStore(serviceSpec.getName(), zkConnectionString));
+        //return StateStoreCache.getInstance(new CuratorStateStore(serviceSpec.getName(), zkConnectionString));
+        return new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.kafka.upgrade;
 
+import com.google.common.collect.ImmutableList;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
@@ -40,7 +41,10 @@ public class ConfigUpgrade {
 
         Optional<KafkaSchedulerConfiguration> kafkaSchedulerConfiguration = getOldConfiguration(serviceSpec);
         if (!kafkaSchedulerConfiguration.isPresent()){
-            LOGGER.info("Ignoring Kafka Configuration Upgrade : Can not get target configuration or it is not" +
+            LOGGER.info("\n ---------------------------------------------------- \n " +
+                    "          Ignoring Kafka Configuration Upgrade. \n" +
+                    " ---------------------------------------------------- ");
+            LOGGER.error(" Can not get target configuration or it is not " +
                     "in KafkaSchedulerConfiguration format");
             return;
         }
@@ -52,14 +56,17 @@ public class ConfigUpgrade {
 
         ServiceSpec newServiceSpec = generateServiceSpec(kafkaSchedulerConfiguration.get(), serviceSpec);
 
-        LOGGER.info("Kafka Configuration Upgrade started.");
+        LOGGER.info("\n ---------------------------------------------------- \n " +
+                    "          Kafka Configuration Upgrade started. \n" +
+                    " ---------------------------------------------------- ");
 
         this.newTargetId = configStore.store(newServiceSpec);
 
         Collection<Protos.TaskInfo> newTaskInfos;
         Map<String, Protos.TaskStatus> newStatusMap;
 
-        Collection<String> oldTaskNames = stateStore.fetchTaskNames();
+        Collection<String> oldTaskNames = getOldTaskNames(stateStore.fetchTaskNames());
+
         newTaskInfos = generateTaskInfos(oldTaskNames, newServiceSpec);
         newStatusMap = generateStatusMap(oldTaskNames);
 
@@ -76,18 +83,24 @@ public class ConfigUpgrade {
         }
 
         configStore.setTargetConfig(newTargetId);
-        LOGGER.info("Kafka Configuration Upgrade complete.");
+        LOGGER.info("\n ---------------------------------------------------- \n " +
+                    "          Kafka Configuration Upgrade complete. \n" +
+                    " ---------------------------------------------------- ");
     }
 
     private boolean verifyOldTasks(UUID oldTargetId) {
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             final UUID taskConfigId;
 
+            if (getOldTaskNames(ImmutableList.of(taskInfo.getName())).size() <= 0) {
+                LOGGER.info("Skipping task {} in before Upgrade Verification.", taskInfo.getName());
+                continue;
+            }
             try {
                 taskConfigId = CommonTaskUtils.getTargetConfiguration(taskInfo);
             } catch (TaskException e) {
-                LOGGER.error(String.format("Unable to extract configuration id from task %s: %s",
-                        taskInfo.getName(), TextFormat.shortDebugString(taskInfo)), e);
+                LOGGER.error("Unable to extract configuration id from task {}: {}  error: {}",
+                        taskInfo.getName(), TextFormat.shortDebugString(taskInfo), e.getMessage());
                 return false;
             }
 
@@ -284,6 +297,18 @@ public class ConfigUpgrade {
 
     private String getNewTaskName(int brokerID){
         return "kafka-" + brokerID + "-broker"; //kafka-2-broker
+    }
+
+    private Collection<String> getOldTaskNames(Collection<String> taskNames) {
+        Collection<String> oldNames = new ArrayList<>();
+        Pattern pattern = Pattern.compile("(.*)-(\\d+)");
+        for (String taskName: taskNames) {
+            Matcher matcher = pattern.matcher(taskName);
+            if (matcher.find()) {
+                oldNames.add(taskName);
+            }
+        }
+        return oldNames;
     }
 
     public static boolean enabled(){

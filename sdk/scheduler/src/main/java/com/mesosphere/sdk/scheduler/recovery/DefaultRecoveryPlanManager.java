@@ -135,10 +135,9 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     private List<Step> createSteps(Collection<String> dirtyAssets) throws TaskException {
-        Map<PodInstance, List<Protos.TaskInfo>> failedPodsMap =
-                TaskUtils.getPodMap(
-                        configStore,
-                        StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore));
+        Map<PodInstance, List<Protos.TaskInfo>> failedPodsMap = TaskUtils.getPodMap(
+                            configStore,
+                            StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore));
 
         List<String> podNames = failedPodsMap.keySet().stream()
                 .map(podInstance -> podInstance.getName())

@@ -316,7 +316,14 @@ public class TaskUtils {
         Map<PodInstance, List<TaskInfo>> podMap = new HashMap<>();
 
         for (TaskInfo taskInfo : taskInfos) {
-            PodInstance podInstance = getPodInstance(configStore, taskInfo);
+            PodInstance podInstance;
+            try {
+                 podInstance = getPodInstance(configStore, taskInfo);
+            } catch (TaskException e) {
+                LOGGER.error("Failed to get task's PodInstance, ignoring task {} for considering recovery.",
+                        taskInfo.getName());
+                continue;
+            }
             List<TaskInfo> taskList = podMap.get(podInstance);
 
             if (taskList == null) {
@@ -367,7 +374,7 @@ public class TaskUtils {
     }
 
     /**
-     * Determines whether a Task needs to eb reovered based on its current definition (TaskSpec) and status
+     * Determines whether a Task needs to be recovered based on its current definition (TaskSpec) and status
      * (TaskStatus).
      *
      * @param taskSpec   The definition of a task
