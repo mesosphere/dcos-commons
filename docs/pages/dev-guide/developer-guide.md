@@ -1353,7 +1353,7 @@ web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
 pods:
   proxylite:
     container:
-      image-name: mesosphere/proxylite:1.0.1
+      image-name: mesosphere/proxylite:2.0.0
     count: 1
     tasks:
       server:
