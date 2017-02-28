@@ -13,15 +13,15 @@ import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 /**
- *  Broker Controller.
+ *  Broker Resource.
  */
 @Path("/v1/brokers")
 @Produces("application/json")
-public class BrokerController {
-    private final Log log = LogFactory.getLog(BrokerController.class);
+public class BrokerResource {
+    private final Log log = LogFactory.getLog(BrokerResource.class);
     private KafkaZKClient kafkaZkClient;
 
-    public BrokerController(KafkaZKClient kafkaZkClient) {
+    public BrokerResource(KafkaZKClient kafkaZkClient) {
         this.kafkaZkClient = kafkaZkClient;
     }
 
@@ -30,7 +30,7 @@ public class BrokerController {
         try {
             return Response.ok(kafkaZkClient.listBrokers(), MediaType.APPLICATION_JSON).build();
         } catch (Exception ex) {
-            log.error("Failed to fetch broker ids", ex);
+            log.error("Failed to fetch broker ids with exception:", ex);
             return Response.serverError().build();
         }
     }
@@ -45,7 +45,7 @@ public class BrokerController {
             }
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception ex) {
-            log.error("Failed to fetch broker id: " + id, ex);
+            log.error("Failed to fetch broker id with exception: " + id, ex);
             return Response.serverError().build();
         }
     }

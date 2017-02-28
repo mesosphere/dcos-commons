@@ -18,11 +18,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-
 /**
- * A simple command executor class, copied from dcos-kafka-service.
+ * A simple command executor class. Migrated from dcos-kafka-service.
  */
-
 public class CmdExecutor {
     private static final Log log = LogFactory.getLog(CmdExecutor.class);
     private static final String BIN_DIR = "/bin/";
@@ -33,14 +31,12 @@ public class CmdExecutor {
 
     public CmdExecutor(KafkaZKClient kafkaZkClient, String kafkaStandBoxPath) {
         if (kafkaStandBoxPath == null){
-            throw new InvalidParameterException("KAFKA_VERSION_PATH is not set. Can not start CmdExecutor");
+            throw new InvalidParameterException("Kafka package path is not set. Can not start CmdExecutor");
         }
         this.binPath = kafkaStandBoxPath + "/bin/";
         this.kafkaZkClient = kafkaZkClient;
         this.zkPath = kafkaZkClient.getZKString();
     }
-
-    /* TODO: below is copied from dcos-kafka-service */
 
     public JSONObject createTopic(String name, int partitionCount, int replicationFactor) throws Exception {
         /*

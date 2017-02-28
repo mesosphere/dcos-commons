@@ -14,18 +14,18 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Topic Controller executing commands through command executor.
- * Kafka package should also be deployed with framework to enable those kafka commands.
+ * Topic Resource executing commands through command executor.
+ * Kafka package should also be deployed with framework to enable Kafka commands.
  */
 
 @Path("/v1/topics")
-public class TopicController {
-    private static final Log log = LogFactory.getLog(TopicController.class);
+public class TopicResource {
+    private static final Log log = LogFactory.getLog(TopicResource.class);
 
     private final KafkaZKClient kafkaZkClient;
     private final CmdExecutor cmdExecutor;
 
-    public TopicController(CmdExecutor cmdExecutor, KafkaZKClient kafkaZkClient) {
+    public TopicResource(CmdExecutor cmdExecutor, KafkaZKClient kafkaZkClient) {
         this.kafkaZkClient = kafkaZkClient;
         this.cmdExecutor = cmdExecutor;
     }
@@ -51,12 +51,12 @@ public class TopicController {
         }
     }
 
-    @POST
+    @PUT
+    @Path("/{name}")
     public Response createTopic(
-            @QueryParam("name") String name,
+            @PathParam("name") String name,
             @QueryParam("partitions") String partitionCount,
             @QueryParam("replication") String replicationFactor) {
-
         try {
             int partCount = Integer.parseInt(partitionCount);
             int replFactor = Integer.parseInt(replicationFactor);
@@ -67,8 +67,6 @@ public class TopicController {
             return Response.serverError().build();
         }
     }
-
-    /* Below is copied from dcos-kafka-service */
 
     @GET
     @Path("/unavailable_partitions")
@@ -94,54 +92,49 @@ public class TopicController {
         }
     }
 
-    @PUT
-    @Path("/{name}")
+    @POST
+    @Path("/{name}/operation/{type}")
     public Response operationOnTopic(
-            @PathParam("name") String name,
-            @QueryParam("operation") String operation,
+            @PathParam("name") String topicName,
+            @PathParam("type") String type,
             @QueryParam("key") String key,
             @QueryParam("value") String value,
             @QueryParam("partitions") String partitions,
             @QueryParam("messages") String messages) {
-
         try {
             JSONObject result = null;
             List<String> cmds = null;
-
-            if (operation == null) {
+            if (type == null) {
                 result = new JSONObject();
                 result.put("Error", "Must designate an 'operation'.  " +
                         "Possibles operations are [producer-test, delete, partitions, config, deleteConfig].");
             } else {
-                switch (operation) {
+                switch (type) {
                     case "producer-test":
                         int messageCount = Integer.parseInt(messages);
-                        result = cmdExecutor.producerTest(name, messageCount);
+                        result = cmdExecutor.producerTest(topicName, messageCount);
                         break;
                     case "partitions":
                         cmds = Arrays.asList("--partitions", partitions);
-                        result = cmdExecutor.alterTopic(name, cmds);
+                        result = cmdExecutor.alterTopic(topicName, cmds);
                         break;
                     default:
                         result = new JSONObject();
-                        result.put("Error", "Unrecognized operation: " + operation);
+                        result.put("Error", "Unrecognized operation: " + type);
                         break;
                 }
             }
-
             return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
 
         } catch (Exception ex) {
-            log.error("Failed to perform operation: " + operation + " on Topic: " + name + " with exception: " + ex);
+            log.error("Failed to perform operation: " + type + " on Topic: " + topicName + " with exception: " + ex);
             return Response.serverError().build();
         }
     }
 
     @DELETE
     @Path("/{name}")
-    public Response deleteTopic(
-            @PathParam("name") String name) {
-
+    public Response deleteTopic(@PathParam("name") String name) {
         try {
             JSONObject result = cmdExecutor.deleteTopic(name);
             String message = result.getString("message");
@@ -150,7 +143,6 @@ public class TopicController {
             } else {
                 return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
             }
-
         } catch (Exception ex) {
             log.error("Failed to delete Topic: " + name + " with exception: " + ex);
             return Response.serverError().build();

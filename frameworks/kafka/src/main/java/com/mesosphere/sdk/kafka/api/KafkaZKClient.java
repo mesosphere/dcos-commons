@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Read-only interface for retrieving information ZooKeeper for Kafka brokers and topics.
+ * Read-only interface for retrieving information from ZooKeeper for Kafka brokers and topics.
  */
 public class KafkaZKClient {
     private static final Log log = LogFactory.getLog(KafkaZKClient.class);
@@ -31,7 +31,7 @@ public class KafkaZKClient {
 
     public KafkaZKClient(String kafkaZkUri) {
         if (kafkaZkUri == null){
-            throw new InvalidParameterException("KAFKA_VERSION_PATH is not set. Can not start CmdExecutor");
+            throw new InvalidParameterException("Kafka Zookeeper path is not set. Can not start client.");
         }
         this.zkClient = CuratorFrameworkFactory.newClient(
                 kafkaZkUri,
@@ -49,7 +49,7 @@ public class KafkaZKClient {
             return new JSONArray(zkClient.getChildren().forPath(kafkaZkUri + BROKER_ID_PATH));
         } catch (KeeperException.NoNodeException e) {
             log.info("List path: " + kafkaZkUri + BROKER_ID_PATH
-                    + " doesn't exist, returning empty list. Kafka not running yet?", e);
+                    + " doesn't exist, returning empty brokers list. Kafka not running yet?", e);
             return new JSONArray();
         }
     }
@@ -69,7 +69,7 @@ public class KafkaZKClient {
             return new JSONArray(zkClient.getChildren().forPath(kafkaZkUri + TOPICS_PATH));
         } catch (KeeperException.NoNodeException e) {
             log.info("List path: " + kafkaZkUri + TOPICS_PATH
-                    + " doesn't exist, returning empty list. Kafka not running yet?", e);
+                    + " doesn't exist, returning empty topics list. Kafka not running yet?", e);
             return new JSONArray();
         }
     }
@@ -89,10 +89,8 @@ public class KafkaZKClient {
         return (new JSONObject()).put("partitions", partitions);
     }
 
-    /* below is copied from kafka-broker-service */
-
     public List<String> getBrokerEndpoints() {
-        List<String> endpoints = new ArrayList<String>();
+        List<String> endpoints = new ArrayList<>();
         try {
             List<String> ids = zkClient.getChildren().forPath(kafkaZkUri + BROKER_ID_PATH);
             for (String id : ids) {
@@ -122,7 +120,6 @@ public class KafkaZKClient {
         } catch (Exception ex) {
             log.error("Failed to retrieve broker DNS endpoints with exception: ", ex);
         }
-
         return endpoints;
     }
 

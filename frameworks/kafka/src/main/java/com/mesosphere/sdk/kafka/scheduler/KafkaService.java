@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
-import com.mesosphere.sdk.kafka.api.BrokerController;
+import com.mesosphere.sdk.kafka.api.BrokerResource;
 import com.mesosphere.sdk.kafka.api.KafkaZKClient;
-import com.mesosphere.sdk.kafka.api.TopicController;
+import com.mesosphere.sdk.kafka.api.TopicResource;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.*;
+import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.specification.ServiceSpec;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,14 +30,13 @@ public class KafkaService extends DefaultService {
                                   int apiPort,
                                   Collection<Object> additionalResources) {
         final ServiceSpec serviceSpec = super.getServiceSpec();
-
         final Collection<Object> apiResources = new ArrayList<>();
         final String zkUri = String.format("%s/dcos-service-%s",
                 serviceSpec.getZookeeperConnection(), serviceSpec.getName());
         final KafkaZKClient kafkaZKClient = new KafkaZKClient(zkUri);
 
-        apiResources.add(new BrokerController(kafkaZKClient));
-        apiResources.add(new TopicController(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
+        apiResources.add(new BrokerResource(kafkaZKClient));
+        apiResources.add(new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
                 kafkaZKClient));
 
         apiResources.addAll(additionalResources);
