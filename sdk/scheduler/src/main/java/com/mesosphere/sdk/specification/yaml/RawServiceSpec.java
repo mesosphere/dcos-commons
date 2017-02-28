@@ -14,7 +14,7 @@ public class RawServiceSpec {
     private final RawScheduler scheduler;
     private final WriteOnceLinkedHashMap<String, RawPod> pods;
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
-    private final Boolean gpuPolicy;
+    private final Boolean gpuOptin;
 
     private RawServiceSpec(
             @JsonProperty("name") String name,
@@ -28,7 +28,7 @@ public class RawServiceSpec {
         this.scheduler = scheduler;
         this.pods = pods;
         this.plans = plans;
-        this.gpuPolicy = gpuFlag;
+        this.gpuOptin = gpuFlag;
     }
 
     public String getName() {
@@ -51,7 +51,7 @@ public class RawServiceSpec {
         return plans;
     }
 
-    public Boolean getGpuPolicy() { return gpuPolicy; }
+    public Boolean getGpuOptin() { return gpuOptin; }
 }
 
 

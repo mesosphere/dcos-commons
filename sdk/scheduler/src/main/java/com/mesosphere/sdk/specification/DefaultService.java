@@ -232,7 +232,7 @@ public class DefaultService implements Service {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
         }
 
-        if (serviceSpec.getGpuPolicy()) {
+        if (serviceSpec.getGpuOptin()) {
             fwkInfoBuilder.addCapabilities(
                     Protos.FrameworkInfo.Capability.newBuilder()
                             .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));

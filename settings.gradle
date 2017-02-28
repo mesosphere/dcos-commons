@@ -33,11 +33,5 @@ project(":frameworks/prototype").name = "prototype"
 include 'frameworks/proxylite'
 project(":frameworks/proxylite").name = "proxylite"
 
-include 'examples/rethinkdb'
-project(":examples/rethinkdb").name = "rethinkdb"
-
-include 'examples/gpu_helloworld'
-project(":examples/gpu_helloworld").name = "gpu_helloworld"
-
 include 'examples/gpuresource'
 project(":examples/gpuresource").name = "gpuresource"

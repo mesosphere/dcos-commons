@@ -40,6 +40,7 @@ public class YAMLToInternalMappers {
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
+        Boolean defaultGpuPolicy = false;
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
@@ -67,7 +68,7 @@ public class YAMLToInternalMappers {
                 .apiPort(apiPort)
                 .zookeeperConnection(zookeeper)
                 .webUrl(rawSvcSpec.getWebUrl())
-                .gpuResourcePolicy((rawSvcSpec.getGpuPolicy() == null ? false : rawSvcSpec.getGpuPolicy()));
+                .gpuResourcePolicy((rawSvcSpec.getGpuOptin() == null ? defaultGpuPolicy : rawSvcSpec.getGpuOptin()));
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();

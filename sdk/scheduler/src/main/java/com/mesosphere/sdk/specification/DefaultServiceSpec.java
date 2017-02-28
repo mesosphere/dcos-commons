@@ -55,7 +55,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     private ReplacementFailurePolicy replacementFailurePolicy;
 
     @Valid
-    private Boolean gpuPolicy;
+    private Boolean gpuOptin;
 
     @JsonCreator
     public DefaultServiceSpec(
@@ -67,7 +67,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
-            @JsonProperty("gpu-policy") Boolean gpuFlag) {
+            @JsonProperty("gpu-optin") Boolean gpuFlag) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -78,7 +78,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.gpuPolicy = gpuFlag;
+        this.gpuOptin = gpuFlag;
         ValidationUtils.validate(this);
     }
 
@@ -92,7 +92,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.zookeeperConnection,
                 builder.pods,
                 builder.replacementFailurePolicy,
-                builder.gpuPolicy);
+                builder.gpuOptin);
     }
 
     public static Builder newBuilder() {
@@ -109,7 +109,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.webUrl = copy.webUrl;
         builder.pods = copy.pods;
         builder.replacementFailurePolicy = copy.replacementFailurePolicy;
-        builder.gpuPolicy = copy.gpuPolicy;
+        builder.gpuOptin = copy.getGpuOptin();
         return builder;
     }
 
@@ -154,7 +154,10 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public Boolean getGpuPolicy() { return gpuPolicy ==  null ? false : gpuPolicy; }
+    public Boolean getGpuOptin() {
+        Boolean defaultGpuPolicy = false;
+        return gpuOptin == null ? defaultGpuPolicy : gpuOptin;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -296,7 +299,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
-        private Boolean gpuPolicy;
+        private Boolean gpuOptin = false;
 
         private Builder() {
         }
@@ -410,7 +413,7 @@ public class DefaultServiceSpec implements ServiceSpec {
          * @return a reference to this Builder
          */
         public Builder gpuResourcePolicy(Boolean optInToGpuResources) {
-            this.gpuPolicy = optInToGpuResources;
+            this.gpuOptin = optInToGpuResources;
             return this;
         }
 

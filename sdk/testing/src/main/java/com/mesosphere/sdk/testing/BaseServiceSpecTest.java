@@ -11,10 +11,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.Null;
 import java.io.File;
 import java.util.Collections;
 
@@ -26,7 +23,6 @@ import static org.mockito.Mockito.when;
  * This class encapsulates common features needed for the validation of YAML ServiceSpec files.
  */
 public class BaseServiceSpecTest {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(BaseServiceSpecTest.class);
     @ClassRule
     public static final EnvironmentVariables ENV_VARS = new EnvironmentVariables();
 
