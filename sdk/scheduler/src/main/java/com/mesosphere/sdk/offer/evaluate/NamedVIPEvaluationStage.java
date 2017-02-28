@@ -26,7 +26,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
             DiscoveryInfo.Visibility visibility,
             String vipName,
             Integer vipPort) {
-        super(resource, taskName, envKey, port);
+        super(resource, taskName, envKey, port, port);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;

@@ -8,7 +8,7 @@ import org.apache.mesos.Protos;
  * A {@link NamedVIPRequirement} encapsulates a needed {@link MesosResource} representing a port with a DC/OS named VIP
  * attached.
  */
-public class NamedVIPRequirement extends PortRequirement {
+public class NamedVIPRequirement extends PortRangeRequirement {
     private final String protocol;
     private final Protos.DiscoveryInfo.Visibility visibility;
     private final String vipName;
@@ -22,7 +22,7 @@ public class NamedVIPRequirement extends PortRequirement {
             Protos.DiscoveryInfo.Visibility visibility,
             String vipName,
             int vipPort) {
-        super(resource, envKey, port);
+        super(resource, envKey, port, port);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -51,7 +51,7 @@ public class NamedVIPRequirement extends PortRequirement {
                 getResource(),
                 taskName,
                 getEnvKey(),
-                getPort(),
+                getBegin(), // begin == end
                 getProtocol(),
                 getVisibility(),
                 getVipName(),

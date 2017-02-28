@@ -3,7 +3,7 @@ package com.mesosphere.sdk.testutils;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.NamedVIPRequirement;
-import com.mesosphere.sdk.offer.PortRequirement;
+import com.mesosphere.sdk.offer.PortRangeRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskRequirement;
@@ -102,17 +102,23 @@ public class OfferRequirementTestUtils {
         int numVips = 0;
         for (Protos.Resource resource : resources) {
             switch (resource.getName()) {
-                case Constants.PORTS_RESOURCE_TYPE:
-                    int port = (int) resource.getRanges().getRange(0).getBegin();
+                case Constants.PORTS_RESOURCE_TYPE: {
+                    Protos.Value.Range range = resource.getRanges().getRange(0);
                     if (ResourceUtils.getLabel(resource, TestConstants.HAS_VIP_LABEL) == null) {
-                        portRequirements.add(new PortRequirement(
-                                resource, getIndexedName(TestConstants.PORT_ENV_NAME, numPorts), port));
+                        portRequirements.add(new PortRangeRequirement(
+                                resource,
+                                getIndexedName(TestConstants.PORT_ENV_NAME, numPorts),
+                                (int) range.getBegin(),
+                                (int) range.getEnd()));
                     } else {
+                        if (range.getBegin() != range.getEnd()) {
+                            throw new IllegalStateException("VIP-labeled resource cannot contain range of ports");
+                        }
                         resource = ResourceUtils.removeLabel(resource, TestConstants.HAS_VIP_LABEL);
                         portRequirements.add(new NamedVIPRequirement(
                                 resource,
                                 getIndexedName(TestConstants.PORT_ENV_NAME, numPorts),
-                                port,
+                                (int) range.getBegin(),
                                 TestConstants.VIP_PROTOCOL,
                                 TestConstants.VIP_VISIBILITY,
                                 getIndexedName(TestConstants.VIP_NAME, numVips),
@@ -121,7 +127,8 @@ public class OfferRequirementTestUtils {
                     }
                     ++numPorts;
                     break;
-                case Constants.DISK_RESOURCE_TYPE:
+                }
+                case Constants.DISK_RESOURCE_TYPE: {
                     String containerPath = ResourceUtils.getLabel(resource, TestConstants.CONTAINER_PATH_LABEL);
                     if (containerPath != null) {
                         Protos.Resource.Builder builder = resource.toBuilder();
@@ -130,6 +137,7 @@ public class OfferRequirementTestUtils {
                     }
                     resourceRequirements.add(new VolumeRequirement(resource));
                     break;
+                }
                 default:
                     resourceRequirements.add(new ResourceRequirement(resource));
                     break;

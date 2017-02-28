@@ -32,11 +32,14 @@ public class PortsEvaluationStageTest {
 
         Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         for (int i = 0; i < desiredPorts.size(); ++i) {
+            Protos.Resource desiredPort = desiredPorts.get(i);
+            Protos.Value.Range desiredValue = desiredPort.getRanges().getRange(0);
             evaluationStages.add(new PortEvaluationStage(
-                    desiredPorts.get(i),
+                    desiredPort,
                     TestConstants.TASK_NAME,
                     "test-port" + i,
-                    (int) desiredPorts.get(i).getRanges().getRange(0).getBegin()));
+                    (int) desiredValue.getBegin(),
+                    (int) desiredValue.getEnd()));
         }
 
         PortsEvaluationStage portEvaluationStage = new PortsEvaluationStage(evaluationStages);
