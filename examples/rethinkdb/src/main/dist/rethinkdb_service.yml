@@ -1,8 +1,8 @@
 # Example YAML ServiceSpec that implements RethinkDB using DC/OS SDK.
 # We establish one pod that hosts the RethinkDB web UI and serves as our main entry point to the database. In the
 # below example the main 'hub' pod is named 'rethinkdb' and the server nodes are named 'rethinkdbnode'. There can be
-# as many 'rethinkdbnode' pods as you need, but in this very simplistic implementation there is only one 'rethinkdb'
-# pod. We also use the proxylite pod to serve the RethinkDB web UI.
+# as many 'rethinkdbnode' pods as you need (default is 3), but in this very simplistic implementation there is only one
+# 'rethinkdb' pod. We also use the proxylite pod to serve the RethinkDB web UI.
 
 name: {{FRAMEWORK_NAME}}
 # this is the URL and port that proxylite is going to expose, we will get to this through the DC/OS web UI

@@ -18,16 +18,17 @@ The following needs to be installed on your workstation/local computer
     * [Cloud provider](https://docs.mesosphere.com/1.8/administration/installing/cloud/) (recommended)
     * [Vagrant](https://docs.mesosphere.com/1.8/administration/installing/local/)
 2. Sign into your cluster using the web interface and the CLI
-    * `dcos config set <URL_of_dcos_dashboard>`
+    * `dcos config set <URL_of_dcos_cluster>`
     * `dcos auth login`
 
 #### Get the code and build
 1. Clone the Mesosphere DC/OS SDK repo:
     * `git clone https://github.com/mesosphere/dcos-commons`
 2. do `cd examples/rethinkdb`
-3. build the RethinkDB service
+3. Check that your `S3_BUCKET` environment variable is set to something reasonable
+4. build the RethinkDB service
     * `./build.sh aws`
-4. When the build succeeds, there will be three lines with instructions at the bottom of `stdout` that look like this:
+5. When the build succeeds, there will be three lines with instructions at the bottom of `stdout` that look like this:
 ```bash
 dcos package repo remove rethinkdb-aws
 dcos package repo add --index=0 rethinkdb-aws https://<your_S3_bucket>/stub-universe-rethinkdb.zip
@@ -35,7 +36,7 @@ dcos package install --yes rethinkdb
 ```
 Run the commands in your terminal. **n.b.** the exact output of the second line will vary.
 
-5. It can take around 3-5 minutes for the package to install and to stand up all of the RethinkDB servers.
+6. It can take around 3-5 minutes for the package to install and to stand up all of the RethinkDB servers.
 
 #### Use RethinkDB on DC/OS
 1. To get to the RethinkDB web UI point your browser at `https://<your_DCOS_cluster_URL>/service/rethinkdb/`

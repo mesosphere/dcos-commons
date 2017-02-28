@@ -54,7 +54,7 @@
           "count":{
             "description":"Number of rethinkDB pods to run",
             "type":"integer",
-            "default":1
+            "default":3
           }
         },
         "required":[
