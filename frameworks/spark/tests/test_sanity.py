@@ -14,5 +14,6 @@ def setup_module(module):
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 def test_install():
     pass # package installed and appeared healthy!
