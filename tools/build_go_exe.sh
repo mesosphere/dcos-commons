@@ -67,7 +67,7 @@ go get
 
 # optimization: build a native version of the executable and check if the sha1 matches a
 # previous native build. if the sha1 matches, then we can skip the rebuild.
-NATIVE_FILENAME="${EXE_FILENAME}.native"
+NATIVE_FILENAME="native-${EXE_FILENAME}"
 NATIVE_SHA1SUM_FILENAME="${NATIVE_FILENAME}.sha1sum"
 go build -o $NATIVE_FILENAME
 NATIVE_SHA1SUM=$(sha1sum $NATIVE_FILENAME | awk '{print $1}')
