@@ -12,6 +12,7 @@ The following needs to be installed on your workstation/local computer
 4. Gradle
 
 ### For the impatient
+
 #### Setup
 1. Start up a DC/OS cluster using either Vagrant or a cloud provider. For this example your cluster doesn't need to be very large (1-3 agent nodes is plenty).
     * [Cloud provider](http://example.com) (recommended)
@@ -19,6 +20,7 @@ The following needs to be installed on your workstation/local computer
 2. Sign into your cluster using the web interface and the CLI
     * `dcos config set <URL_of_dcos_dashboard>`
     * `dcos auth login`
+
 #### Get the code and build
 1. Clone the Mesosphere DC/OS SDK repo:
     * `git clone https://github.com/mesosphere/dcos-commons`
