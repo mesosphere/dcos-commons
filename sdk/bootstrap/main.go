@@ -265,25 +265,23 @@ func installDCOSCertIntoJRE() {
 	sslDir := filepath.Join(mesosSandbox, ".ssl")
 
 	// Check if .ssl directory is present
-	sslDirExists, err := _isDir(sslDir)
+	sslDirExists, err := isDir(sslDir)
 	if !sslDirExists || err != nil {
-		log.Println("No $MESOS_SANDBOX/.ssl directory found. Cannot install certificate.")
-		log.Fatal(err)
+		log.Printf("No $MESOS_SANDBOX/.ssl directory found. Cannot install certificate. Error: %s", err)
 		return
 	}
 
 	// Check if .ssl/ca.crt certificate is present
 	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
-	certExists, err := _isFile(certPath)
+	certExists, err := isFile(certPath)
 	if !certExists || err != nil {
-		log.Println("No $MESOS_SANDBOX/.ssl/ca.crt file found. Cannot install certificate.")
-		log.Fatal(err)
+		log.Printf("No $MESOS_SANDBOX/.ssl/ca.crt file found. Cannot install certificate. Error: %s", err)
 		return
 	}
 
 	javaHome := os.Getenv("JAVA_HOME")
 	if len(javaHome) == 0 {
-		log.Fatalf("No JAVA_HOME provided. Cannot install certs.")
+		log.Printf("No JAVA_HOME provided. Cannot install certs.")
 		return
 	}
 
@@ -295,14 +293,13 @@ func installDCOSCertIntoJRE() {
 	cmd.Stdout = &out
 	err = cmd.Run()
 	if err != nil {
-		log.Println("Failed to install the certificate.")
-		log.Fatal(err)
+		log.Printf("Failed to install the certificate. Error: %s", err)
 		return
 	}
 	log.Println("Successfully installed the certificate.")
 }
 
-func _isDir(path string) (bool, error) {
+func isDir(path string) (bool, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return false, err
@@ -317,7 +314,7 @@ func _isDir(path string) (bool, error) {
 	return false, nil
 }
 
-func _isFile(path string) (bool, error) {
+func isFile(path string) (bool, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return false, err
