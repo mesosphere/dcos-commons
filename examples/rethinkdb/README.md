@@ -2,6 +2,7 @@
 
 #### Software Requirements
 The following needs to be installed on your workstation/local computer
+
 1. Python 3.4 or 2.7 with wheel support
 2. Golang 1.7.x+
 3. Java SDK
