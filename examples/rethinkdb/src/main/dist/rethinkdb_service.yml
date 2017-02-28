@@ -1,0 +1,112 @@
+# Example YAML ServiceSpec that implements RethinkDB using DC/OS SDK.
+# We establish one pod that hosts the RethinkDB web UI and serves as our main entry point to the database. In the
+# below example the main 'hub' pod is named 'rethinkdb' and the server nodes are named 'rethinkdbnode'. There can be
+# as many 'rethinkdbnode' pods as you need, but in this very simplistic implementation there is only one 'rethinkdb'
+# pod. We also use the proxylite pod to serve the RethinkDB web UI.
+
+name: {{FRAMEWORK_NAME}}
+# this is the URL and port that proxylite is going to expose, we will get to this through the DC/OS web UI
+web-url: http://rethinkdb-0-server.rethinkdb.mesos:4040
+pods:
+  # the rethinkdb pod is the main 'hub' pod in this example, it serves the web UI and acts as our contact point when
+  # using the driver
+  rethinkdb:
+    # we run this as the hub of the service, it hosts the web UI and all of the others bind to it, so we only need 1
+    count: 1
+    container:
+      image-name: centos
+    uris:
+      - "https://download.rethinkdb.com/centos/6/x86_64/rethinkdb.repo"
+    tasks:
+      server:
+        goal: RUNNING
+        # the command that we'll run inside the container to setup our service
+        cmd: >
+          cp rethinkdb.repo /etc/yum.repos.d/ &&
+          yum -y install rethinkdb &&
+          rethinkdb --bind all --http-port 4041 --cluster-port 4001 --driver-port 4021 -d rethinkdb_hub -c {{RETHINKDB_CPUS}}
+        cpus: {{RETHINKDB_CPUS}}
+        # ports to expose, we need 3 for this pod, 1 to talk with the other server pods (intercluster), 1 to talk
+        # with the user to interact with the database (driverport) and one to serve the web UI (httpd)
+        ports:
+          intercluster:
+            env-key: INTER_CLUSTER
+            port: 4001
+          driverport:
+            env-key: DRIVER_PORT
+            port: 4021
+            # we use a virtual IP here, notice that RethinkDB thinks that it's listening on port 4021 but that we
+            # map that port to port 80 on the pod, that means we'll end up using port 80 when interacting with the
+            # database the prefix 'server-lb' is important because we will access the database using the IP
+            # server-lb.rethinkdb.l4lb.thisdcos.directory:80, aka <prefix>.<framework_name>.l4lb.thisdcos.directory:80
+            vip:
+              prefix: server-lb
+              port: 80
+          httpd:
+            env-key: PORT_HTTPD
+            port: 4041
+        memory: {{RETHINKDB_MEM}}
+        volume:
+          path: "rethinkdb-container-path"
+          type: ROOT
+          size: {{RETHINKDB_DISK}}
+  # this pod is used to connect as many other RethinkDB servers to the hub as we need, the variable {{RETHINKDB_COUNT}}
+  # is set in the config.json file, and rendered by the marathon.mustache.json
+  rethinkdbnode:
+    count: {{RETHINKDB_COUNT}}
+    container:
+      image-name: centos
+    uris:
+      - "https://download.rethinkdb.com/centos/6/x86_64/rethinkdb.repo"
+    tasks:
+      server:
+        goal: RUNNING
+        # notice the subtle differences in the command, we're starting a RethinkDB server and connecting it to our hub
+        # to access the IP of the hub we use the INTERNAL_ROUTE served by proxylite (see below)
+        cmd: >
+          cp rethinkdb.repo /etc/yum.repos.d/ &&
+          yum -y install rethinkdb &&
+          rethinkdb --port-offset $POD_INSTANCE_INDEX --join rethinkdb-0-server.rethinkdb.mesos:4001 -d rethinkdb_$POD_INSTANCE_INDEX -c {{RETHINKDB_CPUS}}
+        cpus: {{RETHINKDB_CPUS}}
+        memory: {{RETHINKDB_MEM}}
+        volume:
+          path: "rethinkdb-container-path"
+          type: ROOT
+          size: {{RETHINKDB_DISK}}
+  # this pod works to serve the web UI and the driver entry point
+  proxylite:
+    container:
+      image-name: mesosphere/proxylite:1.0.1
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "/proxylite/run.sh"
+        cpus: 1
+        memory: 256
+        # notice that the port here is the one we specified in `web-url`
+        ports:
+          proxylite:
+            env-key: PORT_PROXYLITE
+            port: 4040
+        env:
+          ROOT_REDIRECT: "/httpd"
+          EXTERNAL_ROUTES: "/v1,/httpd"
+          INTERNAL_ROUTES: "rethinkdb.marathon.mesos:{{PORT0}}/v1,rethinkdb-0-server.rethinkdb.mesos:4041"
+
+plans:
+  deploy:
+    # we will setup all of the phases in serial
+    strategy: serial
+    # it is recommended that you name the phases with the suffix -phase
+    phases:
+      hub-phase:
+        strategy: serial
+        pod: rethinkdb
+      proxylite-phase:
+        strategy: serial
+        pod: proxylite
+      # we can setup all of the server nodes in parallel because they all just talk to the same hub
+      rethinkdbnode-phase:
+        strategy: parallel
+        pod: rethinkdbnode

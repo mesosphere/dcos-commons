@@ -44,3 +44,8 @@ Run the commands in your terminal. **n.b.** the exact output of the second line 
     * This is a basic centos7 image that has the rethinkdb python driver and ipython2.7 installed
 4. Run `$ ipython` from the master node.
 5. Follow the example at [rethinkdb](https://rethinkdb.com/docs/guide/python/) while keeping an eye on the web UI (if you like).
+    * to connect to the databse:
+```python
+import rethinkdb as r
+r.connect("server-lb.rethinkdb.l4lb.thisdcos.directory", 80).repl()
+```

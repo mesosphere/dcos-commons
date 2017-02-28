@@ -23,6 +23,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @Test
     public void testYmlBase() throws Exception {
-        testYaml("svc.yml");
+        testYaml("rethinkdb_service.yml");
     }
 }

@@ -18,7 +18,7 @@
           "spec_file" : {
             "description":"The name of the service spec yaml file.",
             "type":"string",
-            "default":"svc.yml"
+            "default":"rethinkdb_service.yml"
           },
           "cmd_prefix" : {
             "description":"A generic prefix to start the scheduler.",
