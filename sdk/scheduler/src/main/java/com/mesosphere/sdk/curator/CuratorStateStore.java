@@ -210,7 +210,7 @@ public class CuratorStateStore implements StateStore {
         }
         */
 
-        // TODO(mb):  Zookeeper Ordering !!!!
+        // TODO(mb):  investigate Zookeeper ordering !!! alphabetical order?
         /*   Get the last Task that matches TaskID
            Here we rely on ZK ordering: assuming that last entered will be retrieved last
            */

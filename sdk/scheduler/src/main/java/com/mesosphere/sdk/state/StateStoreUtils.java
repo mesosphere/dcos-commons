@@ -67,7 +67,8 @@ public class StateStoreUtils {
         for (TaskStatus status : allStatuses) {
             // If we have multiple TaskInfos with same taskIds, we should keep the latest
             statusMap.put(status.getTaskId(), status);
-            // TODO(mb):  Zookeeper Ordering !!!!
+            //TODO(mb):  investigate Zookeeper Ordering !!! alphabetical order?
+
         }
 
         List<TaskInfo> results = new ArrayList<>();

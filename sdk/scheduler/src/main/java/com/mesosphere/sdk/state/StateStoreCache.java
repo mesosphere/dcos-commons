@@ -164,7 +164,8 @@ public class StateStoreCache implements StateStore {
                 if (taskInfo.getTaskId().equals(status.getTaskId())) {
                     taskName = taskInfo.getName();
                     //break; //get the latest otherwise you are in trouble
-                    //TODO(mb): Zookeeper Ordering !!!
+                    // TODO(mb):  investigate Zookeeper Ordering !!! alphabetical order?
+
                 }
             }
             if (taskName == null) {

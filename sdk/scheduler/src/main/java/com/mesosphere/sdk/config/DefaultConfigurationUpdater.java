@@ -177,7 +177,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                 } catch (Exception e) {
                     LOGGER.info("Can not fetch configuration taskConfigId {} for task {}",
                             taskConfigId, taskInfo.getName());
-                    LOGGER.error("TaskInfo has incompatible configuration, skipping task {} : {}", taskInfo.getName(), e.getMessage());
+                    LOGGER.error("TaskInfo has incompatible configuration, skipping task {} : {}",
+                            taskInfo.getName(), e.getMessage());
                     neededConfigs.add(taskConfigId);
                 }
             }
