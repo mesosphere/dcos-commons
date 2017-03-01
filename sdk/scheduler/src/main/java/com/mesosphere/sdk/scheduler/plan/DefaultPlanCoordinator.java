@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  *
  * A {@link DefaultPlanCoordinator} is an {@link Observable} and will forward updates from its plans.
  */
-public class  DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
+public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
     private final List<PlanManager> planManagers = new LinkedList<>();

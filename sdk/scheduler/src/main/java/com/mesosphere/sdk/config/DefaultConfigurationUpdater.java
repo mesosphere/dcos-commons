@@ -175,10 +175,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                         neededConfigs.add(taskConfigId);
                     }
                 } catch (Exception e) {
-                    LOGGER.info("Can not fetch configuration taskConfigId {} for task {}",
+                    LOGGER.error("Can not fetch configuration taskConfigId {} for task {}",
                             taskConfigId, taskInfo.getName());
-                    LOGGER.error("TaskInfo has incompatible configuration, skipping task {} : {}",
+                    LOGGER.info("TaskInfo has incompatible configuration, skipping task {} : {}",
                             taskInfo.getName(), e.getMessage());
+                    //Can not read this task's config. Do not delete it.
                     neededConfigs.add(taskConfigId);
                 }
             }
@@ -188,6 +189,16 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             LOGGER.info("Updating {} tasks in StateStore with target configuration ID {}",
                     taskInfosToUpdate.size(), targetConfigId);
             stateStore.storeTasks(taskInfosToUpdate);
+        }
+
+        for (UUID configId : configStore.list()) {
+            try {
+                ServiceSpec serviceSpec = configStore.fetch(configId);
+                LOGGER.info("Config {} : {} ", configId, serviceSpec.getName());
+            } catch (Exception e) {
+                LOGGER.info("Config {} has incompatible format, leaving it as-is : {}", configId, e.getMessage());
+                neededConfigs.add(configId);
+            }
         }
 
         clearConfigsNotListed(neededConfigs);
@@ -207,7 +218,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         } catch (Exception e) {
             LOGGER.error(String.format(
                     "Unable to get JSON representation of old target config object %s, " +
-                    "skipping diff vs new target: %s",
+                            "skipping diff vs new target: %s",
                     oldConfigId, oldConfig), e);
             // Don't add a validation error: That'd prevent the new config from replacing this one,
             // and we'd be stuck with this config forever! Hopefully the new config will fix things...
@@ -219,6 +230,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             ServiceSpec targetConfig,
             ServiceSpec taskConfig) {
         LOGGER.info("Checking whether config update is needed for task: {}", taskInfo.getName());
+
+        if (targetConfig.equals(taskConfig)) {
+            LOGGER.info("Configurations are equal, no update needed for task: {}", taskInfo.getName());
+            return false;
+        }
 
         Optional<PodSpec> targetSpecOptional = getPodSpec(taskInfo, targetConfig);
         Optional<PodSpec> taskSpecOptional = getPodSpec(taskInfo, taskConfig);

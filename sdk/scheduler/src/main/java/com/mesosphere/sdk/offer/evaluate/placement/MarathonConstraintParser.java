@@ -43,8 +43,6 @@ public class MarathonConstraintParser {
         // do not instantiate
     }
 
-    private static StringMatcher stringMatcher;
-
     /**
      * ANDs the provided marathon-style constraint string onto the provided hard-coded
      * {@link PlacementRule}, or returns the provided {@link PlacementRule} as-is if the
@@ -53,9 +51,9 @@ public class MarathonConstraintParser {
      * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
      *     content isn't valid or supported
      */
-    public static PlacementRule parseWith(PlacementRule rule, String marathonConstraints, String type)
+    public static PlacementRule parseWith(PlacementRule rule, String marathonConstraints)
             throws IOException {
-        PlacementRule marathonRule = parse(marathonConstraints, type);
+        PlacementRule marathonRule = parse(marathonConstraints);
         if (marathonRule instanceof PassthroughRule) {
             return rule; // pass-through original rule
         }
@@ -74,14 +72,11 @@ public class MarathonConstraintParser {
      * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
      *     content isn't valid or supported
      */
-    public static PlacementRule parse(String marathonConstraints, String type) throws IOException {
+    public static PlacementRule parse(String marathonConstraints) throws IOException {
         if (marathonConstraints == null || marathonConstraints.isEmpty()) {
             // nothing to enforce
             return new PassthroughRule();
         }
-        stringMatcher = RegexMatcher.create(type + "*");
-        //StringMatcher stringMatcher = RegexMatcher.create( podName + "-*-" + taskName);
-
         List<List<String>> rows = splitConstraints(marathonConstraints);
         if (rows.size() == 1) {
             // skip AndRule:
@@ -218,15 +213,14 @@ public class MarathonConstraintParser {
     private static class UniqueOperator implements Operator {
         public PlacementRule run(String fieldName, String operatorName, Optional<String> ignoredParameter) {
             if (isHostname(fieldName)) {
-                return new MaxPerHostnameRule(1, stringMatcher);
+                return new MaxPerHostnameRule(1);
             } else {
                 // Ensure that:
                 // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
                 // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
                 StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
                 return new AndRule(
-                        AttributeRule.require(matcher), new MaxPerAttributeRule(1,
-                        matcher, stringMatcher));
+                        AttributeRule.require(matcher), new MaxPerAttributeRule(1, matcher));
             }
         }
     }
@@ -282,9 +276,9 @@ public class MarathonConstraintParser {
                         operatorName, parameter), e);
             }
             if (isHostname(fieldName)) {
-                return new RoundRobinByHostnameRule(num, stringMatcher);
+                return new RoundRobinByHostnameRule(num);
             } else {
-                return new RoundRobinByAttributeRule(fieldName, num, stringMatcher);
+                return new RoundRobinByAttributeRule(fieldName, num);
             }
         }
     }
@@ -345,7 +339,7 @@ public class MarathonConstraintParser {
             }
 
             if (isHostname(fieldName)) {
-                return new MaxPerHostnameRule(max, stringMatcher);
+                return new MaxPerHostnameRule(max);
             } else {
                 // Ensure that:
                 // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)

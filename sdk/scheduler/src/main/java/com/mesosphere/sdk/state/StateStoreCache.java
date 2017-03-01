@@ -163,9 +163,7 @@ public class StateStoreCache implements StateStore {
             for (TaskInfo taskInfo : nameToTask.values()) {
                 if (taskInfo.getTaskId().equals(status.getTaskId())) {
                     taskName = taskInfo.getName();
-                    //break; //get the latest otherwise you are in trouble
-                    // TODO(mb):  investigate Zookeeper Ordering !!! alphabetical order?
-
+                    break;
                 }
             }
             if (taskName == null) {
@@ -179,7 +177,7 @@ public class StateStoreCache implements StateStore {
         }
     }
 
-    @Override
+  /*  @Override
     public void storeStatus(String name, TaskStatus status) throws StateStoreException {
         RWLOCK.lock();
         try {
@@ -189,7 +187,7 @@ public class StateStoreCache implements StateStore {
             RWLOCK.unlock();
         }
     }
-
+    */
     @Override
     public void clearTask(String taskName) throws StateStoreException {
         RWLOCK.lock();

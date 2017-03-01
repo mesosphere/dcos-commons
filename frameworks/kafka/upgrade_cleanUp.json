@@ -2,7 +2,7 @@
   "service": {
     "config_upgrade": {
 	"enable": true,
-	"cleanup": false
+	"cleanup": true
 	}
   }
 }
