@@ -17,7 +17,12 @@
         <name>dfs.cluster.administrators</name>
         <value>{{ADMINISTRATORS}}</value>
     </property>
-
+    {{#TLS_ENABLED}}
+    <property>
+        <name>dfs.http.policy</name>
+        <value>HTTP_AND_HTTPS</value>
+    </property>
+    {{/TLS_ENABLED}}
     <!-- namenode -->
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
