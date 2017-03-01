@@ -65,6 +65,7 @@ public interface StateStore {
     void storeTasks(Collection<TaskInfo> tasks) throws StateStoreException;
 
 
+
     /**
      * Stores the TaskStatus of a particular Task. The {@link TaskInfo} for this exact task MUST have already been
      * written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by {@link

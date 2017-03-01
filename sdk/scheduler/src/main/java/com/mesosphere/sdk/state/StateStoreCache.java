@@ -177,6 +177,7 @@ public class StateStoreCache implements StateStore {
         }
     }
 
+
     @Override
     public void clearTask(String taskName) throws StateStoreException {
         RWLOCK.lock();
