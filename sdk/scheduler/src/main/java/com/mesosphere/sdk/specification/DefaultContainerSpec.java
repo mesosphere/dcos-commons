@@ -39,9 +39,7 @@ public class DefaultContainerSpec implements ContainerSpec {
     }
 
     @Override
-    public Collection<NetworkSpec> getNetworks() {
-        return networks == null ? Collections.emptyList() : networks;
-    }
+    public Collection<NetworkSpec> getNetworks() { return networks == null ? Collections.emptyList() : networks; }
 
     @Override
     public Collection<RLimit> getRLimits() {

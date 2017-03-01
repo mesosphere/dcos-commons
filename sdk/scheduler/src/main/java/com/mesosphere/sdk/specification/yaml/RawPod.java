@@ -52,9 +52,7 @@ public class RawPod {
         return count;
     }
 
-    public RawContainer getContainer() {
-        return container;
-    }
+    public RawContainer getContainer() { return container; }
 
     public String getStrategy() {
         return strategy;
