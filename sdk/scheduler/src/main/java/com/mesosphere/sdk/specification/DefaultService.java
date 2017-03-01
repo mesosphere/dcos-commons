@@ -85,9 +85,6 @@ public class DefaultService implements Service {
         }
     }
 
-    public DefaultService(){
-    }
-
     /**
      * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
      * same service.

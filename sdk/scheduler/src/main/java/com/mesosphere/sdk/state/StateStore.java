@@ -89,7 +89,6 @@ public interface StateStore {
     void storeStatus(String name, TaskStatus status) throws StateStoreException;
 
 
-
     /**
      * Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.
      *
