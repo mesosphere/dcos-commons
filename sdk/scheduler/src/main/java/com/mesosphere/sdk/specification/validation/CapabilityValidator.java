@@ -20,7 +20,13 @@ public class CapabilityValidator {
     }
 
     public void validate(ServiceSpec serviceSpec) throws CapabilityValidationException {
-        // GPU_RESOURCE is a framework level option, so we check for compatibility here
+        validateGpuPolicy(serviceSpec);
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            validate(podSpec);
+        }
+    }
+
+    private void validateGpuPolicy(ServiceSpec serviceSpec) throws CapabilityValidationException {
         try {
             if (serviceSpec.getGpuOptin() && !capabilities.supportsGpuResource()) {
                 throw new CapabilityValidationException(
@@ -28,9 +34,6 @@ public class CapabilityValidator {
             }
         } catch (IOException e) {
             throw new CapabilityValidationException("Failed to determine capabilities: " + e.getMessage());
-        }
-        for (PodSpec podSpec : serviceSpec.getPods()) {
-            validate(podSpec);
         }
     }
 

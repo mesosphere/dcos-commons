@@ -43,7 +43,8 @@ public class BaseServiceSpecTest {
         try {
             file = new File(getClass().getClassLoader().getResource(fileName).getFile());
         } catch (NullPointerException e) {
-            throw new Exception("File is null");
+            throw new Exception("Did not find file: " + fileName + " perhaps you forgot to link it in the Resources" +
+                    "folder?");
         }
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);

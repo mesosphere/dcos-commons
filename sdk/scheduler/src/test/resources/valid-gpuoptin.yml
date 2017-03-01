@@ -1,0 +1,12 @@
+name: "hello-world"
+scheduler:
+  gpu-optin: true
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512

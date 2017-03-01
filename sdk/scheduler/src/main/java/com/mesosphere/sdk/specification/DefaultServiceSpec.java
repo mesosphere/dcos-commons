@@ -409,7 +409,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Sets the policy as to whether to opt int to using GPU_RESOURCES offered by Mesos
+         * Sets the policy as to whether to opt int to using GPU_RESOURCES offered by Mesos.
          * @param optInToGpuResources opt in, boolean
          * @return a reference to this Builder
          */
