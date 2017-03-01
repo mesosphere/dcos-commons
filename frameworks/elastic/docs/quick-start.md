@@ -45,7 +45,9 @@ enterprise: 'no'
 
         $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
         
-1. Browse Kibana: http://$DCOS_URL/service/elastic/kibana/login
+1. Browse Kibana:
+
+        http://$DCOS_URL/service/elastic/kibana/login
 
   Log in with `elastic`/`changeme`
 
