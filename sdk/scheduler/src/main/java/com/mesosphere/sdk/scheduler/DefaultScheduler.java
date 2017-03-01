@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.config.validate.VolumePathCannotBeEmpty;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
@@ -433,6 +434,7 @@ public class DefaultScheduler implements Scheduler, Observer {
     public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators() {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
+                new VolumePathCannotBeEmpty(),
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange());
     }
