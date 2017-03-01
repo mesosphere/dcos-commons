@@ -47,7 +47,7 @@ enterprise: 'no'
         
 1. Browse Kibana:
 
-        http://<DCOS_URL>/service/elastic/kibana/login
+        http://<dcos-url>/service/elastic/kibana/login
 
   Log in with `elastic`/`changeme`
 
