@@ -32,8 +32,8 @@ public class DefaultPlanManagerTest {
 
     @Before
     public void beforeEach() {
-        firstStep = new TestStep();
-        secondStep = new TestStep();
+        firstStep = new TestStep("step-0");
+        secondStep = new TestStep("step-1");
         plan = getTestPlan(firstStep, secondStep);
         planManager = new DefaultPlanManager(plan);
         planManager.getPlan().proceed();

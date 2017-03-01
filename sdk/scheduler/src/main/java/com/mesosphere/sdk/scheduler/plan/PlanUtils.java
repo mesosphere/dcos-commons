@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import org.slf4j.LoggerFactory;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +19,7 @@ public class PlanUtils {
     private PlanUtils() {
         // do not instantiate
     }
-
+    
     public static boolean allHaveStatus(Status status, Collection<? extends Element> elements) {
         return elements.stream().allMatch(element -> element.getStatus() == status);
     }

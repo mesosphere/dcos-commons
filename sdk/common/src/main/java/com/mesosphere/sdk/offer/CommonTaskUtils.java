@@ -588,6 +588,12 @@ public class CommonTaskUtils {
         return Boolean.valueOf(getTransientValue(taskInfo));
     }
 
+    public static final String taskStatusDisplayString(TaskStatus taskStatus) {
+        return "taskId: " + taskStatus.getTaskId().getValue() +
+                " state: " + taskStatus.getState() +
+                " message: " + taskStatus.getMessage();
+    }
+
     private static String getTransientValue(TaskInfo taskInfo) {
         if (taskInfo.hasLabels()) {
             Labels labels = taskInfo.getLabels();
