@@ -21,41 +21,42 @@ You can customize the Elastic cluster in a variety of ways by specifying a JSON 
 
 ```json
 {
-  "service": {
-    "name": "another-cluster"
-  },
-  "master_nodes": {
-    "transport_port": 19300
-  },
-  "elasticsearch": {
-    "plugins": "analysis-icu,analysis-kuromoji"
-  }
+    "service": {
+        "name": "another-cluster"
+    },
+    "master_nodes": {
+          "transport_port": 19300
+    },
+    "elasticsearch": {
+        "plugins": "analysis-icu,analysis-kuromoji"
+    }
 }
 
 ```
 
-The command below creates a cluster using a `custom.json` file:
+The command below creates a cluster using a `options.json` file:
 
 ```bash
-dcos package install --options=custom.json elastic
+dcos package install elastic --options=options.json 
 ```
 
 # Multiple Elastic Cluster Installation
 
 Installing multiple Elastic clusters is identical to installing Elastic clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` is specified for each installation.
 
-Sample JSON options file named `custom_name.json`:
-
-    {
-        "service": {
-            "name": "another-cluster"
-        }
+Sample JSON options file named `another-cluster.json`:
+```json
+{
+    "service": {
+        "name": "another-cluster"
     }
+}
+```
 
-The command below creates a cluster using `custom_name.json`:
+The command below creates a cluster using `another-cluster.json`:
 
 ```bash
-dcos package install --options=custom_name.json elastic
+dcos package install elastic --options=another-cluster.json
 ```
 
 See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.
