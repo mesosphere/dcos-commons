@@ -43,7 +43,8 @@ def main():
             syntax()
             return 1
 
-    print('Packing executables in python wrapper:\n- {}'.format('\n- '.join(bin_paths)))
+    print('Packing {} executables in python wrapper:\n- {}'.format(
+        len(bin_paths), '\n- '.join(bin_paths)))
 
     # wipe/recreate 'binaries' directory
     binaries_dir = 'binaries'
