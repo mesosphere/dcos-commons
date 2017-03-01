@@ -39,7 +39,7 @@
           "cpus":{
             "description":"Template pod CPU requirements",
             "type":"number",
-            "default":0.1
+            "default":0.5
           },
           "mem":{
             "description":"Template pod mem requirements (in MB)",

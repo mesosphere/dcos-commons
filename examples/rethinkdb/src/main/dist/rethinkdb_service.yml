@@ -17,6 +17,7 @@ pods:
       image-name: centos
     uris:
       - "https://download.rethinkdb.com/centos/6/x86_64/rethinkdb.repo"
+      - {{BOOTSTRAP_URI}}
     tasks:
       server:
         goal: RUNNING
@@ -24,7 +25,8 @@ pods:
         cmd: >
           cp rethinkdb.repo /etc/yum.repos.d/ &&
           yum -y install rethinkdb &&
-          rethinkdb --bind all --http-port 4041 --cluster-port 4001 --driver-port 4021 -d rethinkdb_hub -c {{RETHINKDB_CPUS}}
+          ./bootstrap &&
+          exec rethinkdb --bind all --http-port 4041 --cluster-port 4001 --driver-port 4021 -d rethinkdb_hub
         cpus: {{RETHINKDB_CPUS}}
         # ports to expose, we need 3 for this pod, 1 to talk with the other server pods (intercluster), 1 to talk
         # with the user to interact with the database (driverport) and one to serve the web UI (httpd)
@@ -47,7 +49,7 @@ pods:
             port: 4041
         memory: {{RETHINKDB_MEM}}
         volume:
-          path: "rethinkdb-container-path"
+          path: "rethinkdb_hub"
           type: ROOT
           size: {{RETHINKDB_DISK}}
   # this pod is used to connect as many other RethinkDB servers to the hub as we need, the variable {{RETHINKDB_COUNT}}
@@ -58,6 +60,7 @@ pods:
       image-name: centos
     uris:
       - "https://download.rethinkdb.com/centos/6/x86_64/rethinkdb.repo"
+      - {{BOOTSTRAP_URI}}
     tasks:
       server:
         goal: RUNNING
@@ -66,11 +69,12 @@ pods:
         cmd: >
           cp rethinkdb.repo /etc/yum.repos.d/ &&
           yum -y install rethinkdb &&
-          rethinkdb --port-offset $POD_INSTANCE_INDEX --join rethinkdb-0-server.rethinkdb.mesos:4001 -d rethinkdb_$POD_INSTANCE_INDEX -c {{RETHINKDB_CPUS}}
+          ./bootstrap &&
+          exec rethinkdb --port-offset $POD_INSTANCE_INDEX --join rethinkdb-0-server.rethinkdb.mesos:4001 -d rethinkdb_$POD_INSTANCE_INDEX
         cpus: {{RETHINKDB_CPUS}}
         memory: {{RETHINKDB_MEM}}
         volume:
-          path: "rethinkdb-container-path"
+          path: "rethinkdb_$POD_INSTANCE_INDEX"
           type: ROOT
           size: {{RETHINKDB_DISK}}
   # this pod works to serve the web UI and the driver entry point
