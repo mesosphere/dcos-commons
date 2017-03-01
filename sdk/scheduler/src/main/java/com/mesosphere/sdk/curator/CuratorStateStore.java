@@ -3,7 +3,6 @@ package com.mesosphere.sdk.curator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -193,18 +192,35 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        String taskName;
-        try {
-            taskName = CommonTaskUtils.toTaskName(status.getTaskId());
-        } catch (TaskException e) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
+        Optional<String> optionalTaskName = Optional.empty();
+
+        for (Protos.TaskInfo taskInfo : fetchTasks()) {
+            if (taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
+                if (optionalTaskName.isPresent()) {
+                    logger.error("Found duplicate taskIDs in Task {} and  Task {}",
+                            optionalTaskName.get(), taskInfo.getName());
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "There are more than one tasks with TaskID: %s", status));
+                }
+                optionalTaskName = Optional.of(taskInfo.getName());
+            }
         }
 
-        // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
-        // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
-        // occasionally get these for stale tasks that have since been changed (with new UUIDs).
+        if (!optionalTaskName.isPresent()) {
+            throw new StateStoreException(Reason.NOT_FOUND, String.format(
+                    "Failed to find a task with TaskID: %s", status));
+        }
+        putStatus(optionalTaskName.get(), status);
+    }
+
+    /* storeStatus(taskName, status):
+                            is the only way to update status if there are duplicate taskIDs.
+     Protected method to be called directly using taskName (i.e. by a config *upgrade*). It does error checking before
+     writing status to TaskPath
+     */
+    protected void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         Optional<Protos.TaskInfo> optionalTaskInfo;
+
         try {
             optionalTaskInfo = fetchTask(taskName);
         } catch (Exception e) {
@@ -226,6 +242,10 @@ public class CuratorStateStore implements StateStore {
                     status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
                     status, optionalTaskInfo));
         }
+        putStatus(taskName, status);
+    }
+
+    private void putStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
 
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
