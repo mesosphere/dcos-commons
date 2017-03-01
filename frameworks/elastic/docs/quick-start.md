@@ -15,12 +15,12 @@ enterprise: 'no'
 
         $ dcos elastic plan show deploy
 
-1. Once the cluster is installed, retrieve connection information by running the `endpoints` command:
+1. Retrieve client endpoint information by running the `endpoints` command:
         
-        $ dcos elastic endpoints
+        $ dcos elastic endpoints coordinato
         {
-            "direct": ["data-1-server.elastic.mesos:1025", "data-0-server.elastic.mesos:1025"],
-            "vip": "data.elastic.l4lb.thisdcos.directory:9200"
+            "direct": ["coordinato-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
+            "vip": "coordinato.elastic.l4lb.thisdcos.directory:9200"
         }
 
 1. [SSH into a DC/OS node][1]:
@@ -34,18 +34,18 @@ enterprise: 'no'
         $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
 
 
-1. Store data.
+1. Store data in your indice:
 
         $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
         {
             "name": "John Doe"
         }'
         
-1. Retrieve data:
+1. Retrieve data from your indice:
 
         $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
         
-1. Browse to Kibana: http://$DCOS_URL/service/elastic/kibana/login
+1. Browse Kibana: http://$DCOS_URL/service/elastic/kibana/login
 
   Log in with `elastic`/`changeme`
 
