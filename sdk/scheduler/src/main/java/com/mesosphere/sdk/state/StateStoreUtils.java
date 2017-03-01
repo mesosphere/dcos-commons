@@ -64,7 +64,10 @@ public class StateStoreUtils {
 
         Map<Protos.TaskID, TaskStatus> statusMap = new HashMap<>();
         for (TaskStatus status : allStatuses) {
+            // If we have multiple TaskInfos with same taskIds, we should keep the latest
             statusMap.put(status.getTaskId(), status);
+            //TODO(mb):  investigate Zookeeper Ordering !!! alphabetical order?
+
         }
 
         List<TaskInfo> results = new ArrayList<>();
@@ -73,18 +76,74 @@ public class StateStoreUtils {
             if (status == null) {
                 continue;
             }
-
-            Optional<TaskSpec> taskSpec = TaskUtils.getTaskSpec(
-                    TaskUtils.getPodInstance(configStore, info),
-                    info.getName());
-
+            Optional<TaskSpec> taskSpec = Optional.empty();
+            try {
+                 taskSpec = TaskUtils.getTaskSpec(
+                        TaskUtils.getPodInstance(configStore, info),
+                        info.getName());
+            } catch (TaskException e) {
+                /* Configuration is not ServiceSpec,
+                    so just look at the task status to determine whether it needs recovery */
+                /* You can not add again, it will be dirties and it will try to recover. That is why you always check
+                 whether that is in final state (RUNNING) in Upgrade.
+                 Otherwise, we will switch back to old method as shown below:
+                 if (CommonTaskUtils.isRecoveryNeeded(status)) {
+                    LOGGER.info("Task: '{}' needs recovery with status: {}.",
+                            info.getName(), TextFormat.shortDebugString(status));
+                    results.add(info);
+                }
+                */
+                continue;
+            }
             if (!taskSpec.isPresent()) {
                 throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
             }
-
             if (TaskUtils.needsRecovery(taskSpec.get(), status)) {
                 LOGGER.info("Task: '{}' needs recovery with status: {}.",
                         taskSpec.get().getName(), TextFormat.shortDebugString(status));
+                results.add(info);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Fetches and returns all {@link TaskInfo}s for tasks needing recovery.
+     *
+     * @return Terminated TaskInfos
+     */
+    public static Collection<TaskInfo> fetchTasksNeedingRecovery2(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore)
+            throws StateStoreException, TaskException {
+        List<TaskInfo> results = new ArrayList<>();
+
+        for (TaskInfo info : stateStore.fetchTasks()) {
+            Optional<Protos.TaskStatus> status = stateStore.fetchStatus(info.getName());
+            if (!status.isPresent()) {
+                continue;
+            }
+            Optional<TaskSpec> taskSpec = Optional.empty();
+            try {
+                taskSpec = TaskUtils.getTaskSpec(
+                        TaskUtils.getPodInstance(configStore, info),
+                        info.getName());
+            } catch (TaskException e) {
+                /* Configuration is not ServiceSpec,
+                    so just look at the task status to determine whether it needs recovery */
+                if (CommonTaskUtils.isRecoveryNeeded(status.get())) {
+                    LOGGER.info("Task: '{}' needs recovery with status: {}.",
+                            info.getName(), TextFormat.shortDebugString(status.get()));
+                    results.add(info);
+                }
+                continue;
+            }
+            if (!taskSpec.isPresent()) {
+                throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
+            }
+            if (TaskUtils.needsRecovery(taskSpec.get(), status.get())) {
+                LOGGER.info("Task: '{}' needs recovery with status: {}.",
+                        taskSpec.get().getName(), TextFormat.shortDebugString(status.get()));
                 results.add(info);
             }
         }
