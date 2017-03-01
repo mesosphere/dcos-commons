@@ -12,6 +12,25 @@ import java.util.stream.Collectors;
 public class CuratorStateStoreFilter  extends CuratorStateStore {
     private  StringMatcher ignoreFilter = null;
 
+    public CuratorStateStoreFilter(String frameworkName, String connectionString) {
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), "", "");
+    }
+
+    public CuratorStateStoreFilter(
+            String frameworkName,
+            String connectionString,
+            RetryPolicy retryPolicy) {
+        this(frameworkName, connectionString, retryPolicy, "", "");
+    }
+
+    public CuratorStateStoreFilter(
+            String frameworkName,
+            String connectionString,
+            String username,
+            String password) {
+        this(frameworkName, connectionString, CuratorUtils.getDefaultRetry(), username, password);
+    }
+
     public CuratorStateStoreFilter(
             String frameworkName,
             String connectionString,
@@ -31,9 +50,9 @@ public class CuratorStateStoreFilter  extends CuratorStateStore {
             return super.fetchTaskNames();
         }
         return super.fetchTaskNames()
-                    .stream()
-                    .filter( name -> !(ignoreFilter.matches(name)))
-                    .collect(Collectors.toList());
+                .stream()
+                .filter(name -> !(ignoreFilter.matches(name)))
+                .collect(Collectors.toList());
     }
 
 }
