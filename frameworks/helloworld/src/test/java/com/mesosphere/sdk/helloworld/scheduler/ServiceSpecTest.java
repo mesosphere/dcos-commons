@@ -65,7 +65,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
 
     @Test
     public void testGpuResource() throws Exception {
-        //testYaml("examples/simple.yml");
         testYaml("examples/gpu_resource.yml");
     }
 }

@@ -1,5 +1,6 @@
 name: hello-world
-gpu-optin: true
+scheduler:
+  gpu-optin: true
 pods:
   hello:
     count: {{HELLO_COUNT}}

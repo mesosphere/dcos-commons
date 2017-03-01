@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
+
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
@@ -40,12 +42,13 @@ public class YAMLToInternalMappers {
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
-        Boolean defaultGpuPolicy = false;
+        Boolean gpuPolicy = null;
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
             apiPort = rawScheduler.getApiPort();
             zookeeper = rawScheduler.getZookeeper();
+            gpuPolicy = rawScheduler.getGpuOptin();
         }
         // Fall back to defaults as needed, if either RawScheduler or a given RawScheduler field is missing:
         if (StringUtils.isEmpty(role)) {
@@ -61,6 +64,10 @@ public class YAMLToInternalMappers {
             zookeeper = SchedulerUtils.defaultZkHost();
         }
 
+        if (gpuPolicy == null) {
+            gpuPolicy = DEFAULT_GPU_POLICY;
+        }
+
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(rawSvcSpec.getName())
                 .role(role)
@@ -68,7 +75,7 @@ public class YAMLToInternalMappers {
                 .apiPort(apiPort)
                 .zookeeperConnection(zookeeper)
                 .webUrl(rawSvcSpec.getWebUrl())
-                .gpuResourcePolicy((rawSvcSpec.getGpuOptin() == null ? defaultGpuPolicy : rawSvcSpec.getGpuOptin()));
+                .gpuResourcePolicy(gpuPolicy);
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();

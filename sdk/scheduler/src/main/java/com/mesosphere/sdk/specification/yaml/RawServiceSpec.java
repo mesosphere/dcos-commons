@@ -14,21 +14,18 @@ public class RawServiceSpec {
     private final RawScheduler scheduler;
     private final WriteOnceLinkedHashMap<String, RawPod> pods;
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
-    private final Boolean gpuOptin;
 
     private RawServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("scheduler") RawScheduler scheduler,
             @JsonProperty("pods") WriteOnceLinkedHashMap<String, RawPod> pods,
-            @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans,
-            @JsonProperty("gpu-optin") Boolean gpuFlag) {
+            @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans) {
         this.name = name;
         this.webUrl = webUrl;
         this.scheduler = scheduler;
         this.pods = pods;
         this.plans = plans;
-        this.gpuOptin = gpuFlag;
     }
 
     public String getName() {
@@ -39,9 +36,7 @@ public class RawServiceSpec {
         return webUrl;
     }
 
-    public RawScheduler getScheduler() {
-        return scheduler;
-    }
+    public RawScheduler getScheduler() { return scheduler; }
 
     public LinkedHashMap<String, RawPod> getPods() {
         return pods;
@@ -50,8 +45,6 @@ public class RawServiceSpec {
     public WriteOnceLinkedHashMap<String, RawPlan> getPlans() {
         return plans;
     }
-
-    public Boolean getGpuOptin() { return gpuOptin; }
 }
 
 

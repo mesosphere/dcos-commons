@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
+
 /**
  * Default implementation of {@link ServiceSpec}.
  */
@@ -54,7 +56,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Valid
     private ReplacementFailurePolicy replacementFailurePolicy;
 
-    @Valid
+    @NotNull
     private Boolean gpuOptin;
 
     @JsonCreator
@@ -78,7 +80,9 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.gpuOptin = gpuFlag;
+        // If we're using the YAML then gpuFlag should never be null, however it's possible for someone to
+        // pass null when using the java api, so we add the default policy here as well
+        this.gpuOptin = gpuFlag == null ? DEFAULT_GPU_POLICY : gpuFlag;
         ValidationUtils.validate(this);
     }
 
@@ -154,10 +158,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public Boolean getGpuOptin() {
-        Boolean defaultGpuPolicy = false;
-        return gpuOptin == null ? defaultGpuPolicy : gpuOptin;
-    }
+    public Boolean getGpuOptin() { return gpuOptin; }
 
     @Override
     public boolean equals(Object o) {
@@ -299,7 +300,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
-        private Boolean gpuOptin = false;
+        private Boolean gpuOptin;
 
         private Builder() {
         }
