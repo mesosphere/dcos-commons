@@ -10,7 +10,7 @@ enterprise: 'no'
 To start a basic cluster with three master nodes, two data nodes, one ingest node, one coordinator node, and one Kibana instance, run the following command on the DC/OS CLI:
 
 ```bash
-dcos package install elastic
+$ dcos package install elastic
 ```
 
 This command creates a new Elasticsearch cluster with the default name `elastic`. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires customizing the `name` at install time for each additional instance.
@@ -37,7 +37,7 @@ You can customize the Elastic cluster in a variety of ways by specifying a JSON 
 The command below creates a cluster using a `options.json` file:
 
 ```bash
-dcos package install elastic --options=options.json 
+$ dcos package install elastic --options=options.json 
 ```
 
 # Multiple Elastic Cluster Installation
@@ -56,7 +56,7 @@ Sample JSON options file named `another-cluster.json`:
 The command below creates a cluster using `another-cluster.json`:
 
 ```bash
-dcos package install elastic --options=another-cluster.json
+$ dcos package install elastic --options=another-cluster.json
 ```
 
 See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.
