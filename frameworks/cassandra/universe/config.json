@@ -369,6 +369,156 @@
           "type": "integer",
           "description": "The total size of the commit log in Mb.",
           "default": 8192
+        },
+        "roles_update_interval_in_ms": {
+          "type": "integer",
+          "description": "The refresh interval for the roles cache",
+          "default": 1000
+        },
+        "permissions_update_interval_in_ms": {
+          "type": "integer",
+          "description": "The refresh interval for the permissions cache",
+          "default": 1000
+        },
+        "key_cache_keys_to_save": {
+          "type": "integer",
+          "description": "The number of keys from the key cache to save",
+          "default": 100
+        },
+        "row_cache_keys_to_save": {
+          "type": "integer",
+          "description": "The number of keys from the row cache to save",
+          "default": 100
+        },
+        "counter_cache_keys_to_save": {
+          "type": "integer",
+          "description": "The number of keys from the counter cache to save",
+          "default": 100
+        },
+        "file_cache_size_in_mb": {
+          "type": "integer",
+          "description": "The total memory to use for SSTable-reading buffers",
+          "default": 512
+        },
+        "memtable_heap_space_in_mb": {
+          "type": "integer",
+          "description": "The amount of on-heap memory allocated for memtables",
+          "default": 2048
+        },
+        "memtable_offheap_space_in_mb": {
+          "type": "integer",
+          "description": "The total amount of off-heap memory allocated for memtables",
+          "default": 2048
+        },
+        "memtable_cleanup_threshold": {
+          "type": "number",
+          "description": "The ratio used for automatic memtable flush",
+          "default": 0.11
+        },
+        "memtable_flush_writers": {
+          "type": "integer",
+          "description": "The number of memtable flush writer threads",
+          "default": 8
+        },
+        "listen_on_broadcast_address": {
+          "type": "boolean",
+          "description": "Listen on the address set in broadcast_address property",
+          "default": false
+        },
+        "internode_authenticator": {
+          "type": "string",
+          "description": "The internode authentication backend",
+          "default": "org.apache.cassandra.auth.AllowAllInternodeAuthenticator"
+        },
+        "native_transport_max_threads": {
+          "type": "integer",
+          "description": "The maximum number of thread handling requests",
+          "default": 128
+        },
+        "native_transport_max_frame_size_in_mb": {
+          "type": "integer",
+          "description": "The maximum allowed size of a frame",
+          "default": 256
+        },
+        "native_transport_max_concurrent_connections": {
+          "type": "integer",
+          "description": "The maximum number of concurrent client connections",
+          "default": -1
+        },
+        "native_transport_max_concurrent_connections_per_ip": {
+          "type": "integer",
+          "description": "The maximum number of concurrent client connections per source IP address",
+          "default": -1
+        },
+        "rpc_min_threads": {
+          "type": "integer",
+          "description": "The minimum thread pool size for remote procedure calls",
+          "default": 16
+        },
+        "rpc_max_threads": {
+          "type": "integer",
+          "description": "The maximum thread pool size for remote procedure calls",
+          "default": 2048
+        },
+        "rpc_send_buff_size_in_bytes": {
+          "type": "integer",
+          "description": "The sending socket buffer size in bytes for remote procedure calls",
+          "default": 16384
+        },
+        "rpc_recv_buff_size_in_bytes": {
+          "type": "integer",
+          "description": "The receiving socket buffer size for remote procedure calls",
+          "default": 16384
+        },
+        "concurrent_compactors": {
+          "type": "integer",
+          "description": "The number of concurrent compaction processes allowed to run simultaneously on a node",
+          "default": 1
+        },
+        "stream_throughput_outbound_megabits_per_sec": {
+          "type": "integer",
+          "description": "The maximum throughput of all outbound streaming file transfers on a node",
+          "default": 200
+        },
+        "inter_dc_stream_throughput_outbound_megabits_per_sec": {
+          "type": "integer",
+          "description": "The maximum throughput of all streaming file transfers between datacenters",
+          "default": 200
+        },
+        "streaming_socket_timeout_in_ms": {
+          "type": "integer",
+          "description": "The socket timeout for streaming operations",
+          "default": 3600000
+        },
+        "phi_convict_threshold": {
+          "type": "integer",
+          "description": "The sensitivity of the failure detector on an exponential scale",
+          "default": 8
+        },
+        "buffer_pool_use_heap_if_exhausted": {
+          "type": "boolean",
+          "description": "Allocate on-heap memory when the SSTable buffer pool is exhausted",
+          "default": true
+        },
+        "disk_optimization_strategy": {
+          "type": "string",
+          "description": "The strategy for optimizing disk reads",
+          "default": "ssd"
+        },
+        "streaming_socket_timeout_in_ms": {
+          "type": "integer",
+          "description": "The socket timeout for streaming operations",
+          "default": 86400000
+        },
+        "max_value_size_in_mb": {
+          "type": "integer",
+          "description": "The maximum size of any value in SSTables",
+          "default": 256
+        },
+        "otc_coalescing_strategy": {
+          "type": "string",
+          "description": "The strategy to use for coalescing network messages",
+          "default": "TIMEHORIZON"
         }
       },
       "additionalProperties": false,
@@ -420,7 +570,37 @@
         "max_hints_file_size_in_mb",
         "hints_flush_period_in_ms",
         "concurrent_materialized_view_writes",
-        "commitlog_total_space_in_mb"
+        "commitlog_total_space_in_mb",
+        "roles_update_interval_in_ms",
+        "permissions_update_interval_in_ms",
+        "key_cache_keys_to_save",
+        "row_cache_keys_to_save",
+        "counter_cache_keys_to_save",
+        "file_cache_size_in_mb",
+        "memtable_heap_space_in_mb",
+        "memtable_offheap_space_in_mb",
+        "memtable_cleanup_threshold",
+        "memtable_flush_writers",
+        "listen_on_broadcast_address",
+        "internode_authenticator",
+        "native_transport_max_threads",
+        "native_transport_max_frame_size_in_mb",
+        "native_transport_max_concurrent_connections",
+        "native_transport_max_concurrent_connections_per_ip",
+        "rpc_min_threads",
+        "rpc_max_threads",
+        "rpc_send_buff_size_in_bytes",
+        "rpc_recv_buff_size_in_bytes",
+        "concurrent_compactors",
+        "stream_throughput_outbound_megabits_per_sec",
+        "inter_dc_stream_throughput_outbound_megabits_per_sec",
+        "streaming_socket_timeout_in_ms",
+        "phi_convict_threshold",
+        "buffer_pool_use_heap_if_exhausted",
+        "disk_optimization_strategy",
+        "streaming_socket_timeout_in_ms",
+        "max_value_size_in_mb",
+        "otc_coalescing_strategy"
       ]
     }
   }
