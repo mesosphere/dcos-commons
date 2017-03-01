@@ -159,18 +159,25 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                 LOGGER.info("Task {} configuration ID matches target: {}",
                         taskInfo.getName(), taskConfigId);
             } else {
-                final ServiceSpec taskConfig = configStore.fetch(taskConfigId);
-                if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
-                    // Task is effectively already on the target config. Update task's config ID to match target,
-                    // and allow the duplicate config to be dropped from configStore.
-                    LOGGER.info("Task {} config {} is identical to target {}. Updating task configuration to {}.",
-                            taskInfo.getName(), taskConfigId, targetConfigId, targetConfigId);
-                    taskInfosToUpdate.add(
-                            CommonTaskUtils.setTargetConfiguration(taskInfo.toBuilder(), targetConfigId).build());
-                } else {
-                    // Config isn't the same as the target. Refrain from updating task, mark config as 'needed'.
-                    LOGGER.info("Task {} config {} differs from target {}. Leaving task as-is.",
-                            taskInfo.getName(), taskConfigId, targetConfigId);
+                try {
+                    final ServiceSpec taskConfig = configStore.fetch(taskConfigId);
+                    if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
+                        // Task is effectively already on the target config. Update task's config ID to match target,
+                        // and allow the duplicate config to be dropped from configStore.
+                        LOGGER.info("Task {} config {} is identical to target {}. Updating task configuration to {}.",
+                                taskInfo.getName(), taskConfigId, targetConfigId, targetConfigId);
+                        taskInfosToUpdate.add(
+                                CommonTaskUtils.setTargetConfiguration(taskInfo.toBuilder(), targetConfigId).build());
+                    } else {
+                        // Config isn't the same as the target. Refrain from updating task, mark config as 'needed'.
+                        LOGGER.info("Task {} config {} differs from target {}. Leaving task as-is.",
+                                taskInfo.getName(), taskConfigId, targetConfigId);
+                        neededConfigs.add(taskConfigId);
+                    }
+                } catch (Exception e) {
+                    LOGGER.info("Can not fetch configuration taskConfigId {} for task {}",
+                            taskConfigId, taskInfo.getName());
+                    LOGGER.error("TaskInfo has incompatible configuration.", e);
                     neededConfigs.add(taskConfigId);
                 }
             }
@@ -211,11 +218,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             ServiceSpec targetConfig,
             ServiceSpec taskConfig) {
         LOGGER.info("Checking whether config update is needed for task: {}", taskInfo.getName());
-
-        if (targetConfig.equals(taskConfig)) {
-            LOGGER.info("Configurations are equal, no update needed for task: {}", taskInfo.getName());
-            return false;
-        }
 
         Optional<PodSpec> targetSpecOptional = getPodSpec(taskInfo, targetConfig);
         Optional<PodSpec> taskSpecOptional = getPodSpec(taskInfo, taskConfig);
