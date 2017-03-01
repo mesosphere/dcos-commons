@@ -8,7 +8,7 @@
           "name" : {
             "description":"Apache Kafka",
             "type":"string",
-            "default":"apache-kafka"
+            "default":"kafka"
           },
           "mesos_api_version" : {
             "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
@@ -28,7 +28,7 @@
           "principal": {
             "description": "The principal for the Kafka service instance.",
             "type": "string",
-            "default": "apache-kafka-principal"
+            "default": "kafka-principal"
           },
           "secret_name": {
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
@@ -70,7 +70,7 @@
             "properties":{
               "size": {
                 "type":"integer",
-                "description":"The amound of JVM heap, in MB, allocated to the Kafka broker process.",
+                "description":"The amount of JVM heap, in MB, allocated to the Kafka broker process.",
                 "default": 2048
               }
             },
@@ -92,7 +92,7 @@
           "disk_path": {
             "type": "string",
             "description": "Relative path of consistent disk",
-            "default": "kafka_broker-data"
+            "default": "kafka-broker-data"
           },
           "count":{
             "description":"Number of brokers to run",

@@ -9,6 +9,8 @@ pods:
     uris:
       - {{KAFKA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{EXECUTOR_URI}}
+      - {{LIBMESOS_URI}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
@@ -17,17 +19,22 @@ pods:
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
+            vip:
+              prefix: broker
+              port: 9092
           {{#BROKER_JMX_PORT}}
           jmx:
-            port: {{JMX_PORT}}
+            port: {{BROKER_JMX_PORT}}
             env-key: JMX_PORT
           {{/BROKER_JMX_PORT}}
         volume:
-          path: {{BROKER_DATA_PATH}}
+          path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
           size: {{BROKER_DISK_SIZE}}
         env:
           KAFKA_ZOOKEEPER_URI: "{{MESOS_ZOOKEEPER_URI}}/dcos-service-{{FRAMEWORK_NAME}}"
+          KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
+          KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
         cmd: "./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"
         configs:
