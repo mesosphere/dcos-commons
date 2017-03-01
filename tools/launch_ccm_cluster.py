@@ -213,6 +213,7 @@ class CCMLauncher(object):
             hostrepo, config.ccm_channel, config.cf_template)
         if config.template_url:
             template_url = config.template_url
+            logger.info("Accepting externally provided template_url from environment.")
         cluster_name = config.name_prefix + self._rand_str(8)
         payload = {
             'template_url': template_url,
