@@ -55,9 +55,10 @@ if [ -z "$CLUSTER_URL" ]; then
     export CCM_AGENTS=5
     CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
     echo "Launched cluster: ${CLUSTER_INFO}"
-    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq .url)
+    # jq emits json strings by default: "value".  Use --raw-output to get value without quotes
+    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
     export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
-    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq .auth_token)
+    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
 else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
 fi
