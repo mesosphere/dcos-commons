@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
@@ -10,7 +11,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -40,6 +43,9 @@ type args struct {
 	templateEnabled bool
 	// Max supported bytes or 0 for no limit
 	templateMaxBytes int64
+
+	// Install certs from .ssl into JRE/lib/security/cacerts
+	installCerts bool
 }
 
 func parseArgs() args {
@@ -64,6 +70,9 @@ func parseArgs() args {
 			"env vars.", configTemplatePrefix))
 	flag.Int64Var(&args.templateMaxBytes, "template-max-bytes", 1024 * 1024,
 		"Largest template file that may be processed, or zero for no limit.")
+	flag.BoolVar(&args.installCerts, "install-certs", true,
+		"Whether to install certs from .ssl to the JRE.")
+
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
@@ -251,6 +260,75 @@ func renderTemplates(templateMaxBytes int64) {
 	}
 }
 
+func installDCOSCertIntoJRE() {
+	mesosSandbox := os.Getenv("MESOS_SANDBOX")
+	sslDir := filepath.Join(mesosSandbox, ".ssl")
+
+	// Check if .ssl directory is present
+	sslDirExists, err := isDir(sslDir)
+	if !sslDirExists || err != nil {
+		log.Printf("No $MESOS_SANDBOX/.ssl directory found. Cannot install certificate. Error: %s", err)
+		return
+	}
+
+	// Check if .ssl/ca.crt certificate is present
+	certPath := filepath.Join(mesosSandbox, ".ssl", "ca.crt")
+	certExists, err := isFile(certPath)
+	if !certExists || err != nil {
+		log.Printf("No $MESOS_SANDBOX/.ssl/ca.crt file found. Cannot install certificate. Error: %s", err)
+		return
+	}
+
+	javaHome := os.Getenv("JAVA_HOME")
+	if len(javaHome) == 0 {
+		log.Printf("No JAVA_HOME provided. Cannot install certs.")
+		return
+	}
+
+	cacertsPath := filepath.Join(javaHome, "lib", "security", "cacerts")
+	keytoolPath := filepath.Join(javaHome, "bin", "keytool")
+	cmd := exec.Command(keytoolPath, "-importcert", "-noprompt", "-alias", "dcoscert", "-keystore", cacertsPath,
+		"-file", certPath, "-storepass", "changeit")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		log.Printf("Failed to install the certificate. Error: %s", err)
+		return
+	}
+	log.Println("Successfully installed the certificate.")
+}
+
+func isDir(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	mode := fi.Mode()
+	if mode.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+func isFile(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	mode := fi.Mode()
+	if mode.IsRegular() {
+		return true, nil
+	}
+	return false, nil
+}
+
 // main
 
 func main() {
@@ -272,5 +350,9 @@ func main() {
 		log.Printf("Template handling disabled via -template=false: Skipping any config templates")
 	}
 
-	log.Printf("SDK bootstrap successful.")
+	if (args.installCerts) {
+		installDCOSCertIntoJRE()
+	}
+
+	log.Printf("SDK Bootstrap successful.")
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>ssl.server.keystore.type</name>
+        <value>jks</value>
+    </property>
+    <property>
+        <name>ssl.server.keystore.keypassword</name>
+        <value>changeit</value>
+    </property>
+    <property>
+        <name>ssl.server.keystore.password</name>
+        <value>changeit</value>
+    </property>
+    <property>
+        <name>ssl.server.keystore.location</name>
+        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
+    </property>
+    <property>
+        <name>ssl.server.truststore.type</name>
+        <value>jks</value>
+    </property>
+    <property>
+        <name>ssl.server.truststore.location</name>
+        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
+    </property>
+    <property>
+        <name>ssl.server.truststore.password</name>
+        <value>changeit</value>
+    </property>
+</configuration>
