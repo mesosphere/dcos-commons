@@ -233,14 +233,16 @@ class CCMLauncher(object):
   mountvols={}
   permissions={}
   channel={}
-  template={}'''.format(
+  template={}
+  template_url={}'''.format(
       cluster_name,
       config.private_agents, config.public_agents,
       config.duration_mins,
       config.mount_volumes,
       config.permissions,
       config.ccm_channel,
-      config.cf_template))
+      config.cf_template,
+      template_url))
         response = self._query_http('POST', self._CCM_PATH, request_json_payload=payload)
         if not response:
             raise Exception('CCM cluster creation request failed')
