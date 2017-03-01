@@ -166,14 +166,14 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 // template download/read and render
 
 func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
-	info, err := os.Stat(inPath)
+	sandboxDir, found := os.LookupEnv("MESOS_SANDBOX")
+	if !found {
+		log.Fatalf("Missing required envvar: MESOS_SANDBOX")
+	}
+	templatePath := path.Join(sandboxDir, inPath)
+	info, err := os.Stat(templatePath)
 	if err != nil && os.IsNotExist(err) {
-		cwd, err := os.Getwd()
-		if err != nil {
-			cwd = err.Error()
-		}
-		log.Fatalf("Path from %s doesn't exist: %s (cwd=%s)",
-			source, inPath, cwd)
+		log.Fatalf("Path from %s doesn't exist: %s", source, templatePath)
 	}
 	if !info.Mode().IsRegular() {
 		cwd, err := os.Getwd()
@@ -181,16 +181,16 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 			cwd = err.Error()
 		}
 		log.Fatalf("Path from %s is not a regular file: %s (cwd=%s)",
-			source, inPath, cwd)
+			source, templatePath, cwd)
 	}
 	if templateMaxBytes != 0 && info.Size() > templateMaxBytes {
 		log.Fatalf("File '%s' from %s is %d bytes, exceeds maximum %d bytes",
-			inPath, source, info.Size(), templateMaxBytes)
+			templatePath, source, info.Size(), templateMaxBytes)
 	}
 
-	data, err := ioutil.ReadFile(inPath)
+	data, err := ioutil.ReadFile(templatePath)
 	if err != nil {
-		log.Fatalf("Failed to read file from %s at '%s': %s", source, inPath, err)
+		log.Fatalf("Failed to read file from %s at '%s': %s", source, templatePath, err)
 	}
 	return data
 }
