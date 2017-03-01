@@ -210,19 +210,20 @@ public class CuratorStateStore implements StateStore {
         }
         */
 
-        // TODO(mb):  investigate Zookeeper ordering !!! alphabetical order?
-        /*   Get the last Task that matches TaskID
-           Here we rely on ZK ordering: assuming that last entered will be retrieved last
-           */
         for (Protos.TaskInfo taskInfo : fetchTasks()) {
             if (taskInfo.getTaskId().equals(status.getTaskId())) {
+                if (optionalTaskName.isPresent()) {
+                    logger.error("Found duplicate TaskIDs encountered in Task {} and Task {}",
+                            optionalTaskName.get(), taskInfo.getName());
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "There are more than one tasks with the same TaskID: %s", status));
+                }
                 optionalTaskName = Optional.of(taskInfo.getName());
-                //break; // do not break, get the latest
             }
         }
         if (!optionalTaskName.isPresent()) {
             throw new StateStoreException(Reason.NOT_FOUND, String.format(
-                    "Failed to find a task with matching TaskStatus.task_id: %s", status));
+                    "Failed to find a task with TaskID: %s", status));
         }
 
         storeStatus(optionalTaskName.get(), status);

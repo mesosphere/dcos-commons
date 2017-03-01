@@ -33,7 +33,7 @@ pods:
           size: {{BROKER_DISK_SIZE}}
         env:
           KAFKA_ZOOKEEPER_URI: "{{MESOS_ZOOKEEPER_URI}}/dcos-service-{{FRAMEWORK_NAME}}"
-          KAFKA_DISK_PATH: "{{BROKER_DATA_PATH}}"
+          KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
         cmd: "./bootstrap -resolve=false && exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties"

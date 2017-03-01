@@ -57,7 +57,7 @@
               "cleanup":{
                 "description": "Clean up old TaskInfo and old TaskStatus after Upgrade.",
                 "type": "boolean",
-                "default": true
+                "default": false
               }
             }
           }

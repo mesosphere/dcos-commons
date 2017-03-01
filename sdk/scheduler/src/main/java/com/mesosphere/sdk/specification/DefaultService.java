@@ -52,7 +52,7 @@ public class DefaultService implements Service {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
     }
 
-    public DefaultService() throws Exception {
+    public DefaultService() {
         //No initialization needed
     }
 

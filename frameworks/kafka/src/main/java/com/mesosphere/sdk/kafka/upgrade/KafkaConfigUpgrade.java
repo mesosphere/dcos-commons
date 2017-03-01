@@ -5,6 +5,8 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.curator.CuratorConfigStore;
+import com.mesosphere.sdk.curator.CuratorStateStore;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.upgrade.old.KafkaSchedulerConfiguration;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.TaskException;
@@ -16,24 +18,37 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Create an intermediate Configuration with ServiceSpec type.
+ * Create an intermediate configuration in ServiceSpec format.
  * Create new TaskInfo and TaskStatus with new format and new name.
  */
-public class ConfigUpgrade {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(ConfigUpgrade.class);
+public class KafkaConfigUpgrade {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaConfigUpgrade.class);
 
     private final StateStore stateStore;
     private UUID oldTargetId;
     private UUID newTargetId;
     private ConfigStore<ServiceSpec> configStore;
+    private String newPath;
+    /**
+     *  KafkaConfigUpgrade.
+     */
+    public static class KafkaConfigUpgradeException extends IOException {
+        public KafkaConfigUpgradeException(String message){
+            super(message);
+        }
+    }
 
-    public ConfigUpgrade(ServiceSpec serviceSpec, StateStore stateStore) throws Exception {
-        this.stateStore = stateStore;
+    /**
+     *  KafkaConfigUpgrade.
+     */
+    public KafkaConfigUpgrade(ServiceSpec serviceSpec) throws Exception {
+        this.stateStore = new CuratorStateStore(serviceSpec.getName(), DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
         startUpgrade(serviceSpec);
     }
 
@@ -51,9 +66,9 @@ public class ConfigUpgrade {
         this.configStore  = createConfigStore(serviceSpec);
 
         if (!verifyOldTasks(oldTargetId)){
-            throw new ConfigUpgradeException("Aborting Kafka Configuration Upgrade !!!");
+            throw new KafkaConfigUpgradeException("Aborting Kafka Configuration Upgrade !!!");
         }
-
+        verifyNewSpec(serviceSpec);
         ServiceSpec newServiceSpec = generateServiceSpec(kafkaSchedulerConfiguration.get(), serviceSpec);
 
         LOGGER.info("\n ---------------------------------------------------- \n " +
@@ -76,13 +91,15 @@ public class ConfigUpgrade {
             stateStore.storeStatus(entry.getKey(), entry.getValue());
         }
 
+        configStore.setTargetConfig(newTargetId);
+
         if (cleanup()) {
             for (String oldName : oldTaskNames) {
                 stateStore.clearTask(oldName);
             }
+            configStore.clear(oldTargetId);
         }
 
-        configStore.setTargetConfig(newTargetId);
         LOGGER.info("\n ---------------------------------------------------- \n " +
                     "          Kafka Configuration Upgrade complete. \n" +
                     " ---------------------------------------------------- ");
@@ -93,7 +110,7 @@ public class ConfigUpgrade {
             final UUID taskConfigId;
 
             if (getOldTaskNames(ImmutableList.of(taskInfo.getName())).size() <= 0) {
-                LOGGER.info("Skipping task {} in before Upgrade Verification.", taskInfo.getName());
+                LOGGER.info("Skipping task {} for verification.", taskInfo.getName());
                 continue;
             }
             try {
@@ -125,6 +142,26 @@ public class ConfigUpgrade {
         return true;
     }
 
+    private  void verifyNewSpec(ServiceSpec serviceSpec) throws KafkaConfigUpgradeException{
+        // This is a custom Upgrade: I do not know how to proceed if there
+        //                  are multiple tasks, or multiple volumes, or multiple pods,
+        //                  or there is no volume, etc.!
+        if (serviceSpec.getPods().size() != 1
+                || serviceSpec.getPods().get(0).getTasks().size() != 1
+                || serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet().getVolumes().size() != 1) {
+            LOGGER.error("New config {}: number of pods {}, number of Tasks in first pod {}, " +
+                            "number of Volumes in first task{} ",
+                    serviceSpec.getName(),
+                    serviceSpec.getPods().size(),
+                    serviceSpec.getPods().get(0).getTasks().size(),
+                    serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet().getVolumes().size());
+            throw new KafkaConfigUpgradeException("New configuration is not compatible. I can not upgrade!");
+        }
+        // kafka-broker-data
+        this.newPath = serviceSpec.getPods().get(0).getTasks().get(0)
+                .getResourceSet().getVolumes().stream().findFirst().get().getContainerPath();
+    }
+
     private ConfigStore<ServiceSpec> createConfigStore(ServiceSpec serviceSpec) throws ConfigStoreException {
        return DefaultScheduler.createConfigStore(
                     serviceSpec,
@@ -152,7 +189,7 @@ public class ConfigUpgrade {
             LOGGER.info("disk size: " + kafkaSchedulerConfiguration.getBrokerConfiguration().getDisk());
 
         } catch (Exception e) {
-            LOGGER.error("Error while retrieving old Configuration to upgrade", e);
+            LOGGER.error("Error while retrieving old Configuration to upgrade", e.getMessage());
             return Optional.empty();
         }
         return Optional.of(kafkaSchedulerConfiguration);
@@ -160,37 +197,40 @@ public class ConfigUpgrade {
 
     private ServiceSpec generateServiceSpec(KafkaSchedulerConfiguration kafkaSchedulerConfiguration,
                                             ServiceSpec serviceSpec) {
-        /* TODO(mb): why I can not create RawPort. See below
+        /* TODO(mb): why I can not create RawPort. See below:
         LinkedHashMap<String, RawPort> portMap = new WriteOnceLinkedHashMap<>();
         portMap.put("broker",
                 new RawPort(
                         kafkaSchedulerConfiguration.getBrokerConfiguration()
                                 .getPort().intValue(),
                         null, null));
-        */
+        It will use previously reserved ports, since there are existing tasks,
+            no need to give ports to intermediate Spec */
         ResourceSet newResourceSet = DefaultResourceSet.newBuilder(
                 kafkaSchedulerConfiguration.getServiceConfiguration().getRole(),
                 kafkaSchedulerConfiguration.getServiceConfiguration().getPrincipal())
+                // it does not matter what name I gave to resource set
                 .id("broker-resource-set")
                 .addVolume(kafkaSchedulerConfiguration.getBrokerConfiguration().getDiskType(),
                         kafkaSchedulerConfiguration.getBrokerConfiguration().getDisk(),
-                        "kafka-broker-data")
+                        this.newPath)
                 .cpus(kafkaSchedulerConfiguration.getBrokerConfiguration().getCpus())
                 .memory(kafkaSchedulerConfiguration.getBrokerConfiguration().getMem())
                 // TODO(mb) .addPorts(portMap)
                 .build();
 
         TaskSpec newTaskSpec = DefaultTaskSpec.newBuilder()
-                .name("broker")
-                .goalState(GoalState.RUNNING)
-                //  No commandSpec empty so both Specs will not be equal.
+                .name(serviceSpec.getPods().get(0).getTasks().get(0).getName())
+                // it should be always RUNNING i.e.  .goalState(GoalState.RUNNING)
+                .goalState(serviceSpec.getPods().get(0).getTasks().get(0).getGoal())
+                //  No commandSpec, to guarantee Specs will not be equal.
                 .resourceSet(newResourceSet)
                 .build();
 
         PodSpec newPodSpec = DefaultPodSpec.newBuilder()
                 .user(kafkaSchedulerConfiguration.getServiceConfiguration().getUser())
                 .count(kafkaSchedulerConfiguration.getServiceConfiguration().getCount())
-                .type("kafka")
+                .type(serviceSpec.getPods().get(0).getType())
                 .addTask(newTaskSpec)
                 .build();
 
@@ -206,7 +246,7 @@ public class ConfigUpgrade {
     }
 
     private Collection<Protos.TaskInfo> generateTaskInfos(Collection<String> oldTaskNames,
-                                 ServiceSpec newServiceSpec) throws  ConfigUpgradeException {
+                                 ServiceSpec newServiceSpec) throws  KafkaConfigUpgradeException {
         List<Protos.TaskInfo> taskInfoList = new ArrayList<>();
 
         for (String oldTaskName : oldTaskNames) {
@@ -215,7 +255,7 @@ public class ConfigUpgrade {
 
             Optional<Protos.TaskInfo> oldTaskInfo = stateStore.fetchTask(oldTaskName);
             if (!oldTaskInfo.isPresent()){
-                throw new ConfigUpgradeException("Can not fetch task info " + oldTaskName);
+                throw new KafkaConfigUpgradeException("Can not fetch task info " + oldTaskName);
             }
 
             LOGGER.info("Task {} old TaskInfo: ", oldTaskInfo.get().getName(), oldTaskInfo);
@@ -234,6 +274,7 @@ public class ConfigUpgrade {
                     resourcesList.add(resource);
                     continue;
                 }
+
                 LOGGER.info("old disk resource : {}", resource);
 
                 //volume.toBuilder() was complaining that mode is not set, so setting everything manually
@@ -241,7 +282,7 @@ public class ConfigUpgrade {
                 Protos.Volume volume = diskInfo.getVolume();
                 Protos.Volume.Builder volumeBuilder = volume.toBuilder();
                 Protos.Volume newVolume = volumeBuilder.setSource(volume.getSource())
-                        .setContainerPath("kafka-broker-data")
+                        .setContainerPath(this.newPath) //kafka-broker-data
                         .setMode(volume.getMode())
                         .build();
 
@@ -273,7 +314,7 @@ public class ConfigUpgrade {
     }
 
     private Map<String, Protos.TaskStatus> generateStatusMap(Collection<String> oldTaskNames)
-            throws ConfigUpgradeException{
+            throws KafkaConfigUpgradeException{
         Map<String, Protos.TaskStatus> taskStatusMap = new HashMap<>();
 
         for (String oldTaskName : oldTaskNames) {
@@ -281,7 +322,7 @@ public class ConfigUpgrade {
             String newName = getNewTaskName(brokerId);
             Optional<Protos.TaskStatus> optionalStatus = stateStore.fetchStatus(oldTaskName);
             if (!optionalStatus.isPresent()){
-                throw new ConfigUpgradeException("Can not fetch status for Task " + oldTaskName);
+                throw new KafkaConfigUpgradeException("Can not fetch status for Task " + oldTaskName);
             }
             taskStatusMap.put(newName, optionalStatus.get());
         }

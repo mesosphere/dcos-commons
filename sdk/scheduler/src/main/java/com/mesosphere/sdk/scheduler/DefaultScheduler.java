@@ -361,7 +361,6 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     public static StateStore createStateStore(ServiceSpec serviceSpec, String zkConnectionString) {
         return StateStoreCache.getInstance(new CuratorStateStore(serviceSpec.getName(), zkConnectionString));
-        //return new CuratorStateStore(serviceSpec.getName(), zkConnectionString);
     }
 
     /**
