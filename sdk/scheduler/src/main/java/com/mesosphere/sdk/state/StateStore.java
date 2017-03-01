@@ -86,7 +86,7 @@ public interface StateStore {
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
      *                             TaskInfo wasn't stored first
      */
-    void storeStatus(String name, TaskStatus status) throws StateStoreException;
+    void putStatus(String name, TaskStatus status) throws StateStoreException;
 
 
 

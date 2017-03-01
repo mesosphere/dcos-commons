@@ -193,47 +193,27 @@ public class CuratorStateStore implements StateStore {
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
         Optional<String> optionalTaskName = Optional.empty();
-
-        //TODO(MB): keep the commented code below: original approach for getting TaskName
-        /* We used to get TaskName from TaskID's prefix, instead of comparing TaskIDs.
-           TaskID is our unique identifier, can not change, but we can modify TaskName
-
-           Getting TaskName from prefix may be more efficient, however it prevents us from changing TaskName.
-           For further investigation, keep the commented code below:
-         */
-        /*
-        try {
-            optionalTaskName = Optional.of(CommonTaskUtils.toTaskName(status.getTaskId()));
-        } catch (TaskException e) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
-        }
-        */
-
         for (Protos.TaskInfo taskInfo : fetchTasks()) {
-            if (taskInfo.getTaskId().equals(status.getTaskId())) {
+            if (taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
                 if (optionalTaskName.isPresent()) {
-                    logger.error("Found identical task ids in Task {} and  Task {}",
+                    logger.error("Found duplicate taskIDs in Task {} and  Task {}",
                             optionalTaskName.get(), taskInfo.getName());
                     throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                            "There are more than one tasks with the same TaskStatus.task_id: %s", status));
+                            "There are more than one tasks with TaskID: %s", status));
                 }
                     optionalTaskName = Optional.of(taskInfo.getName());
             }
         }
         if (!optionalTaskName.isPresent()) {
             throw new StateStoreException(Reason.NOT_FOUND, String.format(
-                    "Failed to find a task with matching TaskStatus.task_id: %s", status));
+                    "Failed to find a task with TaskID: %s", status));
         }
-
-        storeStatus(optionalTaskName.get(), status);
+        putStatus(optionalTaskName.get(), status);
     }
 
     @Override
-    public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
-        // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
-        // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
-        // occasionally get these for stale tasks that have since been changed (with new UUIDs).
+    public void putStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
+        //putStatus(taskName, status) is the only way to update status if there are duplicate taskIDs.
         Optional<Protos.TaskInfo> optionalTaskInfo;
         try {
             optionalTaskInfo = fetchTask(taskName);
@@ -256,8 +236,6 @@ public class CuratorStateStore implements StateStore {
                     status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
                     status, optionalTaskInfo));
         }
-        /*  All checks till here are redundant if we get TaskName via looking at matching TaskIDs */
-
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
         if (currentStatusOptional.isPresent()
