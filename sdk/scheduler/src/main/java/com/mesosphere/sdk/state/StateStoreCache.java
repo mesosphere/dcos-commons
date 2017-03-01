@@ -178,6 +178,17 @@ public class StateStoreCache implements StateStore {
     }
 
     @Override
+    public void storeStatus(String name, TaskStatus status) throws StateStoreException {
+        RWLOCK.lock();
+        try {
+            store.storeStatus(name, status);
+            nameToStatus.put(name, status);
+        } finally {
+            RWLOCK.unlock();
+        }
+    }
+
+    @Override
     public void clearTask(String taskName) throws StateStoreException {
         RWLOCK.lock();
         try {
