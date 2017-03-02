@@ -32,7 +32,7 @@ backend {name}
     reqirep  "^([^ :]*)\ {incomingpath}/?(.*)" "\\1\ {outgoingpath}/\\2"
     acl hdr_location res.hdr(Location) -m found
     rspirep "^Location: (https?://{hostname}(:[0-9]+)?)?{outgoingpath}(/.*)" "Location: {incomingpath}\\3" if hdr_location
-    server x{name}x {fullhost} {ssl}
+    server x{name}x {fullhost} resolvers dns check {ssl}
 
 """
 
