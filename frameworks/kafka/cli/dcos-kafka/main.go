@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	app, err := cli.NewApp("0.1.0", "Mesosphere", "Deploy and Manage Apache Kafka framework")
+	app, err := cli.NewApp("0.1.0", "Mesosphere", "Manage Apache Kafka framework")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
