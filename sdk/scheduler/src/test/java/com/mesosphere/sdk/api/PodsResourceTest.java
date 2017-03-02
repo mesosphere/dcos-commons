@@ -161,9 +161,10 @@ public class PodsResourceTest {
         assertEquals("TASK_RUNNING", task.getString("state"));
 
         task = pod.getJSONObject(3);
-        assertEquals(2, task.length());
+        assertEquals(3, task.length());
         assertEquals("d", task.getString("name"));
         assertTrue(task.getString("id").startsWith("d__"));
+        assertEquals("No state defined", task.getString("state"));
 
         pod = json.getJSONArray("test-1");
         assertEquals(2, pod.length());
