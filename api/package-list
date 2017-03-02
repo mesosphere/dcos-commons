@@ -10,6 +10,7 @@ com.mesosphere.sdk.executor
 com.mesosphere.sdk.hdfs.scheduler
 com.mesosphere.sdk.helloworld.scheduler
 com.mesosphere.sdk.kafka.api
+com.mesosphere.sdk.kafka.cmd
 com.mesosphere.sdk.kafka.scheduler
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
@@ -23,6 +24,7 @@ com.mesosphere.sdk.scheduler.plan.strategy
 com.mesosphere.sdk.scheduler.recovery
 com.mesosphere.sdk.scheduler.recovery.constrain
 com.mesosphere.sdk.scheduler.recovery.monitor
+com.mesosphere.sdk.spark.scheduler
 com.mesosphere.sdk.specification
 com.mesosphere.sdk.specification.util
 com.mesosphere.sdk.specification.validation

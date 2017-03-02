@@ -203,13 +203,15 @@ font-style: italic;
   <li><a href="#endpointsGet"><code><span class="http-method">get</span> /endpoints</code></a></li>
   <li><a href="#endpointsNameGet"><code><span class="http-method">get</span> /endpoints/{name}</code></a></li>
   <li><a href="#plansGet"><code><span class="http-method">get</span> /plans</code></a></li>
-  <li><a href="#plansNameContinuePost"><code><span class="http-method">post</span> /plans/{name}/continue</code></a></li>
-  <li><a href="#plansNameForceCompletePost"><code><span class="http-method">post</span> /plans/{name}/forceComplete</code></a></li>
   <li><a href="#plansNameGet"><code><span class="http-method">get</span> /plans/{name}</code></a></li>
-  <li><a href="#plansNameInterruptPost"><code><span class="http-method">post</span> /plans/{name}/interrupt</code></a></li>
-  <li><a href="#plansNameRestartPost"><code><span class="http-method">post</span> /plans/{name}/restart</code></a></li>
   <li><a href="#plansNameStartPost"><code><span class="http-method">post</span> /plans/{name}/start</code></a></li>
   <li><a href="#plansNameStopPost"><code><span class="http-method">post</span> /plans/{name}/stop</code></a></li>
+  <li><a href="#plansPlanContinuePost"><code><span class="http-method">post</span> /plans/{plan}/continue</code></a></li>
+  <li><a href="#plansPlanForceCompletePost"><code><span class="http-method">post</span> /plans/{plan}/forceComplete</code></a></li>
+  <li><a href="#plansPlanInterruptPost"><code><span class="http-method">post</span> /plans/{plan}/interrupt</code></a></li>
+  <li><a href="#plansPlanPhaseContinuePost"><code><span class="http-method">post</span> /plans/{plan}/{phase}/continue</code></a></li>
+  <li><a href="#plansPlanPhaseInterruptPost"><code><span class="http-method">post</span> /plans/{plan}/{phase}/interrupt</code></a></li>
+  <li><a href="#plansPlanRestartPost"><code><span class="http-method">post</span> /plans/{plan}/restart</code></a></li>
   <li><a href="#podsGet"><code><span class="http-method">get</span> /pods</code></a></li>
   <li><a href="#podsNameInfoGet"><code><span class="http-method">get</span> /pods/{name}/info</code></a></li>
   <li><a href="#podsNameReplacePost"><code><span class="http-method">post</span> /pods/{name}/replace</code></a></li>
@@ -533,72 +535,6 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
-  <div class="method"><a name="plansNameContinuePost"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/continue</code></pre></div>
-    <div class="method-summary">Continues the execution of the plan. (<span class="nickname">plansNameContinuePost</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">name (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
-    </div>  <!-- field-items -->
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Received cmd continue.
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="plansNameForceCompletePost"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/forceComplete</code></pre></div>
-    <div class="method-summary">Force complete your plan. (<span class="nickname">plansNameForceCompletePost</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">name (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
-    </div>  <!-- field-items -->
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Received cmd forceComplete.
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
   <div class="method"><a name="plansNameGet"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -626,72 +562,6 @@ font-style: italic;
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
     List of the plan&#39;s contents.
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="plansNameInterruptPost"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/interrupt</code></pre></div>
-    <div class="method-summary">Interrupts the execution of the specified plan. (<span class="nickname">plansNameInterruptPost</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">name (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
-    </div>  <!-- field-items -->
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Received cmd interrupt.
-        <a href="#"></a>
-    <h4 class="field-label">404</h4>
-    Plan not found.
-        <a href="#"></a>
-  </div> <!-- method -->
-  <hr/>
-  <div class="method"><a name="plansNameRestartPost"/>
-    <div class="method-path">
-    <a class="up" href="#__Methods">Up</a>
-    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{name}/restart</code></pre></div>
-    <div class="method-summary">Restarts the specified plan regardless of its current state. (<span class="nickname">plansNameRestartPost</span>)</div>
-    <div class="method-notes"></div>
-
-    <h3 class="field-label">Path parameters</h3>
-    <div class="field-items">
-      <div class="param">name (required)</div>
-
-      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
-    </div>  <!-- field-items -->
-
-
-
-
-
-
-
-    <!--Todo: process Response Object and its headers, schema, examples -->
-
-
-
-    <h3 class="field-label">Responses</h3>
-    <h4 class="field-label">200</h4>
-    Received cmd restart.
         <a href="#"></a>
     <h4 class="field-label">404</h4>
     Plan not found.
@@ -758,6 +628,235 @@ font-style: italic;
     <h3 class="field-label">Responses</h3>
     <h4 class="field-label">200</h4>
     Received cmd: stop
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPlanContinuePost"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/continue</code></pre></div>
+    <div class="method-summary">Continues the execution of the plan. (<span class="nickname">plansPlanContinuePost</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">plan (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd continue.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPlanForceCompletePost"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/forceComplete</code></pre></div>
+    <div class="method-summary">Force complete your plan. (<span class="nickname">plansPlanForceCompletePost</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">plan (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">phase (required)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name or id of the phase. </div><div class="param">step (required)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name or id of the step. </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd forceComplete.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPlanInterruptPost"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/interrupt</code></pre></div>
+    <div class="method-summary">Interrupts the execution of the specified plan. (<span class="nickname">plansPlanInterruptPost</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">plan (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd interrupt.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPlanPhaseContinuePost"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/{phase}/continue</code></pre></div>
+    <div class="method-summary">Continues the execution of the phase. (<span class="nickname">plansPlanPhaseContinuePost</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">plan (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">phase (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name or id of the phase. </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd continue.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPlanPhaseInterruptPost"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/{phase}/interrupt</code></pre></div>
+    <div class="method-summary">Interrupts the execution of the specified phase. (<span class="nickname">plansPlanPhaseInterruptPost</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">plan (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">phase (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The name or id of the phase. </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd interrupt.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Plan not found.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="plansPlanRestartPost"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="post"><code class="huge"><span class="http-method">post</span> /plans/{plan}/restart</code></pre></div>
+    <div class="method-summary">Restarts the specified plan or step regardless of its current state. (<span class="nickname">plansPlanRestartPost</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">plan (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the plan. </div>
+    </div>  <!-- field-items -->
+
+
+
+
+    <h3 class="field-label">Query parameters</h3>
+    <div class="field-items">
+      <div class="param">phase (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The optional name or id of the phase. </div><div class="param">step (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Query Parameter</span> &mdash; The optional name or id of the step. </div>
+    </div>  <!-- field-items -->
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Received cmd restart.
+        <a href="#"></a>
+    <h4 class="field-label">400</h4>
+    Only one of phase/step is specified. Either both or neither must be provided.
         <a href="#"></a>
     <h4 class="field-label">404</h4>
     Plan not found.

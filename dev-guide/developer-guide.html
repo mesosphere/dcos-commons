@@ -30,6 +30,8 @@
   </tbody>
 </table>
 
+<!--  disable mustache templating in this file: retain templated examples as-is -->
+
 <p>This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services.</p>
 
 <h1 id="dcos-component-overview">DC/OS Component Overview</h1>
@@ -82,7 +84,7 @@
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">scheduler</span><span class="pi">:</span>
   <span class="s">principal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world-principal"</span>
-  <span class="s">api-port</span><span class="pi">:</span> 
+  <span class="s">api-port</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PORT_API</span><span class="pi">}}</span>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">hello-world-pod</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
@@ -430,25 +432,26 @@ ii. Determine scenario (install, update or no change)
 <p>These steps are discussed in more detail below.</p>
 
 <p><a name="define-target-config"></a></p>
+
 <h2 id="defining-a-target-configuration">Defining a Target Configuration</h2>
 
 <p>We previously described how a DC/OS service’s scheduler is a Marathon application.  Marathon applications define a particular declarative application definition, and DC/OS services constructed with the SDK define another, the <code class="highlighter-rouge">ServiceSpec</code>s and plans.</p>
 
-<p>This nested structure of declarative interfaces requires two layers of template rendering. First, the Marathon application definition must be rendered at initial install time from the combination of the marathon.json.mustache, config.json, and resource.json files. Then, the service’s YAML template is rendered using the environment variables presented to the scheduler. Let’s walk through the <a href="https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld">checked-in helloworld example</a>.  Pay particular attention to the templated values surrounded in curly braces, as in ``.</p>
+<p>This nested structure of declarative interfaces requires two layers of template rendering. First, the Marathon application definition must be rendered at initial install time from the combination of the marathon.json.mustache, config.json, and resource.json files. Then, the service’s YAML template is rendered using the environment variables presented to the scheduler. Let’s walk through the <a href="https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld">checked-in helloworld example</a>.  Pay particular attention to the templated values surrounded in curly braces, as in <code class="highlighter-rouge"><span class="p">{</span><span class="err">{value</span><span class="p">}</span><span class="err">}</span></code>.</p>
 
 <p>helloworld has a <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/universe/marathon.json.mustache">marathon.json.mustache template</a> which, in part, looks as follows:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
 </span><span class="err">...</span><span class="w">
     </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"FRAMEWORK_NAME"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"HELLO_COUNT"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"HELLO_CPUS"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"FRAMEWORK_NAME"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{service.name}}"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"HELLO_COUNT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{hello.count}}"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"HELLO_CPUS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{hello.cpus}}"</span><span class="p">,</span><span class="w">
 </span><span class="err">...</span><span class="w">
     </span><span class="err">}</span><span class="p">,</span><span class="w">
     </span><span class="nt">"uris"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
 </span><span class="err">...</span><span class="w">
-        </span><span class="s2">""</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"{{resource.assets.uris.scheduler-zip}}"</span><span class="p">,</span><span class="w">
 </span><span class="err">...</span><span class="w">
     </span><span class="p">],</span><span class="w">
 </span><span class="err">...</span><span class="w">
@@ -457,7 +460,7 @@ ii. Determine scenario (install, update or no change)
             </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
             </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp"</span><span class="p">,</span><span class="w">
             </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api"</span><span class="p">,</span><span class="w">
-            </span><span class="nt">"labels"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"VIP_0"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/api.:80"</span><span class="w"> </span><span class="p">}</span><span class="w">
+            </span><span class="nt">"labels"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"VIP_0"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/api.{{service.name}}:80"</span><span class="w"> </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -506,7 +509,7 @@ ii. Determine scenario (install, update or no change)
   </span><span class="nt">"assets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
     </span><span class="nt">"uris"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
 </span><span class="err">...</span><span class="w">
-      </span><span class="nt">"scheduler-zip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/hello-world-scheduler.zip"</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"scheduler-zip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{artifact-dir}}/hello-world-scheduler.zip"</span><span class="p">,</span><span class="w">
 </span><span class="err">...</span><span class="w">
     </span><span class="err">}</span><span class="w">
   </span><span class="p">},</span><span class="w">
@@ -516,7 +519,7 @@ ii. Determine scenario (install, update or no change)
 </span></code></pre>
 </div>
 
-<p>The marathons.json.mustache template pulls values from the config.json and resource.json files and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can <a href="https://docs.mesosphere.com/latest/usage/managing-services/config/">override the initial config.json values</a> <a href="https://docs.mesosphere.com/1.7/usage/managing-services/config/">when installing via the command line</a>.</p>
+<p>The <code class="highlighter-rouge">marathon.json.mustache</code> template pulls values from <code class="highlighter-rouge">config.json</code> and <code class="highlighter-rouge">resource.json</code> and creates an initial Marathon application definition. This application definition can be deployed on Marathon, which installs a DC/OS service’s scheduler. You can <a href="https://docs.mesosphere.com/latest/usage/managing-services/config/">override the initial config.json values when installing via the command line</a>.</p>
 
 <p><strong>Important:</strong> The environment variable field of the Marathon application definition defines values specific to the helloworld service.</p>
 
@@ -529,16 +532,16 @@ ii. Determine scenario (install, update or no change)
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="nn">...</span>
 <span class="s">pods</span><span class="pi">:</span>
     <span class="s">hello</span><span class="pi">:</span>
-        <span class="s">count</span><span class="pi">:</span> 
+        <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">HELLO_COUNT</span><span class="pi">}}</span>
         <span class="s">tasks</span><span class="pi">:</span>
             <span class="s">server</span><span class="pi">:</span>
 <span class="nn">...</span>
-                <span class="s">cpus</span><span class="pi">:</span> 
+                <span class="s">cpus</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">HELLO_CPUS</span><span class="pi">}}</span>
 <span class="nn">...</span>
 </code></pre>
 </div>
 
-<p>The port definition in marathon.json.mustache makes the PORT0 environment variables available to the scheduler. The HELLO_COUNT and HELLO_CPUS environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered marathon.json.mustache template.</p>
+<p>The port definition in <code class="highlighter-rouge">marathon.json.mustache</code> makes the <code class="highlighter-rouge">PORT0</code> environment variables available to the scheduler. The <code class="highlighter-rouge">HELLO_COUNT</code> and <code class="highlighter-rouge">HELLO_CPUS</code> environment variables are provided by the env field of the Marathon application definition, which is provided by the rendered <code class="highlighter-rouge">marathon.json.mustache</code> template.</p>
 
 <p><a name="rendered-spec"></a>
 The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
@@ -738,7 +741,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 
 <h4 id="interrupt">Interrupt</h4>
 
-<p>You can   interrupt the execution of a plan by issuing a POST request to the appropriate endpoint:</p>
+<p>You can interrupt the execution of a plan by issuing a <code class="highlighter-rouge">POST</code> request to the appropriate endpoint:</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/interrupt
 </code></pre>
@@ -746,11 +749,25 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 
 <p>Interrupting a plan stops any steps that were not being processed from being processed in the future. Any steps that were actively being processed at the time of an interrupt call will continue.</p>
 
+<p>The interrupt may also be issued against a specific phase within the plan:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/interrupt?phase<span class="o">=</span>data-nodes
+</code></pre>
+</div>
+
+<p>Interrupting a phase of a plan only stops the steps within that phase, without affecting other phases.</p>
+
 <h4 id="continue">Continue</h4>
 
-<p>Continue plan execution by issuing a POST request to the continue endpoint:</p>
+<p>Continue plan execution by issuing a <code class="highlighter-rouge">POST</code> request to the continue endpoint:</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/continue
+</code></pre>
+</div>
+
+<p>Continue may also be issued on a per-phase basis:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy/continue?phase<span class="o">=</span>data-nodes
 </code></pre>
 </div>
 
@@ -901,7 +918,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </code></pre>
 </div>
 
-<h1 id="advanced--dcos-service-definition">Advanced  DC/OS Service Definition</h1>
+<h1 id="advanced-dcos-service-definition">Advanced DC/OS Service Definition</h1>
 
 <h2 id="servicespec-yaml"><code class="highlighter-rouge">ServiceSpec</code> (YAML)</h2>
 
@@ -946,7 +963,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">hello</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="s">3</span>
-    <span class="s">placement</span><span class="pi">:</span> 
+    <span class="s">placement</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">HELLO_PLACEMENT</span><span class="pi">}}</span>
     <span class="s">tasks</span><span class="pi">:</span>
       <span class="s">server</span><span class="pi">:</span>
         <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
@@ -1099,7 +1116,7 @@ hello
           <span class="s">SLEEP_DURATION</span><span class="pi">:</span> <span class="s">1000</span>
       <span class="s">sidecar</span><span class="pi">:</span>
         <span class="s">goal</span><span class="pi">:</span> <span class="s">FINISHED</span>
-        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">sidecar</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">output"</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">$PLAN_PARAMETER1</span><span class="nv"> </span><span class="s">$PLAN_PARAMETER2</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">output"</span>
         <span class="s">resource-set</span><span class="pi">:</span> <span class="s">sidecar-resources</span>
 <span class="s">plans</span><span class="pi">:</span>
   <span class="s">sidecar-example</span><span class="pi">:</span>
@@ -1112,9 +1129,24 @@ hello
 </code></pre>
 </div>
 
-<p>To initiate this plan, execute an HTTP POST request against the endpoint <code class="highlighter-rouge">/v1/plans/sidecar-example/start</code>. Its progress can be monitored like any other plan: by issuing GET requests against the <code class="highlighter-rouge">/v1/plans/side-car-example</code> endpoint.</p>
+<p>The command definition for the sidecar task includes environment variables, <code class="highlighter-rouge">PLAN_PARAMETER1</code> and <code class="highlighter-rouge">PLAN_PARAMETER2</code>, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.</p>
 
-<p>Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.</p>
+<p>To initiate the plan, execute an HTTP POST request against the <code class="highlighter-rouge">/v1/plans/sidecar-example/start</code> endpoint with the header <code class="highlighter-rouge">Content-Type: application/json</code> set and a JSON body consisting of environment variable name/value pairs. For example:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -k -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> -H <span class="s2">"Content-Type: application/json"</span> --data <span class="s1">'{"PLAN_PARAMETER1": "sidecar", "PLAN_PARAMETER2": "plan"}'</span> http://&lt;dcos_url&gt;/service/hello-world/v1/plans/sidecar-example/start
+</code></pre>
+</div>
+
+<p>You can also use the DC/OS CLI:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos <span class="nv">$FRAMEWORK_NAME</span> plan start sidecar-example <span class="nv">PLAN_PARAMETER1</span><span class="o">=</span>sidecar,PLAN_PARAMETER2<span class="o">=</span>plan
+</code></pre>
+</div>
+
+<p>When no parameters are specified, the body of the POST request must be an empty JSON object (<code class="highlighter-rouge"><span class="p">{}</span></code>). Supply default values with standard Bash syntax. In the above case, you can declare the default value of <code class="highlighter-rouge">PLAN_PARAMETER1</code> to be <code class="highlighter-rouge">sidecar</code> by changing the task’s command string to <code class="highlighter-rouge">echo ${PLAN_PARAMETER1:-sidecar} &gt;&gt; output</code>.</p>
+
+<p>Monitor sidecar plan progress like any other plan: by issuing GET requests against the <code class="highlighter-rouge">/v1/plans/sidecar-example</code> endpoint.</p>
+
+<p>Because the sidecar task is defined inside the hello pod, it will run inside the hello pod when the sidecar-example plan is started.  This gives it access to all the resources in the hello pod, including any persistent volumes that may be present.  In this way, a backup plan could be constructed and executed on demand.</p>
 
 <h3 id="uris">URIs</h3>
 
@@ -1170,16 +1202,47 @@ hello
         <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span>
         <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
         <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
-                <span class="s">configs</span><span class="pi">:</span>
+        <span class="s">configs</span><span class="pi">:</span>
           <span class="s">config.xml</span><span class="pi">:</span>
             <span class="s">template</span><span class="pi">:</span> <span class="s2">"</span><span class="s">config.xml.mustache"</span>
             <span class="s">dest</span><span class="pi">:</span> <span class="s">etc/config.xml</span>
 </code></pre>
 </div>
 
-<p>The template is rendered by the environment variables available in the task’s context and copied to the specified dest location. Any number of configuration files may be specified.</p>
+<p>The template content may be templated using the <a href="https://mustache.github.io/mustache.5.html">mustache format</a>. Any templated parameters in the file may be automatically populated with environment variables within the task, by including the <code class="highlighter-rouge">bootstrap</code> utility in your tasks. See <a href="#bootstrap">Bootstrap Tool</a> for more information. at the beginning of the task.</p>
+
+<p>For example, say you had a container with the following environment variables:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nv">PORT_FOO</span><span class="o">=</span>1984
+<span class="nv">FRAMEWORK_NAME</span><span class="o">=</span>mysvc
+</code></pre>
+</div>
+
+<p>And a <code class="highlighter-rouge">config.xml.mustache</code> template like this:</p>
+
+<div class="language-xml highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;config&gt;</span>
+  <span class="nt">&lt;port&gt;</span>{{PORT_FOO}}<span class="nt">&lt;/port&gt;</span>
+  <span class="nt">&lt;service&gt;</span>{{FRAMEWORK_NAME}}<span class="nt">&lt;/service&gt;</span>
+  <span class="c">&lt;!-- ... --&gt;</span>
+<span class="nt">&lt;/config&gt;</span>
+</code></pre>
+</div>
+
+<p>When the <code class="highlighter-rouge">bootstrap</code> helper is run, it would automatically create a populated version of that file in <code class="highlighter-rouge">etc/config.xml</code>:</p>
+
+<div class="language-xml highlighter-rouge"><pre class="highlight"><code><span class="nt">&lt;config&gt;</span>
+  <span class="nt">&lt;port&gt;</span>1984<span class="nt">&lt;/port&gt;</span>
+  <span class="nt">&lt;game&gt;</span>mysvc<span class="nt">&lt;/game&gt;</span>
+  <span class="c">&lt;!-- ... --&gt;</span>
+<span class="nt">&lt;config&gt;</span>
+</code></pre>
+</div>
+
+<p>To be clear, the config templating provided by the <code class="highlighter-rouge">bootstrap</code> tool may be applied to <em>any text format</em>, not just XML as in this example. This makes it a powerful tool for handling any config files your service may need. Read more about setting this up in the <a href="#bootstrap">Bootstrap Tool</a> section.</p>
 
 <h3 id="task-environment">Task Environment</h3>
+
+<p>While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.</p>
 
 <p>You can define the environment of a task in a few different ways. In the YML <code class="highlighter-rouge">ServiceSpec</code>, it can be defined in the following way.</p>
 
@@ -1195,7 +1258,7 @@ hello
         <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
         <span class="s">env</span><span class="pi">:</span>
           <span class="s">FOO</span><span class="pi">:</span> <span class="s">bar</span>
-          <span class="s">BAZ</span><span class="pi">:</span> 
+          <span class="s">BAZ</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">BAZ</span><span class="pi">}}</span>
 </code></pre>
 </div>
 
@@ -1222,6 +1285,78 @@ hello
 <div class="highlighter-rouge"><pre class="highlight"><code>TASKCFG_HELLO_BAZ: BAZ → BAZ: BAZ
 </code></pre>
 </div>
+
+<p><a name="bootstrap"></a></p>
+<h3 id="task-bootstrap">Task Bootstrap</h3>
+
+<p>The <code class="highlighter-rouge">cmd</code> in each task defines what’s run for the lifetime of that task. A common problem when defining tasks is providing some sort of initial configuration, waiting for hosts to resolve, and other up-front work.</p>
+
+<p>The <code class="highlighter-rouge">bootstrap</code> utility executable is available for running at the start of your tasks to perform these common task operations, including:</p>
+
+<ul>
+  <li>Logging <code class="highlighter-rouge">env</code> (useful for debugging)</li>
+  <li>Rendering any <code class="highlighter-rouge">configs</code> provided in the task definition and writing the result to the configured <code class="highlighter-rouge">dest</code>s.</li>
+  <li>Waiting for the task’s own hostname to be resolvable, or optionally wait for other custom hostnames to be resolvable, before exiting</li>
+</ul>
+
+<p>These operations may be enabled, disabled, and customized via <code class="highlighter-rouge">bootstrap</code>s commandline arguments in your <code class="highlighter-rouge">cmd</code>. See the <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/bootstrap/main.go">source code</a> for more details on what specific options are available.</p>
+
+<p>Including <code class="highlighter-rouge">bootstrap</code> in your tasks is a manual but straightforward operation. First, you should to add it to the package definition (<code class="highlighter-rouge">resources.json</code> and <code class="highlighter-rouge">marathon.json.mustache</code>), then include it in the service definition (<code class="highlighter-rouge">svc.yml</code>):</p>
+
+<p><code class="highlighter-rouge">resources.json</code>:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"assets"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"uris"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"jre-tar-gz"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://downloads.mesosphere.com/java/jre-VERSION-linux-x64.tar.gz"</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"libmesos-bundle-tar-gz"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-VERSION.tar.gz"</span><span class="p">,</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+      </span><span class="nt">"bootstrap-zip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{artifact-dir}}/bootstrap.zip"</span><span class="p">,</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="err">include</span><span class="w"> </span><span class="err">bootstrap.zip</span><span class="w"> </span><span class="err">in</span><span class="w"> </span><span class="err">package</span><span class="w"> </span><span class="err">resources</span><span class="w">
+      </span><span class="err">...</span><span class="w">
+    </span><span class="err">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p><code class="highlighter-rouge">marathon.json.mustache</code>:</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{service.name}}"</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"cpus"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">2048</span><span class="p">,</span><span class="w">
+  </span><span class="err">...</span><span class="w">
+  </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="err">...</span><span class="w">
+    </span><span class="nt">"BOOTSTRAP_URI"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{resource.assets.uris.bootstrap-zip}}"</span><span class="p">,</span><span class="w"> </span><span class="err">#</span><span class="w"> </span><span class="err">add</span><span class="w"> </span><span class="err">url</span><span class="w"> </span><span class="err">to</span><span class="w"> </span><span class="err">scheduler</span><span class="w"> </span><span class="err">env</span><span class="w">
+    </span><span class="err">...</span><span class="w">
+  </span><span class="err">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p><code class="highlighter-rouge">svc.yml</code>:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">uris</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="pi">{{</span><span class="nv">BOOTSTRAP_URI</span><span class="pi">}}</span> <span class="c1"># fetch/unpack bootstrap.zip into this pod</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./bootstrap</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">1000"</span> <span class="c1"># run 'bootstrap' before 'hello'</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">0.1</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">configs</span><span class="pi">:</span>
+          <span class="s">config.xml</span><span class="pi">:</span>
+            <span class="s">template</span><span class="pi">:</span> <span class="s2">"</span><span class="s">config.xml.mustache"</span>
+            <span class="s">dest</span><span class="pi">:</span> <span class="s">etc/config.xml</span>
+</code></pre>
+</div>
+
+<p>Now the <code class="highlighter-rouge">bootstrap</code> executable will automatically be run at the start of <code class="highlighter-rouge">hello</code> tasks. By default it will first print the <code class="highlighter-rouge">env</code>, then will handle rendering the <code class="highlighter-rouge">config.xml.mustache</code> template to <code class="highlighter-rouge">etc/config.xml</code>, then wait for the hello task’s hostname to be locally resolvable.</p>
 
 <h3 id="health-checks">Health Checks</h3>
 
@@ -1298,68 +1433,67 @@ hello
 
 <h3 id="proxy">Proxy</h3>
 
-<p>The proxy allows one to expose more than one endpoint through adminrouter. It is only supported on DC/OS 1.9 clusters.</p>
+<p>The proxy allows you to expose more than one endpoint through Admin Router. The proxy is only supported on DC/OS 1.9 and newer clusters. An example of a correct proxy implementation can be found in the proxylite framework in this repository.</p>
 
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">web-url</span><span class="pi">:</span> <span class="s">http://proxylite-0-server..mesos</span><span class="pi">:</span>
+<p><strong>Important:</strong> Read through all these instructions before you begin.</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">web-url</span><span class="pi">:</span> <span class="s">http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}</span>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">proxylite</span><span class="pi">:</span>
     <span class="s">container</span><span class="pi">:</span>
-      <span class="s">image-name</span><span class="pi">:</span> <span class="s">mesosphere/proxylite:1.0.1</span>
+      <span class="s">image-name</span><span class="pi">:</span> <span class="s">mesosphere/proxylite:2.0.0</span>
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
     <span class="s">tasks</span><span class="pi">:</span>
       <span class="s">server</span><span class="pi">:</span>
         <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
         <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/proxylite/run.sh"</span>
-        <span class="s">cpus</span><span class="pi">:</span> 
-        <span class="s">memory</span><span class="pi">:</span> 
+        <span class="s">cpus</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PROXYLITE_CPUS</span><span class="pi">}}</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PROXYLITE_MEM</span><span class="pi">}}</span>
         <span class="s">ports</span><span class="pi">:</span>
           <span class="s">proxylite</span><span class="pi">:</span>
             <span class="s">env-key</span><span class="pi">:</span> <span class="s">PORT_PROXYLITE</span>
-            <span class="s">port</span><span class="pi">:</span> 
+            <span class="s">port</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PROXYLITE_PORT</span><span class="pi">}}</span>
         <span class="s">env</span><span class="pi">:</span>
           <span class="s">ROOT_REDIRECT</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/example"</span>
           <span class="s">EXTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">/v1,/example"</span>
-          <span class="s">INTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">.marathon.mesos:/v1,example.com:80"</span>
+          <span class="s">INTERNAL_ROUTES</span><span class="pi">:</span> <span class="s2">"</span><span class="s">http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,http://example.com:80"</span>
 </code></pre>
 </div>
 
-<ul>
-  <li>
-    <p><code class="highlighter-rouge">EXTERNAL_ROUTES</code> and <code class="highlighter-rouge">INTERNAL_ROUTES</code></p>
-
-    <ul>
-      <li>
-        <p>These have a 1:1 mapping (they are both comma separated lists). There is one internal route for every external route.</p>
-      </li>
-      <li>
-        <p>For example, in the declaration above, if you navigate to <code class="highlighter-rouge">&lt;adminrouter&gt;/service//v1/plan</code>, you’ll get redirected to <code class="highlighter-rouge">.marathon.mesos:/v1/plan</code></p>
-      </li>
-    </ul>
-  </li>
-  <li>
-    <p><code class="highlighter-rouge">ROOT_REDIRECT</code></p>
-
-    <ul>
-      <li>This will set a redirect from <code class="highlighter-rouge">/</code> (a.k.a. the root path) to a path of your choosing. For example, <code class="highlighter-rouge">/example</code> redirects <code class="highlighter-rouge">&lt;adminrouter&gt;/service/</code> to <code class="highlighter-rouge">&lt;adminrouter&gt;/service//example</code></li>
-    </ul>
-  </li>
-</ul>
-
 <ol>
-  <li>Delete these 3 labels from your marathon json:
+  <li>Delete these 3 labels from your marathon application definition:
     <ul>
       <li><code class="highlighter-rouge">DCOS_FRAMEWORK_NAME</code></li>
       <li><code class="highlighter-rouge">DCOS_SERVICE_PORT_INDEX</code></li>
       <li><code class="highlighter-rouge">DCOS_SERVICE_SCHEME</code></li>
     </ul>
   </li>
+  <li>
+    <p>Add <code class="highlighter-rouge">ROOT_REDIRECT</code> to your service definition.</p>
+
+    <ul>
+      <li><code class="highlighter-rouge">ROOT_REDIRECT</code> sets a redirect from <code class="highlighter-rouge">/</code> (a.k.a. the root path) to a path of your choosing. For example, <code class="highlighter-rouge">/example</code> redirects <code class="highlighter-rouge">&lt;adminrouter&gt;/service/{{FRAMEWORK_NAME}}</code> to <code class="highlighter-rouge">&lt;adminrouter&gt;/service/{{FRAMEWORK_NAME}}/example</code></li>
+    </ul>
+  </li>
+  <li>
+    <p>Add <code class="highlighter-rouge">EXTERNAL_ROUTES</code> and <code class="highlighter-rouge">INTERNAL_ROUTES</code> to your service definition.</p>
+
+    <ul>
+      <li>
+        <p>The <code class="highlighter-rouge">EXTERNAL_ROUTES</code> and <code class="highlighter-rouge">INTERNAL_ROUTES</code> have a 1:1 mapping (they are both comma-separated lists).</p>
+      </li>
+      <li>
+        <p>For example, in the declaration above, if you navigate to <code class="highlighter-rouge">&lt;adminrouter&gt;/service/{{FRAMEWORK_NAME}}/v1/plan</code>, you’ll get redirected to <code class="highlighter-rouge">http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan</code></p>
+      </li>
+    </ul>
+  </li>
   <li>Things to watch out for:
     <ul>
-      <li>No trailing slashes.</li>
+      <li>No trailing slashes in <code class="highlighter-rouge">EXTERNAL_ROUTES</code> or <code class="highlighter-rouge">INTERNAL_ROUTES</code>.</li>
       <li>The external route is <em>replaced</em> with the internal route.
         <ul>
           <li>It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is <em>not the case</em>.</li>
-          <li>For example, in the above declaration, “/v1” is replaced with “/v1”, so nothing changes. However one might use <code class="highlighter-rouge">.marathon.mesos:</code> as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.</li>
+          <li>For example, in the above declaration, “/v1” is replaced with “/v1”, so nothing changes. However one might use <code class="highlighter-rouge">http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}</code> as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.</li>
         </ul>
       </li>
       <li>
@@ -1367,13 +1501,17 @@ hello
 
         <p>You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:</p>
 
-        <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./bootstrap</span><span class="nv"> </span><span class="s">-resolve-hosts=ui-0-server..mesos</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">/proxylite/run.sh"</span>
+        <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">./bootstrap</span><span class="nv"> </span><span class="s">-resolve-hosts=ui-0-server.{{FRAMEWORK_NAME}}.mesos</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">/proxylite/run.sh"</span>
 </code></pre>
         </div>
       </li>
     </ul>
   </li>
 </ol>
+
+<h3 id="proxy-fallback">Proxy Fallback</h3>
+
+<p>Applications may not work properly behind adminrouter. In that case, one may use <a href="https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f">Repoxy</a>.</p>
 
 <h2 id="servicespec-java"><code class="highlighter-rouge">ServiceSpec</code> (Java)</h2>
 
@@ -1532,7 +1670,7 @@ hello
         <span class="n">init</span><span class="o">();</span>
         <span class="n">plans</span> <span class="o">=</span> <span class="n">generatePlansFromRawSpec</span><span class="o">(</span><span class="n">rawServiceSpecification</span><span class="o">);</span>
         <span class="n">plans</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">customPlan</span><span class="o">);</span>
-        
+
         <span class="n">register</span><span class="o">(</span><span class="n">serviceSpec</span><span class="o">,</span> <span class="n">plans</span><span class="o">);</span>
     <span class="o">}</span>
 <span class="o">}</span>
