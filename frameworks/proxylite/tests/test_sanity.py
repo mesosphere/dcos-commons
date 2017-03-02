@@ -43,5 +43,10 @@ def test_httpd():
 
 
 @pytest.mark.sanity
+def test_httpd():
+    cmd.request('get', '{}/pyhttpsd'.format(shakedown.dcos_service_url('proxylite')))
+
+
+@pytest.mark.sanity
 def test_plan():
     plan.get_deployment_plan(PACKAGE_NAME)

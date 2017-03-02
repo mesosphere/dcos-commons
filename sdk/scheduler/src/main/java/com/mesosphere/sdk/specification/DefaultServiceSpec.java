@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
@@ -247,6 +248,7 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         private Factory(Collection<Class<?>> additionalSubtypes) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
                 objectMapper.registerSubtypes(subtype);
             }

@@ -603,7 +603,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
                 "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
-                "./executor/bin/executor");
+                "$MESOS_SANDBOX/executor/bin/executor");
 
         if (podSpec.getUser().isPresent()) {
             executorCommandBuilder.setUser(podSpec.getUser().get());

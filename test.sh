@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. The script builds the Hello World framework, packages and uploads it, then runs its
+# dcos-commons. The script builds each framework, packages and uploads it, then runs its
 # integration tests against a newly-launched cluster.
 
 # Exit immediately on errors -- the helper scripts all emit github statuses internally
@@ -55,19 +55,20 @@ if [ -z "$CLUSTER_URL" ]; then
     export CCM_AGENTS=5
     CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
     echo "Launched cluster: ${CLUSTER_INFO}"
-    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq .url)
+    # jq emits json strings by default: "value".  Use --raw-output to get value without quotes
+    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
     export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
-    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq .auth_token)
+    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
 else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
 fi
 
 # A specific framework can be specified to run its tests
-# Otherwise all tests are run
+# Otherwise all tests are run in random framework order
 if [ -n "$1" ]; then
     run_framework_tests $1
 else
-    for framework in $(ls $REPO_ROOT_DIR/frameworks); do
+    for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
         echo "Starting shakedown tests for $framework at "`date`
         run_framework_tests $framework
     done
