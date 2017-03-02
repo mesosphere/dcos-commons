@@ -40,6 +40,13 @@ function run_framework_tests {
         echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
 
+    echo Security: $SECURITY
+    if [ "$SECURITY" = "strict" ]; then
+        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}-role
+        # Some tests install a second instance of a framework, such as "hdfs2"
+        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}2-role
+    fi
+
     # Run shakedown tests in framework directory:
     TEST_GITHUB_LABEL="${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
 }
@@ -59,8 +66,10 @@ if [ -z "$CLUSTER_URL" ]; then
     export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
     export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
     export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
+    CLUSTER_CREATED="true"
 else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
+    CLUSTER_CREATED=""
 fi
 
 # A specific framework can be specified to run its tests
@@ -76,6 +85,6 @@ fi
 
 # Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
 # Don't wait for the cluster to complete teardown.
-if [ -n "${CLUSTER_ID}" ]; then
+if [ -n "${CLUSTER_CREATED}" ]; then
     ${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py trigger-stop ${CLUSTER_ID}
 fi
