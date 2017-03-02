@@ -7,7 +7,7 @@ enterprise: 'no'
 
 1. Install a Elasticsearch cluster with Kibana using DC/OS CLI:
 
-    **Note:** Your cluster must have at least 3 private nodes.
+    **Note:** Your DC/OS cluster must have at least 3 private agent nodes.
 
         $ dcos package install elastic
         
@@ -17,10 +17,10 @@ enterprise: 'no'
 
 1. Retrieve client endpoint information by running the `endpoints` command:
         
-        $ dcos elastic endpoints coordinato
+        $ dcos elastic endpoints coordinator
         {
-            "direct": ["coordinato-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
-            "vip": "coordinato.elastic.l4lb.thisdcos.directory:9200"
+            "direct": ["coordinator-1-server.elastic.mesos:1025", "coordinato-0-server.elastic.mesos:1025"],
+            "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200"
         }
 
 1. [SSH into a DC/OS node][1]:
