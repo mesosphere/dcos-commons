@@ -9,6 +9,8 @@ pods:
     uris:
       - {{KAFKA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{EXECUTOR_URI}}
+      - {{LIBMESOS_URI}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
@@ -19,11 +21,11 @@ pods:
             env-key: KAFKA_BROKER_PORT
           {{#BROKER_JMX_PORT}}
           jmx:
-            port: {{JMX_PORT}}
+            port: {{BROKER_JMX_PORT}}
             env-key: JMX_PORT
           {{/BROKER_JMX_PORT}}
         volume:
-          path: {{BROKER_DATA_PATH}}
+          path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
           size: {{BROKER_DISK_SIZE}}
         env:
