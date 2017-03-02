@@ -1,3 +1,4 @@
+import json
 import pytest
 import re
 import shakedown
@@ -24,31 +25,46 @@ def teardown_module(module):
 @pytest.mark.sanity
 @pytest.mark.upgrade
 def test_upgrade_downgrade():
-    # Ensure both Universe and the test repo exist.
-    # In particular, the Framework Test Suite only runs packages from Universe;
-    # it doesn't add a test repo like the PR jobs.
-    if len(shakedown.get_package_repos()['repositories']) != 2:
-        print('No test repo found.  Skipping test_upgrade_downgrade')
-        return
-
     test_repo_name, test_repo_url = get_test_repo_info()
     test_version = get_pkg_version()
     print('Found test version: {}'.format(test_version))
-    remove_repo(test_repo_name, test_version)
-    master_version = get_pkg_version()
-    print('Found master version: {}'.format(master_version))
 
-    print('Installing master version')
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
+    repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
+    print("Repositories: " + str(repositories))
+    universe_url = "fail"
+    for repo in repositories:
+        if repo['name'] == 'Universe':
+            universe_url = repo['uri']
+            break
+
+    assert "fail" != universe_url
+    print("Universe URL: " + universe_url)
+
+    shakedown.remove_package_repo('Universe')
+    add_repo('Universe', universe_url, test_version, 0)
+
+    universe_version = get_pkg_version()
+    print('Found Universe version: {}'.format(universe_version))
+
+    print('Installing Universe version')
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+
+    shakedown.remove_package_repo('Universe')
+    add_last_repo('Universe', universe_url, universe_version)
 
     print('Upgrading to test version')
     marathon.destroy_app(PACKAGE_NAME)
-    add_repo(test_repo_name, test_repo_url, prev_version=master_version)
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=test_version)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+
+    shakedown.remove_package_repo('Universe')
+    add_repo('Universe', universe_url, test_version, 0)
 
     print('Downgrading to master version')
     marathon.destroy_app(PACKAGE_NAME)
-    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+
+    shakedown.remove_package_repo('Universe')
+    add_last_repo('Universe', universe_url, universe_version)
 
 
 def get_test_repo_info():
@@ -64,11 +80,19 @@ def get_pkg_version():
     return match.group(1)
 
 
-def add_repo(repo_name, repo_url, prev_version):
+def add_repo(repo_name, repo_url, prev_version, index):
     assert shakedown.add_package_repo(
         repo_name,
         repo_url,
-        0)
+        index)
+    # Make sure the new repo packages are available
+    new_default_version_available(prev_version)
+
+
+def add_last_repo(repo_name, repo_url, prev_version):
+    assert shakedown.add_package_repo(
+        repo_name,
+        repo_url)
     # Make sure the new repo packages are available
     new_default_version_available(prev_version)
 
