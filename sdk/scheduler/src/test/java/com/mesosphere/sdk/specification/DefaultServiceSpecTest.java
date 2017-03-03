@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
@@ -36,6 +37,7 @@ import java.util.Optional;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 
@@ -44,6 +46,7 @@ public class DefaultServiceSpecTest {
     @Mock private FileReader mockFileReader;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private StateStore mockStateStore;
+    @Mock private Capabilities capabilities;
 
     @Before
     public void beforeEach() {
@@ -78,6 +81,16 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
+    }
+
+    @Test
+    public void testSimpleWithZooKeeper() throws Exception {
+        validateServiceSpec("valid-simple.yml", true);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testSimpleWithZookerWithoutGpuSupport() throws Exception {
+        validateServiceSpec("valid-simple.yml", false);
     }
 
     @Test
@@ -127,12 +140,12 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void validReadinessCheck() throws Exception {
-        validateServiceSpec("readiness-check.yml");
-
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("readiness-check.yml").getFile());
         RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
         DefaultServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+
+        Assert.assertNotNull(serviceSpec);
 
         Optional<ReadinessCheckSpec> readinessCheckSpecOptional =
                 serviceSpec.getPods().get(0).getTasks().get(0).getReadinessCheck();
@@ -323,10 +336,13 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
     }
 
-    private void validateServiceSpec(String fileName) throws Exception {
+    private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+
+        capabilities = mock(Capabilities.class);
+        when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
 
         TestingServer testingServer = new TestingServer();
         StateStoreCache.resetInstanceForTests();
@@ -340,7 +356,9 @@ public class DefaultServiceSpecTest {
         DefaultScheduler.newBuilder(serviceSpec)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(capabilities)
                 .build();
         testingServer.close();
+
     }
 }

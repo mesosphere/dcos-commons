@@ -4,7 +4,7 @@ scheduler:
   principal: "some-other-principal"
   zookeeper: non-default-zk:2181
   api-port: {{PORT_API}}
-  gpu-optin: false
+  gpu-optin: true
 pods:
   meta-data:
     placement: "hostname:UNIQUE"

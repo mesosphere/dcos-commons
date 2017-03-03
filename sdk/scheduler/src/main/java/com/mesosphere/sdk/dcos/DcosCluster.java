@@ -10,12 +10,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Instances of this class represent DC/OS clusters.
  */
 public class DcosCluster {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DcosCluster.class);
+
     @VisibleForTesting
     static final String DCOS_VERSION_PATH = "/dcos-metadata/dcos-version.json";
+
 
     private final URI dcosUri;
     private Optional<DcosVersion> dcosVersion = Optional.empty();
@@ -34,6 +40,7 @@ public class DcosCluster {
 
     public DcosVersion getDcosVersion() throws IOException {
         if (!dcosVersion.isPresent()) {
+            LOGGER.error("NOT PRESENT");
             dcosVersion = Optional.of(new DcosVersion(new JSONObject(fetchUri(dcosUri + DCOS_VERSION_PATH))));
         }
         return dcosVersion.get();
@@ -45,6 +52,7 @@ public class DcosCluster {
     @VisibleForTesting
     protected String fetchUri(String path) throws IOException {
         URI versionUri = getUriUnchecked(path);
+        LOGGER.error("got " + versionUri);
         return Request.Get(versionUri).execute().returnContent().toString();
     }
 
@@ -53,9 +61,13 @@ public class DcosCluster {
      * exception. Meant for use by static, known-good URLs.
      */
     private static URI getUriUnchecked(String path) {
+        LOGGER.info("getting " + DcosConstants.MESOS_MASTER_URI);
         try {
-            return new URI(path);
+            URI ret = new URI(path);
+            LOGGER.info("returning: " + ret);
+            return ret;
         } catch (URISyntaxException e) {
+            LOGGER.info("FAILING");
             throw new IllegalArgumentException("Unable to parse internal URL: " + path, e);
         }
     }

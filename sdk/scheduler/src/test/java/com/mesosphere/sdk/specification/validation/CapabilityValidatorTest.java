@@ -32,6 +32,7 @@ public class CapabilityValidatorTest {
     @Test
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         File file = new File(getClass().getClassLoader().getResource("valid-minimal.yml").getFile());
@@ -43,6 +44,7 @@ public class CapabilityValidatorTest {
     @Test
     public void testSpecSucceedsWithRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
@@ -58,6 +60,7 @@ public class CapabilityValidatorTest {
     @Test(expected = CapabilityValidator.CapabilityValidationException.class)
     public void testSpecFailsWithRLimitsButWithoutCapability() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         CapabilityValidator capabilityValidator = new CapabilityValidator(mockCapabilities);
 
         when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
