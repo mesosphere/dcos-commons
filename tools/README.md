@@ -551,4 +551,3 @@ $ export AWS_ACCESS_KEY_ID=AcCeSs_Id
 $ export STACK_ID=arn:aws:cloudformation:us-west-1:273854.....
 $ ./tools/enable_mount_volumes.py
 ```
-```
