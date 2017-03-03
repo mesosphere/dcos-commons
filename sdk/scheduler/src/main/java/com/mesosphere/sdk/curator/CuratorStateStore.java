@@ -193,6 +193,7 @@ public class CuratorStateStore implements StateStore {
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
         Optional<String> optionalTaskName = Optional.empty();
+
         for (Protos.TaskInfo taskInfo : fetchTasks()) {
             if (taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
                 if (optionalTaskName.isPresent()) {
@@ -201,7 +202,7 @@ public class CuratorStateStore implements StateStore {
                     throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                             "There are more than one tasks with TaskID: %s", status));
                 }
-                    optionalTaskName = Optional.of(taskInfo.getName());
+                optionalTaskName = Optional.of(taskInfo.getName());
             }
         }
         if (!optionalTaskName.isPresent()) {
@@ -211,9 +212,10 @@ public class CuratorStateStore implements StateStore {
         putStatus(optionalTaskName.get(), status);
     }
 
-    protected void putStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
-        //putStatus(taskName, status) is the only way to update status if there are duplicate taskIDs.
+    @Override
+    public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         Optional<Protos.TaskInfo> optionalTaskInfo;
+
         try {
             optionalTaskInfo = fetchTask(taskName);
         } catch (Exception e) {
@@ -235,6 +237,10 @@ public class CuratorStateStore implements StateStore {
                     status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
                     status, optionalTaskInfo));
         }
+        putStatus(taskName, status);
+    }
+
+    private void putStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
         if (currentStatusOptional.isPresent()
