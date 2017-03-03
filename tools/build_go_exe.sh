@@ -70,7 +70,8 @@ go get
 NATIVE_FILENAME="native-${EXE_FILENAME}"
 NATIVE_SHA1SUM_FILENAME="${NATIVE_FILENAME}.sha1sum"
 go build -o $NATIVE_FILENAME
-NATIVE_SHA1SUM=$(sha1sum $NATIVE_FILENAME | awk '{print $1}')
+# 'shasum' is available on OSX as well as (most?) Linuxes:
+NATIVE_SHA1SUM=$(shasum $NATIVE_FILENAME | awk '{print $1}')
 
 if [ -f $NATIVE_SHA1SUM_FILENAME -a -f $EXE_FILENAME -a "$NATIVE_SHA1SUM" = "$(cat $NATIVE_SHA1SUM_FILENAME)" ]; then
     # build output hasn't changed. skip.

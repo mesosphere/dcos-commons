@@ -14,10 +14,11 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Optional;
+
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
 
 /**
  * A read-only API for accessing task and frameworkId state from persistent storage.
@@ -64,7 +65,7 @@ public class StateResource {
             Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
             if (frameworkIDOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
-                return Response.ok(idArray.toString(), MediaType.APPLICATION_JSON).build();
+                return jsonOkResponse(idArray);
             } else {
                 logger.warn("No framework ID exists");
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -81,7 +82,7 @@ public class StateResource {
     public Response getPropertyKeys() {
         try {
             JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
-            return Response.ok(keyArray.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(keyArray);
         } catch (StateStoreException ex) {
             logger.error("Failed to fetch list of property keys", ex);
             return Response.serverError().build();
@@ -102,8 +103,7 @@ public class StateResource {
                 return Response.noContent().build(); // 204 NO_CONTENT
             } else {
                 logger.info("Attempting to fetch property '{}'", key);
-                return Response.ok(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)),
-                        MediaType.APPLICATION_JSON).build();
+                return jsonOkResponse(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)));
             }
         } catch (StateStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {

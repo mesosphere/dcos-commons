@@ -17,9 +17,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.config.SerializationUtils;
@@ -36,11 +36,13 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
 @Path("/v1/pods")
-public class PodsResource {
+public class PodsResource extends PrettyJsonResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodsResource.class);
 
     /**
@@ -96,7 +98,7 @@ public class PodsResource {
                     jsonArray.put(String.format("%s_%s", UNKNOWN_POD_LABEL, unknownName));
                 }
             }
-            return Response.ok(jsonArray.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(jsonArray);
         } catch (Exception e) {
             LOGGER.error("Failed to fetch list of pods", e);
             return Response.serverError().build();
@@ -124,7 +126,7 @@ public class PodsResource {
                 json.put(UNKNOWN_POD_LABEL, getStatusesJson(groupedTasks.unknownPod));
             }
 
-            return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(json);
         } catch (Exception e) {
             LOGGER.error("Failed to fetch collated list of task statuses by pod", e);
             return Response.serverError().build();
@@ -142,7 +144,7 @@ public class PodsResource {
             if (podTasks == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            return Response.ok(getStatusesJson(podTasks).toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(getStatusesJson(podTasks));
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch status for pod '%s'", name), e);
             return Response.serverError().build();
@@ -162,7 +164,7 @@ public class PodsResource {
             }
             // To ensure that the TaskInfo/TaskStatus are nested correctly (instead of embedded strings), use Jackson
             // via SerializationUtils:
-            return Response.ok(SerializationUtils.toJsonString(podTasks), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(SerializationUtils.toJsonString(podTasks));
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch info for pod '%s'", name), e);
             return Response.serverError().build();
@@ -237,7 +239,7 @@ public class PodsResource {
         JSONObject json = new JSONObject();
         json.put("pod", name);
         json.put("tasks", restartedTaskNames);
-        return Response.ok(json.toString(), MediaType.APPLICATION_JSON).build();
+        return jsonOkResponse(json);
     }
 
     /**

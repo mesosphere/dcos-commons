@@ -4,6 +4,7 @@ import com.mesosphere.sdk.api.PlansResource.CommandResultInfo;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -12,7 +13,6 @@ import org.mockito.MockitoAnnotations;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -65,7 +65,7 @@ public class PlansResourceTest {
         when(mockPlan.isComplete()).thenReturn(true);
         Response response = resource.listPlans();
         assertEquals(200, response.getStatus());
-        assertEquals(planName, ((List<?>) response.getEntity()).get(0).toString());
+        assertEquals(String.format("[\"%s\"]", planName), response.getEntity().toString());
     }
 
     @Test

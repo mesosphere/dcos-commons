@@ -2,9 +2,12 @@ package com.mesosphere.sdk.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.api.types.PlanInfo;
+import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
+
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,12 +17,15 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+
 /**
  * API for management of Plan(s).
  */
 @Path("/v1")
 @Produces(MediaType.APPLICATION_JSON)
-public class PlansResource {
+public class PlansResource extends PrettyJsonResource {
+
     static final Response ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
             .entity("Element not found")
             .build();
@@ -38,10 +44,7 @@ public class PlansResource {
     @GET
     @Path("/plans")
     public Response listPlans() {
-        return Response
-                .status(200)
-                .entity(getPlanNames())
-                .build();
+        return jsonOkResponse(new JSONArray(getPlanNames()));
     }
 
     /**
@@ -85,9 +88,7 @@ public class PlansResource {
             }
 
             plan.proceed();
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: start"))
-                    .build();
+            return Response.ok(new CommandResultInfo("Received cmd: start")).build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -105,9 +106,7 @@ public class PlansResource {
             Plan plan = planManagerOptional.get().getPlan();
             plan.interrupt();
             plan.restart();
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("Received cmd: stop"))
-                    .build();
+            return Response.ok(new CommandResultInfo("Received cmd: stop")).build();
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -134,9 +133,7 @@ public class PlansResource {
             planManagerOptional.get().getPlan().proceed();
         }
 
-        return Response.status(Response.Status.OK)
-                .entity(new CommandResultInfo("Received cmd: continue"))
-                .build();
+        return Response.ok(new CommandResultInfo("Received cmd: continue")).build();
     }
 
     @POST
@@ -160,9 +157,7 @@ public class PlansResource {
             planManagerOptional.get().getPlan().interrupt();
         }
 
-        return Response.status(Response.Status.OK)
-                .entity(new CommandResultInfo("Received cmd: interrupt"))
-                .build();
+        return Response.ok(new CommandResultInfo("Received cmd: interrupt")).build();
     }
 
     @POST
@@ -183,9 +178,7 @@ public class PlansResource {
 
         stepOptional.get().forceComplete();
 
-        return Response.status(Response.Status.OK)
-                .entity(new CommandResultInfo("Received cmd: forceComplete"))
-                .build();
+        return Response.ok(new CommandResultInfo("Received cmd: forceComplete")).build();
     }
 
     @POST
@@ -213,9 +206,7 @@ public class PlansResource {
             stepOptional.get().restart();
         }
 
-        return Response.status(Response.Status.OK)
-                .entity(new CommandResultInfo("Received cmd: restart"))
-                .build();
+        return Response.ok(new CommandResultInfo("Received cmd: restart")).build();
     }
 
     @GET
