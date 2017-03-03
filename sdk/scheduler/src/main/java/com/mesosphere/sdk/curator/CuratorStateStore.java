@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
 import org.apache.zookeeper.KeeperException;
@@ -192,61 +191,26 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        Optional<String> optionalTaskName = Optional.empty();
+        Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
 
         for (Protos.TaskInfo taskInfo : fetchTasks()) {
             if (taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
-                if (optionalTaskName.isPresent()) {
+                if (taskInfoOptional.isPresent()) {
                     logger.error("Found duplicate taskIDs in Task {} and  Task {}",
-                            optionalTaskName.get(), taskInfo.getName());
+                            taskInfoOptional.get(), taskInfo.getName());
                     throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                             "There are more than one tasks with TaskID: %s", status));
                 }
-                optionalTaskName = Optional.of(taskInfo.getName());
+                taskInfoOptional = Optional.of(taskInfo);
             }
         }
 
-        if (!optionalTaskName.isPresent()) {
+        if (!taskInfoOptional.isPresent()) {
             throw new StateStoreException(Reason.NOT_FOUND, String.format(
                     "Failed to find a task with TaskID: %s", status));
         }
-        putStatus(optionalTaskName.get(), status);
-    }
 
-    /* storeStatus(taskName, status):
-                            is the only way to update status if there are duplicate taskIDs.
-     Protected method to be called directly using taskName (i.e. by a config *upgrade*). It does error checking before
-     writing status to TaskPath
-     */
-    protected void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
-        Optional<Protos.TaskInfo> optionalTaskInfo;
-
-        try {
-            optionalTaskInfo = fetchTask(taskName);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s.", taskName), e);
-        }
-
-        if (!optionalTaskInfo.isPresent()) {
-            throw new StateStoreException(Reason.LOGIC_ERROR,
-                    String.format("The following TaskInfo is not present in the StateStore: %s. " +
-                            "TaskInfo must be present in order to store a TaskStatus.", taskName));
-        }
-
-        if (!optionalTaskInfo.get().getTaskId().getValue().equals(status.getTaskId().getValue())) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Task ID '%s' of updated status doesn't match Task ID '%s' of current TaskInfo."
-                            + " Task IDs must exactly match before status may be updated."
-                            + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
-                    status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
-                    status, optionalTaskInfo));
-        }
-        putStatus(taskName, status);
-    }
-
-    private void putStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
-
+        String taskName = taskInfoOptional.get().getName();
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
         if (currentStatusOptional.isPresent()
