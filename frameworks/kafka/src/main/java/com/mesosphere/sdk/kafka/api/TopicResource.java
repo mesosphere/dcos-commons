@@ -97,7 +97,6 @@ public class TopicResource {
     public Response operationOnTopic(
             @PathParam("name") String topicName,
             @PathParam("type") String type,
-            @QueryParam("key") String key,
             @QueryParam("value") String value,
             @QueryParam("partitions") String partitions,
             @QueryParam("messages") String messages) {
