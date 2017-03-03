@@ -40,7 +40,7 @@ public class StateStoreUtils {
     /**
      * Returns the requested property, or an empty array if the property is not present.
      */
-    public static byte[] fetchPropertyOrEmptyArray(StateStore stateStore, String key) {
+    public static byte[] fetchPropertyOrEmptyArray(StateStoreReadOnly stateStore, String key) {
         if (stateStore.fetchPropertyKeys().contains(key)) {
             return stateStore.fetchProperty(key);
         } else {
