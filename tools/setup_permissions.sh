@@ -35,10 +35,6 @@ function grant_registration() {
          "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:framework:role:${ROLE}/users/${SERVICE_ACCOUNT_NAME}/create"
 }
 
-# curl -k -L -X PUT \
-#      -H "Authorization: token=${ACS_TOKEN}" \
-#      "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:framework:role:${ROLE}/users/${SERVICE_ACCOUNT_NAME}/delete"
-
 function grant_task_execution() {
     echo "Authorizing ${SERVICE_ACCOUNT_NAME} to execute Mesos tasks as user=${LINUX_USER}"
     curl -k -L -X PUT \
@@ -64,10 +60,6 @@ function grant_task_execution() {
          -H "Authorization: token=${ACS_TOKEN}" \
          "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:task:user:root/users/dcos_marathon/create"
 }
-
-# curl -k -L -X PUT \
-#      -H "Authorization: token=${ACS_TOKEN}" \
-#      "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:task:user:${LINUX_USER}/users/${SERVICE_ACCOUNT_NAME}/delete"
 
 function grant_resources {
     echo "Authorizing ${SERVICE_ACCOUNT_NAME} to reserve Mesos resources with role=${ROLE}"
@@ -112,6 +104,7 @@ function grant_volumes {
          -H "Authorization: token=${ACS_TOKEN}" \
          "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:volume:principal:${SERVICE_ACCOUNT_NAME}/users/${SERVICE_ACCOUNT_NAME}/delete"
 }
+
 echo "Granting permissions to ${SERVICE_ACCOUNT_NAME}..."
 grant_registration
 grant_task_execution
