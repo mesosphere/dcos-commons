@@ -34,6 +34,7 @@ defaults
   option            dontlognull
   option            http-server-close
   option            redispatch
+  default-server resolve-prefer ipv4
 
 listen stats
   bind 0.0.0.0:9090
@@ -41,3 +42,14 @@ listen stats
   mode http
   stats enable
   monitor-uri /_haproxy_health_check
+
+resolvers dns
+  nameserver ns1 198.51.100.1:53
+  nameserver ns2 198.51.100.2:53
+  nameserver ns3 198.51.100.3:53
+  hold valid           2s
+  hold other           2s
+  hold refused         2s
+  hold nx              2s
+  hold timeout         2s
+  hold valid           2s
