@@ -59,8 +59,15 @@ publishing {
 distributions {
     main {
         baseName = 'executor'
-        version = ''
     }
+}
+
+distZip {
+    archiveName "executor.zip"
+}
+
+distTar {
+    archiveName "executor.tar"
 }
 
 check.finalizedBy jacocoTestReport

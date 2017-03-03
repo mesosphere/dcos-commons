@@ -103,7 +103,7 @@ dependencies {
     compile "org.hibernate:hibernate-validator:${hibernateValidatorVer}"
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
-    compile 'com.mesosphere:mesos-http-adapter:0.3.0'
+    compile 'com.mesosphere:mesos-http-adapter:0.4.0'
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"

@@ -1,0 +1,54 @@
+{
+  "id": "{{service.name}}",
+  "cpus": 1.0,
+  "mem": 1230,
+  "instances": 1,
+  "cmd": "{{service.cmd_prefix}} && ./spark-standalone-scheduler/bin/spark ./spark-standalone-scheduler/{{service.spec_file}}",
+  "labels": {
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
+    "DCOS_MIGRATION_API_VERSION": "v1",
+    "DCOS_MIGRATION_API_PATH": "/v1/plan",
+    "MARATHON_SINGLE_INSTANCE_APP":"true"
+  },
+  "env": {
+    "FRAMEWORK_NAME": "{{service.name}}",
+    "SERVICE_PRINCIPAL": "{{service.principal}}",
+    "SPARK_VERSION": "spark-2.1.0-bin-hadoop2.7",
+    "DAEMON_CPUS": "{{spark.master.cpus}}",
+    "DAEMON_MEM": "{{spark.master.mem}}",
+    "SPARK_MASTER_PORT": "{{spark.master.port}}",
+    "SPARK_MASTER_WEBUI_PORT": "{{spark.master.webui_port}}",
+    "SPARK_MASTER_OPTS": "{{spark.master.opts}}",
+    "SPARK_WORKER_PORT": "{{spark.worker.port}}",
+    "SPARK_WORKER_WEBUI_PORT": "{{spark.worker.webui_port}}",
+    "WORKER_COUNT": "{{spark.worker.count}}",
+    "WORKER_CPUS": "{{spark.worker.cpus}}",
+    "WORKER_MEM": "{{spark.worker.mem}}",
+    "WORKER_DISK": "{{spark.worker.disk}}",
+    "PROXYLITE_CPUS": "{{service.proxylite.cpus}}",
+    "PROXYLITE_MEM": "{{service.proxylite.mem}}",
+    "PROXYLITE_PORT": "{{service.proxylite.port}}",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
+    "SPARK_URI": "{{resource.assets.uris.spark-tar-gz}}",
+    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+    "CONFIG_TEMPLATE_PATH": "spark-standalone-scheduler"
+  },
+  "uris": [
+    "{{resource.assets.uris.jre-tar-gz}}",
+    "{{resource.assets.uris.scheduler-zip}}",
+    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  ],
+  "upgradeStrategy":{
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  },
+  "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "api",
+      "labels": { "VIP_0": "/api.{{service.name}}:80" }
+    }
+  ]
+}

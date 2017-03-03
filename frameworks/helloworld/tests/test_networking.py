@@ -3,6 +3,7 @@ import pytest
 import sdk_install as install
 import sdk_plan as plan
 import sdk_spin as spin
+import sdk_utils as utils
 
 from tests.config import (
     PACKAGE_NAME
@@ -11,6 +12,7 @@ from tests.config import (
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
+    utils.gc_frameworks()
     options = {
         "service": {
             "spec_file": "examples/cni.yml"
@@ -18,6 +20,10 @@ def setup_module(module):
     }
 
     install.install(PACKAGE_NAME, 1, additional_options=options)
+
+
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

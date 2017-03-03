@@ -2,10 +2,21 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -14,21 +25,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.awaitility.Awaitility;
+import org.awaitility.Duration;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -41,6 +39,7 @@ import org.mockito.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -547,6 +546,71 @@ public class DefaultSchedulerTest {
         statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
 
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stateStore).isSuppressed(), equalTo(false));
+    }
+
+    @Test
+    public void testClearFailureMarkOnRunning() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_RUNNING);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
+    }
+
+    @Test
+    public void testClearFailureMarkOnFinished() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FINISHED);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
+    }
+
+    @Test
+    public void testMaintainFailureMarkOnFailure() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
+    }
+
+    @Test
+    public void testMaintainFailureMarkOnError() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
+        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
+    }
+
+    private Callable<Boolean> taskMarkFailed(String taskName) {
+        return new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
+            }
+        };
     }
 
     private int countOperationType(

@@ -261,6 +261,7 @@ public class ResourceUtils {
                     builder.getDiscoveryBuilder(),
                     vipName,
                     protocol,
+                    visibility,
                     vipPort,
                     (int) resource.getRanges().getRange(0).getBegin());
         } else {
@@ -288,6 +289,7 @@ public class ResourceUtils {
                     builder.getDiscoveryBuilder(),
                     vipName,
                     protocol,
+                    visibility,
                     vipPort,
                     (int) resource.getRanges().getRange(0).getBegin());
         } else {
@@ -304,11 +306,17 @@ public class ResourceUtils {
     }
 
     private static DiscoveryInfo.Builder addVIP(
-            DiscoveryInfo.Builder builder, String vipName, String protocol, Integer vipPort, int destPort) {
+            DiscoveryInfo.Builder builder,
+            String vipName,
+            String protocol,
+            DiscoveryInfo.Visibility visibility,
+            Integer vipPort,
+            int destPort) {
         builder.getPortsBuilder()
                 .addPortsBuilder()
                 .setNumber(destPort)
                 .setProtocol(protocol)
+                .setVisibility(visibility)
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 
@@ -323,12 +331,13 @@ public class ResourceUtils {
             DiscoveryInfo.Visibility visibility,
             Resource r) {
         DiscoveryInfo.Builder discoveryInfoBuilder = DiscoveryInfo.newBuilder()
-                .setVisibility(visibility)
+                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .setName(taskName);
 
         discoveryInfoBuilder.getPortsBuilder().addPortsBuilder()
                 .setNumber((int) r.getRanges().getRange(0).getBegin())
                 .setProtocol(protocol)
+                .setVisibility(visibility)
                 .getLabelsBuilder()
                 .addLabels(getVIPLabel(vipName, vipPort));
 

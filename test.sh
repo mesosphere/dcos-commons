@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This file contains logic for integration tests which are executed by CI upon pull requests to
-# dcos-commons. The script builds the Hello World framework, packages and uploads it, then runs its
+# dcos-commons. The script builds each framework, packages and uploads it, then runs its
 # integration tests against a newly-launched cluster.
 
 # Exit immediately on errors -- the helper scripts all emit github statuses internally
@@ -13,7 +13,7 @@ function proxylite_preflight {
 
 function run_framework_tests {
     framework=$1
-    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/$framework
+    FRAMEWORK_DIR=${REPO_ROOT_DIR}/frameworks/${framework}
 
     if [ "$framework" = "proxylite" ]; then
         if ! proxylite_preflight; then
@@ -26,7 +26,7 @@ function run_framework_tests {
     if [ -z "${!STUB_UNIVERSE_URL}" ]; then
         STUB_UNIVERSE_URL=$(echo "${framework}_STUB_UNIVERSE_URL" | awk '{print toupper($0)}')
         # Build/upload framework scheduler:
-        UNIVERSE_URL_PATH=${REPO_ROOT_DIR}/frameworks/$framework/${framework}-universe-url
+        UNIVERSE_URL_PATH=$FRAMEWORK_DIR/${framework}-universe-url
         UNIVERSE_URL_PATH=$UNIVERSE_URL_PATH ${FRAMEWORK_DIR}/build.sh aws
 
         if [ ! -f "$UNIVERSE_URL_PATH" ]; then
@@ -40,9 +40,18 @@ function run_framework_tests {
         echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
 
-    # Run shakedown tests in framework scheduler directory:
-    ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
+    echo Security: $SECURITY
+    if [ "$SECURITY" = "strict" ]; then
+        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}-role
+        # Some tests install a second instance of a framework, such as "hdfs2"
+        ${REPO_ROOT_DIR}/tools/setup_permissions.sh root ${framework}2-role
+    fi
+
+    # Run shakedown tests in framework directory:
+    TEST_GITHUB_LABEL="${framework}" ${REPO_ROOT_DIR}/tools/run_tests.py shakedown ${FRAMEWORK_DIR}/tests/
 }
+
+echo "Beginning integration tests at "`date`
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $REPO_ROOT_DIR
@@ -53,28 +62,29 @@ if [ -z "$CLUSTER_URL" ]; then
     export CCM_AGENTS=5
     CLUSTER_INFO=$(${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py)
     echo "Launched cluster: ${CLUSTER_INFO}"
-    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq .url)
+    # jq emits json strings by default: "value".  Use --raw-output to get value without quotes
+    export CLUSTER_URL=$(echo "${CLUSTER_INFO}" | jq --raw-output .url)
     export CLUSTER_ID=$(echo "${CLUSTER_INFO}" | jq .id)
-    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq .auth_token)
+    export CLUSTER_AUTH_TOKEN=$(echo "${CLUSTER_INFO}" | jq --raw-output .auth_token)
+    CLUSTER_CREATED="true"
 else
     echo "Using provided CLUSTER_URL as cluster: $CLUSTER_URL"
+    CLUSTER_CREATED=""
 fi
 
 # A specific framework can be specified to run its tests
-# Otherwise all tests are ran
+# Otherwise all tests are run in random framework order
 if [ -n "$1" ]; then
     run_framework_tests $1
 else
-    for framework in $(ls $REPO_ROOT_DIR/frameworks); do
-        if [ "$framework" = "kafka" ]; then # no tests exists for Kafka as of writing this
-            continue
-        fi
+    for framework in $(ls $REPO_ROOT_DIR/frameworks | while IFS= read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7-); do
+        echo "Starting shakedown tests for $framework at "`date`
         run_framework_tests $framework
     done
 fi
 
 # Tests succeeded. Out of courtesy, trigger a teardown of the cluster if we created it ourselves.
 # Don't wait for the cluster to complete teardown.
-if [ -n "${CLUSTER_ID}" ]; then
+if [ -n "${CLUSTER_CREATED}" ]; then
     ${REPO_ROOT_DIR}/tools/launch_ccm_cluster.py trigger-stop ${CLUSTER_ID}
 fi

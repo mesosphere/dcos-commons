@@ -7,7 +7,8 @@ import sdk_tasks as tasks
 
 from tests.config import (
     PACKAGE_NAME,
-    check_healthy
+    check_healthy,
+    DEFAULT_TASK_COUNT
 )
 
 TEST_CONTENT_SMALL = "This is some test data"
@@ -19,14 +20,13 @@ HDFS_CMD_TIMEOUT_SEC = 5 * 60
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    install.install(PACKAGE_NAME)
+    install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
 
 
-@pytest.mark.skip(reason="Failing test")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_data_node_failure():
@@ -44,7 +44,6 @@ def test_integrity_on_data_node_failure():
     check_healthy()
 
 
-@pytest.mark.skip(reason="Failing test")
 @pytest.mark.data_integrity
 @pytest.mark.sanity
 def test_integrity_on_name_node_failure():

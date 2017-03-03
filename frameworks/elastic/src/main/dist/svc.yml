@@ -1,0 +1,328 @@
+name: {{FRAMEWORK_NAME}}
+web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  kibana:
+    count: {{KIBANA_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/kibana/kibana-{{ELASTIC_VERSION}}-linux-x86_64.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
+    placement: {{KIBANA_PLACEMENT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{KIBANA_CPUS}}
+        memory: {{KIBANA_MEM}}
+        ports:
+          http:
+            port: 0
+            vip:
+              prefix: kibana
+              port: 5601
+        volume:
+          path: "container-path"
+          type: {{KIBANA_DISK_TYPE}}
+          size: {{KIBANA_DISK}}
+        cmd: "./bootstrap && ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-{{ELASTIC_VERSION}}.zip && exec ./kibana-{{ELASTIC_VERSION}}-linux-x86_64/bin/kibana"
+        env:
+          MESOS_FRAMEWORK_ID: {{MESOS_FRAMEWORK_ID}}
+          KIBANA_PASSWORD: {{KIBANA_PASSWORD}}
+        configs:
+          kibana:
+            template: "{{CONFIG_TEMPLATE_PATH}}/kibana.yml"
+            dest: "kibana-{{ELASTIC_VERSION}}-linux-x86_64/config/kibana.yml"
+        health-check:
+          cmd: "curl -I -s -f localhost:$PORT_HTTP/login"
+          interval: 5
+          grace-period: 900
+          max-consecutive-failures: 3
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f localhost:$PORT_HTTP/login"
+          interval: 5
+          delay: 0
+          timeout: 10
+  master:
+    count: 3
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
+    placement: {{MASTER_NODE_PLACEMENT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{MASTER_NODE_CPUS}}
+        memory: {{MASTER_NODE_MEM}}
+        ports:
+          http:
+            port: 0
+            vip:
+              prefix: master
+              port: 9200
+          transport:
+            port: {{MASTER_NODE_TRANSPORT_PORT}}
+        volume:
+          path: "container-path"
+          type: {{MASTER_NODE_DISK_TYPE}}
+          size: {{MASTER_NODE_DISK}}
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: true
+          DATA_ENABLED: false
+          INGEST_ENABLED: false
+          ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
+          delay: 0
+          timeout: 10
+  data:
+    count: {{DATA_NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
+    placement: {{DATA_NODE_PLACEMENT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{DATA_NODE_CPUS}}
+        memory: {{DATA_NODE_MEM}}
+        ports:
+          http:
+            port: 0
+            vip:
+              prefix: data
+              port: 9200
+          transport:
+            port: 0
+        volume:
+          path: "container-path"
+          type: {{DATA_NODE_DISK_TYPE}}
+          size: {{DATA_NODE_DISK}}
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: false
+          DATA_ENABLED: true
+          INGEST_ENABLED: false
+          ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
+          delay: 0
+          timeout: 10
+  ingest:
+    count: {{INGEST_NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
+    placement: {{INGEST_NODE_PLACEMENT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{INGEST_NODE_CPUS}}
+        memory: {{INGEST_NODE_MEM}}
+        ports:
+          http:
+            port: 0
+            vip:
+              prefix: ingest
+              port: 9200
+          transport:
+            port: 0
+        volume:
+          path: "container-path"
+          type: {{INGEST_NODE_DISK_TYPE}}
+          size: {{INGEST_NODE_DISK}}
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: false
+          DATA_ENABLED: false
+          INGEST_ENABLED: true
+          ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
+          delay: 0
+          timeout: 10
+  coordinator:
+    count: {{COORDINATOR_NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{SCHEDULER_URI}}
+      - https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+      - https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{ELASTIC_VERSION}}.zip
+      - https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/5.1/support-diagnostics-5.1-dist.zip
+    container:
+      rlimits:
+        RLIMIT_NOFILE:
+          soft: 128000
+          hard: 128000
+    placement: {{COORDINATOR_NODE_PLACEMENT}}
+    user: {{FRAMEWORK_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cpus: {{COORDINATOR_NODE_CPUS}}
+        memory: {{COORDINATOR_NODE_MEM}}
+        ports:
+          http:
+            port: 0
+            vip:
+              prefix: coordinator
+              port: 9200
+          transport:
+            port: 0
+        volume:
+          path: "container-path"
+          type: {{COORDINATOR_NODE_DISK_TYPE}}
+          size: {{COORDINATOR_NODE_DISK}}
+        cmd: "./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        env:
+          MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
+          MASTER_ENABLED: false
+          DATA_ENABLED: false
+          INGEST_ENABLED: false
+          ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
+          ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTICSEARCH_PLUGINS: {{ELASTICSEARCH_PLUGINS}}
+        configs:
+          elasticsearch:
+            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
+            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+        health-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          grace-period: 180
+          interval: 1
+          max-consecutive-failures: 1
+          delay: 0
+          timeout: 10
+        readiness-check:
+          cmd: "curl -I -s -f -u kibana:{{KIBANA_PASSWORD}} localhost:$PORT_HTTP"
+          interval: 5
+          delay: 0
+          timeout: 10
+  proxylite:
+    container:
+      image-name: mesosphere/proxylite:1.0.1
+    count: 1
+    uris:
+      - {{SCHEDULER_URI}}
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "./bootstrap -resolve-hosts=kibana-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        ports:
+          proxylite:
+            env-key: PORT_PROXYLITE
+            port: {{PROXYLITE_PORT}}
+        env:
+          ROOT_REDIRECT: "/"
+          EXTERNAL_ROUTES: "/v1,/kibana"
+          INTERNAL_ROUTES: "{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,kibana.{{FRAMEWORK_NAME}}.l4lb.thisdcos.directory:5601"
+
+plans:
+  deploy:
+    strategy: {{PLAN_STRATEGY}}
+    phases:
+      master-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: master
+      data-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: data
+      ingest-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: ingest
+      coordinator-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: coordinator
+      kibana-deploy:
+        strategy: {{PLAN_STRATEGY}}
+        pod: kibana
+      proxylite-deploy:
+        strategy: serial
+        pod: proxylite
+        
