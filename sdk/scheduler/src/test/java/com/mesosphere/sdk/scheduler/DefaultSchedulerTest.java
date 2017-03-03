@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
@@ -65,6 +66,8 @@ public class DefaultSchedulerTest {
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
     @Mock
     private SchedulerDriver mockSchedulerDriver;
+    @Mock
+    private Capabilities capabilities;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
@@ -170,12 +173,16 @@ public class DefaultSchedulerTest {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testingServer);
 
+        capabilities = mock(Capabilities.class);
+        when(capabilities.supportsGpuResource()).thenReturn(true);
+
         StateStoreCache.resetInstanceForTests();
         stateStore = DefaultScheduler.createStateStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
         configStore = DefaultScheduler.createConfigStore(SERVICE_SPECIFICATION, testingServer.getConnectString());
         defaultScheduler = DefaultScheduler.newBuilder(SERVICE_SPECIFICATION)
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
+                .setCapabilities(capabilities)
                 .build();
         register();
     }

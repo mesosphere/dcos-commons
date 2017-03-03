@@ -29,13 +29,11 @@ public class Capabilities {
 
     public boolean supportsGpuResource() throws IOException {
         // GPU_RESOURCE is supported by DC/OS 1.9 upwards
-        LOGGER.error("CHECKING FOR GPU SUPPORT");
         return hasOrExceedsVersion(1, 9);
     }
 
     private boolean hasOrExceedsVersion(int major, int minor) throws IOException {
         DcosVersion.Elements versionElements = dcosCluster.getDcosVersion().getElements();
-        LOGGER.error("...CHECKING");
         try {
             if (versionElements.getFirstElement() > major) {
                 return true;
