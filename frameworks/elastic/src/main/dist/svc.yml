@@ -305,22 +305,22 @@ pods:
 
 plans:
   deploy:
-    strategy: {{PLAN_STRATEGY}}
+    strategy: {{DEPLOY_STRATEGY}}
     phases:
       master-deploy:
-        strategy: {{PLAN_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: master
       data-deploy:
-        strategy: {{PLAN_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: data
       ingest-deploy:
-        strategy: {{PLAN_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: ingest
       coordinator-deploy:
-        strategy: {{PLAN_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: coordinator
       kibana-deploy:
-        strategy: {{PLAN_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: kibana
       proxylite-deploy:
         strategy: serial
