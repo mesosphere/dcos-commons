@@ -3,8 +3,6 @@
 import collections
 import dcos.errors
 import dcos.marathon
-import sdk_cmd
-import sdk_marathon
 import sdk_spin
 import sdk_tasks
 import shakedown
@@ -13,41 +11,37 @@ import os
 import time
 
 
-def install(
-        package_name,
-        running_task_count,
-        service_name=None,
-        additional_options={},
-        package_version=None):
+def install(package_name, running_task_count, service_name=None, additional_options={}, package_version=None):
     if not service_name:
         service_name = package_name
     start = time.time()
     merged_options = get_package_options(additional_options)
-    print('Installing {} with options={} version={}'.format(
-        package_name, merged_options, package_version))
+    print('Installing {} with options={} version={}'.format(package_name, merged_options, package_version))
     # install_package_and_wait silently waits for all marathon deployments to clear.
     # to give some visibility, install in the following order:
     # 1. install package
-    shakedown.install_package(
-        package_name,
-        package_version=package_version,
-        options_json=merged_options)
+    shakedown.install_package(package_name, package_version=package_version, options_json=merged_options)
     # 2. wait for expected tasks to come up
+    print("Waiting for expected tasks to come up...")
     sdk_tasks.check_running(service_name, running_task_count)
     # 3. check service health
-    app_id = sdk_marathon.get_config(service_name)['id']
     marathon_client = dcos.marathon.create_client()
+
     def fn():
         # TODO(nickbp): upstream fix to shakedown, which currently checks for ANY deployments rather
         #               than the one we care about
         deploying_apps = set([])
-        for d in marathon_client.get_deployments():
+        print("Getting deployments")
+        deployments = marathon_client.get_deployments()
+        print("Found {} deployments".format(len(deployments)))
+        for d in deployments:
+            print("Deployment: {}".format(d))
             for a in d.get('affectedApps', []):
+                print("Adding {}".format(a))
                 deploying_apps.add(a)
-        print('Checking deployment of {} has ended:\n- Deploying apps: {}'.format(
-            service_name, deploying_apps))
+        print('Checking deployment of {} has ended:\n- Deploying apps: {}'.format(service_name, deploying_apps))
         return not '/{}'.format(service_name) in deploying_apps
-    sdk_spin.time_wait_noisy(lambda: fn())
+    sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=30)
     print('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
 
 

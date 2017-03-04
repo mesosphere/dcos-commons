@@ -1,10 +1,11 @@
 import json
 from functools import wraps
 
-import requests
 import shakedown
 
+
 PACKAGE_NAME = 'elastic'
+MASTER_VIP = "http://master.{}.l4lb.thisdcos.directory:9200".format(PACKAGE_NAME)
 DEFAULT_TASK_COUNT = 9
 WAIT_TIME_IN_SECONDS = 6 * 60
 KIBANA_WAIT_TIME_IN_SECONDS = 15 * 60
@@ -15,10 +16,6 @@ DCOS_URL = shakedown.run_dcos_command('config show core.dcos_url')[0].strip()
 DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
-
-REQUEST_HEADERS = {
-    'authorization': 'token=%s' % DCOS_TOKEN
-}
 
 
 def as_json(fn):
@@ -55,8 +52,9 @@ def check_kibana_proxylite_adminrouter_integration():
     return shakedown.wait_for(lambda: kibana_health_success_predicate(),
                               timeout_seconds=KIBANA_WAIT_TIME_IN_SECONDS)
 
+
 def get_kibana_status():
-    token = shakedown.authenticate('bootstrapuser','deleteme')
+    token = shakedown.authenticate('bootstrapuser', 'deleteme')
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/kibana/login".format(
         token, shakedown.dcos_service_url(PACKAGE_NAME))
     exit_status, output = shakedown.run_command_on_master(curl_cmd)
@@ -104,10 +102,6 @@ def new_master_elected_success_predicate(initial_master):
 def check_new_elasticsearch_master_elected(initial_master):
     return shakedown.wait_for(lambda: new_master_elected_success_predicate(initial_master),
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
-
-
-def marathon_update(config):
-    requests.put(marathon_api_url('apps/{}'.format(PACKAGE_NAME)), json=config, headers=REQUEST_HEADERS, verify=False)
 
 
 def get_elasticsearch_master():
@@ -178,13 +172,8 @@ def get_document(index_name, index_type, doc_id):
     return output
 
 
-def marathon_api_url(basename):
-    return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
-
-
 def curl_api(method):
-    return "curl -X{} -s -u elastic:changeme 'http://master.{}.l4lb.thisdcos.directory:9200".format(method,
-                                                                                                    PACKAGE_NAME)
+    return ("curl -X{} -s -u elastic:changeme '" + MASTER_VIP).format(method)
 
 
 def get_marathon_host():
