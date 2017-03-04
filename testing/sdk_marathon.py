@@ -16,12 +16,19 @@ def get_config(app_name):
     return config
 
 
+def update_app(app_name, config):
+    response = sdk_cmd.request('put', api_url('apps/' + app_name), json=config)
+    assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
+
+
 def destroy_app(app_name):
     sdk_cmd.request('delete', api_url_with_param('apps', app_name))
+
     # Make sure the scheduler has been destroyed
 
     def fn():
         return shakedown.get_service(app_name) is None
+
     sdk_spin.time_wait_noisy(lambda: fn())
 
 

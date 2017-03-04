@@ -103,12 +103,12 @@ def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['ELASTICSEARCH_PLUGINS'] = plugin_name
-    marathon_update(config)
+    marathon.update_app(PACKAGE_NAME, config)
     check_plugin_installed(plugin_name)
 
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['ELASTICSEARCH_PLUGINS'] = ""
-    marathon_update(config)
+    marathon.update_app(PACKAGE_NAME, config)
     check_plugin_uninstalled(plugin_name)
 
 
@@ -132,8 +132,7 @@ def test_bump_node_counts():
     config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
     coordinator_nodes = int(config['env']['COORDINATOR_NODE_COUNT'])
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
-    marathon_update(config)
-
+    marathon.update_app(PACKAGE_NAME, config)
     tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT + 3)
 
 

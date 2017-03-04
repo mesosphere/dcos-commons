@@ -16,10 +16,6 @@ DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].st
 
 TASK_RUNNING_STATE = 'TASK_RUNNING'
 
-REQUEST_HEADERS = {
-    'authorization': 'token=%s' % DCOS_TOKEN
-}
-
 
 def as_json(fn):
     @wraps(fn)
@@ -104,10 +100,6 @@ def new_master_elected_success_predicate(initial_master):
 def check_new_elasticsearch_master_elected(initial_master):
     return shakedown.wait_for(lambda: new_master_elected_success_predicate(initial_master),
                               timeout_seconds=WAIT_TIME_IN_SECONDS)
-
-
-def marathon_update(config):
-    requests.put(marathon_api_url('apps/{}'.format(PACKAGE_NAME)), json=config, headers=REQUEST_HEADERS, verify=False)
 
 
 def get_elasticsearch_master():
