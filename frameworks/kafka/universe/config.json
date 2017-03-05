@@ -104,42 +104,42 @@
             "type":"object",
             "properties": {
               "enable": {
-                "description": "Whether to enable JMX options",
+                "description": "[Deprecated] Whether to enable JMX options",
                 "type": "boolean",
                 "default": false
               },
               "remote": {
-                "description": "Whether to enable remote monitoring",
+                "description": "[Deprecated] Whether to enable remote monitoring",
                 "type": "boolean",
                 "default": false
               },
               "remote_port": {
-                "description": "Port number for Kafka access",
+                "description": "[Deprecated] Port number for Kafka access",
                 "type": "integer",
                 "default": 9999
               },
               "remote_registry_ssl": {
-                "description": "Whether to protect the remote RMI registry using SSL",
+                "description": "[Deprecated] Whether to protect the remote RMI registry using SSL",
                 "type": "boolean",
                 "default": false
               },
               "remote_ssl": {
-                "description": "Whether to enable SSL for remote access",
+                "description": "[Deprecated] Whether to enable SSL for remote access",
                 "type": "boolean",
                 "default": false
               },
               "remote_authenticate": {
-                "description": "Whether to enable password authentication for remote access",
+                "description": "[Deprecated] Whether to enable password authentication for remote access",
                 "type": "boolean",
                 "default": false
               },
               "remote_ssl_need_client_auth": {
-                "description": "Whether to enable SSL client authentication for remote access",
+                "description": "[Deprecated] Whether to enable SSL client authentication for remote access",
                 "type": "boolean",
                 "default": false
               },
               "additional_kafka_jmx_opts": {
-                "description": "JMX argument string (i.e. \"-Dcom.sun.management.jmxremote.access.file=somefile\") to be appended to KAFKA_JMX_OPTS environment variable",
+                "description": "[Deprecated] JMX argument string (i.e. \"-Dcom.sun.management.jmxremote.access.file=somefile\") to be appended to KAFKA_JMX_OPTS environment variable",
                 "type": "string",
                 "default": ""
               }

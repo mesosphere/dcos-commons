@@ -18,15 +18,7 @@ pods:
         ports:
           broker:
             port: {{BROKER_PORT}}
-            env-key: KAFKA_PORT
-            vip:
-              prefix: broker
-              port: 9092
-          {{#BROKER_JMX_PORT}}
-          jmx:
-            port: {{BROKER_JMX_PORT}}
-            env-key: JMX_PORT
-          {{/BROKER_JMX_PORT}}
+            env-key: KAFKA_BROKER_PORT
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
