@@ -60,7 +60,7 @@ def test_bump_hello_cpus():
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
     config['env']['HELLO_CPUS'] = str(cpus + 0.1)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
@@ -76,7 +76,7 @@ def test_bump_world_cpus():
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['WORLD_CPUS'])
     config['env']['WORLD_CPUS'] = str(cpus + 0.1)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
@@ -93,7 +93,7 @@ def test_bump_hello_nodes():
     config = marathon.get_config(PACKAGE_NAME)
     node_count = int(config['env']['HELLO_COUNT']) + 1
     config['env']['HELLO_COUNT'] = str(node_count)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
