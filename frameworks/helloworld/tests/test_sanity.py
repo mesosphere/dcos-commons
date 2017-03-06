@@ -23,6 +23,15 @@ def setup_module(module):
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
+@pytest.mark.smoke
+def test_install():
+    check_running()
+
+
 @pytest.mark.sanity
 def test_no_colocation_in_podtypes():
     # check that no two 'hellos' and no two 'worlds' are colocated on the same agent
@@ -42,6 +51,7 @@ def test_no_colocation_in_podtypes():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 def test_bump_hello_cpus():
     check_running()
     hello_ids = tasks.get_task_ids(PACKAGE_NAME, 'hello')
@@ -57,6 +67,7 @@ def test_bump_hello_cpus():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 def test_bump_world_cpus():
     check_running()
     world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world')
@@ -72,6 +83,7 @@ def test_bump_world_cpus():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 def test_bump_hello_nodes():
     check_running()
 

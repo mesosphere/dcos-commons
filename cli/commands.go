@@ -203,8 +203,8 @@ func HandleEndpointsSection(app *kingpin.Application) {
 type PlanHandler struct {
 	PlanName   string
 	Parameters string
-	PhaseId    string
-	StepId     string
+	Phase      string
+	Step       string
 }
 
 func GetPlanName(cmd *PlanHandler) string {
@@ -253,21 +253,29 @@ func (cmd *PlanHandler) RunStop(c *kingpin.ParseContext) error {
 }
 
 func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
-	response := HTTPPost(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)))
+	query := url.Values{}
+	if len(cmd.Phase) > 0 {
+		query.Set("phase", cmd.Phase)
+	}
+	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
 }
 
 func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
-	response := HTTPPost(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)))
+	query := url.Values{}
+	if len(cmd.Phase) > 0 {
+		query.Set("phase", cmd.Phase)
+	}
+	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
 }
 
 func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("phase", cmd.PhaseId)
-	query.Set("step", cmd.StepId)
+	query.Set("phase", cmd.Phase)
+	query.Set("step", cmd.Step)
 	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/restart", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
@@ -275,8 +283,8 @@ func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 
 func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("phase", cmd.PhaseId)
-	query.Set("step", cmd.StepId)
+	query.Set("phase", cmd.Phase)
+	query.Set("step", cmd.Step)
 	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
@@ -299,21 +307,23 @@ func HandlePlanSection(app *kingpin.Application) {
 	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
 
-	continueCmd := plan.Command("continue", "Continue the deploy plan or the plan with the provided name").Action(cmd.RunContinue)
+	continueCmd := plan.Command("continue", "Continue the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Action(cmd.RunContinue)
 	continueCmd.Arg("plan", "Name of the plan to continue").StringVar(&cmd.PlanName)
+	continueCmd.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
 
-	interrupt := plan.Command("interrupt", "Interrupt the deploy plan or the plan with the provided name").Action(cmd.RunInterrupt)
+	interrupt := plan.Command("interrupt", "Interrupt the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Action(cmd.RunInterrupt)
 	interrupt.Arg("plan", "Name of the plan to interrupt").StringVar(&cmd.PlanName)
+	interrupt.Arg("phase", "Name or UUID of a specific phase to interrupt").StringVar(&cmd.Phase)
 
-	restart := plan.Command("restart", "Restart the plan with the provided name").Action(cmd.RunRestart)
+	restart := plan.Command("restart", "Restart the plan with the provided name, or the specific step in the provided phase (each by name or UUID)").Action(cmd.RunRestart)
 	restart.Arg("plan", "Name of the plan to restart").Required().StringVar(&cmd.PlanName)
-	restart.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
-	restart.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
+	restart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
+	restart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
 	force := plan.Command("force", "Force complete the plan with the provided name").Action(cmd.RunForce)
 	force.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
-	force.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
-	force.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
+	force.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
+	force.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 }
 
 // Pods section

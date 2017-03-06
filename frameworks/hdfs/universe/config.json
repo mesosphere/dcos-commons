@@ -35,6 +35,17 @@
           "type":"string",
           "default":"svc.yml"
         },
+        "tls": {
+          "type": "object",
+          "description": "TLS configuration properties.",
+          "properties": {
+            "enabled": {
+              "description": "Enable TLS support (requires Strict mode).",
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
         "kerberos": {
           "type": "object",
           "description": "Kerberos configuration properties.",
@@ -209,6 +220,11 @@
       "type": "object",
       "description": "HDFS File System configuration options",
       "properties": {
+        "administrators": {
+          "type": "string",
+          "description": "Administrators for the HDFS cluster",
+          "default": "core,centos,azureuser"
+        },
         "name_node_rpc_port": {
           "type": "integer",
           "description": "The RPC port for HDFS Name Nodes.",

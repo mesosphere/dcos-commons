@@ -15,10 +15,24 @@ pods:
           httpd:
             env-key: PORT_HTTPD
             port: 4041
+  web2:
+    container:
+        image-name: nlsun/pyhttpsd:1.0.1
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "/start $PORT_PYHTTPSD"
+        cpus: {{PROXYLITE_CPUS}}
+        memory: {{PROXYLITE_MEM}}
+        ports:
+          httpd:
+            env-key: PORT_PYHTTPSD
+            port: 4042
   proxylite:
     container:
       # The image here is built and pushed
-      image-name: mesosphere/proxylite:1.0.1
+      image-name: mesosphere/proxylite:2.1.0
     count: 1
     tasks:
       server:
@@ -32,6 +46,6 @@ pods:
             port: 4040
         env:
           ROOT_REDIRECT: "/example"
-          EXTERNAL_ROUTES: "/v1,/httpd,/google,/example"
-          INTERNAL_ROUTES: "proxylite.marathon.mesos:{{PORT0}}/v1,web-0-server.proxylite.mesos:4041,google.com:80,example.com:80"
+          EXTERNAL_ROUTES: "/v1,/httpd,/pyhttpsd,/google,/example"
+          INTERNAL_ROUTES: "http://proxylite.marathon.mesos:{{PORT0}}/v1,http://web-0-server.proxylite.mesos:4041,https://web2-0-server.proxylite.mesos:4042,http://google.com:80,http://example.com:80"
 

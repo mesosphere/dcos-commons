@@ -4,6 +4,7 @@ from tests.config import *
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_marathon as marathon
+import sdk_utils as utils
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
@@ -21,7 +22,7 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 def setup_module(module):
     install.uninstall(PACKAGE_NAME)
-    gc_frameworks()
+    utils.gc_frameworks()
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
@@ -42,6 +43,7 @@ def default_populated_index():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
 def test_service_health():
     check_dcos_service_health()
 

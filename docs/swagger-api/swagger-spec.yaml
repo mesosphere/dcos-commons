@@ -123,13 +123,13 @@ paths:
           description: "Received cmd: stop"
         404:
           description: "Plan not found."
-  /plans/{name}/continue:
+  /plans/{plan}/continue:
     post:
       tags:
       - "plans"
       summary: "Continues the execution of the plan."
       parameters:
-      - name: "name"
+      - name: "plan"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -139,15 +139,46 @@ paths:
           description: "Received cmd continue."
         404:
           description: "Plan not found."
-  /plans/{name}/forceComplete:
+  /plans/{plan}/{phase}/continue:
+    post:
+      tags:
+      - "plans"
+      summary: "Continues the execution of the phase."
+      parameters:
+      - name: "plan"
+        in: "path"
+        description: "The name of the plan."
+        required: true
+        type: "string"
+      - name: "phase"
+        in: "query"
+        description: "The name or id of the phase."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Received cmd continue."
+        404:
+          description: "Plan not found."
+  /plans/{plan}/forceComplete:
     post:
       tags:
       - "plans"
       summary: "Force complete your plan."
       parameters:
-      - name: "name"
+      - name: "plan"
         in: "path"
         description: "The name of the plan."
+        required: true
+        type: "string"
+      - name: "phase"
+        in: "query"
+        description: "The name or id of the phase."
+        required: true
+        type: "string"
+      - name: "step"
+        in: "query"
+        description: "The name or id of the step."
         required: true
         type: "string"
       responses:
@@ -155,13 +186,13 @@ paths:
           description: "Received cmd forceComplete."
         404:
           description: "Plan not found."
-  /plans/{name}/interrupt:
+  /plans/{plan}/interrupt:
     post:
       tags:
       - "plans"
       summary: "Interrupts the execution of the specified plan."
       parameters:
-      - name: "name"
+      - name: "plan"
         in: "path"
         description: "The name of the plan."
         required: true
@@ -171,20 +202,53 @@ paths:
           description: "Received cmd interrupt."
         404:
           description: "Plan not found."
-  /plans/{name}/restart:
+  /plans/{plan}/{phase}/interrupt:
     post:
       tags:
       - "plans"
-      summary: "Restarts the specified plan regardless of its current state."
+      summary: "Interrupts the execution of the specified phase."
       parameters:
-      - name: "name"
+      - name: "plan"
         in: "path"
         description: "The name of the plan."
         required: true
         type: "string"
+      - name: "phase"
+        in: "query"
+        description: "The name or id of the phase."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "Received cmd interrupt."
+        404:
+          description: "Plan not found."
+  /plans/{plan}/restart:
+    post:
+      tags:
+      - "plans"
+      summary: "Restarts the specified plan or step regardless of its current state."
+      parameters:
+      - name: "plan"
+        in: "path"
+        description: "The name of the plan."
+        required: true
+        type: "string"
+      - name: "phase"
+        in: "query"
+        description: "The optional name or id of the phase."
+        required: false
+        type: "string"
+      - name: "step"
+        in: "query"
+        description: "The optional name or id of the step."
+        required: false
+        type: "string"
       responses:
         200:
           description: "Received cmd restart."
+        400:
+          description: "Only one of phase/step is specified. Either both or neither must be provided."
         404:
           description: "Plan not found."
   /pods:

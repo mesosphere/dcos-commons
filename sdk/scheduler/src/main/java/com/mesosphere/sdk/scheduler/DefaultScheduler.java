@@ -2,8 +2,8 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.*;
@@ -29,12 +29,14 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
+import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanManagerFactory;
+import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
@@ -89,17 +91,8 @@ public class DefaultScheduler implements Scheduler, Observer {
     protected final Collection<Plan> plans;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    /**
-     * Minimum duration to wait in milliseconds before deciding that a task has failed,
-     * or zero to disable this detection.
-     */
-    protected final Optional<Integer> permanentFailureTimeoutMs;
-    /**
-     * Minimum duration to wait in milliseconds between destructive recovery operations,
-     * such as destroying a failed task.
-     */
-    protected final int destructiveRecoveryDelayMs;
     private final Optional<RecoveryPlanManagerFactory> recoveryPlanManagerFactoryOptional;
+    private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
 
     protected SchedulerDriver driver;
     protected OfferRequirementProvider offerRequirementProvider;
@@ -497,19 +490,7 @@ public class DefaultScheduler implements Scheduler, Observer {
         this.customEndpointProducers = customEndpointProducers;
         this.customRestartHook = restartHookOptional;
         this.recoveryPlanManagerFactoryOptional = recoveryPlanManagerFactoryOptional;
-        ReplacementFailurePolicy replacementFailurePolicy = serviceSpec.getReplacementFailurePolicy();
-        if (replacementFailurePolicy != null) {
-            // interpret unset/null as disabled:
-            this.permanentFailureTimeoutMs =
-                    Optional.ofNullable(replacementFailurePolicy.getPermanentFailureTimoutMins());
-            // interpret unset/null as zero delay:
-            this.destructiveRecoveryDelayMs = replacementFailurePolicy.getMinReplaceDelayMins() == null
-                    ? 0 : replacementFailurePolicy.getMinReplaceDelayMins();
-        } else {
-            // default values if policy section is unset:
-            this.permanentFailureTimeoutMs = Optional.of(ReplacementFailurePolicy.PERMANENT_FAILURE_DELAY_MS);
-            this.destructiveRecoveryDelayMs = ReplacementFailurePolicy.DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MS;
-        }
+        this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
     }
 
     public Collection<Object> getResources() throws InterruptedException {
@@ -596,11 +577,18 @@ public class DefaultScheduler implements Scheduler, Observer {
      */
     protected void initializeRecoveryPlanManager() {
         LOGGER.info("Initializing recovery plan...");
-        LaunchConstrainer launchConstrainer = new TimedLaunchConstrainer(Duration.ofMillis(destructiveRecoveryDelayMs));
-        FailureMonitor failureMonitor =
-                permanentFailureTimeoutMs.isPresent()
-                        ? new TimedFailureMonitor(Duration.ofMillis(permanentFailureTimeoutMs.get()))
-                        : new NeverFailureMonitor();
+        LaunchConstrainer launchConstrainer;
+        FailureMonitor failureMonitor;
+        if (failurePolicyOptional.isPresent()) {
+            ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
+            launchConstrainer = new TimedLaunchConstrainer(
+                    Duration.ofMillis(failurePolicy.getMinReplaceDelayMins()));
+            failureMonitor = new TimedFailureMonitor(Duration.ofMillis(failurePolicy.getPermanentFailureTimoutMins()));
+        } else {
+            launchConstrainer = new UnconstrainedLaunchConstrainer();
+            failureMonitor = new NeverFailureMonitor();
+        }
+
         if (recoveryPlanManagerFactoryOptional.isPresent()) {
             LOGGER.info("Using custom recovery plan manager.");
             this.recoveryPlanManager = recoveryPlanManagerFactoryOptional.get().create(
@@ -780,6 +768,15 @@ public class DefaultScheduler implements Scheduler, Observer {
                     planCoordinator.getPlanManagers().stream()
                             .forEach(planManager -> planManager.update(status));
                     reconciler.update(status);
+
+                    if (status.getState().equals(Protos.TaskState.TASK_RUNNING)
+                            || status.getState().equals(Protos.TaskState.TASK_FINISHED)) {
+                        String taskName = CommonTaskUtils.toTaskName(status.getTaskId());
+                        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
+                        if (taskInfoOptional.isPresent() && FailureUtils.isLabeledAsFailed(taskInfoOptional.get())) {
+                            stateStore.storeTasks(Arrays.asList(FailureUtils.clearFailed(taskInfoOptional.get())));
+                        }
+                    }
 
                     if (StateStoreUtils.isSuppressed(stateStore)
                             && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
