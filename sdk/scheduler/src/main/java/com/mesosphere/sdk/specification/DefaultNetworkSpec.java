@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Map;
 
 /**
  * Default implementation of {@link NetworkSpec}.
@@ -16,16 +17,23 @@ public class DefaultNetworkSpec implements NetworkSpec {
     @Size(min = 1)
     private String name;
 
+    private CniPortMappingSpec cniPortMappingSpec;
+
     @JsonCreator
     public DefaultNetworkSpec(
-            @JsonProperty("name") String name) {
-        this.name = name;
+            @JsonProperty("name") String name,
+            @JsonProperty("port-mapping") CniPortMappingSpec portMap) {
+        this.name               = name;
+        this.cniPortMappingSpec = portMap;
     }
 
     @Override
     public String getName() {
         return name;
     }
+
+    @Override
+    public CniPortMappingSpec getCniPortMappingSpec() { return cniPortMappingSpec; }
 
     @Override
     public boolean equals(Object o) {

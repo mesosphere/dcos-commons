@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
+import com.mesosphere.sdk.specification.yaml.RawCniPortMapping;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -26,14 +27,14 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.Set;
-import java.util.Optional;
-import java.util.Collections;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.when;
@@ -44,6 +45,8 @@ public class DefaultServiceSpecTest {
     @Mock private FileReader mockFileReader;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private StateStore mockStateStore;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultServiceSpecTest.class);
 
     @Before
     public void beforeEach() {
@@ -333,6 +336,39 @@ public class DefaultServiceSpecTest {
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
+    }
+
+    @Test
+    public void validCniSpec() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-cni.yml").getFile());
+        RawServiceSpec rawSvsSpc = generateRawSpecFromYAML(file);
+        Assert.assertNotNull(rawSvsSpc);
+
+        RawCniPortMapping rawPortMappings = rawSvsSpc
+                .getPods().get("meta-data")
+                .getContainer()
+                .getNetworks().get("dcos")
+                .getRawCniPortMapping();
+
+        String expectedHostPortString      = "4040";
+        String expectedContainerPortString = "8080";
+        Assert.assertTrue(rawPortMappings.getHostPorts().equals(expectedHostPortString));
+        Assert.assertTrue(rawPortMappings.getContainerPorts().equals(expectedContainerPortString));
+
+        rawPortMappings = rawSvsSpc
+                .getPods().get("meta-data-multimap")
+                .getContainer()
+                .getNetworks().get("dcos")
+                .getRawCniPortMapping();
+
+        expectedHostPortString      = "4040,4041";
+        expectedContainerPortString = "8080,8081";
+        Assert.assertTrue(rawPortMappings.getHostPorts().equals(expectedHostPortString));
+        Assert.assertTrue(rawPortMappings.getContainerPorts().equals(expectedContainerPortString));
+
+        DefaultServiceSpec serviceSpec = generateServiceSpec(rawSvsSpc);
+        Assert.assertNotNull(serviceSpec);
     }
 
     private void validateServiceSpec(String fileName) throws Exception {

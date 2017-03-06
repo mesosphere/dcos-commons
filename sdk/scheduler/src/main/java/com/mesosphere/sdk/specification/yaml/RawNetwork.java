@@ -9,13 +9,16 @@ import javax.validation.constraints.NotNull;
  */
 public class RawNetwork {
     private final String name;
+    private final RawCniPortMapping rawCniPortMapping;
 
     private RawNetwork(
-            @JsonProperty("name") String name) {
-        this.name = name;
+            @JsonProperty("name") String name,
+            @JsonProperty("port-mappings") RawCniPortMapping rawCniPortMapping) {
+        this.name              = name;
+        this.rawCniPortMapping = rawCniPortMapping;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+
+    public RawCniPortMapping getRawCniPortMapping() { return rawCniPortMapping; }
 }

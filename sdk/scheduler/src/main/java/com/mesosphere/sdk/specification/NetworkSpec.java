@@ -3,6 +3,8 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.util.Map;
+
 /**
  * Spec for defining a container's network membership.
  */
@@ -10,4 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public interface NetworkSpec {
     @JsonProperty("name")
     String getName();
+
+    @JsonProperty("port-mappings")
+    CniPortMappingSpec getCniPortMappingSpec();
 }
