@@ -24,6 +24,7 @@
     "FRAMEWORK_NAME": "{{service.name}}",
     "HDFS_VERSION": "hadoop-2.6.0-cdh5.9.1",
     "JRE_VERSION": "jre1.8.0_112",
+    "TASKCFG_ALL_JRE_VERSION": "jre1.8.0_112",
     "SERVICE_PRINCIPAL": "{{service.principal}}",
     "JOURNAL_CPUS": "{{journal_node.cpus}}",
     "JOURNAL_MEM": "{{journal_node.mem}}",
@@ -52,6 +53,11 @@
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
+
+    {{#service.tls.enabled}}
+    "TLS_ENABLED": "{{service.tls.enabled}}",
+    "TASKCFG_ALL_TLS_ENABLED": "{{service.tls.enabled}}",
+    {{/service.tls.enabled}}
 
     {{#service.kerberos.enabled}}
     "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",

@@ -42,7 +42,7 @@
     "BROKER_DISK_SIZE": "{{brokers.disk}}",
     "BROKER_DISK_TYPE": "{{brokers.disk_type}}",
     "BROKER_DISK_PATH": "{{brokers.disk_path}}",
-    "BROKER_HEAP": "{{brokers.heap}}",
+    "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
 
     {{#service.secret_name}}
@@ -54,18 +54,19 @@
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.1.0",
     "MESOS_ZOOKEEPER_URI": "master.mesos:2181",
+
     {{#brokers.jmx.enable}}
-     "TASKCFG_ALL_KAKFA_JMX_OPTS": "-Dcom.sun.management.jmxremote={{brokers.jmx.remote}} -Dcom.sun.management.jmxremote.registry.ssl={{brokers.jmx.remote_registry_ssl}} -Dcom.sun.management.jmxremote.ssl={{brokers.jmx.remote_ssl}} -Dcom.sun.management.jmxremote.ssl.need.client.auth={{brokers.jmx.remote_ssl_need_client_auth}} -Dcom.sun.management.jmxremote.authenticate={{brokers.jmx.remote_authenticate}} {{brokers.additional_kafka_jmx_opts}}"
-     "BROKER_JMX_PORT": "{{brokers.jmx.remote_port}}",
-     {{/brokers.jmx.enable}}
+    "TASKCFG_ALL_KAKFA_JMX_OPTS": "-Dcom.sun.management.jmxremote={{brokers.jmx.remote}} -Dcom.sun.management.jmxremote.registry.ssl={{brokers.jmx.remote_registry_ssl}} -Dcom.sun.management.jmxremote.ssl={{brokers.jmx.remote_ssl}} -Dcom.sun.management.jmxremote.ssl.need.client.auth={{brokers.jmx.remote_ssl_need_client_auth}} -Dcom.sun.management.jmxremote.authenticate={{brokers.jmx.remote_authenticate}} {{brokers.additional_kafka_jmx_opts}}"
+    "BROKER_JMX_PORT": "{{brokers.jmx.remote_port}}",
+    {{/brokers.jmx.enable}}
 
-
-    "TASKCFG_ALL_BROKER_DISK_PATH" : "{{brokers.disk_path}}",
     "TASKCFG_ALL_BROKER_STATSD_HOST": "{{brokers.statsd.host}}",
     "TASKCFG_ALL_BROKER_STATSD_PORT": "{{brokers.statsd.port}}",
+
     {{#kafka.kafka_advertise_host_ip}}
     "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "set",
     {{/kafka.kafka_advertise_host_ip}}
+
     "TASKCFG_ALL_KAFKA_RESERVED_BROKER_MAX_ID": "{{kafka.reserved_broker_max_id}}",
     "TASKCFG_ALL_KAFKA_OFFSETS_TOPIC_COMPRESSION_CODEC": "{{kafka.offsets_topic_compression_codec}}",
     "TASKCFG_ALL_KAFKA_REPLICA_FETCH_MIN_BYTES": "{{kafka.replica_fetch_min_bytes}}",

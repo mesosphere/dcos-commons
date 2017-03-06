@@ -38,6 +38,11 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           JOURNALNODE: true
   name:
@@ -84,6 +89,11 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
@@ -103,6 +113,11 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
@@ -122,6 +137,11 @@ pods:
           hdfs-bootstrap-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
@@ -152,6 +172,11 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
           ZKFC: true
@@ -171,6 +196,11 @@ pods:
           hdfs-site:
             template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
           ZKFC: true
@@ -216,6 +246,11 @@ pods:
           hadoop-metrics2:
             template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#TLS_ENABLED}}
+          ssl-server:
+            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          {{/TLS_ENABLED}}
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           DATANODE: true

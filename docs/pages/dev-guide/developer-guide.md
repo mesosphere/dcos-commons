@@ -1353,7 +1353,7 @@ web-url: http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}
 pods:
   proxylite:
     container:
-      image-name: mesosphere/proxylite:1.0.1
+      image-name: mesosphere/proxylite:2.1.0
     count: 1
     tasks:
       server:
@@ -1368,7 +1368,7 @@ pods:
         env:
           ROOT_REDIRECT: "/example"
           EXTERNAL_ROUTES: "/v1,/example"
-          INTERNAL_ROUTES: "{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,example.com:80"
+          INTERNAL_ROUTES: "http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1,http://example.com:80"
 ```
 
 
@@ -1385,13 +1385,13 @@ pods:
 
     * The `EXTERNAL_ROUTES` and `INTERNAL_ROUTES` have a 1:1 mapping (they are both comma-separated lists).
 
-    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
+    * For example, in the declaration above, if you navigate to `<adminrouter>/service/{{FRAMEWORK_NAME}}/v1/plan`, you’ll get redirected to `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}/v1/plan`
 
 1. Things to watch out for:
     *  No trailing slashes in `EXTERNAL_ROUTES` or `INTERNAL_ROUTES`.
     * The external route is *replaced* with the internal route.
         - It’s easy to think that the internal route is appended onto the external route (or is related in some other way) but that is *not the case*.
-        - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
+        - For example, in the above declaration, "/v1" is replaced with “/v1”, so nothing changes. However one might use `http://{{FRAMEWORK_NAME}}.marathon.mesos:{{PORT0}}` as the internal route, and in that case “/v1” is replaced with “”, and “/v1/plan” would be replaced with “/plan” which would result in incorrect behavior.
     * When the proxy starts up, it will crash if the DNS address is not resolvable (this happens when the proxy comes up before the task that it is proxying is up). This is not an issue in and of itself, as the proxy will simply be relaunched.
 
       You can avoid this relaunch by instructing the proxylite task to wait for the DNS to resolve for the task that it is proxying. For example:

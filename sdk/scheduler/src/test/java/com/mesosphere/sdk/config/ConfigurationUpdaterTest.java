@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 public class ConfigurationUpdaterTest {
     private static final UUID TARGET_ID = UUID.randomUUID();
     private static final UUID NEW_ID = UUID.randomUUID();
+    private static final UUID UNKNOWN_ID = UUID.randomUUID();
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -38,6 +39,10 @@ public class ConfigurationUpdaterTest {
     private static final double TASK_B_MEM = 2000.0;
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
+
+    public static class UnknownConfig implements Configuration {
+
+    }
 
     private static final PodSpec podA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
@@ -96,6 +101,7 @@ public class ConfigurationUpdaterTest {
 
     @Mock private StateStore mockStateStore;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock private ServiceSpec mockUnknownConfig;
 
     @Before
     public void beforeEach() {
@@ -120,6 +126,25 @@ public class ConfigurationUpdaterTest {
     }
 
     @Test
+    public void testHandleInvalidConfig() throws Exception {
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater =
+                new DefaultConfigurationUpdater(
+                        mockStateStore,
+                        mockConfigStore,
+                        DefaultServiceSpec.getComparatorInstance(),
+                        DefaultScheduler.defaultConfigValidators());
+        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
+        when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
+        when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, NEW_ID, UNKNOWN_ID));
+        when(mockConfigStore.fetch(UNKNOWN_ID)).thenReturn(mockUnknownConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
+        verify(mockConfigStore).setTargetConfig(NEW_ID);
+        Assert.assertEquals(NEW_ID, result.targetId);
+        Assert.assertTrue(result.errors.isEmpty());
+    }
+
+    @Test
     public void testValidationDifferentConfigs() throws ConfigStoreException {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
                 mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
@@ -129,6 +154,23 @@ public class ConfigurationUpdaterTest {
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(UPDATED_SERVICE_SPECIFICATION);
         verify(mockConfigStore).setTargetConfig(NEW_ID);
         Assert.assertEquals(NEW_ID, result.targetId);
+        Assert.assertTrue(result.errors.isEmpty());
+    }
+
+    @Test
+    public void testHandleInvalidConfigSameConfig() throws Exception {
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater =
+                new DefaultConfigurationUpdater(
+                        mockStateStore,
+                        mockConfigStore,
+                        DefaultServiceSpec.getComparatorInstance(),
+                        DefaultScheduler.defaultConfigValidators());
+        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
+        when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, NEW_ID, UNKNOWN_ID));
+        when(mockConfigStore.fetch(UNKNOWN_ID)).thenReturn(mockUnknownConfig);
+        ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
+        Assert.assertEquals(TARGET_ID, result.targetId);
         Assert.assertTrue(result.errors.isEmpty());
     }
 

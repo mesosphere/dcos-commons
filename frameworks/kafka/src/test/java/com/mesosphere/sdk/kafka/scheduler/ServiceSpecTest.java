@@ -22,7 +22,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("BROKER_MEM", "512");
         ENV_VARS.set("BROKER_DISK_SIZE", "5000");
         ENV_VARS.set("BROKER_DISK_TYPE", "ROOT");
-        ENV_VARS.set("BROKER_DATA_PATH", "ROOT");
+        ENV_VARS.set("BROKER_DISK_PATH", "path");
         ENV_VARS.set("PORT_BROKER_PORT","9999");
         ENV_VARS.set("BROKER_PORT","0");
 

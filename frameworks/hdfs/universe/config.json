@@ -35,6 +35,17 @@
           "type":"string",
           "default":"svc.yml"
         },
+        "tls": {
+          "type": "object",
+          "description": "TLS configuration properties.",
+          "properties": {
+            "enabled": {
+              "description": "Enable TLS support (requires Strict mode).",
+              "type": "boolean",
+              "default": false
+            }
+          }
+        },
         "kerberos": {
           "type": "object",
           "description": "Kerberos configuration properties.",

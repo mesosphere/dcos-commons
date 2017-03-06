@@ -6,6 +6,9 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * This class evaluates an offer against a given {@link OfferRequirement} for port resources as in
  * {@link PortEvaluationStage}, additionally setting {@link org.apache.mesos.Protos.DiscoveryInfo} properly for
@@ -62,7 +65,10 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     }
 
     private boolean isVIPSet(Protos.DiscoveryInfo discoveryInfo) {
-        for (Protos.Label l : discoveryInfo.getLabels().getLabelsList()) {
+        List<Protos.Label> portLabels = discoveryInfo.getPorts().getPortsList().stream()
+                .flatMap(p -> p.getLabels().getLabelsList().stream())
+                .collect(Collectors.toList());
+        for (Protos.Label l : portLabels) {
             if (l.getKey().startsWith(ResourceUtils.VIP_PREFIX) &&
                     l.getValue().equals(String.format("%s:%d", vipName, vipPort))) {
                 return true;
