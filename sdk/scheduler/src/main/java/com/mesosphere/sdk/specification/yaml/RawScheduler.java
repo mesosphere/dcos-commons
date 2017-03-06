@@ -11,19 +11,16 @@ public class RawScheduler {
     private final String principal;
     private final Integer apiPort;
     private final String zookeeper;
-    private final Boolean gpuOptin;
 
     private RawScheduler(
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("api-port") Integer apiPort,
-            @JsonProperty("zookeeper") String zookeeper,
-            @JsonProperty("gpu-optin") Boolean gpuFlag) {
+            @JsonProperty("zookeeper") String zookeeper) {
         this.role = role;
         this.principal = principal;
         this.apiPort = apiPort;
         this.zookeeper = zookeeper;
-        this.gpuOptin = gpuFlag;
     }
 
     public String getRole() {
@@ -41,6 +38,4 @@ public class RawScheduler {
     public String getZookeeper() {
         return zookeeper;
     }
-
-    public Boolean getGpuOptin() { return gpuOptin; }
 }

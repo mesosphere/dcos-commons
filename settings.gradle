@@ -35,3 +35,6 @@ project(":frameworks/proxylite").name = "proxylite"
 
 include 'examples/gpuresource'
 project(":examples/gpuresource").name = "gpuresource"
+
+include 'examples/gpuresource'
+project(":examples/gpuresource").name = "gpuresource"

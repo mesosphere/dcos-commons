@@ -11,7 +11,7 @@ public class DcosConstants {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MASTER_MESOS + ":2181";
     public static final String MESOS_MASTER_URI = "http://" + MASTER_MESOS;
-    public static final Boolean DEFAULT_GPU_POLICY = true;
+    public static final Boolean DEFAULT_GPU_POLICY = false;
 
     /**
      * This must never change, as it affects the path to the SchemaVersion object for a given
