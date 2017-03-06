@@ -2,6 +2,7 @@ package com.mesosphere.sdk.api;
 
 import org.apache.mesos.Protos.*;
 
+import com.mesosphere.sdk.api.types.CommandResultInfo;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -102,7 +103,7 @@ public class StateResourceTest {
     @Test
     public void testGetPropertyNoDeserializer() {
         Response response = new StateResource(mockStateStore).getProperty("foo");
-        assertEquals(204, response.getStatus());
+        assertEquals(409, response.getStatus());
     }
 
     @Test

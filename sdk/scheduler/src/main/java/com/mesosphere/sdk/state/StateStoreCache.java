@@ -44,8 +44,7 @@ public class StateStoreCache implements StateStore {
     @VisibleForTesting
     protected final StateStore store;
 
-    @VisibleForTesting
-    protected Optional<FrameworkID> frameworkId;
+    private Optional<FrameworkID> frameworkId;
 
     @VisibleForTesting
     protected Map<String, TaskInfo> nameToTask = new HashMap<>();

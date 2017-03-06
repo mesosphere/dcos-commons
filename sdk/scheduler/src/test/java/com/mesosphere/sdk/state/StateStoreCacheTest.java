@@ -488,10 +488,10 @@ public class StateStoreCacheTest {
 
                 // Local framework ID should match stored framework ID
                 Optional<FrameworkID> storeFrameworkId = store.fetchFrameworkId();
-                if (!storeFrameworkId.equals(frameworkId)) {
+                if (!storeFrameworkId.equals(fetchFrameworkId())) {
                     throw new IllegalStateException(String.format(
                             "Cache has frameworkId[%s] while storage has frameworkId[%s]",
-                            frameworkId, storeFrameworkId));
+                            fetchFrameworkId(), storeFrameworkId));
                 }
                 // Local task names should match stored task names
                 Set<String> storeNames = new HashSet<>(store.fetchTaskNames());
@@ -550,7 +550,7 @@ public class StateStoreCacheTest {
                 stateDump.append(e.getMessage());
                 stateDump.append("\nState dump:\n");
                 stateDump.append("- frameworkId: ");
-                stateDump.append(frameworkId);
+                stateDump.append(fetchFrameworkId());
                 stateDump.append("\n- nameToTask: ");
                 stateDump.append(nameToTask);
                 stateDump.append("\n- nameToStatus: ");

@@ -548,7 +548,12 @@ public class DefaultSchedulerTest {
 
         Awaitility.await()
             .atMost(1, TimeUnit.SECONDS)
-            .untilCall(to(stateStore).fetchProperty("suppressed"), equalTo(false));
+            .until(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    return !StateStoreUtils.isSuppressed(stateStore);
+                }
+            });
     }
 
     @Test

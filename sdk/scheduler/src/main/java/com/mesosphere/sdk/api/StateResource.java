@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.api;
 
 import com.google.inject.Inject;
+import com.mesosphere.sdk.api.types.CommandResultInfo;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;

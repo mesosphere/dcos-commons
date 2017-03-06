@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.api;
 
+import com.mesosphere.sdk.api.types.CommandResultInfo;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
