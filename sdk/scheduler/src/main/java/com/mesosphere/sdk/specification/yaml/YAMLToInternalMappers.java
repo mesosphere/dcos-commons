@@ -12,6 +12,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
+import org.apache.mesos.Protos;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +63,8 @@ public class YAMLToInternalMappers {
             zookeeper = SchedulerUtils.defaultZkHost();
         }
 
+        verifyRawSpec(rawSvcSpec);
+
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(rawSvcSpec.getName())
                 .role(role)
@@ -87,6 +91,26 @@ public class YAMLToInternalMappers {
         return builder.build();
     }
 
+    private static void verifyRawSpec(RawServiceSpec rawServiceSpec) {
+        // Verify that tasks in separate pods don't share a discovery prefix.
+        Map<String, Long> dnsPrefixCounts = rawServiceSpec.getPods().values().stream()
+                .flatMap(p -> p.getTasks().values().stream()
+                        .map(t -> t.getDiscovery())
+                        .filter(d -> d != null)
+                        .map(d -> d.getPrefix())
+                        .filter(prefix -> prefix != null)
+                        .distinct())
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        List<String> dnsNameDuplicates = dnsPrefixCounts.entrySet().stream()
+                .filter(e -> e.getValue() > 1)
+                .map(e -> e.getKey())
+                .collect(Collectors.toList());
+        if (!dnsNameDuplicates.isEmpty()) {
+            throw new IllegalArgumentException(String.format(
+                    "Tasks in different pods cannot share DNS names: %s", dnsNameDuplicates));
+        }
+    }
+
     private static ReadinessCheckSpec from(RawReadinessCheck rawReadinessCheck) {
         return DefaultReadinessCheckSpec.newBuilder()
                 .command(rawReadinessCheck.getCmd())
@@ -94,6 +118,27 @@ public class YAMLToInternalMappers {
                 .interval(rawReadinessCheck.getInterval())
                 .timeout(rawReadinessCheck.getTimeout())
                 .build();
+    }
+
+    private static DiscoverySpec from(RawDiscovery rawDiscovery) {
+        Protos.DiscoveryInfo.Visibility visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
+        if (rawDiscovery.getVisibility() != null) {
+            switch (rawDiscovery.getVisibility()) {
+                case "FRAMEWORK":
+                    visibility = Protos.DiscoveryInfo.Visibility.FRAMEWORK;
+                    break;
+                case "CLUSTER":
+                    visibility = Protos.DiscoveryInfo.Visibility.CLUSTER;
+                    break;
+                case "EXTERNAL":
+                    visibility = Protos.DiscoveryInfo.Visibility.EXTERNAL;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Visibility must be one of: {FRAMEWORK, CLUSTER, EXTERNAL}");
+            }
+        }
+
+        return new DefaultDiscoverySpec(rawDiscovery.getPrefix(), visibility);
     }
 
     private static PodSpec from(
@@ -210,9 +255,15 @@ public class YAMLToInternalMappers {
            readinessCheckSpec = from(rawTask.getReadinessCheck());
         }
 
+        DiscoverySpec discoverySpec = null;
+        if (rawTask.getDiscovery() != null) {
+            discoverySpec = from(rawTask.getDiscovery());
+        }
+
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
+                .discoverySpec(discoverySpec)
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)

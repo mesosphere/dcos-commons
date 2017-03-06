@@ -27,6 +27,11 @@ def teardown_module(module):
     shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
 
 
+@pytest.mark.smoke
+def test_install():
+    check_healthy()
+
+
 @pytest.mark.sanity
 def test_bump_journal_cpus():
     check_healthy()

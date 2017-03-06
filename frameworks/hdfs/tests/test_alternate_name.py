@@ -2,7 +2,6 @@ import pytest
 import shakedown
 
 import sdk_install as install
-import sdk_plan as plan
 
 from tests.config import (
     PACKAGE_NAME,
@@ -14,6 +13,7 @@ SERVICE_NAME="hdfs2"
 
 def setup_module(module):
     shakedown.uninstall_package_and_data(PACKAGE_NAME, SERVICE_NAME)
+    install.gc_frameworks()
     options = {
         "service": {
             "name": "hdfs2"

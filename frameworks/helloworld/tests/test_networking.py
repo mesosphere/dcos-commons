@@ -11,6 +11,7 @@ from tests.config import (
 
 def setup_module(module):
     shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.gc_frameworks()
     options = {
         "service": {
             "spec_file": "examples/cni.yml"
@@ -18,6 +19,10 @@ def setup_module(module):
     }
 
     install.install(PACKAGE_NAME, 1, additional_options=options)
+
+
+def teardown_module(module):
+    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.sanity

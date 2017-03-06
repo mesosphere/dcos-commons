@@ -42,11 +42,25 @@ curl -k -L -X PUT \
      -d '{"description":"Allows ${ROLE} to reserve resources"}' \
      -H 'Content-Type: application/json'
 
+echo Role can unreserve resources...
+curl -k -L -X PUT \
+     -H "Authorization: token=${ACS_TOKEN}" \
+     "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:reservation:principal:${SERVICE_ACCOUNT_NAME}" \
+     -d '{"description":"Allows ${SERVICE_ACCOUNT_NAME} to unreserve resources"}' \
+     -H 'Content-Type: application/json'
+
 echo Role can create volumes...
 curl -k -L -X PUT \
      -H "Authorization: token=${ACS_TOKEN}" \
      "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:volume:role:${ROLE}" \
      -d '{"description":"Allows ${ROLE} to create volumes"}' \
+     -H 'Content-Type: application/json'
+
+echo Role can destroy volumes...
+curl -k -L -X PUT \
+     -H "Authorization: token=${ACS_TOKEN}" \
+     "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:volume:principal:${SERVICE_ACCOUNT_NAME}" \
+     -d '{"description":"Allows ${SERVICE_ACCOUNT_NAME} to destroy volumes"}' \
      -H 'Content-Type: application/json'
 
 echo Assign permissions...
@@ -72,7 +86,7 @@ curl -k -L -X PUT \
 
 curl -k -L -X PUT \
      -H "Authorization: token=${ACS_TOKEN}" \
-     "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:reservation:role:${ROLE}/users/${SERVICE_ACCOUNT_NAME}/delete"
+     "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:reservation:principal:${SERVICE_ACCOUNT_NAME}/users/${SERVICE_ACCOUNT_NAME}/delete"
 
 curl -k -L -X PUT \
      -H "Authorization: token=${ACS_TOKEN}" \
@@ -80,6 +94,6 @@ curl -k -L -X PUT \
 
 curl -k -L -X PUT \
      -H "Authorization: token=${ACS_TOKEN}" \
-     "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:volume:role:${ROLE}/users/${SERVICE_ACCOUNT_NAME}/delete"
+     "${DCOS_URL}/acs/api/v1/acls/dcos:mesos:master:volume:principal:${SERVICE_ACCOUNT_NAME}/users/${SERVICE_ACCOUNT_NAME}/delete"
 
 echo Permission setup completed for user=$LINUX_USER role=$ROLE

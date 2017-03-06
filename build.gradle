@@ -26,15 +26,12 @@ allprojects {
     // at ANY TIME as changes are merged into master. They represent a fully unstable API.
     // ---
     group = "mesosphere"
-    version = "0.11.1-SNAPSHOT"
+    version = "0.12.0"
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 
     repositories {
-        maven {
-            url 'https://repository.apache.org/content/repositories/snapshots'
-        }
         mavenLocal()
         mavenCentral()
     }
@@ -79,7 +76,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = "1.2.0-SNAPSHOT"
+    mesosVer = "1.2.0-rc1"
 }
 
 subprojects {

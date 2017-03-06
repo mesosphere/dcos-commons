@@ -100,8 +100,8 @@ public class DefaultServiceSpecTest {
        Assert.assertEquals(3, portReqList.size());
 
        Assert.assertEquals("key1", ((PortRequirement) portReqList.get(0)).getEnvKey());
-       Assert.assertEquals(Constants.PORT_NAME_LABEL_PREFIX + "name2", ((PortRequirement) portReqList.get(1)).getEnvKey());
-       Assert.assertEquals(Constants.PORT_NAME_LABEL_PREFIX  + "name3", ((PortRequirement) portReqList.get(2)).getEnvKey());
+       Assert.assertEquals(Constants.PORT_NAME_TASKENV_PREFIX + "name2", ((PortRequirement) portReqList.get(1)).getEnvKey());
+       Assert.assertEquals(Constants.PORT_NAME_TASKENV_PREFIX  + "name3", ((PortRequirement) portReqList.get(2)).getEnvKey());
 
     }
 
@@ -156,6 +156,18 @@ public class DefaultServiceSpecTest {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
             JsonParseException cause = (JsonParseException) e.getCause();
             Assert.assertTrue(cause.getMessage(), cause.getMessage().contains("Duplicate field 'meta-data'"));
+        }
+    }
+
+    @Test
+    public void invalidDuplicateDnsName() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-dns.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("Tasks in different pods cannot share DNS names"));
         }
     }
 

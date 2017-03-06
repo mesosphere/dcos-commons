@@ -1,5 +1,6 @@
+import shakedown
+
 import sdk_marathon as marathon
-import sdk_tasks as tasks
 
 
 PACKAGE_NAME = 'hello-world'
@@ -12,4 +13,4 @@ def configured_task_count():
 
 
 def check_running():
-    tasks.check_running(PACKAGE_NAME, configured_task_count())
+    shakedown.wait_for_service_tasks_running(PACKAGE_NAME, configured_task_count())

@@ -43,20 +43,31 @@ public class EndpointsResourceTest {
 
         builder = TASK_WITH_METADATA.toBuilder().setName("with-ports-1");
         Ports.Builder portsBuilder = builder.getDiscoveryBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .setName("ports-1")
                 .getPortsBuilder();
-        portsBuilder.addPortsBuilder().setNumber(1234).setProtocol("tcp");
-        portsBuilder.addPortsBuilder().setNumber(1235).setProtocol("tcp");
+        portsBuilder.addPortsBuilder()
+                .setNumber(1234)
+                .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL);
+        portsBuilder.addPortsBuilder()
+                .setNumber(1235)
+                .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL);
         TASK_WITH_PORTS_1 = builder.build();
 
         builder = TASK_WITH_METADATA.toBuilder().setName("with-ports-2");
         portsBuilder = builder.getDiscoveryBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
-                .setName("ports-2")
+                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .getPortsBuilder();
-        portsBuilder.addPortsBuilder().setNumber(1243).setProtocol("tcp");
-        portsBuilder.addPortsBuilder().setNumber(1244).setProtocol("tcp");
+        portsBuilder.addPortsBuilder()
+                .setNumber(1243)
+                .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL);
+        portsBuilder.addPortsBuilder()
+                .setNumber(1244)
+                .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL);
         TASK_WITH_PORTS_2 = builder.build();
 
         builder = TASK_WITH_METADATA.toBuilder().setName("hidden-discovery");
@@ -70,51 +81,59 @@ public class EndpointsResourceTest {
 
         builder = TASK_WITH_METADATA.toBuilder().setName("with-vips-1");
         portsBuilder = builder.getDiscoveryBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .setName("vips-1")
                 .getPortsBuilder();
         portsBuilder.addPortsBuilder()
                 .setNumber(2345)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_abc").setValue("vip1:5432");
         portsBuilder.addPortsBuilder()
                 .setNumber(2346)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_def").setValue("vip2:6432");
         // overridden by 'custom' endpoint added below:
         portsBuilder.addPortsBuilder()
                 .setNumber(2347)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_ghi").setValue("custom:6432");
         // VIP ignored (filed against task type instead):
         portsBuilder.addPortsBuilder()
                 .setNumber(2348)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("ignored_no_vip").setValue("ignored:6432");
         TASK_WITH_VIPS_1 = builder.build();
 
         builder = TASK_WITH_METADATA.toBuilder().setName("with-vips-2");
         portsBuilder = builder.getDiscoveryBuilder()
-                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .setVisibility(DiscoveryInfo.Visibility.CLUSTER)
                 .setName("vips-2")
                 .getPortsBuilder();
         portsBuilder.addPortsBuilder()
                 .setNumber(3456)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_abc").setValue("vip1:5432");
         portsBuilder.addPortsBuilder()
                 .setNumber(3457)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_def").setValue("vip2:6432");
         // overridden by 'custom' endpoint added below:
         portsBuilder.addPortsBuilder()
                 .setNumber(3458)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("VIP_ghi").setValue("custom:6432");
         // VIP ignored (filed against task type instead):
         portsBuilder.addPortsBuilder()
                 .setNumber(3459)
                 .setProtocol("tcp")
+                .setVisibility(DiscoveryInfo.Visibility.EXTERNAL)
                 .getLabelsBuilder().addLabelsBuilder().setKey("ignored_no_vip").setValue("ignored:6432");
         TASK_WITH_VIPS_2 = builder.build();
     }
@@ -158,27 +177,28 @@ public class EndpointsResourceTest {
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.get("vip"));
         JSONArray direct = vip1.getJSONArray("direct");
         assertEquals(2, direct.length());
-        assertEquals("with-vips-1.svc-name.mesos:2345", direct.get(0));
-        assertEquals("with-vips-2.svc-name.mesos:3456", direct.get(1));
+        assertEquals("vips-1.svc-name.mesos:2345", direct.get(0));
+        assertEquals("vips-2.svc-name.mesos:3456", direct.get(1));
 
         JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2", null).getEntity());
         assertEquals(2, vip2.length());
         assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.get("vip"));
         direct = vip2.getJSONArray("direct");
         assertEquals(2, direct.length());
-        assertEquals("with-vips-1.svc-name.mesos:2346", direct.get(0));
-        assertEquals("with-vips-2.svc-name.mesos:3457", direct.get(1));
+        assertEquals("vips-1.svc-name.mesos:2346", direct.get(0));
+        assertEquals("vips-2.svc-name.mesos:3457", direct.get(1));
 
         JSONObject taskType = new JSONObject((String) resource.getEndpoint("some-task-type", null).getEntity());
         assertEquals(1, taskType.length());
         direct = taskType.getJSONArray("direct");
         assertEquals(6, direct.length());
-        assertEquals("with-ports-1.svc-name.mesos:1234", direct.get(0));
-        assertEquals("with-ports-1.svc-name.mesos:1235", direct.get(1));
+        assertEquals("ports-1.svc-name.mesos:1234", direct.get(0));
+        assertEquals("ports-1.svc-name.mesos:1235", direct.get(1));
+        // This task's DiscoveryInfo doesn't have a name set, so it should use the task name for its Mesos-DNS prefix.
         assertEquals("with-ports-2.svc-name.mesos:1243", direct.get(2));
         assertEquals("with-ports-2.svc-name.mesos:1244", direct.get(3));
-        assertEquals("with-vips-1.svc-name.mesos:2348", direct.get(4));
-        assertEquals("with-vips-2.svc-name.mesos:3459", direct.get(5));
+        assertEquals("vips-1.svc-name.mesos:2348", direct.get(4));
+        assertEquals("vips-2.svc-name.mesos:3459", direct.get(5));
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
@@ -233,8 +253,8 @@ public class EndpointsResourceTest {
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
         JSONArray direct = json.getJSONArray("direct");
         assertEquals(2, direct.length());
-        assertEquals("with-vips-1.svc-name.mesos:2345", direct.get(0));
-        assertEquals("with-vips-2.svc-name.mesos:3456", direct.get(1));
+        assertEquals("vips-1.svc-name.mesos:2345", direct.get(0));
+        assertEquals("vips-2.svc-name.mesos:3456", direct.get(1));
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")

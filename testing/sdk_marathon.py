@@ -17,10 +17,6 @@ def get_config(app_name):
     return config
 
 
-def destroy_app(app_name):
-    shakedown.delete_app_wait(app_name)
-
-
 def api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 

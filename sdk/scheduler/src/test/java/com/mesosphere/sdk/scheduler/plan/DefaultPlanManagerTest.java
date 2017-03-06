@@ -93,32 +93,6 @@ public class DefaultPlanManagerTest {
     }
 
     @Test
-    public void testInProgressStatus() {
-        when(reconciler.isReconciled()).thenReturn(false);
-        ReconciliationPhase reconciliationPhase = ReconciliationPhase.create(reconciler);
-        DefaultPhase phase0 = new DefaultPhase(
-                "phase-0",
-                Arrays.asList(secondStep),
-                new SerialStrategy<>(),
-                Collections.emptyList());
-
-        Plan inProgressPlan = new DefaultPlan(
-                "test-plan",
-                Arrays.asList(reconciliationPhase, phase0),
-                new SerialStrategy<>(),
-                Collections.emptyList());
-
-        Step reconciliationStep = reconciliationPhase.getChildren().get(0);
-        reconciliationStep.start();
-        Assert.assertTrue(reconciliationStep.isPrepared());
-
-        PlanManager manager = new DefaultPlanManager(inProgressPlan);
-        Assert.assertEquals(Status.WAITING, manager.getPlan().getStatus());
-        manager.getPlan().proceed();
-        Assert.assertEquals(Status.IN_PROGRESS, manager.getPlan().getStatus());
-    }
-
-    @Test
     public void testGetCurrentStep() {
         Collection<? extends Step> candidates = planManager.getCandidates(Arrays.asList());
 

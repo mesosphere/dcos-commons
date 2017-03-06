@@ -1,5 +1,6 @@
+import shakedown
+
 import sdk_plan as plan
-import sdk_tasks as tasks
 
 
 PACKAGE_NAME = 'hdfs'
@@ -11,4 +12,4 @@ def check_healthy(count = DEFAULT_TASK_COUNT):
     # so when getting the plan succeeds, the plan is also complete.
     plan.get_plan(PACKAGE_NAME, "deploy")
     plan.get_plan(PACKAGE_NAME, "recovery")
-    tasks.check_running(PACKAGE_NAME, count)
+    shakedown.wait_for_service_tasks_running(PACKAGE_NAME, count)

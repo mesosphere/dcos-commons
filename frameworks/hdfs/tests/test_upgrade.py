@@ -6,7 +6,6 @@ import time
 
 import sdk_cmd as cmd
 import sdk_install as install
-import sdk_marathon as marathon
 import sdk_package as package
 import sdk_tasks as tasks
 
@@ -59,12 +58,12 @@ def test_upgrade_downgrade():
 
 
     print('Upgrading to test version')
-    marathon.destroy_app(PACKAGE_NAME)
+    shakedown.delete_app_wait(app_name)
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=test_version)
     read_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
 
     print('Downgrading to master version')
-    marathon.destroy_app(PACKAGE_NAME)
+    shakedown.delete_app_wait(app_name)
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, package_version=master_version)
     read_some_data("data-0-node.hdfs.mesos", TEST_FILE_NAME)
 

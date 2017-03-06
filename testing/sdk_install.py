@@ -1,5 +1,6 @@
 '''Utilities relating to installing services'''
 
+import collections
 import dcos.errors
 import dcos.marathon
 import sdk_cmd
@@ -25,31 +26,34 @@ def install(
         expected_running_tasks=running_task_count)
 
 
+def gc_frameworks():
+    '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
+    for host in shakedown.get_private_agents():
+        shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
+
+
 def get_package_options(additional_options={}):
     # expected SECURITY values: 'permissive', 'strict', 'disabled'
     if os.environ.get('SECURITY', '') == 'strict':
         # strict mode requires correct principal and secret to perform install.
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
-        return _nested_dict_merge(additional_options, {
+        return _merge_dictionary(additional_options, {
             'service': { 'principal': 'service-acct', 'secret_name': 'secret' }
         })
     else:
         return additional_options
 
 
-def _nested_dict_merge(a, b, path=None):
-    '''ripped from http://stackoverflow.com/questions/7204805/dictionaries-of-dictionaries-merge'''
-    if path is None:
-        path = []
-    a = a.copy()
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                _nested_dict_merge(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass # same leaf value
-            else:
-                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
+def _merge_dictionary(dict1, dict2):
+    if (not isinstance(dict2, dict)):
+        return dict1
+    ret = {}
+    for k, v in dict1.items():
+        ret[k] = v
+    for k, v in dict2.items():
+        if (k in dict1 and isinstance(dict1[k], dict)
+            and isinstance(dict2[k], collections.Mapping)):
+            ret[k] = _merge_dictionary(dict1[k], dict2[k])
         else:
-            a[key] = b[key]
-    return a
+            ret[k] = dict2[k]
+    return ret

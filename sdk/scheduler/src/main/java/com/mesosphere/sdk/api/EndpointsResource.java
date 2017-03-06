@@ -161,23 +161,30 @@ public class EndpointsResource {
             }
             // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
-            if (discoveryInfo.getVisibility() != DefaultResourceSet.PUBLIC_VIP_VISIBILITY) {
-                LOGGER.info("Task discovery information has {} visibility, {} needed to be included in endpoints: {}",
-                        discoveryInfo.getVisibility(), DefaultResourceSet.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
-                continue;
-            }
             final String directHost;
             if (isNativeFormat) {
                 // Hostname of agent at offer time:
                 directHost = CommonTaskUtils.getHostname(taskInfo);
             } else {
                 // Mesos DNS hostname:
-                directHost = String.format("%s.%s.mesos", taskInfo.getName(), serviceName);
+                String dnsName;
+                if (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName()) {
+                    dnsName = taskInfo.getDiscovery().getName();
+                } else {
+                    dnsName = taskInfo.getName();
+                }
+                directHost = String.format("%s.%s.mesos", dnsName, serviceName);
             }
 
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 // host:port to include in 'direct' array(s):
                 final String directHostPort = String.format("%s:%d", directHost, port.getNumber());
+                if (port.getVisibility() != DefaultResourceSet.PUBLIC_VIP_VISIBILITY) {
+                    LOGGER.info(
+                            "Task discovery information has {} visibility, {} needed to be included in endpoints: {}",
+                            port.getVisibility(), DefaultResourceSet.PUBLIC_VIP_VISIBILITY, taskInfo.getName());
+                    continue;
+                }
                 addPortToEndpoints(
                         serviceName,
                         endpointsByName,

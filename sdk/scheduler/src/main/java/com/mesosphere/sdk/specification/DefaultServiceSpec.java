@@ -2,10 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
@@ -14,16 +12,16 @@ import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Default implementation of {@link ServiceSpec}.
@@ -142,8 +140,8 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public ReplacementFailurePolicy getReplacementFailurePolicy() {
-        return replacementFailurePolicy;
+    public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
+        return Optional.ofNullable(replacementFailurePolicy);
     }
 
     @Override
@@ -250,6 +248,7 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         private Factory(Collection<Class<?>> additionalSubtypes) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
                 objectMapper.registerSubtypes(subtype);
             }

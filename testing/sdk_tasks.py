@@ -11,10 +11,6 @@ def _prefix_cb(task_prefix):
     return fn
 
 
-def check_running(service_name, expected_task_count):
-    shakedown.wait_for_service_tasks_running(service_name, expected_task_count)
-
-
 def get_task_ids(service_name, task_prefix):
     return shakedown.get_service_task_ids(service_name, _prefix_cb(task_prefix))
 
