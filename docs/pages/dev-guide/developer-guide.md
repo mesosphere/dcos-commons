@@ -48,33 +48,30 @@ They store the desired configuration of a service and all relevant information r
    ```
 
    `new-service.sh` creates a skeleton framework.  You will extend
-   this skeleton to create your framework.
+   this skeleton.
 
-1. Navigate to `myframework`
-
-1. View svc.yml
+1. View `svc.yml`
 
    Take a look at `src/main/dist/svc.yml`.  This is the YAML file that
    defines your framework.  You will be editing this file.
 
-1. View Main.java
+1. View `Main.java`
 
    Take a look at
    `src/main/java/com/mesosphere/sdk/mgummelt/scheduler/Main.java`.
    This is the main method for your scheduler, which will be run in
    DC/OS via Marathon.  It reads `svc.yml`, which defines its
    behavior.  If you need any advanced functionality not provided by
-   the YAML interface, such as complex deployment plans, you will
-   write it here.
+   YAML, such as complex deployment plans, you will write it here.
 
-1. Build a [package](#Packaging)
+1. Build a [package](#packaging)
 
    ```bash
    $ ./build.sh aws
    ```
 
    You will deploy your framework to DC/OS as a
-   [package](#Packaging).  `build.sh` creates this package.
+   [package](#packaging).  `build.sh` creates this package.
 
 1. Install your package.
 
@@ -1363,7 +1360,13 @@ The interval, grace-period, delay, and timeout elements are denominated in secon
 
 ### Readiness Checks
 
-A [step](#Plans) will not be `COMPLETE` until the **readiness check** for its task passes.  Otherwise, the step will be `COMPLETE` when the task reaches its goal state (`RUNNING` or `COMPLETED`).  Use a readiness check when a task must perform some initialization before subsequent steps run.  You may define a readiness check for a task by adding a `readiness-check` parameter to its `TaskSpec`:
+Use a readiness check when a task must perform some initialization
+before subsequent steps run.  By default, a [step](#plans) will be
+`COMPLETE` when its task reaches its goal state (`RUNNING` or
+`COMPLETED`), but if the task has a **readiness check**, its step
+won't be `COMPLETE` until its readiness check passes.  You may define
+a readiness check for a task by adding a `readiness-check` parameter
+to its `TaskSpec`:
 
 ```yaml
 name: "hello-world"
