@@ -127,6 +127,16 @@ public class DefaultSchedulerTest {
             UPDATED_TASK_B_MEM,
             TASK_B_DISK);
 
+    private static final PodSpec invalidPodB = TestPodFactory.getPodSpec(
+            TASK_B_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-B",
+            TASK_B_NAME,
+            TASK_B_CMD,
+            TASK_B_COUNT - 1,
+            TASK_B_CPU,
+            TASK_B_MEM,
+            TASK_B_DISK);
+
     private static final PodSpec scaledPodA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-A",
@@ -151,6 +161,7 @@ public class DefaultSchedulerTest {
     private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
     private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
     private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
+    private static final ServiceSpec INVALID_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, invalidPodB).build();
 
     private static TestingServer testingServer;
 
@@ -521,6 +532,25 @@ public class DefaultSchedulerTest {
         launchedTaskId = getTaskId(operations);
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
+    }
+
+    @Test
+    public void testInvalidConfigurationUpdate() throws Exception {
+        // Launch A and B in original configuration
+        testLaunchB();
+        defaultScheduler.awaitTermination();
+
+        // Get initial target config UUID
+        UUID targetConfigId = configStore.getTargetConfig();
+
+        // Build new scheduler with invalid config (shrinking task count)
+        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
+
+        // Ensure prior target configuration is still intact
+        Assert.assertEquals(targetConfigId, configStore.getTargetConfig());
     }
 
     private List<Protos.Resource> getExpectedResources(Collection<Protos.Offer.Operation> operations) {
