@@ -7,6 +7,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -23,13 +24,15 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     public NamedVIPEvaluationStage(
             Protos.Resource resource,
             String taskName,
-            String envKey,
-            Integer port,
+            String portName,
+            int begin,
+            int end,
+            Optional<String> customEnvKey,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             String vipName,
             Integer vipPort) {
-        super(resource, taskName, envKey, port, port);
+        super(resource, taskName, portName, begin, end, customEnvKey);
         this.protocol = protocol;
         this.visibility = visibility;
         this.vipName = vipName;
@@ -39,12 +42,14 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     public NamedVIPEvaluationStage(
             Protos.Resource resource,
             String portName,
-            Integer port,
+            int begin,
+            int end,
+            Optional<String> customEnvKey,
             String protocol,
             DiscoveryInfo.Visibility visibility,
             String vipName,
             Integer vipPort) {
-        this(resource, null, portName, port, protocol, visibility, vipName, vipPort);
+        this(resource, null, portName, begin, end, customEnvKey, protocol, visibility, vipName, vipPort);
     }
 
     @Override

@@ -8,11 +8,13 @@ import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class NamedVIPEvaluationStageTest {
@@ -30,6 +32,8 @@ public class NamedVIPEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 "test-port",
                 10000,
+                10000,
+                Optional.of(TestConstants.PORT_ENV_NAME),
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",
@@ -68,6 +72,8 @@ public class NamedVIPEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 "test-port",
                 10000,
+                10000,
+                Optional.of(TestConstants.PORT_ENV_NAME),
                 "sctp",
                 DiscoveryInfo.Visibility.CLUSTER,
                 "test-vip",

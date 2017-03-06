@@ -12,43 +12,44 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
- * This class evaluates an offer for its port resources against an {@link com.mesosphere.sdk.offer.OfferRequirement}.
- * Individual port evaluations are handled by the children {@link PortEvaluationStage}s.
+ * This class evaluates an offer across zero or more child evaluation stages for a single resource type.
  */
-public class PortsEvaluationStage implements OfferEvaluationStage {
-    private final Collection<OfferEvaluationStage> portEvaluationStages;
+public class MultiEvaluationStage implements OfferEvaluationStage {
+    private final Collection<OfferEvaluationStage> childEvaluationStages;
 
-    public PortsEvaluationStage(Collection<OfferEvaluationStage> portEvaluationStages) {
-        this.portEvaluationStages = portEvaluationStages;
+    public MultiEvaluationStage(Collection<OfferEvaluationStage> childEvaluationStages) {
+        this.childEvaluationStages = childEvaluationStages;
     }
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        Collection<EvaluationOutcome> evaluationOutcomes = portEvaluationStages.stream()
+        Collection<EvaluationOutcome> childOutcomes = childEvaluationStages.stream()
                 .map(stage -> stage.evaluate(mesosResourcePool, podInfoBuilder))
                 .collect(Collectors.toList());
-        boolean succeeded = evaluationOutcomes.stream().allMatch(outcome -> outcome.isPassing());
-        Collection<OfferRecommendation> recommendations = evaluationOutcomes.stream()
+        boolean allPassing = childOutcomes.stream().allMatch(outcome -> outcome.isPassing());
+        Collection<OfferRecommendation> recommendations = childOutcomes.stream()
                 .map(o -> o.getOfferRecommendations())
                 .flatMap(xs -> xs.stream())
                 .collect(Collectors.toList());
 
         return EvaluationOutcome.create(
-                succeeded,
+                allPassing,
                 this,
-                recommendations.size() > 0 ? Arrays.asList(coalescePortRecommendations(recommendations)) : null,
-                evaluationOutcomes.stream()
+                recommendations.isEmpty()
+                        ? Collections.emptyList()
+                        : Arrays.asList(coalesceRangeRecommendations(recommendations)),
+                childOutcomes.stream() // Ensure child recommendations don't duplicate our coalesced recommendation
                         .map(outcome -> EvaluationOutcome.create(
                                 outcome.isPassing(),
                                 this,
-                                null,
+                                Collections.emptyList(),
                                 Collections.emptyList(),
                                 outcome.getReason())).collect(Collectors.toList()),
-                succeeded ? "Offer contains sufficient 'ports'" : "Failed to satisfy all required ports");
+                allPassing ? "All child stages passed" : "Failed to pass all child stages");
     }
 
-    private OfferRecommendation coalescePortRecommendations(Collection<OfferRecommendation> recommendations) {
-        Protos.Resource ports = null;
+    private static OfferRecommendation coalesceRangeRecommendations(Collection<OfferRecommendation> recommendations) {
+        Protos.Resource mergedResource = null;
         Protos.Offer offer = null;
         for (OfferRecommendation recommendation : recommendations) {
             Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
@@ -56,13 +57,13 @@ public class PortsEvaluationStage implements OfferEvaluationStage {
                 offer = recommendation.getOffer();
             }
 
-            if (ports == null) {
-                ports = resource;
+            if (mergedResource == null) {
+                mergedResource = resource;
             } else {
-                ports = ResourceUtils.mergeRanges(ports, resource);
+                mergedResource = ResourceUtils.mergeRanges(mergedResource, resource);
             }
         }
 
-        return new ReserveOfferRecommendation(offer, ports);
+        return new ReserveOfferRecommendation(offer, mergedResource);
     }
 }

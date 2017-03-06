@@ -76,10 +76,13 @@ public class NamedVIPSpec extends PortSpec implements ResourceSpec {
         Protos.Resource portResource = resource == null ?
                 ResourceUtils.getDesiredResource(this) :
                 ResourceUtils.withValue(resource, getValue());
+        Protos.Value.Range range = getValue().getRanges().getRange(0);
         return new NamedVIPRequirement(
                 portResource,
-                generateEnvKey(),
-                (int) getValue().getRanges().getRange(0).getBegin(),
+                getPortName(),
+                (int) range.getBegin(),
+                (int) range.getEnd(),
+                getEnvKey(),
                 getProtocol(),
                 getVisibility(),
                 getVipName(),

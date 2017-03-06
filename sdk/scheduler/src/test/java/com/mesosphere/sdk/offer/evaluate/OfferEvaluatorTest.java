@@ -202,15 +202,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(0);
-
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
+        Resource launchResource = launchOperation.getLaunch().getTaskInfosList().get(0).getResourcesList().get(0);
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());
     }
 
