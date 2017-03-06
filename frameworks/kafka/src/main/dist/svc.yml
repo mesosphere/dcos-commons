@@ -19,6 +19,9 @@ pods:
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
+            vip:
+              prefix: broker
+              port: 9092
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}

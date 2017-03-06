@@ -98,68 +98,6 @@
             "description": "Port for broker to listen on",
             "type": "integer",
             "default": 0
-          },
-          "jmx": {
-            "description":"[DEPRECATED] JMX options",
-            "type":"object",
-            "properties": {
-              "enable": {
-                "description": "[Deprecated] Whether to enable JMX options",
-                "type": "boolean",
-                "default": false
-              },
-              "remote": {
-                "description": "[Deprecated] Whether to enable remote monitoring",
-                "type": "boolean",
-                "default": false
-              },
-              "remote_port": {
-                "description": "[Deprecated] Port number for Kafka access",
-                "type": "integer",
-                "default": 9999
-              },
-              "remote_registry_ssl": {
-                "description": "[Deprecated] Whether to protect the remote RMI registry using SSL",
-                "type": "boolean",
-                "default": false
-              },
-              "remote_ssl": {
-                "description": "[Deprecated] Whether to enable SSL for remote access",
-                "type": "boolean",
-                "default": false
-              },
-              "remote_authenticate": {
-                "description": "[Deprecated] Whether to enable password authentication for remote access",
-                "type": "boolean",
-                "default": false
-              },
-              "remote_ssl_need_client_auth": {
-                "description": "[Deprecated] Whether to enable SSL client authentication for remote access",
-                "type": "boolean",
-                "default": false
-              },
-              "additional_kafka_jmx_opts": {
-                "description": "[Deprecated] JMX argument string (i.e. \"-Dcom.sun.management.jmxremote.access.file=somefile\") to be appended to KAFKA_JMX_OPTS environment variable",
-                "type": "string",
-                "default": ""
-              }
-            }
-          },
-          "statsd": {
-            "description":"[DEPRECATED] Statsd configuration",
-            "type":"object",
-            "properties": {
-              "host": {
-                "description": "Statsd UDP output host",
-                "type": "string",
-                "default": ""
-              },
-              "port": {
-                "description": "Statsd UDP output port",
-                "type": "integer",
-                "default": 0
-              }
-            }
           }
         },
         "required":[
