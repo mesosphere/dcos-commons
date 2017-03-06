@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.mesosphere.sdk.api.PlansResource.CommandResultInfo;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
@@ -260,8 +259,6 @@ public class PlansResourceTest {
     }
 
     private static void validateCommandResult(Response response, String commandName) {
-        assertTrue(response.getEntity() instanceof CommandResultInfo);
-        CommandResultInfo commandResultInfo = (CommandResultInfo) response.getEntity();
-        assertTrue(commandResultInfo.getMessage().contains(commandName));
+        assertEquals("{\"message\": \"Received cmd: " + commandName + "\"}", response.getEntity().toString());
     }
 }

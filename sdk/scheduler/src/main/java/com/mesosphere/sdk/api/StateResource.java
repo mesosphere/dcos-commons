@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
 
 /**
  * A read-only API for accessing task and frameworkId state from persistent storage.
@@ -103,7 +104,8 @@ public class StateResource {
                 return Response.noContent().build(); // 204 NO_CONTENT
             } else {
                 logger.info("Attempting to fetch property '{}'", key);
-                return jsonOkResponse(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)));
+                return jsonResponseBean(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)),
+                        Response.Status.OK);
             }
         } catch (StateStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {

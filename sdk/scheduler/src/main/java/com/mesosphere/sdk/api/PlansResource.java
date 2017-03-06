@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
@@ -8,6 +7,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,17 +18,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
+import static com.mesosphere.sdk.api.ResponseUtils.plainResponse;
 
 /**
  * API for management of Plan(s).
  */
 @Path("/v1")
-@Produces(MediaType.APPLICATION_JSON)
 public class PlansResource extends PrettyJsonResource {
 
-    static final Response ELEMENT_NOT_FOUND_RESPONSE = Response.status(Response.Status.NOT_FOUND)
-            .entity("Element not found")
-            .build();
+    static final Response ELEMENT_NOT_FOUND_RESPONSE = plainResponse("Element not found", Response.Status.NOT_FOUND);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -55,11 +54,10 @@ public class PlansResource extends PrettyJsonResource {
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
-            PlanManager planManager = planManagerOptional.get();
-            return Response
-                    .status(planManager.getPlan().isComplete() ? 200 : 503)
-                    .entity(PlanInfo.forPlan(planManager.getPlan()))
-                    .build();
+            Plan plan = planManagerOptional.get().getPlan();
+            return jsonResponseBean(
+                    PlanInfo.forPlan(plan),
+                    plan.isComplete() ? Response.Status.OK : Response.Status.SERVICE_UNAVAILABLE);
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -88,7 +86,7 @@ public class PlansResource extends PrettyJsonResource {
             }
 
             plan.proceed();
-            return Response.ok(new CommandResultInfo("Received cmd: start")).build();
+            return jsonOkResponse(getCommandResult("start"));
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -106,7 +104,7 @@ public class PlansResource extends PrettyJsonResource {
             Plan plan = planManagerOptional.get().getPlan();
             plan.interrupt();
             plan.restart();
-            return Response.ok(new CommandResultInfo("Received cmd: stop")).build();
+            return jsonOkResponse(getCommandResult("stop"));
         } else {
             return ELEMENT_NOT_FOUND_RESPONSE;
         }
@@ -133,7 +131,7 @@ public class PlansResource extends PrettyJsonResource {
             planManagerOptional.get().getPlan().proceed();
         }
 
-        return Response.ok(new CommandResultInfo("Received cmd: continue")).build();
+        return jsonOkResponse(getCommandResult("continue"));
     }
 
     @POST
@@ -157,7 +155,7 @@ public class PlansResource extends PrettyJsonResource {
             planManagerOptional.get().getPlan().interrupt();
         }
 
-        return Response.ok(new CommandResultInfo("Received cmd: interrupt")).build();
+        return jsonOkResponse(getCommandResult("interrupt"));
     }
 
     @POST
@@ -178,7 +176,7 @@ public class PlansResource extends PrettyJsonResource {
 
         stepOptional.get().forceComplete();
 
-        return Response.ok(new CommandResultInfo("Received cmd: forceComplete")).build();
+        return jsonOkResponse(getCommandResult("forceComplete"));
     }
 
     @POST
@@ -206,7 +204,7 @@ public class PlansResource extends PrettyJsonResource {
             stepOptional.get().restart();
         }
 
-        return Response.ok(new CommandResultInfo("Received cmd: restart")).build();
+        return jsonOkResponse(getCommandResult("restart"));
     }
 
     @GET
@@ -298,9 +296,9 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     private static Response invalidParameterResponse(String message) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity("Couldn't parse parameters: " + message)
-                .build();
+        return plainResponse(
+                String.format("Couldn't parse parameters: %s", message),
+                Response.Status.BAD_REQUEST);
     }
 
     private static void validate(Map<String, String> parameters) throws ValidationException {
@@ -318,16 +316,9 @@ public class PlansResource extends PrettyJsonResource {
         }
     }
 
-    static class CommandResultInfo {
-        private final String msg;
-
-        CommandResultInfo(String msg) {
-            this.msg = msg;
-        }
-
-        @JsonProperty("message")
-        public String getMessage() {
-            return msg;
-        }
+    private static JSONObject getCommandResult(String command) {
+        return new JSONObject(Collections.singletonMap(
+                "message",
+                String.format("Received cmd: %s", command)));
     }
 }

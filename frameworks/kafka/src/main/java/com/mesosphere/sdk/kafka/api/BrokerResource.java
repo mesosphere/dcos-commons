@@ -4,11 +4,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
 
+import com.mesosphere.sdk.api.ResponseUtils;
+
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Optional;
 
@@ -28,7 +29,7 @@ public class BrokerResource {
     @GET
     public Response listBrokers() {
         try {
-            return Response.ok(kafkaZkClient.listBrokers(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(kafkaZkClient.listBrokers());
         } catch (Exception ex) {
             log.error("Failed to fetch broker ids with exception:", ex);
             return Response.serverError().build();
@@ -40,8 +41,8 @@ public class BrokerResource {
     public Response getBroker(@PathParam("id") String id) {
         try {
             Optional<JSONObject> brokerObj = kafkaZkClient.getBroker(id);
-            if (brokerObj.isPresent()){
-                return Response.ok(brokerObj.get(), MediaType.WILDCARD_TYPE.APPLICATION_JSON).build();
+            if (brokerObj.isPresent()) {
+                return ResponseUtils.jsonOkResponse(brokerObj.get());
             }
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (Exception ex) {

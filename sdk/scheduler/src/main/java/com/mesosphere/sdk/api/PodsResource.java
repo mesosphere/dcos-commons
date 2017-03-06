@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
-import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -37,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
 
 /**
  * A read-only API for accessing information about how to connect to the service.
@@ -73,7 +73,6 @@ public class PodsResource extends PrettyJsonResource {
         this.stateStore = stateStore;
         this.restartHook = restartHook;
     }
-
 
     /**
      * Produces a listing of all pod instance names.
@@ -162,9 +161,7 @@ public class PodsResource extends PrettyJsonResource {
             if (podTasks == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            // To ensure that the TaskInfo/TaskStatus are nested correctly (instead of embedded strings), use Jackson
-            // via SerializationUtils:
-            return jsonOkResponse(SerializationUtils.toJsonString(podTasks));
+            return jsonResponseBean(podTasks, Response.Status.OK);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch info for pod '%s'", name), e);
             return Response.serverError().build();
