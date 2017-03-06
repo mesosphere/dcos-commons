@@ -3,7 +3,6 @@ package com.mesosphere.sdk.curator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -193,14 +192,40 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        String taskName;
+        Optional<String> optionalTaskName = Optional.empty();
+        //TODO(MB): keep the commented code below: original approach for getting TaskName
+        /* We used to get TaskName from TaskID's prefix, instead of comparing TaskIDs.
+           TaskID is our unique identifier, can not change, but we can modify TaskName
+           Getting TaskName from prefix may be more efficient, however it prevents us from changing TaskName.
+           For further investigation, keep the commented code below:
         try {
-            taskName = CommonTaskUtils.toTaskName(status.getTaskId());
+            optionalTaskName = Optional.of(CommonTaskUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
             throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
                     "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
+        }*/
+
+        for (Protos.TaskInfo taskInfo : fetchTasks()) {
+            if (taskInfo.getTaskId().equals(status.getTaskId())) {
+                if (optionalTaskName.isPresent()) {
+                    logger.error("Found identical task ids in Task {} and  Task {}",
+                            optionalTaskName.get(), taskInfo.getName());
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "There are more than one tasks with the same TaskStatus.task_id: %s", status));
+                }
+                    optionalTaskName = Optional.of(taskInfo.getName());
+            }
+        }
+        if (!optionalTaskName.isPresent()) {
+            throw new StateStoreException(Reason.NOT_FOUND, String.format(
+                    "Failed to find a task with matching TaskStatus.task_id: %s", status));
         }
 
+        storeStatus(optionalTaskName.get(), status);
+    }
+
+    @Override
+    public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
         // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
         // occasionally get these for stale tasks that have since been changed (with new UUIDs).
@@ -226,6 +251,7 @@ public class CuratorStateStore implements StateStore {
                     status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
                     status, optionalTaskInfo));
         }
+        /*  All checks till here are redundant if we get TaskName via looking at matching TaskIDs */
 
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
