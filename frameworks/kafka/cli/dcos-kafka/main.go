@@ -10,6 +10,11 @@ import (
 )
 
 func main() {
+	modName, err := cli.GetModuleName()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	app, err := cli.NewApp("0.1.0", "Mesosphere", "Manage Apache Kafka framework")
 	if err != nil {
 		log.Fatalf(err.Error())

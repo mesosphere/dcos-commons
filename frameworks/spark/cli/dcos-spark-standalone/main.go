@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/mesosphere/dcos-commons/cli"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
-	"strings"
 )
 
 func main() {
