@@ -308,9 +308,8 @@ public class DefaultScheduler implements Scheduler, Observer {
                     configStore,
                     configValidatorsOptional.orElse(defaultConfigValidators()));
             if (!configUpdateResult.errors.isEmpty()) {
-                throw new IllegalStateException(String.format(
-                        "Failed to update configuration due to errors with configuration %s: %s",
-                        configUpdateResult.targetId, configUpdateResult.errors));
+                LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
+                        configUpdateResult.targetId, configUpdateResult.errors);
             }
 
             // Get or generate plans. Any plan generation is against the service spec that we just updated:

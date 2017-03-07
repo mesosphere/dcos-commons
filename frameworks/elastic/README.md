@@ -12,7 +12,6 @@
 - [Backup and Restore](docs/backup_restore.md)
 - [Managing](docs/managing.md)
 - [API Reference](docs/api_reference.md)
-- [Statsd Reporting](docs/statsd.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Version Policy](docs/version_policy.md)
 - [Limitations](docs/limitations.md)

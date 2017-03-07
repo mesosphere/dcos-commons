@@ -49,7 +49,8 @@ class CCMLauncher(object):
         4: 'DELETING',
         5: 'DELETED',
         6: 'DELETION_FAIL',
-        7: 'CREATING_ERROR'
+        7: 'CREATING_ERROR',
+        8: 'RUNNING_NEEDS_INFO'
     }
     # Reverse:
     _CCM_STATUS_LABELS = {v: k for k, v in _CCM_STATUSES.items()}
