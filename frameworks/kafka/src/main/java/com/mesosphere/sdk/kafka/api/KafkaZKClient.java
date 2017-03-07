@@ -120,9 +120,9 @@ public class KafkaZKClient {
     public List<String> getBrokerDNSEndpoints(String frameworkName) {
         List<String> endpoints = new ArrayList<String>();
         try {
-            List<String> ids = zkClient.getChildren().forPath(kafkaZkUri + BROKER_ID_PATH);
+            List<String> ids = zkClient.getChildren().forPath(kafkaServicePath + BROKER_ID_PATH);
             for (String id : ids) {
-                byte[] bytes = zkClient.getData().forPath(kafkaZkUri + BROKER_ID_PATH + "/" + id);
+                byte[] bytes = zkClient.getData().forPath(kafkaServicePath + BROKER_ID_PATH + "/" + id);
                 JSONObject broker = new JSONObject(new String(bytes, "UTF-8"));
                 String host = "kafka-" + id + "-broker." + frameworkName + ".mesos";
                 Integer port = (Integer) broker.get("port");
@@ -132,5 +132,5 @@ public class KafkaZKClient {
             log.error("Failed to retrieve broker DNS endpoints with exception: ", ex);
         }
         return endpoints;
-        }
+    }
 }
