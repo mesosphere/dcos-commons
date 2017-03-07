@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
 
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
@@ -42,13 +41,12 @@ public class YAMLToInternalMappers {
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
-        Boolean gpuPolicy = null;
+
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
             apiPort = rawScheduler.getApiPort();
             zookeeper = rawScheduler.getZookeeper();
-            gpuPolicy = rawScheduler.getGpuOptin();
         }
         // Fall back to defaults as needed, if either RawScheduler or a given RawScheduler field is missing:
         if (StringUtils.isEmpty(role)) {
@@ -64,18 +62,13 @@ public class YAMLToInternalMappers {
             zookeeper = SchedulerUtils.defaultZkHost();
         }
 
-        if (gpuPolicy == null) {
-            gpuPolicy = DEFAULT_GPU_POLICY;
-        }
-
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(rawSvcSpec.getName())
                 .role(role)
                 .principal(principal)
                 .apiPort(apiPort)
                 .zookeeperConnection(zookeeper)
-                .webUrl(rawSvcSpec.getWebUrl())
-                .gpuResourcePolicy(gpuPolicy);
+                .webUrl(rawSvcSpec.getWebUrl());
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
@@ -89,6 +82,7 @@ public class YAMLToInternalMappers {
                     taskConfigRouter.getConfig(entry.getKey()),
                     role,
                     principal));
+
         }
         builder.pods(pods);
 
@@ -121,6 +115,7 @@ public class YAMLToInternalMappers {
                         return from(
                                 rawResourceSetName,
                                 rawResourceSet.getCpus(),
+                                rawResourceSet.getGpus(),
                                 rawResourceSet.getMemory(),
                                 rawResourceSet.getPorts(),
                                 rawResourceSet.getVolume(),
@@ -237,6 +232,7 @@ public class YAMLToInternalMappers {
             builder.resourceSet(from(
                     taskName + "-resource-set",
                     rawTask.getCpus(),
+                    rawTask.getGpus(),
                     rawTask.getMemory(),
                     rawTask.getPorts(),
                     rawTask.getVolume(),
@@ -251,6 +247,7 @@ public class YAMLToInternalMappers {
     private static DefaultResourceSet from(
             String id,
             Double cpus,
+            Double gpus,
             Integer memory,
             WriteOnceLinkedHashMap<String, RawPort> rawEndpoints,
             RawVolume rawSingleVolume,
@@ -282,6 +279,10 @@ public class YAMLToInternalMappers {
 
         if (cpus != null) {
             resourceSetBuilder.cpus(cpus);
+        }
+
+        if (gpus != null) {
+            resourceSetBuilder.gpus(gpus);
         }
 
         if (memory != null) {

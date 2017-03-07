@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
 
 /**
  * Default implementation of {@link ServiceSpec}.
@@ -56,9 +55,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Valid
     private ReplacementFailurePolicy replacementFailurePolicy;
 
-    @NotNull
-    private Boolean gpuOptin;
-
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
@@ -68,8 +64,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
-            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
-            @JsonProperty("gpu-optin") Boolean gpuFlag) {
+            @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -80,9 +75,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DEFAULT_ZK_CONNECTION : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        // If we're using the YAML then gpuFlag should never be null, however it's possible for someone to
-        // pass null when using the java api, so we add the default policy here as well
-        this.gpuOptin = gpuFlag == null ? DEFAULT_GPU_POLICY : gpuFlag;
         ValidationUtils.validate(this);
     }
 
@@ -95,8 +87,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.webUrl,
                 builder.zookeeperConnection,
                 builder.pods,
-                builder.replacementFailurePolicy,
-                builder.gpuOptin);
+                builder.replacementFailurePolicy);
     }
 
     public static Builder newBuilder() {
@@ -113,7 +104,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.webUrl = copy.webUrl;
         builder.pods = copy.pods;
         builder.replacementFailurePolicy = copy.replacementFailurePolicy;
-        builder.gpuOptin = copy.getGpuOptin();
         return builder;
     }
 
@@ -158,7 +148,18 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public Boolean getGpuOptin() { return gpuOptin; }
+    public Boolean getGpuOptin() {
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus")) {
+                        return resourceSpec.getValue().getScalar().getValue() >= 1;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -300,7 +301,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
-        private Boolean gpuOptin;
 
         private Builder() {
         }
@@ -405,16 +405,6 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
             this.replacementFailurePolicy = replacementFailurePolicy;
-            return this;
-        }
-
-        /**
-         * Sets the policy as to whether to opt int to using GPU_RESOURCES offered by Mesos.
-         * @param optInToGpuResources opt in, boolean
-         * @return a reference to this Builder
-         */
-        public Builder gpuResourcePolicy(Boolean optInToGpuResources) {
-            this.gpuOptin = optInToGpuResources;
             return this;
         }
 

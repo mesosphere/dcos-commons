@@ -81,16 +81,27 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
+        Assert.assertFalse(serviceSpec.getGpuOptin());
     }
 
     @Test
-    public void testSimpleWithZooKeeper() throws Exception {
-        validateServiceSpec("valid-simple.yml", true);
+    public void validGpuResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Boolean obs = serviceSpec.getGpuOptin();
+        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testSimpleWithZookerWithoutGpuSupport() throws Exception {
-        validateServiceSpec("valid-simple.yml", false);
+    @Test
+    public void validGpuResourceSet() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
+        DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertNotNull(serviceSpec);
+        Boolean obs = serviceSpec.getGpuOptin();
+        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
     }
 
     @Test

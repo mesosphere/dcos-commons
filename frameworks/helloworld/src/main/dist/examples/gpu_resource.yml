@@ -1,6 +1,4 @@
 name: hello-world
-scheduler:
-  gpu-optin: true
 pods:
   hello:
     count: {{HELLO_COUNT}}
@@ -13,6 +11,7 @@ pods:
         goal: RUNNING
         cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
+        gpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
           path: hello-container-path

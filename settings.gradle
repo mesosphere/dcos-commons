@@ -32,9 +32,3 @@ project(":frameworks/prototype").name = "prototype"
 
 include 'frameworks/proxylite'
 project(":frameworks/proxylite").name = "proxylite"
-
-include 'examples/gpuresource'
-project(":examples/gpuresource").name = "gpuresource"
-
-include 'examples/gpuresource'
-project(":examples/gpuresource").name = "gpuresource"
