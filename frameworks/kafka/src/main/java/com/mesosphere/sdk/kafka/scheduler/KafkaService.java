@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.api.BrokerResource;
 import com.mesosphere.sdk.kafka.api.KafkaZKClient;
 import com.mesosphere.sdk.kafka.api.TopicResource;
@@ -31,15 +32,16 @@ public class KafkaService extends DefaultService {
                                   Collection<Object> additionalResources) {
         final ServiceSpec serviceSpec = super.getServiceSpec();
         final Collection<Object> apiResources = new ArrayList<>();
-        final String zkUri = String.format("%s/dcos-service-%s",
-                serviceSpec.getZookeeperConnection(), serviceSpec.getName());
-        final KafkaZKClient kafkaZKClient = new KafkaZKClient(zkUri);
+
+        final KafkaZKClient kafkaZKClient = new KafkaZKClient(serviceSpec.getZookeeperConnection(),
+                DcosConstants.SERVICE_ROOT_PATH_PREFIX + serviceSpec.getName());
 
         apiResources.add(new BrokerResource(kafkaZKClient));
         apiResources.add(new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
                 kafkaZKClient));
 
         apiResources.addAll(additionalResources);
+
         LOGGER.info("Starting API server with additional resources: {}", apiResources);
         super.startApiServer(defaultScheduler, apiPort, apiResources);
     }

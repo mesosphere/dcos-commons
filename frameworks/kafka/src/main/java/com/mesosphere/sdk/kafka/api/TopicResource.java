@@ -2,8 +2,8 @@ package com.mesosphere.sdk.kafka.api;
 
 import com.mesosphere.sdk.api.ResponseUtils;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,7 +20,7 @@ import java.util.List;
 
 @Path("/v1/topics")
 public class TopicResource {
-    private static final Log log = LogFactory.getLog(TopicResource.class);
+    private static final Logger log = LoggerFactory.getLogger(TopicResource.class);
 
     private final KafkaZKClient kafkaZkClient;
     private final CmdExecutor cmdExecutor;
@@ -89,7 +89,7 @@ public class TopicResource {
         }
     }
 
-    @POST
+    @PUT
     @Path("/{name}/operation/{type}")
     public Response operationOnTopic(
             @PathParam("name") String topicName,
