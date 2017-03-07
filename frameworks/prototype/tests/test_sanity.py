@@ -4,7 +4,8 @@ import sdk_install as install
 import sdk_utils as utils
 
 from tests.config import (
-    PACKAGE_NAME
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT
 )
 
 
