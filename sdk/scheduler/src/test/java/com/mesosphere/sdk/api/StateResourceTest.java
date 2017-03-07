@@ -2,7 +2,6 @@ package com.mesosphere.sdk.api;
 
 import org.apache.mesos.Protos.*;
 
-import com.mesosphere.sdk.api.types.CommandResultInfo;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -23,7 +22,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -124,10 +122,7 @@ public class StateResourceTest {
     public void testRefreshCache() {
         Response response = new StateResource(mockStateStoreCache).refreshCache();
         assertEquals(200, response.getStatus());
-        assertTrue(response.getEntity() instanceof CommandResultInfo);
-
-        CommandResultInfo commandResultInfo = (CommandResultInfo) response.getEntity();
-        assertTrue(commandResultInfo.getMessage().contains("refresh"));
+        validateCommandResult(response, "refresh");
     }
 
     @Test
@@ -141,5 +136,9 @@ public class StateResourceTest {
         doThrow(new StateStoreException(Reason.UNKNOWN, "hi")).when(mockStateStoreCache).refresh();
         Response response = new StateResource(mockStateStoreCache).refreshCache();
         assertEquals(500, response.getStatus());
+    }
+
+    private static void validateCommandResult(Response response, String commandName) {
+        assertEquals("{\"message\": \"Received cmd: " + commandName + "\"}", response.getEntity().toString());
     }
 }

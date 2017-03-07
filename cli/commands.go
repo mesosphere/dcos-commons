@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
+	"log"
 	"net/url"
 	"os"
 	"strings"
@@ -163,23 +163,21 @@ func HandleConnectionSection(app *kingpin.Application, connectionTypes []string)
 // Endpoints section
 
 type EndpointsHandler struct {
-	Native bool
-	Name   string
+	Name                  string
+	PrintDeprecatedNotice bool
 }
 
 func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
+	// TODO(nickbp): Remove this after April 2017
+	if cmd.PrintDeprecatedNotice {
+		log.Fatalf("--native is no longer supported. Use 'native' entries in endpoint listing.")
+	}
+
 	path := "v1/endpoints"
 	if len(cmd.Name) != 0 {
 		path += "/" + cmd.Name
 	}
-	var response *http.Response
-	if cmd.Native {
-		query := url.Values{}
-		query.Set("format", "native")
-		response = HTTPGetQuery(path, query.Encode())
-	} else {
-		response = HTTPGet(path)
-	}
+	response := HTTPGet(path)
 	if len(cmd.Name) == 0 {
 		// Root endpoint: Always produce JSON
 		PrintJSON(response)
@@ -191,10 +189,11 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 }
 
 func HandleEndpointsSection(app *kingpin.Application) {
-	// connection [type]
+	// endpoints [type]
 	cmd := &EndpointsHandler{}
 	endpoints := app.Command("endpoints", "View client endpoints").Action(cmd.RunEndpoints)
-	endpoints.Flag("native", "Show native endpoints instead of Mesos-DNS endpoints").BoolVar(&cmd.Native)
+	// TODO(nickbp): Remove deprecated argument after April 2017:
+	endpoints.Flag("native", "deprecated argument").BoolVar(&cmd.PrintDeprecatedNotice)
 	endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }
 

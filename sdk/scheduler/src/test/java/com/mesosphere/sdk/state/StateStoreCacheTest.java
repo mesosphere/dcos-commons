@@ -452,7 +452,6 @@ public class StateStoreCacheTest {
         assertEquals(TASK, mockedCache.fetchTasks().iterator().next());
         assertEquals(STATUS, mockedCache.fetchStatuses().iterator().next());
         assertEquals(PROP_KEY, mockedCache.fetchPropertyKeys().iterator().next());
-
     }
 
     private static class TestStateStoreCache extends StateStoreCache {

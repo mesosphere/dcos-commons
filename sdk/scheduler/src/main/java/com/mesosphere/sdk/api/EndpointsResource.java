@@ -5,7 +5,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.base.Splitter;
@@ -25,6 +24,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.plainOkResponse;
+
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
@@ -33,6 +35,7 @@ public class EndpointsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointsResource.class);
 
     private static final String RESPONSE_KEY_DIRECT = "direct";
+    private static final String RESPONSE_KEY_NATIVE = "native";
     private static final String RESPONSE_KEY_VIP = "vip";
 
     private final StateStore stateStore;
@@ -74,10 +77,10 @@ public class EndpointsResource {
     /**
      * Produces a listing of all endpoints, with an optional format argument.
      *
-     * @param format the format option, which should either be empty or "ip"
+     * @param deprecatedFormat (DEPRECATED: REMOVE AFTER APRIL 2017)
      */
     @GET
-    public Response getEndpoints(@QueryParam("format") String format) {
+    public Response getEndpoints(@Deprecated @QueryParam("format") String deprecatedFormat) {
         try {
             List<String> endpoints = new ArrayList<>();
 
@@ -87,18 +90,15 @@ public class EndpointsResource {
             }
             // Add default values (when they don't collide with custom values):
             for (Map.Entry<String, JSONObject> endpointType :
-                    getDiscoveryEndpoints(
-                            serviceName,
-                            stateStore.fetchTasks(),
-                            isNativeFormat(format)).entrySet()) {
+                    getDiscoveryEndpoints(serviceName, stateStore.fetchTasks()).entrySet()) {
                 if (!endpoints.contains(endpointType.getKey())) {
                     endpoints.add(endpointType.getKey());
                 }
             }
 
-            return Response.ok(new JSONArray(endpoints).toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(new JSONArray(endpoints));
         } catch (Exception ex) {
-            LOGGER.error(String.format("Failed to fetch list of endpoints with format %s", format), ex);
+            LOGGER.error("Failed to fetch list of endpoints", ex);
             return Response.serverError().build();
         }
     }
@@ -107,42 +107,28 @@ public class EndpointsResource {
      * Produces the content of the specified endpoint, with an optional format argument.
      *
      * @param name the name of the endpoint whose content should be included
-     * @param format the format option, which should either be {@code null}/empty or 'native'
+     * @param deprecatedFormat (DEPRECATED: REMOVE AFTER APRIL 2017)
      */
     @Path("/{name}")
     @GET
     public Response getEndpoint(
             @PathParam("name") String name,
-            @QueryParam("format") String format) {
+            @Deprecated @QueryParam("format") String deprecatedFormat) {
         try {
             // Check for custom value before emitting any default values:
             EndpointProducer customValue = customEndpoints.get(name);
             if (customValue != null) {
-                return Response.ok(customValue.getEndpoint(), MediaType.TEXT_PLAIN).build();
+                return plainOkResponse(customValue.getEndpoint());
             }
-            JSONObject endpoint = getDiscoveryEndpoints(
-                    serviceName,
-                    stateStore.fetchTasks(),
-                    isNativeFormat(format))
-                    .get(name);
+            JSONObject endpoint = getDiscoveryEndpoints(serviceName, stateStore.fetchTasks()).get(name);
             if (endpoint == null) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            return Response.ok(endpoint.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(endpoint);
         } catch (Exception ex) {
-            LOGGER.error(String.format("Failed to fetch endpoint %s with format %s", name, format), ex);
+            LOGGER.error(String.format("Failed to fetch endpoint %s", name), ex);
             return Response.serverError().build();
         }
-    }
-
-    /**
-     * Returns whether the provided {@code format} argument indicates that native hosts (instead of
-     * Mesos-DNS hosts) should be produced.
-     *
-     * @param format the value of the 'format' option, or a {@code null}/empty string if none was provided
-     */
-    private static boolean isNativeFormat(String format) {
-        return format != null && format.equals("native");
     }
 
     /**
@@ -150,8 +136,7 @@ public class EndpointsResource {
      */
     private static Map<String, JSONObject> getDiscoveryEndpoints(
             String serviceName,
-            Collection<TaskInfo> taskInfos,
-            boolean isNativeFormat) throws TaskException {
+            Collection<TaskInfo> taskInfos) throws TaskException {
         Map<String, JSONObject> endpointsByName = new HashMap<>();
         for (TaskInfo taskInfo : taskInfos) {
             if (!taskInfo.hasDiscovery()) {
@@ -161,24 +146,16 @@ public class EndpointsResource {
             }
             // TODO(mrb): Also extract DiscoveryInfo from executor, when executors get the ability to specify resources
             DiscoveryInfo discoveryInfo = taskInfo.getDiscovery();
-            final String directHost;
-            if (isNativeFormat) {
-                // Hostname of agent at offer time:
-                directHost = CommonTaskUtils.getHostname(taskInfo);
-            } else {
-                // Mesos DNS hostname:
-                String dnsName;
-                if (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName()) {
-                    dnsName = taskInfo.getDiscovery().getName();
-                } else {
-                    dnsName = taskInfo.getName();
-                }
-                directHost = String.format("%s.%s.mesos", dnsName, serviceName);
-            }
+            // Mesos DNS hostname:
+            String mesosDnsHost = String.format("%s.%s.mesos",
+                    (taskInfo.hasDiscovery() && taskInfo.getDiscovery().hasName())
+                    ? taskInfo.getDiscovery().getName()
+                    : taskInfo.getName(),
+                    serviceName);
+            // Hostname of agent at offer time:
+            String nativeHost = CommonTaskUtils.getHostname(taskInfo);
 
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
-                // host:port to include in 'direct' array(s):
-                final String directHostPort = String.format("%s:%d", directHost, port.getNumber());
                 if (port.getVisibility() != DefaultResourceSet.PUBLIC_VIP_VISIBILITY) {
                     LOGGER.info(
                             "Task discovery information has {} visibility, {} needed to be included in endpoints: {}",
@@ -189,7 +166,8 @@ public class EndpointsResource {
                         serviceName,
                         endpointsByName,
                         taskInfo,
-                        directHostPort,
+                        String.format("%s:%d", mesosDnsHost, port.getNumber()),
+                        String.format("%s:%d", nativeHost, port.getNumber()),
                         port.getLabels().getLabelsList());
             }
         }
@@ -211,7 +189,8 @@ public class EndpointsResource {
             String serviceName,
             Map<String, JSONObject> endpointsByName,
             TaskInfo taskInfo,
-            String directHostPort,
+            String mesosDnsHostPort,
+            String nativeHostPort,
             List<Label> portLabels) throws TaskException {
         // Search for any VIPs to add the above host:port against:
         boolean foundAnyVips = false;
@@ -230,7 +209,8 @@ public class EndpointsResource {
             }
 
             // append entry to 'direct' array for this task:
-            vipEndpoint.append(RESPONSE_KEY_DIRECT, directHostPort);
+            vipEndpoint.append(RESPONSE_KEY_DIRECT, mesosDnsHostPort);
+            vipEndpoint.append(RESPONSE_KEY_NATIVE, nativeHostPort);
             // populate 'vip' field if not yet populated (due to another task with the same vip):
             vipEndpoint.put(RESPONSE_KEY_VIP, String.format("%s.%s.%s:%d",
                     vipInfo.name, serviceName, ResourceUtils.VIP_HOST_TLD, vipInfo.port));
@@ -247,7 +227,8 @@ public class EndpointsResource {
             }
 
             // append entry to 'direct' array for this task:
-            taskEndpoint.append(RESPONSE_KEY_DIRECT, directHostPort);
+            taskEndpoint.append(RESPONSE_KEY_DIRECT, mesosDnsHostPort);
+            taskEndpoint.append(RESPONSE_KEY_NATIVE, nativeHostPort);
         }
     }
 

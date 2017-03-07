@@ -6,9 +6,9 @@ import java.util.UUID;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
@@ -18,13 +18,16 @@ import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
+
 /**
  * A read-only API for accessing active and inactive configurations from persistent storage.
  *
  * @param <T> The configuration type which is being stored by the framework.
  */
 @Path("/v1/configurations")
-public class ConfigResource<T extends Configuration> {
+public class ConfigResource<T extends Configuration> extends PrettyJsonResource {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -40,8 +43,7 @@ public class ConfigResource<T extends Configuration> {
     @GET
     public Response getConfigurationIds() {
         try {
-            JSONArray configArray = new JSONArray(configStore.list());
-            return Response.ok(configArray.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(new JSONArray(configStore.list()));
         } catch (Exception ex) {
             logger.error("Failed to fetch list of configuration ids", ex);
             return Response.serverError().build();
@@ -87,7 +89,7 @@ public class ConfigResource<T extends Configuration> {
         try {
             // return a JSONArray to line up with getConfigurationIds()
             JSONArray configArray = new JSONArray(Arrays.asList(configStore.getTargetConfig()));
-            return Response.ok(configArray.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(configArray);
         } catch (ConfigStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
                 logger.warn("No target configuration exists", ex);
@@ -130,7 +132,6 @@ public class ConfigResource<T extends Configuration> {
      */
     private Response fetchConfig(UUID id) throws ConfigStoreException {
         // return the content provided by the config verbatim, treat as plaintext
-        return Response.ok(configStore.fetch(id).toJsonString(),
-                MediaType.APPLICATION_JSON).build();
+        return jsonResponseBean(configStore.fetch(id), Response.Status.OK);
     }
 }

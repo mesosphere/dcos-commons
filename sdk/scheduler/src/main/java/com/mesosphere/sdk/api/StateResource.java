@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.api;
 
 import com.google.inject.Inject;
-import com.mesosphere.sdk.api.types.CommandResultInfo;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
@@ -10,6 +9,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,18 +17,19 @@ import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
+
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
 
 /**
  * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
  * being used.
  */
 @Path("/v1/state")
-@Produces(MediaType.APPLICATION_JSON)
 public class StateResource {
 
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
@@ -70,7 +71,7 @@ public class StateResource {
             Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
             if (frameworkIDOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
-                return Response.ok(idArray.toString()).build();
+                return jsonOkResponse(idArray);
             } else {
                 logger.warn("No framework ID exists");
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -87,7 +88,7 @@ public class StateResource {
     public Response getPropertyKeys() {
         try {
             JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
-            return Response.ok(keyArray.toString()).build();
+            return jsonOkResponse(keyArray);
         } catch (StateStoreException ex) {
             logger.error("Failed to fetch list of property keys", ex);
             return Response.serverError().build();
@@ -108,7 +109,8 @@ public class StateResource {
                 return Response.status(Response.Status.CONFLICT).build();
             } else {
                 logger.info("Attempting to fetch property '{}'", key);
-                return Response.ok(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key))).build();
+                return jsonResponseBean(propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)),
+                        Response.Status.OK);
             }
         } catch (StateStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
@@ -141,12 +143,16 @@ public class StateResource {
             logger.info("After:\n- tasks: {}\n- properties: {}",
                     stateStore.fetchTaskNames(), stateStore.fetchPropertyKeys());
 
-            return Response.status(Response.Status.OK)
-                    .entity(new CommandResultInfo("refresh"))
-                    .build();
+            return jsonOkResponse(getCommandResult("refresh"));
         } catch (StateStoreException ex) {
             logger.error("Failed to refresh state cache", ex);
             return Response.serverError().build();
         }
+    }
+
+    private static JSONObject getCommandResult(String command) {
+        return new JSONObject(Collections.singletonMap(
+                "message",
+                String.format("Received cmd: %s", command)));
     }
 }
