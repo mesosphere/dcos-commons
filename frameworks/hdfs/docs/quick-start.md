@@ -32,16 +32,16 @@ enterprise: 'no'
 
 By default, the client is configured to be configured to connect to an HDFS service named `hdfs` and no further client configuration is required.
 
-    ```bash
-    $ ./bin/hdfs dfs -ls /
-    ```
+```bash
+$ ./bin/hdfs dfs -ls /
+```
 
 If an HDFS cluster has been installed which does not use the default name of `hdfs`, the client must be configured before use.
     
-    ```bash
-    $ HDFS_SERVICE_NAME=hdfs-alternate-name /configure-hdfs.sh
-    $ ./bin/hdfs dfs -ls /
-    ```
+```bash
+$ HDFS_SERVICE_NAME=hdfs-alternate-name /configure-hdfs.sh
+$ ./bin/hdfs dfs -ls /
+```
 
 1. To configure other clients, return to the DC/OS CLI. Retrieve the `hdfs-site.xml` and `core-site.xml` files with the `dcos hdfs endpoints` command and the `hdfs-site.xml` and `core-site.xml` argument:
 
