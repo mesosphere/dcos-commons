@@ -20,9 +20,9 @@ REPO_NAME=dcos-commons # CI dir does not match repo name
 GOPATH_MESOSPHERE="$GOPATH/src/github.com/mesosphere"
 GOPATH_EXE_DIR="$GOPATH_MESOSPHERE/$REPO_NAME/$1"
 if [ $2 = "windows" ]; then
-    EXE_FILENAME=$(basename $1).exe
+    EXE_FILENAME=$(basename $1).exe # dcos-kafka.exe
 else
-    EXE_FILENAME=$(basename $1)-$2
+    EXE_FILENAME=$(basename $1)-$2 # dcos-kafka-linux
 fi
 
 # Detect Go version to determine:
@@ -84,8 +84,13 @@ else
     # https://golang.org/doc/install/source#environment
     CGO_ENABLED=0 GOOS=$2 GOARCH=386 go build -ldflags="-s -w" -o $EXE_FILENAME
 
-    # use upx if available and if golang's output doesn't have problems with it:
-    if [ -n "$UPX_BINARY" ]; then
+    # use upx if:
+    # - upx is installed
+    # - golang is recent enough to be compatible with upx
+    # - the target OS isn't darwin: compressed darwin builds immediately fail with "Killed: 9"
+    if [ -n "$UPX_BINARY" -a $2 != "darwin" ]; then
         $UPX_BINARY -q --best $EXE_FILENAME
+    else
+        echo "Skipping UPX compression of $EXE_FILENAME"
     fi
 fi
