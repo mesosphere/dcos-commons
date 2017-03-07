@@ -103,12 +103,12 @@ def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['ELASTICSEARCH_PLUGINS'] = plugin_name
-    marathon_update(config)
+    marathon.update_app(PACKAGE_NAME, config)
     check_plugin_installed(plugin_name)
 
     config = marathon.get_config(PACKAGE_NAME)
     config['env']['ELASTICSEARCH_PLUGINS'] = ""
-    marathon_update(config)
+    marathon.update_app(PACKAGE_NAME, config)
     check_plugin_uninstalled(plugin_name)
 
 
@@ -122,9 +122,16 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
     assert initial_task_ids == current_task_ids
 
 
+@pytest.mark.sanity
+def test_kibana_proxylite_adminrouter_integration():
+    # run this test as late as possible, as it takes 10+ minutes for kibana to be ready
+    check_kibana_proxylite_adminrouter_integration()
+
+
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_bump_node_counts():
+    # Run this test last, as it changes the task count
     config = marathon.get_config(PACKAGE_NAME)
     data_nodes = int(config['env']['DATA_NODE_COUNT'])
     config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
@@ -132,11 +139,5 @@ def test_bump_node_counts():
     config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
     coordinator_nodes = int(config['env']['COORDINATOR_NODE_COUNT'])
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
-    marathon_update(config)
-
+    marathon.update_app(PACKAGE_NAME, config)
     shakedown.wait_for_service_tasks_running(PACKAGE_NAME, DEFAULT_TASK_COUNT + 3)
-
-
-@pytest.mark.sanity
-def test_kibana_proxylite_adminrouter_integration():
-    check_kibana_proxylite_adminrouter_integration();

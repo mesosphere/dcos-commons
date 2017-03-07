@@ -8,7 +8,7 @@ from tests.config import (
     DEFAULT_TASK_COUNT
 )
 
-SERVICE_NAME="hdfs2"
+SERVICE_NAME = "hdfs2"
 
 
 def setup_module(module):
@@ -16,7 +16,7 @@ def setup_module(module):
     install.gc_frameworks()
     options = {
         "service": {
-            "name": "hdfs2"
+            "name": SERVICE_NAME
         }
     }
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, SERVICE_NAME, additional_options=options)

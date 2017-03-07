@@ -3,9 +3,6 @@
 import collections
 import dcos.errors
 import dcos.marathon
-import sdk_cmd
-import sdk_marathon
-import sdk_tasks
 import shakedown
 
 import os

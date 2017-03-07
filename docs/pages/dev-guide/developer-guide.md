@@ -38,6 +38,68 @@ Although all SDK services written today store metadata in Zookeeper, this is an 
 
 They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
 
+# Getting Started
+
+1. Create your framework.
+
+   ```bash
+   $ ./new-service.sh frameworks/myframework
+   $ cd frameworks/myframework
+   ```
+
+   `new-service.sh` creates a skeleton framework.  You will extend
+   this skeleton.
+
+1. View `svc.yml`.
+
+   Take a look at `src/main/dist/svc.yml`.  This is the YAML file that
+   defines your framework.  You will be editing this file.
+
+1. View `Main.java`.
+
+   Take a look at
+   `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.
+   This is the main method for your scheduler, which will be run in
+   DC/OS via Marathon.  It reads `svc.yml`, which defines its
+   behavior.  If you need any advanced functionality not provided by
+   YAML, such as complex deployment plans, you will write it here.
+
+1. Build a [package](#packaging).
+
+   ```bash
+   $ ./build.sh aws
+   ```
+
+   You will deploy your framework to DC/OS as a
+   [package](#packaging).  `build.sh` creates this package.
+
+1. Install your package.
+
+   `build.sh` prints instructions for installing the package.  They
+   will look something like this:
+
+   ```bash
+   $ dcos package repo remove myframework-aws
+   $ dcos package repo add --index=0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
+   $ dcos package install --yes myframework
+   ```
+
+   Navigate to the DC/OS Services UI to view the deployment.
+
+1. Uninstall your package.
+
+   ```
+   $ dcos package uninstall myframework
+   $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework
+   ```
+
+   The second command above runs the **janitor** script.  The janitor
+   script runs inside the DC/OS cluster, cleaning up Zookeeper state
+   and resource reservations made by a framework.  DC/OS will soon
+   support uninstall hooks so this can happen automatically, but for
+   now, you must manually run the janitor script as shown above.
+
+
 # Introduction to DC/OS Service Definitions
 
 At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
@@ -1271,7 +1333,7 @@ Now the `bootstrap` executable will automatically be run at the start of `hello`
 
 ### Health Checks
 
-Every task may have a single health check defined for it by adding a `health-check` parameter to  the `ServiceSpec`:
+If a task is unhealthy, the scheduler will kill and restart it.  You may define a health check for a task by adding a `health-check` parameter to its `TaskSpec`:
 
 ```yaml
 name: "hello-world"
@@ -1297,7 +1359,7 @@ The interval, grace-period, delay, and timeout elements are denominated in secon
 
 ### Readiness Checks
 
-Every task may have a single readiness check defined for it by adding a `readiness-check` parameter to  the `ServiceSpec`:
+Use a readiness check when a task must perform some initialization before subsequent steps run.  By default, a [step](#plans) will be `COMPLETE` when its task reaches its goal state (`RUNNING` or `COMPLETED`), but if the task has a **readiness check**, its step won't be `COMPLETE` until its readiness check passes.  You may define a readiness check for a task by adding a `readiness-check` parameter to its `TaskSpec`:
 
 ```yaml
 name: "hello-world"

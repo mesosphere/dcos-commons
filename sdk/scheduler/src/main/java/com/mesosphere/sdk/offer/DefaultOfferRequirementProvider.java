@@ -321,7 +321,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(
-                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfo.getResourcesList()));
+                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfoBuilder.getResourcesList()));
     }
 
     private static void setBootstrapConfigFileEnv(

@@ -17,6 +17,11 @@ def get_config(app_name):
     return config
 
 
+def update_app(app_name, config):
+    response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), json=config)
+    assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
+
+
 def api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 

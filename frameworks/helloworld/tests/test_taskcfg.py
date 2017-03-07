@@ -54,6 +54,6 @@ def test_deploy():
     del env['SLEEP_DURATION']
     env['TASKCFG_ALL_OUTPUT_FILENAME'] = 'output'
     env['TASKCFG_ALL_SLEEP_DURATION'] = '1000'
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     check_running()
