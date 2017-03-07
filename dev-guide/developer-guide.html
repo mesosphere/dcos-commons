@@ -66,6 +66,76 @@
 
 <p>They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in Zookeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.</p>
 
+<h1 id="getting-started">Getting Started</h1>
+
+<ol>
+  <li>
+    <p>Create your framework.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./new-service.sh frameworks/myframework
+<span class="gp">$ </span><span class="nb">cd </span>frameworks/myframework
+</code></pre>
+    </div>
+
+    <p><code class="highlighter-rouge">new-service.sh</code> creates a skeleton framework.  You will extend
+this skeleton.</p>
+  </li>
+  <li>
+    <p>View <code class="highlighter-rouge">svc.yml</code>.</p>
+
+    <p>Take a look at <code class="highlighter-rouge">src/main/dist/svc.yml</code>.  This is the YAML file that
+defines your framework.  You will be editing this file.</p>
+  </li>
+  <li>
+    <p>View <code class="highlighter-rouge">Main.java</code>.</p>
+
+    <p>Take a look at
+<code class="highlighter-rouge">src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java</code>.
+This is the main method for your scheduler, which will be run in
+DC/OS via Marathon.  It reads <code class="highlighter-rouge">svc.yml</code>, which defines its
+behavior.  If you need any advanced functionality not provided by
+YAML, such as complex deployment plans, you will write it here.</p>
+  </li>
+  <li>
+    <p>Build a <a href="#packaging">package</a>.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./build.sh aws
+</code></pre>
+    </div>
+
+    <p>You will deploy your framework to DC/OS as a
+<a href="#packaging">package</a>.  <code class="highlighter-rouge">build.sh</code> creates this package.</p>
+  </li>
+  <li>
+    <p>Install your package.</p>
+
+    <p><code class="highlighter-rouge">build.sh</code> prints instructions for installing the package.  They
+will look something like this:</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package repo remove myframework-aws
+<span class="gp">$ </span>dcos package repo add --index<span class="o">=</span>0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
+<span class="gp">$ </span>dcos package install --yes myframework
+</code></pre>
+    </div>
+
+    <p>Navigate to the DC/OS Services UI to view the deployment.</p>
+  </li>
+  <li>
+    <p>Uninstall your package.</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package uninstall myframework
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework
+</code></pre>
+    </div>
+
+    <p>The second command above runs the <strong>janitor</strong> script.  The janitor
+script runs inside the DC/OS cluster, cleaning up Zookeeper state
+and resource reservations made by a framework.  DC/OS will soon
+support uninstall hooks so this can happen automatically, but for
+now, you must manually run the janitor script as shown above.</p>
+  </li>
+</ol>
+
 <h1 id="introduction-to-dcos-service-definitions">Introduction to DC/OS Service Definitions</h1>
 
 <p>At the highest level of abstraction, a DC/OS service breaks down into <em>which</em> tasks to launch and <em>how</em> to launch them. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java">ServiceSpec</a> defines what a service is and <a href="#plans">Plan</a>[s] define how to control it in deployment, update, and failure scenarios. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java">ServiceSpec</a> and <a href="#plans">Plan</a>[s] are <a href="#packaging">packaged</a> so that the service can be deployed on a DC/OS cluster from Universe.</p>
@@ -1360,7 +1430,7 @@ hello
 
 <h3 id="health-checks">Health Checks</h3>
 
-<p>Every task may have a single health check defined for it by adding a <code class="highlighter-rouge">health-check</code> parameter to  the <code class="highlighter-rouge">ServiceSpec</code>:</p>
+<p>If a task is unhealthy, the scheduler will kill and restart it.  You may define a health check for a task by adding a <code class="highlighter-rouge">health-check</code> parameter to its <code class="highlighter-rouge">TaskSpec</code>:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -1386,7 +1456,7 @@ hello
 
 <h3 id="readiness-checks">Readiness Checks</h3>
 
-<p>Every task may have a single readiness check defined for it by adding a <code class="highlighter-rouge">readiness-check</code> parameter to  the <code class="highlighter-rouge">ServiceSpec</code>:</p>
+<p>Use a readiness check when a task must perform some initialization before subsequent steps run.  By default, a <a href="#plans">step</a> will be <code class="highlighter-rouge">COMPLETE</code> when its task reaches its goal state (<code class="highlighter-rouge">RUNNING</code> or <code class="highlighter-rouge">COMPLETED</code>), but if the task has a <strong>readiness check</strong>, its step won’t be <code class="highlighter-rouge">COMPLETE</code> until its readiness check passes.  You may define a readiness check for a task by adding a <code class="highlighter-rouge">readiness-check</code> parameter to its <code class="highlighter-rouge">TaskSpec</code>:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
