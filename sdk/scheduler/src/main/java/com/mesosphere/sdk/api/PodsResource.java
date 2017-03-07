@@ -295,6 +295,8 @@ public class PodsResource {
             jsonTask.put("name", task.getInfo().getName());
             if (task.hasStatus()) {
                 jsonTask.put("state", task.getStatus().get().getState().toString());
+            } else {
+                jsonTask.put("state", "No state defined");
             }
             jsonPod.put(jsonTask);
         }

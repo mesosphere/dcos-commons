@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.curator;
 
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.test.TestingServer;
 import org.apache.mesos.Protos;
@@ -504,6 +505,52 @@ public class CuratorStateStoreTest {
     @Test(expected = StateStoreException.class)
     public void testPropertiesStoreNullValue() {
         store.storeProperty(GOOD_PROPERTY_KEY, null);
+    }
+
+    @Test
+    public void testMissingTaskStatus() {
+        store.storeTasks(Arrays.asList(TestConstants.TASK_INFO));
+        assertEquals(0, store.fetchStatuses().size());
+        assertEquals(1, store.fetchTasks().size());
+        assertEquals(TestConstants.TASK_INFO, store.fetchTasks().stream().findAny().get());
+
+        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        assertEquals(1, store.fetchStatuses().size());
+        assertEquals(1, store.fetchTasks().size());
+        assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
+
+        Protos.TaskStatus taskStatus = store.fetchStatuses().stream().findAny().get();
+        assertEquals(TestConstants.TASK_ID, taskStatus.getTaskId());
+        assertEquals(Protos.TaskState.TASK_FAILED, taskStatus.getState());
+    }
+
+    @Test
+    public void testMismatchedTaskIds() {
+        Protos.TaskID taskID = CommonTaskUtils.toTaskId(TestConstants.TASK_NAME);
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(TestConstants.TASK_INFO)
+                .setTaskId(taskID)
+                .build();
+
+        // Need the multiple storeTasks calls to trick the StateStore into doing the wrong thing
+        store.storeTasks(Arrays.asList(TestConstants.TASK_INFO));
+        store.storeStatus(TestConstants.TASK_STATUS);
+        store.storeTasks(Arrays.asList(taskInfo));
+        assertEquals(1, store.fetchStatuses().size());
+        assertEquals(1, store.fetchTasks().size());
+        assertNotEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
+        assertEquals(TestConstants.TASK_ID, store.fetchStatuses().stream().findAny().get().getTaskId());
+
+        store = new CuratorStateStore(ROOT_ZK_PATH, testZk.getConnectString());
+        assertEquals(1, store.fetchStatuses().size());
+        assertEquals(1, store.fetchTasks().size());
+        assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
+
+        Protos.TaskStatus taskStatus = store.fetchStatuses().stream().findAny().get();
+        assertEquals(TestConstants.TASK_ID, taskStatus.getTaskId());
+        assertEquals(Protos.TaskState.TASK_FAILED, taskStatus.getState());
+
+        taskInfo = taskInfo.toBuilder().setTaskId(TestConstants.TASK_ID).build();
+        assertEquals(taskInfo, store.fetchTasks().stream().findAny().get());
     }
 
     private static Protos.TaskStatus createTaskStatus(Protos.TaskID taskId) {
