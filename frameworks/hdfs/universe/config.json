@@ -25,6 +25,11 @@
           "type":"string",
           "default":""
         },
+        "deploy_strategy": {
+          "description": "HDFS deployment strategy. [parallel, serial]",
+          "type": "string",
+          "default": "parallel"
+        },
         "tls": {
           "type": "object",
           "description": "TLS configuration properties.",
