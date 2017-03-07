@@ -67,4 +67,17 @@ public class TestConstants {
             Protos.CommandInfo.newBuilder()
             .setValue("echo test")
             .build();
+
+    public static final Protos.TaskInfo TASK_INFO =
+            Protos.TaskInfo.newBuilder()
+            .setName(TASK_NAME)
+            .setTaskId(TASK_ID)
+            .setSlaveId(AGENT_ID)
+            .build();
+
+    public static final Protos.TaskStatus TASK_STATUS =
+            Protos.TaskStatus.newBuilder()
+                    .setTaskId(TASK_ID)
+                    .setState(Protos.TaskState.TASK_RUNNING)
+                    .build();
 }

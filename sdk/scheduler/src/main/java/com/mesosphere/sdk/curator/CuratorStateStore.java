@@ -6,8 +6,12 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos.TaskState;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +125,7 @@ public class CuratorStateStore implements StateStore {
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
+        repairStateStore();
     }
 
     // Framework ID
@@ -428,5 +433,43 @@ public class CuratorStateStore implements StateStore {
         private String getTasksRootPath() {
             return tasksRootPath;
         }
+    }
+
+    /**
+     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomicly.
+     * It is therefore possible for the TaskIDs contained within these elements to become out of sync.  While
+     * the scheduler process is up they remain in sync.  This method guarantees produces an initial synchronized
+     * state.
+     */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
+    private void repairStateStore() {
+        // Findbugs thinks this isn't used, but it is used in the forEach call at the bottom of this method.
+        List<TaskStatus> repairedStatuses = new ArrayList<>();
+        List<TaskInfo> repairedTasks = new ArrayList<>();
+
+        for (TaskInfo task : fetchTasks()) {
+            Optional<TaskStatus> statusOptional = fetchStatus(task.getName());
+
+            if (statusOptional.isPresent()) {
+                TaskStatus status = statusOptional.get();
+                if (!status.getTaskId().equals(task.getTaskId())) {
+                    logger.warn("Found StateStore status inconsistency: task.taskId={}, taskStatus.taskId={}",
+                            task.getTaskId(), status.getTaskId());
+                    repairedTasks.add(task.toBuilder().setTaskId(status.getTaskId()).build());
+                    repairedStatuses.add(status.toBuilder().setState(TaskState.TASK_FAILED).build());
+                }
+            } else {
+                logger.warn("Found StateStore status inconsistency: task.taskId={}", task.getTaskId());
+                TaskStatus status = TaskStatus.newBuilder()
+                        .setTaskId(task.getTaskId())
+                        .setState(TaskState.TASK_FAILED)
+                        .setMessage("Assuming failure for inconsistent TaskIDs")
+                        .build();
+                repairedStatuses.add(status);
+            }
+        }
+
+        storeTasks(repairedTasks);
+        repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
     }
 }
