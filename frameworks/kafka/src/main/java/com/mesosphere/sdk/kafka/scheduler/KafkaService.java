@@ -19,7 +19,6 @@ import java.util.*;
  */
 public class KafkaService extends DefaultService {
     protected static final Logger LOGGER = LoggerFactory.getLogger(KafkaService.class);
-    final KafkaZKClient kafkaZKClient;
 
     public KafkaService(File pathToYamlSpecification) throws Exception {
         RawServiceSpec rawServiceSpec = YAMLServiceSpecFactory.generateRawSpecFromYAML(pathToYamlSpecification);
@@ -27,10 +26,6 @@ public class KafkaService extends DefaultService {
                 DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
         schedulerBuilder.setPlansFrom(rawServiceSpec);
 
-        kafkaZKClient = new KafkaZKClient(schedulerBuilder.getServiceSpec().getZookeeperConnection(),
-                DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName());
-
-        schedulerBuilder.setEndpointProducer("address", new BrokerAddress(kafkaZKClient));
         schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection() +
                 DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
@@ -43,6 +38,9 @@ public class KafkaService extends DefaultService {
                                   int apiPort,
                                   Collection<Object> additionalResources) {
         final Collection<Object> apiResources = new ArrayList<>();
+
+        KafkaZKClient kafkaZKClient = new KafkaZKClient(super.getServiceSpec().getZookeeperConnection(),
+                DcosConstants.SERVICE_ROOT_PATH_PREFIX + super.getServiceSpec().getName());
 
         apiResources.add(new BrokerResource(kafkaZKClient));
         apiResources.add(new TopicResource(new CmdExecutor(kafkaZKClient, System.getenv("KAFKA_VERSION_PATH")),
