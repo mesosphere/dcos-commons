@@ -266,7 +266,7 @@ plans:
     strategy: serial
     phases:
       jn-deploy:
-        strategy: {{JOURNAL_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: journal
       nn-deploy:
         strategy: serial
@@ -281,7 +281,7 @@ plans:
           - 0: [[format], [node]]
           - 1: [[node]]
       dn-deploy:
-        strategy: {{DATA_STRATEGY}}
+        strategy: {{DEPLOY_STRATEGY}}
         pod: data
 
   replace-nn:

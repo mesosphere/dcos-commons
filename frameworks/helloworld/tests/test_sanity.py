@@ -14,6 +14,8 @@ from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
     configured_task_count,
+    hello_task_count,
+    world_task_count,
     check_running
 )
 
@@ -25,6 +27,12 @@ def setup_module(module):
 
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
+
+
+def close_enough(val0, val1):
+    epsilon = 0.00001
+    diff = abs(val0 - val1)
+    return diff < epsilon
 
 
 @pytest.mark.smoke
@@ -59,11 +67,18 @@ def test_bump_hello_cpus():
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
-    config['env']['HELLO_CPUS'] = str(cpus + 0.1)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    updated_cpus = cpus + 0.1
+    config['env']['HELLO_CPUS'] = str(updated_cpus)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
+
+    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == hello_task_count()
+    for t in running_tasks:
+        assert close_enough(t['resources']['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -75,11 +90,18 @@ def test_bump_world_cpus():
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['WORLD_CPUS'])
-    config['env']['WORLD_CPUS'] = str(cpus + 0.1)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    updated_cpus = cpus + 0.1
+    config['env']['WORLD_CPUS'] = str(updated_cpus)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
+
+    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == world_task_count()
+    for t in running_tasks:
+        assert close_enough(t['resources']['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -93,7 +115,7 @@ def test_bump_hello_nodes():
     config = marathon.get_config(PACKAGE_NAME)
     node_count = int(config['env']['HELLO_COUNT']) + 1
     config['env']['HELLO_COUNT'] = str(node_count)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)

@@ -1,7 +1,6 @@
 '''Utilities relating to running commands and HTTP requests'''
 
 import dcos.errors
-import sdk_cmd
 import sdk_spin
 import shakedown
 

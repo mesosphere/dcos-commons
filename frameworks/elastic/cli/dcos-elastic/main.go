@@ -14,12 +14,12 @@ func main() {
 		log.Fatalf(err.Error())
 	}
 
-	app, err := cli.NewApp("0.1.0", "Mesosphere", fmt.Sprintf("Deploy and manage %s clusters", strings.Title(modName)))
+	app, err := cli.NewApp("0.1.0", "Mesosphere", "Manage Elastic framework")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	cli.HandleCommonFlags(app, modName, fmt.Sprintf("%s DC/OS CLI Module", strings.Title(modName)))
+	cli.HandleCommonFlags(app, modName, "Elastic CLI")
 	cli.HandleConfigSection(app)
 	cli.HandleEndpointsSection(app)
 	cli.HandlePlanSection(app)

@@ -92,7 +92,7 @@ func (cmd *TopicHandler) runPartitions(c *kingpin.ParseContext) error {
 	query := url.Values{}
 	query.Set("name", cmd.topic)
 	query.Set("partitions", strconv.FormatInt(int64(cmd.partitionCount), 10))
-	cli.PrintJSON(cli.HTTPPostQuery(fmt.Sprintf("v1/topics/%s/operation/partition", cmd.topic), query.Encode()))
+	cli.PrintJSON(cli.HTTPPutQuery(fmt.Sprintf("v1/topics/%s/operation/partitions", cmd.topic), query.Encode()))
 	return nil
 }
 func (cmd *TopicHandler) runProducerTest(c *kingpin.ParseContext) error {
