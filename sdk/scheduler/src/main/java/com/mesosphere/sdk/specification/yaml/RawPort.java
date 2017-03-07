@@ -8,20 +8,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class RawPort {
 
     private final Integer port;
-    private final Integer min;
-    private final Integer max;
+    private final Integer begin;
+    private final Integer end;
     private final String envKey;
     private final RawVip vip;
 
     private RawPort(
             @JsonProperty("port") Integer port,
-            @JsonProperty("port-min") Integer min,
-            @JsonProperty("port-max") Integer max,
+            @JsonProperty("port-begin") Integer begin,
+            @JsonProperty("port-end") Integer end,
             @JsonProperty("env-key") String envKey,
             @JsonProperty("vip") RawVip vip) {
         this.port = port;
-        this.min = min;
-        this.max = max;
+        this.begin = begin;
+        this.end = end;
         this.envKey = envKey;
         this.vip = vip;
     }
@@ -30,12 +30,12 @@ public class RawPort {
         return port;
     }
 
-    public Integer getMin() {
-        return min;
+    public Integer getBegin() {
+        return begin;
     }
 
-    public Integer getMax() {
-        return max;
+    public Integer getEnd() {
+        return end;
     }
 
     public String getEnvKey() {

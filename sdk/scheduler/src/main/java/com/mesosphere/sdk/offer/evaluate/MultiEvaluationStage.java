@@ -6,10 +6,11 @@ import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import org.apache.mesos.Protos;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
+import java.util.List;
 
 /**
  * This class evaluates an offer across zero or more child evaluation stages for a single resource type.
@@ -23,14 +24,22 @@ public class MultiEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        Collection<EvaluationOutcome> childOutcomes = childEvaluationStages.stream()
-                .map(stage -> stage.evaluate(mesosResourcePool, podInfoBuilder))
-                .collect(Collectors.toList());
-        boolean allPassing = childOutcomes.stream().allMatch(outcome -> outcome.isPassing());
-        Collection<OfferRecommendation> recommendations = childOutcomes.stream()
-                .map(o -> o.getOfferRecommendations())
-                .flatMap(xs -> xs.stream())
-                .collect(Collectors.toList());
+        List<EvaluationOutcome> childOutcomes = new ArrayList<>();
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+        boolean allPassing = true;
+        for (OfferEvaluationStage child : childEvaluationStages) {
+            EvaluationOutcome originalOutcome = child.evaluate(mesosResourcePool, podInfoBuilder);
+            childOutcomes.add(EvaluationOutcome.create(
+                    originalOutcome.isPassing(),
+                    child,
+                    Collections.emptyList(), // omit recommendation: don't duplicate our coalesced version
+                    Collections.emptyList(),
+                    originalOutcome.getReason()));
+            recommendations.addAll(originalOutcome.getOfferRecommendations());
+            if (!originalOutcome.isPassing()) {
+                allPassing = false;
+            }
+        }
 
         return EvaluationOutcome.create(
                 allPassing,
@@ -38,13 +47,7 @@ public class MultiEvaluationStage implements OfferEvaluationStage {
                 recommendations.isEmpty()
                         ? Collections.emptyList()
                         : Arrays.asList(coalesceRangeRecommendations(recommendations)),
-                childOutcomes.stream() // Ensure child recommendations don't duplicate our coalesced recommendation
-                        .map(outcome -> EvaluationOutcome.create(
-                                outcome.isPassing(),
-                                this,
-                                Collections.emptyList(),
-                                Collections.emptyList(),
-                                outcome.getReason())).collect(Collectors.toList()),
+                childOutcomes,
                 allPassing ? "All child stages passed" : "Failed to pass all child stages");
     }
 

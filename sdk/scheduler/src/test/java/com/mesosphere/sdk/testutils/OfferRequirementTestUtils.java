@@ -110,7 +110,7 @@ public class OfferRequirementTestUtils {
                                 getIndexedName(TestConstants.PORT_ENV_NAME, numPorts),
                                 (int) range.getBegin(),
                                 (int) range.getEnd(),
-                                Optional.of(TestConstants.PORT_ENV_NAME)));
+                                Optional.of(getIndexedName(TestConstants.PORT_ENV_NAME, numPorts))));
                     } else {
                         if (range.getBegin() != range.getEnd()) {
                             throw new IllegalStateException("VIP-labeled resource cannot contain range of ports");
@@ -121,7 +121,7 @@ public class OfferRequirementTestUtils {
                                 getIndexedName(TestConstants.PORT_ENV_NAME, numPorts),
                                 (int) range.getBegin(),
                                 (int) range.getEnd(),
-                                Optional.of(TestConstants.PORT_ENV_NAME),
+                                Optional.of(getIndexedName(TestConstants.PORT_ENV_NAME, numPorts)),
                                 TestConstants.VIP_PROTOCOL,
                                 TestConstants.VIP_VISIBILITY,
                                 getIndexedName(TestConstants.VIP_NAME, numVips),

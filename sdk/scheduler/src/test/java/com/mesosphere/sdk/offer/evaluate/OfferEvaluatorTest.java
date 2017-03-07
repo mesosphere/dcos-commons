@@ -171,17 +171,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 OfferRequirementTestUtils.getOfferRequirement(desiredResource),
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(offeredResource))));
-        Assert.assertEquals(1, recommendations.size());
+        Assert.assertEquals(String.format("%s\n%s",
+                OfferRequirementTestUtils.getOfferRequirement(desiredResource),
+                OfferTestUtils.getOffer(Arrays.asList(offeredResource))), 1, recommendations.size());
 
         // Validate LAUNCH Operation
         Operation launchOperation = recommendations.get(0).getOperation();
-        Resource launchResource =
-                launchOperation
-                        .getLaunch()
-                        .getTaskInfosList()
-                        .get(0)
-                        .getResourcesList()
-                        .get(0);
+        Resource launchResource = launchOperation.getLaunch().getTaskInfosList().get(0).getResourcesList().get(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH, launchOperation.getType());
         Assert.assertEquals(resourceId, getFirstLabel(launchResource).getValue());

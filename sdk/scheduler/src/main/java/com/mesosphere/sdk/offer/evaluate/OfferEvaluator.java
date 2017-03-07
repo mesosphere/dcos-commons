@@ -66,14 +66,14 @@ public class OfferEvaluator {
             }
 
             if (failedOutcomeCount != 0) {
-                logger.info("{}: failed {} of {} evaluation stages:\n{}",
+                logger.info("Offer {}: failed {} of {} evaluation stages:\n{}",
                         i + 1, failedOutcomeCount, evaluationStages.size(), outcomeDetails.toString());
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
                         .flatMap(xs -> xs.stream())
                         .collect(Collectors.toList());
-                logger.info("{}: passed all {} evaluation stages, returning {} recommendations:\n{}",
+                logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
                         i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
                 return recommendations;
             }

@@ -217,26 +217,26 @@ public class DefaultResourceSet implements ResourceSet {
                 Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
                         .setType(Protos.Value.Type.RANGES);
                 if (rawPort.getPort() != null) {
-                    if (rawPort.getMin() != null || rawPort.getMax() != null) {
+                    if (rawPort.getBegin() != null || rawPort.getEnd() != null) {
                         throw new IllegalStateException(String.format(
-                                "Port '%s' must only specify 'port', or both 'port-min' and 'port-max'", name));
+                                "Port '%s' must only specify 'port', or both 'port-begin' and 'port-end'", name));
                     }
                     portValueBuilder.getRangesBuilder().addRangeBuilder()
                             .setBegin(rawPort.getPort())
                             .setEnd(rawPort.getPort());
-                } else if (rawPort.getMin() != null && rawPort.getMax() != null) {
-                    if (rawPort.getMin() >= rawPort.getMax()) {
+                } else if (rawPort.getBegin() != null && rawPort.getEnd() != null) {
+                    if (rawPort.getBegin() >= rawPort.getEnd()) {
                         throw new IllegalStateException(String.format(
-                                "Port '%s' port-min=%d must be smaller than port-max=%d",
-                                name, rawPort.getMin(), rawPort.getMax()));
+                                "Port '%s' port-begin=%d must be smaller than port-end=%d",
+                                name, rawPort.getBegin(), rawPort.getEnd()));
                     }
-                    if (rawPort.getMin() == 0 || rawPort.getMax() == 0) {
+                    if (rawPort.getBegin() == 0 || rawPort.getEnd() == 0) {
                         throw new IllegalStateException(String.format(
                                 "Port '%s' must have non-zero values for both 'port-min' and 'port-max'", name));
                     }
                     portValueBuilder.getRangesBuilder().addRangeBuilder()
-                            .setBegin(rawPort.getMin())
-                            .setEnd(rawPort.getMax());
+                            .setBegin(rawPort.getBegin())
+                            .setEnd(rawPort.getEnd());
                 } else {
                     throw new IllegalStateException(String.format(
                             "Port '%s' must either specify 'port', or both 'port-min' and 'port-max'", name));

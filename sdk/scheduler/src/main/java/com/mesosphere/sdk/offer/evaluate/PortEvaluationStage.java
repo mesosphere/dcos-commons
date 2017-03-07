@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -43,20 +44,10 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
         this.customEnvKey = customEnvKey;
     }
 
-    public PortEvaluationStage(
-            Protos.Resource resource,
-            String portName,
-            int begin,
-            int end,
-            Optional<String> customEnvKey) {
-        this(resource, null, portName, begin, end, customEnvKey);
-    }
-
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        int assignedBegin = begin;
-        int assignedEnd = end;
-
+        int assignedBegin;
+        int assignedEnd;
         if (begin == 0) {
             // If begin == 0, this is a dynamic port. Dynamic port ranges are not supported, so we assume a single port.
             // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
@@ -73,7 +64,7 @@ public class PortEvaluationStage extends ResourceEvaluationStage implements Offe
                 if (!dynamicPort.isPresent()) {
                     return fail(this,
                             "No ports were available for dynamic claim in offer: %s",
-                            mesosResourcePool.getOffer().toString());
+                            TextFormat.shortDebugString(mesosResourcePool.getOffer()));
                 }
                 assignedBegin = dynamicPort.get();
             }

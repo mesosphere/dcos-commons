@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -152,8 +153,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         return pass(
                 this,
                 offerRecommendation == null ? Collections.emptyList() : Arrays.asList(offerRecommendation),
-                "Offer contains sufficient '%s'",
-                resourceRequirement.getName());
+                "Offer contains sufficient '%s': requirement=%s",
+                resourceRequirement.getName(),
+                TextFormat.shortDebugString(resourceRequirement.getValue()));
     }
 
     protected EvaluationOutcome validateRequirements(OfferRequirement offerRequirement) {
