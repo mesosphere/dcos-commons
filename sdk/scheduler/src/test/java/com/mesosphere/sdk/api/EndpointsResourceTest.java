@@ -159,6 +159,7 @@ public class EndpointsResourceTest {
         resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
     }
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testGetAllEndpoints() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
@@ -173,23 +174,31 @@ public class EndpointsResourceTest {
         assertEquals("some-task-type", json.get(3));
 
         JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1", null).getEntity());
-        assertEquals(2, vip1.length());
+        assertEquals(3, vip1.length());
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.get("vip"));
         JSONArray direct = vip1.getJSONArray("direct");
         assertEquals(2, direct.length());
         assertEquals("vips-1.svc-name.mesos:2345", direct.get(0));
         assertEquals("vips-2.svc-name.mesos:3456", direct.get(1));
+        JSONArray native_ = vip1.getJSONArray("native");
+        assertEquals(2, native_.length());
+        assertEquals(TestConstants.HOSTNAME + ":2345", native_.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3456", native_.get(1));
 
         JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2", null).getEntity());
-        assertEquals(2, vip2.length());
+        assertEquals(3, vip2.length());
         assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.get("vip"));
         direct = vip2.getJSONArray("direct");
         assertEquals(2, direct.length());
         assertEquals("vips-1.svc-name.mesos:2346", direct.get(0));
         assertEquals("vips-2.svc-name.mesos:3457", direct.get(1));
+        native_ = vip2.getJSONArray("native");
+        assertEquals(2, native_.length());
+        assertEquals(TestConstants.HOSTNAME + ":2346", native_.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3457", native_.get(1));
 
         JSONObject taskType = new JSONObject((String) resource.getEndpoint("some-task-type", null).getEntity());
-        assertEquals(1, taskType.length());
+        assertEquals(2, taskType.length());
         direct = taskType.getJSONArray("direct");
         assertEquals(6, direct.length());
         assertEquals("ports-1.svc-name.mesos:1234", direct.get(0));
@@ -199,84 +208,54 @@ public class EndpointsResourceTest {
         assertEquals("with-ports-2.svc-name.mesos:1244", direct.get(3));
         assertEquals("vips-1.svc-name.mesos:2348", direct.get(4));
         assertEquals("vips-2.svc-name.mesos:3459", direct.get(5));
+        native_ = taskType.getJSONArray("native");
+        assertEquals(6, native_.length());
+        assertEquals(TestConstants.HOSTNAME + ":1234", native_.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":1235", native_.get(1));
+        assertEquals(TestConstants.HOSTNAME + ":1243", native_.get(2));
+        assertEquals(TestConstants.HOSTNAME + ":1244", native_.get(3));
+        assertEquals(TestConstants.HOSTNAME + ":2348", native_.get(4));
+        assertEquals(TestConstants.HOSTNAME + ":3459", native_.get(5));
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    @Test
-    public void testGetAllEndpointsNative() throws ConfigStoreException {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoints("native");
-        assertEquals(200, response.getStatus());
-        JSONArray json = new JSONArray((String) response.getEntity());
-        assertEquals(json.toString(), 4, json.length());
-
-        assertEquals(CUSTOM_KEY, json.get(0));
-        assertEquals("vip2", json.get(1));
-        assertEquals("vip1", json.get(2));
-        assertEquals("some-task-type", json.get(3));
-
-        JSONObject vip1 = new JSONObject((String) resource.getEndpoint("vip1", "native").getEntity());
-        assertEquals(2, vip1.length());
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", vip1.get("vip"));
-        JSONArray direct = vip1.getJSONArray("direct");
-        assertEquals(2, direct.length());
-        assertEquals(TestConstants.HOSTNAME + ":2345", direct.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3456", direct.get(1));
-
-        JSONObject vip2 = new JSONObject((String) resource.getEndpoint("vip2", "native").getEntity());
-        assertEquals(2, vip2.length());
-        assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", vip2.get("vip"));
-        direct = vip2.getJSONArray("direct");
-        assertEquals(2, direct.length());
-        assertEquals(TestConstants.HOSTNAME + ":2346", direct.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3457", direct.get(1));
-
-        JSONObject taskType = new JSONObject((String) resource.getEndpoint("some-task-type", "native").getEntity());
-        assertEquals(1, taskType.length());
-        direct = taskType.getJSONArray("direct");
-        assertEquals(6, direct.length());
-        assertEquals(TestConstants.HOSTNAME + ":1234", direct.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":1235", direct.get(1));
-        assertEquals(TestConstants.HOSTNAME + ":1243", direct.get(2));
-        assertEquals(TestConstants.HOSTNAME + ":1244", direct.get(3));
-        assertEquals(TestConstants.HOSTNAME + ":2348", direct.get(4));
-        assertEquals(TestConstants.HOSTNAME + ":3459", direct.get(5));
-    }
-
     @Test
     public void testGetOneEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         Response response = resource.getEndpoint("vip1", null);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
-        assertEquals(json.toString(), 2, json.length());
+        assertEquals(json.toString(), 3, json.length());
         assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
         JSONArray direct = json.getJSONArray("direct");
         assertEquals(2, direct.length());
         assertEquals("vips-1.svc-name.mesos:2345", direct.get(0));
         assertEquals("vips-2.svc-name.mesos:3456", direct.get(1));
-    }
-
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    @Test
-    public void testGetOneEndpointNative() throws ConfigStoreException {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("vip2", "native");
-        assertEquals(200, response.getStatus());
-        JSONObject json = new JSONObject((String) response.getEntity());
-        assertEquals(json.toString(), 2, json.length());
-        assertEquals("vip2.svc-name.l4lb.thisdcos.directory:6432", json.get("vip"));
-        JSONArray direct = json.getJSONArray("direct");
-        assertEquals(2, direct.length());
-        assertEquals(TestConstants.HOSTNAME + ":2346", direct.get(0));
-        assertEquals(TestConstants.HOSTNAME + ":3457", direct.get(1));
+        JSONArray native_ = json.getJSONArray("native");
+        assertEquals(2, native_.length());
+        assertEquals(TestConstants.HOSTNAME + ":2345", native_.get(0));
+        assertEquals(TestConstants.HOSTNAME + ":3456", native_.get(1));
     }
 
     @Test
     public void testGetOneCustomEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("custom", "native");
+        Response response = resource.getEndpoint("custom", null);
         assertEquals(200, response.getStatus());
-        assertEquals(CUSTOM_VALUE, (String) response.getEntity());
+        assertEquals(CUSTOM_VALUE, response.getEntity());
+    }
+
+    @Test
+    public void testGetAllEndpointsNativeIgnored() throws ConfigStoreException {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        assertEquals(resource.getEndpoints(null).getEntity(), resource.getEndpoints("native").getEntity());
+        assertEquals(resource.getEndpoint("vip1", null).getEntity(),
+                resource.getEndpoint("vip1", "native").getEntity());
+        assertEquals(resource.getEndpoint("vip2", null).getEntity(),
+                resource.getEndpoint("vip2", "native").getEntity());
+        assertEquals(resource.getEndpoint("some-task-type", null).getEntity(),
+                resource.getEndpoint("some-task-type", "native").getEntity());
+        assertEquals(resource.getEndpoint("custom", null).getEntity(),
+                resource.getEndpoint("custom", "native").getEntity());
     }
 }

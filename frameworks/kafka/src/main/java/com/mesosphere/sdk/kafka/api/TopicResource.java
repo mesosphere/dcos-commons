@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.kafka.api;
 
+import com.mesosphere.sdk.api.ResponseUtils;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +8,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.util.Arrays;
@@ -33,7 +33,7 @@ public class TopicResource {
     @GET
     public Response topics() {
         try {
-            return Response.ok(kafkaZkClient.listTopics(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(kafkaZkClient.listTopics());
         } catch (Exception ex) {
             log.error("Failed to fetch topics with exception: " + ex);
             return Response.serverError().build();
@@ -44,7 +44,7 @@ public class TopicResource {
     @Path("/{name}")
     public Response getTopic(@PathParam("name") String topicName) {
         try {
-            return Response.ok(kafkaZkClient.getTopic(topicName).toString(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(kafkaZkClient.getTopic(topicName));
         } catch (Exception ex) {
             log.error("Failed to fetch topic: " + topicName + " with exception: " + ex);
             return Response.serverError().build();
@@ -60,8 +60,7 @@ public class TopicResource {
         try {
             int partCount = Integer.parseInt(partitionCount);
             int replFactor = Integer.parseInt(replicationFactor);
-            JSONObject result = cmdExecutor.createTopic(name, partCount, replFactor);
-            return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(cmdExecutor.createTopic(name, partCount, replFactor));
         } catch (Exception ex) {
             log.error("Failed to create topic: " + name + " with exception: " + ex);
             return Response.serverError().build();
@@ -72,8 +71,7 @@ public class TopicResource {
     @Path("/unavailable_partitions")
     public Response unavailablePartitions() {
         try {
-            JSONObject obj = cmdExecutor.unavailablePartitions();
-            return Response.ok(obj.toString(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(cmdExecutor.unavailablePartitions());
         } catch (Exception ex) {
             log.error("Failed to fetch topics with exception: " + ex);
             return Response.serverError().build();
@@ -84,8 +82,7 @@ public class TopicResource {
     @Path("/under_replicated_partitions")
     public Response underReplicatedPartitions() {
         try {
-            JSONObject obj = cmdExecutor.underReplicatedPartitions();
-            return Response.ok(obj.toString(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(cmdExecutor.underReplicatedPartitions());
         } catch (Exception ex) {
             log.error("Failed to fetch topics with exception: " + ex);
             return Response.serverError().build();
@@ -123,8 +120,7 @@ public class TopicResource {
                         break;
                 }
             }
-            return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
-
+            return ResponseUtils.jsonOkResponse(result);
         } catch (Exception ex) {
             log.error("Failed to perform operation: " + type + " on Topic: " + topicName + " with exception: " + ex);
             return Response.serverError().build();
@@ -137,11 +133,13 @@ public class TopicResource {
         try {
             JSONObject result = cmdExecutor.deleteTopic(name);
             String message = result.getString("message");
+            Response.Status status;
             if (message.contains("This will have no impact if delete.topic.enable is not set to true")) {
-                return Response.accepted().entity(result.toString()).type(MediaType.APPLICATION_JSON).build();
+                status = Response.Status.ACCEPTED;
             } else {
-                return Response.ok(result.toString(), MediaType.APPLICATION_JSON).build();
+                status = Response.Status.OK;
             }
+            return ResponseUtils.jsonResponse(result, status);
         } catch (Exception ex) {
             log.error("Failed to delete Topic: " + name + " with exception: " + ex);
             return Response.serverError().build();
@@ -153,7 +151,7 @@ public class TopicResource {
     public Response getOffsets(@PathParam("name") String topicName, @QueryParam("time") Long time) {
         try {
             JSONArray offsets = cmdExecutor.getOffsets(topicName, time);
-            return Response.ok(offsets.toString(), MediaType.APPLICATION_JSON).build();
+            return ResponseUtils.jsonOkResponse(offsets);
         } catch (Exception ex) {
             log.error("Failed to fetch offsets for: " + topicName + " with exception: " + ex);
             return Response.serverError().build();
