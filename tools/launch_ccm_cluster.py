@@ -52,8 +52,12 @@ class CCMLauncher(object):
         7: 'CREATING_ERROR',
         8: 'RUNNING_NEEDS_INFO'
     }
-    # Reverse:
+    # Reverse (name => number):
     _CCM_STATUS_LABELS = {v: k for k, v in _CCM_STATUSES.items()}
+    # Ignored (don't give up when these are encountered):
+    _CCM_STATUS_IGNORED = [
+        _CCM_STATUS_LABELS['RUNNING_NEEDS_INFO']
+    ]
 
     _CCM_HOST = 'ccm.mesosphere.com'
     _CCM_PATH = '/api/cluster/'
@@ -173,7 +177,7 @@ class CCMLauncher(object):
                     else:
                         logger.error('Cluster {} has entered state {}, but lacks cluster_info...'.format(
                             cluster_id, status_label))
-                elif status_code != pending_state_code:
+                elif status_code != pending_state_code and not status_code in self._CCM_STATUS_IGNORED:
                     logger.error('Cluster {} has entered state {}. Giving up.'.format(
                         cluster_id, status_label))
                     return None
