@@ -95,7 +95,7 @@
         "mem":{
           "description":"Journal node memory requirement",
           "type":"number",
-          "default": 512
+          "default": 2048
         },
         "disk":{
           "description":"Journal node disk size requirement in MB",
@@ -133,7 +133,7 @@
         "mem":{
           "description":"Name node memory requirement",
           "type":"number",
-          "default": 512
+          "default": 2048
         },
         "disk":{
           "description":"Name node disk size requirement in MB",
@@ -165,7 +165,7 @@
         "mem":{
           "description":"ZKFC node memory requirement",
           "type":"number",
-          "default": 512
+          "default": 2048
         }
       },
       "required":[
@@ -190,7 +190,7 @@
         "mem":{
           "description":"Data node memory requirement",
           "type":"number",
-          "default": 512
+          "default": 2048
         },
         "disk":{
           "description":"Data node disk size requirement in MB",
