@@ -50,28 +50,28 @@ func GetPlanParameterPayload(parameters string) (string, error) {
 	return string(jsonVal), nil
 }
 
+//TODO: remove NewApp and HandleCommonFlags (in favor of New()) on or after April 2017
 func NewApp(version string, author string, longDescription string) (*kingpin.Application, error) {
-	modName, err := GetModuleName()
-	if err != nil {
-		return nil, err
-	}
-
-	app := kingpin.New(modName, longDescription)
-	app.Version(version)
-	app.Author(author)
-	return app, nil
+	return New(), nil
+}
+func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
 }
 
-// Standard Arguments
+func New() *kingpin.Application {
+	modName, err := GetModuleName()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 
-func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
+	app := kingpin.New(fmt.Sprintf("dcos %s", modName), "")
+
 	app.HelpFlag.Short('h') // in addition to default '--help'
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&Verbose)
 
 	// This fulfills an interface that's expected by the main DC/OS CLI:
 	// Prints a description of the module.
-	app.Flag("info", "Show short description.").PreAction(func(*kingpin.ParseContext) error {
-		fmt.Fprintf(os.Stdout, "%s\n", shortDescription)
+	app.Flag("info", "Show short description.").Hidden().PreAction(func(*kingpin.ParseContext) error {
+		fmt.Fprintf(os.Stdout, "%s DC/OS CLI Module\n", strings.Title(modName))
 		os.Exit(0)
 		return nil
 	}).Bool()
@@ -88,11 +88,13 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").Envar("DCOS_CA_PATH").Envar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&tlsCACertPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
-	overrideServiceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
-	if len(overrideServiceName) != 0 {
-		defaultServiceName = overrideServiceName
+	serviceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
+	if len(serviceName) == 0 {
+		serviceName = modName
 	}
-	app.Flag("name", "Name of the service instance to query").Default(defaultServiceName).StringVar(&ServiceName)
+	app.Flag("name", "Name of the service instance to query").Default(serviceName).StringVar(&ServiceName)
+
+	return app
 }
 
 // Config section
