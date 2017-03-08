@@ -394,6 +394,13 @@ public class DefaultScheduler implements Scheduler, Observer {
     }
 
     /**
+     * Returns the {@link StateStore} held by this scheduler instance.
+     */
+    public StateStore getStateStore() {
+        return stateStore;
+    }
+
+    /**
      * Creates and returns a new default {@link ConfigStore} suitable for passing to
      * {@link DefaultScheduler#create}. To avoid the risk of zookeeper consistency issues, the
      * returned storage MUST NOT be written to before the Scheduler has registered with Mesos, as
