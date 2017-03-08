@@ -15,12 +15,13 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.mesosphere.sdk.api.ResponseUtils.plainOkResponse;
 
 /**
  * A read-only API for accessing file artifacts (e.g. config templates) for retrieval by executors.
@@ -92,7 +93,7 @@ public class ArtifactResource {
         }
         try {
             ConfigFileSpec config = getConfigFile(getTask(getPod(serviceSpec, podType), taskName), configurationName);
-            return Response.ok(config.getTemplateContent(), MediaType.TEXT_PLAIN_TYPE).build();
+            return plainOkResponse(config.getTemplateContent());
         } catch (Exception ex) {
             logger.warn(String.format(
                     "Couldn't find requested template in config '%s'", configurationId), ex);

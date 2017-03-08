@@ -52,7 +52,7 @@ class CCMLauncher(object):
         7: 'CREATING_ERROR',
         8: 'RUNNING_NEEDS_INFO'
     }
-    # Reverse:
+    # Reverse (name => number):
     _CCM_STATUS_LABELS = {v: k for k, v in _CCM_STATUSES.items()}
 
     _CCM_HOST = 'ccm.mesosphere.com'
@@ -137,11 +137,11 @@ class CCMLauncher(object):
         return response
 
 
-    def wait_for_status(self, cluster_id, pending_status_label, complete_status_label, timeout_minutes):
+    def wait_for_status(self, cluster_id, pending_status_labels, complete_status_label, timeout_minutes):
         logger.info('Waiting {} minutes for cluster {} to transition from {} to {}'.format(
-            timeout_minutes, cluster_id, pending_status_label, complete_status_label))
+            timeout_minutes, cluster_id, ', '.join(pending_status_labels), complete_status_label))
 
-        pending_state_code = self._CCM_STATUS_LABELS[pending_status_label]
+        pending_state_codes = [self._CCM_STATUS_LABELS[label] for label in pending_status_labels]
         complete_state_code = self._CCM_STATUS_LABELS[complete_status_label]
 
         start_time = time.time()
@@ -173,7 +173,7 @@ class CCMLauncher(object):
                     else:
                         logger.error('Cluster {} has entered state {}, but lacks cluster_info...'.format(
                             cluster_id, status_label))
-                elif status_code != pending_state_code:
+                elif status_code not in pending_state_codes:
                     logger.error('Cluster {} has entered state {}. Giving up.'.format(
                         cluster_id, status_label))
                     return None
@@ -258,7 +258,11 @@ class CCMLauncher(object):
         if not stack_id:
             raise Exception('No Stack ID returned in cluster creation response: {}'.format(response_content))
 
-        cluster_info = self.wait_for_status(cluster_id, 'CREATING', 'RUNNING', config.start_timeout_mins)
+        cluster_info = self.wait_for_status(
+            cluster_id,
+            ['CREATING', 'RUNNING_NEEDS_INFO'], # pending states
+            'RUNNING', # desired state
+            config.start_timeout_mins)
         if not cluster_info:
             raise Exception('CCM cluster creation failed or timed out')
         dns_address = cluster_info.get('DnsAddress', '')
@@ -319,7 +323,11 @@ class CCMLauncher(object):
         if not response:
             raise Exception('CCM cluster deletion request failed')
         if wait:
-            cluster_info = self.wait_for_status(config.cluster_id, 'DELETING', 'DELETED', config.stop_timeout_mins)
+            cluster_info = self.wait_for_status(
+                config.cluster_id,
+                ['DELETING'],
+                'DELETED',
+                config.stop_timeout_mins)
             if not cluster_info:
                 raise Exception('CCM cluster deletion failed or timed out')
             logger.info(pprint.pformat(cluster_info))
@@ -424,7 +432,10 @@ def main(argv):
                 # piggy-back off of StopConfig's env handling:
                 stop_config = StopConfig(argv[2])
                 cluster_info = launcher.wait_for_status(
-                    stop_config.cluster_id, argv[3], argv[4], stop_config.stop_timeout_mins)
+                    stop_config.cluster_id,
+                    [argv[3]],
+                    argv[4],
+                    stop_config.stop_timeout_mins)
                 if not cluster_info:
                     return 1
                 # print to stdout (the rest of this script only writes to stderr):
