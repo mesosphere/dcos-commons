@@ -6,8 +6,12 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 /**
  * Factory for generating Strategy objects for Phases and steps.
  */
-public class StrategyFactory {
+public class StrategyFactory {	
     public static Strategy<Phase> generateForPhase(String strategyType) {
+    	if (strategyType == null) {
+    		return new SerialStrategy.Generator<Phase>().generate();
+    	}
+    	
         Strategy<Phase> strategy = null;
         switch (strategyType) {
             case "parallel":
@@ -23,6 +27,10 @@ public class StrategyFactory {
     }
 
     public static Strategy<Step> generateForSteps(String strategyType) {
+    	if (strategyType == null) {
+    		return new SerialStrategy.Generator<Step>().generate();
+    	}
+    	
         Strategy<Step> strategy = null;
         switch (strategyType) {
             case "parallel":
