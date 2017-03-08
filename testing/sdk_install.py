@@ -15,11 +15,12 @@ def install(
         service_name=None,
         additional_options={},
         package_version=None):
-    options = get_package_options(additional_options)
+    # small addition over shakedown: automatically include secure mode config when needed
     shakedown.install_package_and_wait(
         package_name,
         package_version=package_version,
-        options_json=options,
+        service_name=service_name,
+        options_json=get_package_options(additional_options),
         expected_running_tasks=running_task_count)
 
 

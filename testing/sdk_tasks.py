@@ -3,6 +3,8 @@
 import dcos.errors
 import shakedown
 
+DEFAULT_DEPLOY_TIMEOUT = 15 * 60
+
 
 def _prefix_cb(task_prefix):
     def fn(task):
@@ -14,12 +16,14 @@ def get_task_ids(service_name, task_prefix):
     return shakedown.get_service_task_ids(service_name, _prefix_cb(task_prefix))
 
 
-def check_tasks_updated(service_name, task_prefix, old_task_ids):
-    shakedown.wait_for_service_tasks_all_changed(service_name, old_task_ids, _prefix_cb(task_prefix))
+def check_tasks_updated(service_name, task_prefix, old_task_ids, timeout_sec=DEFAULT_DEPLOY_TIMEOUT):
+    shakedown.wait_for_service_tasks_all_changed(
+        service_name, old_task_ids, _prefix_cb(task_prefix), timeout_sec=timeout_sec)
 
 
 def check_tasks_not_updated(service_name, task_prefix, old_task_ids):
-    shakedown.wait_for_service_tasks_all_unchanged(service_name, old_task_ids, _prefix_cb(task_prefix))
+    shakedown.wait_for_service_tasks_all_unchanged(
+        service_name, old_task_ids, _prefix_cb(task_prefix))
 
 
 def kill_task_with_pattern(pattern, host=None):
