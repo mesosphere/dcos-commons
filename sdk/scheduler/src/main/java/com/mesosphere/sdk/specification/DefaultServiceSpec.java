@@ -154,10 +154,8 @@ public class DefaultServiceSpec implements ServiceSpec {
         for (PodSpec pod : pods) {
             for (TaskSpec taskSpec : pod.getTasks()) {
                 for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus")) {
-                        if (resourceSpec.getValue().getScalar().getValue() >= 1) {
-                            return true;
-                        }
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
                     }
                 }
             }
