@@ -3,7 +3,6 @@ package com.mesosphere.sdk.cassandra.api;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
