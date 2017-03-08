@@ -94,7 +94,6 @@ pods:
 
 * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
-* **gpu-optin**: Type: bool (true/false). This entry allows your framework access to agent nodes with GPU hardware. It is the policy of Mesos (see [here](http://mesos.apache.org/documentation/latest/gpu-support/)) that frameworks that do not use GPUs can be explicitly excluded from these resources as to prevent them from blocking GPU-requiring frameworks. The default value (i.e. if this entry is absent) is FALSE, meaning that your framework will be blind to GPU-equipped agents. 
 
 ### Summary
 
