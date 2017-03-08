@@ -8,7 +8,8 @@ public class RawCniPortMapping {
 
     private RawCniPortMapping(
             @JsonProperty("host-ports") String hostPorts,
-            @JsonProperty("container-ports") String containerPorts) {
+            @JsonProperty("container-ports") String containerPorts,
+            @JsonProperty("protocol") String protocol) {
         this.hostPorts = hostPorts;
         this.containerPorts = containerPorts;
     }
