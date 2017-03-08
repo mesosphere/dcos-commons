@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/mesosphere/dcos-commons/cli"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
-	"strings"
 )
 
 func main() {
@@ -24,22 +22,8 @@ func main() {
 	cli.HandleEndpointsSection(app)
 	cli.HandlePlanSection(app)
 	cli.HandlePodsSection(app)
+	cli.HandleStateSection(app)
 
 	// Omit modname:
 	kingpin.MustParse(app.Parse(cli.GetArguments()))
 }
-
-type ExampleCommand struct {
-	echoText        []string
-	echoOmitNewline bool
-}
-
-func (cmd *ExampleCommand) runEcho(c *kingpin.ParseContext) error {
-	if cmd.echoOmitNewline {
-		fmt.Printf(strings.Join(cmd.echoText, " "))
-	} else {
-		fmt.Printf("%s\n", strings.Join(cmd.echoText, " "))
-	}
-	return nil
-}
-

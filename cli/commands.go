@@ -62,23 +62,6 @@ func NewApp(version string, author string, longDescription string) (*kingpin.App
 	return app, nil
 }
 
-// Add all of the below arguments and commands
-
-// TODO remove this deprecated function on or after Feb 1 2017.
-// No longer invoked in any repo's 'master' branch as of Dec 22 2016.
-func HandleCommonArgs(
-	app *kingpin.Application,
-	defaultServiceName string,
-	shortDescription string,
-	connectionTypes []string) {
-	HandleCommonFlags(app, defaultServiceName, shortDescription)
-	HandleConfigSection(app)
-	HandleConnectionSection(app, connectionTypes)
-	//HandleEndpointsSection(app) omitted since callers likely don't have this
-	HandlePlanSection(app)
-	HandleStateSection(app)
-}
-
 // Standard Arguments
 
 func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
@@ -150,7 +133,7 @@ func HandleConfigSection(app *kingpin.Application) {
 	config.Command("target_id", "List ID of the target configuration").Action(cmd.RunTargetId)
 }
 
-// Connection section
+// Connection section, manually implemented by some services (DEPRECATED, use common Endpoints)
 
 type ConnectionHandler struct {
 	TypeName string
@@ -396,27 +379,26 @@ func HandlePodsSection(app *kingpin.Application) {
 // State section
 
 type StateHandler struct {
-	TaskName string
+	PropertyName string
 }
 
 func (cmd *StateHandler) RunFrameworkId(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/state/frameworkId"))
 	return nil
 }
-func (cmd *StateHandler) RunStatus(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/tasks/status/%s", cmd.TaskName)))
+func (cmd *StateHandler) RunProperties(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPGet("v1/state/properties"))
 	return nil
 }
-func (cmd *StateHandler) RunTask(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/tasks/info/%s", cmd.TaskName)))
+func (cmd *StateHandler) RunProperty(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
 	return nil
 }
-func (cmd *StateHandler) RunTasks(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/tasks"))
+func (cmd *StateHandler) RunRefreshCache(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPPut("v1/state/refresh"))
 	return nil
 }
 
-// TODO remove this command once callers have migrated to HandlePodsSection().
 func HandleStateSection(app *kingpin.Application) {
 	// state <framework_id, status, task, tasks>
 	cmd := &StateHandler{}
@@ -424,11 +406,10 @@ func HandleStateSection(app *kingpin.Application) {
 
 	state.Command("framework_id", "Display the mesos framework ID").Action(cmd.RunFrameworkId)
 
-	status := state.Command("status", "Display the TaskStatus for a task name").Action(cmd.RunStatus)
-	status.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
+	state.Command("properties", "List names of all custom properties").Action(cmd.RunProperties)
 
-	task := state.Command("task", "Display the TaskInfo for a task name").Action(cmd.RunTask)
-	task.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
+	task := state.Command("property", "Display the content of a specified property").Action(cmd.RunProperty)
+	task.Arg("name", "Name of the property to display").Required().StringVar(&cmd.PropertyName)
 
-	state.Command("tasks", "List names of all persisted tasks").Action(cmd.RunTasks)
+	state.Command("refresh_cache", "Refresh the state cache, used for debugging").Action(cmd.RunRefreshCache)
 }
