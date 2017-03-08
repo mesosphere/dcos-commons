@@ -16,21 +16,18 @@ public class DefaultNetworkSpec implements NetworkSpec {
     @NotNull
     @Size(min = 1)
     private String name;
-
     private CniPortMappingSpec cniPortMappingSpec;
 
     @JsonCreator
     public DefaultNetworkSpec(
             @JsonProperty("name") String name,
-            @JsonProperty("port-mapping") CniPortMappingSpec portMap) {
+            @JsonProperty("port-mapping") CniPortMappingSpec portMapings) {
         this.name               = name;
-        this.cniPortMappingSpec = portMap;
+        this.cniPortMappingSpec = portMapings;
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 
     @Override
     public CniPortMappingSpec getCniPortMappingSpec() { return cniPortMappingSpec; }

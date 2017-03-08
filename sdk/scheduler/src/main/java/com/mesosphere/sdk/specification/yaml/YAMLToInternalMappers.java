@@ -15,12 +15,9 @@ import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -204,8 +201,33 @@ public class YAMLToInternalMappers {
 
             List<NetworkSpec> networks = new ArrayList<>();
             for (Map.Entry<String, RawNetwork> entry : rawPod.getContainer().getNetworks().entrySet()) {
-                // When features other than network name are added, we'll want to use the RawNetwork entry value here.
-                networks.add(new DefaultNetworkSpec(entry.getKey()));
+                String name = entry.getKey();
+                RawNetwork rawNetwork = entry.getValue();
+                List<Integer> hostPorts = Arrays.stream(
+                            rawNetwork.getRawCniPortMapping()
+                                    .getHostPorts()
+                                    .split(","))
+                        .map(Integer::parseInt)
+                        .collect(Collectors.toList());
+                List<Integer> containerPorts = Arrays.stream(
+                                rawNetwork.getRawCniPortMapping()
+                                    .getContainerPorts()
+                                    .split(","))
+                        .map(Integer::parseInt)
+                        .collect(Collectors.toList());
+
+                if (hostPorts.size() != containerPorts.size()) {
+                    throw new IllegalStateException("Number of host ports does not match number of" +
+                            "container ports");
+                }
+
+                Map<Integer, Integer> portMap = new HashMap<>();
+                for (int i = 0; i < hostPorts.size(); i++) {
+                    portMap.put(hostPorts.get(i), containerPorts.get(i));
+                }
+                DefaultCniPortMappingSpec cniPortMappingSpec = new DefaultCniPortMappingSpec(portMap);
+
+                networks.add(new DefaultNetworkSpec(name, cniPortMappingSpec));
             }
 
             builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), networks, rlimits));
