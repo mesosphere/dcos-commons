@@ -2,9 +2,10 @@ name: "hello-world"
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    container:
-      networks:
-        dcos: {}
+    networks:
+      dcos:
+        host-ports: [4040]
+        container-ports: [8080]
     resource-sets:
       hello-resource:
         cpus: {{HELLO_CPUS}}

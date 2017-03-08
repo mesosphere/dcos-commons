@@ -7,6 +7,9 @@ import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
 import com.mesosphere.sdk.specification.yaml.RawCniPortMapping;
+import com.mesosphere.sdk.specification.yaml.RawNetwork;
+import com.mesosphere.sdk.specification.yaml.WriteOnceLinkedHashMap;
+import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -152,52 +155,24 @@ public class DefaultServiceSpecTest {
     public void validCniSpec() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-cni.yml").getFile());
-        RawServiceSpec rawSvsSpc = generateRawSpecFromYAML(file);
-        Assert.assertNotNull(rawSvsSpc);
+        RawServiceSpec rawServiceSpec = generateRawSpecFromYAML(file);
+        Assert.assertNotNull(rawServiceSpec);
+        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworkMap = rawServiceSpec
+                .getPods()
+                .get("meta-data")
+                .getNetwork();
+        Assert.assertTrue(MapUtils.isNotEmpty(rawNetworkMap));
+        RawNetwork rawNetwork = rawNetworkMap.get("dcos");
+        ArrayList<Integer> expectedHostPorts = new ArrayList<>();
+        expectedHostPorts.add(4040);
+        ArrayList<Integer> expectedContainerPorts = new ArrayList<>();
+        expectedContainerPorts.add(8080);
+        Assert.assertTrue(rawNetwork.getHostPorts().equals(expectedHostPorts));
+        Assert.assertTrue(rawNetwork.getContainerPorts().equals(expectedContainerPorts));
+        // TODO check multiple maps
+        // TODO check ServiceSpec
+        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
 
-        RawCniPortMapping rawPortMappings = rawSvsSpc
-                .getPods().get("meta-data")
-                .getContainer()
-                .getNetworks().get("dcos")
-                .getRawCniPortMapping();
-
-        String expectedHostPortString      = "4040";
-        String expectedContainerPortString = "8080";
-        Assert.assertTrue(rawPortMappings.getHostPorts().equals(expectedHostPortString));
-        Assert.assertTrue(rawPortMappings.getContainerPorts().equals(expectedContainerPortString));
-
-        rawPortMappings = rawSvsSpc
-                .getPods().get("meta-data-multimap")
-                .getContainer()
-                .getNetworks().get("dcos")
-                .getRawCniPortMapping();
-
-        expectedHostPortString      = "4040,4041";
-        expectedContainerPortString = "8080,8081";
-        Assert.assertTrue(rawPortMappings.getHostPorts().equals(expectedHostPortString));
-        Assert.assertTrue(rawPortMappings.getContainerPorts().equals(expectedContainerPortString));
-
-        DefaultServiceSpec serviceSpec = generateServiceSpec(rawSvsSpc);
-        Assert.assertNotNull(serviceSpec);
-
-        Map<Integer, Integer> portMap0 = serviceSpec
-                .getPods().get(0)
-                .getContainer().get()
-                .getNetworks().iterator().next()
-                .getCniPortMappingSpec().getPortMappings();
-        Map<Integer, Integer> portMap1 = serviceSpec
-                .getPods().get(1)
-                .getContainer().get()
-                .getNetworks().iterator().next()
-                .getCniPortMappingSpec().getPortMappings();
-
-        Map<Integer, Integer> expected0 = new HashMap<>();
-        expected0.put(4040, 8080);
-        Map<Integer, Integer> expected1 = new HashMap<>();
-        expected1.put(4040, 8080);
-        expected1.put(4041, 8081);
-        Assert.assertEquals(portMap0, expected0);
-        Assert.assertEquals(portMap1, expected1);
     }
 
     @Test

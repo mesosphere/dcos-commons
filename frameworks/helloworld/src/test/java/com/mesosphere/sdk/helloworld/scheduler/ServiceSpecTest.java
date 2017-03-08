@@ -27,7 +27,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("WORLD_FAILS", "3");
         ENV_VARS.set("WORLD_DISK", "5000");
     }
-
+    /*
     @Test
     public void testYmlBase() throws Exception {
         testYaml("svc.yml");
@@ -61,5 +61,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     @Test
     public void testYmlWebUrl() throws Exception {
         testYaml("examples/web-url.yml");
+    }
+    */
+    @Test
+    public void testCniNetwork() throws Exception {
+        testYaml("examples/cni.yml");
     }
 }

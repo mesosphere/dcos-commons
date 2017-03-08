@@ -19,17 +19,13 @@ public class DefaultContainerSpec implements ContainerSpec {
     @Size(min = 1)
     private String imageName;
     @Valid
-    private Collection<NetworkSpec> networks;
-    @Valid
     private Collection<RLimit> rlimits;
 
     @JsonCreator
     public DefaultContainerSpec(
             @JsonProperty("image-name") String imageName,
-            @JsonProperty("networks") Collection<NetworkSpec> networks,
             @JsonProperty("rlimits") Collection<RLimit> rlimits) {
         this.imageName = imageName;
-        this.networks = networks;
         this.rlimits = rlimits;
     }
 
@@ -37,9 +33,6 @@ public class DefaultContainerSpec implements ContainerSpec {
     public Optional<String> getImageName() {
         return Optional.ofNullable(imageName);
     }
-
-    @Override
-    public Collection<NetworkSpec> getNetworks() { return networks == null ? Collections.emptyList() : networks; }
 
     @Override
     public Collection<RLimit> getRLimits() {

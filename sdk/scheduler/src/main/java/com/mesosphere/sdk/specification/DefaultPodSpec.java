@@ -43,6 +43,8 @@ public class DefaultPodSpec implements PodSpec {
     private final PlacementRule placementRule;
     @Valid
     private final Collection<URI> uris;
+    @Valid
+    private final NetworkSpec networkSpec;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -52,7 +54,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("container") ContainerSpec container,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
-            @JsonProperty("placement-rule") PlacementRule placementRule) {
+            @JsonProperty("placement-rule") PlacementRule placementRule,
+            @JsonProperty("network") NetworkSpec networkSpec) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -60,11 +63,19 @@ public class DefaultPodSpec implements PodSpec {
         this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
+        this.networkSpec = networkSpec;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count, builder.container,
-                builder.uris, builder.tasks, builder.placementRule);
+        this(
+                builder.type,
+                builder.user,
+                builder.count,
+                builder.container,
+                builder.uris,
+                builder.tasks,
+                builder.placementRule,
+                builder.networkSpec);
         ValidationUtils.validate(this);
     }
 
@@ -82,6 +93,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
+        builder.networkSpec = copy.getNetwork().isPresent() ? copy.getNetwork().get() : null;
         return builder;
     }
 
@@ -142,6 +154,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
+        private NetworkSpec networkSpec;
 
         private Builder() {
         }
@@ -245,6 +258,17 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder placementRule(PlacementRule placementRule) {
             this.placementRule = placementRule;
+            return this;
+        }
+
+        /**
+         * Sets the {@code networkSpec} and returns a reference to this builder
+         *
+         * @param networkSpec the {@code networkSpec} to set
+         * @return a reference to this builder
+         */
+        public Builder networkSpec(NetworkSpec networkSpec) {
+            this.networkSpec = networkSpec;
             return this;
         }
 

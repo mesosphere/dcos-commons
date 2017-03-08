@@ -20,6 +20,7 @@ public class RawPod {
     private final Collection<String> uris;
     private final WriteOnceLinkedHashMap<String, RawTask> tasks;
     private final WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
+    private final WriteOnceLinkedHashMap<String, RawNetwork> network;
 
     private RawPod(
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -29,7 +30,8 @@ public class RawPod {
             @JsonProperty("strategy") String strategy,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
-            @JsonProperty("user") String user) {
+            @JsonProperty("user") String user,
+            @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> network) {
         this.placement = placement;
         this.count = count;
         this.container = container;
@@ -38,10 +40,7 @@ public class RawPod {
         this.uris = uris;
         this.tasks = tasks;
         this.resourceSets = resourceSets;
-    }
-
-    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
-        return resourceSets;
+        this.network = network;
     }
 
     public String getPlacement() {
@@ -69,4 +68,8 @@ public class RawPod {
     public String getUser() {
         return user;
     }
+
+    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() { return resourceSets; }
+
+    public WriteOnceLinkedHashMap<String, RawNetwork> getNetwork() { return network; }
 }

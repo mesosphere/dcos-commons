@@ -565,18 +565,18 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
-        Protos.NetworkInfo.Builder builder = Protos.NetworkInfo.newBuilder();
-        builder.setName(networkSpec.getName());
+        Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
+        netInfoBuilder.setName(networkSpec.getName());
         for (Map.Entry<Integer, Integer> e : networkSpec.getCniPortMappingSpec().getPortMappings().entrySet()) {
             Integer hostPort = e.getKey();
             Integer containerPort = e.getValue();
-            builder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+            netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
                     .setHostPort(hostPort)
                     .setContainerPort(containerPort)
                     .build());
 
         }
-        return builder.build();
+        return netInfoBuilder.build();
     }
 
     private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {

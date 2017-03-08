@@ -176,6 +176,7 @@ public class YAMLToInternalMappers {
                     role,
                     principal));
         }
+
         Collection<URI> podUris = new ArrayList<>();
         for (String uriStr : rawPod.getUris()) {
             podUris.add(new URI(uriStr));
@@ -192,45 +193,28 @@ public class YAMLToInternalMappers {
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }
+
         if (rawPod.getContainer() != null) {
             List<RLimit> rlimits = new ArrayList<>();
             for (Map.Entry<String, RawRLimit> entry : rawPod.getContainer().getRLimits().entrySet()) {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
+        }
 
-            List<NetworkSpec> networks = new ArrayList<>();
-            for (Map.Entry<String, RawNetwork> entry : rawPod.getContainer().getNetworks().entrySet()) {
-                String name = entry.getKey();
-                RawNetwork rawNetwork = entry.getValue();
-                List<Integer> hostPorts = Arrays.stream(
-                            rawNetwork.getRawCniPortMapping()
-                                    .getHostPorts()
-                                    .split(","))
-                        .map(Integer::parseInt)
-                        .collect(Collectors.toList());
-                List<Integer> containerPorts = Arrays.stream(
-                                rawNetwork.getRawCniPortMapping()
-                                    .getContainerPorts()
-                                    .split(","))
-                        .map(Integer::parseInt)
-                        .collect(Collectors.toList());
-
-                if (hostPorts.size() != containerPorts.size()) {
-                    throw new IllegalStateException("Number of host ports does not match number of" +
-                            "container ports");
-                }
-
-                Map<Integer, Integer> portMap = new HashMap<>();
-                for (int i = 0; i < hostPorts.size(); i++) {
-                    portMap.put(hostPorts.get(i), containerPorts.get(i));
-                }
-                DefaultCniPortMappingSpec cniPortMappingSpec = new DefaultCniPortMappingSpec(portMap);
-
-                networks.add(new DefaultNetworkSpec(name, cniPortMappingSpec));
-            }
-
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), networks, rlimits));
+        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetwork();
+        final Collection<NetworkSpec> network = new ArrayList<>();
+        if (MapUtils.isNotEmpty(rawNetworks)) {
+            network.addAll(rawNetworks.entrySet().stream()
+            .map(rawNetworkEntry -> {
+                String networkName = rawNetworkEntry.getKey();
+                RawNetwork rawNetwork = rawNetworks.get(networkName);
+                return from(
+                        networkName,
+                        rawNetwork.getHostPorts(),
+                        rawNetwork.getContainerPorts());
+            })
+            .collect(Collectors.toList()));
         }
 
         return builder.build();
@@ -360,5 +344,12 @@ public class YAMLToInternalMappers {
         return resourceSetBuilder
                 .id(id)
                 .build();
+    }
+
+    private static DefaultNetworkSpec from(
+            String name,
+            List<Integer> hostPorts,
+            List<Integer> contaierPorts) {
+
     }
 }
