@@ -34,6 +34,24 @@
           "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type":"string",
           "default":"V0"
+        },
+        "data_center": {
+          "description": "The name of the data center this cluster is running in",
+          "type": "string",
+          "default": "dc1"
+        },
+        "rack": {
+          "description": "The name of the rack this cluster is running on",
+          "type": "string",
+          "default": "rac1"
+        },
+        "remote_data_center_urls": {
+          "description": "A list of URLs for schedulers in other data centers for multi-DC clusters",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
         }
       },
       "required": [
