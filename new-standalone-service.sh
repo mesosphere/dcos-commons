@@ -33,27 +33,8 @@ if [[ -z "${PROJECT_PATH// }" ]]; then
     PROJECT_PATH=$(pwd)
 fi
 
-## Download the template.zip
-#TEMPLATE_DOWNLOAD_URL=https://s3-us-west-2.amazonaws.com/mohit-dev/template.zip
-#
-#debug "Downloading template.zip from $TEMPLATE_DOWNLOAD_URL"
-#curl -o template.zip $TEMPLATE_DOWNLOAD_URL
-#if [ $? -ne 0 ]; then
-#    echo "Failed to download from $TEMPLATE_DOWNLOAD_URL"
-#    cleanup
-#    exit 1
-#fi
-#
-#debug "Unzipping template.zip"
-#unzip template.zip
-#if [ $? -ne 0 ]; then
-#    echo "Failed to unzip template.zip"
-#    cleanup
-#    exit 1
-#fi
 debug "Scaffolding $PROJECT_NAME from template"
 
-#mv template/ ./$PROJECT_NAME
 cp -R frameworks/template $PROJECT_PATH/$PROJECT_NAME
 cp -R tools $PROJECT_PATH/$PROJECT_NAME/tools
 
