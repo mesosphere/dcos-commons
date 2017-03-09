@@ -63,7 +63,7 @@ rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/dcos-*/dcos-*
 rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/python/{build,dist}
 rm -rf $PROJECT_PATH/$PROJECT_NAME/build.sh
 mv $PROJECT_PATH/$PROJECT_NAME/build.self.hosted.sh $PROJECT_PATH/$PROJECT_NAME/build.sh
-chmox +x $PROJECT_PATH/$PROJECT_NAME/build.sh
+chmod +x $PROJECT_PATH/$PROJECT_NAME/build.sh
 mv $PROJECT_PATH/$PROJECT_NAME/cli/dcos-template $PROJECT_PATH/$PROJECT_NAME/cli/dcos-$PROJECT_NAME
 mv $PROJECT_PATH/$PROJECT_NAME/src/main/java/com/mesosphere/sdk/template/ $PROJECT_PATH/$PROJECT_NAME/src/main/java/com/mesosphere/sdk/$PROJECT_NAME/
 mv $PROJECT_PATH/$PROJECT_NAME/src/test/java/com/mesosphere/sdk/template/ $PROJECT_PATH/$PROJECT_NAME/src/test/java/com/mesosphere/sdk/$PROJECT_NAME/
@@ -85,6 +85,15 @@ sed -i.bak "s/compile project(\":executor\")/compile \"mesosphere:executor:0.12.
 sed -i.bak "s/testCompile project(\":testing\")/testCompile \"mesosphere:testing:0.12.0\"/g" $PROJECT_PATH/$PROJECT_NAME/build.gradle
 sed -i.bak '/distZip.dependsOn ":executor:distZip"/d' $PROJECT_PATH/$PROJECT_NAME/build.gradle
 sed -i.bak '/distZip.finalizedBy copyExecutor/d' $PROJECT_PATH/$PROJECT_NAME/build.gradle
+
+GRADLE_EXISTS="yes"
+command -v gradle >/dev/null 2>&1 || { echo >&2 "I require gradle but it's not installed. Please install gradle and then run 'gradle wrapper --gradle-version 3.4' inside $PROJECT_PATH/$PROJECT_NAME"; GRADLE_EXISTS="no"; }
+
+if [ "$GRADLE_EXISTS" == "yes" ]; then
+    pushd $PROJECT_PATH/$PROJECT_NAME
+    gradle wrapper --gradle-version 3.4
+    popd
+fi
 
 if [ $? -eq 0 ]; then
     echo "New project created successfully"
