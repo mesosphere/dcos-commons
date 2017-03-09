@@ -10,24 +10,19 @@ import (
 )
 
 func main() {
-	app, err := cli.NewApp("0.1.0", "Mesosphere", "Manage Apache Kafka framework")
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
+	app := cli.New()
 
-	cli.HandleCommonFlags(app, "kafka", "Kafka CLI")
 	cli.HandleConfigSection(app)
 	cli.HandleEndpointsSection(app)
 	cli.HandlePlanSection(app)
 	cli.HandlePodsSection(app)
-	
+	cli.HandleStateSection(app)
+
 	handleBrokerSection(app)
 	handleTopicSection(app)
 
-	// Omit modname:
 	kingpin.MustParse(app.Parse(cli.GetArguments()))
 }
-
 
 
 type BrokerHandler struct {
@@ -58,7 +53,7 @@ func handleBrokerSection(app *kingpin.Application) {
 
 
 type TopicHandler struct {
-	topic string 
+	topic string
 	createPartitions int
 	createReplication int
 	offsetsTime string
@@ -66,7 +61,7 @@ type TopicHandler struct {
 	produceMessageCount int
 }
 func (cmd *TopicHandler) runList(c *kingpin.ParseContext) error {
-	cli.PrintJSON(cli.HTTPGet("v1/topics"))		
+	cli.PrintJSON(cli.HTTPGet("v1/topics"))
 	return nil
 }
 func (cmd *TopicHandler) runDescribe(c *kingpin.ParseContext) error {
@@ -89,7 +84,7 @@ func (cmd *TopicHandler) runUnderReplicatedPartitions(c *kingpin.ParseContext) e
 	return nil
 }
 func (cmd *TopicHandler) runPartitions(c *kingpin.ParseContext) error {
-	query := url.Values{}	
+	query := url.Values{}
 	query.Set("name", cmd.topic)
 	query.Set("partitions", strconv.FormatInt(int64(cmd.partitionCount), 10))
 	cli.PrintJSON(cli.HTTPPutQuery(fmt.Sprintf("v1/topics/%s/operation/partitions", cmd.topic), query.Encode()))

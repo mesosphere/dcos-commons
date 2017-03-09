@@ -16,7 +16,6 @@ import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -56,7 +55,6 @@ public class CuratorStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
-    private static final String SUPPRESSED_KEY = "suppressed";
 
     private final Persister curator;
     private final TaskPathMapper taskPathMapper;
@@ -473,34 +471,5 @@ public class CuratorStateStore implements StateStore {
 
         storeTasks(repairedTasks);
         repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
-    }
-
-    public boolean isSuppressed() throws StateStoreException {
-        byte[] bytes = StateStoreUtils.fetchPropertyOrEmptyArray(this, SUPPRESSED_KEY);
-        Serializer serializer = new JsonSerializer();
-
-        boolean suppressed;
-        try {
-            suppressed = serializer.deserialize(bytes, Boolean.class);
-        } catch (IOException e){
-            logger.error(String.format("Error converting property %s to boolean.", SUPPRESSED_KEY), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
-        }
-
-        return suppressed;
-    }
-
-    public void setSuppressed(final boolean isSuppressed) {
-        byte[] bytes;
-        Serializer serializer = new JsonSerializer();
-
-        try {
-            bytes = serializer.serialize(isSuppressed);
-        } catch (IOException e) {
-            logger.error(String.format("Error serializing property %s: %s", SUPPRESSED_KEY, isSuppressed), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
-        }
-
-        storeProperty(SUPPRESSED_KEY, bytes);
     }
 }

@@ -310,7 +310,7 @@ public class PlansResource extends PrettyJsonResource {
         }
     }
 
-    static class ValidationException extends Exception {
+    private static class ValidationException extends Exception {
         public ValidationException(String message) {
             super(message);
         }
