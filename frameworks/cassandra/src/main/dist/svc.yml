@@ -1,10 +1,13 @@
-name: {{FRAMEWORK_NAME}}
+name: {{SERVICE_NAME}}
 scheduler:
-  principal: {{FRAMEWORK_PRINCIPAL}}
+  principal: {{SERVICE_PRINCIPAL}}
   user: {{SERVICE_USER}}
+  role: {{SERVICE_ROLE}}
+  zookeeper: {{SERVICE_ZK_SERVERS}}
 pods:
   node:
     count: {{NODES}}
+    placement: "{{PLACEMENT_CONSTRAINT}}"
     uris:
       - {{SCHEDULER_URI}}
       - https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-{{CASSANDRA_VERSION}}-bin-dcos.tar.gz
