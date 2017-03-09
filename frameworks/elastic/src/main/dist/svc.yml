@@ -289,7 +289,7 @@ pods:
       - {{SCHEDULER_URI}}
       - {{BOOTSTRAP_URI}}
     tasks:
-      node:
+      server:
         goal: RUNNING
         cmd: "./bootstrap -resolve-hosts=kibana-0-node.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
         cpus: {{PROXYLITE_CPUS}}
