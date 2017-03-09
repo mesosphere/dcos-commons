@@ -1,5 +1,4 @@
 import pytest
-import shakedown
 
 import sdk_install as install
 
@@ -12,8 +11,7 @@ SERVICE_NAME = "hdfs2"
 
 
 def setup_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, SERVICE_NAME)
-    install.gc_frameworks()
+    install.uninstall(PACKAGE_NAME, SERVICE_NAME)
     options = {
         "service": {
             "name": SERVICE_NAME
@@ -23,7 +21,7 @@ def setup_module(module):
 
 
 def teardown_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, SERVICE_NAME)
+    install.uninstall(PACKAGE_NAME, SERVICE_NAME)
 
 
 @pytest.mark.sanity

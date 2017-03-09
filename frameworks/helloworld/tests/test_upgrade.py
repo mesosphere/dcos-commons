@@ -13,11 +13,11 @@ from tests.config import (
 
 
 def setup_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
 
 
 def teardown_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

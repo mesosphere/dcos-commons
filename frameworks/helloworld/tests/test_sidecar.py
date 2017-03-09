@@ -1,5 +1,4 @@
 import pytest
-import shakedown
 
 import sdk_install as install
 import sdk_plan as plan
@@ -10,19 +9,19 @@ from tests.config import (
 
 
 def setup_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
+
     options = {
         "service": {
             "spec_file": "examples/sidecar.yml"
         }
     }
-
     # this yml has 2 hello's + 0 world's:
     install.install(PACKAGE_NAME, 2, additional_options=options)
 
 
 def teardown_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

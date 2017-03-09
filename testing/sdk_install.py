@@ -24,6 +24,14 @@ def install(
         expected_running_tasks=running_task_count)
 
 
+def uninstall(package_name, service_name=None, wipe_agents=True):
+    if not service_name:
+        service_name = package_name
+    shakedown.uninstall_package_and_data(package_name, service_name)
+    if wipe_agents:
+        gc_frameworks()
+
+
 def gc_frameworks():
     '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
     for host in shakedown.get_private_agents():

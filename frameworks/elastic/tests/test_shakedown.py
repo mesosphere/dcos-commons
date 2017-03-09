@@ -21,19 +21,17 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 
 def setup_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
-    install.gc_frameworks()
+    install.uninstall(PACKAGE_NAME)
     install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 def setup_function(function):
-    shakedown.wait_for_service_tasks_running(
-        PACKAGE_NAME, DEFAULT_TASK_COUNT, timeout_sec=tasks.DEFAULT_DEPLOY_TIMEOUT)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     wait_for_expected_nodes_to_exist()
 
 
 def teardown_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.fixture
@@ -118,8 +116,7 @@ def test_plugin_install_and_uninstall(default_populated_index):
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     shakedown.kill_process_on_host(get_marathon_host(), "scheduler.Main")
-    shakedown.wait_for_service_tasks_running(
-        PACKAGE_NAME, DEFAULT_TASK_COUNT, timeout_sec=tasks.DEFAULT_DEPLOY_TIMEOUT)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     current_task_ids = tasks.get_task_ids(PACKAGE_NAME, "master")
     assert initial_task_ids == current_task_ids
 
@@ -142,5 +139,4 @@ def test_bump_node_counts():
     coordinator_nodes = int(config['env']['COORDINATOR_NODE_COUNT'])
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     marathon.update_app(PACKAGE_NAME, config)
-    shakedown.wait_for_service_tasks_running(
-        PACKAGE_NAME, DEFAULT_TASK_COUNT + 3, timeout_sec=tasks.DEFAULT_DEPLOY_TIMEOUT)
+    tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT + 3)

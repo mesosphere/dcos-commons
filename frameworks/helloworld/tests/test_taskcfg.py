@@ -12,14 +12,14 @@ from tests.config import (
 
 
 def setup_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
     options = install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
     # don't wait for install to complete successfully:
     shakedown.install_package(PACKAGE_NAME, options_json=options)
 
 
 def teardown_module(module):
-    shakedown.uninstall_package_and_data(PACKAGE_NAME, PACKAGE_NAME)
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
