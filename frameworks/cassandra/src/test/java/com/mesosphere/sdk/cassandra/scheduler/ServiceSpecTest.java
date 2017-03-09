@@ -17,10 +17,12 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("LIBMESOS_URI", "http://libmesos.uri");
         ENV_VARS.set("PORT_API", "8080");
 
-        ENV_VARS.set("FRAMEWORK_NAME", "cassandra");
+        ENV_VARS.set("SERVICE_NAME", "cassandra");
         ENV_VARS.set("TASKCFG_ALL_CASSANDRA_CLUSTER_NAME", "cassandra");
         ENV_VARS.set("NODES", "3");
-        ENV_VARS.set("FRAMEWORK_USER", "core");
+        ENV_VARS.set("SERVICE_USER", "core");
+        ENV_VARS.set("SERVICE_ROLE", "role");
+        ENV_VARS.set("SERVICE_PRINCIPAL", "principal");
         ENV_VARS.set("CASSANDRA_CPUS", "0.1");
         ENV_VARS.set("CASSANDRA_VERSION", "3.0.10");
         ENV_VARS.set("CASSANDRA_MEMORY_MB", "512");
