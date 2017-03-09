@@ -19,10 +19,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * HDFS Service.
@@ -77,8 +75,7 @@ public class Main {
         return CommonTaskUtils.applyEnvToMustache(fileStr, env);
     }
 
-    private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec)
-            throws Exception {
+    private static ServiceSpec serviceSpecWithCustomizedPods(RawServiceSpec rawServiceSpec) throws Exception {
         DefaultServiceSpec serviceSpec = YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec);
 
         // Journal nodes avoid themselves and Name nodes.
@@ -86,23 +83,37 @@ public class Main {
                 .placementRule(new AndRule(TaskTypeRule.avoid("journal"), TaskTypeRule.avoid("name")))
                 .build();
 
-        // Name nodes avoid themselves and journal nodes.
-        PodSpec name = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "name"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("name"), TaskTypeRule.avoid("journal")))
-                .build();
-
-        // ZKFC nodes avoid themselves and colocate with name nodes.
-        PodSpec zkfc = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "zkfc"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("zkfc"), TaskTypeRule.colocateWith("name")))
-                .build();
-
         // Data nodes avoid themselves.
         PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "data"))
                 .placementRule(TaskTypeRule.avoid("data"))
                 .build();
 
+        PodSpec name = getNameNodeSpec(serviceSpec);
+
         return DefaultServiceSpec.newBuilder(serviceSpec)
-                .pods(Arrays.asList(journal, name, zkfc, data))
+                .pods(Arrays.asList(journal, name, data))
+                .build();
+    }
+
+    private static PodSpec getNameNodeSpec(ServiceSpec serviceSpec) {
+        PodSpec nameNodeSpec = getPodSpec(serviceSpec, "name");
+
+        List<TaskSpec> zkfcTaskSpecs = nameNodeSpec.getTasks().stream()
+                .filter(taskSpec -> taskSpec.getName().equals("zkfc"))
+                .map(taskSpec -> DefaultTaskSpec.newBuilder(taskSpec)
+                        .terminationPolicy(TerminationPolicy.DO_NOTHING)
+                        .build())
+                .collect(Collectors.toList());
+
+        List<TaskSpec> nameTaskSpecs = nameNodeSpec.getTasks().stream()
+                .filter(taskSpec -> !taskSpec.getName().equals("zkfc"))
+                .collect(Collectors.toList());
+
+        List<TaskSpec> taskSpecs = new ArrayList<>(nameTaskSpecs);
+        taskSpecs.addAll(zkfcTaskSpecs);
+
+        return DefaultPodSpec.newBuilder(nameNodeSpec)
+                .tasks(taskSpecs)
                 .build();
     }
 

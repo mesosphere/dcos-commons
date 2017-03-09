@@ -7,6 +7,7 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,6 +266,20 @@ public class TaskUtils {
                 .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
                         GOAL_STATE_LABEL,
                         taskSpec.getGoal().name()));
+    }
+
+    /**
+     * Sets a label on a TaskInfo indicating the Task's {@link TerminationPolicy}.
+     *
+     * @param taskInfoBuilder The TaskInfo to be labeled.
+     * @param terminationPolicy The termination policy for the task.
+     * @return The labeled TaskInfo
+     */
+    public static TaskInfo.Builder setTerminationPolicy(TaskInfo.Builder taskInfoBuilder, TerminationPolicy terminationPolicy) {
+        return taskInfoBuilder
+                .setLabels(withLabelSet(taskInfoBuilder.getLabels(),
+                        TERMINATION_POLICY_LABEL,
+                        String.valueOf(terminationPolicy.getValue())));
     }
 
     /**

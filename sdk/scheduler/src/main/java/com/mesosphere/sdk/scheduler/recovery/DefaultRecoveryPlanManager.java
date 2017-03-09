@@ -168,36 +168,29 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toList())
                     .size();
 
-            if (dirtyAssets.contains(podInstance.getName())) {
-                logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.",
-                        podInstance.getName());
-                continue;
-            }
-
-            List<TaskSpec> expectedRunningTasks = podInstance.getPod().getTasks().stream()
-                    .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
-                    .collect(Collectors.toList());
-
-            Integer expectedRunningCount = expectedRunningTasks.size();
-
             logger.info(
                     "Attempting to recover pod tasks: {}",
                     failedTasks.stream().map(taskInfo -> taskInfo.getName()).collect(Collectors.toList()));
 
-            if (!Objects.equals(failedRunningTaskCount, expectedRunningCount)) {
-                logger.warn("Pod: '{}' is not recoverable. Failed task count: {}, Expected task count: {}",
-                        podInstance.getName(), failedRunningTaskCount, expectedRunningCount);
-                continue;
-            }
-
-            Collection<String> tasksToLaunch = expectedRunningTasks.stream()
-                    .map(taskSpec -> taskSpec.getName())
-                    .collect(Collectors.toList());
-
-            // Pods are atomic, even when considering their status as having either permanently or transiently failed.
-            // In order for a Pod to be considered permanently failed, all its constituent tasks must have permanently
-            // failed.  Otherwise, we will continue to recover from task failures, in place.
+            // Pods are atomic in the case of permanent failure.  In order for a Pod to be considered permanently
+            // failed, all its constituent tasks must have permanently failed.  Partial permanent failure results in
+            // an unrecoverable pod.
             if (failedTasks.stream().allMatch(isPodPermanentlyFailed)) {
+                List<TaskSpec> expectedRunningTasks = podInstance.getPod().getTasks().stream()
+                        .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                        .collect(Collectors.toList());
+
+                Integer expectedRunningCount = expectedRunningTasks.size();
+                Collection<String> tasksToLaunch = expectedRunningTasks.stream()
+                        .map(taskSpec -> taskSpec.getName())
+                        .collect(Collectors.toList());
+
+                if (!Objects.equals(failedRunningTaskCount, expectedRunningCount)) {
+                    logger.warn("Pod: '{}' is not recoverable. Failed task count: {}, Expected task count: {}",
+                            podInstance.getName(), failedRunningTaskCount, expectedRunningCount);
+                    continue;
+                }
+
                 logger.info("Recovering permanently failed pod: '{}'", podInstance.getName());
                 recoverySteps.add(new DefaultRecoveryStep(
                         TaskUtils.getStepName(podInstance, tasksToLaunch),
@@ -209,6 +202,13 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                         stateStore));
             } else if (failedTasks.stream().noneMatch(isPodPermanentlyFailed)) {
                 logger.info("Recovering transiently failed pod: '{}'", podInstance.getName());
+                List<String> tasksToLaunch = failedTasks.stream()
+                        .map(taskInfo -> TaskUtils.getTaskSpec(podInstance, taskInfo.getName()))
+                        .filter(taskSpecOptional -> taskSpecOptional.isPresent())
+                        .map(taskSpecOptional -> taskSpecOptional.get())
+                        .map(taskSpec -> taskSpec.getName())
+                        .collect(Collectors.toList());
+
                 recoverySteps.add(new DefaultRecoveryStep(
                         TaskUtils.getStepName(podInstance, tasksToLaunch),
                         Status.PENDING,

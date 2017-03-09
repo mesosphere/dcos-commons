@@ -10,6 +10,8 @@ public class Constants {
 
     /** Identifies the goal state of this task, e.g. TASK_RUNNING or TASK_FINISHED */
     public static final String GOAL_STATE_LABEL = "goal_state";
+    /** Identifies the termination policy of this task, e.g. KILL_EXECUTOR or DO_NOTHING */
+    public static final String TERMINATION_POLICY_LABEL = "goal_state";
     /** Identifies the target configuration UUID used by a given task. */
     public static final String TARGET_CONFIGURATION_LABEL = "target_configuration";
     /** Identifies a 'task' which isn't actually launched, but is instead created to fill reserved resources. */

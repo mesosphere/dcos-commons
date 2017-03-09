@@ -49,6 +49,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("TASKCFG_ALL_ADMINISTRATORS", "core,centos,azureuser");
         ENV_VARS.set("TASKCFG_ALL_NAME_NODE_RPC_PORT","9001");
         ENV_VARS.set("TASKCFG_ALL_NAME_NODE_HTTP_PORT","9002");
+        ENV_VARS.set("TASKCFG_ALL_ZKFC_PORT","8019");
         ENV_VARS.set("TASKCFG_ALL_JOURNAL_NODE_RPC_PORT","8485");
         ENV_VARS.set("TASKCFG_ALL_JOURNAL_NODE_HTTP_PORT","8480");
         ENV_VARS.set("TASKCFG_ALL_DATA_NODE_RPC_PORT","9003");
