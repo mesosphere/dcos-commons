@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.cassandra.api;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
@@ -43,7 +40,7 @@ public class SeedsResource {
     private final Set<String> configuredDatacenters;
     private final int configuredSeedCount;
 
-    public SeedsResource(StateStore stateStore, List<String> configuredDatacenters, int configuredSeedCount) {
+    public SeedsResource(StateStore stateStore, Collection<String> configuredDatacenters, int configuredSeedCount) {
         this.stateStore = stateStore;
         this.configuredDatacenters = new HashSet<>(configuredDatacenters);
         this.configuredSeedCount = configuredSeedCount;
@@ -86,11 +83,11 @@ public class SeedsResource {
     }
 
     private Seeds getSeeds() {
-        List<String> seeds = getLocalSeeds();
+        Set<String> seeds = new HashSet<>(getLocalSeeds());
         boolean isSeed = seeds.size() < configuredSeedCount;
 
         seeds.addAll(getRemoteSeeds());
-        return new Seeds(seeds, isSeed);
+        return new Seeds(new ArrayList<>(seeds), isSeed);
     }
 
     private List<String> getLocalSeeds() {
@@ -136,10 +133,6 @@ public class SeedsResource {
         return datacenters;
     }
 
-    private static String getDatacenterKey(String datacenterName) {
-        return DATACENTER_PROPERTY_KEY + datacenterName;
-    }
-
     private List<String> getDatacenterSeeds(String datacenter) {
         Seeds seeds;
 
@@ -154,26 +147,7 @@ public class SeedsResource {
         return seeds.getSeeds();
     }
 
-    private class Seeds {
-        @JsonProperty("seeds")
-        private final List<String> seeds;
-        @JsonProperty("is_seed")
-        private final boolean isSeed;
-
-        @JsonCreator
-        public Seeds(@JsonProperty("seeds") List<String> seeds, @JsonProperty("is_seed") boolean isSeed) {
-            this.seeds = seeds;
-            this.isSeed = isSeed;
-        }
-
-        @JsonIgnore
-        public List<String> getSeeds() {
-            return seeds;
-        }
-
-        @JsonIgnore
-        public boolean isSeed() {
-            return isSeed;
-        }
+    private static String getDatacenterKey(String datacenterName) {
+        return DATACENTER_PROPERTY_KEY + datacenterName;
     }
 }

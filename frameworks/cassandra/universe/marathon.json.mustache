@@ -132,7 +132,8 @@
     "CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
     "CASSANDRA_LOCATION_RACK": "{{service.rack}}",
     "REMOTE_DATA_CENTER_URLS": "{{#service.remote_data_center_urls}}{{.}} {{/service.remote_data_center_urls}}",
-    "REMOTE_DATA_CENTER_COUNT": "{{service.remote_data_center_urls.length}}",
+    "REMOTE_DATA_CENTER_COUNT": "{{service.remote_data_center_urls.size}}",
+    "SEED_COUNT": "{{service.seed_count}}",
     "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
   },
   "uris": [
