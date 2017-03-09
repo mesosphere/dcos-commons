@@ -18,6 +18,7 @@ import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class StateStoreUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
+    private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
@@ -209,5 +211,37 @@ public class StateStoreUtils {
             LOGGER.error("Failed to find a Task with resource set: {}", resourceSetName);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Returns the current value of the 'suppressed' property in the provided {@link StateStore}.
+     */
+    public static boolean isSuppressed(StateStore stateStore) throws StateStoreException {
+        byte[] bytes = fetchPropertyOrEmptyArray(stateStore, SUPPRESSED_PROPERTY_KEY);
+
+        try {
+            return new JsonSerializer().deserialize(bytes, Boolean.class);
+        } catch (IOException e){
+            LOGGER.error(String.format("Error converting property '%s' to boolean.", SUPPRESSED_PROPERTY_KEY), e);
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+        }
+    }
+
+    /**
+     * Sets a 'suppressed' property in the provided {@link StateStore} to the provided value.
+     */
+    public static void setSuppressed(StateStore stateStore, boolean isSuppressed) {
+        byte[] bytes;
+        Serializer serializer = new JsonSerializer();
+
+        try {
+            bytes = serializer.serialize(isSuppressed);
+        } catch (IOException e) {
+            LOGGER.error(String.format(
+                    "Error serializing property '%s': %s", SUPPRESSED_PROPERTY_KEY, isSuppressed), e);
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+        }
+
+        stateStore.storeProperty(SUPPRESSED_PROPERTY_KEY, bytes);
     }
 }

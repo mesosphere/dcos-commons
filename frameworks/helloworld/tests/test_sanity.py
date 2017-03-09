@@ -14,6 +14,8 @@ from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
     configured_task_count,
+    hello_task_count,
+    world_task_count,
     check_running
 )
 
@@ -25,6 +27,12 @@ def setup_module(module):
 
 def teardown_module(module):
     install.uninstall(PACKAGE_NAME)
+
+
+def close_enough(val0, val1):
+    epsilon = 0.00001
+    diff = abs(val0 - val1)
+    return diff < epsilon
 
 
 @pytest.mark.smoke
@@ -59,11 +67,18 @@ def test_bump_hello_cpus():
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['HELLO_CPUS'])
-    config['env']['HELLO_CPUS'] = str(cpus + 0.1)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    updated_cpus = cpus + 0.1
+    config['env']['HELLO_CPUS'] = str(updated_cpus)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
     check_running()
+
+    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == hello_task_count()
+    for t in running_tasks:
+        assert close_enough(t['resources']['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -75,11 +90,18 @@ def test_bump_world_cpus():
 
     config = marathon.get_config(PACKAGE_NAME)
     cpus = float(config['env']['WORLD_CPUS'])
-    config['env']['WORLD_CPUS'] = str(cpus + 0.1)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    updated_cpus = cpus + 0.1
+    config['env']['WORLD_CPUS'] = str(updated_cpus)
+    marathon.update_app(PACKAGE_NAME, config)
 
     tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
+
+    all_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == world_task_count()
+    for t in running_tasks:
+        assert close_enough(t['resources']['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -93,7 +115,7 @@ def test_bump_hello_nodes():
     config = marathon.get_config(PACKAGE_NAME)
     node_count = int(config['env']['HELLO_COUNT']) + 1
     config['env']['HELLO_COUNT'] = str(node_count)
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     check_running()
     tasks.check_tasks_not_updated(PACKAGE_NAME, 'hello', hello_ids)
@@ -156,6 +178,65 @@ def test_pods_info():
     assert task['info']['taskId']['value'] == task['status']['taskId']['value']
     assert task['status']['state'] == 'TASK_RUNNING'
 
+
+@pytest.mark.sanity
+def test_state_properties_get():
+    # 'suppressed' could be missing if the scheduler recently started, loop for a bit just in case:
+    def check_for_nonempty_properties():
+        stdout = cmd.run_cli('hello-world state properties')
+        return len(json.loads(stdout)) > 0
+    spin.time_wait_noisy(lambda: check_for_nonempty_properties(), timeout_seconds=30.)
+
+    stdout = cmd.run_cli('hello-world state properties')
+    jsonobj = json.loads(stdout)
+    assert len(jsonobj) == 1
+    assert jsonobj[0] == "suppressed"
+
+    stdout = cmd.run_cli('hello-world state property suppressed')
+    assert stdout == "true\n"
+
+
+@pytest.mark.speedy
+def test_state_refresh_disable_cache():
+    '''Disables caching via a scheduler envvar'''
+    check_running()
+    task_ids = tasks.get_task_ids(PACKAGE_NAME, '')
+
+    # caching enabled by default:
+    stdout = cmd.run_cli('hello-world state refresh_cache')
+    assert "Received cmd: refresh" in stdout
+
+    config = marathon.get_config(PACKAGE_NAME)
+    cpus = float(config['env']['HELLO_CPUS'])
+    config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+
+    tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
+    check_running()
+
+    # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
+    def check_cache_refresh_fails_409conflict():
+        try:
+            cmd.run_cli('hello-world state refresh_cache')
+        except Exception as e:
+            if "failed: 409 Conflict" in e.args[0]:
+                return True
+        return False
+    spin.time_wait_noisy(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
+
+    config = marathon.get_config(PACKAGE_NAME)
+    cpus = float(config['env']['HELLO_CPUS'])
+    del config['env']['DISABLE_STATE_CACHE']
+    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+
+    tasks.check_tasks_not_updated(PACKAGE_NAME, '', task_ids)
+    check_running()
+
+    # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
+    def check_cache_refresh():
+        return cmd.run_cli('hello-world state refresh_cache')
+    stdout = spin.time_wait_return(lambda: check_cache_refresh(), timeout_seconds=120.)
+    assert "Received cmd: refresh" in stdout
 
 @pytest.mark.sanity
 def test_lock():

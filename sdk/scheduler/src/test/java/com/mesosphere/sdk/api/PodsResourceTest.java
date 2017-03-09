@@ -22,6 +22,7 @@ import org.mockito.MockitoAnnotations;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -161,9 +162,10 @@ public class PodsResourceTest {
         assertEquals("TASK_RUNNING", task.getString("state"));
 
         task = pod.getJSONObject(3);
-        assertEquals(2, task.length());
+        assertEquals(3, task.length());
         assertEquals("d", task.getString("name"));
         assertTrue(task.getString("id").startsWith("d__"));
+        assertEquals("No state defined", task.getString("state"));
 
         pod = json.getJSONArray("test-1");
         assertEquals(2, pod.length());
@@ -235,28 +237,13 @@ public class PodsResourceTest {
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         Response response = resource.getPodInfo("test-1");
         assertEquals(200, response.getStatus());
-        JSONArray json = new JSONArray((String) response.getEntity());
-        assertEquals(json.toString(), 2, json.length());
-
-        JSONObject task = json.getJSONObject(0);
-        assertEquals(2, task.length());
-        JSONObject info = task.getJSONObject("info");
-        assertEquals(TestConstants.AGENT_ID.getValue(), info.getJSONObject("slaveId").getString("value"));
-        assertTrue(info.getJSONObject("taskId").getString("value").startsWith("a__"));
-        assertEquals(2, info.getJSONObject("labels").getJSONArray("labels").length());
-        JSONObject status = task.getJSONObject("status");
-        assertEquals("TASK_FINISHED", status.getString("state"));
-        assertTrue(status.getJSONObject("taskId").getString("value").startsWith("a__"));
-
-        task = json.getJSONObject(1);
-        assertEquals(2, task.length());
-        info = task.getJSONObject("info");
-        assertEquals(TestConstants.AGENT_ID.getValue(), info.getJSONObject("slaveId").getString("value"));
-        assertTrue(info.getJSONObject("taskId").getString("value").startsWith("b__"));
-        assertEquals(2, info.getJSONObject("labels").getJSONArray("labels").length());
-        status = task.getJSONObject("status");
-        assertEquals("TASK_RUNNING", status.getString("state"));
-        assertTrue(status.getJSONObject("taskId").getString("value").startsWith("b__"));
+        @SuppressWarnings("unchecked")
+        List<TaskInfoAndStatus> info = (List<TaskInfoAndStatus>) response.getEntity();
+        assertEquals(2, info.size());
+        assertEquals(POD_1_TASK_A, info.get(0).getInfo());
+        assertEquals(Optional.of(POD_1_STATUS_A), info.get(0).getStatus());
+        assertEquals(POD_1_TASK_B, info.get(1).getInfo());
+        assertEquals(Optional.of(POD_1_STATUS_B), info.get(1).getStatus());
     }
 
     @Test

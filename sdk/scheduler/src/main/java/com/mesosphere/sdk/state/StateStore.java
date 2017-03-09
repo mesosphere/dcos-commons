@@ -180,18 +180,4 @@ public interface StateStore {
      * @throws StateStoreException if key validation fails or clearing the entry fails
      */
     void clearProperty(final String key) throws StateStoreException;
-
-    /**
-     * @return true if the offers are suppressed.
-     * @throws StateStoreException
-     */
-    boolean isSuppressed() throws StateStoreException;
-
-    /**
-     * Sets the suppression state of the framework.
-     *
-     * @param suppressed indicates whether Offers should be supppressed.
-     * @throws StateStoreException
-     */
-    void setSuppressed(final boolean suppressed) throws StateStoreException;
 }

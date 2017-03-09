@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.googlecode.protobuf.format.JsonFormat;
 import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.offer.CommonTaskUtils;
@@ -66,7 +65,7 @@ public class TaskResourceTest {
         when(mockStateStore.fetchTask(taskName)).thenReturn(Optional.of(taskInfo));
         Response response = resource.getTaskInfo(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(new JsonFormat().printToString(taskInfo), response.getEntity());
+        assertEquals(taskInfo, response.getEntity());
     }
 
     @Test
@@ -80,15 +79,16 @@ public class TaskResourceTest {
     @Test
     public void testGetTaskStatus() {
         String taskName = "task1";
+        TaskID taskId = CommonTaskUtils.toTaskId(taskName);
         TaskStatus taskStatus = TaskStatus.newBuilder()
                 .setState(TaskState.TASK_KILLING)
-                .setTaskId(CommonTaskUtils.toTaskId(taskName))
+                .setTaskId(taskId)
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
                 .build();
         when(mockStateStore.fetchStatus(taskName)).thenReturn(Optional.of(taskStatus));
         Response response = resource.getTaskStatus(taskName);
         assertEquals(200, response.getStatus());
-        assertEquals(new JsonFormat().printToString(taskStatus), response.getEntity());
+        assertEquals(taskStatus, response.getEntity());
     }
 
     @Test

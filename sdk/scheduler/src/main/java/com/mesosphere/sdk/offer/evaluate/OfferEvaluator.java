@@ -146,10 +146,15 @@ public class OfferEvaluator {
         }
         logger.info("Generating requirement for {} pod '{}' containing tasks: {}",
                 description, podInstance.getName(), podInstanceRequirement.getTasksToLaunch());
+
+        OfferRequirement offerRequirement = null;
         if (shouldGetNewRequirement) {
-            return offerRequirementProvider.getNewOfferRequirement(podInstanceRequirement);
+            offerRequirement = offerRequirementProvider.getNewOfferRequirement(podInstanceRequirement);
         } else {
-            return offerRequirementProvider.getExistingOfferRequirement(podInstanceRequirement);
+            offerRequirement = offerRequirementProvider.getExistingOfferRequirement(podInstanceRequirement);
         }
+
+        logger.debug("OfferRequirement: {}", offerRequirement);
+        return offerRequirement;
     }
 }

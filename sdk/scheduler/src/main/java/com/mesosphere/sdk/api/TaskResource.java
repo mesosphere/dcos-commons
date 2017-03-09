@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.googlecode.protobuf.format.JsonFormat;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
@@ -10,11 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
 
 /**
  * A read-only API for accessing task and frameworkId state from persistent storage.
@@ -50,8 +50,7 @@ public class TaskResource {
     @GET
     public Response getTaskNames() {
         try {
-            JSONArray nameArray = new JSONArray(stateStore.fetchTaskNames());
-            return Response.ok(nameArray.toString(), MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(new JSONArray(stateStore.fetchTaskNames()));
         } catch (Exception ex) {
             logger.error("Failed to fetch list of task names", ex);
             return Response.serverError().build();
@@ -69,8 +68,7 @@ public class TaskResource {
             logger.info("Attempting to fetch TaskInfo for task '{}'", taskName);
             Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
             if (taskInfoOptional.isPresent()) {
-                return Response.ok(new JsonFormat().printToString(taskInfoOptional.get()),
-                        MediaType.APPLICATION_JSON).build();
+                return jsonOkResponse(taskInfoOptional.get());
             }
         } catch (Exception ex) {
             // Warning instead of Error: Subject to user input
@@ -93,8 +91,7 @@ public class TaskResource {
 
         Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskName);
         if (taskStatus.isPresent()) {
-            return Response.ok(new JsonFormat().printToString(taskStatus.get()),
-                    MediaType.APPLICATION_JSON).build();
+            return jsonOkResponse(taskStatus.get());
         } else {
             // Warning instead of Error: Subject to user input
             logger.warn(String.format("Failed to fetch requested TaskStatus for task '%s'", taskName));
@@ -118,10 +115,7 @@ public class TaskResource {
     public Response getConnection(@PathParam("taskName") String taskName) {
         Optional<Protos.TaskInfo> info = stateStore.fetchTask(taskName);
         if (info.isPresent()) {
-            return Response.ok(
-                    getTaskConnection(info.get()).toString(),
-                    MediaType.APPLICATION_JSON)
-                    .build();
+            return jsonOkResponse(getTaskConnection(info.get()));
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

@@ -16,6 +16,7 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -127,6 +128,16 @@ public class DefaultSchedulerTest {
             UPDATED_TASK_B_MEM,
             TASK_B_DISK);
 
+    private static final PodSpec invalidPodB = TestPodFactory.getPodSpec(
+            TASK_B_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-B",
+            TASK_B_NAME,
+            TASK_B_CMD,
+            TASK_B_COUNT - 1,
+            TASK_B_CPU,
+            TASK_B_MEM,
+            TASK_B_DISK);
+
     private static final PodSpec scaledPodA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-A",
@@ -151,6 +162,7 @@ public class DefaultSchedulerTest {
     private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
     private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
     private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
+    private static final ServiceSpec INVALID_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, invalidPodB).build();
 
     private static TestingServer testingServer;
 
@@ -523,6 +535,25 @@ public class DefaultSchedulerTest {
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
     }
 
+    @Test
+    public void testInvalidConfigurationUpdate() throws Exception {
+        // Launch A and B in original configuration
+        testLaunchB();
+        defaultScheduler.awaitTermination();
+
+        // Get initial target config UUID
+        UUID targetConfigId = configStore.getTargetConfig();
+
+        // Build new scheduler with invalid config (shrinking task count)
+        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build();
+
+        // Ensure prior target configuration is still intact
+        Assert.assertEquals(targetConfigId, configStore.getTargetConfig());
+    }
+
     private List<Protos.Resource> getExpectedResources(Collection<Protos.Offer.Operation> operations) {
         for (Protos.Offer.Operation operation : operations) {
             if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
@@ -545,7 +576,14 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = install();
         statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
 
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stateStore).isSuppressed(), equalTo(false));
+        Awaitility.await()
+            .atMost(1, TimeUnit.SECONDS)
+            .until(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    return !StateStoreUtils.isSuppressed(stateStore);
+                }
+            });
     }
 
     @Test
@@ -763,7 +801,7 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
-        Assert.assertTrue(stateStore.isSuppressed());
+        Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
 
         return taskIds;
     }

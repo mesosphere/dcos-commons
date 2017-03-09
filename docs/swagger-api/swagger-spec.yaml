@@ -497,9 +497,23 @@ paths:
       responses:
         200:
           description: "The deserialized content of the property."
-        204:
-          description: "No deserializer was provided by the service developer to deserialize custom properties."
         404:
           description: "Requested property wasn't found."
+        409:
+          description: "No deserializer was provided by the service developer to deserialize custom properties."
         500:
           description: "Failed to fetch requested property."
+  /state/refresh:
+    put:
+      tags:
+      - "state"
+      summary: "Refreshes the state cache. Should only be needed for debugging or if zk was manually edited while the scheduler is running."
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The scheduler state cache has been cleared and updated with current zk content."
+        409:
+          description: "The scheduler isn't using a state cache so there's nothing to do."
+        500:
+          description: "Failed to retrieve state data from zk."
