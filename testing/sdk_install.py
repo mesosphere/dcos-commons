@@ -27,15 +27,19 @@ def install(
 def uninstall(package_name, service_name=None, wipe_agents=True):
     if not service_name:
         service_name = package_name
-    shakedown.uninstall_package_and_data(package_name, service_name)
     if wipe_agents:
-        gc_frameworks()
+        framework_id = shakedown.get_service_framework_id(service_name)
+    shakedown.uninstall_package_and_data(package_name, service_name)
+    if wipe_agents and framework_id is not None:
+        gc_frameworks(framework_id)
 
 
-def gc_frameworks():
+def gc_frameworks(framework_id):
     '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
     for host in shakedown.get_private_agents():
-        shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
+        shakedown.run_command(
+            host,
+            "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/{}/".format(framework_id))
 
 
 def get_package_options(additional_options={}):
