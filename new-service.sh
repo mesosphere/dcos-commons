@@ -20,6 +20,7 @@ rm -rf $1/build
 rm -rf $1/cli/dcos-*/*.whl
 rm -rf $1/cli/dcos-*/dcos-*
 rm -rf $1/cli/python/{build,dist}
+rm -rf $1/build.self.hosted.sh
 mv $1/cli/dcos-template $1/cli/dcos-$PROJECT_NAME
 mv $1/src/main/java/com/mesosphere/sdk/template/ $1/src/main/java/com/mesosphere/sdk/$PROJECT_NAME/
 mv $1/src/test/java/com/mesosphere/sdk/template/ $1/src/test/java/com/mesosphere/sdk/$PROJECT_NAME/
