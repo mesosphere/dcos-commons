@@ -51,6 +51,11 @@ public class Constants {
     /** A reasonable default value for {@code JAVA_URI}. */
     public static final String JAVA_URI_DEFAULT =
             "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
+    /**
+     * Controls whether the {@link StateStoreCache} is disabled (enabled by default).
+     * If this envvar is set (to anything at all), the cache is disabled.
+     */
+    public static final String DISABLE_STATE_CACHE_SCHEDENV = "DISABLE_STATE_CACHE";
 
     // Other names/constants
 

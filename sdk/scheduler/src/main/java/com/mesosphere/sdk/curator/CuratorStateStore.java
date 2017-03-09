@@ -6,13 +6,16 @@ import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos.TaskState;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -52,7 +55,6 @@ public class CuratorStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
-    private static final String SUPPRESSED_KEY = "suppressed";
 
     private final Persister curator;
     private final TaskPathMapper taskPathMapper;
@@ -123,6 +125,7 @@ public class CuratorStateStore implements StateStore {
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
+        repairStateStore();
     }
 
     // Framework ID
@@ -432,32 +435,41 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    public boolean isSuppressed() throws StateStoreException {
-        byte[] bytes = StateStoreUtils.fetchPropertyOrEmptyArray(this, SUPPRESSED_KEY);
-        Serializer serializer = new JsonSerializer();
+    /**
+     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomicly.
+     * It is therefore possible for the TaskIDs contained within these elements to become out of sync.  While
+     * the scheduler process is up they remain in sync.  This method guarantees produces an initial synchronized
+     * state.
+     */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
+    private void repairStateStore() {
+        // Findbugs thinks this isn't used, but it is used in the forEach call at the bottom of this method.
+        List<TaskStatus> repairedStatuses = new ArrayList<>();
+        List<TaskInfo> repairedTasks = new ArrayList<>();
 
-        boolean suppressed;
-        try {
-            suppressed = serializer.deserialize(bytes, Boolean.class);
-        } catch (IOException e){
-            logger.error(String.format("Error converting property %s to boolean.", SUPPRESSED_KEY), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+        for (TaskInfo task : fetchTasks()) {
+            Optional<TaskStatus> statusOptional = fetchStatus(task.getName());
+
+            if (statusOptional.isPresent()) {
+                TaskStatus status = statusOptional.get();
+                if (!status.getTaskId().equals(task.getTaskId())) {
+                    logger.warn("Found StateStore status inconsistency: task.taskId={}, taskStatus.taskId={}",
+                            task.getTaskId(), status.getTaskId());
+                    repairedTasks.add(task.toBuilder().setTaskId(status.getTaskId()).build());
+                    repairedStatuses.add(status.toBuilder().setState(TaskState.TASK_FAILED).build());
+                }
+            } else {
+                logger.warn("Found StateStore status inconsistency: task.taskId={}", task.getTaskId());
+                TaskStatus status = TaskStatus.newBuilder()
+                        .setTaskId(task.getTaskId())
+                        .setState(TaskState.TASK_FAILED)
+                        .setMessage("Assuming failure for inconsistent TaskIDs")
+                        .build();
+                repairedStatuses.add(status);
+            }
         }
 
-        return suppressed;
-    }
-
-    public void setSuppressed(final boolean isSuppressed) {
-        byte[] bytes;
-        Serializer serializer = new JsonSerializer();
-
-        try {
-            bytes = serializer.serialize(isSuppressed);
-        } catch (IOException e) {
-            logger.error(String.format("Error serializing property %s: %s", SUPPRESSED_KEY, isSuppressed), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
-        }
-
-        storeProperty(SUPPRESSED_KEY, bytes);
+        storeTasks(repairedTasks);
+        repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
     }
 }
