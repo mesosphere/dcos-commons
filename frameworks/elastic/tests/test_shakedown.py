@@ -85,7 +85,7 @@ def test_commercial_api_available(default_populated_index):
 @pytest.mark.sanity
 def test_losing_and_regaining_index_health(default_populated_index):
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
-    shakedown.kill_process_on_host("data-0-server.{}.mesos".format(PACKAGE_NAME), "data__.*Elasticsearch")
+    shakedown.kill_process_on_host("data-0-node.{}.mesos".format(PACKAGE_NAME), "data__.*Elasticsearch")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "yellow")
     check_elasticsearch_index_health(DEFAULT_INDEX_NAME, "green")
 

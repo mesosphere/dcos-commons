@@ -19,7 +19,7 @@ pods:
     placement: {{KIBANA_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
-      server:
+      node:
         goal: RUNNING
         cpus: {{KIBANA_CPUS}}
         memory: {{KIBANA_MEM}}
@@ -69,7 +69,7 @@ pods:
     placement: {{MASTER_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
-      server:
+      node:
         goal: RUNNING
         cpus: {{MASTER_NODE_CPUS}}
         memory: {{MASTER_NODE_MEM}}
@@ -126,7 +126,7 @@ pods:
     placement: {{DATA_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
-      server:
+      node:
         goal: RUNNING
         cpus: {{DATA_NODE_CPUS}}
         memory: {{DATA_NODE_MEM}}
@@ -183,7 +183,7 @@ pods:
     placement: {{INGEST_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
-      server:
+      node:
         goal: RUNNING
         cpus: {{INGEST_NODE_CPUS}}
         memory: {{INGEST_NODE_MEM}}
@@ -240,7 +240,7 @@ pods:
     placement: {{COORDINATOR_NODE_PLACEMENT}}
     user: {{FRAMEWORK_USER}}
     tasks:
-      server:
+      node:
         goal: RUNNING
         cpus: {{COORDINATOR_NODE_CPUS}}
         memory: {{COORDINATOR_NODE_MEM}}
@@ -291,7 +291,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "./bootstrap -resolve-hosts=kibana-0-server.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
+        cmd: "./bootstrap -resolve-hosts=kibana-0-node.{{FRAMEWORK_NAME}}.mesos && /proxylite/run.sh"
         cpus: {{PROXYLITE_CPUS}}
         memory: {{PROXYLITE_MEM}}
         ports:
