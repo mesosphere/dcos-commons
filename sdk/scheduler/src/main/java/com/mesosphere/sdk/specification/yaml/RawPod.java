@@ -40,8 +40,8 @@ public class RawPod implements RawContainerInfoProvider {
         this.count = count;
         this.container = container;
         this.image = image;
-        this.networks = networks;
-        this.rlimits = rlimits;
+        this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
+        this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
         this.strategy = strategy;
         this.user = user;
         this.uris = uris;

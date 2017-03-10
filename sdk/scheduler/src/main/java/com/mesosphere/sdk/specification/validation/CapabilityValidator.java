@@ -26,14 +26,8 @@ public class CapabilityValidator {
     }
 
     private void validate(PodSpec podSpec) throws CapabilityValidationException {
-        if (podSpec.getContainer().isPresent()) {
-            validate(podSpec.getContainer().get());
-        }
-    }
-
-    private void validate(ContainerSpec containerSpec) throws CapabilityValidationException {
         try {
-            if (!capabilities.supportsRLimits() && !containerSpec.getRLimits().isEmpty()) {
+            if (!capabilities.supportsRLimits() && !podSpec.getRLimits().isEmpty()) {
                 throw new CapabilityValidationException(
                         "This cluster's DC/OS version does not support setting rlimits");
             }

@@ -22,10 +22,6 @@ public interface PodSpec {
     @JsonProperty("count")
     Integer getCount();
 
-    @Deprecated
-    @JsonProperty("container")
-    Optional<ContainerSpec> getContainer();
-
     @JsonProperty("image")
     Optional<String> getImage();
     

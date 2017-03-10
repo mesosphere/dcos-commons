@@ -2,7 +2,8 @@ name: "docker-test"
 pods:
   server:
     count: 1
-    image: group/image
+    container:
+      image-name: group/image
     tasks:
       server:
         goal: RUNNING

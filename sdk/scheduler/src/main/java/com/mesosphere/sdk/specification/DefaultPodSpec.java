@@ -33,8 +33,6 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Min(0)
     private final Integer count;
-    @Valid
-    private final ContainerSpec container;
     @Size(min = 1)
     private String image;
     @Valid
@@ -56,7 +54,6 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("type") String type,
             @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
-            @JsonProperty("container") ContainerSpec container,
             @JsonProperty("image") String image,
             @JsonProperty("networks") Collection<NetworkSpec> networks,
             @JsonProperty("rlimits") Collection<RLimit> rlimits,
@@ -66,17 +63,16 @@ public class DefaultPodSpec implements PodSpec {
         this.type = type;
         this.user = user;
         this.count = count;
-        this.container = container;
         this.image = image;
-        this.networks = networks;
-        this.rlimits = rlimits;
+        this.networks = (networks != null) ? networks : Collections.emptyList();
+        this.rlimits = (rlimits != null) ? rlimits : Collections.emptyList();
         this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this(builder.type, builder.user, builder.count, builder.container,
+        this(builder.type, builder.user, builder.count,
                 builder.image, builder.networks, builder.rlimits,
                 builder.uris, builder.tasks, builder.placementRule);
         ValidationUtils.validate(this);
@@ -91,7 +87,9 @@ public class DefaultPodSpec implements PodSpec {
         builder.type = copy.getType();
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.count = copy.getCount();
-        builder.container = copy.getContainer().isPresent() ? copy.getContainer().get() : null;
+        builder.image = copy.getImage().isPresent() ? copy.getImage().get() : null;
+        builder.networks = copy.getNetworks();
+        builder.rlimits = copy.getRLimits();
         builder.uris = copy.getUris();
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
@@ -112,11 +110,6 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public Integer getCount() {
         return count;
-    }
-
-    @Override
-    public Optional<ContainerSpec> getContainer() {
-        return Optional.ofNullable(container);
     }
     
     @Override
@@ -167,7 +160,6 @@ public class DefaultPodSpec implements PodSpec {
         private String type;
         private String user;
         private Integer count;
-        private ContainerSpec container;
         private String image;
         private Collection<NetworkSpec> networks;
         private Collection<RLimit> rlimits;
@@ -212,14 +204,19 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
+         * DEPRECATED! Instead, call {@code image()}, {@code networks(...)}, and {@code rlimits(...)} methods directly.
+         * 
          * Sets the {@code container} and returns a reference to this Builder so that the methods can be
          * chained together.
          *
          * @param container the {@code container} to set
          * @return a reference to this Builder
          */
+        @Deprecated
         public Builder container(ContainerSpec container) {
-            this.container = container;
+            this.image = container.getImageName().isPresent() ? container.getImageName().get() : null;
+            this.networks = container.getNetworks();
+            this.rlimits = container.getRLimits();
             return this;
         }
         

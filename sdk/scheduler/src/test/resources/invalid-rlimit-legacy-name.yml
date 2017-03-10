@@ -2,10 +2,11 @@ name: "data-store"
 pods:
   meta-data:
     count: 2
-    rlimits:
-      RLIMIT_NONSENSE:
-        soft: 5
-        hard: 10
+    container:
+      rlimits:
+        RLIMIT_NONSENSE:
+          soft: 5
+          hard: 10
     tasks:
       meta-data-task:
         goal: RUNNING
