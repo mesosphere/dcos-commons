@@ -1,11 +1,10 @@
 package com.mesosphere.sdk.specification.validation;
 
+import java.io.IOException;
+
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.specification.ContainerSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-
-import java.io.IOException;
 
 
 /**
@@ -27,7 +26,7 @@ public class CapabilityValidator {
 
     private void validate(PodSpec podSpec) throws CapabilityValidationException {
         try {
-            if (!capabilities.supportsRLimits() && !podSpec.getRLimits().isEmpty()) {
+            if (!podSpec.getRLimits().isEmpty() && !capabilities.supportsRLimits()) {
                 throw new CapabilityValidationException(
                         "This cluster's DC/OS version does not support setting rlimits");
             }

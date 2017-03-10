@@ -202,23 +202,6 @@ public class DefaultPodSpec implements PodSpec {
             this.count = count;
             return this;
         }
-
-        /**
-         * DEPRECATED! Instead, call {@code image()}, {@code networks(...)}, and {@code rlimits(...)} methods directly.
-         * 
-         * Sets the {@code container} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param container the {@code container} to set
-         * @return a reference to this Builder
-         */
-        @Deprecated
-        public Builder container(ContainerSpec container) {
-            this.image = container.getImageName().isPresent() ? container.getImageName().get() : null;
-            this.networks = container.getNetworks();
-            this.rlimits = container.getRLimits();
-            return this;
-        }
         
         /**
          * Sets the {@code image} and returns a reference to this Builder so that the methods can be
