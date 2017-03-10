@@ -106,18 +106,18 @@ public class CanaryStrategy implements Strategy<Step> {
     @Override
     public boolean isInterrupted() {
         Step canaryStep = getNextCanaryStep();
-        if (canaryStep != null && getNextProceedPendingStep() == null) {
+        if (canaryStep != null && getNextProceedStep() == null) {
             return true;
         }
         return strategy.isInterrupted();
     }
 
-    private  Step getNextProceedPendingStep() {
+    private Step getNextProceedStep() {
         if (canarySteps == null) {
             return null;
         }
         for (Step proceedStep : canarySteps) {
-            if (!proceedStep.isInterrupted() && proceedStep.isPending()) {
+            if (!proceedStep.isInterrupted() && !proceedStep.isComplete()) {
                 return proceedStep;
             }
         }

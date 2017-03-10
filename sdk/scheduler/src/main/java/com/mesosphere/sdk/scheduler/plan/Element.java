@@ -84,13 +84,6 @@ public interface Element extends Observable {
     }
 
     /**
-     * Indicates whether this Element is waiting for external input to proceed.
-     */
-    default boolean isWaiting() {
-        return getStatus().equals(Status.WAITING);
-    }
-
-    /**
      * Indicates whether this Element is complete.
      */
     default boolean isComplete() {
