@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.executor;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
 import com.mesosphere.sdk.offer.Constants;
 
@@ -165,15 +166,17 @@ public class HealthCheckHandler {
 
                 if (exitValue != 0) {
                     healthCheckStats.failed();
-                    LOGGER.error("Health check failed with exit code {}: {}", exitValue, commandInfo);
+                    LOGGER.error("Health check failed with exit code {}: {}",
+                            exitValue, TextFormat.shortDebugString(commandInfo));
                 } else {
-                    LOGGER.info("Health check succeeded: {}", commandInfo);
+                    LOGGER.info("Health check succeeded: {}", TextFormat.shortDebugString(commandInfo));
                     healthCheckStats.succeeded();
                 }
 
                 LOGGER.debug("Health check stats: {}", healthCheckStats);
             } catch (Throwable t) {
-                LOGGER.error(String.format("Check failed with exception: %s", commandInfo), t);
+                LOGGER.error(String.format(
+                        "Check failed with exception: %s", TextFormat.shortDebugString(commandInfo)), t);
                 healthCheckStats.failed();
             }
 
