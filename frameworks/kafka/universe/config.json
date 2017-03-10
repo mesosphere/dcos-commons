@@ -41,7 +41,7 @@
             "default":"hostname:MAX_PER:1"
           },
           "deploy_strategy":{
-            "description":"Deployment phase strategy. See documentation. [canary-serial, canary-parallel, serial]",
+            "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
             "type":"string",
             "default":"serial"
           }
