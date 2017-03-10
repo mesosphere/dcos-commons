@@ -222,13 +222,13 @@ def test_no_unavailable_partitions_exist():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_help():
+def test_help_cli():
     command.run_cli('help')
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_config():
+def test_config_cli():
     configs = service_cli('config list')
     assert len(configs) == 1
 
@@ -239,7 +239,7 @@ def test_config():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_plan():
+def test_plan_cli():
     assert service_cli('plan list')
     assert service_cli('plan show deploy')
     assert service_cli('plan interrupt deploy Deployment')
@@ -249,14 +249,14 @@ def test_plan():
 @pytest.mark.smoke1
 @pytest.mark.sanity1
 # state gives error, now sure why? disabling for the moment
-def test_state():
+def test_state_cli():
     assert service_cli('state framework_id')
     assert service_cli('state properties')
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_pods():
+def test_pods_cli():
     assert service_cli('pods list')
     assert service_cli('pods status {}-0'.format(POD_TYPE))
     assert service_cli('pods info {}-0'.format(POD_TYPE))
