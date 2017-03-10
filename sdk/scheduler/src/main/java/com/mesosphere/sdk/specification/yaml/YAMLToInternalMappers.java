@@ -195,20 +195,35 @@ public class YAMLToInternalMappers {
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }
-        if (rawPod.getContainer() != null) {
+        
+        RawContainerInfoProvider cip = null;
+        if (rawPod.getImage() != null) { 
+            if (rawPod.getContainer() != null) {
+                throw new IllegalArgumentException("You may define container settings directly under the pod or under pod:container, but not both.");
+            }
+            
+            cip = rawPod;
+        } else if (rawPod.getContainer() != null) {
+            cip = rawPod.getContainer();
+        }
+        
+        if (cip != null) {
             List<RLimit> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : rawPod.getContainer().getRLimits().entrySet()) {
+            for (Map.Entry<String, RawRLimit> entry : cip.getRLimits().entrySet()) {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
             List<NetworkSpec> networks = new ArrayList<>();
-            for (Map.Entry<String, RawNetwork> entry : rawPod.getContainer().getNetworks().entrySet()) {
+            for (Map.Entry<String, RawNetwork> entry : cip.getNetworks().entrySet()) {
                 // When features other than network name are added, we'll want to use the RawNetwork entry value here.
                 networks.add(new DefaultNetworkSpec(entry.getKey()));
             }
 
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), networks, rlimits));
+            builder.image(cip.getImage())
+                .networks(networks)
+                .rlimits(rlimits);
+
         }
 
         return builder.build();

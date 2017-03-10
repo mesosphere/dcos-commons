@@ -6,6 +6,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
@@ -34,6 +35,12 @@ public class DefaultPodSpec implements PodSpec {
     private final Integer count;
     @Valid
     private final ContainerSpec container;
+    @Size(min = 1)
+    private String image;
+    @Valid
+    private Collection<NetworkSpec> networks;
+    @Valid
+    private Collection<RLimit> rlimits;
     @NotNull
     @Valid
     @Size(min = 1)
@@ -50,6 +57,9 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
             @JsonProperty("container") ContainerSpec container,
+            @JsonProperty("image") String image,
+            @JsonProperty("networks") Collection<NetworkSpec> networks,
+            @JsonProperty("rlimits") Collection<RLimit> rlimits,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule) {
@@ -57,6 +67,9 @@ public class DefaultPodSpec implements PodSpec {
         this.user = user;
         this.count = count;
         this.container = container;
+        this.image = image;
+        this.networks = networks;
+        this.rlimits = rlimits;
         this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
@@ -64,6 +77,7 @@ public class DefaultPodSpec implements PodSpec {
 
     private DefaultPodSpec(Builder builder) {
         this(builder.type, builder.user, builder.count, builder.container,
+                builder.image, builder.networks, builder.rlimits,
                 builder.uris, builder.tasks, builder.placementRule);
         ValidationUtils.validate(this);
     }
@@ -104,6 +118,21 @@ public class DefaultPodSpec implements PodSpec {
     public Optional<ContainerSpec> getContainer() {
         return Optional.ofNullable(container);
     }
+    
+    @Override
+    public Optional<String> getImage() {
+        return Optional.ofNullable(image);
+    }
+
+    @Override
+    public Collection<NetworkSpec> getNetworks() {
+        return networks;
+    }
+
+    @Override
+    public Collection<RLimit> getRLimits() {
+        return rlimits;
+    }
 
     @Override
     public Collection<URI> getUris() {
@@ -139,6 +168,9 @@ public class DefaultPodSpec implements PodSpec {
         private String user;
         private Integer count;
         private ContainerSpec container;
+        private String image;
+        private Collection<NetworkSpec> networks;
+        private Collection<RLimit> rlimits;
         private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
@@ -188,6 +220,42 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder container(ContainerSpec container) {
             this.container = container;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code image} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param container the {@code image} to set
+         * @return a reference to this Builder
+         */
+        public Builder image(String image) {
+            this.image = image;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code networks} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param networks the {@code networks} to set
+         * @return a reference to this Builder
+         */
+        public Builder networks(Collection<NetworkSpec> networks) {
+            this.networks = networks;
+            return this;
+        }
+        
+        /**
+         * Sets the {@code rlimits} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param rlimits the {@code rlimits} to set
+         * @return a reference to this Builder
+         */
+        public Builder rlimits(Collection<RLimit> rlimits) {
+            this.rlimits = rlimits;
             return this;
         }
 
