@@ -1,7 +1,7 @@
 ---
 post_title: Uninstall
 menu_order: 20
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
