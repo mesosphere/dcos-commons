@@ -35,4 +35,4 @@ def test_task_dns_prefix_points_to_all_tasks():
     assert(all(p["info"]["discovery"]["name"] == "hello-0" for p in pod_info))
     # Assert that the hello-0.hello-world.mesos DNS entry points to the right IP.
     shakedown.wait_for(lambda: (
-        plan.get_sidecar_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))
+        plan.get_deployment_plan(PACKAGE_NAME).json()['status'] == 'COMPLETE'))
