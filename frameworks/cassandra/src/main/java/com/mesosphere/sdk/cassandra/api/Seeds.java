@@ -12,22 +12,14 @@ import java.util.List;
 public class Seeds {
     @JsonProperty("seeds")
     private final List<String> seeds;
-    @JsonProperty("is_seed")
-    private final boolean isSeed;
 
     @JsonCreator
-    public Seeds(@JsonProperty("seeds") List<String> seeds, @JsonProperty("is_seed") boolean isSeed) {
+    public Seeds(@JsonProperty("seeds") List<String> seeds) {
         this.seeds = seeds;
-        this.isSeed = isSeed;
     }
 
     @JsonIgnore
     public List<String> getSeeds() {
         return seeds;
-    }
-
-    @JsonIgnore
-    public boolean isSeed() {
-        return isSeed;
     }
 }

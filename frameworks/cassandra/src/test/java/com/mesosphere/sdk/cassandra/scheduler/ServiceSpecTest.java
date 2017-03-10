@@ -38,9 +38,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         ENV_VARS.set("CASSANDRA_DISK_TYPE", "ROOT");
         URL resource = DefaultService.class.getClassLoader().getResource("svc.yml");
         ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
-        ENV_VARS.set("REMOTE_DATA_CENTER_COUNT", "0");
-        ENV_VARS.set("REMOTE_DATA_CENTER_URLS", "");
-
     }
 
     @Test

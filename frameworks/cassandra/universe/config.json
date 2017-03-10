@@ -45,18 +45,10 @@
           "type": "string",
           "default": "rac1"
         },
-        "seed_count": {
-          "description": "The number of seed nodes to maintain inside a cluster",
-          "type": "integer",
-          "default": 2
-        },
-        "remote_data_center_urls": {
-          "description": "A list of URLs for schedulers in other data centers for multi-DC clusters",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": []
+        "remote_seeds": {
+          "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
