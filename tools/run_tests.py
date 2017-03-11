@@ -114,7 +114,7 @@ class CITester(object):
     def run_shakedown(self, test_dirs, requirements_txt='', pytest_types='sanity'):
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
-            logging.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
+            logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
             # produce test report for consumption by Jenkins:
             jenkins_args = '--junitxml=shakedown-report.xml '
@@ -170,7 +170,7 @@ py.test {jenkins_args}-vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
         os.environ['DOCKER_CLI'] = 'false'
         if 'WORKSPACE' in os.environ:
-            logging.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
+            logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
             # produce test report for consumption by Jenkins:
             jenkins_args = '--junitxml=dcostests-report.xml '
