@@ -207,7 +207,7 @@ public class DefaultPodSpec implements PodSpec {
          * Sets the {@code image} and returns a reference to this Builder so that the methods can be
          * chained together.
          *
-         * @param container the {@code image} to set
+         * @param image the {@code image} to set
          * @return a reference to this Builder
          */
         public Builder image(String image) {

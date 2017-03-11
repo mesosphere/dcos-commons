@@ -202,7 +202,8 @@ public class YAMLToInternalMappers {
         RawContainerInfoProvider cip = null;
         if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) { 
             if (rawPod.getContainer() != null) {
-                throw new IllegalArgumentException(String.format("You may define container settings directly under the pod %s or under %s:container, but not both.", podName, podName));
+                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
+                        + "pod %s or under %s:container, but not both.", podName, podName));
             }
             
             cip = rawPod;
