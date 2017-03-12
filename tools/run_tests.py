@@ -152,7 +152,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args}-vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
+py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
@@ -198,7 +198,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "DCOS-TEST RUN $(pwd): {test_dirs} FILTER: {pytest_types}"
-SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
+SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args} -vv -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=os.path.join(dcos_tests_dir, 'requirements.txt'),
            dcos_tests_dir=dcos_tests_dir,
