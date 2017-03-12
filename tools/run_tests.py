@@ -117,7 +117,9 @@ class CITester(object):
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
             # produce test report for consumption by Jenkins:
-            jenkins_args = '--junitxml=shakedown-report.xml '
+            partial_path = test_dirs.split(os.sep)[-3:]
+            path_based_name = "%s-%s" % ("_".join(partial_path), "shakedown-report.xml")
+            jenkins_args = '--junitxml=' + path_based_name
         else:
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
             jenkins_args = ''
@@ -173,7 +175,9 @@ py.test {jenkins_args}-vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
             logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
             # produce test report for consumption by Jenkins:
-            jenkins_args = '--junitxml=dcostests-report.xml '
+            partial_path = test_dirs.split(os.sep)[-3:]
+            path_based_name = "%s-%s" % ("_".join(partial_path), "dcostests-report.xml")
+            jenkins_args = '--junitxml=' + path_based_name
         else:
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dcostests_env')
             jenkins_args = ''
