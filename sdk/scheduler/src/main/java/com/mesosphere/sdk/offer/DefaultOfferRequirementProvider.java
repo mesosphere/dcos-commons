@@ -540,11 +540,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
     }
 
-    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
+    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec,
+                                                         Collection<NetworkSpec> networks) {
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (containerSpec.getImageName().isPresent()) {
+        if (containerSpec != null && containerSpec.getImageName().isPresent()) {
             containerInfo.getMesosBuilder()
                     .setImage(Protos.Image.newBuilder()
                             .setType(Protos.Image.Type.DOCKER)
@@ -552,12 +553,12 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                                     .setName(containerSpec.getImageName().get())));
         }
 
-        if (!containerSpec.getNetworks().isEmpty()) {
+        if (networks.size() > 0) {
             containerInfo.addAllNetworkInfos(
-                    containerSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+                    networks.stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
         }
 
-        if (!containerSpec.getRLimits().isEmpty()) {
+        if (containerSpec != null && !containerSpec.getRLimits().isEmpty()) {
             containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
         }
 
@@ -565,7 +566,19 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
-        return Protos.NetworkInfo.newBuilder().setName(networkSpec.getName()).build();
+        LOGGER.info("Loading NetworkInfo for network named \"" + networkSpec.getNetworkName() + "\"");
+        Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
+        netInfoBuilder.setName(networkSpec.getNetworkName());
+        for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
+            Integer hostPort = e.getKey();
+            Integer containerPort = e.getValue();
+            netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
+                    .setHostPort(hostPort)
+                    .setContainerPort(containerPort)
+                    .build());
+
+        }
+        return netInfoBuilder.build();
     }
 
     private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
@@ -593,8 +606,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
-        if (podSpec.getContainer().isPresent()) {
-            executorInfoBuilder.setContainer(getContainerInfo(podSpec.getContainer().get()));
+        if (podSpec.getContainer().isPresent() || podSpec.getNetworks().isPresent()) {
+            executorInfoBuilder.setContainer(getContainerInfo(
+                    podSpec.getContainer().isPresent() ? podSpec.getContainer().get() : null,
+                    podSpec.getNetworks().get()));
         }
 
         // command and user:

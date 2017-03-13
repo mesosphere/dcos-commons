@@ -8,6 +8,10 @@ pods:
   meta-data:
     placement: "hostname:UNIQUE"
     count: 2
+    networks:
+      dcos:
+        host-ports: [4040]
+        container-ports: [8080]
     container:
       rlimits:
         RLIMIT_AS:

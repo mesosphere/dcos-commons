@@ -58,7 +58,7 @@ import static org.mockito.Mockito.*;
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
-    public TestRule globalTimeout = new DisableOnDebug(new Timeout(10, TimeUnit.SECONDS));
+    public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
     @ClassRule
     public static final EnvironmentVariables environmentVariables =
             OfferRequirementTestUtils.getOfferRequirementProviderEnvironment();
@@ -269,7 +269,6 @@ public class DefaultSchedulerTest {
         // Launch A-0
         testLaunchA();
         installStep(1, 0, getSufficientOfferForTaskB());
-
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING), getStepStatuses(plan));
     }

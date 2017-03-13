@@ -62,4 +62,9 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testYmlWebUrl() throws Exception {
         testYaml("examples/web-url.yml");
     }
+
+    @Test
+    public void testNetwork() throws Exception {
+        testYaml("examples/cni.yml");
+    }
 }

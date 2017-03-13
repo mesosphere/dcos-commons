@@ -75,6 +75,13 @@ public class DefaultOfferRequirementProviderTest {
         return new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
     }
 
+    private List<String> getTasksToLaunch(PodInstance podInst) {
+        return podInst.getPod().getTasks().stream()
+                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
+                .map(TaskSpec::getName)
+                .collect(Collectors.toList());
+    }
+
     @Test
     public void testPlacementPassthru() throws InvalidRequirementException {
         List<String> tasksToLaunch = TaskUtils.getTaskNames(podInstance);
@@ -84,19 +91,7 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertTrue(offerRequirement.getPlacementRuleOptional().isPresent());
     }
 
-    @Test
-    public void testNewOfferRequirement() throws InvalidRequirementException {
-        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec -> taskSpec.getGoal().equals(GoalState.RUNNING))
-                .map(taskSpec -> taskSpec.getName())
-                .collect(Collectors.toList());
-
-        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
-                PodInstanceRequirement.create(podInstance, tasksToLaunch));
-        Assert.assertNotNull(offerRequirement);
-        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
-        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
-
+    private void finishNewOfferTest(OfferRequirement offerRequirement, List<String> tasksToLaunch, PodInstance podInstance) throws InvalidRequirementException {
         TaskRequirement taskRequirement = offerRequirement.getTaskRequirements().stream().findFirst().get();
         TaskInfo taskInfo = taskRequirement.getTaskInfo();
         Assert.assertEquals(TestConstants.HEALTH_CHECK_CMD, taskInfo.getHealthCheck().getCommand().getValue());
@@ -140,6 +135,72 @@ public class DefaultOfferRequirementProviderTest {
         Assert.assertEquals("config-templates/config-one", uris.get(3).getOutputFile());
         Assert.assertEquals(artifactDirUrl + "config-two", uris.get(4).getValue());
         Assert.assertEquals("config-templates/config-two", uris.get(4).getOutputFile());
+    }
+
+    private void testOfferRequirementHasCorrectNetworkInfo(OfferRequirement offerRequirement) {
+        if (offerRequirement.getExecutorRequirementOptional().isPresent()) {
+            // Check for exactly 1 NetworkInfo
+            Assert.assertEquals(1,
+                    offerRequirement.getExecutorRequirementOptional().get()
+                            .getExecutorInfo().getContainer().getNetworkInfosCount());
+            Protos.NetworkInfo networkInfo = offerRequirement
+                    .getExecutorRequirementOptional().get()
+                    .getExecutorInfo().getContainer()
+                    .getNetworkInfos(0);
+            // Check that it has the correct name
+            Assert.assertEquals(TestConstants.EXPECTED_NETWORK_NAME, networkInfo.getName());
+            // Check that port mappings are correct
+            Assert.assertEquals(TestConstants.EXPECTED_NB_PORT_MAPPINGS, networkInfo.getPortMappingsCount());
+            Assert.assertEquals(TestConstants.EXPECTED_HOST_PORT, networkInfo.getPortMappings(0).getHostPort());
+            Assert.assertEquals(TestConstants.EXPECTED_CONTAINER_PORT, networkInfo
+                    .getPortMappings(0).getContainerPort());
+        } else {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testNewOfferRequirement() throws InvalidRequirementException {
+        List<String> tasksToLaunch = getTasksToLaunch(podInstance);
+
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(podInstance, tasksToLaunch));
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        finishNewOfferTest(offerRequirement, tasksToLaunch, podInstance);
+    }
+
+    @Test
+    public void testNewOfferRequirementNetworks() throws Exception {
+        PodInstance networkPodInstance = getPodInstance("valid-minimal-networks.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(networkPodInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(networkPodInstance, tasksToLaunch));
+
+        Assert.assertNotNull(offerRequirement);  // check that everything loaded ok
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement);
+        finishNewOfferTest(offerRequirement, tasksToLaunch, networkPodInstance);
+    }
+
+    @Test
+    public void testNewOfferRequirementNetworksWithDocker() throws Exception {
+        PodInstance dockerNetworkPodInstance = getPodInstance("valid-minimal-networks-docker.yml");
+        List<String> tasksToLaunch = getTasksToLaunch(dockerNetworkPodInstance);
+        OfferRequirement offerRequirement = provider.getNewOfferRequirement(
+                PodInstanceRequirement.create(dockerNetworkPodInstance, tasksToLaunch));
+
+        Assert.assertNotNull(offerRequirement);
+        Assert.assertEquals(TestConstants.POD_TYPE, offerRequirement.getType());
+        Assert.assertEquals(1, offerRequirement.getTaskRequirements().size());
+        testOfferRequirementHasCorrectNetworkInfo(offerRequirement);
+        Protos.ContainerInfo containerInfo = offerRequirement
+                .getExecutorRequirementOptional().get().getExecutorInfo().getContainer();
+        Assert.assertEquals(containerInfo.getType(), Protos.ContainerInfo.Type.MESOS);
+        Assert.assertEquals(containerInfo.getMesos().getImage().getDocker().getName(), "group/image");
+        finishNewOfferTest(offerRequirement, tasksToLaunch, dockerNetworkPodInstance);
     }
 
     @Test
