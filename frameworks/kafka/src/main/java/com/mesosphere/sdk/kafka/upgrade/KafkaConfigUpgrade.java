@@ -12,6 +12,7 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,11 @@ public class KafkaConfigUpgrade {
     public KafkaConfigUpgrade(ServiceSpec serviceSpec) throws Exception {
         this.stateStore = new CuratorStateStoreUpdate(serviceSpec.getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
-        startUpgrade(serviceSpec);
+
+        // if framework_id exist
+        if (KafkaConfigUpgrade.enabled() && !runningFirstTime(stateStore)) {
+            startUpgrade(serviceSpec);
+        }
     }
 
     private void startUpgrade(ServiceSpec serviceSpec) throws Exception{
@@ -83,7 +88,7 @@ public class KafkaConfigUpgrade {
         Collection<String> oldTaskNames = getOldTaskNames(stateStore.fetchTaskNames());
 
         newTaskInfos = generateTaskInfos(oldTaskNames, newServiceSpec);
-        newStatusMap = generateStatusMap(oldTaskNames);
+        newStatusMap = generateStatusMap(oldTaskNames, newServiceSpec);
 
         stateStore.storeTasks(newTaskInfos);
 
@@ -178,7 +183,7 @@ public class KafkaConfigUpgrade {
 
         try {
             this.oldTargetId = oldConfigStore.getTargetConfig();
-             kafkaSchedulerConfiguration = oldConfigStore.fetch(oldTargetId);
+            kafkaSchedulerConfiguration = oldConfigStore.fetch(oldTargetId);
 
             LOGGER.info("name: " + kafkaSchedulerConfiguration.getServiceConfiguration().getName());
             LOGGER.info("role: " + kafkaSchedulerConfiguration.getServiceConfiguration().getRole());
@@ -245,13 +250,23 @@ public class KafkaConfigUpgrade {
         return newServiceSpec;
     }
 
+    private boolean runningFirstTime(StateStore stateStore) {
+        if (stateStore.fetchFrameworkId().isPresent()) {
+            return false;
+        }
+        return true;
+    }
+
     private Collection<Protos.TaskInfo> generateTaskInfos(Collection<String> oldTaskNames,
                                  ServiceSpec newServiceSpec) throws  KafkaConfigUpgradeException {
         List<Protos.TaskInfo> taskInfoList = new ArrayList<>();
 
         for (String oldTaskName : oldTaskNames) {
             int brokerId = oldTaskName2BrokerId(oldTaskName);
-            String newName = getNewTaskName(brokerId);
+            // newServiceSpec is already verified!
+            String newName = getNewTaskName(brokerId,
+                    newServiceSpec.getPods().get(0).getType(),
+                    newServiceSpec.getPods().get(0).getTasks().get(0).getName());
 
             Optional<Protos.TaskInfo> oldTaskInfo = stateStore.fetchTask(oldTaskName);
             if (!oldTaskInfo.isPresent()){
@@ -313,13 +328,17 @@ public class KafkaConfigUpgrade {
         return taskInfoList;
     }
 
-    private Map<String, Protos.TaskStatus> generateStatusMap(Collection<String> oldTaskNames)
+    private Map<String, Protos.TaskStatus> generateStatusMap(Collection<String> oldTaskNames,
+                                                             ServiceSpec newServiceSpec)
             throws KafkaConfigUpgradeException{
         Map<String, Protos.TaskStatus> taskStatusMap = new HashMap<>();
 
         for (String oldTaskName : oldTaskNames) {
             int brokerId = oldTaskName2BrokerId(oldTaskName);
-            String newName = getNewTaskName(brokerId);
+            String newName = getNewTaskName(brokerId,
+                    newServiceSpec.getPods().get(0).getType(),
+                    newServiceSpec.getPods().get(0).getTasks().get(0).getName());
+
             Optional<Protos.TaskStatus> optionalStatus = stateStore.fetchStatus(oldTaskName);
             if (!optionalStatus.isPresent()){
                 throw new KafkaConfigUpgradeException("Can not fetch status for Task " + oldTaskName);
@@ -336,8 +355,8 @@ public class KafkaConfigUpgrade {
         return Integer.parseInt(matcher.group(2));
     }
 
-    private String getNewTaskName(int brokerID){
-        return "kafka-" + brokerID + "-broker"; //kafka-2-broker
+    private String getNewTaskName(int brokerID, String podType, String taskName){
+        return podType + "-" + brokerID + "-" + taskName; //kafka-2-broker
     }
 
     private Collection<String> getOldTaskNames(Collection<String> taskNames) {

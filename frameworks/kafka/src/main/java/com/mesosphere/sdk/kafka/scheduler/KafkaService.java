@@ -30,10 +30,7 @@ public class KafkaService extends DefaultService {
         schedulerBuilder.setPlansFrom(rawServiceSpec);
 
         /* Upgrade */
-        if (KafkaConfigUpgrade.enabled()){
-            new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec());
-        }
-
+        new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec());
         CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
         stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));

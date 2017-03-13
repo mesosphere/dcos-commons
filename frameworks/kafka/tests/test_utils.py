@@ -1,0 +1,13 @@
+import pytest
+
+from tests.config import (
+    DEFAULT_PARTITION_COUNT,
+    DEFAULT_REPLICATION_FACTOR,
+    PACKAGE_NAME,
+    DEFAULT_BROKER_COUNT
+)
+
+SERVICE_NAME = PACKAGE_NAME
+
+POD_TYPE = "kafka"
+
