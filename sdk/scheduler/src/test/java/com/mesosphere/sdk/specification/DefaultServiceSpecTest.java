@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
-import com.mesosphere.sdk.specification.yaml.RawCniPortMapping;
 import com.mesosphere.sdk.specification.yaml.RawNetwork;
 import com.mesosphere.sdk.specification.yaml.WriteOnceLinkedHashMap;
 import org.apache.commons.collections.MapUtils;
@@ -30,16 +29,15 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.testutils.TestConstants.EXPECTED_NETWORK_NAME;
 import static org.mockito.Mockito.when;
 import static com.mesosphere.sdk.specification.yaml.YAMLServiceSpecFactory.*;
 
@@ -48,8 +46,6 @@ public class DefaultServiceSpecTest {
     @Mock private FileReader mockFileReader;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private StateStore mockStateStore;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultServiceSpecTest.class);
 
     @Before
     public void beforeEach() {
@@ -160,7 +156,7 @@ public class DefaultServiceSpecTest {
         WriteOnceLinkedHashMap<String, RawNetwork> rawNetworkMap = rawServiceSpec
                 .getPods()
                 .get("meta-data")
-                .getNetwork();
+                .getNetworks();
         Assert.assertTrue(MapUtils.isNotEmpty(rawNetworkMap));
         RawNetwork rawNetwork = rawNetworkMap.get("dcos");
         ArrayList<Integer> expectedHostPorts = new ArrayList<>();
@@ -169,10 +165,38 @@ public class DefaultServiceSpecTest {
         expectedContainerPorts.add(8080);
         Assert.assertTrue(rawNetwork.getHostPorts().equals(expectedHostPorts));
         Assert.assertTrue(rawNetwork.getContainerPorts().equals(expectedContainerPorts));
-        // TODO check multiple maps
-        // TODO check ServiceSpec
-        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
 
+        ServiceSpec serviceSpec = generateServiceSpec(rawServiceSpec);
+        Assert.assertNotNull(serviceSpec);
+        // check that there are the correct number of networks and they have the correct name
+        for (int i = 0; i < serviceSpec.getPods().size(); i++) {
+            List<NetworkSpec> networkSpecs = serviceSpec.getPods().get(i)
+                    .getNetworks()
+                    .stream()
+                    .collect(Collectors.toList());
+            Integer exp = 1;
+            Integer obs = networkSpecs.size();
+            Assert.assertTrue(String.format("Got incorrect number of networks, should be %s got %s ",
+                    exp, obs), obs.equals(exp));
+            for (NetworkSpec networkSpec : networkSpecs) {
+                Assert.assertTrue(networkSpec.getNetworkName().equals(EXPECTED_NETWORK_NAME));
+            }
+        }
+        // check that they have the correct port mappings
+        Function<Integer, Map<Integer, Integer>> getPortMappings = (index) ->
+                serviceSpec.getPods().get(index)
+                        .getNetworks().stream().collect(Collectors.toList())
+                        .get(0).getPortMappings();  // we've already confirmed that there is only one NetworkSpec
+
+        // Check the first one
+        Map<Integer, Integer> portsMap = getPortMappings.apply(0);
+        Assert.assertTrue(portsMap.size() == 1);
+        Assert.assertTrue(portsMap.get(4040) == 8080);
+        // Check the second one
+        portsMap = getPortMappings.apply(1);
+        Assert.assertTrue(portsMap.size() == 2);
+        Assert.assertTrue(portsMap.get(4040) == 8080);
+        Assert.assertTrue(portsMap.get(4041) == 8081);
     }
 
     @Test

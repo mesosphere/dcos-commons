@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -22,4 +21,8 @@ public class RawNetwork {
     public List<Integer> getHostPorts() { return hostPorts; }
 
     public List<Integer> getContainerPorts() { return containerPorts; }
+
+    public Integer numberOfPortMappings() {
+        return Math.min(hostPorts.size(), containerPorts.size());
+    }
 }

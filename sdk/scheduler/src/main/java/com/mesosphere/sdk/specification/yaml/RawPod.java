@@ -71,5 +71,5 @@ public class RawPod {
 
     public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() { return resourceSets; }
 
-    public WriteOnceLinkedHashMap<String, RawNetwork> getNetwork() { return network; }
+    public WriteOnceLinkedHashMap<String, RawNetwork> getNetworks() { return network; }
 }

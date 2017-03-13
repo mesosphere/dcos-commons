@@ -44,7 +44,7 @@ public class DefaultPodSpec implements PodSpec {
     @Valid
     private final Collection<URI> uris;
     @Valid
-    private final NetworkSpec networkSpec;
+    private final Collection<NetworkSpec> networkSpecs;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -55,7 +55,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule,
-            @JsonProperty("network") NetworkSpec networkSpec) {
+            @JsonProperty("network") Collection<NetworkSpec> networkSpec) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -63,7 +63,7 @@ public class DefaultPodSpec implements PodSpec {
         this.uris = (uris != null) ? uris : Collections.emptyList();
         this.tasks = tasks;
         this.placementRule = placementRule;
-        this.networkSpec = networkSpec;
+        this.networkSpecs = networkSpec;
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -75,7 +75,7 @@ public class DefaultPodSpec implements PodSpec {
                 builder.uris,
                 builder.tasks,
                 builder.placementRule,
-                builder.networkSpec);
+                builder.networkSpecs);
         ValidationUtils.validate(this);
     }
 
@@ -93,7 +93,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
-        builder.networkSpec = copy.getNetwork().isPresent() ? copy.getNetwork().get() : null;
+        builder.networkSpecs = copy.getNetworks();
         return builder;
     }
 
@@ -123,14 +123,15 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public List<TaskSpec> getTasks() {
-        return tasks;
-    }
+    public List<TaskSpec> getTasks() { return tasks; }
 
     @Override
     public Optional<PlacementRule> getPlacementRule() {
         return Optional.ofNullable(placementRule);
     }
+
+    @Override
+    public Collection<NetworkSpec> getNetworks() { return networkSpecs; }
 
     @Override
     public boolean equals(Object o) {
@@ -154,7 +155,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<URI> uris;
         private List<TaskSpec> tasks = new ArrayList<>();
         private PlacementRule placementRule;
-        private NetworkSpec networkSpec;
+        private Collection<NetworkSpec> networkSpecs;
 
         private Builder() {
         }
@@ -262,13 +263,13 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
-         * Sets the {@code networkSpec} and returns a reference to this builder
+         * Sets a collection of {@code networkSpecs}s and returns a reference to this builder.
          *
-         * @param networkSpec the {@code networkSpec} to set
+         * @param networkSpecs the {@code networkSpecs} to set
          * @return a reference to this builder
          */
-        public Builder networkSpec(NetworkSpec networkSpec) {
-            this.networkSpec = networkSpec;
+        public Builder addNetworks(Collection<NetworkSpec> networkSpecs) {
+            this.networkSpecs = networkSpecs;
             return this;
         }
 

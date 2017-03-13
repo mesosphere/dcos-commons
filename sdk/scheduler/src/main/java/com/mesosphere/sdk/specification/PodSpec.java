@@ -37,7 +37,7 @@ public interface PodSpec {
     Optional<PlacementRule> getPlacementRule();
 
     @JsonProperty("network")
-    Optional<NetworkSpec> getNetwork();
+    Collection<NetworkSpec> getNetworks();
 
     @JsonIgnore
     static String getName(PodSpec podSpec, int index) {

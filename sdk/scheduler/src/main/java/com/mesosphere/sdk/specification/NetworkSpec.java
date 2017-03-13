@@ -10,6 +10,9 @@ import java.util.Map;
  */
 @JsonDeserialize(as = DefaultNetworkSpec.class)
 public interface NetworkSpec {
+    @JsonProperty("network-name")
+    String getNetworkName();
+
     @JsonProperty("port-mappings")
     Map<Integer, Integer> getPortMappings();
 }

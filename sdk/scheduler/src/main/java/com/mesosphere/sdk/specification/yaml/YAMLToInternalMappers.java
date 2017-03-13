@@ -17,14 +17,18 @@ import org.apache.mesos.Protos;
 import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
@@ -182,12 +186,25 @@ public class YAMLToInternalMappers {
             podUris.add(new URI(uriStr));
         }
 
+        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetworks();
+        final Collection<NetworkSpec> networks = new ArrayList<>();
+        if (MapUtils.isNotEmpty(rawNetworks)) {
+            networks.addAll(rawNetworks.entrySet().stream()
+                    .map(rawNetworkEntry -> {
+                        String networkName = rawNetworkEntry.getKey();
+                        RawNetwork rawNetwork = rawNetworks.get(networkName);
+                        return from(networkName, rawNetwork);
+                    })
+                    .collect(Collectors.toList()));
+        }
+
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
                 .count(rawPod.getCount())
                 .tasks(taskSpecs)
                 .type(podName)
                 .uris(podUris)
-                .user(rawPod.getUser());
+                .user(rawPod.getUser())
+                .addNetworks(networks);
 
         PlacementRule placementRule = MarathonConstraintParser.parse(rawPod.getPlacement());
         if (!(placementRule instanceof PassthroughRule)) {
@@ -200,21 +217,8 @@ public class YAMLToInternalMappers {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
-        }
 
-        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetwork();
-        final Collection<NetworkSpec> network = new ArrayList<>();
-        if (MapUtils.isNotEmpty(rawNetworks)) {
-            network.addAll(rawNetworks.entrySet().stream()
-            .map(rawNetworkEntry -> {
-                String networkName = rawNetworkEntry.getKey();
-                RawNetwork rawNetwork = rawNetworks.get(networkName);
-                return from(
-                        networkName,
-                        rawNetwork.getHostPorts(),
-                        rawNetwork.getContainerPorts());
-            })
-            .collect(Collectors.toList()));
+            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), rlimits));
         }
 
         return builder.build();
@@ -346,10 +350,15 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DefaultNetworkSpec from(
-            String name,
-            List<Integer> hostPorts,
-            List<Integer> contaierPorts) {
+    private static DefaultNetworkSpec from(String networkName, RawNetwork rawNetwork) {
+        Map<Integer, Integer> portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
+                .boxed()
+                .collect(Collectors
+                        .toMap(rawNetwork.getHostPorts()::get, rawNetwork.getContainerPorts()::get));
 
+        DefaultNetworkSpec.Builder builder = DefaultNetworkSpec.newBuilder()
+                .networkName(networkName)
+                .portMappings(portMap);
+        return builder.build();
     }
 }
