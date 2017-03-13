@@ -25,6 +25,7 @@ def setup_module(module):
 def teardown_module(module):
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
+    
 # --------- Placement -------------
 
 

@@ -1,7 +1,7 @@
 ---
 post_title: Configuring
 menu_order: 30
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -444,7 +444,7 @@ Example node configuration:
     </ul>
     </td>
   </tr>
-  
+
   <tr>
     <td>strategy</td>
     <td>string</td>
