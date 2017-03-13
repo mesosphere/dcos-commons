@@ -45,9 +45,9 @@
     "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
 
-    {{#service.config_upgrade.enable}}
-    "CONFIG_UPGRADE_ENABLE": "set",
-    {{/service.config_upgrade.enable}}
+    {{#service.config_upgrade.disable}}
+    "CONFIG_UPGRADE_DISABLE": "set",
+    {{/service.config_upgrade.disable}}
     {{#service.config_upgrade.cleanup}}
     "CONFIG_UPGRADE_CLEANUP": "set",
     {{/service.config_upgrade.cleanup}}

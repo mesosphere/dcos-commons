@@ -52,8 +52,8 @@ public class KafkaConfigUpgrade {
         this.stateStore = new CuratorStateStoreUpdate(serviceSpec.getName(),
                 DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
 
-        // if framework_id exist
-        if (KafkaConfigUpgrade.enabled() && !runningFirstTime(stateStore)) {
+        // if framework_id exist and not disabled
+        if (!KafkaConfigUpgrade.disabled() && !runningFirstTime(stateStore)) {
             startUpgrade(serviceSpec);
         }
     }
@@ -371,18 +371,19 @@ public class KafkaConfigUpgrade {
         return oldNames;
     }
 
-    public static boolean enabled(){
-        if (System.getenv("CONFIG_UPGRADE_ENABLE") != null) {
-            return true;
-        }
-        return false;
-    }
-
     public static boolean cleanup(){
         if (System.getenv("CONFIG_UPGRADE_CLEANUP") != null) {
             return true;
         }
         return false;
     }
+    public static boolean disabled(){
+        if (System.getenv("CONFIG_UPGRADE_DISABLE") != null) {
+            return true;
+        }
+        return false;
+    }
+
+
 
 }
