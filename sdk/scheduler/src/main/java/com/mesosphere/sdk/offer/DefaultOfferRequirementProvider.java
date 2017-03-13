@@ -544,7 +544,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
             return null;
         }
-        
+
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
@@ -555,7 +555,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                     .setDocker(Protos.Image.Docker.newBuilder()
                             .setName(podSpec.getImage().get())));
         }
-        
+
         if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
                     podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
