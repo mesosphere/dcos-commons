@@ -113,7 +113,7 @@ public class ProcessTask implements ExecutorTask {
                 taskState = Protos.TaskState.TASK_KILLED;
                 exitMessage += (exitValue - 128);
             } else {
-                taskState = Protos.TaskState.TASK_ERROR;
+                taskState = Protos.TaskState.TASK_FAILED;
                 exitMessage += exitValue;
             }
 
@@ -128,11 +128,7 @@ public class ProcessTask implements ExecutorTask {
             LOGGER.info(exitMessage);
             if (exitOnTermination) {
                 LOGGER.info("Executor is exiting because exitOnTermination: " + exitOnTermination);
-                if (exitValue == 0) {
-                    driver.stop();
-                } else {
-                    driver.abort();
-                }
+                CustomExecutor.hardExit(ExecutorErrorCode.TERMINAL_TASK_FAILURE);
             }
         } catch (Throwable e) {
             LOGGER.error("Process task failed.", e);

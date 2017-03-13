@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An {@link Executor} implementation that supports execution of long-running tasks and supporting short-lived tasks.
@@ -25,16 +26,28 @@ public class CustomExecutor implements Executor {
             Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
 
     private final Map<Protos.TaskID, LaunchedTask> launchedTasks = new HashMap<>();
-    private final ExecutorService executorService;
+    private final ThreadPoolExecutor executorService;
     private final ExecutorTaskFactory executorTaskFactory;
+    private final AtomicBoolean hasLaunchedAnything = new AtomicBoolean(false);
 
     private volatile Protos.SlaveInfo slaveInfo;
 
     public CustomExecutor(
-            final ExecutorService executorService,
+            final ThreadPoolExecutor executorService,
             ExecutorTaskFactory executorTaskFactory) {
         this.executorService = executorService;
         this.executorTaskFactory = executorTaskFactory;
+        scheduledExecutorService.schedule(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (hasLaunchedAnything.get() && executorService.getActiveCount() == 0) {
+                            hardExit(ExecutorErrorCode.ALL_TASKS_EXITED);
+                        }
+                    }
+                },
+                10,
+                TimeUnit.SECONDS);
     }
 
     @Override
@@ -61,6 +74,7 @@ public class CustomExecutor implements Executor {
     @Override
     public void launchTask(final ExecutorDriver driver, final Protos.TaskInfo task) {
         LOGGER.info("Launching task: {}", TextFormat.shortDebugString(task));
+        hasLaunchedAnything.set(true);
 
         try {
             Protos.TaskInfo unpackedTaskInfo = CommonTaskUtils.unpackTaskInfo(task);
@@ -205,5 +219,13 @@ public class CustomExecutor implements Executor {
 
     Optional<Protos.SlaveInfo> getSlaveInfo() {
         return Optional.ofNullable(slaveInfo);
+    }
+
+    /**
+     * Immediately exits the process with the ordinal value of the provided {@code errorCode}.
+     */
+    @SuppressWarnings("DM_EXIT")
+    public static void hardExit(ExecutorErrorCode errorCode) {
+        System.exit(errorCode.getValue());
     }
 }

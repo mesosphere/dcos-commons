@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 /**
- * This enum provides exit codes for Schedulers.
+ * This class provides exit codes for Schedulers.
  */
 public class SchedulerErrorCode {
 

@@ -6,6 +6,7 @@ import com.github.mustachejava.MustacheFactory;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.TerminationPolicy;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.ExecutorDriver;
@@ -565,23 +566,26 @@ public class CommonTaskUtils {
     }
 
     public static GoalState getGoalState(TaskInfo taskInfo) throws TaskException {
+        String goalStateString = getLabel(taskInfo, GOAL_STATE_LABEL);
+        return GoalState.valueOf(goalStateString);
+    }
+
+    public static TerminationPolicy getTerminationPolicy(TaskInfo taskInfo) throws TaskException {
+        String terminationPolicyString = getLabel(taskInfo, TERMINATION_POLICY_LABEL);
+        return new TerminationPolicy(Integer.valueOf(terminationPolicyString));
+    }
+
+    private static String getLabel(TaskInfo taskInfo, String key) throws TaskException {
         List<String> goalNames = Arrays.stream(GoalState.values())
                 .map(goalState -> goalState.name())
                 .collect(Collectors.toList());
 
-        Optional<String> goalStateOptional = CommonTaskUtils.findLabelValue(
-                taskInfo.getLabels(),
-                GOAL_STATE_LABEL);
-        if (!goalStateOptional.isPresent()) {
-            throw new TaskException("TaskInfo does not contain label with key: " + GOAL_STATE_LABEL);
+        Optional<String> valueOptional = CommonTaskUtils.findLabelValue(taskInfo.getLabels(), key);
+        if (!valueOptional.isPresent()) {
+            throw new TaskException("TaskInfo does not contain label with key: " + key);
         }
 
-        String goalStateString = goalStateOptional.get();
-        if (!goalNames.contains(goalStateString)) {
-            throw new TaskException("Unexpecte goal state encountered: " + goalStateString);
-        }
-
-        return GoalState.valueOf(goalStateString);
+        return valueOptional.get();
     }
 
     public static boolean isTransient(TaskInfo taskInfo) {

@@ -64,6 +64,12 @@ pods:
           path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
+      zkfc-resources:
+        cpus: {{ZKFC_CPUS}}
+        memory: {{ZKFC_MEM}}
+        ports:
+          zkfc-port:
+            port: {{TASKCFG_ALL_ZKFC_PORT}}
     tasks:
       node:
         goal: RUNNING
@@ -145,18 +151,7 @@ pods:
         env:
           FRAMEWORK_NAME: {{SERVICE_NAME}}
           NAMENODE: true
-  zkfc:
-    count: 2
-    uris:
-      - {{HDFS_URI}}
-      - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
-    resource-sets:
-      zkfc-resources:
-        cpus: {{ZKFC_CPUS}}
-        memory: {{ZKFC_MEM}}
-    tasks:
-      node:
+      zkfc:
         goal: RUNNING
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
@@ -180,7 +175,7 @@ pods:
         env:
           SERVICE_ZK_ROOT: dcos-service-{{SERVICE_NAME}}
           ZKFC: true
-      format:
+      zkfc-format:
         goal: FINISHED
         cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
@@ -276,10 +271,10 @@ plans:
           - 1: [[bootstrap], [node]]
       zkfc-deploy:
         strategy: serial
-        pod: zkfc
+        pod: name
         steps:
-          - 0: [[format], [node]]
-          - 1: [[node]]
+          - 0: [[zkfc-format], [zkfc]]
+          - 1: [[zkfc]]
       dn-deploy:
         strategy: {{DEPLOY_STRATEGY}}
         pod: data

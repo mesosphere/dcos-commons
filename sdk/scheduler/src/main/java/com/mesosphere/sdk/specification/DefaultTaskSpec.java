@@ -44,6 +44,8 @@ public class DefaultTaskSpec implements TaskSpec {
     @Valid
     private final Collection<ConfigFileSpec> configFiles;
 
+    private final TerminationPolicy terminationPolicy;
+
     @JsonCreator
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
@@ -53,7 +55,8 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
-            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec) {
+            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec,
+            @JsonProperty("termination-policy") TerminationPolicy terminationPolicy) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
@@ -62,6 +65,12 @@ public class DefaultTaskSpec implements TaskSpec {
         this.readinessCheckSpec = readinessCheckSpec;
         this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
         this.discoverySpec = discoverySpec;
+        if (terminationPolicy == null) {
+            this.terminationPolicy = getGoal().equals(GoalState.RUNNING) ?
+                TerminationPolicy.KILL_EXECUTOR : TerminationPolicy.DO_NOTHING;
+        } else {
+            this.terminationPolicy = terminationPolicy;
+        }
     }
 
     private DefaultTaskSpec(Builder builder) {
@@ -73,7 +82,8 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.healthCheckSpec,
                 builder.readinessCheckSpec,
                 builder.configFiles,
-                builder.discoverySpec);
+                builder.discoverySpec,
+                builder.terminationPolicy);
     }
 
     public static Builder newBuilder() {
@@ -87,7 +97,10 @@ public class DefaultTaskSpec implements TaskSpec {
         builder.resourceSet = copy.getResourceSet();
         builder.commandSpec = copy.getCommand().orElse(null);
         builder.healthCheckSpec = copy.getHealthCheck().orElse(null);
+        builder.readinessCheckSpec = copy.getReadinessCheck().orElse(null);
         builder.configFiles = copy.getConfigFiles();
+        builder.discoverySpec = copy.getDiscovery().orElse(null);
+        builder.terminationPolicy = copy.getTerminationPolicy();
         return builder;
     }
 
@@ -99,6 +112,11 @@ public class DefaultTaskSpec implements TaskSpec {
     @Override
     public GoalState getGoal() {
         return goalState;
+    }
+
+    @Override
+    public TerminationPolicy getTerminationPolicy() {
+        return terminationPolicy;
     }
 
     @Override
@@ -162,8 +180,10 @@ public class DefaultTaskSpec implements TaskSpec {
         private ReadinessCheckSpec readinessCheckSpec;
         private Collection<ConfigFileSpec> configFiles;
         private DiscoverySpec discoverySpec;
+        private TerminationPolicy terminationPolicy;
 
         private Builder() {
+            this.terminationPolicy = TerminationPolicy.KILL_EXECUTOR;
         }
 
         /**
@@ -186,6 +206,18 @@ public class DefaultTaskSpec implements TaskSpec {
          */
         public Builder goalState(GoalState goalState) {
             this.goalState = goalState;
+            return this;
+        }
+
+        /**
+         * Sets the {@link TerminationPolicy} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param terminationPolicy the {@link TerminationPolicy} to set
+         * @return a reference to this Builder
+         */
+        public Builder terminationPolicy(TerminationPolicy terminationPolicy) {
+            this.terminationPolicy = terminationPolicy;
             return this;
         }
 

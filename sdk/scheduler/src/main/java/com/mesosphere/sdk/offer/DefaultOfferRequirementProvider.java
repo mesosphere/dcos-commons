@@ -244,6 +244,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // create default labels:
         CommonTaskUtils.setTargetConfiguration(taskInfoBuilder, targetConfigurationId);
         TaskUtils.setGoalState(taskInfoBuilder, taskSpec);
+        TaskUtils.setTerminationPolicy(taskInfoBuilder, taskSpec.getTerminationPolicy());
         CommonTaskUtils.setType(taskInfoBuilder, podInstance.getPod().getType());
         CommonTaskUtils.setIndex(taskInfoBuilder, podInstance.getIndex());
 

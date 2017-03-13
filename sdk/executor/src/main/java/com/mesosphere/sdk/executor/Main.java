@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * The main entry point for the custom executor.
@@ -22,7 +23,7 @@ public class Main {
     public void run() throws Exception {
         final DefaultExecutorTaskFactory defaultExecutorTaskFactory = new DefaultExecutorTaskFactory();
         final CustomExecutor customExecutor =
-                new CustomExecutor(Executors.newCachedThreadPool(), defaultExecutorTaskFactory);
+                new CustomExecutor((ThreadPoolExecutor) Executors.newCachedThreadPool(), defaultExecutorTaskFactory);
         final ExecutorDriver driver = new MesosExecutorDriverFactory().getDriver(customExecutor);
 
         executorService = Executors.newCachedThreadPool();

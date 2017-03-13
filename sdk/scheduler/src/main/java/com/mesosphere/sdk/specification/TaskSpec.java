@@ -35,6 +35,9 @@ public interface TaskSpec {
     @JsonProperty("discovery-spec")
     Optional<DiscoverySpec> getDiscovery();
 
+    @JsonProperty("termination-policy")
+    TerminationPolicy getTerminationPolicy();
+
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return podInstance.getName() + "-" + taskSpec.getName();
     }
