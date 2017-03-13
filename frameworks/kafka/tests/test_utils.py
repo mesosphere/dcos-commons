@@ -27,4 +27,3 @@ def service_cli(cmd_str):
     ret_str = command.run_cli(full_cmd)
     return json.loads(ret_str)
 
- 
