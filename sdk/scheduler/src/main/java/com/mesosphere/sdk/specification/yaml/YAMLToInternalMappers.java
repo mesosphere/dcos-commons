@@ -41,7 +41,7 @@ public class YAMLToInternalMappers {
     static DefaultServiceSpec from(
             RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-
+        
         String role = null;
         String principal = null;
         Integer apiPort = null;
@@ -199,32 +199,32 @@ public class YAMLToInternalMappers {
             builder.placementRule(placementRule);
         }
         
-        RawContainerInfoProvider cip = null;
+        RawContainerInfoProvider containerInfoProvider = null;
         if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) { 
             if (rawPod.getContainer() != null) {
                 throw new IllegalArgumentException(String.format("You may define container settings directly under the "
                         + "pod %s or under %s:container, but not both.", podName, podName));
             }
             
-            cip = rawPod;
+            containerInfoProvider = rawPod;
         } else if (rawPod.getContainer() != null) {
-            cip = rawPod.getContainer();
+            containerInfoProvider = rawPod.getContainer();
         }
         
-        if (cip != null) {
+        if (containerInfoProvider != null) {
             List<RLimit> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : cip.getRLimits().entrySet()) {
+            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
             List<NetworkSpec> networks = new ArrayList<>();
-            for (Map.Entry<String, RawNetwork> entry : cip.getNetworks().entrySet()) {
+            for (Map.Entry<String, RawNetwork> entry : containerInfoProvider.getNetworks().entrySet()) {
                 // When features other than network name are added, we'll want to use the RawNetwork entry value here.
                 networks.add(new DefaultNetworkSpec(entry.getKey()));
             }
 
-            builder.image(cip.getImage())
+            builder.image(containerInfoProvider.getImage())
                 .networks(networks)
                 .rlimits(rlimits);
 

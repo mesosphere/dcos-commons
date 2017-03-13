@@ -265,7 +265,7 @@ public class DefaultServiceSpecTest {
     @Test
     public void validImage() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-docker.yml").getFile());
+        File file = new File(classLoader.getResource("valid-image.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
@@ -273,7 +273,7 @@ public class DefaultServiceSpecTest {
     @Test
     public void validImageLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-docker-legacy.yml").getFile());
+        File file = new File(classLoader.getResource("valid-image-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }

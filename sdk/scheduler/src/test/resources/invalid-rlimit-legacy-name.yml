@@ -1,26 +1,16 @@
-name: "data-store"
+name: "invalid-rlimit-name-legacy-test"
 pods:
   meta-data:
     count: 2
     container:
       rlimits:
+        # Invalid rlimit. See man setrlimit for valid values.
         RLIMIT_NONSENSE:
           soft: 5
           hard: 10
     tasks:
-      meta-data-task:
+      server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
-        cpus: 0.1
-        memory: 512
-        ports:
-          http:
-            port: 8080
-        volume:
-          path: "meta-data-container-path"
-          type: ROOT
-          size: 5000
-        env:
-          TASK_NAME: "meta-data"
-          CONTAINER_PATH_SUFFIX: "-container-path"
-          SLEEP_DURATION: "1000"
+        cmd: "cmd"
+        cpus: 1
+        memory: 1024

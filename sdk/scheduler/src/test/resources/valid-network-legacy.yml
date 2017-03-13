@@ -1,7 +1,8 @@
-name: "docker-test"
+name: "valid-network-legacy-test"
 pods:
   server:
     count: 1
+    # Define network under container the "legacy" way.
     container:
       networks:
         test: {}

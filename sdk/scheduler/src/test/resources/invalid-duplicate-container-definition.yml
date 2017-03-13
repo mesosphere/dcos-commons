@@ -1,4 +1,4 @@
-name: "docker-test"
+name: "invalid-duplicate-container-test"
 pods:
   server:
     count: 1

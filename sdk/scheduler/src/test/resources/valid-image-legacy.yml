@@ -1,4 +1,4 @@
-name: "docker-test"
+name: "valid-container-image-legacy-test"
 pods:
   server:
     count: 1

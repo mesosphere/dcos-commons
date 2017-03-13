@@ -1,9 +1,11 @@
-name: "docker-test"
+name: "invalid-network-definition"
 pods:
   server:
     count: 1
     networks:
       test:
+        # We currently only support empty network definitions (e.g. {}) as only joining a named network
+        # is supported right now.
         bad: "test"
     tasks:
       server:

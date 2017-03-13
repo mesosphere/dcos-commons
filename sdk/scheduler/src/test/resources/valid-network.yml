@@ -1,7 +1,8 @@
-name: "docker-test"
+name: "valid-container-network-test"
 pods:
   server:
     count: 1
+    # Define networks directly on the pod
     networks:
       test: {}
     tasks:
