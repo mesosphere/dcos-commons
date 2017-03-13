@@ -11,6 +11,6 @@
     "reference",
     "cassandra"
   ],
-  "postInstallNotes": "DC/OS cassandra is being installed!\n\n\tDocumentation: https://github.com/mesosphere/dcos-commons/tree/master/frameworks/cassandra\n\tIssues: https://docs.mesosphere.com/support/",
+  "postInstallNotes": "DC/OS cassandra is being installed!\n\n\tDocumentation: https://docs.mesosphere.com/latest/usage/service-guides/cassandra\n\tIssues: https://docs.mesosphere.com/support/",
   "postUninstallNotes": "DC/OS cassandra has been uninstalled."
 }

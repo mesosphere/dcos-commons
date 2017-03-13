@@ -1,7 +1,7 @@
 ---
 post_title: HDFS
 menu_order: 70
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
