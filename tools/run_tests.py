@@ -114,9 +114,12 @@ class CITester(object):
     def run_shakedown(self, test_dirs, requirements_txt='', pytest_types='sanity'):
         # keep virtualenv in a consistent/reusable location:
         if 'WORKSPACE' in os.environ:
+            logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'shakedown_env')
             # produce test report for consumption by Jenkins:
-            jenkins_args = '--junitxml=shakedown-report.xml '
+            partial_path = test_dirs.split(os.sep)[-3:]
+            path_based_name = "%s-%s" % ("_".join(partial_path), "shakedown-report.xml")
+            jenkins_args = '--junitxml=' + path_based_name
         else:
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'shakedown_env')
             jenkins_args = ''
@@ -149,7 +152,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "SHAKEDOWN RUN: {test_dirs} FILTER: {pytest_types}"
-py.test {jenkins_args}-vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
+py.test {jenkins_args} -vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=requirements_txt,
            dcos_url=self._dcos_url,
@@ -169,9 +172,12 @@ py.test {jenkins_args}-vv --fulltrace -x -s -m "{pytest_types}" {test_dirs}
     def run_dcostests(self, test_dirs, dcos_tests_dir, pytest_types='sanity'):
         os.environ['DOCKER_CLI'] = 'false'
         if 'WORKSPACE' in os.environ:
+            logger.info("Detected running under Jenkins; will tell shakedown to emit junit-style xml.")
             virtualenv_path = os.path.join(os.environ['WORKSPACE'], 'dcostests_env')
             # produce test report for consumption by Jenkins:
-            jenkins_args = '--junitxml=dcostests-report.xml '
+            partial_path = test_dirs.split(os.sep)[-3:]
+            path_based_name = "%s-%s" % ("_".join(partial_path), "dcostests-report.xml")
+            jenkins_args = '--junitxml=' + path_based_name
         else:
             virtualenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dcostests_env')
             jenkins_args = ''
@@ -192,7 +198,7 @@ source {venv_path}/bin/activate
 echo "REQUIREMENTS INSTALL: {reqs_file}"
 pip install -r {reqs_file}
 echo "DCOS-TEST RUN $(pwd): {test_dirs} FILTER: {pytest_types}"
-SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args}-vv -s -m "{pytest_types}" {test_dirs}
+SSH_KEY_FILE="" PYTHONPATH=$(pwd) py.test {jenkins_args} -vv -s -m "{pytest_types}" {test_dirs}
 '''.format(venv_path=virtualenv_path,
            reqs_file=os.path.join(dcos_tests_dir, 'requirements.txt'),
            dcos_tests_dir=dcos_tests_dir,
