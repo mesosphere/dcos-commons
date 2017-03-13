@@ -606,11 +606,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
-        int nbNetworks = podSpec.getNetworks() == null ? 0 : podSpec.getNetworks().size();
-        if (podSpec.getContainer().isPresent() || nbNetworks > 0) {
+        if (podSpec.getContainer().isPresent() || podSpec.getNetworks().isPresent()) {
             executorInfoBuilder.setContainer(getContainerInfo(
                     podSpec.getContainer().isPresent() ? podSpec.getContainer().get() : null,
-                    podSpec.getNetworks()));
+                    podSpec.getNetworks().get()));
         }
 
         // command and user:

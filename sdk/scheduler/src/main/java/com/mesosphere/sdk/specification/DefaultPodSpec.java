@@ -93,7 +93,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.tasks = new ArrayList<>();
         builder.tasks.addAll(copy.getTasks());
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
-        builder.networkSpecs = copy.getNetworks();
+        builder.networkSpecs = copy.getNetworks().isPresent() ? copy.getNetworks().get() : null;
         return builder;
     }
 
@@ -131,7 +131,7 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<NetworkSpec> getNetworks() { return networkSpecs; }
+    public Optional<Collection<NetworkSpec>> getNetworks() { return Optional.ofNullable(networkSpecs); }
 
     @Override
     public boolean equals(Object o) {

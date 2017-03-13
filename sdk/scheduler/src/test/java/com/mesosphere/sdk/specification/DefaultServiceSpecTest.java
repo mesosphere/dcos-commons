@@ -171,7 +171,7 @@ public class DefaultServiceSpecTest {
         // check that there are the correct number of networks and they have the correct name
         for (int i = 0; i < serviceSpec.getPods().size(); i++) {
             List<NetworkSpec> networkSpecs = serviceSpec.getPods().get(i)
-                    .getNetworks()
+                    .getNetworks().get()
                     .stream()
                     .collect(Collectors.toList());
             Integer exp = 1;
@@ -185,7 +185,8 @@ public class DefaultServiceSpecTest {
         // check that they have the correct port mappings
         Function<Integer, Map<Integer, Integer>> getPortMappings = (index) ->
                 serviceSpec.getPods().get(index)
-                        .getNetworks().stream().collect(Collectors.toList())
+                        .getNetworks().get()
+                        .stream().collect(Collectors.toList())
                         .get(0).getPortMappings();  // we've already confirmed that there is only one NetworkSpec
 
         // Check the first one
