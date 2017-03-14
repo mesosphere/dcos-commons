@@ -148,22 +148,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public Boolean getGpuOptin() {
-        // loop over the resourceSpecs in the tasks in the pods, as soon as we find a "gpus" resource spec
-        // with a value >= 1 return true, if none are found or they are all 0, return false
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }

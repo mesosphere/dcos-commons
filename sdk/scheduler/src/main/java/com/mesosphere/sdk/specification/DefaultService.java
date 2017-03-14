@@ -191,6 +191,20 @@ public class DefaultService implements Service {
         return getFrameworkInfo(serviceSpec, stateStore, USER, TWO_WEEK_SEC);
     }
 
+    private static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        Collection<PodSpec> pods = serviceSpec.getPods();
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     protected Protos.FrameworkInfo getFrameworkInfo(
             ServiceSpec serviceSpec,
             StateStore stateStore,
@@ -232,7 +246,7 @@ public class DefaultService implements Service {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
         }
 
-        if (serviceSpec.getGpuOptin()) {
+        if (serviceSpecRequestsGpuResources(serviceSpec)) {
             fwkInfoBuilder.addCapabilities(
                     Protos.FrameworkInfo.Capability.newBuilder()
                             .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));

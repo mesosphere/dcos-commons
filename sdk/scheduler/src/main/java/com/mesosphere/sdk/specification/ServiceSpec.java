@@ -33,7 +33,4 @@ public interface ServiceSpec extends Configuration {
 
     @JsonProperty("replacement-failure-policy")
     ReplacementFailurePolicy getReplacementFailurePolicy();
-
-    @JsonIgnore
-    Boolean getGpuOptin();
 }
