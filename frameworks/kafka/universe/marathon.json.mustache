@@ -45,6 +45,13 @@
     "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
 
+    {{#service.config_upgrade.disable}}
+    "CONFIG_UPGRADE_DISABLE": "set",
+    {{/service.config_upgrade.disable}}
+    {{#service.config_upgrade.cleanup}}
+    "CONFIG_UPGRADE_CLEANUP": "set",
+    {{/service.config_upgrade.cleanup}}
+
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
