@@ -2,14 +2,9 @@ import pytest
 
 import sdk_install as install
 import sdk_tasks as tasks
-import sdk_marathon as marathon
-import sdk_package as package
-import sdk_cmd as command
-import sdk_plan as plan
 import sdk_spin as spin
 import sdk_utils as utils
 import shakedown
-import dcos
 
 
 from tests.test_utils import (
@@ -26,6 +21,11 @@ def setup_module(module):
     utils.gc_frameworks()
 
 
+# gc_frameworks to make sure after each uninstall
+def teardown_module(module):
+    install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+
+    
 # --------- Placement -------------
 
 
@@ -89,6 +89,8 @@ def test_marathon_rack_not_found():
     # check that first node is still (unsuccessfully) looking for a match:
     assert pl['status'] == 'IN_PROGRESS'
     assert pl['phases'][0]['status'] == 'IN_PROGRESS'
+
+    # if so early, it can be PREPARED ?
     assert pl['phases'][0]['steps'][0]['status'] in ('PREPARED', 'PENDING')
     assert pl['phases'][0]['steps'][1]['status'] == 'PENDING'
     assert pl['phases'][0]['steps'][2]['status'] == 'PENDING'

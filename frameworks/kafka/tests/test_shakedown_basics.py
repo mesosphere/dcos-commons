@@ -3,10 +3,7 @@ import pytest
 import sdk_install as install
 import sdk_tasks as tasks
 import sdk_spin as spin
-import sdk_marathon as marathon
-import sdk_package as package
 import sdk_cmd as command
-import sdk_plan as plan
 import sdk_utils as utils
 import dcos
 import dcos.config
