@@ -105,7 +105,7 @@
             "default": 0
           },
           "jmx": {
-            "description":"JMX options",
+            "description":"[DEPRECATED] JMX options",
             "type":"object",
             "properties": {
               "enable": {
@@ -151,7 +151,7 @@
             }
           },
           "statsd": {
-            "description":"Statsd configuration",
+            "description":"[DEPRECATED] Statsd configuration",
             "type":"object",
             "properties": {
               "host": {
