@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
@@ -253,6 +255,52 @@ public class DefaultServiceSpecTest {
         }
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void cantDefineContainerSettingsBothPlaces() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-duplicate-container-definition.yml").getFile());
+        generateServiceSpec(generateRawSpecFromYAML(file));
+    }
+
+    @Test
+    public void validImage() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-image.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
+    }
+
+    @Test
+    public void validImageLegacy() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-image-legacy.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
+    }
+
+    @Test
+    public void validNetworks() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-network.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
+    }
+
+    @Test
+    public void validNetworksLegacy() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
+        Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
+    }
+
+    @Test(expected = UnrecognizedPropertyException.class)
+    public void invalidNetworks() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-network.yml").getFile());
+        generateServiceSpec(generateRawSpecFromYAML(file));
+    }
+
     @Test
     public void invalidScalarCpuResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -296,6 +344,13 @@ public class DefaultServiceSpecTest {
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
+        generateServiceSpec(generateRawSpecFromYAML(file));
+    }
+
+    @Test(expected = RLimit.InvalidRLimitException.class)
+    public void invalidRLimitNameLegacy() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-rlimit-legacy-name.yml").getFile());
         generateServiceSpec(generateRawSpecFromYAML(file));
     }
 

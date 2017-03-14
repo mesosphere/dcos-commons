@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 /**
  * Raw YAML container.
  */
-public class RawContainer {
+public class RawContainer implements RawContainerInfoProvider {
     private final String imageName;
     private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
     private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
@@ -29,7 +29,7 @@ public class RawContainer {
         return rlimits;
     }
 
-    public String getImageName() {
+    public String getImage() {
         return imageName;
     }
 }

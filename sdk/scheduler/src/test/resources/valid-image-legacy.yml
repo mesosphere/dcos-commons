@@ -1,0 +1,12 @@
+name: "valid-container-image-legacy-test"
+pods:
+  server:
+    count: 1
+    container:
+      image-name: group/image
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cmd"
+        cpus: 1
+        memory: 1024
