@@ -144,7 +144,7 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testNewOfferRequirementDocker() throws Exception {
-        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
                 PodInstanceRequirement.create(dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance)));
@@ -178,7 +178,7 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testEnvironmentVariablesAddedToNewOfferRequirement() throws Exception {
-        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
 

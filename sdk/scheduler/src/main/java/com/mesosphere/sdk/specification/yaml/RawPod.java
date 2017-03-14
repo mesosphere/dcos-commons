@@ -10,11 +10,14 @@ import java.util.LinkedHashMap;
 /**
  * Raw YAML pod.
  */
-public class RawPod {
+public class RawPod implements RawContainerInfoProvider {
 
     private final String placement;
     private final Integer count;
     private final RawContainer container;
+    private final String image;
+    private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
+    private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
     private final String strategy;
     private final String user;
     private final Collection<String> uris;
@@ -26,6 +29,9 @@ public class RawPod {
             @JsonProperty("placement") String placement,
             @JsonProperty("count") Integer count,
             @JsonProperty("container") RawContainer container,
+            @JsonProperty("image") String image,
+            @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
+            @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
             @JsonProperty("strategy") String strategy,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
@@ -33,6 +39,9 @@ public class RawPod {
         this.placement = placement;
         this.count = count;
         this.container = container;
+        this.image = image;
+        this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
+        this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
         this.strategy = strategy;
         this.user = user;
         this.uris = uris;
@@ -55,6 +64,19 @@ public class RawPod {
     public RawContainer getContainer() {
         return container;
     }
+    
+    public String getImage() {
+        return image;
+    }
+
+    public LinkedHashMap<String, RawNetwork> getNetworks() {
+        return networks;
+    }
+
+    public LinkedHashMap<String, RawRLimit> getRLimits() {
+        return rlimits;
+    }
+
 
     public String getStrategy() {
         return strategy;
