@@ -11,8 +11,8 @@ from tests.test_utils import (
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_BROKER_COUNT,
-    service_cli,
-    POD_TYPE
+    DEFAULT_PLAN_NAME,
+    service_cli
 )
 
 
@@ -41,7 +41,7 @@ def test_placement_unique_hostname():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    pl = service_cli('plan show deploy')
+    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'COMPLETE'
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
@@ -58,7 +58,7 @@ def test_placement_max_one_per_hostname():
     # double check
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    pl = service_cli('plan show deploy')
+    pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'COMPLETE'
     install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
@@ -68,7 +68,7 @@ def test_placement_max_one_per_hostname():
 def test_marathon_rack_not_found():
     def fun():
         try:
-            return service_cli('plan show deploy')
+            return service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
         except:
             return False
 
@@ -79,8 +79,10 @@ def test_marathon_rack_not_found():
                               ),
                               wait_for_completion=False)
     try:
-        tasks.check_running(PACKAGE_NAME, 1, timeout=120)
+        tasks.check_running(PACKAGE_NAME, 1, timeout_seconds=120)
         assert False, "Should have failed to install"
+    except AssertionError as arg:
+        raise arg
     except:
         pass  # expected to fail
 

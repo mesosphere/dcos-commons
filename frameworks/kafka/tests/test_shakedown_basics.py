@@ -17,8 +17,11 @@ from tests.test_utils import (
     DEFAULT_BROKER_COUNT,
     DEFAULT_TOPIC_NAME,
     EPHEMERAL_TOPIC_NAME,
-    service_cli,
-    POD_TYPE
+    DEFAULT_POD_TYPE,
+    DEFAULT_PHASE_NAME,
+    DEFAULT_PLAN_NAME,
+    DEFAULT_TASK_NAME,
+    service_cli
 )
 
 
@@ -39,7 +42,7 @@ def teardown_module(module):
 @pytest.mark.sanity
 def test_endpoints_address():
     def fun():
-        ret = service_cli('endpoints broker')
+        ret = service_cli('endpoints {}'.format(DEFAULT_TASK_NAME))
         if len(ret['native']) == DEFAULT_BROKER_COUNT:
             return ret
         return False
@@ -73,6 +76,8 @@ def test_broker_invalid():
     try:
         command.run_cli('{} broker get {}'.format(PACKAGE_NAME, DEFAULT_BROKER_COUNT + 1))
         assert False, "Should have failed"
+    except AssertionError as arg:
+        raise arg
     except:
         pass  # expected to fail
 
@@ -83,19 +88,19 @@ def test_broker_invalid():
 @pytest.mark.special
 def test_pods_restart():
     for i in range(DEFAULT_BROKER_COUNT):
-        broker_id = tasks.get_task_ids(SERVICE_NAME,'{}-{}-broker'.format(POD_TYPE, i))
-        restart_info = service_cli('pods restart {}-{}'.format(POD_TYPE, i))
-        tasks.check_tasks_updated(SERVICE_NAME, '{}-{}-broker'.format(POD_TYPE, i), broker_id)
+        broker_id = tasks.get_task_ids(SERVICE_NAME,'{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME))
+        restart_info = service_cli('pods restart {}-{}'.format(DEFAULT_DEFAULT_POD_TYPE, i))
+        tasks.check_tasks_updated(SERVICE_NAME, '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME), broker_id)
         assert len(restart_info) == 2
-        assert restart_info['tasks'] == '{}-{}-broker'.format(POD_TYPE, i)
+        assert restart_info['tasks'] == '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_replace():
-    broker_0_id = tasks.get_task_ids(SERVICE_NAME, '{}-0-broker'.format(POD_TYPE))
-    service_cli('pods replace {}-0'.format(POD_TYPE))
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-0-broker'.format(POD_TYPE), broker_0_id)
+    broker_0_id = tasks.get_task_ids(SERVICE_NAME, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME))
+    service_cli('pods replace {}-0'.format(DEFAULT_POD_TYPE))
+    tasks.check_tasks_updated(SERVICE_NAME, '{}-0-{}'.format(DEFAULT_POD_TYPE, DEFAULT_TASK_NAME), broker_0_id)
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
 
@@ -238,9 +243,10 @@ def test_config_cli():
 @pytest.mark.sanity
 def test_plan_cli():
     assert service_cli('plan list')
-    assert service_cli('plan show deploy')
-    assert service_cli('plan interrupt deploy Deployment')
-    assert service_cli('plan continue deploy Deployment')
+    assert service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
+    assert service_cli('plan interrupt {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
+    assert service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
+
 
 
 @pytest.mark.smoke1
@@ -255,8 +261,8 @@ def test_state_cli():
 @pytest.mark.sanity
 def test_pods_cli():
     assert service_cli('pods list')
-    assert service_cli('pods status {}-0'.format(POD_TYPE))
-    assert service_cli('pods info {}-0'.format(POD_TYPE))
+    assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE))
+    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE))
 
 # --------- Suppressed -------------
 
