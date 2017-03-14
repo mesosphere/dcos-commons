@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.Configuration;
 

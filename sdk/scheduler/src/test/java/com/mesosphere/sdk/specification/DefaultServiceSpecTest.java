@@ -7,7 +7,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -83,6 +82,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
         Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
+        validateServiceSpec("valid-simple.yml", false);
     }
 
     @Test
@@ -93,6 +93,7 @@ public class DefaultServiceSpecTest {
         Assert.assertNotNull(serviceSpec);
         Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
         Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
+        validateServiceSpec("valid-gpu-resource.yml", true);
     }
 
     @Test
@@ -168,6 +169,7 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(5 == readinessCheckSpec.getInterval());
         Assert.assertTrue(0 == readinessCheckSpec.getDelay());
         Assert.assertTrue(10 == readinessCheckSpec.getTimeout());
+        validateServiceSpec("readiness-check.yml", false);
     }
 
     @Test
