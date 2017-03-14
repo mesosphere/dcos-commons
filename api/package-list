@@ -12,6 +12,8 @@ com.mesosphere.sdk.helloworld.scheduler
 com.mesosphere.sdk.kafka.api
 com.mesosphere.sdk.kafka.cmd
 com.mesosphere.sdk.kafka.scheduler
+com.mesosphere.sdk.kafka.upgrade
+com.mesosphere.sdk.kafka.upgrade.old
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.offer.evaluate.placement
