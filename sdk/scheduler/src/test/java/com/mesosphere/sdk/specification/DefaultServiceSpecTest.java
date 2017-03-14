@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.PortRequirement;
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.evaluate.PortsRequirement;
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.apache.mesos.Protos;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 
@@ -81,7 +82,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
-        Assert.assertFalse(serviceSpec.getGpuOptin());
+        Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
     }
 
     @Test
@@ -90,7 +91,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
-        Boolean obs = serviceSpec.getGpuOptin();
+        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
         Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
     }
 
@@ -100,7 +101,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
         DefaultServiceSpec serviceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertNotNull(serviceSpec);
-        Boolean obs = serviceSpec.getGpuOptin();
+        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
         Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
     }
 

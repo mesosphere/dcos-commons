@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
@@ -148,6 +149,20 @@ public class DefaultService implements Service {
         startApiServer(defaultScheduler, apiPort, Collections.EMPTY_LIST);
     }
 
+    public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        Collection<PodSpec> pods = serviceSpec.getPods();
+        for (PodSpec pod : pods) {
+            for (TaskSpec taskSpec : pod.getTasks()) {
+                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     protected static void startApiServer(
             DefaultScheduler defaultScheduler,
             int apiPort,
@@ -189,20 +204,6 @@ public class DefaultService implements Service {
 
     private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         return getFrameworkInfo(serviceSpec, stateStore, USER, TWO_WEEK_SEC);
-    }
-
-    private static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
-        Collection<PodSpec> pods = serviceSpec.getPods();
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     protected Protos.FrameworkInfo getFrameworkInfo(
