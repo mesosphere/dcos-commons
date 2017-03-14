@@ -1002,14 +1002,13 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">hello</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
-    <span class="s">container</span><span class="pi">:</span>
-      <span class="s">image-name</span><span class="pi">:</span> <span class="s">ubuntu</span>
-      <span class="s">networks</span><span class="pi">:</span>
-        <span class="s">dcos</span><span class="pi">:</span> <span class="pi">{}</span>
-      <span class="s">rlimits</span><span class="pi">:</span>
-        <span class="s">RLIMIT_NOFILE</span><span class="pi">:</span>
-          <span class="s">soft</span><span class="pi">:</span> <span class="s">1024</span>
-          <span class="s">hard</span><span class="pi">:</span> <span class="s">2048</span>
+    <span class="s">image</span><span class="pi">:</span> <span class="s">ubuntu</span>
+    <span class="s">networks</span><span class="pi">:</span>
+      <span class="s">dcos</span><span class="pi">:</span> <span class="pi">{}</span>
+    <span class="s">rlimits</span><span class="pi">:</span>
+      <span class="s">RLIMIT_NOFILE</span><span class="pi">:</span>
+        <span class="s">soft</span><span class="pi">:</span> <span class="s">1024</span>
+        <span class="s">hard</span><span class="pi">:</span> <span class="s">2048</span>
     <span class="s">tasks</span><span class="pi">:</span>
       <span class="s">server</span><span class="pi">:</span>
         <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
@@ -1510,8 +1509,7 @@ hello
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">web-url</span><span class="pi">:</span> <span class="s">http://proxylite-0-server.{{FRAMEWORK_NAME}}.mesos:{{PROXYLITE_PORT}}</span>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">proxylite</span><span class="pi">:</span>
-    <span class="s">container</span><span class="pi">:</span>
-      <span class="s">image-name</span><span class="pi">:</span> <span class="s">mesosphere/proxylite:2.1.0</span>
+    <span class="s">image</span><span class="pi">:</span> <span class="s">mesosphere/proxylite:2.1.0</span>
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
     <span class="s">tasks</span><span class="pi">:</span>
       <span class="s">server</span><span class="pi">:</span>
