@@ -253,6 +253,45 @@ public class DefaultServiceSpecTest {
         }
     }
 
+    @Test
+    public void invalidScalarCpuResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-scalar-cpu-resource.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertEquals(1, constraintViolations.size());
+        }
+    }
+
+    @Test
+    public void invalidScalarMemResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-scalar-mem-resource.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertEquals(1, constraintViolations.size());
+        }
+    }
+
+    @Test
+    public void invalidScalarDiskResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-scalar-disk-resource.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertEquals(1, constraintViolations.size());
+        }
+    }
+
     @Test(expected = RLimit.InvalidRLimitException.class)
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
