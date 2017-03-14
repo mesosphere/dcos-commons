@@ -14,10 +14,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE})
 @Retention(RUNTIME)
-@Constraint(validatedBy = NonZeroScalarProtoValueValidator.class)
+@Constraint(validatedBy = PositiveScalarProtoValueValidator.class)
 @Documented
-public @interface NonZeroScalarProtoValue {
-    String message() default "{com.mesosphere.sdk.specification.validation.NonZeroScalarProtoValue.message}";
+public @interface PositiveScalarProtoValue {
+    String message() default "{com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue.message}";
 
     Class<?>[] groups() default {};
 

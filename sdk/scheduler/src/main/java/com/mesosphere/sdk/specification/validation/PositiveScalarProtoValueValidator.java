@@ -8,10 +8,10 @@ import javax.validation.ConstraintValidatorContext;
 /**
  * Ensure that a scalar Proto's value is > 0.
  */
-public class NonZeroScalarProtoValueValidator implements
-        ConstraintValidator<NonZeroScalarProtoValue, Protos.Value> {
+public class PositiveScalarProtoValueValidator implements
+        ConstraintValidator<PositiveScalarProtoValue, Protos.Value> {
     @Override
-    public void initialize(NonZeroScalarProtoValue nonZeroScalarProtoValue) {
+    public void initialize(PositiveScalarProtoValue positiveScalarProtoValue) {
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.offer.ResourceRequirement;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.specification.validation.NonZeroScalarProtoValue;
+import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -24,7 +24,7 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Size(min = 1)
     private final String name;
     @NotNull
-    @NonZeroScalarProtoValue
+    @PositiveScalarProtoValue
     private final Protos.Value value;
     @NotNull
     @Size(min = 1)
