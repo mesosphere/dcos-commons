@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
@@ -248,9 +247,8 @@ public class DefaultService implements Service {
         }
 
         if (serviceSpecRequestsGpuResources(serviceSpec)) {
-            fwkInfoBuilder.addCapabilities(
-                    Protos.FrameworkInfo.Capability.newBuilder()
-                            .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }
 
         return fwkInfoBuilder.build();

@@ -41,6 +41,11 @@
             "type":"number",
             "default":0.1
           },
+          "gpus":{
+            "description":"Hello pod GPU requirements",
+            "type":"number",
+            "default":1.0
+          },
           "mem":{
             "description":"Hello pod mem requirements (in MB)",
             "type":"integer",
@@ -64,6 +69,7 @@
         },
         "required":[
           "cpus",
+          "gpus",
           "mem",
           "disk",
           "count"
