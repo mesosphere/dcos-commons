@@ -1,0 +1,6 @@
+statsd:
+  - period: {{STATSD_PERIOD}}
+    timeunit: 'SECONDS'
+    hosts:
+      - host: {{STATSD_UDP_HOST}}
+        port: {{STATSD_UDP_PORT}}
