@@ -216,9 +216,31 @@ public class DefaultResourceSet implements ResourceSet {
                 RawPort rawPort = portEntry.getValue();
                 Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
                         .setType(Protos.Value.Type.RANGES);
-                portValueBuilder.getRangesBuilder().addRangeBuilder()
-                        .setBegin(rawPort.getPort())
-                        .setEnd(rawPort.getPort());
+                if (rawPort.getPort() != null) {
+                    if (rawPort.getBegin() != null || rawPort.getEnd() != null) {
+                        throw new IllegalStateException(String.format(
+                                "Port '%s' must only specify 'port', or both 'port-begin' and 'port-end'", name));
+                    }
+                    portValueBuilder.getRangesBuilder().addRangeBuilder()
+                            .setBegin(rawPort.getPort())
+                            .setEnd(rawPort.getPort());
+                } else if (rawPort.getBegin() != null && rawPort.getEnd() != null) {
+                    if (rawPort.getBegin() >= rawPort.getEnd()) {
+                        throw new IllegalStateException(String.format(
+                                "Port '%s' port-begin=%d must be smaller than port-end=%d",
+                                name, rawPort.getBegin(), rawPort.getEnd()));
+                    }
+                    if (rawPort.getBegin() == 0 || rawPort.getEnd() == 0) {
+                        throw new IllegalStateException(String.format(
+                                "Port '%s' must have non-zero values for both 'port-min' and 'port-max'", name));
+                    }
+                    portValueBuilder.getRangesBuilder().addRangeBuilder()
+                            .setBegin(rawPort.getBegin())
+                            .setEnd(rawPort.getEnd());
+                } else {
+                    throw new IllegalStateException(String.format(
+                            "Port '%s' must either specify 'port', or both 'port-min' and 'port-max'", name));
+                }
                 portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
                 if (envKey == null) {
                     envKey = rawPort.getEnvKey();

@@ -33,8 +33,12 @@ public class Constants {
 
     /** Provides the Task/Pod index of the instance, starting at 0. */
     public static final String POD_INSTANCE_INDEX_TASKENV = "POD_INSTANCE_INDEX";
-    /** Prefix used for port environment variables which advertise reserved ports by their name. */
+    /** Prefix used for single port environment variables which advertise a single port by its name. */
     public static final String PORT_NAME_TASKENV_PREFIX = "PORT_";
+    /** Suffix used for port range environment variables which advertise the start of a port range by its name. */
+    public static final String PORT_NAME_TASKENV_SUFFIX_RANGE_BEGIN = "_BEGIN";
+    /** Suffix used for port range environment variables which advertise the end of a port range by its name. */
+    public static final String PORT_NAME_TASKENV_SUFFIX_RANGE_END = "_END";
     /** Provides the configured name of the framework/service. */
     public static final String FRAMEWORK_NAME_TASKENV = "FRAMEWORK_NAME";
     /** Provides the name of the pod/task within the service. */
