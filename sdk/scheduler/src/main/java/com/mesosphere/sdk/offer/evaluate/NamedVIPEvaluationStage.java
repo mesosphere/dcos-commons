@@ -6,8 +6,6 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * This class evaluates an offer against a given {@link OfferRequirement} for port resources as in

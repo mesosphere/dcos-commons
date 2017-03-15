@@ -88,7 +88,6 @@ public class NamedVIPEvaluationStageTest {
 
     @Test
     public void testPortNumberIsUpdated() throws InvalidRequirementException {
-        String resourceId = UUID.randomUUID().toString();
         Protos.Resource desiredPorts = ResourceUtils.setLabel(
                 ResourceTestUtils.getDesiredRanges("ports", 10000, 10000),
                 TestConstants.HAS_VIP_LABEL,
