@@ -254,7 +254,7 @@ public class DefaultServiceSpecTest {
             Assert.assertTrue(cause.getMessage(), cause.getMessage().contains("Duplicate field 'meta-data-task'"));
         }
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void cantDefineContainerSettingsBothPlaces() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -269,7 +269,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
-    
+
     @Test
     public void validImageLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -277,7 +277,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
-    
+
     @Test
     public void validNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -285,7 +285,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
     }
-    
+
     @Test
     public void validNetworksLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -293,21 +293,60 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec defaultServiceSpec = generateServiceSpec(generateRawSpecFromYAML(file));
         Assert.assertEquals("test", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
     }
-    
+
     @Test(expected = UnrecognizedPropertyException.class)
     public void invalidNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-network.yml").getFile());
         generateServiceSpec(generateRawSpecFromYAML(file));
     }
-    
+
+    @Test
+    public void invalidScalarCpuResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-scalar-cpu-resource.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertEquals(1, constraintViolations.size());
+        }
+    }
+
+    @Test
+    public void invalidScalarMemResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-scalar-mem-resource.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertEquals(1, constraintViolations.size());
+        }
+    }
+
+    @Test
+    public void invalidScalarDiskResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-scalar-disk-resource.yml").getFile());
+        try {
+            generateServiceSpec(generateRawSpecFromYAML(file));
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertEquals(1, constraintViolations.size());
+        }
+    }
+
     @Test(expected = RLimit.InvalidRLimitException.class)
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
         generateServiceSpec(generateRawSpecFromYAML(file));
     }
-    
+
     @Test(expected = RLimit.InvalidRLimitException.class)
     public void invalidRLimitNameLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
