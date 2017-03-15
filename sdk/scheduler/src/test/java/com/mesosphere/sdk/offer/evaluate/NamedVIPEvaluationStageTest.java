@@ -85,4 +85,46 @@ public class NamedVIPEvaluationStageTest {
                 .getTaskInfo().getDiscovery().getPorts().getPorts(0).getLabels().getLabels(0).getKey();
         Assert.assertEquals(portVIPLabel, taskVIPLabel);
     }
+
+    @Test
+    public void testPortNumberIsUpdated() throws InvalidRequirementException {
+        Protos.Resource desiredPorts = ResourceUtils.setLabel(
+                ResourceTestUtils.getDesiredRanges("ports", 10000, 10000),
+                TestConstants.HAS_VIP_LABEL,
+                "test-vip:80");
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedPorts(8000, 8000);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
+
+        OfferRequirement offerRequirement = OfferRequirementTestUtils.getOfferRequirement(desiredPorts);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(offerRequirement);
+
+        // Update the resource to have a different port, so that the TaskInfo's DiscoveryInfo mirrors the case where
+        // a new port has been requested but we want to reuse the old VIP definition.
+        Protos.Resource.Builder resourceBuilder = desiredPorts.toBuilder();
+        resourceBuilder.clearRanges().getRangesBuilder().addRangeBuilder().setBegin(8000).setEnd(8000);
+        desiredPorts = resourceBuilder.build();
+
+        PortEvaluationStage portEvaluationStage = new NamedVIPEvaluationStage(
+                desiredPorts,
+                TestConstants.TASK_NAME,
+                "test-port",
+                8000,
+                "sctp",
+                DiscoveryInfo.Visibility.CLUSTER,
+                "test-vip",
+                80);
+
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(new MesosResourcePool(offer), podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
+        Assert.assertEquals(1, discoveryInfo.getPorts().getPortsList().size());
+        Assert.assertEquals(1, discoveryInfo.getPorts().getPorts(0).getLabels().getLabelsList().size());
+        Assert.assertEquals(8000, discoveryInfo.getPorts().getPorts(0).getNumber());
+
+       // String portVIPLabel = discoveryInfo.getPorts().getPorts(0).getLabels().getLabels(0).getKey();
+       // String taskVIPLabel = offerRequirement.getTaskRequirements().iterator().next()
+       //         .getTaskInfo().getDiscovery().getPorts().getPorts(0).getLabels().getLabels(0).getKey();
+       // Assert.assertEquals(portVIPLabel, taskVIPLabel);
+    }
 }
