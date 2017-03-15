@@ -121,10 +121,5 @@ public class NamedVIPEvaluationStageTest {
         Assert.assertEquals(1, discoveryInfo.getPorts().getPortsList().size());
         Assert.assertEquals(1, discoveryInfo.getPorts().getPorts(0).getLabels().getLabelsList().size());
         Assert.assertEquals(8000, discoveryInfo.getPorts().getPorts(0).getNumber());
-
-        String portVIPLabel = discoveryInfo.getPorts().getPorts(0).getLabels().getLabels(0).getKey();
-        String taskVIPLabel = offerRequirement.getTaskRequirements().iterator().next()
-                .getTaskInfo().getDiscovery().getPorts().getPorts(0).getLabels().getLabels(0).getKey();
-        Assert.assertEquals(portVIPLabel, taskVIPLabel);
     }
 }
