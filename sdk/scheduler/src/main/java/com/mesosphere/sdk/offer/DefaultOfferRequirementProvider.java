@@ -24,12 +24,6 @@ import static com.mesosphere.sdk.offer.Constants.*;
  */
 public class DefaultOfferRequirementProvider implements OfferRequirementProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOfferRequirementProvider.class);
-    private static final String EXECUTOR_URI = "EXECUTOR_URI";
-    private static final String LIBMESOS_URI = "LIBMESOS_URI";
-    private static final String JAVA_URI = "JAVA_URI";
-
-    private static final String DEFAULT_JAVA_URI =
-            "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz";
 
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
@@ -262,6 +256,10 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
         }
 
+        if (taskSpec.getDiscovery().isPresent()) {
+            taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
+        }
+
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
@@ -323,7 +321,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(
-                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfo.getResourcesList()));
+                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfoBuilder.getResourcesList()));
     }
 
     private static void setBootstrapConfigFileEnv(
@@ -352,6 +350,20 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
     }
 
+    private static Protos.DiscoveryInfo getDiscoveryInfo(DiscoverySpec discoverySpec, int index) {
+        Protos.DiscoveryInfo.Builder builder = Protos.DiscoveryInfo.newBuilder();
+        if (discoverySpec.getPrefix().isPresent()) {
+            builder.setName(String.format("%s-%d", discoverySpec.getPrefix().get(), index));
+        }
+        if (discoverySpec.getVisibility().isPresent()) {
+            builder.setVisibility(discoverySpec.getVisibility().get());
+        } else {
+            builder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
+        }
+
+        return builder.build();
+    }
+
     private static Protos.Environment getTaskEnvironment(
             String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
         Map<String, String> environment = new HashMap<>();
@@ -362,11 +374,11 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // Default envvars for use by executors/developers:
 
         // Inject Pod Instance Index
-        environment.put(POD_INSTANCE_INDEX_KEY, String.valueOf(podInstance.getIndex()));
+        environment.put(POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name
-        environment.put(FRAMEWORK_NAME_KEY, serviceName);
+        environment.put(FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject TASK_NAME as KEY:VALUE
-        environment.put(TASK_NAME_KEY, TaskSpec.getInstanceName(podInstance, taskSpec));
+        environment.put(TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         environment.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
@@ -528,25 +540,29 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
     }
 
-    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
+    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+        if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
+            return null;
+        }
+
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (containerSpec.getImageName().isPresent()) {
+        if (podSpec.getImage().isPresent()) {
             containerInfo.getMesosBuilder()
-                    .setImage(Protos.Image.newBuilder()
-                            .setType(Protos.Image.Type.DOCKER)
-                            .setDocker(Protos.Image.Docker.newBuilder()
-                                    .setName(containerSpec.getImageName().get())));
+            .setImage(Protos.Image.newBuilder()
+                    .setType(Protos.Image.Type.DOCKER)
+                    .setDocker(Protos.Image.Docker.newBuilder()
+                            .setName(podSpec.getImage().get())));
         }
 
-        if (!containerSpec.getNetworks().isEmpty()) {
+        if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
-                    containerSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+                    podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
         }
 
-        if (!containerSpec.getRLimits().isEmpty()) {
-            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
+        if (!podSpec.getRLimits().isEmpty()) {
+            containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
         }
 
         return containerInfo.build();
@@ -581,8 +597,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
-        if (podSpec.getContainer().isPresent()) {
-            executorInfoBuilder.setContainer(getContainerInfo(podSpec.getContainer().get()));
+        Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
+        if (containerInfo != null) {
+            executorInfoBuilder.setContainer(containerInfo);
         }
 
         // command and user:
@@ -591,7 +608,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
                 "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
-                "./executor/bin/executor");
+                "$MESOS_SANDBOX/executor/bin/executor");
 
         if (podSpec.getUser().isPresent()) {
             executorCommandBuilder.setUser(podSpec.getUser().get());
@@ -600,23 +617,23 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         // URIs:
 
         // Required in scheduler env.
-        String executorUri = System.getenv(EXECUTOR_URI);
+        String executorUri = System.getenv(EXECUTOR_URI_SCHEDENV);
         if (executorUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI);
+            throw new IllegalStateException("Missing required environment variable: " + EXECUTOR_URI_SCHEDENV);
         }
         executorCommandBuilder.addUrisBuilder().setValue(executorUri);
 
         // Required in scheduler env.
-        String libmesosUri = System.getenv(LIBMESOS_URI);
+        String libmesosUri = System.getenv(LIBMESOS_URI_SCHEDENV);
         if (libmesosUri == null) {
-            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI);
+            throw new IllegalStateException("Missing required environment variable: " + LIBMESOS_URI_SCHEDENV);
         }
         executorCommandBuilder.addUrisBuilder().setValue(libmesosUri);
 
         // Reuse scheduler's JAVA_URI for executors when available, or fall back to default.
-        String javaUri = System.getenv(JAVA_URI);
+        String javaUri = System.getenv(JAVA_URI_SCHEDENV);
         if (javaUri == null) {
-            javaUri = DEFAULT_JAVA_URI;
+            javaUri = JAVA_URI_DEFAULT;
         }
         executorCommandBuilder.addUrisBuilder().setValue(javaUri);
 

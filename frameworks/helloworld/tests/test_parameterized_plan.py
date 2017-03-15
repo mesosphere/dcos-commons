@@ -21,6 +21,10 @@ def setup_module(module):
     install.install(PACKAGE_NAME, 2, additional_options=options)
 
 
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
+
+
 @pytest.mark.sanity
 def test_deploy():
     deployment_plan = plan.get_deployment_plan(PACKAGE_NAME).json()

@@ -1,0 +1,16 @@
+{
+  "packagingVersion": "2.0",
+  "name": "cassandra",
+  "version": "{{package-version}}",
+  "maintainer": "support@mesosphere.io",
+  "description": "An example implementation of a stateful service using the DC/OS SDK",
+  "selected": false,
+  "framework": true,
+  "tags": [
+    "example",
+    "reference",
+    "cassandra"
+  ],
+  "postInstallNotes": "DC/OS cassandra is being installed!\n\n\tDocumentation: https://docs.mesosphere.com/latest/usage/service-guides/cassandra\n\tIssues: https://docs.mesosphere.com/support/",
+  "postUninstallNotes": "DC/OS cassandra has been uninstalled."
+}

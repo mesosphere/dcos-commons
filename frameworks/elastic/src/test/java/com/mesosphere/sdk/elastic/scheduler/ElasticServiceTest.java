@@ -54,13 +54,13 @@ public class ElasticServiceTest extends BaseServiceSpecTest {
         ENV_VARS.set("PROXYLITE_CPUS", ".1");
         ENV_VARS.set("PROXYLITE_MEM", "32");
         ENV_VARS.set("PROXYLITE_PORT", "4040");
-        URL resource = ElasticServiceTest.class.getClassLoader().getResource("elastic_service.yml");
+        URL resource = ElasticServiceTest.class.getClassLoader().getResource("svc.yml");
         ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
     }
 
     @Test
     public void testYaml() throws Exception {
-        super.testYaml("elastic_service.yml");
+        super.testYaml("svc.yml");
     }
 
 }

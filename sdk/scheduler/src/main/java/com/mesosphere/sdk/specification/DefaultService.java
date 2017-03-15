@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerDriverFactory;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
@@ -28,6 +29,8 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
+
 /**
  * This class is a default implementation of the Service interface.  It serves mainly as an example
  * with hard-coded values for "user", and "master-uri", and failover timeouts.  More sophisticated
@@ -44,6 +47,12 @@ public class DefaultService implements Service {
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     private DefaultScheduler.Builder schedulerBuilder;
+
+    private ServiceSpec serviceSpec;
+
+    public DefaultService() {
+        //No initialization needed
+    }
 
     public DefaultService(String yamlSpecification) throws Exception {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
@@ -63,7 +72,15 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
+        initService(schedulerBuilder);
+    }
+
+    protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
+        this.serviceSpec = schedulerBuilder.getServiceSpec();
+
+        // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
+        DcosCertInstaller.installCertificate(System.getenv("JAVA_HOME"));
 
         CuratorFramework curatorClient = CuratorFrameworkFactory.newClient(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection(), CuratorUtils.getDefaultRetry());
@@ -76,9 +93,6 @@ public class DefaultService implements Service {
             unlock(curatorMutex);
             curatorClient.close();
         }
-    }
-
-    public DefaultService(){
     }
 
     /**
@@ -144,8 +158,12 @@ public class DefaultService implements Service {
                 serviceSpec.getZookeeperConnection());
     }
 
-    private static void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
-        startApiServer(defaultScheduler, apiPort, Collections.EMPTY_LIST);
+    private void startApiServer(DefaultScheduler defaultScheduler, int apiPort) {
+        startApiServer(defaultScheduler, apiPort, Collections.emptyList());
+    }
+
+    protected ServiceSpec getServiceSpec() {
+        return this.serviceSpec;
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
@@ -159,10 +177,10 @@ public class DefaultService implements Service {
                 }
             }
         }
-        return false;
+        return DEFAULT_GPU_POLICY;
     }
 
-    protected static void startApiServer(
+    protected void startApiServer(
             DefaultScheduler defaultScheduler,
             int apiPort,
             Collection<Object> additionalResources) {

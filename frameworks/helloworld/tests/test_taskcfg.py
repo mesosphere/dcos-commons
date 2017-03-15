@@ -1,4 +1,3 @@
-import dcos.http
 import pytest
 import shakedown
 
@@ -9,7 +8,6 @@ import sdk_spin as spin
 
 from tests.config import (
     PACKAGE_NAME,
-    DEFAULT_TASK_COUNT,
     check_running
 )
 
@@ -19,6 +17,10 @@ def setup_module(module):
     options = install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
     # don't wait for install to complete successfully:
     shakedown.install_package(PACKAGE_NAME, options_json=options)
+
+
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -53,6 +55,6 @@ def test_deploy():
     del env['SLEEP_DURATION']
     env['TASKCFG_ALL_OUTPUT_FILENAME'] = 'output'
     env['TASKCFG_ALL_SLEEP_DURATION'] = '1000'
-    cmd.request('put', marathon.api_url('apps/' + PACKAGE_NAME), json=config)
+    marathon.update_app(PACKAGE_NAME, config)
 
     check_running()

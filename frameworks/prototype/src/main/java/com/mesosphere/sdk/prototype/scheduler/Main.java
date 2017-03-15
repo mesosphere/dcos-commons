@@ -18,9 +18,9 @@ public class Main {
         }
         final String pathToServiceSpecification = args[0];
         LOGGER.info("Reading service specification from: {}", pathToServiceSpecification);
-        final File serviceSpeficiationFile = new File(args[0]);
-        if (serviceSpeficiationFile.exists()) {
-            new DefaultService(serviceSpeficiationFile);
+        final File serviceSpecificationFile = new File(args[0]);
+        if (serviceSpecificationFile.exists()) {
+            new DefaultService(serviceSpecificationFile);
         } else {
             LOGGER.error("Service specification file doesn't exist at location: {}", pathToServiceSpecification);
             System.exit(1);

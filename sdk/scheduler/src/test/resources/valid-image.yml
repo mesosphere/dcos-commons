@@ -1,0 +1,11 @@
+name: "valid-container-image-test"
+pods:
+  server:
+    count: 1
+    image: group/image
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cmd"
+        cpus: 1
+        memory: 1024

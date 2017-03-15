@@ -24,6 +24,7 @@ public class RawTask {
     private final RawVolume volume;
     private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
     private final String resourceSet;
+    private final RawDiscovery discovery;
 
     private RawTask(
             @JsonProperty("goal") String goal,
@@ -38,7 +39,8 @@ public class RawTask {
             @JsonProperty("readiness-check") RawReadinessCheck readinessCheck,
             @JsonProperty("volume") RawVolume volume,
             @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
-            @JsonProperty("resource-set") String resourceSet) {
+            @JsonProperty("resource-set") String resourceSet,
+            @JsonProperty("discovery") RawDiscovery discovery) {
         this.goal = goal;
         this.cmd = cmd;
         this.env = env;
@@ -52,6 +54,7 @@ public class RawTask {
         this.volume = volume;
         this.volumes = volumes;
         this.resourceSet = resourceSet;
+        this.discovery = discovery;
     }
 
     public Double getCpus() {
@@ -66,6 +69,10 @@ public class RawTask {
 
     public String getResourceSet() {
         return resourceSet;
+    }
+
+    public RawDiscovery getDiscovery() {
+        return discovery;
     }
 
     public RawHealthCheck getHealthCheck() {

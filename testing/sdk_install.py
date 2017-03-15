@@ -1,9 +1,8 @@
 '''Utilities relating to installing services'''
 
+import collections
 import dcos.errors
 import dcos.marathon
-import sdk_cmd
-import sdk_marathon
 import sdk_spin
 import sdk_tasks
 import shakedown
@@ -12,41 +11,37 @@ import os
 import time
 
 
-def install(
-        package_name,
-        running_task_count,
-        service_name=None,
-        additional_options={},
-        package_version=None):
+def install(package_name, running_task_count, service_name=None, additional_options={}, package_version=None):
     if not service_name:
         service_name = package_name
     start = time.time()
     merged_options = get_package_options(additional_options)
-    print('Installing {} with options={} version={}'.format(
-        package_name, merged_options, package_version))
+    print('Installing {} with options={} version={}'.format(package_name, merged_options, package_version))
     # install_package_and_wait silently waits for all marathon deployments to clear.
     # to give some visibility, install in the following order:
     # 1. install package
-    shakedown.install_package(
-        package_name,
-        package_version=package_version,
-        options_json=merged_options)
+    shakedown.install_package(package_name, package_version=package_version, options_json=merged_options)
     # 2. wait for expected tasks to come up
+    print("Waiting for expected tasks to come up...")
     sdk_tasks.check_running(service_name, running_task_count)
     # 3. check service health
-    app_id = sdk_marathon.get_config(service_name)['id']
     marathon_client = dcos.marathon.create_client()
+
     def fn():
         # TODO(nickbp): upstream fix to shakedown, which currently checks for ANY deployments rather
         #               than the one we care about
         deploying_apps = set([])
-        for d in marathon_client.get_deployments():
+        print("Getting deployments")
+        deployments = marathon_client.get_deployments()
+        print("Found {} deployments".format(len(deployments)))
+        for d in deployments:
+            print("Deployment: {}".format(d))
             for a in d.get('affectedApps', []):
+                print("Adding {}".format(a))
                 deploying_apps.add(a)
-        print('Checking deployment of {} has ended:\n- Deploying apps: {}'.format(
-            service_name, deploying_apps))
+        print('Checking deployment of {} has ended:\n- Deploying apps: {}'.format(service_name, deploying_apps))
         return not '/{}'.format(service_name) in deploying_apps
-    sdk_spin.time_wait_noisy(lambda: fn())
+    sdk_spin.time_wait_noisy(lambda: fn(), timeout_seconds=30)
     print('Install done after {}'.format(sdk_spin.pretty_time(time.time() - start)))
 
 
@@ -84,26 +79,23 @@ def get_package_options(additional_options={}):
     if os.environ.get('SECURITY', '') == 'strict':
         # strict mode requires correct principal and secret to perform install.
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
-        return _nested_dict_merge(additional_options, {
+        return _merge_dictionary(additional_options, {
             'service': { 'principal': 'service-acct', 'secret_name': 'secret' }
         })
     else:
         return additional_options
 
 
-def _nested_dict_merge(a, b, path=None):
-    "ripped from http://stackoverflow.com/questions/7204805/dictionaries-of-dictionaries-merge"
-    if path is None:
-        path = []
-    a = a.copy()
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                _nested_dict_merge(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass # same leaf value
-            else:
-                raise Exception('Conflict at %s' % '.'.join(path + [str(key)]))
+def _merge_dictionary(dict1, dict2):
+    if (not isinstance(dict2, dict)):
+        return dict1
+    ret = {}
+    for k, v in dict1.items():
+        ret[k] = v
+    for k, v in dict2.items():
+        if (k in dict1 and isinstance(dict1[k], dict)
+            and isinstance(dict2[k], collections.Mapping)):
+            ret[k] = _merge_dictionary(dict1[k], dict2[k])
         else:
-            a[key] = b[key]
-    return a
+            ret[k] = dict2[k]
+    return ret

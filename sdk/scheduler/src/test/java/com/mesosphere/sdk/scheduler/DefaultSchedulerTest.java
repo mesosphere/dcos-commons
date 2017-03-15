@@ -3,10 +3,22 @@ package com.mesosphere.sdk.scheduler;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.offer.OfferRequirement;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreCache;
+import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -15,21 +27,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.offer.OfferRequirement;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreCache;
-import com.mesosphere.sdk.testutils.CuratorTestUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.awaitility.Awaitility;
+import org.awaitility.Duration;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -42,6 +41,7 @@ import org.mockito.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -130,6 +130,16 @@ public class DefaultSchedulerTest {
             UPDATED_TASK_B_MEM,
             TASK_B_DISK);
 
+    private static final PodSpec invalidPodB = TestPodFactory.getPodSpec(
+            TASK_B_POD_NAME,
+            TestConstants.RESOURCE_SET_ID + "-B",
+            TASK_B_NAME,
+            TASK_B_CMD,
+            TASK_B_COUNT - 1,
+            TASK_B_CPU,
+            TASK_B_MEM,
+            TASK_B_DISK);
+
     private static final PodSpec scaledPodA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-A",
@@ -164,6 +174,7 @@ public class DefaultSchedulerTest {
     private static final ServiceSpec UPDATED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB).build();
     private static final ServiceSpec UPDATED_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, updatedPodB).build();
     private static final ServiceSpec SCALED_POD_A_SERVICE_SPECIFICATION = getServiceSpec(scaledPodA, podB).build();
+    private static final ServiceSpec INVALID_POD_B_SERVICE_SPECIFICATION = getServiceSpec(podA, invalidPodB).build();
 
     private static TestingServer testingServer;
 
@@ -541,6 +552,26 @@ public class DefaultSchedulerTest {
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
     }
 
+    @Test
+    public void testInvalidConfigurationUpdate() throws Exception {
+        // Launch A and B in original configuration
+        testLaunchB();
+        defaultScheduler.awaitTermination();
+
+        // Get initial target config UUID
+        UUID targetConfigId = configStore.getTargetConfig();
+
+        // Build new scheduler with invalid config (shrinking task count)
+        defaultScheduler = DefaultScheduler.newBuilder(INVALID_POD_B_SERVICE_SPECIFICATION)
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setCapabilities(getCapabilitiesWithDefaultGpuSupport())
+                .build();
+
+        // Ensure prior target configuration is still intact
+        Assert.assertEquals(targetConfigId, configStore.getTargetConfig());
+    }
+
     private List<Protos.Resource> getExpectedResources(Collection<Protos.Offer.Operation> operations) {
         for (Protos.Offer.Operation operation : operations) {
             if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
@@ -563,7 +594,79 @@ public class DefaultSchedulerTest {
         List<Protos.TaskID> taskIds = install();
         statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
 
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stateStore).isSuppressed(), equalTo(false));
+        Awaitility.await()
+            .atMost(1, TimeUnit.SECONDS)
+            .until(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    return !StateStoreUtils.isSuppressed(stateStore);
+                }
+            });
+    }
+
+    @Test
+    public void testClearFailureMarkOnRunning() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_RUNNING);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
+    }
+
+    @Test
+    public void testClearFailureMarkOnFinished() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FINISHED);
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).until(taskMarkFailed(taskInfo.getName()), equalTo(false));
+    }
+
+    @Test
+    public void testMaintainFailureMarkOnFailure() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
+    }
+
+    @Test
+    public void testMaintainFailureMarkOnError() throws InterruptedException {
+        Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .build();
+        taskInfo = FailureUtils.markFailed(taskInfo);
+
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+        statusUpdate(taskInfo.getTaskId(), Protos.TaskState.TASK_ERROR);
+        Awaitility.await().pollDelay(Duration.ONE_SECOND).until(taskMarkFailed(taskInfo.getName()), equalTo(true));
+    }
+
+    private Callable<Boolean> taskMarkFailed(String taskName) {
+        return new Callable<Boolean>() {
+            @Override
+            public Boolean call() throws Exception {
+                return FailureUtils.isLabeledAsFailed(stateStore.fetchTask(taskName).get());
+            }
+        };
     }
 
     private int countOperationType(
@@ -716,7 +819,7 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
 
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), getStepStatuses(plan));
-        Assert.assertTrue(stateStore.isSuppressed());
+        Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
 
         return taskIds;
     }

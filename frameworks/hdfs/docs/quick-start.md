@@ -1,12 +1,12 @@
 ---
 post_title: Quick Start
 menu_order: 0
-feature_maturity: experimental
+feature_maturity: preview
 enterprise: 'no'
 ---
 
 1. Install HDFS from the DC/OS CLI.
-    
+
     If you are using open source DC/OS, install an HDFS cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
     **Note:** Your cluster must have at least 5 private nodes.
@@ -26,22 +26,22 @@ enterprise: 'no'
 1. Run the hadoop client
 
     ```bash
-    $ docker run -it mesosphere/hdfs-client:1.0.0-2.6.0 bash 
+    $ docker run -it mesosphere/hdfs-client:1.0.0-2.6.0 bash
     $ ./bin/hdfs dfs -ls /
     ```
 
 By default, the client is configured to be configured to connect to an HDFS service named `hdfs` and no further client configuration is required.
 
-    ```bash
-    $ ./bin/hdfs dfs -ls /
-    ```
+```bash
+$ ./bin/hdfs dfs -ls /
+```
 
 If an HDFS cluster has been installed which does not use the default name of `hdfs`, the client must be configured before use.
-    
-    ```bash
-    $ HDFS_SERVICE_NAME=hdfs-alternate-name /configure-hdfs.sh
-    $ ./bin/hdfs dfs -ls /
-    ```
+
+```bash
+$ HDFS_SERVICE_NAME=hdfs-alternate-name /configure-hdfs.sh
+$ ./bin/hdfs dfs -ls /
+```
 
 1. To configure other clients, return to the DC/OS CLI. Retrieve the `hdfs-site.xml` and `core-site.xml` files with the `dcos hdfs endpoints` command and the `hdfs-site.xml` and `core-site.xml` argument:
 

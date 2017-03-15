@@ -4,8 +4,7 @@ import sdk_install as install
 import sdk_plan as plan
 
 from tests.config import (
-    PACKAGE_NAME,
-    DEFAULT_TASK_COUNT
+    PACKAGE_NAME
 )
 
 
@@ -19,6 +18,10 @@ def setup_module(module):
 
     # this config produces 1 hello's + 0 world's:
     install.install(PACKAGE_NAME, 1, additional_options=options)
+
+
+def teardown_module(module):
+    install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

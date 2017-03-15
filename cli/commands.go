@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
+	"log"
 	"net/url"
 	"os"
 	"strings"
@@ -50,45 +50,28 @@ func GetPlanParameterPayload(parameters string) (string, error) {
 	return string(jsonVal), nil
 }
 
+//TODO: remove NewApp and HandleCommonFlags (in favor of New()) on or after April 2017
 func NewApp(version string, author string, longDescription string) (*kingpin.Application, error) {
+	return New(), nil
+}
+func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
+}
+
+func New() *kingpin.Application {
 	modName, err := GetModuleName()
 	if err != nil {
-		return nil, err
+		log.Fatalf(err.Error())
 	}
 
-	app := kingpin.New(modName, longDescription)
-	app.Version(version)
-	app.Author(author)
-	return app, nil
-}
+	app := kingpin.New(fmt.Sprintf("dcos %s", modName), "")
 
-// Add all of the below arguments and commands
-
-// TODO remove this deprecated function on or after Feb 1 2017.
-// No longer invoked in any repo's 'master' branch as of Dec 22 2016.
-func HandleCommonArgs(
-	app *kingpin.Application,
-	defaultServiceName string,
-	shortDescription string,
-	connectionTypes []string) {
-	HandleCommonFlags(app, defaultServiceName, shortDescription)
-	HandleConfigSection(app)
-	HandleConnectionSection(app, connectionTypes)
-	//HandleEndpointsSection(app) omitted since callers likely don't have this
-	HandlePlanSection(app)
-	HandleStateSection(app)
-}
-
-// Standard Arguments
-
-func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shortDescription string) {
 	app.HelpFlag.Short('h') // in addition to default '--help'
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&Verbose)
 
 	// This fulfills an interface that's expected by the main DC/OS CLI:
 	// Prints a description of the module.
-	app.Flag("info", "Show short description.").PreAction(func(*kingpin.ParseContext) error {
-		fmt.Fprintf(os.Stdout, "%s\n", shortDescription)
+	app.Flag("info", "Show short description.").Hidden().PreAction(func(*kingpin.ParseContext) error {
+		fmt.Fprintf(os.Stdout, "%s DC/OS CLI Module\n", strings.Title(modName))
 		os.Exit(0)
 		return nil
 	}).Bool()
@@ -105,11 +88,13 @@ func HandleCommonFlags(app *kingpin.Application, defaultServiceName string, shor
 	app.Flag("custom-cert-path", "Custom TLS CA certificate file to use when querying service").Envar("DCOS_CA_PATH").Envar("DCOS_CERT_PATH").PlaceHolder("DCOS_CA_PATH/DCOS_CERT_PATH").StringVar(&tlsCACertPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
-	overrideServiceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
-	if len(overrideServiceName) != 0 {
-		defaultServiceName = overrideServiceName
+	serviceName := OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
+	if len(serviceName) == 0 {
+		serviceName = modName
 	}
-	app.Flag("name", "Name of the service instance to query").Default(defaultServiceName).StringVar(&ServiceName)
+	app.Flag("name", "Name of the service instance to query").Default(serviceName).StringVar(&ServiceName)
+
+	return app
 }
 
 // Config section
@@ -150,7 +135,7 @@ func HandleConfigSection(app *kingpin.Application) {
 	config.Command("target_id", "List ID of the target configuration").Action(cmd.RunTargetId)
 }
 
-// Connection section
+// Connection section, manually implemented by some services (DEPRECATED, use common Endpoints)
 
 type ConnectionHandler struct {
 	TypeName string
@@ -180,23 +165,21 @@ func HandleConnectionSection(app *kingpin.Application, connectionTypes []string)
 // Endpoints section
 
 type EndpointsHandler struct {
-	Native bool
-	Name   string
+	Name                  string
+	PrintDeprecatedNotice bool
 }
 
 func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
+	// TODO(nickbp): Remove this after April 2017
+	if cmd.PrintDeprecatedNotice {
+		log.Fatalf("--native is no longer supported. Use 'native' entries in endpoint listing.")
+	}
+
 	path := "v1/endpoints"
 	if len(cmd.Name) != 0 {
 		path += "/" + cmd.Name
 	}
-	var response *http.Response
-	if cmd.Native {
-		query := url.Values{}
-		query.Set("format", "native")
-		response = HTTPGetQuery(path, query.Encode())
-	} else {
-		response = HTTPGet(path)
-	}
+	response := HTTPGet(path)
 	if len(cmd.Name) == 0 {
 		// Root endpoint: Always produce JSON
 		PrintJSON(response)
@@ -208,10 +191,11 @@ func (cmd *EndpointsHandler) RunEndpoints(c *kingpin.ParseContext) error {
 }
 
 func HandleEndpointsSection(app *kingpin.Application) {
-	// connection [type]
+	// endpoints [type]
 	cmd := &EndpointsHandler{}
 	endpoints := app.Command("endpoints", "View client endpoints").Action(cmd.RunEndpoints)
-	endpoints.Flag("native", "Show native endpoints instead of Mesos-DNS endpoints").BoolVar(&cmd.Native)
+	// TODO(nickbp): Remove deprecated argument after April 2017:
+	endpoints.Flag("native", "deprecated argument").BoolVar(&cmd.PrintDeprecatedNotice)
 	endpoints.Arg("name", "Name of specific endpoint to be returned").StringVar(&cmd.Name)
 }
 
@@ -220,8 +204,8 @@ func HandleEndpointsSection(app *kingpin.Application) {
 type PlanHandler struct {
 	PlanName   string
 	Parameters string
-	PhaseId    string
-	StepId     string
+	Phase      string
+	Step       string
 }
 
 func GetPlanName(cmd *PlanHandler) string {
@@ -270,21 +254,29 @@ func (cmd *PlanHandler) RunStop(c *kingpin.ParseContext) error {
 }
 
 func (cmd *PlanHandler) RunContinue(c *kingpin.ParseContext) error {
-	response := HTTPPost(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)))
+	query := url.Values{}
+	if len(cmd.Phase) > 0 {
+		query.Set("phase", cmd.Phase)
+	}
+	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/continue", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
 }
 
 func (cmd *PlanHandler) RunInterrupt(c *kingpin.ParseContext) error {
-	response := HTTPPost(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)))
+	query := url.Values{}
+	if len(cmd.Phase) > 0 {
+		query.Set("phase", cmd.Phase)
+	}
+	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/interrupt", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
 }
 
 func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("phase", cmd.PhaseId)
-	query.Set("step", cmd.StepId)
+	query.Set("phase", cmd.Phase)
+	query.Set("step", cmd.Step)
 	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/restart", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
@@ -292,8 +284,8 @@ func (cmd *PlanHandler) RunRestart(c *kingpin.ParseContext) error {
 
 func (cmd *PlanHandler) RunForce(c *kingpin.ParseContext) error {
 	query := url.Values{}
-	query.Set("phase", cmd.PhaseId)
-	query.Set("step", cmd.StepId)
+	query.Set("phase", cmd.Phase)
+	query.Set("step", cmd.Step)
 	response := HTTPPostQuery(fmt.Sprintf("v1/plans/%s/forceComplete", GetPlanName(cmd)), query.Encode())
 	PrintJSON(response)
 	return nil
@@ -316,21 +308,23 @@ func HandlePlanSection(app *kingpin.Application) {
 	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.RunStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
 
-	continueCmd := plan.Command("continue", "Continue the deploy plan or the plan with the provided name").Action(cmd.RunContinue)
+	continueCmd := plan.Command("continue", "Continue the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Action(cmd.RunContinue)
 	continueCmd.Arg("plan", "Name of the plan to continue").StringVar(&cmd.PlanName)
+	continueCmd.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
 
-	interrupt := plan.Command("interrupt", "Interrupt the deploy plan or the plan with the provided name").Action(cmd.RunInterrupt)
+	interrupt := plan.Command("interrupt", "Interrupt the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Action(cmd.RunInterrupt)
 	interrupt.Arg("plan", "Name of the plan to interrupt").StringVar(&cmd.PlanName)
+	interrupt.Arg("phase", "Name or UUID of a specific phase to interrupt").StringVar(&cmd.Phase)
 
-	restart := plan.Command("restart", "Restart the plan with the provided name").Action(cmd.RunRestart)
+	restart := plan.Command("restart", "Restart the plan with the provided name, or the specific step in the provided phase (each by name or UUID)").Action(cmd.RunRestart)
 	restart.Arg("plan", "Name of the plan to restart").Required().StringVar(&cmd.PlanName)
-	restart.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
-	restart.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
+	restart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
+	restart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
 	force := plan.Command("force", "Force complete the plan with the provided name").Action(cmd.RunForce)
 	force.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
-	force.Arg("phase", "UUID of the Phase containing the provided Step").Required().StringVar(&cmd.PhaseId)
-	force.Arg("step", "UUID of Step to be restarted").Required().StringVar(&cmd.StepId)
+	force.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
+	force.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 }
 
 // Pods section
@@ -387,27 +381,26 @@ func HandlePodsSection(app *kingpin.Application) {
 // State section
 
 type StateHandler struct {
-	TaskName string
+	PropertyName string
 }
 
 func (cmd *StateHandler) RunFrameworkId(c *kingpin.ParseContext) error {
 	PrintJSON(HTTPGet("v1/state/frameworkId"))
 	return nil
 }
-func (cmd *StateHandler) RunStatus(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/tasks/status/%s", cmd.TaskName)))
+func (cmd *StateHandler) RunProperties(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPGet("v1/state/properties"))
 	return nil
 }
-func (cmd *StateHandler) RunTask(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet(fmt.Sprintf("v1/tasks/info/%s", cmd.TaskName)))
+func (cmd *StateHandler) RunProperty(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName)))
 	return nil
 }
-func (cmd *StateHandler) RunTasks(c *kingpin.ParseContext) error {
-	PrintJSON(HTTPGet("v1/tasks"))
+func (cmd *StateHandler) RunRefreshCache(c *kingpin.ParseContext) error {
+	PrintJSON(HTTPPut("v1/state/refresh"))
 	return nil
 }
 
-// TODO remove this command once callers have migrated to HandlePodsSection().
 func HandleStateSection(app *kingpin.Application) {
 	// state <framework_id, status, task, tasks>
 	cmd := &StateHandler{}
@@ -415,11 +408,10 @@ func HandleStateSection(app *kingpin.Application) {
 
 	state.Command("framework_id", "Display the mesos framework ID").Action(cmd.RunFrameworkId)
 
-	status := state.Command("status", "Display the TaskStatus for a task name").Action(cmd.RunStatus)
-	status.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
+	state.Command("properties", "List names of all custom properties").Action(cmd.RunProperties)
 
-	task := state.Command("task", "Display the TaskInfo for a task name").Action(cmd.RunTask)
-	task.Arg("name", "Name of the task to display").Required().StringVar(&cmd.TaskName)
+	task := state.Command("property", "Display the content of a specified property").Action(cmd.RunProperty)
+	task.Arg("name", "Name of the property to display").Required().StringVar(&cmd.PropertyName)
 
-	state.Command("tasks", "List names of all persisted tasks").Action(cmd.RunTasks)
+	state.Command("refresh_cache", "Refresh the state cache, used for debugging").Action(cmd.RunRefreshCache)
 }
