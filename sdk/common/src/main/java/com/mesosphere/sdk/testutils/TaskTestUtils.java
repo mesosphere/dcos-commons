@@ -42,27 +42,27 @@ public class TaskTestUtils {
                 }
             }
 
+            String portValue = dynamicPortAssignment == null ?
+                    Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
             if (!resourceId.isEmpty() && Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
-                String portValue = dynamicPortAssignment == null ?
-                        Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
                 builder.getCommandBuilder()
                         .getEnvironmentBuilder()
                         .addVariablesBuilder()
                         .setName(TestConstants.PORT_ENV_NAME)
                         .setValue(portValue);
+            }
 
-                if (vipAssignment != null) {
-                    Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
-                    discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
-                    discoveryBuilder.setName(builder.getName());
-                    discoveryBuilder.getPortsBuilder()
-                            .addPortsBuilder()
-                            .setNumber(Integer.parseInt(portValue))
-                            .getLabelsBuilder()
-                            .addLabelsBuilder()
-                            .setKey("VIP_" + UUID.randomUUID().toString())
-                            .setValue(vipAssignment);
-                }
+            if (vipAssignment != null) {
+                Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
+                discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
+                discoveryBuilder.setName(builder.getName());
+                discoveryBuilder.getPortsBuilder()
+                        .addPortsBuilder()
+                        .setNumber(Integer.parseInt(portValue))
+                        .getLabelsBuilder()
+                        .addLabelsBuilder()
+                        .setKey("VIP_" + UUID.randomUUID().toString())
+                        .setValue(vipAssignment);
             }
         }
         return builder.addAllResources(resources).build();
