@@ -286,5 +286,5 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - 0: [[bootstrap], [node]]
-          - 1: [[bootstrap], [node]]
+          - 0: [[bootstrap], [node, zkfc]]
+          - 1: [[bootstrap], [node, zkfc]]
