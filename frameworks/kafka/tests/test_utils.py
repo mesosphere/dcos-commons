@@ -20,7 +20,7 @@ SERVICE_NAME = PACKAGE_NAME
 DEFAULT_TOPIC_NAME = 'topic1'
 EPHEMERAL_TOPIC_NAME = 'topic_2'
 
-STATIC_PORT_OPTIONS_DICT = {"brokers": {"port": 9092 }}
+STATIC_PORT_OPTIONS_DICT = {"brokers": {"port": 9092}}
 DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 DEPLOY_STRATEGY_SERIAL_CANARY = {"service": {"deploy_strategy": "serial-canary"}}
 

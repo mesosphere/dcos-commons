@@ -85,14 +85,14 @@ def test_broker_invalid():
 
 
 @pytest.mark.smoke
-@pytest.mark.special
+@pytest.mark.sanity
 def test_pods_restart():
     for i in range(DEFAULT_BROKER_COUNT):
         broker_id = tasks.get_task_ids(SERVICE_NAME,'{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME))
-        restart_info = service_cli('pods restart {}-{}'.format(DEFAULT_DEFAULT_POD_TYPE, i))
+        restart_info = service_cli('pods restart {}-{}'.format(DEFAULT_POD_TYPE, i))
         tasks.check_tasks_updated(SERVICE_NAME, '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME), broker_id)
         assert len(restart_info) == 2
-        assert restart_info['tasks'] == '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME)
+        assert restart_info['tasks'][0] == '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME)
 
 
 @pytest.mark.smoke

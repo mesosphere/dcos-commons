@@ -66,7 +66,7 @@ def test_canary_init():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_canary_fist():
+def test_canary_first():
  
     service_cli('plan continue {} {}'.format(DEFAULT_PLAN_NAME, DEFAULT_PHASE_NAME))
 
@@ -154,14 +154,6 @@ def test_increase_count():
         pass  # expected to fail
 
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
-
-    try:
-        tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT + 1, timeout_seconds=60)
-        assert False, "Should not start"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass
 
     pl = service_cli('plan show {}'.format(DEFAULT_PLAN_NAME))
     assert pl['status'] == 'WAITING'

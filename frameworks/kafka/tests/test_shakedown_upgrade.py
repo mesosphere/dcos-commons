@@ -70,7 +70,7 @@ def test_upgrade():
     print('Installation complete for test version: {}'.format(test_version))
 
     # wait till tasks are restarted
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(POD_TYPE), broker_ids)
+    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     print('All task are restarted')
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
