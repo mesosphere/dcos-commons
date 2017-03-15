@@ -130,11 +130,6 @@
           "description": "The JMX port that will be used to interface with the Cassandra application.",
           "default": 7199
         },
-        "statsd_period": {
-          "type": "integer",
-          "description": "The number of seconds to wait between sending metrics to statsd.",
-          "default": 60
-        },
         "num_tokens": {
           "type": "integer",
           "description": "The number of tokens assigned to each node.",

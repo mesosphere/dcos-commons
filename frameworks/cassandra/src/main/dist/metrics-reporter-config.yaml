@@ -1,5 +1,5 @@
 statsd:
-  - period: {{STATSD_PERIOD}}
+  - period: 10
     timeunit: 'SECONDS'
     hosts:
       - host: {{STATSD_UDP_HOST}}
