@@ -12,7 +12,7 @@ import sdk_tasks as tasks
 from tests.test_utils import (
     PACKAGE_NAME,
     DEFAULT_BROKER_COUNT,
-    POD_TYPE,
+    DEFAULT_POD_TYPE,
     SERVICE_NAME
 )
 
