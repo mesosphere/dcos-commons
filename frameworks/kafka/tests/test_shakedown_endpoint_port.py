@@ -69,6 +69,15 @@ def test_port_static_to_static_port():
     for broker_id in range(DEFAULT_BROKER_COUNT):
         result = service_cli('broker get {}'.format(broker_id))
         assert result['port'] == 9092
+    
+    result = service_cli('endpoints broker')
+    assert result['native'] == DEFAULT_BROKER_COUNT
+    assert result['direct'] == DEFAULT_BROKER_COUNT
+
+    for port in result['native']:
+        assert int(port.split(':')[-1]) == 9092
+    for port in result['direct']:
+        assert int(port.split(':')[-1]) == 9092
 
     config['env']['BROKER_PORT'] = '9095'
     marathon.update_app(SERVICE_NAME, config)
@@ -78,7 +87,7 @@ def test_port_static_to_static_port():
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    result = service_cli('endpoint broker')
+    result = service_cli('endpoints broker')
     assert result['native'] == DEFAULT_BROKER_COUNT
     assert result['direct'] == DEFAULT_BROKER_COUNT
 
@@ -102,7 +111,7 @@ def test_port_static_to_dynamic_port():
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    result = service_cli('endpoint broker')
+    result = service_cli('endpoints broker')
     assert result['native'] == DEFAULT_BROKER_COUNT
     assert result['direct'] == DEFAULT_BROKER_COUNT
 
@@ -143,7 +152,7 @@ def test_can_adjust_config_from_dynamic_to_static_port():
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    result = service_cli('endpoint broker')
+    result = service_cli('endpoints broker')
     assert result['native'] == DEFAULT_BROKER_COUNT
     assert result['direct'] == DEFAULT_BROKER_COUNT
 
