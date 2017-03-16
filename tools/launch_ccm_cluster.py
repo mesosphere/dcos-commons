@@ -207,7 +207,7 @@ class CCMLauncher(object):
         if is_17_cluster:
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos'
         elif config.cf_template.startswith('ee.'):
-            hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise'
+            hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise-aws-advanced'
         else:
             hostrepo = 's3-us-west-2.amazonaws.com/downloads.dcos.io/dcos'
         template_url = 'https://{}/{}/cloudformation/{}'.format(
