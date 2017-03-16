@@ -6,14 +6,15 @@ import sdk_marathon as marathon
 import sdk_utils as utils
 
 
+
 from tests.test_utils import (
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_BROKER_COUNT,
     DYNAMIC_PORT_OPTIONS_DICT,
     STATIC_PORT_OPTIONS_DICT,
-    DEFAULT_POD_TYPE,
-    service_cli
+    service_cli,
+    DEFAULT_POD_TYPE
 )
 
 
@@ -68,6 +69,15 @@ def test_port_static_to_static_port():
     for broker_id in range(DEFAULT_BROKER_COUNT):
         result = service_cli('broker get {}'.format(broker_id))
         assert result['port'] == 9092
+    
+    result = service_cli('endpoints broker')
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
+
+    for port in result['native']:
+        assert int(port.split(':')[-1]) == 9092
+    for port in result['direct']:
+        assert int(port.split(':')[-1]) == 9092
 
     config['env']['BROKER_PORT'] = '9095'
     marathon.update_app(SERVICE_NAME, config)
@@ -77,9 +87,14 @@ def test_port_static_to_static_port():
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    for broker_id in range(DEFAULT_BROKER_COUNT):
-        result = service_cli('broker get {}'.format(broker_id))
-        assert result['port'] == 9095
+    result = service_cli('endpoints broker')
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
+
+    for port in result['native']:
+        assert int(port.split(':')[-1]) == 9095
+    for port in result['direct']:
+        assert int(port.split(':')[-1]) == 9095
 
 
 @pytest.mark.sanity
@@ -96,10 +111,15 @@ def test_port_static_to_dynamic_port():
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    for broker_id in range(DEFAULT_BROKER_COUNT):
-        result = service_cli('broker get {}'.format(broker_id))
-        assert result['port'] != 9092
+    result = service_cli('endpoints broker')
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
 
+    for port in result['native']:
+        assert int(port.split(':')[-1]) != 9092
+
+    for port in result['direct']:
+        assert int(port.split(':')[-1]) != 9092
 
 @pytest.mark.sanity
 def test_port_dynamic_to_dynamic_port():
@@ -121,6 +141,7 @@ def test_port_dynamic_to_dynamic_port():
 @pytest.mark.sanity
 def test_can_adjust_config_from_dynamic_to_static_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
+
     broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     config = marathon.get_config(SERVICE_NAME)
@@ -131,7 +152,12 @@ def test_can_adjust_config_from_dynamic_to_static_port():
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    for broker_id in range(DEFAULT_BROKER_COUNT):
-        result = service_cli('broker get {}'.format(broker_id))
-        assert result['port'] == 9092
+    result = service_cli('endpoints broker')
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
 
+    for port in result['native']:
+        assert int(port.split(':')[-1]) == 9092
+
+    for port in result['direct']:
+        assert int(port.split(':')[-1]) == 9092
