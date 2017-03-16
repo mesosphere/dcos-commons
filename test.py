@@ -15,7 +15,7 @@ def get_repo_root():
 
 
 logger = logging.getLogger("dcos-commons-test")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s blob")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 
 sys.path.append(os.path.join(get_repo_root(), 'tools'))
 import clustinfo
