@@ -111,7 +111,7 @@ public class DefaultPodSpec implements PodSpec {
     public Integer getCount() {
         return count;
     }
-    
+
     @Override
     public Optional<String> getImage() {
         return Optional.ofNullable(image);
@@ -202,7 +202,7 @@ public class DefaultPodSpec implements PodSpec {
             this.count = count;
             return this;
         }
-        
+
         /**
          * Sets the {@code image} and returns a reference to this Builder so that the methods can be
          * chained together.
@@ -214,7 +214,7 @@ public class DefaultPodSpec implements PodSpec {
             this.image = image;
             return this;
         }
-        
+
         /**
          * Sets the {@code networks} and returns a reference to this Builder so that the methods can be
          * chained together.
@@ -226,7 +226,7 @@ public class DefaultPodSpec implements PodSpec {
             this.networks = networks;
             return this;
         }
-        
+
         /**
          * Sets the {@code rlimits} and returns a reference to this Builder so that the methods can be
          * chained together.
@@ -257,6 +257,10 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder addUri(URI uri) {
+            if (this.uris == null) {
+                this.uris = new ArrayList<>();
+            }
+
             this.uris.add(uri);
             return this;
         }
