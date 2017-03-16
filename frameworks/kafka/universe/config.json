@@ -15,11 +15,6 @@
             "type":"string",
             "default":"V0"
           },
-          "cmd_prefix" : {
-            "description":"A generic prefix to start the scheduler.",
-            "type":"string",
-            "default":"export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH"
-          },
           "user": {
             "type": "string",
             "description": "The user that the service will run as.",
@@ -105,7 +100,7 @@
             "default": 0
           },
           "jmx": {
-            "description":"JMX options",
+            "description":"[DEPRECATED] JMX options",
             "type":"object",
             "properties": {
               "enable": {
@@ -151,7 +146,7 @@
             }
           },
           "statsd": {
-            "description":"Statsd configuration",
+            "description":"[DEPRECATED] Statsd configuration",
             "type":"object",
             "properties": {
               "host": {

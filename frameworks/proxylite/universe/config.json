@@ -9,11 +9,6 @@
             "description":"The name of the service instance",
             "type":"string",
             "default":"proxylite"
-          },
-          "spec_file" : {
-            "description":"The name of the service spec yaml file.",
-            "type":"string",
-            "default":"svc.yml"
           }
         }
       },
