@@ -13,6 +13,15 @@ import time
 def get_repo_root():
     return os.path.dirname(sys.argv[0])
 
+
+logger = logging.getLogger("dcos-commons-test")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s blob")
+
+sys.path.append(os.path.join(get_repo_root(), 'tools'))
+import clustinfo
+import fwinfo
+import launch_ccm_cluster
+
 work_dir = None
 def get_work_dir():
     global work_dir
@@ -20,15 +29,6 @@ def get_work_dir():
         work_dir = tempfile.mkdtemp(prefix='test_workdir', dir=get_repo_root())
         logger.info("Using %s for test run files", work_dir)
     return work_dir
-
-
-sys.path.append(os.path.join(get_repo_root(), 'tools'))
-import clustinfo
-import fwinfo
-import launch_ccm_cluster
-
-logger = logging.getLogger("dcos-commons-test")
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(name)s %(message)s")
 
 def parse_args(args=sys.argv):
     parser = argparse.ArgumentParser(description="Optionally build and test dcos-commons frameworks")
