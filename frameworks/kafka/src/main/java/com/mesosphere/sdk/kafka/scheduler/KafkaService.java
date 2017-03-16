@@ -4,6 +4,9 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.kafka.api.*;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
+import com.mesosphere.sdk.kafka.upgrade.CuratorStateStoreFilter;
+import com.mesosphere.sdk.kafka.upgrade.KafkaConfigUpgrade;
+import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -26,9 +29,17 @@ public class KafkaService extends DefaultService {
                 DefaultScheduler.newBuilder(YAMLServiceSpecFactory.generateServiceSpec(rawServiceSpec));
         schedulerBuilder.setPlansFrom(rawServiceSpec);
 
+        /* Upgrade */
+        new KafkaConfigUpgrade(schedulerBuilder.getServiceSpec());
+        CuratorStateStoreFilter stateStore = new CuratorStateStoreFilter(schedulerBuilder.getServiceSpec().getName(),
+                DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING);
+        stateStore.setIgnoreFilter(RegexMatcher.create("broker-[0-9]*"));
+        schedulerBuilder.setStateStore(stateStore);
+        /* Upgrade */
+
         schedulerBuilder.setEndpointProducer("zookeeper", EndpointProducer.constant(
                 schedulerBuilder.getServiceSpec().getZookeeperConnection() +
-                DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
+                        DcosConstants.SERVICE_ROOT_PATH_PREFIX + schedulerBuilder.getServiceSpec().getName()));
 
         initService(schedulerBuilder);
     }
