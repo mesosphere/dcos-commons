@@ -13,12 +13,10 @@ public class RawTask {
     private final String cmd;
     private final Map<String, String> env;
     private final WriteOnceLinkedHashMap<String, RawConfig> configs;
-
     private final Double cpus;
     private final Double gpus;
     private final Integer memory;
     private final WriteOnceLinkedHashMap<String, RawPort> ports;
-
     private final RawHealthCheck healthCheck;
     private final RawReadinessCheck readinessCheck;
     private final RawVolume volume;

@@ -17,7 +17,6 @@ public class DcosCluster {
     @VisibleForTesting
     static final String DCOS_VERSION_PATH = "/dcos-metadata/dcos-version.json";
 
-
     private final URI dcosUri;
     private Optional<DcosVersion> dcosVersion = Optional.empty();
 
