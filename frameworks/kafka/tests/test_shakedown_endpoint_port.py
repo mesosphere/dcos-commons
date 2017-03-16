@@ -71,8 +71,8 @@ def test_port_static_to_static_port():
         assert result['port'] == 9092
     
     result = service_cli('endpoints broker')
-    assert result['native'] == DEFAULT_BROKER_COUNT
-    assert result['direct'] == DEFAULT_BROKER_COUNT
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
 
     for port in result['native']:
         assert int(port.split(':')[-1]) == 9092
@@ -88,8 +88,8 @@ def test_port_static_to_static_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
     result = service_cli('endpoints broker')
-    assert result['native'] == DEFAULT_BROKER_COUNT
-    assert result['direct'] == DEFAULT_BROKER_COUNT
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
 
     for port in result['native']:
         assert int(port.split(':')[-1]) == 9095
@@ -112,8 +112,8 @@ def test_port_static_to_dynamic_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
     result = service_cli('endpoints broker')
-    assert result['native'] == DEFAULT_BROKER_COUNT
-    assert result['direct'] == DEFAULT_BROKER_COUNT
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
 
     for port in result['native']:
         assert int(port.split(':')[-1]) != 9092
@@ -153,8 +153,8 @@ def test_can_adjust_config_from_dynamic_to_static_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
     result = service_cli('endpoints broker')
-    assert result['native'] == DEFAULT_BROKER_COUNT
-    assert result['direct'] == DEFAULT_BROKER_COUNT
+    assert len(result['native']) == DEFAULT_BROKER_COUNT
+    assert len(result['direct']) == DEFAULT_BROKER_COUNT
 
     for port in result['native']:
         assert int(port.split(':')[-1]) == 9092
