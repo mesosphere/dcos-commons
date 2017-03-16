@@ -58,7 +58,9 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
                 ResourceUtils.addVIP(taskBuilder, vipName, vipPort, protocol, visibility, resource);
             }
-        } else if (podInfoBuilder.getExecutorBuilder().isPresent()) {
+        }
+        // TODO(mb): keep the code below for a while till we make sure VIP is not needed in executor
+        /* else if (podInfoBuilder.getExecutorBuilder().isPresent()) {
             boolean didUpdate = maybeUpdateVIP(podInfoBuilder.getExecutorBuilder().get());
 
             if (!didUpdate) {
@@ -66,7 +68,7 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
                 Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
                 ResourceUtils.addVIP(executorBuilder, vipName, vipPort, protocol, visibility, resource);
             }
-        }
+        }*/
     }
 
     private boolean maybeUpdateVIP(Protos.TaskInfo.Builder builder) {
