@@ -81,6 +81,9 @@ pods:
               port: 9200
           transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
+            vip:
+              prefix: master
+              port: 9300
         volume:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
@@ -138,6 +141,9 @@ pods:
               port: 9200
           transport:
             port: 0
+            vip:
+              prefix: data
+              port: 9300
         volume:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
@@ -195,6 +201,9 @@ pods:
               port: 9200
           transport:
             port: 0
+            vip:
+              prefix: ingest
+              port: 9300
         volume:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
@@ -252,6 +261,9 @@ pods:
               port: 9200
           transport:
             port: 0
+            vip:
+              prefix: coordinator
+              port: 9300
         volume:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
