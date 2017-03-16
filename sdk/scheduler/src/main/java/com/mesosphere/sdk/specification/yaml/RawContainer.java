@@ -2,12 +2,10 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.LinkedHashMap;
-
 /**
  * Raw YAML container.
  */
-public class RawContainer {
+public class RawContainer implements RawContainerInfoProvider {
     private final String imageName;
     private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
     private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
@@ -21,15 +19,15 @@ public class RawContainer {
         this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
     }
 
-    public LinkedHashMap<String, RawNetwork> getNetworks() {
+    public WriteOnceLinkedHashMap<String, RawNetwork> getNetworks() {
         return networks;
     }
 
-    public LinkedHashMap<String, RawRLimit> getRLimits() {
+    public WriteOnceLinkedHashMap<String, RawRLimit> getRLimits() {
         return rlimits;
     }
 
-    public String getImageName() {
+    public String getImage() {
         return imageName;
     }
 }

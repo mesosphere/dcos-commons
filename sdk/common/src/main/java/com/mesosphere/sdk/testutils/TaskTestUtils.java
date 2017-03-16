@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * This class provides utility method for Tests concerned with Tasks.
@@ -30,22 +31,40 @@ public class TaskTestUtils {
         for (Protos.Resource r : resources) {
             String resourceId = "";
             String dynamicPortAssignment = null;
+            String vipAssignment = null;
             for (Protos.Label l : r.getReservation().getLabels().getLabelsList()) {
                 if (Objects.equals(l.getKey(), "resource_id")) {
                    resourceId = l.getValue();
                 } else if (Objects.equals(l.getKey(), TestConstants.HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL)) {
                     dynamicPortAssignment = l.getValue();
+                } else if (Objects.equals(l.getKey(), TestConstants.HAS_VIP_LABEL)) {
+                    vipAssignment = l.getValue();
                 }
             }
 
-            if (!resourceId.isEmpty() && Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
+            if (Objects.equals(r.getName(), Constants.PORTS_RESOURCE_TYPE)) {
                 String portValue = dynamicPortAssignment == null ?
                         Long.toString(r.getRanges().getRange(0).getBegin()) : dynamicPortAssignment;
-                builder.getCommandBuilder()
-                        .getEnvironmentBuilder()
-                        .addVariablesBuilder()
-                        .setName(TestConstants.PORT_ENV_NAME)
-                        .setValue(portValue);
+
+                if (!resourceId.isEmpty()) {
+                    builder.getCommandBuilder()
+                            .getEnvironmentBuilder()
+                            .addVariablesBuilder()
+                            .setName(TestConstants.PORT_ENV_NAME)
+                            .setValue(portValue);
+                }
+                if (!resourceId.isEmpty() && vipAssignment != null) {
+                    Protos.DiscoveryInfo.Builder discoveryBuilder = builder.getDiscoveryBuilder();
+                    discoveryBuilder.setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER);
+                    discoveryBuilder.setName(builder.getName());
+                    discoveryBuilder.getPortsBuilder()
+                            .addPortsBuilder()
+                            .setNumber(Integer.parseInt(portValue))
+                            .getLabelsBuilder()
+                            .addLabelsBuilder()
+                            .setKey("VIP_" + UUID.randomUUID().toString())
+                            .setValue(vipAssignment);
+                }
             }
         }
         return builder.addAllResources(resources).build();

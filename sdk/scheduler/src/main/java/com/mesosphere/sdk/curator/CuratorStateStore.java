@@ -3,18 +3,19 @@ package com.mesosphere.sdk.curator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonTaskUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.curator.RetryPolicy;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos.TaskState;
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -54,10 +55,9 @@ public class CuratorStateStore implements StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
-    private static final String SUPPRESSED_KEY = "suppressed";
 
-    private final Persister curator;
-    private final TaskPathMapper taskPathMapper;
+    protected final Persister curator;
+    protected final TaskPathMapper taskPathMapper;
     private final String fwkIdPath;
     private final String propertiesPath;
 
@@ -125,6 +125,7 @@ public class CuratorStateStore implements StateStore {
         this.taskPathMapper = new TaskPathMapper(rootPath);
         this.fwkIdPath = CuratorUtils.join(rootPath, FWK_ID_PATH_NAME);
         this.propertiesPath = CuratorUtils.join(rootPath, PROPERTIES_PATH_NAME);
+        repairStateStore();
     }
 
     // Framework ID
@@ -193,40 +194,26 @@ public class CuratorStateStore implements StateStore {
 
     @Override
     public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        String taskName;
-        try {
-            taskName = CommonTaskUtils.toTaskName(status.getTaskId());
-        } catch (TaskException e) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Failed to parse the Task Name from TaskStatus.task_id: '%s'", status), e);
+        Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
+
+        for (Protos.TaskInfo taskInfo : fetchTasks()) {
+            if (taskInfo.getTaskId().getValue().equals(status.getTaskId().getValue())) {
+                if (taskInfoOptional.isPresent()) {
+                    logger.error("Found duplicate taskIDs in Task {} and  Task {}",
+                            taskInfoOptional.get(), taskInfo.getName());
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "There are more than one tasks with TaskID: %s", status));
+                }
+                taskInfoOptional = Optional.of(taskInfo);
+            }
         }
 
-        // Validate that a TaskInfo with the exact same UUID is currently present. We intentionally
-        // ignore TaskStatuses whose TaskID doesn't (exactly) match the current TaskInfo: We will
-        // occasionally get these for stale tasks that have since been changed (with new UUIDs).
-        Optional<Protos.TaskInfo> optionalTaskInfo;
-        try {
-            optionalTaskInfo = fetchTask(taskName);
-        } catch (Exception e) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Unable to retrieve matching TaskInfo for the provided TaskStatus name %s.", taskName), e);
+        if (!taskInfoOptional.isPresent()) {
+            throw new StateStoreException(Reason.NOT_FOUND, String.format(
+                    "Failed to find a task with TaskID: %s", status));
         }
 
-        if (!optionalTaskInfo.isPresent()) {
-            throw new StateStoreException(Reason.LOGIC_ERROR,
-                    String.format("The following TaskInfo is not present in the StateStore: %s. " +
-                            "TaskInfo must be present in order to store a TaskStatus.", taskName));
-        }
-
-        if (!optionalTaskInfo.get().getTaskId().getValue().equals(status.getTaskId().getValue())) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Task ID '%s' of updated status doesn't match Task ID '%s' of current TaskInfo."
-                            + " Task IDs must exactly match before status may be updated."
-                            + " NewTaskStatus[%s] CurrentTaskInfo[%s]",
-                    status.getTaskId().getValue(), optionalTaskInfo.get().getTaskId().getValue(),
-                    status, optionalTaskInfo));
-        }
-
+        String taskName = taskInfoOptional.get().getName();
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
 
         if (currentStatusOptional.isPresent()
@@ -424,7 +411,10 @@ public class CuratorStateStore implements StateStore {
 
     // Internals
 
-    private static class TaskPathMapper {
+    /**
+     * TaskPathMapper
+     */
+    protected static class TaskPathMapper {
         private final String tasksRootPath;
 
         private TaskPathMapper(String rootPath) {
@@ -435,7 +425,7 @@ public class CuratorStateStore implements StateStore {
             return CuratorUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
         }
 
-        private String getTaskStatusPath(String taskName) {
+        public String getTaskStatusPath(String taskName) {
             return CuratorUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
         }
 
@@ -448,32 +438,41 @@ public class CuratorStateStore implements StateStore {
         }
     }
 
-    public boolean isSuppressed() throws StateStoreException {
-        byte[] bytes = StateStoreUtils.fetchPropertyOrEmptyArray(this, SUPPRESSED_KEY);
-        Serializer serializer = new JsonSerializer();
+    /**
+     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomicly.
+     * It is therefore possible for the TaskIDs contained within these elements to become out of sync.  While
+     * the scheduler process is up they remain in sync.  This method guarantees produces an initial synchronized
+     * state.
+     */
+    @SuppressFBWarnings("UC_USELESS_OBJECT")
+    private void repairStateStore() {
+        // Findbugs thinks this isn't used, but it is used in the forEach call at the bottom of this method.
+        List<TaskStatus> repairedStatuses = new ArrayList<>();
+        List<TaskInfo> repairedTasks = new ArrayList<>();
 
-        boolean suppressed;
-        try {
-            suppressed = serializer.deserialize(bytes, Boolean.class);
-        } catch (IOException e){
-            logger.error(String.format("Error converting property %s to boolean.", SUPPRESSED_KEY), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
+        for (TaskInfo task : fetchTasks()) {
+            Optional<TaskStatus> statusOptional = fetchStatus(task.getName());
+
+            if (statusOptional.isPresent()) {
+                TaskStatus status = statusOptional.get();
+                if (!status.getTaskId().equals(task.getTaskId())) {
+                    logger.warn("Found StateStore status inconsistency: task.taskId={}, taskStatus.taskId={}",
+                            task.getTaskId(), status.getTaskId());
+                    repairedTasks.add(task.toBuilder().setTaskId(status.getTaskId()).build());
+                    repairedStatuses.add(status.toBuilder().setState(TaskState.TASK_FAILED).build());
+                }
+            } else {
+                logger.warn("Found StateStore status inconsistency: task.taskId={}", task.getTaskId());
+                TaskStatus status = TaskStatus.newBuilder()
+                        .setTaskId(task.getTaskId())
+                        .setState(TaskState.TASK_FAILED)
+                        .setMessage("Assuming failure for inconsistent TaskIDs")
+                        .build();
+                repairedStatuses.add(status);
+            }
         }
 
-        return suppressed;
-    }
-
-    public void setSuppressed(final boolean isSuppressed) {
-        byte[] bytes;
-        Serializer serializer = new JsonSerializer();
-
-        try {
-            bytes = serializer.serialize(isSuppressed);
-        } catch (IOException e) {
-            logger.error(String.format("Error serializing property %s: %s", SUPPRESSED_KEY, isSuppressed), e);
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
-        }
-
-        storeProperty(SUPPRESSED_KEY, bytes);
+        storeTasks(repairedTasks);
+        repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
     }
 }

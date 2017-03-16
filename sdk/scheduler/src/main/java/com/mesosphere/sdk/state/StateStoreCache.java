@@ -41,13 +41,17 @@ public class StateStoreCache implements StateStore {
 
     private static StateStoreCache instance = null;
 
+    @VisibleForTesting
     protected final StateStore store;
 
-    protected Optional<FrameworkID> frameworkId;
+    private Optional<FrameworkID> frameworkId;
 
+    @VisibleForTesting
     protected Map<String, TaskInfo> nameToTask = new HashMap<>();
+    @VisibleForTesting
     protected Map<String, TaskStatus> nameToStatus = new HashMap<>();
 
+    @VisibleForTesting
     protected Map<String, byte[]> properties = new HashMap<>();
 
     /**
@@ -86,26 +90,7 @@ public class StateStoreCache implements StateStore {
     StateStoreCache(StateStore store) throws StateStoreException {
         this.store = store;
 
-        // Use bulk fetches to initialize cache with underlying storage state:
-        frameworkId = store.fetchFrameworkId();
-        Map<TaskID, TaskInfo> idToTask = new HashMap<>(); // Used to map ID=>Name below
-        for (TaskInfo task : store.fetchTasks()) {
-            nameToTask.put(task.getName(), task);
-            idToTask.put(task.getTaskId(), task);
-        }
-        for (TaskStatus status : store.fetchStatuses()) {
-            // Get the name from the corresponding TaskInfo for this task ID:
-            TaskInfo task = idToTask.get(status.getTaskId());
-            if (task == null) {
-                throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                        "The following TaskInfo is not present: %s. TaskInfo must be present in " +
-                                "order to store a TaskStatus. All Tasks: %s", status.getTaskId(), idToTask));
-            }
-            nameToStatus.put(task.getName(), status);
-        }
-        for (String key : store.fetchPropertyKeys()) {
-            properties.put(key, store.fetchProperty(key));
-        }
+        refresh();
     }
 
     @Override
@@ -291,21 +276,47 @@ public class StateStoreCache implements StateStore {
         }
     }
 
-    @Override
-    public boolean isSuppressed() {
-        RLOCK.lock();
-        try {
-            return store.isSuppressed();
-        } finally {
-            RLOCK.unlock();
-        }
-    }
-
-    @Override
-    public void setSuppressed(boolean suppressed) {
+    /**
+     * Clears and resyncs the cache contents with what's currently in the underlying {@link StateStore}.
+     *
+     * @throws StateStoreException if accessing the underlying data fails, in which case the refresh is aborted without
+     * changing the cache (best-effort attempt at atomicity)
+     */
+    public void refresh() {
         RWLOCK.lock();
         try {
-            store.setSuppressed(suppressed);
+            Optional<FrameworkID> newFrameworkId = store.fetchFrameworkId();
+
+            Map<String, TaskInfo> newNameToTask = new HashMap<>();
+            Map<TaskID, TaskInfo> idToTask = new HashMap<>(); // Used to map ID=>Name below
+            for (TaskInfo task : store.fetchTasks()) {
+                newNameToTask.put(task.getName(), task);
+                idToTask.put(task.getTaskId(), task);
+            }
+
+            Map<String, TaskStatus> newNameToStatus = new HashMap<>();
+            for (TaskStatus status : store.fetchStatuses()) {
+                // Get the name from the corresponding TaskInfo for this task ID:
+                TaskInfo task = idToTask.get(status.getTaskId());
+                if (task == null) {
+                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
+                            "The following TaskInfo is not present: %s. TaskInfo must be present in " +
+                                    "order to store a TaskStatus. All Tasks: %s", status.getTaskId(), idToTask));
+                }
+                newNameToStatus.put(task.getName(), status);
+            }
+
+            Map<String, byte[]> newProperties = new HashMap<>();
+            for (String key : store.fetchPropertyKeys()) {
+                newProperties.put(key, store.fetchProperty(key));
+            }
+
+            // Update the local state AFTER all the data retrieval succeded:
+            // This reduces the risk of inconsistent cache state due to storage failure.
+            frameworkId = newFrameworkId;
+            nameToTask = newNameToTask;
+            nameToStatus = newNameToStatus;
+            properties = newProperties;
         } finally {
             RWLOCK.unlock();
         }

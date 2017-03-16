@@ -18,11 +18,16 @@ public class RawNetwork {
         this.containerPorts = containerPorts;
     }
 
-    public List<Integer> getHostPorts() { return hostPorts; }
+    public List<Integer> getHostPorts() {
+        return hostPorts;
+    }
 
-    public List<Integer> getContainerPorts() { return containerPorts; }
+    public List<Integer> getContainerPorts() {
+        return containerPorts;
+    }
 
     public Integer numberOfPortMappings() {
         return Math.min(hostPorts.size(), containerPorts.size());
     }
 }
+

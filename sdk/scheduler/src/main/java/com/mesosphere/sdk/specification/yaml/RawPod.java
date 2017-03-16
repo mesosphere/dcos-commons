@@ -10,37 +10,43 @@ import java.util.LinkedHashMap;
 /**
  * Raw YAML pod.
  */
-public class RawPod {
+public class RawPod implements RawContainerInfoProvider {
 
     private final String placement;
     private final Integer count;
     private final RawContainer container;
+    private final String image;
+    private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
+    private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
     private final String strategy;
     private final String user;
     private final Collection<String> uris;
     private final WriteOnceLinkedHashMap<String, RawTask> tasks;
     private final WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets;
-    private final WriteOnceLinkedHashMap<String, RawNetwork> network;
 
     private RawPod(
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
             @JsonProperty("placement") String placement,
             @JsonProperty("count") Integer count,
             @JsonProperty("container") RawContainer container,
+            @JsonProperty("image") String image,
+            @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
+            @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
             @JsonProperty("strategy") String strategy,
             @JsonProperty("uris") Collection<String> uris,
             @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
-            @JsonProperty("user") String user,
-            @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> network) {
+            @JsonProperty("user") String user) {
         this.placement = placement;
         this.count = count;
         this.container = container;
+        this.image = image;
+        this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
+        this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
         this.strategy = strategy;
         this.user = user;
         this.uris = uris;
         this.tasks = tasks;
         this.resourceSets = resourceSets;
-        this.network = network;
     }
 
     public String getPlacement() {
@@ -51,7 +57,21 @@ public class RawPod {
         return count;
     }
 
-    public RawContainer getContainer() { return container; }
+    public RawContainer getContainer() {
+        return container;
+    }
+    
+    public String getImage() {
+        return image;
+    }
+
+    public WriteOnceLinkedHashMap<String, RawNetwork> getNetworks() {
+        return networks;
+    }
+
+    public WriteOnceLinkedHashMap<String, RawRLimit> getRLimits() {
+        return rlimits;
+    }
 
     public String getStrategy() {
         return strategy;
@@ -69,7 +89,7 @@ public class RawPod {
         return user;
     }
 
-    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() { return resourceSets; }
-
-    public WriteOnceLinkedHashMap<String, RawNetwork> getNetworks() { return network; }
+    public WriteOnceLinkedHashMap<String, RawResourceSet> getResourceSets() {
+        return resourceSets;
+    }
 }

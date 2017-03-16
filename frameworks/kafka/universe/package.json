@@ -1,13 +1,13 @@
 {
   "packagingVersion": "2.0",
-  "name": "apache-kafka",
+  "name": "kafka",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
   "description": "Apache Kafka framework running on DC/OS",
   "selected": false,
   "framework": true,
   "tags": ["message", "broker", "pubsub"],
-  "postInstallNotes": "DC/OS Apache Kafka Service is being installed.\n\n\tDocumentation: https://docs.mesosphere.com/current/usage/service-guides/kafka/\n\tIssues: https://dcosjira.atlassian.net/projects/KAFKA/issues",
+  "postInstallNotes": "DC/OS Apache Kafka Service is being installed.\n\n\tDocumentation: https://docs.mesosphere.com/current/usage/service-guides/kafka\n\tIssues: https://dcosjira.atlassian.net/projects/KAFKA/issues",
   "postUninstallNotes": "DC/OS Apache Kafka Service has been uninstalled.\nPlease follow the instructions at https://docs.mesosphere.com/current/usage/service-guides/kafka/uninstall to remove any persistent state if required."
 }
 

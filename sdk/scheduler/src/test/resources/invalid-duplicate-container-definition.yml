@@ -1,0 +1,19 @@
+name: "invalid-duplicate-container-test"
+pods:
+  server:
+    count: 1
+    networks:
+      test:
+        host-ports: [4040]
+        container-ports: [4041]
+    container:
+      networks:
+        test:
+          host-ports: [4040]
+          container-ports: [4040]
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cmd"
+        cpus: 1
+        memory: 1024

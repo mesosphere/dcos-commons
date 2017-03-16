@@ -48,6 +48,10 @@ public class DefaultService implements Service {
 
     private ServiceSpec serviceSpec;
 
+    public DefaultService() {
+        //No initialization needed
+    }
+
     public DefaultService(String yamlSpecification) throws Exception {
         this(YAMLServiceSpecFactory.generateRawSpecFromYAML(yamlSpecification));
     }
@@ -66,6 +70,10 @@ public class DefaultService implements Service {
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
+        initService(schedulerBuilder);
+    }
+
+    protected void initService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
         this.serviceSpec = schedulerBuilder.getServiceSpec();
 
@@ -83,9 +91,6 @@ public class DefaultService implements Service {
             unlock(curatorMutex);
             curatorClient.close();
         }
-    }
-
-    public DefaultService(){
     }
 
     /**

@@ -2,8 +2,8 @@
 
 if [ $# -lt 1 ]; then
     echo "You must provide the name of the project as the first argument"
-    echo "Usage: ./new-service.sh <dir-path>/<project-name>"
-    echo "Example: ./new-service.sh frameworks/kafka"
+    echo "Usage: ./new-framework.sh <dir-path>/<framework-name>"
+    echo "Example: ./new-framework.sh frameworks/myframework"
     exit 1
 elif [ -d $1 ]; then
     echo "A project with the given name '$1' already exists. Choose a different name"

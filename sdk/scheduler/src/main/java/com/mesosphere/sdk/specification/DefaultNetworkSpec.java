@@ -29,27 +29,31 @@ public class DefaultNetworkSpec implements NetworkSpec {
     }
 
     private DefaultNetworkSpec(Builder builder) {
-        this(
-                builder.networkName,
-                builder.portMap);
+        this(builder.networkName, builder.portMap);
         ValidationUtils.validate(this);
     }
 
-    public static Builder newBuilder() { return new Builder(); }
+    public static Builder newBuilder() {
+        return new Builder();
+    }
 
     public static Builder newBuilder(NetworkSpec copy) {
         Builder builder = new Builder();
-        builder.networkName = copy.getNetworkName();
+        builder.networkName = copy.getName();
         builder.portMap = copy.getPortMappings();
 
         return builder;
     }
 
     @Override
-    public String getNetworkName() { return networkName; }
+    public String getName() {
+        return networkName;
+    }
 
     @Override
-    public Map<Integer, Integer> getPortMappings() { return portMappings; }
+    public Map<Integer, Integer> getPortMappings() {
+        return portMappings;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -84,10 +88,6 @@ public class DefaultNetworkSpec implements NetworkSpec {
         public Builder portMappings(Map<Integer, Integer> portMappings) {
             this.portMap = portMappings;
             return this;
-        }
-
-        public void setPortMapping(Integer hostPort, Integer containerPort) {
-            this.portMap.put(hostPort, containerPort);
         }
 
         public DefaultNetworkSpec build() {

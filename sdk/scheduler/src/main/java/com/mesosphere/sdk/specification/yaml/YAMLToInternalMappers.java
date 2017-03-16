@@ -13,16 +13,14 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
@@ -39,7 +37,7 @@ public class YAMLToInternalMappers {
     static DefaultServiceSpec from(
             RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-
+        
         String role = null;
         String principal = null;
         Integer apiPort = null;
@@ -149,8 +147,14 @@ public class YAMLToInternalMappers {
             ConfigNamespace configNamespace,
             String role,
             String principal) throws Exception {
-        WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
+        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
+                .count(rawPod.getCount())
+                .type(podName)
+                .user(rawPod.getUser());
+
+        // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();
+        WriteOnceLinkedHashMap<String, RawResourceSet> rawResourceSets = rawPod.getResourceSets();
         if (MapUtils.isNotEmpty(rawResourceSets)) {
             resourceSets.addAll(rawResourceSets.entrySet().stream()
                     .map(rawResourceSetEntry -> {
@@ -168,7 +172,7 @@ public class YAMLToInternalMappers {
                     })
                     .collect(Collectors.toList()));
         }
-
+        // Parse the TaskSpecs
         List<TaskSpec> taskSpecs = new ArrayList<>();
         for (Map.Entry<String, RawTask> entry : rawPod.getTasks().entrySet()) {
             taskSpecs.add(from(
@@ -180,45 +184,55 @@ public class YAMLToInternalMappers {
                     role,
                     principal));
         }
+        builder.tasks(taskSpecs);
 
         Collection<URI> podUris = new ArrayList<>();
         for (String uriStr : rawPod.getUris()) {
             podUris.add(new URI(uriStr));
         }
-
-        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetworks();
-        final Collection<NetworkSpec> networks = new ArrayList<>();
-        if (MapUtils.isNotEmpty(rawNetworks)) {
-            networks.addAll(rawNetworks.entrySet().stream()
-                    .map(rawNetworkEntry -> {
-                        String networkName = rawNetworkEntry.getKey();
-                        RawNetwork rawNetwork = rawNetworks.get(networkName);
-                        return from(networkName, rawNetwork);
-                    })
-                    .collect(Collectors.toList()));
-        }
-
-        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder()
-                .count(rawPod.getCount())
-                .tasks(taskSpecs)
-                .type(podName)
-                .uris(podUris)
-                .user(rawPod.getUser())
-                .addNetworks(networks);
+        builder.uris(podUris);
 
         PlacementRule placementRule = MarathonConstraintParser.parse(rawPod.getPlacement());
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }
 
-        if (rawPod.getContainer() != null) {
+        // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
+        // functionality (CNI or otherwise) will land in the pod-level only.
+        RawContainerInfoProvider containerInfoProvider = null;
+        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
+            if (rawPod.getContainer() != null) {
+                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
+                        + "pod %s or under %s:container, but not both.", podName, podName));
+            }
+            containerInfoProvider = rawPod;
+        } else if (rawPod.getContainer() != null) {
+            containerInfoProvider = rawPod.getContainer();
+        }
+        
+        if (containerInfoProvider != null) {  // parse ContainerInfo-related entries
             List<RLimit> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : rawPod.getContainer().getRLimits().entrySet()) {
+            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), rlimits));
+            WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
+            final Collection<NetworkSpec> networks = new ArrayList<>();
+            if (MapUtils.isNotEmpty(rawNetworks)) {
+                networks.addAll(rawNetworks.entrySet().stream()
+                        .map(rawNetworkEntry -> {
+                            String networkName = rawNetworkEntry.getKey();
+                            RawNetwork rawNetwork = rawNetworks.get(networkName);
+                            return from(networkName, rawNetwork);
+                        })
+                        .collect(Collectors.toList()));
+            }
+
+            builder.image(containerInfoProvider.getImage())
+                .networks(networks)
+                .rlimits(rlimits);
+
         }
 
         return builder.build();
@@ -350,7 +364,11 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
-    private static DefaultNetworkSpec from(String networkName, RawNetwork rawNetwork) {
+    private static DefaultNetworkSpec from(String networkName, RawNetwork rawNetwork) throws IllegalArgumentException {
+        if (rawNetwork.getContainerPorts().size() != rawNetwork.getHostPorts().size()) {
+            throw new IllegalArgumentException("You need to specify the same number of host ports and container ports");
+        }
+
         Map<Integer, Integer> portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
                 .boxed()
                 .collect(Collectors

@@ -321,7 +321,7 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
 
         return new TaskRequirement(
-                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfo.getResourcesList()));
+                taskInfoBuilder.build(), getResourceRequirements(taskSpec, taskInfoBuilder.getResourcesList()));
     }
 
     private static void setBootstrapConfigFileEnv(
@@ -540,35 +540,38 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
     }
 
-    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec,
-                                                         Collection<NetworkSpec> networks) {
+    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+        if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
+            return null;
+        }
+
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (containerSpec != null && containerSpec.getImageName().isPresent()) {
+        if (podSpec.getImage().isPresent()) {
             containerInfo.getMesosBuilder()
-                    .setImage(Protos.Image.newBuilder()
-                            .setType(Protos.Image.Type.DOCKER)
-                            .setDocker(Protos.Image.Docker.newBuilder()
-                                    .setName(containerSpec.getImageName().get())));
+            .setImage(Protos.Image.newBuilder()
+                    .setType(Protos.Image.Type.DOCKER)
+                    .setDocker(Protos.Image.Docker.newBuilder()
+                            .setName(podSpec.getImage().get())));
         }
 
-        if (networks.size() > 0) {
+        if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
-                    networks.stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+                    podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
         }
 
-        if (containerSpec != null && !containerSpec.getRLimits().isEmpty()) {
-            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
+        if (!podSpec.getRLimits().isEmpty()) {
+            containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
         }
 
         return containerInfo.build();
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
-        LOGGER.info("Loading NetworkInfo for network named \"" + networkSpec.getNetworkName() + "\"");
+        LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
-        netInfoBuilder.setName(networkSpec.getNetworkName());
+        netInfoBuilder.setName(networkSpec.getName());
         for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
             Integer hostPort = e.getKey();
             Integer containerPort = e.getValue();
@@ -605,15 +608,13 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
-
-        if (podSpec.getContainer().isPresent() || podSpec.getNetworks().isPresent()) {
-            executorInfoBuilder.setContainer(getContainerInfo(
-                    podSpec.getContainer().isPresent() ? podSpec.getContainer().get() : null,
-                    podSpec.getNetworks().get()));
+        // Populate ContainerInfo with the appropriate information from PodSpec
+        Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
+        if (containerInfo != null) {
+            executorInfoBuilder.setContainer(containerInfo);
         }
 
         // command and user:
-
         Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
                 "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                 "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +

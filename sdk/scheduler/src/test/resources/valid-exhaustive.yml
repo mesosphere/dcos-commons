@@ -12,11 +12,10 @@ pods:
       dcos:
         host-ports: [4040]
         container-ports: [8080]
-    container:
-      rlimits:
-        RLIMIT_AS:
-          soft: 5
-          hard: 10
+    rlimits:
+      RLIMIT_AS:
+        soft: 5
+        hard: 10
     resource-sets:
       meta-data-resources:
         cpus: 0.1

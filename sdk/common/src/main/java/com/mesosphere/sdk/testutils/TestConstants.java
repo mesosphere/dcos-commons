@@ -40,10 +40,10 @@ public class TestConstants {
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
     // CNI port mapping constants
-    public static final String EXPECTED_NETWORK_NAME = "dcos";
-    public static final int EXPECTED_HOST_PORT = 4040;
-    public static final int EXPECTED_CONTAINER_PORT = 8080;
-    public static final int EXPECTED_NB_PORT_MAPPINGS = 1;
+    public static final String OVERLAY_NETWORK_NAME = "dcos";
+    public static final int HOST_PORT = 4040;
+    public static final int CONTAINER_PORT = 8080;
+    public static final int NUMBER_OF_PORT_MAPPINGS = 1;
 
     public static final Protos.MasterInfo MASTER_INFO =
             Protos.MasterInfo.newBuilder()
@@ -72,4 +72,17 @@ public class TestConstants {
             Protos.CommandInfo.newBuilder()
             .setValue("echo test")
             .build();
+
+    public static final Protos.TaskInfo TASK_INFO =
+            Protos.TaskInfo.newBuilder()
+            .setName(TASK_NAME)
+            .setTaskId(TASK_ID)
+            .setSlaveId(AGENT_ID)
+            .build();
+
+    public static final Protos.TaskStatus TASK_STATUS =
+            Protos.TaskStatus.newBuilder()
+                    .setTaskId(TASK_ID)
+                    .setState(Protos.TaskState.TASK_RUNNING)
+                    .build();
 }

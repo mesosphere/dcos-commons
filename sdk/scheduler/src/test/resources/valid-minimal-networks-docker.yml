@@ -2,8 +2,7 @@ name: "hello-world"
 pods:
   pod-type:
     count: 1
-    container:
-      image-name: group/image
+    image: group/image
     networks:
       dcos:
         host-ports: [4040]

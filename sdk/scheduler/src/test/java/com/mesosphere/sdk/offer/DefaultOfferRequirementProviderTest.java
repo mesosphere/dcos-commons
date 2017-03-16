@@ -148,11 +148,11 @@ public class DefaultOfferRequirementProviderTest {
                     .getExecutorInfo().getContainer()
                     .getNetworkInfos(0);
             // Check that it has the correct name
-            Assert.assertEquals(TestConstants.EXPECTED_NETWORK_NAME, networkInfo.getName());
+            Assert.assertEquals(TestConstants.OVERLAY_NETWORK_NAME, networkInfo.getName());
             // Check that port mappings are correct
-            Assert.assertEquals(TestConstants.EXPECTED_NB_PORT_MAPPINGS, networkInfo.getPortMappingsCount());
-            Assert.assertEquals(TestConstants.EXPECTED_HOST_PORT, networkInfo.getPortMappings(0).getHostPort());
-            Assert.assertEquals(TestConstants.EXPECTED_CONTAINER_PORT, networkInfo
+            Assert.assertEquals(TestConstants.NUMBER_OF_PORT_MAPPINGS, networkInfo.getPortMappingsCount());
+            Assert.assertEquals(TestConstants.HOST_PORT, networkInfo.getPortMappings(0).getHostPort());
+            Assert.assertEquals(TestConstants.CONTAINER_PORT, networkInfo
                     .getPortMappings(0).getContainerPort());
         } else {
             Assert.fail();
@@ -205,7 +205,7 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testNewOfferRequirementDocker() throws Exception {
-        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
 
         OfferRequirement offerRequirement = provider.getNewOfferRequirement(
                 PodInstanceRequirement.create(dockerPodInstance, TaskUtils.getTaskNames(dockerPodInstance)));
@@ -239,7 +239,7 @@ public class DefaultOfferRequirementProviderTest {
 
     @Test
     public void testEnvironmentVariablesAddedToNewOfferRequirement() throws Exception {
-        PodInstance dockerPodInstance = getPodInstance("valid-docker.yml");
+        PodInstance dockerPodInstance = getPodInstance("valid-image.yml");
         Map<String, String> parameters = new HashMap<>();
         parameters.put("PARAM0", "value0");
 
