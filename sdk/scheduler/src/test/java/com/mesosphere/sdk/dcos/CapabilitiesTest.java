@@ -63,6 +63,7 @@ public class CapabilitiesTest {
     public void test_190() throws IOException {
         Capabilities capabilities = testCapabilities("1.9.0");
         Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
@@ -70,6 +71,7 @@ public class CapabilitiesTest {
     public void test_19dev() throws IOException {
         Capabilities capabilities = testCapabilities("1.9-dev");
         Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
@@ -77,6 +79,7 @@ public class CapabilitiesTest {
     public void test_1100() throws IOException {
         Capabilities capabilities = testCapabilities("1.10.0");
         Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
@@ -84,6 +87,7 @@ public class CapabilitiesTest {
     public void test_110dev() throws IOException {
         Capabilities capabilities = testCapabilities("1.10-dev");
         Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
@@ -91,6 +95,7 @@ public class CapabilitiesTest {
     public void test_200() throws IOException {
         Capabilities capabilities = testCapabilities("2.0.0");
         Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 
@@ -98,6 +103,7 @@ public class CapabilitiesTest {
     public void test_20dev() throws IOException {
         Capabilities capabilities = testCapabilities("2.0-dev");
         Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
     }
 

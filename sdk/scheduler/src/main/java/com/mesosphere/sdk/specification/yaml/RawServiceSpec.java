@@ -36,9 +36,7 @@ public class RawServiceSpec {
         return webUrl;
     }
 
-    public RawScheduler getScheduler() {
-        return scheduler;
-    }
+    public RawScheduler getScheduler() { return scheduler; }
 
     public LinkedHashMap<String, RawPod> getPods() {
         return pods;
