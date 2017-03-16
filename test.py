@@ -371,9 +371,13 @@ def run_tests(run_attrs, repo_root):
         if run_attrs.cluster_teardown == "always":
             teardown_clusters()
         raise
+    finally:
+        for cluster in clustinfo._clusters:
+            logger.debug("Cluster still running: url=%s id=%s auth_token=%s",
+                         cluster.url, cluster.cluster_id, cluster.auth_token)
 
 
-def _setup_strict(framework, cluster):
+def _setup_strict(framework, cluster, repo_root):
     security = os.environ.get('SECURITY', '')
     logger.info("SECURITY set to: '%s'", security)
     if security == "strict":
@@ -399,7 +403,7 @@ def _setup_strict(framework, cluster):
 def start_test_background(framework, cluster, repo_root):
     logger.info("Starting cluster configure & test run for %s (will background)",
                 framework.name)
-    _setup_strict(framework, cluster)
+    _setup_strict(framework, cluster, repo_root)
 
     logger.info("Launching shakedown for %s", framework.name)
 
@@ -428,7 +432,7 @@ def start_test_background(framework, cluster, repo_root):
 
 def run_test(framework, cluster, repo_root):
     logger.info("Starting cluster configure & test run for %s", framework.name)
-    _setup_strict(framework, cluster)
+    _setup_strict(framework, cluster, repo_root)
 
     logger.info("launching shakedown for %s", framework.name)
     custom_env = os.environ.copy()
