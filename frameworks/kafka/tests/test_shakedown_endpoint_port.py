@@ -14,7 +14,7 @@ from tests.test_utils import (
     DYNAMIC_PORT_OPTIONS_DICT,
     STATIC_PORT_OPTIONS_DICT,
     service_cli,
-    POD_TYPE
+    DEFAULT_POD_TYPE
 )
 
 
@@ -61,7 +61,7 @@ def test_static_port_comes_online(static_port_config):
 def test_port_static_to_static_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(POD_TYPE))
+    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     config = marathon.get_config(SERVICE_NAME)
     print('Old Config :{}'.format(config))
@@ -83,7 +83,7 @@ def test_port_static_to_static_port():
     marathon.update_app(SERVICE_NAME, config)
     print('New Config :{}'.format(config))
 
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(POD_TYPE), broker_ids)
+    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
@@ -101,13 +101,13 @@ def test_port_static_to_static_port():
 def test_port_static_to_dynamic_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(POD_TYPE))
+    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     config = marathon.get_config(SERVICE_NAME)
     config['env']['BROKER_PORT'] = '0'
     marathon.update_app(SERVICE_NAME, config)
 
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(POD_TYPE), broker_ids)
+    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
@@ -125,14 +125,14 @@ def test_port_static_to_dynamic_port():
 def test_port_dynamic_to_dynamic_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(POD_TYPE))
+    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     config = marathon.get_config(SERVICE_NAME)
     broker_cpus = int(config['env']['BROKER_CPUS'])
     config['env']['BROKER_CPUS'] = str(broker_cpus + 0.1)
     marathon.update_app(SERVICE_NAME, config)
 
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(POD_TYPE), broker_ids)
+    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
@@ -142,13 +142,13 @@ def test_port_dynamic_to_dynamic_port():
 def test_can_adjust_config_from_dynamic_to_static_port():
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(POD_TYPE))
+    broker_ids = tasks.get_task_ids(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE))
 
     config = marathon.get_config(SERVICE_NAME)
     config['env']['BROKER_PORT'] = '9092'
     marathon.update_app(SERVICE_NAME, config)
 
-    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(POD_TYPE), broker_ids)
+    tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), broker_ids)
     # all tasks are running
     tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
