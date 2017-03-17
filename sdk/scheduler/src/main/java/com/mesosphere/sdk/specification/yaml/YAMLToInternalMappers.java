@@ -13,6 +13,8 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -23,10 +25,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
+    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
@@ -38,11 +42,11 @@ public class YAMLToInternalMappers {
     static DefaultServiceSpec from(
             RawServiceSpec rawSvcSpec, YAMLServiceSpecFactory.FileReader fileReader) throws Exception {
         RawScheduler rawScheduler = rawSvcSpec.getScheduler();
-
         String role = null;
         String principal = null;
         Integer apiPort = null;
         String zookeeper = null;
+
         if (rawScheduler != null) {
             principal = rawScheduler.getPrincipal();
             role = rawScheduler.getRole();
@@ -85,6 +89,7 @@ public class YAMLToInternalMappers {
                     taskConfigRouter.getConfig(entry.getKey()),
                     role,
                     principal));
+
         }
         builder.pods(pods);
 
@@ -158,6 +163,7 @@ public class YAMLToInternalMappers {
                         return from(
                                 rawResourceSetName,
                                 rawResourceSet.getCpus(),
+                                rawResourceSet.getGpus(),
                                 rawResourceSet.getMemory(),
                                 rawResourceSet.getPorts(),
                                 rawResourceSet.getVolume(),
@@ -195,20 +201,36 @@ public class YAMLToInternalMappers {
         if (!(placementRule instanceof PassthroughRule)) {
             builder.placementRule(placementRule);
         }
-        if (rawPod.getContainer() != null) {
+        
+        RawContainerInfoProvider containerInfoProvider = null;
+        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) { 
+            if (rawPod.getContainer() != null) {
+                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
+                        + "pod %s or under %s:container, but not both.", podName, podName));
+            }
+            
+            containerInfoProvider = rawPod;
+        } else if (rawPod.getContainer() != null) {
+            containerInfoProvider = rawPod.getContainer();
+        }
+        
+        if (containerInfoProvider != null) {
             List<RLimit> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : rawPod.getContainer().getRLimits().entrySet()) {
+            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
                 RawRLimit rawRLimit = entry.getValue();
                 rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
             List<NetworkSpec> networks = new ArrayList<>();
-            for (Map.Entry<String, RawNetwork> entry : rawPod.getContainer().getNetworks().entrySet()) {
+            for (Map.Entry<String, RawNetwork> entry : containerInfoProvider.getNetworks().entrySet()) {
                 // When features other than network name are added, we'll want to use the RawNetwork entry value here.
                 networks.add(new DefaultNetworkSpec(entry.getKey()));
             }
 
-            builder.container(new DefaultContainerSpec(rawPod.getContainer().getImageName(), networks, rlimits));
+            builder.image(containerInfoProvider.getImage())
+                .networks(networks)
+                .rlimits(rlimits);
+
         }
 
         return builder.build();
@@ -280,6 +302,7 @@ public class YAMLToInternalMappers {
             builder.resourceSet(from(
                     taskName + "-resource-set",
                     rawTask.getCpus(),
+                    rawTask.getGpus(),
                     rawTask.getMemory(),
                     rawTask.getPorts(),
                     rawTask.getVolume(),
@@ -294,6 +317,7 @@ public class YAMLToInternalMappers {
     private static DefaultResourceSet from(
             String id,
             Double cpus,
+            Double gpus,
             Integer memory,
             WriteOnceLinkedHashMap<String, RawPort> rawEndpoints,
             RawVolume rawSingleVolume,
@@ -325,6 +349,10 @@ public class YAMLToInternalMappers {
 
         if (cpus != null) {
             resourceSetBuilder.cpus(cpus);
+        }
+
+        if (gpus != null) {
+            resourceSetBuilder.gpus(gpus);
         }
 
         if (memory != null) {

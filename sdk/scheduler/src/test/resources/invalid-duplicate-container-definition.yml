@@ -1,0 +1,15 @@
+name: "invalid-duplicate-container-test"
+pods:
+  server:
+    count: 1
+    networks:
+      test: {}
+    container:
+      networks:
+        test: {}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cmd"
+        cpus: 1
+        memory: 1024

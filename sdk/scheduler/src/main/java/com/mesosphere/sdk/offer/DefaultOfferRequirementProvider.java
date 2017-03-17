@@ -540,25 +540,29 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
         return getNewExecutorInfo(podInstance.getPod(), serviceName, targetConfigurationId);
     }
 
-    private static Protos.ContainerInfo getContainerInfo(ContainerSpec containerSpec) {
+    private static Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
+        if (!podSpec.getImage().isPresent() && podSpec.getNetworks().isEmpty() && podSpec.getRLimits().isEmpty()) {
+            return null;
+        }
+
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
-        if (containerSpec.getImageName().isPresent()) {
+        if (podSpec.getImage().isPresent()) {
             containerInfo.getMesosBuilder()
-                    .setImage(Protos.Image.newBuilder()
-                            .setType(Protos.Image.Type.DOCKER)
-                            .setDocker(Protos.Image.Docker.newBuilder()
-                                    .setName(containerSpec.getImageName().get())));
+            .setImage(Protos.Image.newBuilder()
+                    .setType(Protos.Image.Type.DOCKER)
+                    .setDocker(Protos.Image.Docker.newBuilder()
+                            .setName(podSpec.getImage().get())));
         }
 
-        if (!containerSpec.getNetworks().isEmpty()) {
+        if (!podSpec.getNetworks().isEmpty()) {
             containerInfo.addAllNetworkInfos(
-                    containerSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
+                    podSpec.getNetworks().stream().map(n -> getNetworkInfo(n)).collect(Collectors.toList()));
         }
 
-        if (!containerSpec.getRLimits().isEmpty()) {
-            containerInfo.setRlimitInfo(getRLimitInfo(containerSpec.getRLimits()));
+        if (!podSpec.getRLimits().isEmpty()) {
+            containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
         }
 
         return containerInfo.build();
@@ -593,8 +597,9 @@ public class DefaultOfferRequirementProvider implements OfferRequirementProvider
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build()); // Set later by ExecutorRequirement
 
-        if (podSpec.getContainer().isPresent()) {
-            executorInfoBuilder.setContainer(getContainerInfo(podSpec.getContainer().get()));
+        Protos.ContainerInfo containerInfo = getContainerInfo(podSpec);
+        if (containerInfo != null) {
+            executorInfoBuilder.setContainer(containerInfo);
         }
 
         // command and user:
