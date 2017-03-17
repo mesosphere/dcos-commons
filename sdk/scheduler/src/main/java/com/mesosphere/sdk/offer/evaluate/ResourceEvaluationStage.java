@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -150,9 +151,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
-                offerRecommendation == null ? null : Arrays.asList(offerRecommendation),
-                "Offer contains sufficient '%s'",
-                resourceRequirement.getName());
+                offerRecommendation == null ? Collections.emptyList() : Arrays.asList(offerRecommendation),
+                "Offer contains sufficient '%s': requirement=%s",
+                resourceRequirement.getName(),
+                TextFormat.shortDebugString(resourceRequirement.getValue()));
     }
 
     protected EvaluationOutcome validateRequirements(OfferRequirement offerRequirement) {
