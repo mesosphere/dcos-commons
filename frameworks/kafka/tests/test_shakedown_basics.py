@@ -9,6 +9,8 @@ import dcos
 import dcos.config
 import dcos.http
 
+import urllib
+
 from tests.test_utils import (
     DEFAULT_PARTITION_COUNT,
     DEFAULT_REPLICATION_FACTOR,
@@ -268,7 +270,7 @@ def test_pods_cli():
 
 
 @pytest.mark.smoke
-@pytest.mark.smoke
+@pytest.mark.sanity
 def test_suppress():
     dcos_url = dcos.config.get_config_val('core.dcos_url')
     suppressed_url = urllib.parse.urljoin(dcos_url,
