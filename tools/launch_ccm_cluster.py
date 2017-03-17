@@ -207,11 +207,21 @@ class CCMLauncher(object):
         if is_17_cluster:
             hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos'
         elif config.cf_template.startswith('ee.'):
-            hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise'
+            hostrepo = 's3.amazonaws.com/downloads.mesosphere.io/dcos-enterprise-aws-advanced'
+            # format is different for enterprise security modes.
+            if config.permissions:
+                mode = 'strict'
+            else:
+                mode = 'permissive'
+            template_url = 'https://{}/{}/{}/cloudformation/{}'.format(
+                hostrepo, config.ccm_channel, mode, config.cf_template)
         else:
             hostrepo = 's3-us-west-2.amazonaws.com/downloads.dcos.io/dcos'
-        template_url = 'https://{}/{}/cloudformation/{}'.format(
-            hostrepo, config.ccm_channel, config.cf_template)
+        # non-ee mode
+        if not template_url:
+            template_url = 'https://{}/{}/cloudformation/{}'.format(
+                hostrepo, config.ccm_channel, config.cf_template)
+        # external override from DCOS_TEMPLATE_URL
         if config.template_url:
             template_url = config.template_url
             logger.info("Accepting externally provided template_url from environment.")
